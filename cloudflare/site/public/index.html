@@ -3,180 +3,662 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Deliobot — vos collègues IA</title>
-<meta name="description" content="Deliobot donne à votre équipe des bots IA qui travaillent avec vos outils : Gmail, Slack, GitHub, Notion et des centaines d'autres. Sur le web, sur ordinateur et sur mobile.">
+<title>Deliobot — des collègues IA qui terminent le travail</title>
+<meta name="description" content="Des collègues IA à qui confier du vrai travail. Les bots Deliobot se connectent à vos outils, travaillent avec toute votre équipe et reviennent avec le travail terminé.">
+<meta name="theme-color" content="#0a0a0b">
 <link rel="icon" href="/assets/delio-idle.webp">
-<meta property="og:title" content="Deliobot — vos collègues IA">
-<meta property="og:description" content="Des bots IA qui travaillent avec les outils de votre équipe.">
+<meta property="og:title" content="Deliobot — des collègues IA qui terminent le travail">
+<meta property="og:description" content="Des bots qui se connectent à vos outils, travaillent avec votre équipe et reviennent avec le travail terminé.">
 <meta property="og:image" content="/assets/delio-happy.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--canvas:#0f0f10;--surface:#18181a;--surface-2:#1f1f22;--hairline:#2e2e31;--ink:#f5f5f5;--ink-2:#f5f5f5a8;--ink-3:#f5f5f575;--accent:#1084fe;--accent-text:#7fc0ff;--violet:#a98bff;--success:#38d591;color-scheme:dark}
-@media (prefers-color-scheme:light){:root{--canvas:#f7f7f8;--surface:#fff;--surface-2:#f1f1f3;--hairline:#e2e2e5;--ink:#141416;--ink-2:#141416a3;--ink-3:#14141670;--accent:#1084fe;--accent-text:#0a64c8;--violet:#6b4fd8;--success:#178a5a;color-scheme:light}}
+:root{
+  --bg:#ffffff;--bg-2:#f7f6f4;--card:#f7f6f4;--card-2:#efeeeb;--line:#e6e4e0;--ink:#0b0b0c;--ink-2:#55555a;--ink-3:#8a8a90;
+  --btn:#0b0b0c;--btn-ink:#ffffff;--soft:#efeeeb;--soft-ink:#0b0b0c;
+  --app:#1c1c1e;--app-2:#242426;--app-line:#2f2f32;--app-ink:#f2f2f2;--app-ink-2:#a1a1a6;
+  --accent:#1084fe;--violet:#7b5cff;--success:#2fb67c;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0a0a0b;--bg-2:#111113;--card:#141416;--card-2:#1b1b1e;--line:#232326;--ink:#f5f5f5;--ink-2:#a5a5ab;--ink-3:#6e6e75;
+  --btn:#ffffff;--btn-ink:#0b0b0c;--soft:#1f1f22;--soft-ink:#f5f5f5;color-scheme:dark}}
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;background:var(--canvas);color:var(--ink);font:16px/1.6 "Geist",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-a{color:inherit}
-.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
-header{position:sticky;top:0;z-index:10;backdrop-filter:blur(12px);background:color-mix(in srgb,var(--canvas) 82%,transparent);border-bottom:1px solid var(--hairline)}
-header .wrap{display:flex;align-items:center;gap:10px;height:62px}
-header img{width:30px;height:30px}
-header b{font-weight:600;font-size:17px}
-header nav{margin-left:auto;display:flex;gap:22px;font-size:14px;color:var(--ink-2)}
-header nav a{text-decoration:none}header nav a:hover{color:var(--ink)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;border-radius:10px;font-weight:500;font-size:15px;text-decoration:none;border:1px solid var(--hairline);background:var(--surface);color:var(--ink);transition:transform .15s,background .15s}
-.btn:hover{transform:translateY(-1px)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-.hero{text-align:center;padding:84px 0 56px}
-.mascot{width:168px;height:168px;margin:0 auto 18px;display:block;animation:float 4.5s ease-in-out infinite;filter:drop-shadow(0 18px 40px rgba(16,132,254,.28))}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-@media (prefers-reduced-motion:reduce){.mascot{animation:none}.btn:hover{transform:none}}
-h1{font-size:clamp(34px,6vw,58px);line-height:1.08;letter-spacing:-.025em;margin:0 auto 18px;max-width:820px;font-weight:700}
-h1 span{background:linear-gradient(90deg,var(--accent),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
-.lead{font-size:clamp(17px,2.2vw,20px);color:var(--ink-2);max-width:640px;margin:0 auto 30px}
-.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.platforms{margin-top:22px;font-size:14px;color:var(--ink-3)}
-section{padding:72px 0;border-top:1px solid var(--hairline)}
-h2{font-size:clamp(26px,4vw,38px);letter-spacing:-.02em;margin:0 0 10px;text-align:center}
-.sub{color:var(--ink-2);text-align:center;max-width:600px;margin:0 auto 42px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
-.card{background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:22px}
-.card h3{margin:10px 0 6px;font-size:17px}
-.card p{margin:0;color:var(--ink-2);font-size:15px}
-.icon{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:var(--surface-2);font-size:20px}
-.soon{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--violet);border:1px solid color-mix(in srgb,var(--violet) 45%,transparent);border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:middle}
-.steps{counter-reset:s;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
-.steps .card::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;font-weight:600;font-size:14px}
-.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:14px;align-items:stretch}
-.plan{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:22px}
-.plan.hl{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 20px 50px -20px rgba(16,132,254,.45)}
-.plan .tag{font-size:12px;font-weight:600;color:var(--accent-text);text-transform:uppercase;letter-spacing:.05em;min-height:18px}
-.plan h3{margin:4px 0 2px;font-size:20px}
-.price{font-size:32px;font-weight:700;letter-spacing:-.02em;margin:8px 0 0}
-.price small{font-size:14px;font-weight:400;color:var(--ink-2)}
-.plan .credits{color:var(--ink-2);font-size:14px;margin:4px 0 14px}
-.plan ul{list-style:none;padding:0;margin:0 0 18px;font-size:14px;color:var(--ink-2);flex:1}
-.plan li{padding:5px 0 5px 22px;position:relative}
-.plan li::before{content:"✓";position:absolute;left:0;color:var(--success);font-weight:700}
-.plan .btn{width:100%}
-.note{text-align:center;color:var(--ink-3);font-size:13px;margin-top:22px}
-.faq{max-width:760px;margin:0 auto}
-details{background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:16px 20px;margin-bottom:10px}
-summary{cursor:pointer;font-weight:500;list-style:none}
-summary::-webkit-details-marker{display:none}
-summary::after{content:"+";float:right;color:var(--ink-3)}
-details[open] summary::after{content:"−"}
-details p{color:var(--ink-2);margin:10px 0 0;font-size:15px}
-.final{text-align:center}
-.final img{width:110px;height:110px}
-footer{border-top:1px solid var(--hairline);padding:28px 0;color:var(--ink-3);font-size:13px}
-footer .wrap{display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
-@media (max-width:640px){header nav{display:none}.hero{padding:56px 0 40px}section{padding:56px 0}}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Geist",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit}
+.wrap{max-width:1280px;margin:0 auto;padding:0 24px}
+.narrow{max-width:1000px;margin:0 auto;padding:0 24px}
+
+/* header */
+header{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px)}
+header .bar{height:64px;display:flex;align-items:center;gap:36px;border-bottom:1px solid transparent;transition:border-color .2s}
+header.scrolled .bar{border-color:var(--line)}
+.brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:17px;letter-spacing:-.01em}
+.brand img{width:30px;height:30px}
+nav.main{display:flex;gap:28px;font-size:15px}
+nav.main a{color:var(--ink);opacity:.86}nav.main a:hover{opacity:1}
+.actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.pill{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 18px;border-radius:999px;font-size:15px;font-weight:500;border:0;cursor:pointer;white-space:nowrap;transition:transform .15s,opacity .15s,background .15s}
+.pill:active{transform:scale(.98)}
+.pill.dark{background:var(--btn);color:var(--btn-ink)}
+.pill.soft{background:var(--soft);color:var(--soft-ink)}
+.pill.lg{height:54px;padding:0 28px;font-size:17px}
+.split{display:inline-flex;align-items:stretch;border-radius:999px;background:var(--btn);color:var(--btn-ink);position:relative}
+.split a{display:flex;align-items:center;padding:0 16px 0 18px;height:40px;font-size:15px;font-weight:500}
+.split button{border:0;background:transparent;color:inherit;border-left:1px solid color-mix(in srgb,var(--btn-ink) 22%,transparent);padding:0 12px;cursor:pointer;display:grid;place-items:center}
+.menu{position:absolute;right:0;top:calc(100% + 8px);min-width:230px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:6px;box-shadow:0 20px 50px -18px rgba(0,0,0,.35);display:none}
+.menu.open{display:block}
+.menu a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:14px}
+.menu a:hover{background:var(--card)}
+.menu small{display:block;color:var(--ink-3);font-size:12px}
+.burger{display:none;border:0;background:transparent;width:40px;height:40px;cursor:pointer}
+
+/* hero */
+.hero{text-align:center;padding:72px 0 0}
+.announce{display:inline-flex;align-items:center;gap:8px;padding:6px 6px 6px 14px;border-radius:999px;background:var(--soft);font-size:14px;color:var(--ink-2)}
+.announce b{color:var(--ink);font-weight:500}
+.announce i{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--bg);font-style:normal;font-size:12px}
+h1{font-size:clamp(44px,7.4vw,92px);font-weight:500;letter-spacing:-.035em;line-height:1;margin:34px 0 0;display:flex;align-items:center;justify-content:center;gap:.16em;flex-wrap:wrap}
+h1 .face{width:1.02em;height:1.02em;flex:none;animation:bob 4s ease-in-out infinite}
+.hero .sub{max-width:720px;margin:24px auto 0;font-size:clamp(17px,2vw,21px);color:var(--ink-2);line-height:1.5}
+.hero .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:34px}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-6px) rotate(-3deg)}}
+
+/* app mockup */
+.stage{position:relative;margin:64px auto 0;max-width:1220px}
+.app{display:grid;grid-template-columns:300px 1fr;height:620px;border-radius:26px;overflow:hidden;background:var(--app);color:var(--app-ink);text-align:left;box-shadow:0 40px 120px -40px rgba(0,0,0,.55),0 0 0 1px var(--app-line);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.side{background:#161618;border-right:1px solid var(--app-line);padding:16px 14px;display:flex;flex-direction:column}
+.dots{display:flex;gap:8px;align-items:center;height:40px}
+.dots i{width:12px;height:12px;border-radius:50%;background:#ff5f57}.dots i:nth-child(2){background:#febc2e}.dots i:nth-child(3){background:#28c840}
+.dots span{margin-left:auto;display:flex;gap:8px}
+.circle{width:36px;height:36px;border-radius:50%;border:1px solid var(--app-line);display:grid;place-items:center;color:var(--app-ink-2)}
+.fav{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:14px 0 10px}
+.fav div{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;border-radius:14px;font-size:13px;color:var(--app-ink-2);text-align:center;line-height:1.2}
+.fav div.on{background:#2a2a2d;color:var(--app-ink)}
+.fav .bot{width:58px;height:58px}
+.thread{display:flex;gap:12px;align-items:center;padding:10px 6px;border-radius:12px}
+.thread .bot{width:38px;height:38px;flex:none}
+.thread b{display:block;font-weight:500;font-size:15px}
+.thread span{display:block;font-size:13px;color:var(--app-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px}
+.me{margin-top:auto;display:flex;align-items:center;gap:10px;font-size:14px;padding:6px}
+.me i{width:30px;height:30px;border-radius:50%;background:#2a2a2d;display:grid;place-items:center;font-style:normal;font-size:11px;color:var(--app-ink-2)}
+.chat{display:flex;flex-direction:column;background:var(--app-2);min-width:0}
+.chat-top{height:58px;display:flex;align-items:center;justify-content:center;position:relative}
+.chip{display:inline-flex;align-items:center;gap:8px;background:#2c2c2f;border-radius:999px;padding:5px 12px 5px 6px;font-size:14px;font-weight:500}
+.chip .bot{width:22px;height:22px}
+.share{position:absolute;right:16px;font-size:14px;border:1px solid var(--app-line);border-radius:999px;padding:5px 14px}
+.msgs{flex:1;overflow:hidden;padding:8px 26px;display:flex;flex-direction:column;gap:14px;justify-content:flex-end}
+.when{align-self:center;font-size:13px;color:var(--app-ink-2)}
+.m{max-width:74%;padding:11px 16px;border-radius:20px;font-size:15px;line-height:1.45;animation:pop .35s ease both}
+.m.bot-m{background:#2e2e31;align-self:flex-start;border-top-left-radius:8px}
+.m.user{background:#f2f2f2;color:#111;align-self:flex-end;border-top-right-radius:8px}
+.m .at{color:#7fb6ff}
+.status{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--app-ink-2);animation:pop .3s ease both}
+.status .ring{width:30px;height:30px;border-radius:50%;border:1px solid var(--app-line);display:grid;place-items:center}
+.status .ring i{width:10px;height:10px;border-radius:50%;background:#38d591;box-shadow:0 0 0 0 rgba(56,213,145,.6);animation:ping 1.4s infinite}
+.shimmer{background:linear-gradient(90deg,var(--app-ink-2) 0%,#fff 50%,var(--app-ink-2) 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:sh 1.6s linear infinite}
+.done{align-self:flex-start;background:#2e2e31;border-radius:16px;padding:10px 16px;font-size:14px;display:flex;flex-direction:column;gap:6px;animation:pop .35s ease both}
+.done span::before{content:"✓ ";color:#38d591;font-weight:700}
+.compose{margin:10px 22px 20px;border:1px solid var(--app-line);border-radius:22px;height:52px;display:flex;align-items:center;gap:12px;padding:0 8px 0 10px;color:var(--app-ink-2);font-size:15px}
+.compose .plus{width:34px;height:34px;border-radius:50%;background:#2c2c2f;display:grid;place-items:center}
+.compose .mic{margin-left:auto;width:34px;height:34px;border-radius:50%;background:#f2f2f2;color:#111;display:grid;place-items:center}
+.approve{position:absolute;width:300px;background:#fff;color:#111;border-radius:18px;padding:14px 16px;box-shadow:0 24px 60px -20px rgba(0,0,0,.45);font-family:system-ui,-apple-system,sans-serif;font-size:14px;text-align:left;opacity:0;transform:translateY(12px);transition:opacity .5s,transform .5s}
+.approve.show{opacity:1;transform:none}
+.approve small{display:flex;align-items:center;gap:6px;color:#b26b00;font-weight:600;font-size:12px}
+.approve small::before{content:"";width:7px;height:7px;border-radius:50%;background:#f5a623}
+.approve b{display:block;margin:6px 0 2px;font-weight:600}
+.approve p{margin:0 0 12px;color:#666}
+.approve .row{display:flex;gap:8px}
+.approve .row span{flex:1;text-align:center;padding:7px;border-radius:999px;background:#111;color:#fff;font-weight:500}
+.approve .row span+span{background:#f0f0f0;color:#111}
+.ap1{right:-34px;top:120px}.ap2{left:-40px;bottom:90px;transition-delay:.25s}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes ping{70%{box-shadow:0 0 0 10px rgba(56,213,145,0)}100%{box-shadow:0 0 0 0 rgba(56,213,145,0)}}
+@keyframes sh{to{background-position:-200% 0}}
+
+/* coloured Delio: the mascot multiplied over a silhouette of itself, so white takes the colour and the face stays */
+.bot{position:relative;display:block;-webkit-mask:var(--src) center/contain no-repeat;mask:var(--src) center/contain no-repeat;background:var(--c,#fff);isolation:isolate}
+.bot img{width:100%;height:100%;object-fit:contain;mix-blend-mode:multiply}
+.bot.plain{background:transparent}.bot.plain img{mix-blend-mode:normal}
+
+/* sections */
+section{padding:140px 0 0}
+h2{font-size:clamp(34px,4.6vw,56px);font-weight:500;letter-spacing:-.03em;line-height:1.05;margin:0}
+h2.c{text-align:center}
+.lede{font-size:clamp(17px,1.7vw,20px);color:var(--ink-2);line-height:1.55}
+.lede.c{text-align:center;max-width:720px;margin:18px auto 0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+.two .lede p{margin:0 0 18px;color:var(--ink)}
+.troupe{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-top:84px;padding-bottom:12px}
+.troupe .bot{width:clamp(56px,10vw,150px);aspect-ratio:1;transition:transform .35s cubic-bezier(.3,1.6,.5,1);animation:bob 5s ease-in-out infinite}
+.troupe .bot:nth-child(2n){animation-delay:-1.2s}.troupe .bot:nth-child(3n){animation-delay:-2.4s}
+.troupe .bot:hover{transform:translateY(-14px) scale(1.08) rotate(-4deg)}
+.video{margin-top:120px;border-radius:30px;aspect-ratio:16/8;position:relative;overflow:hidden;background:radial-gradient(120% 90% at 50% 120%,#5b3df5 0%,#2a1a7a 45%,#140c3a 100%);display:flex;align-items:flex-start;padding:7% 6%;color:#fff}
+.video::after{content:"";position:absolute;left:50%;bottom:-62%;width:80%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle at 50% 30%,rgba(140,110,255,.35),rgba(20,12,58,0) 60%)}
+.video .play{display:flex;align-items:center;gap:18px;font-size:clamp(34px,5vw,64px);font-weight:500;letter-spacing:-.03em;position:relative;z-index:1}
+.video .play svg{width:.55em;height:.55em}
+.video .soon{position:absolute;z-index:1;left:6%;bottom:9%;font-size:15px;color:#cfc5ff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:6px 14px}
+.video img{position:absolute;z-index:1;right:9%;bottom:-6%;width:30%;opacity:.95;filter:drop-shadow(0 30px 60px rgba(0,0,0,.45));animation:bob 6s ease-in-out infinite}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:72px}
+.feat{background:var(--card);border-radius:30px;padding:32px 32px 0;overflow:hidden;min-height:440px;display:flex;flex-direction:column}
+.feat h3{font-size:21px;font-weight:500;letter-spacing:-.01em;margin:0 0 8px}
+.feat p{margin:0;color:var(--ink);opacity:.82;font-size:16.5px;line-height:1.6}
+.ill{margin-top:34px;flex:1;position:relative;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:13.5px;color:#111}
+.panel{background:#fff;border-radius:16px 16px 0 0;box-shadow:0 1px 0 rgba(0,0,0,.04),0 12px 30px -16px rgba(0,0,0,.25);height:100%;overflow:hidden}
+.note{background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 10px 30px -12px rgba(0,0,0,.3);position:relative;z-index:1}
+.note .who{display:flex;align-items:center;gap:6px;font-weight:600}.note .who span{color:#999;font-weight:400}
+.note .who .bot{width:18px;height:18px}
+.rows{padding:14px 16px}
+.rows .r{display:flex;align-items:center;gap:12px;height:34px;border-radius:8px;padding:0 8px;margin-bottom:6px}
+.rows .r i{width:16px;height:16px;border-radius:50%;background:#e8e8e8;flex:none}
+.rows .r.ok{background:#eaf8f1}.rows .r.ok i{background:#2fb67c;position:relative}
+.rows .r.ok i::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:10px;font-weight:700}
+.skel{height:6px;border-radius:4px;background:#e4e4e4}
+.browser{margin:0 26px;background:#fff;border-radius:12px 12px 0 0;height:100%;box-shadow:0 12px 40px -14px rgba(0,0,0,.35)}
+.browser .top{height:32px;display:flex;align-items:center;gap:6px;padding:0 12px;border-bottom:1px solid #eee}
+.browser .top i{width:9px;height:9px;border-radius:50%;background:#ff5f57}.browser .top i:nth-child(2){background:#febc2e}.browser .top i:nth-child(3){background:#28c840}
+.browser .url{margin:0 auto;background:#f3f3f3;border-radius:999px;padding:2px 14px;font-size:11.5px;color:#666}
+.login{width:62%;margin:22px auto 0;display:flex;flex-direction:column;gap:8px}
+.login .in{border:1px solid #ddd;border-radius:7px;height:30px;padding:0 10px;display:flex;align-items:center;color:#999}
+.login .in.typing{border-color:#111;color:#111}
+.login .in.typing::after{content:"";width:1px;height:14px;background:#111;margin-left:1px;animation:blink 1s steps(1) infinite}
+.login .go{height:30px;border-radius:7px;background:#111;color:#fff;display:grid;place-items:center;font-weight:500}
+@keyframes blink{50%{opacity:0}}
+.scene{border-radius:14px 14px 0 0;padding:18px 18px 0;height:100%;background:linear-gradient(160deg,#c9e4ec,#7aa7b8 55%,#3e6f80)}
+.scene.warm{background:linear-gradient(160deg,#f5d0c5,#e7a08f 50%,#c97563)}
+.badge{position:absolute;top:-6px;right:0;font-size:12px;font-weight:500;background:#fff6e0;color:#a26a00;border-radius:999px;padding:3px 10px;z-index:2}
+.teach{position:absolute;top:-4px;right:6px;z-index:2;background:#f2f2f2;border-radius:999px;padding:5px 12px;font-weight:500}
+.chart{display:flex;align-items:flex-end;gap:10px;height:120px;padding:0 16px}
+.chart i{flex:1;background:#8fb0ff;border-radius:4px 4px 0 0}
+.meet{background:#1c1c1e;border-radius:14px 14px 0 0;height:100%;padding:8px;display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:110px;gap:6px}
+.meet div{background:#2d2d30;border-radius:8px;position:relative;display:grid;place-items:center;color:#fff;font-size:22px;font-weight:600}
+.meet div span{position:absolute;left:8px;bottom:6px;font-size:11.5px;font-weight:400;color:#ddd}
+.meet div.delio{background:#2a3550}
+.meet .bot{width:62px;height:62px}
+.slack{display:grid;grid-template-columns:52px 1fr;height:100%;border-radius:14px 14px 0 0;overflow:hidden;background:#fff;box-shadow:0 12px 40px -14px rgba(0,0,0,.25)}
+.slack .rail{background:#3f0e40;display:flex;flex-direction:column;align-items:center;gap:16px;padding-top:12px;color:#e9d7ea;font-size:10px}
+.slack .rail b{width:30px;height:30px;border-radius:8px;background:#fff;display:block}
+.slack .chan{padding:12px 16px}
+.slack .chan .h{font-weight:600;font-size:14.5px;padding-bottom:10px;border-bottom:1px solid #eee;margin-bottom:12px}
+.slack .msg{display:flex;gap:10px;margin-bottom:14px}
+.slack .msg .bot{width:30px;height:30px;flex:none}
+.slack .msg b small{font-weight:400;color:#888;margin-left:6px;font-size:11px}
+.slack .msg .at{color:#1264a3;background:#e8f5fa;border-radius:3px;padding:0 2px}
+.dotsx{display:inline-flex;gap:3px;vertical-align:middle;margin-right:6px}.dotsx i{width:5px;height:5px;border-radius:50%;background:#ff8a5b;animation:bounce 1.2s infinite}.dotsx i:nth-child(2){animation-delay:.15s}.dotsx i:nth-child(3){animation-delay:.3s}
+@keyframes bounce{40%{transform:translateY(-3px)}}
+.mem{border-radius:14px 14px 0 0;height:100%;background:linear-gradient(180deg,#e6dcfb,#d9ccf7);position:relative;padding:24px}
+.mem .tip{position:absolute;right:18px;top:40px;background:#fff;border-radius:12px;padding:8px 12px;box-shadow:0 8px 24px -10px rgba(0,0,0,.25)}
+.mem .think{position:absolute;left:24px;top:90px;color:#8b7fb0}
+.mem .think .dotsx i{background:#8b7fb0}
+
+/* jobs */
+.jobs{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;margin-top:0;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin:34px 0 34px}
+.chips button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:7px 14px;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;color:var(--ink-2);transition:all .2s}
+.chips button .bot{width:20px;height:20px}
+.chips button.on{border-color:#7fd3c4;background:color-mix(in srgb,#2fb6a0 10%,transparent);color:#1a9c87}
+.jobdesc{font-size:18px;line-height:1.6;color:var(--ink-3);min-height:120px}
+.jobdesc b{color:var(--ink);font-weight:500}
+.phone{width:min(340px,100%);margin:0 auto;border:6px solid #2a2a2c;border-radius:46px;background:#fafafa;color:#111;padding:18px 14px 14px;height:640px;display:flex;flex-direction:column;box-shadow:0 30px 80px -30px rgba(0,0,0,.45);font-family:system-ui,-apple-system,sans-serif;font-size:14px}
+.phone .ph-top{display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;padding-bottom:12px}
+.phone .ph-top .bot{width:24px;height:24px}
+.phone .feed{flex:1;display:flex;flex-direction:column;gap:10px;justify-content:flex-end;overflow:hidden}
+.phone .b{background:#eee;border-radius:18px;padding:10px 12px;max-width:84%;line-height:1.4;animation:pop .35s ease both}
+.phone .u{background:#111;color:#fff;align-self:flex-end;border-radius:18px;padding:10px 12px;max-width:80%;animation:pop .35s ease both}
+.phone .card{background:#fff;border:1px solid #e6e6e6;border-radius:14px;padding:10px 12px;margin-top:6px}
+.phone .acts{display:flex;gap:6px;margin-top:8px}.phone .acts span{background:#111;color:#fff;border-radius:999px;padding:5px 12px;font-size:13px}.phone .acts span+span{background:#fff;color:#111;border:1px solid #ddd}
+.phone .in{margin-top:10px;display:flex;align-items:center;gap:8px}
+.phone .in i{width:34px;height:34px;border-radius:50%;background:#fff;border:1px solid #e5e5e5;display:grid;place-items:center;font-style:normal}
+.phone .in span{flex:1;height:38px;border-radius:999px;background:#fff;border:1px solid #e5e5e5;display:flex;align-items:center;padding:0 14px;color:#999}
+
+/* pricing */
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:56px}
+.plan{background:var(--card);border-radius:28px;padding:30px}
+.plan .nm{color:var(--ink-2);font-size:16px}
+.plan .pr{font-size:42px;font-weight:500;letter-spacing:-.03em;margin-top:10px}
+.plan .pr small{font-size:16px;color:var(--ink-2);font-weight:400;letter-spacing:0;margin-left:4px}
+.plan .bill{color:var(--ink-2);font-size:15px;margin-top:2px}
+.plan .pill{width:100%;height:46px;margin:24px 0 26px;font-size:16px}
+.plan .inc{font-size:15px;margin-bottom:12px}
+.plan ul{list-style:none;padding:0;margin:0;color:var(--ink-2);font-size:15px}
+.plan li{padding:5px 0 5px 26px;position:relative}
+.plan li::before{content:"";position:absolute;left:2px;top:11px;width:10px;height:6px;border-left:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:rotate(-45deg)}
+.allplans{margin-top:16px;background:var(--card);border-radius:22px;padding:18px 22px;display:flex;align-items:center;gap:14px;font-size:15.5px}
+.allplans span{color:var(--ink-2)}
+.allplans .pill{margin-left:auto;background:transparent;border:1px solid var(--line);color:var(--ink)}
+.toggle{display:flex;justify-content:center;gap:12px;margin-top:22px}
+
+/* download */
+.dl{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+.plat{background:var(--card);border-radius:24px;padding:8px}
+.plat a{display:flex;align-items:center;gap:16px;padding:14px 16px;border-radius:16px}
+.plat a:hover{background:var(--card-2)}
+.plat .ic{width:36px;height:36px;display:grid;place-items:center;color:var(--ink)}
+.plat b{font-weight:500;display:block}
+.plat small{color:var(--ink-3);font-size:13px}
+.plat .tag{margin-left:auto;font-size:12px;color:var(--ink-3);border:1px solid var(--line);border-radius:999px;padding:3px 10px}
+
+/* guides */
+.guides{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
+.guide{background:var(--card);border-radius:24px;overflow:hidden}
+.guide .th{aspect-ratio:16/9;display:grid;place-items:center;position:relative}
+.guide .th .bot{width:34%;aspect-ratio:1}
+.guide .tx{padding:20px 20px 24px}
+.guide small{color:var(--ink-3);font-size:14px}
+.guide p{margin:6px 0 0;font-size:16px;line-height:1.45}
+.center{text-align:center;margin-top:32px}
+
+/* faq */
+.faq{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:280px 1fr;gap:48px;padding:0 24px}
+.qa{border-top:1px solid var(--line)}
+.qa details{border-bottom:1px solid var(--line)}
+.qa summary{list-style:none;cursor:pointer;padding:22px 40px 22px 0;font-size:18px;font-weight:500;position:relative}
+.qa summary::-webkit-details-marker{display:none}
+.qa summary::after{content:"";position:absolute;right:6px;top:50%;width:10px;height:10px;border-right:1.6px solid var(--ink-2);border-bottom:1.6px solid var(--ink-2);transform:translateY(-70%) rotate(45deg);transition:transform .2s}
+.qa details[open] summary::after{transform:translateY(-30%) rotate(-135deg)}
+.qa p{margin:-6px 0 22px;color:var(--ink-2);font-size:16.5px;line-height:1.6;max-width:640px}
+
+/* closing */
+.closing{text-align:center;padding-top:150px;overflow:hidden}
+.closing .lede{margin:14px auto 0}
+.closing .cta{display:flex;gap:12px;justify-content:center;margin-top:30px}
+.closing .big{width:min(980px,90%);margin:70px auto 0;height:clamp(220px,34vw,460px);overflow:hidden;position:relative}
+.closing .big img{width:100%;opacity:.16;filter:grayscale(1) contrast(1.1)}
+@media (prefers-color-scheme:dark){.closing .big img{opacity:.1;filter:grayscale(1)}}
+footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color:var(--ink-2)}
+.fcols{display:grid;grid-template-columns:1.3fr repeat(4,1fr);gap:32px}
+.fcols h4{margin:0 0 14px;color:var(--ink);font-weight:500;font-size:14px}
+.fcols a{display:block;padding:4px 0}.fcols a:hover{color:var(--ink)}
+.fine{margin-top:48px;display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between;color:var(--ink-3);font-size:13px}
+
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .8s ease,transform .8s ease}
+.reveal.in{opacity:1;transform:none}
+
+@media (max-width:1100px){.ap1,.ap2{display:none}}
+@media (max-width:900px){
+  nav.main{display:none}.burger{display:grid;place-items:center}
+  header.open nav.main{display:flex;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:var(--bg);padding:16px 24px 24px;gap:16px;border-bottom:1px solid var(--line)}
+  .app{grid-template-columns:1fr;height:560px}.side{display:none}
+  .two,.grid,.jobs,.dl,.faq{grid-template-columns:1fr}
+  .plans,.guides{grid-template-columns:1fr}
+  .fcols{grid-template-columns:1fr 1fr}
+  section{padding-top:100px}
+  .feat{min-height:380px;padding:26px 22px 0}
+}
+@media (max-width:560px){
+  .actions .soft{display:none}
+  .split a{padding:0 12px 0 14px}
+  .troupe{flex-wrap:wrap;justify-content:center}
+  .allplans{flex-direction:column;align-items:flex-start}.allplans .pill{margin-left:0}
+  .phone{height:560px}
+  .m{max-width:90%}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
 </style>
 </head>
 <body>
-<header><div class="wrap">
-  <img src="/assets/delio-idle.webp" alt=""><b>Deliobot</b>
-  <nav><a href="#fonctions">Fonctions</a><a href="#tarifs">Tarifs</a><a href="#faq">Questions</a></nav>
-</div></header>
+
+<header id="top">
+  <div class="wrap bar">
+    <a class="brand" href="/"><img src="/assets/delio-idle.webp" alt="">Deliobot</a>
+    <nav class="main" aria-label="Navigation principale">
+      <a href="#fonctions">Produit</a>
+      <a href="#metiers">Solutions</a>
+      <a href="#tarifs">Tarifs</a>
+      <a href="#telecharger">Télécharger</a>
+      <a href="#faq">Questions</a>
+    </nav>
+    <div class="actions">
+      <a class="pill soft" href="#tarifs">Se connecter</a>
+      <div class="split">
+        <a href="#telecharger" data-os-label>Télécharger</a>
+        <button type="button" aria-label="Autres plateformes" aria-expanded="false" data-menu-toggle>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 4.5 6 8l3.5-3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="menu" role="menu">
+          <a href="#telecharger" role="menuitem">🪟 <span>Windows<small>Windows 10 et 11</small></span></a>
+          <a href="#telecharger" role="menuitem"> <span>macOS<small>Apple Silicon et Intel</small></span></a>
+          <a href="#telecharger" role="menuitem">🐧 <span>Linux<small>.deb, AppImage</small></span></a>
+          <a href="#telecharger" role="menuitem">📱 <span>Mobile<small>iPhone et Android, depuis le navigateur</small></span></a>
+        </div>
+      </div>
+      <button class="burger" type="button" aria-label="Menu" data-burger>
+        <svg width="20" height="20" viewBox="0 0 20 20"><path d="M3 6h14M3 14h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
 
 <main>
-<div class="wrap hero">
-  <img class="mascot" src="/assets/delio-happy.webp" alt="Delio, la mascotte de Deliobot" width="168" height="168">
-  <h1>Des collègues IA qui <span>travaillent vraiment</span> avec votre équipe</h1>
-  <p class="lead">Deliobot donne à votre équipe des bots IA branchés sur vos outils — Gmail, Slack, GitHub, Notion et des centaines d'autres. Ils répondent, cherchent, rédigent et agissent, avec les accès de chacun.</p>
-  <div class="cta">
-    <a class="btn primary" href="#tarifs">Essayer pour 1 €</a>
-    <a class="btn" href="#fonctions">Voir les fonctions</a>
-  </div>
-  <p class="platforms">Sur le web · sur ordinateur (macOS, Windows, Linux) · sur mobile</p>
-</div>
+<section class="hero" style="padding-top:72px">
+  <div class="wrap">
+    <a class="announce" href="#fonctions"><b>Deliobot est disponible.</b> Découvrez ce qu'il sait faire <i>↗</i></a>
+    <h1>Voici <img class="face" src="/assets/delio-happy.webp" alt=""> Delio</h1>
+    <p class="sub">Des collègues IA à qui confier du vrai travail. Les bots se connectent à vos outils, travaillent avec toute votre équipe et reviennent avec le travail terminé.</p>
+    <div class="cta">
+      <a class="pill dark lg" href="#telecharger" data-os-label="hero">Télécharger</a>
+      <a class="pill soft lg" href="#tarifs">Essayer pour 1 €</a>
+    </div>
 
-<section id="fonctions"><div class="wrap">
-  <h2>Tout ce qu'il faut pour une équipe augmentée</h2>
-  <p class="sub">Un espace de travail par entreprise, des bots par service, et les meilleurs modèles d'IA au même endroit.</p>
-  <div class="grid">
-    <div class="card"><div class="icon">🧠</div><h3>Les meilleurs modèles</h3><p>Claude, GPT, Gemini, Llama et des centaines d'autres. Choisissez, ou laissez le mode Auto prendre le bon modèle pour chaque tâche.</p></div>
-    <div class="card"><div class="icon">🔌</div><h3>Branché sur vos outils</h3><p>Gmail, Slack, GitHub, Notion, Google Drive… Vos bots lisent et agissent là où votre équipe travaille déjà.</p></div>
-    <div class="card"><div class="icon">🎨</div><h3>Images et vidéo</h3><p>Créez des visuels directement dans la conversation. La vidéo arrive bientôt.<span class="soon">bientôt</span></p></div>
-    <div class="card"><div class="icon">🖥️</div><h3>Des ordinateurs pour vos bots</h3><p>Chaque bot peut disposer de son propre ordinateur dans le cloud pour naviguer, tester et accomplir des tâches longues.</p></div>
-    <div class="card"><div class="icon">👥</div><h3>Pensé pour les équipes</h3><p>Membres, rôles, invitations et connexion d'entreprise (SSO). Retirer quelqu'un coupe son accès en quelques secondes.</p></div>
-    <div class="card"><div class="icon">🔑</div><h3>Vos clés, si vous préférez</h3><p>Utilisez nos crédits inclus, ou apportez vos propres clés d'IA avec l'offre BYOK, moins chère.</p></div>
-  </div>
-</div></section>
-
-<section><div class="wrap">
-  <h2>Prêt en trois étapes</h2>
-  <p class="sub">Pas d'installation compliquée : votre espace est créé pour vous.</p>
-  <div class="steps">
-    <div class="card"><h3>Créez votre espace</h3><p>Choisissez un nom, invitez votre équipe. Votre espace a sa propre adresse sécurisée.</p></div>
-    <div class="card"><h3>Branchez vos outils</h3><p>Connectez Gmail, Slack ou GitHub en quelques clics, et donnez un rôle à chaque bot.</p></div>
-    <div class="card"><h3>Travaillez ensemble</h3><p>Sur le web, sur ordinateur ou sur votre téléphone : un seul compte, un seul solde de crédits.</p></div>
-  </div>
-</div></section>
-
-<section id="tarifs"><div class="wrap">
-  <h2>Des tarifs simples</h2>
-  <p class="sub">Un abonnement par personne, avec des crédits d'IA inclus. Rechargez quand vous voulez.</p>
-  <div class="plans">
-    <div class="plan">
-      <div class="tag">Pour découvrir</div><h3>Essai</h3>
-      <div class="price">1 € <small>/ 3 jours</small></div><div class="credits">100 crédits</div>
-      <ul><li>Tout Pro pendant 3 jours</li><li>Images et mode Auto</li><li>Passe en Pro ensuite, résiliable en un clic</li></ul>
-      <a class="btn" href="#bientot">Commencer</a>
-    </div>
-    <div class="plan hl">
-      <div class="tag">Le plus choisi</div><h3>Pro</h3>
-      <div class="price">25 € <small>/ utilisateur / mois</small></div><div class="credits">2 000 crédits par utilisateur</div>
-      <ul><li>Modèles standard et mode Auto</li><li>Génération d'images</li><li>1 ordinateur cloud à la fois</li><li>Recharges disponibles</li></ul>
-      <a class="btn primary" href="#bientot">Choisir Pro</a>
-    </div>
-    <div class="plan">
-      <div class="tag">Vos propres clés</div><h3>Pro BYOK</h3>
-      <div class="price">12 € <small>/ utilisateur / mois</small></div><div class="credits">Vos clés d'IA</div>
-      <ul><li>Tout le logiciel Deliobot</li><li>Vos clés OpenRouter, fal, Boat</li><li>Aucun coût d'IA chez nous</li></ul>
-      <a class="btn" href="#bientot">Choisir BYOK</a>
-    </div>
-    <div class="plan">
-      <div class="tag">Haut de gamme</div><h3>Business</h3>
-      <div class="price">59 € <small>/ utilisateur / mois</small></div><div class="credits">6 000 crédits par utilisateur</div>
-      <ul><li>Modèles premium (Claude Opus…)</li><li>Connexion d'entreprise (SSO)</li><li>5 ordinateurs cloud, plafonds par personne</li><li>Support prioritaire</li></ul>
-      <a class="btn" href="#bientot">Choisir Business</a>
-    </div>
-    <div class="plan">
-      <div class="tag">Grandes équipes</div><h3>Entreprise</h3>
-      <div class="price">Sur devis</div><div class="credits">Crédits sur mesure</div>
-      <ul><li>Tout Business</li><li>Contrat et facture annuelle</li><li>Serveur dédié, SLA</li><li>Accompagnement</li></ul>
-      <a class="btn" href="#bientot">Nous contacter</a>
+    <div class="stage reveal">
+      <div class="app" aria-hidden="true">
+        <aside class="side">
+          <div class="dots"><i></i><i></i><i></i><span><b class="circle">⌕</b><b class="circle">+</b></span></div>
+          <div class="fav">
+            <div class="on"><span class="bot" style="--c:#4fbfa8;--src:url(/assets/delio-happy.webp)"><img src="/assets/delio-happy.webp" alt=""></span>Lancement</div>
+            <div><span class="bot" style="--c:#6a63ff;--src:url(/assets/delio-curious.webp)"><img src="/assets/delio-curious.webp" alt=""></span>Boîte mail</div>
+            <div><span class="bot" style="--c:#9b6bff;--src:url(/assets/delio-thinking.webp)"><img src="/assets/delio-thinking.webp" alt=""></span>Données marketing</div>
+          </div>
+          <div class="thread"><span class="bot" style="--c:#4d8dff;--src:url(/assets/delio-listening.webp)"><img src="/assets/delio-listening.webp" alt=""></span><div><b>Recrutement</b><span>3 présentations rédigées dans votre ton…</span></div></div>
+          <div class="thread"><span class="bot" style="--c:#ff7a3d;--src:url(/assets/delio-working.webp)"><img src="/assets/delio-working.webp" alt=""></span><div><b>Notes de frais</b><span>Rapport déposé, 9 reçus, rien à signaler</span></div></div>
+          <div class="thread"><span class="bot" style="--c:#4cc77a;--src:url(/assets/delio-proud.webp)"><img src="/assets/delio-proud.webp" alt=""></span><div><b>Bras droit</b><span>Votre vol est déplacé à vendredi…</span></div></div>
+          <div class="me"><i>CM</i>Camille Martin</div>
+        </aside>
+        <div class="chat">
+          <div class="chat-top"><span class="chip"><span class="bot" style="--c:#4fbfa8;--src:url(/assets/delio-happy.webp)"><img src="/assets/delio-happy.webp" alt=""></span>Lancement</span><span class="share">Partager</span></div>
+          <div class="msgs" id="msgs"><div class="when">Vendredi 7:48</div></div>
+          <div class="compose"><span class="plus">+</span>Message à Lancement<span class="mic">🎙</span></div>
+        </div>
+      </div>
+      <div class="approve ap1" id="ap1"><small>Votre accord est requis</small><b>Fiches magasin · v3</b><p>Autonomie mise à jour : 40 heures. Envoi à l'imprimeur.</p><div class="row"><span>Envoyer</span><span>Modifier</span></div></div>
+      <div class="approve ap2" id="ap2"><small>Votre accord est requis</small><b>E-mail de lancement · « Voici Arc »</b><p>Liste d'attente · jeudi 9:00</p><div class="row"><span>Programmer</span><span>Modifier</span></div></div>
     </div>
   </div>
-  <p class="note" id="bientot">Les inscriptions ouvrent très bientôt. Prix hors taxes. Recharges : 5 000 crédits pour 20 €, valables 12 mois.</p>
-</div></section>
+</section>
 
-<section id="faq"><div class="wrap faq">
-  <h2>Questions fréquentes</h2>
-  <p class="sub">&nbsp;</p>
-  <details><summary>Qu'est-ce qu'un crédit ?</summary><p>Un crédit est l'unité de consommation de l'IA. Un message en mode Auto coûte en général 1 à 3 crédits, une image de 2 à 20 selon le modèle. Votre solde est visible à tout moment.</p></details>
-  <details><summary>Que se passe-t-il quand mes crédits sont épuisés ?</summary><p>Vos bots s'arrêtent d'utiliser l'IA jusqu'à la recharge ou au mois suivant. Rien n'est facturé en plus sans votre accord, et vos données restent accessibles.</p></details>
-  <details><summary>C'est quoi le mode Auto ?</summary><p>Le mode Auto choisit pour chaque demande le modèle le plus adapté : rapide et économique pour les questions simples, puissant pour les tâches complexes. Vos crédits durent plus longtemps.</p></details>
-  <details><summary>Puis-je utiliser mes propres clés d'IA ?</summary><p>Oui, avec l'offre Pro BYOK : vous branchez vos clés et vous ne payez que le logiciel.</p></details>
-  <details><summary>Ça marche sur ordinateur et sur téléphone ?</summary><p>Oui. Deliobot fonctionne dans le navigateur, en application pour macOS, Windows et Linux, et sur mobile. Un seul compte, un seul solde.</p></details>
-  <details><summary>Mes données sont-elles en sécurité ?</summary><p>Chaque entreprise a son propre espace isolé, avec son adresse sécurisée. L'accès passe par votre compte, avec rôles et connexion d'entreprise (SSO) en option.</p></details>
-</div></section>
+<section>
+  <div class="wrap">
+    <div class="two reveal">
+      <h2>Travaillez avec les bots comme avec des collègues</h2>
+      <div class="lede">
+        <p>Les bots travaillent directement dans Slack, comme n'importe quel collègue. Posez-leur des questions, confiez-leur du travail ou ajoutez-les à une discussion.</p>
+        <p>Ils mènent les projets du début à la fin, apprennent comment votre équipe fonctionne et vous demandent votre accord quand c'est nécessaire.</p>
+      </div>
+    </div>
+    <div class="troupe" aria-hidden="true">
+      <span class="bot" style="--c:#9a6a43;--src:url(/assets/delio-idle.webp)"><img src="/assets/delio-idle.webp" alt=""></span>
+      <span class="bot" style="--c:#ef4a4f;--src:url(/assets/delio-happy.webp)"><img src="/assets/delio-happy.webp" alt=""></span>
+      <span class="bot" style="--c:#f07a33;--src:url(/assets/delio-curious.webp)"><img src="/assets/delio-curious.webp" alt=""></span>
+      <span class="bot" style="--c:#f3a93b;--src:url(/assets/delio-thinking.webp)"><img src="/assets/delio-thinking.webp" alt=""></span>
+      <span class="bot" style="--c:#5cc97a;--src:url(/assets/delio-proud.webp)"><img src="/assets/delio-proud.webp" alt=""></span>
+      <span class="bot" style="--c:#4fbfa8;--src:url(/assets/delio-listening.webp)"><img src="/assets/delio-listening.webp" alt=""></span>
+      <span class="bot" style="--c:#3d86ff;--src:url(/assets/delio-working.webp)"><img src="/assets/delio-working.webp" alt=""></span>
+      <span class="bot" style="--c:#8357ff;--src:url(/assets/delio-surprised.webp)"><img src="/assets/delio-surprised.webp" alt=""></span>
+      <span class="bot" style="--c:#ec4fa6;--src:url(/assets/delio-sleeping.webp)"><img src="/assets/delio-sleeping.webp" alt=""></span>
+    </div>
+    <div class="video reveal" role="img" aria-label="Vidéo de démonstration, bientôt disponible">
+      <div class="play"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M4 2.8v14.4L17 10z"/></svg>Démo</div>
+      <span class="soon">La vidéo de démonstration arrive bientôt</span>
+      <img src="/assets/delio-working.webp" alt="">
+    </div>
+  </div>
+</section>
 
-<section><div class="wrap final">
-  <img src="/assets/delio-curious.webp" alt="" width="110" height="110">
-  <h2>Prêt à rencontrer Delio ?</h2>
-  <p class="sub">Essayez Deliobot pendant 3 jours pour 1 €.</p>
-  <div class="cta"><a class="btn primary" href="#tarifs">Voir les offres</a></div>
-</div></section>
+<section id="fonctions">
+  <div class="wrap">
+    <h2 class="c reveal">Tout ce qu'on attend d'un collègue</h2>
+    <p class="lede c reveal">Donnez un rôle à chaque bot, et ajoutez-en un quand le travail augmente. Ils avancent en parallèle, se passent le relais et continuent, jour et nuit.</p>
+    <div class="grid">
+      <article class="feat reveal">
+        <h3>Les bots prennent l'initiative</h3>
+        <p>Ils repèrent ce qu'il faut faire et s'y mettent avant même qu'on le leur demande.</p>
+        <div class="ill">
+          <div class="note"><div class="who"><span class="bot" style="--c:#4fbfa8;--src:url(/assets/delio-happy.webp)"><img src="/assets/delio-happy.webp" alt=""></span>Commercial <span>8:02</span></div>Bonjour ! Quatre de vos clients renouvellent le mois prochain : j'ai analysé leur usage, vérifié leur santé et préparé les propositions.</div>
+          <div class="panel" style="margin-top:-6px;height:calc(100% - 70px)"><div class="rows"><div style="font-weight:600;padding:6px 8px 12px">Clients</div>
+            <div class="r ok"><i></i><span class="skel" style="width:30%"></span><span class="skel" style="width:14%;margin-left:auto"></span></div>
+            <div class="r ok"><i></i><span class="skel" style="width:24%"></span><span class="skel" style="width:18%;margin-left:auto"></span></div>
+            <div class="r"><i></i><span class="skel" style="width:34%"></span><span class="skel" style="width:12%;margin-left:auto"></span></div>
+            <div class="r"><i></i><span class="skel" style="width:22%"></span><span class="skel" style="width:16%;margin-left:auto"></span></div></div></div>
+        </div>
+      </article>
+      <article class="feat reveal">
+        <h3>Chaque bot a son propre ordinateur</h3>
+        <p>Connectez un bot une seule fois : il utilise vos applications et vos sites comme vous le feriez, même les plus compliqués.</p>
+        <div class="ill">
+          <span class="badge">● Vous gardez la main</span>
+          <div class="scene"><div class="browser"><div class="top"><i></i><i></i><i></i><span class="url">support.acme.fr</span></div>
+            <div class="login"><span class="in typing" id="typing">camil</span><span class="in">Mot de passe</span><span class="go">Continuer</span></div></div></div>
+        </div>
+      </article>
+      <article class="feat reveal">
+        <h3>Montrez-lui une fois</h3>
+        <p>Montrez une tâche à votre bot : il retient les étapes et la refait seul ensuite.</p>
+        <div class="ill">
+          <span class="teach">⦿ Apprendre une tâche</span>
+          <div class="scene warm"><div class="browser"><div class="top"><i></i><i></i><i></i><span class="url">rapport-hebdo</span></div>
+            <div style="padding:14px 16px;display:flex;justify-content:space-between;font-weight:600">Inscriptions <span style="font-weight:400;color:#777;border:1px solid #ddd;border-radius:6px;padding:0 8px">30 derniers jours</span></div>
+            <div class="chart"><i style="height:22%"></i><i style="height:12%"></i><i style="height:34%"></i><i style="height:18%"></i><i style="height:52%"></i><i style="height:40%"></i><i style="height:70%"></i><i style="height:56%"></i><i style="height:92%"></i></div></div></div>
+        </div>
+      </article>
+      <article class="feat reveal">
+        <h3>Invitez un bot à vos réunions</h3>
+        <p>Ajoutez un bot à votre appel Google Meet ou Zoom. Il écoute, intervient dans le chat quand il peut aider, et assure le suivi après.</p>
+        <div class="ill">
+          <div class="meet"><div>S<span>Sam</span></div><div class="delio"><span class="bot plain" style="--src:url(/assets/delio-listening.webp)"><img src="/assets/delio-listening.webp" alt=""></span><span>Delio</span></div><div>P<span>Priya</span></div><div>M<span>Marc</span></div><div>L<span>Léa</span></div><div>J<span>Jules</span></div></div>
+        </div>
+      </article>
+      <article class="feat reveal">
+        <h3>Les bots travaillent avec votre équipe, et entre eux</h3>
+        <p>Personnes et bots collaborent dans Slack. Un bot fait appel à un autre quand il a besoin d'aide, et votre équipe voit chaque étape.</p>
+        <div class="ill">
+          <div class="slack"><div class="rail"><b></b>Accueil<span>Messages</span><span>Activité</span></div>
+            <div class="chan"><div class="h"># factures</div>
+              <div class="msg"><span class="bot" style="--c:#3d86ff;--src:url(/assets/delio-working.webp)"><img src="/assets/delio-working.webp" alt=""></span><div><b>Factures <small>9:14</small></b><br>Trois nouvelles factures sont arrivées. <span class="at">@Comptabilité</span>, tu peux les comparer aux bons de commande ?</div></div>
+              <div class="msg"><span class="bot" style="--c:#f07a33;--src:url(/assets/delio-thinking.webp)"><img src="/assets/delio-thinking.webp" alt=""></span><div style="color:#888;padding-top:6px"><span class="dotsx"><i></i><i></i><i></i></span>Réflexion</div></div>
+            </div></div>
+        </div>
+      </article>
+      <article class="feat reveal">
+        <h3>Les bots progressent avec le temps</h3>
+        <p>Ils gardent le contexte des conversations, apprennent comment votre équipe travaille et proposent eux-mêmes des améliorations.</p>
+        <div class="ill">
+          <div class="mem"><span class="tip">À savoir : Acme ne signe qu'à l'année.</span><span class="think"><span class="dotsx"><i></i><i></i><i></i></span>Mémorisé</span></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="metiers">
+  <div class="narrow">
+    <div class="jobs">
+      <div class="reveal">
+        <h2>Un bot pour chaque métier</h2>
+        <div class="chips" id="chips"></div>
+        <div class="jobdesc" id="jobdesc"></div>
+        <a class="pill soft" href="#tarifs">Découvrir d'autres bots</a>
+      </div>
+      <div class="phone reveal" aria-hidden="true">
+        <div class="ph-top" id="phtop"></div>
+        <div class="feed" id="feed"></div>
+        <div class="in"><i>+</i><span>Message</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tarifs">
+  <div class="narrow">
+    <h2 class="c reveal">Tarifs</h2>
+    <div class="toggle reveal"><a class="pill soft" href="mailto:contact@deliobot.com">Contacter l'équipe commerciale</a></div>
+    <div class="plans">
+      <div class="plan reveal">
+        <div class="nm">Essai</div>
+        <div class="pr">1 €<small>/ 3 jours</small></div>
+        <div class="bill">puis Pro, résiliable en un clic</div>
+        <a class="pill dark" href="#bientot">Commencer l'essai</a>
+        <div class="inc">Inclus :</div>
+        <ul><li>100 crédits</li><li>Le mode Auto et tous les modèles standard</li><li>Génération d'images</li><li>Vos outils connectés</li><li>Web, ordinateur et mobile</li></ul>
+      </div>
+      <div class="plan reveal">
+        <div class="nm">Pro</div>
+        <div class="pr">25 €<small>/ utilisateur / mois</small></div>
+        <div class="bill">Facturé mensuellement</div>
+        <a class="pill dark" href="#bientot">Choisir Pro</a>
+        <div class="inc">Inclus :</div>
+        <ul><li>2 000 crédits par utilisateur et par mois</li><li>Un ordinateur cloud pour vos bots</li><li>Routines planifiées</li><li>Images et vidéo</li><li>Recharges de crédits à tout moment</li></ul>
+      </div>
+      <div class="plan reveal">
+        <div class="nm">Business</div>
+        <div class="pr">59 €<small>/ utilisateur / mois</small></div>
+        <div class="bill">Facturé mensuellement</div>
+        <a class="pill dark" href="#bientot">Choisir Business</a>
+        <div class="inc">Tout Pro, plus :</div>
+        <ul><li>6 000 crédits par utilisateur et par mois</li><li>Modèles premium (Claude Opus, vidéo haut de gamme)</li><li>Connexion d'entreprise (SSO)</li><li>5 ordinateurs cloud, plafonds par personne</li><li>Support prioritaire</li></ul>
+      </div>
+    </div>
+    <div class="allplans reveal" id="bientot">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <div>Toutes les offres — Pro BYOK, Entreprise et recharges — sont disponibles une fois connecté. <span>Les inscriptions ouvrent très bientôt. Prix hors taxes.</span></div>
+      <a class="pill" href="#tarifs">Se connecter</a>
+    </div>
+  </div>
+</section>
+
+<section id="telecharger">
+  <div class="narrow dl">
+    <div class="reveal">
+      <h2>Télécharger Deliobot</h2>
+      <p class="lede" style="margin-top:18px">Une seule équipe, où que vous soyez : sur votre bureau et dans votre poche. Un compte, un solde de crédits, partout.</p>
+    </div>
+    <div class="plat reveal">
+      <a href="#bientot"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10 4.5v7H3zM11 4.4l10-1.4v8.5H11zM3 12.5h7v7L3 18.5zM11 12.5h10V21l-10-1.4z"/></svg></span><span><b>Windows</b><small>Windows 10 et 11</small></span><span class="tag">bientôt</span></a>
+      <a href="#bientot"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.6c0-2.4 2-3.5 2.1-3.6-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9s-1.9-.9-3.2-.8c-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.4 1.2 9.8.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8s1.9.8 3.2.8c1.3 0 2.1-1.2 2.9-2.4.9-1.4 1.3-2.7 1.3-2.8-.1 0-2.4-.9-2.4-4zM14 5.4c.7-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1.1.1 2.1-.6 2.8-1.4z"/></svg></span><span><b>macOS</b><small>Apple Silicon et Intel</small></span><span class="tag">bientôt</span></a>
+      <a href="#bientot"><span class="ic">🐧</span><span><b>Linux</b><small>.deb, AppImage</small></span><span class="tag">bientôt</span></a>
+      <a href="#bientot"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg></span><span><b>Mobile</b><small>iPhone et Android, à installer depuis le navigateur</small></span><span class="tag">bientôt</span></a>
+      <a href="#bientot"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 2.5 15.4 0 18M12 3c-2.5 2.6-2.5 15.4 0 18"/></svg></span><span><b>Web</b><small>Dans le navigateur, sans installation</small></span><span class="tag">bientôt</span></a>
+    </div>
+  </div>
+</section>
+
+<section id="guides">
+  <div class="narrow">
+    <h2 class="c reveal">Guides Deliobot</h2>
+    <p class="lede c reveal">Comment les équipes produit, marketing et commerciales utilisent Deliobot au quotidien.</p>
+    <div class="guides">
+      <a class="guide reveal" href="#bientot"><div class="th" style="background:linear-gradient(135deg,#ffd9c2,#ff9a6b)"><span class="bot" style="--c:#f07a33;--src:url(/assets/delio-curious.webp)"><img src="/assets/delio-curious.webp" alt=""></span></div><div class="tx"><small>Marketing</small><p>Six bots marketing qui analysent la concurrence, rédigent le positionnement, préparent les campagnes et mettent à jour le site.</p></div></a>
+      <a class="guide reveal" href="#bientot"><div class="th" style="background:linear-gradient(135deg,#d6e4ff,#7ea7ff)"><span class="bot" style="--c:#3d86ff;--src:url(/assets/delio-working.webp)"><img src="/assets/delio-working.webp" alt=""></span></div><div class="tx"><small>Produit</small><p>Connectez votre outil de tickets à Deliobot pour analyser les problèmes, planifier le travail et coordonner les agents de code.</p></div></a>
+      <a class="guide reveal" href="#bientot"><div class="th" style="background:linear-gradient(135deg,#d9f5e4,#6ed39a)"><span class="bot" style="--c:#4cc77a;--src:url(/assets/delio-proud.webp)"><img src="/assets/delio-proud.webp" alt=""></span></div><div class="tx"><small>Ventes</small><p>Vendre en tant que fondateur avec Deliobot : recherche de cibles, prospection, préparation des appels et prévisions.</p></div></a>
+    </div>
+    <div class="center reveal"><a class="pill soft" href="#bientot">Lire les guides</a></div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="faq">
+    <h2 class="reveal">Questions</h2>
+    <div class="qa reveal">
+      <details open><summary>En quoi Deliobot est-il différent d'un assistant IA ?</summary><p>Un assistant répond à vos questions. Un bot Deliobot travaille : il se connecte à vos outils, a son propre ordinateur, mène des tâches longues de bout en bout et revient avec le travail terminé, en vous demandant votre accord quand c'est nécessaire.</p></details>
+      <details><summary>Toute mon équipe peut-elle travailler avec le même bot ?</summary><p>Oui. Un bot peut être partagé avec toute l'équipe ou réservé à certaines personnes. Chacun garde ses propres accès, et les rôles admin et membre décident qui peut modifier quoi.</p></details>
+      <details><summary>Où puis-je utiliser Deliobot ?</summary><p>Sur le web, dans l'application pour Windows, macOS et Linux, sur mobile, et directement dans Slack. Un seul compte et un seul solde de crédits partout.</p></details>
+      <details><summary>Les bots peuvent-ils rejoindre mes réunions ?</summary><p>Oui, un bot peut rejoindre un appel Google Meet ou Zoom, écouter, intervenir dans le chat quand il peut aider et faire le suivi après.</p></details>
+      <details><summary>Combien coûte Deliobot ?</summary><p>L'essai coûte 1 € pour 3 jours avec 100 crédits. Pro est à 25 € et Business à 59 € par utilisateur et par mois, avec des crédits inclus. L'offre BYOK (vos propres clés d'IA) et l'offre Entreprise sont disponibles une fois connecté.</p></details>
+      <details><summary>Deliobot est-il disponible pour les entreprises ?</summary><p>Oui : connexion d'entreprise (SSO), rôles, historique des actions, plafonds par personne, contrat et facture annuelle, et serveur dédié avec l'offre Entreprise.</p></details>
+      <details><summary>Comment mes données sont-elles protégées ?</summary><p>Chaque entreprise a son propre espace isolé. L'accès passe par votre compte, retirer quelqu'un coupe son accès en quelques secondes, et vos clés d'IA ne sont jamais visibles des autres membres.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="closing">
+  <div class="wrap">
+    <h2 class="c reveal">Rencontrez votre premier bot</h2>
+    <p class="lede c reveal">Un collègue IA de confiance pour faire avancer le travail.</p>
+    <div class="cta reveal"><a class="pill dark lg" href="#tarifs">Essayer pour 1 €</a><a class="pill soft lg" href="mailto:contact@deliobot.com">Contacter l'équipe commerciale</a></div>
+    <div class="big" aria-hidden="true"><img src="/assets/delio-idle.webp" alt=""></div>
+  </div>
+</section>
 </main>
 
-<footer><div class="wrap">
-  <span>© 2026 Deliobot</span>
-  <span>Deliobot est construit sur OpenDeliobot, un logiciel open source sous licence Apache-2.0.</span>
-</div></footer>
+<footer>
+  <div class="wrap">
+    <div class="fcols">
+      <div><a class="brand" href="/"><img src="/assets/delio-idle.webp" alt="">Deliobot</a><p style="margin:14px 0 0;max-width:260px">Des collègues IA qui terminent le travail.</p></div>
+      <div><h4>Produit</h4><a href="#fonctions">Fonctions</a><a href="#metiers">Solutions</a><a href="#tarifs">Tarifs</a><a href="#telecharger">Télécharger</a></div>
+      <div><h4>Ressources</h4><a href="#guides">Guides</a><a href="#faq">Questions</a></div>
+      <div><h4>Entreprise</h4><a href="mailto:contact@deliobot.com">Contact</a><a href="#bientot">Carrières</a></div>
+      <div><h4>Légal</h4><a href="#bientot">Conditions</a><a href="#bientot">Confidentialité</a></div>
+    </div>
+    <div class="fine"><span>© 2026 Deliobot</span><span>Construit sur OpenDeliobot, logiciel open source sous licence Apache-2.0.</span></div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const header = document.getElementById("top");
+  addEventListener("scroll", () => header.classList.toggle("scrolled", scrollY > 8), { passive: true });
+  document.querySelector("[data-burger]").addEventListener("click", () => header.classList.toggle("open"));
+  document.querySelectorAll("nav.main a").forEach((a) => a.addEventListener("click", () => header.classList.remove("open")));
+
+  const ua = navigator.userAgent;
+  const os = /Windows/.test(ua) ? "Windows" : /Mac/.test(ua) && !/iPhone|iPad/.test(ua) ? "macOS" : /Android|iPhone|iPad/.test(ua) ? null : /Linux/.test(ua) ? "Linux" : null;
+  if (os) document.querySelectorAll("[data-os-label]").forEach((el) => { el.textContent = el.dataset.osLabel === "hero" ? `Télécharger pour ${os}` : "Télécharger"; });
+
+  const toggle = document.querySelector("[data-menu-toggle]"), menu = document.querySelector(".menu");
+  toggle.addEventListener("click", (e) => { e.stopPropagation(); const open = menu.classList.toggle("open"); toggle.setAttribute("aria-expanded", String(open)); });
+  document.addEventListener("click", () => { menu.classList.remove("open"); toggle.setAttribute("aria-expanded", "false"); });
+
+  const io = new IntersectionObserver((entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: .12 });
+  document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+
+  const wait = (ms) => new Promise((r) => setTimeout(r, reduce ? 0 : ms));
+  const msgs = document.getElementById("msgs");
+  const add = (html, cls) => { const d = document.createElement("div"); d.className = cls; d.innerHTML = html; msgs.appendChild(d); return d; };
+  async function heroChat() {
+    msgs.innerHTML = '<div class="when">Vendredi 7:48</div>';
+    document.getElementById("ap1").classList.remove("show"); document.getElementById("ap2").classList.remove("show");
+    await wait(700);
+    add("Bonjour ! Petit point sur le lancement du casque Arc : l'autonomie est passée à 40 heures cette semaine, mais la fiche produit, les cartes magasin et le dossier de presse indiquent encore 32.", "m bot-m");
+    await wait(1600);
+    add("ah, bien vu. l'ingénierie a confirmé 40 ?", "m user");
+    await wait(900);
+    const st = add('<span class="ring"><i></i></span><span class="shimmer">Exploration</span>', "status");
+    await wait(2400);
+    st.remove();
+    add('Oui, l\'ingénierie confirme 40 heures avec la réduction de bruit activée. J\'ai fait les modifications et prévenu <span class="at">@Benji</span> et <span class="at">@Léa</span>.', "m bot-m");
+    await wait(700);
+    add("<span>Fiche produit → mise à jour à 40 heures</span><span>Dossier de presse → mis à jour</span><span>Cartes magasin → en attente de votre accord</span>", "done");
+    await wait(500);
+    document.getElementById("ap1").classList.add("show"); document.getElementById("ap2").classList.add("show");
+    if (!reduce) { await wait(9000); heroChat(); }
+  }
+  const stage = document.querySelector(".stage");
+  new IntersectionObserver((e, o) => { if (e[0].isIntersecting) { o.disconnect(); heroChat(); } }, { threshold: .25 }).observe(stage);
+
+  const typing = document.getElementById("typing");
+  if (!reduce) { const word = "camille.martin"; let i = 5; setInterval(() => { i = i >= word.length + 6 ? 0 : i + 1; typing.textContent = word.slice(0, Math.min(i, word.length)); }, 260); }
+
+  const jobs = [
+    { name: "Prospection", c: "#4fbfa8", img: "happy", desc: "<b>Remplissez votre pipeline pendant la nuit.</b> Il étudie les comptes, note les contacts selon leur intérêt, rédige e-mails et messages LinkedIn dans votre ton, et vous laisse une liste à valider.",
+      feed: [["b", "Bonjour Sam, 12 prospects sont prêts. Voici le premier :<div class='card'><b>Objet : Mars avance enfin</b><br>Nous avons réduit ce travail de moitié pour deux équipes de votre taille. Quinze minutes la semaine prochaine ?<br><br>Sam</div><div class='acts'><span>Envoyer</span><span>Ignorer</span></div>"], ["u", "envoie les 10 meilleurs, ils sont bien"], ["b", "Les 10 premiers partent. Les autres restent en attente."]] },
+    { name: "Recrutement", c: "#4d8dff", img: "listening", desc: "<b>Trouvez les bons profils plus vite.</b> Il parcourt les candidatures, résume chaque profil selon vos critères et prépare les invitations aux entretiens.",
+      feed: [["b", "8 nouvelles candidatures pour le poste de designer. 3 correspondent à vos critères.<div class='card'><b>Inès R.</b> · 6 ans d'expérience produit<br>Portfolio solide, disponible en mars.</div><div class='acts'><span>Inviter</span><span>Plus tard</span></div>"], ["u", "invite les 3 pour mardi"], ["b", "C'est fait : trois créneaux mardi, invitations envoyées."]] },
+    { name: "Médias payants", c: "#f07a33", img: "curious", desc: "<b>Des campagnes qui s'optimisent seules.</b> Il surveille vos dépenses publicitaires, coupe ce qui ne marche pas et vous propose de nouvelles annonces chaque semaine.",
+      feed: [["b", "Votre campagne « Printemps » coûte 38 % de plus par conversion depuis lundi. Je propose de déplacer 400 € vers « Rentrée ».<div class='acts'><span>Valider</span><span>Voir le détail</span></div>"], ["u", "valide"], ["b", "Budget déplacé. Je vous fais un point vendredi."]] },
+    { name: "Notes de frais", c: "#ef4a4f", img: "working", desc: "<b>Plus jamais de reçus en retard.</b> Il récupère les reçus dans vos e-mails, remplit les notes de frais et signale ce qui sort de la politique de l'entreprise.",
+      feed: [["b", "Note de frais de mars prête : 9 reçus, 412,60 €. Rien à signaler.<div class='acts'><span>Déposer</span><span>Revoir</span></div>"], ["u", "dépose"], ["b", "Déposée. Remboursement prévu le 28."]] },
+    { name: "Performance produit", c: "#8357ff", img: "thinking", desc: "<b>Comprenez vos chiffres chaque matin.</b> Il analyse vos tableaux de bord, explique les variations et prévient l'équipe quand un indicateur décroche.",
+      feed: [["b", "Les inscriptions ont baissé de 12 % hier. Cause probable : le formulaire mobile échoue sur Android depuis la mise à jour de mardi."], ["u", "ouvre un ticket pour l'équipe mobile"], ["b", "Ticket créé et assigné, avec la capture et les étapes pour reproduire."]] },
+    { name: "Santé des comptes", c: "#5cc97a", img: "proud", desc: "<b>Gardez vos clients heureux.</b> Il suit l'usage de chaque compte, repère les risques de départ et prépare les bonnes actions avant le renouvellement.",
+      feed: [["b", "Acme utilise 40 % de licences en moins depuis un mois. Renouvellement dans 45 jours. Je propose un point avec leur responsable."], ["u", "prépare l'e-mail"], ["b", "Brouillon prêt dans vos e-mails, avec les chiffres d'usage en pièce jointe."]] },
+  ];
+  const chips = document.getElementById("chips"), desc = document.getElementById("jobdesc"), feed = document.getElementById("feed"), phtop = document.getElementById("phtop");
+  const botTag = (j, size) => `<span class="bot" style="--c:${j.c};--src:url(/assets/delio-${j.img}.webp);width:${size}px;height:${size}px"><img src="/assets/delio-${j.img}.webp" alt=""></span>`;
+  let run = 0;
+  async function show(i) {
+    const id = ++run, j = jobs[i];
+    chips.querySelectorAll("button").forEach((b, k) => b.classList.toggle("on", k === i));
+    desc.innerHTML = j.desc; phtop.innerHTML = botTag(j, 24) + j.name; feed.innerHTML = "";
+    for (const [who, html] of j.feed) { if (id !== run) return; const d = document.createElement("div"); d.className = who; d.innerHTML = html; feed.appendChild(d); await wait(who === "b" ? 1400 : 900); }
+  }
+  jobs.forEach((j, i) => { const b = document.createElement("button"); b.type = "button"; b.innerHTML = botTag(j, 20) + j.name; b.addEventListener("click", () => show(i)); chips.appendChild(b); });
+  show(0);
+})();
+</script>
 </body>
 </html>
