@@ -701,6 +701,13 @@ export class SessionRegistry {
     return this.sessions.map(publicSession);
   }
 
+  /** Live sessions issued by issuePortal, with the grant the workspace portal keeps checking. */
+  portalSessions(): Array<{ id: string; grant: string; scopes: Scope[] }> {
+    this.prune();
+    return this.sessions.flatMap((session) => session.membershipAuthority === "portal" && session.userId?.startsWith("portal:")
+      ? [{ id: session.id, grant: session.userId.slice("portal:".length), scopes: [...session.scopes] }] : []);
+  }
+
   /** The stored digest of each live bearer session among `ids`: the phone relay derives a phone's keys from it. */
   bearerDigests(ids: ReadonlySet<string>): Array<{ id: string; tokenHash: string }> {
     this.prune();

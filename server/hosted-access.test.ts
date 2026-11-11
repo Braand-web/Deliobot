@@ -105,7 +105,7 @@ beforeAll(async () => {
   writeFileSync(join(data, "config.json"), JSON.stringify({ signIn: { admins: [EMAIL] }, instances: INSTANCES }));
   writeFileSync(join(layer, "server", "index.ts"), `
     import { readFileSync } from 'node:fs';
-    import { createWorkspaceAccess as create } from ${JSON.stringify(pathToFileURL(join(ROOT, "enterprise/server/workspace-access.ts")).href)};
+    import { createHostedWorkspaceAccess as create } from ${JSON.stringify(pathToFileURL(join(ROOT, "server/workspace-access.ts")).href)};
     export function register() {
       const { license } = JSON.parse(readFileSync(${JSON.stringify(stateFile)}, 'utf8'));
       if (license.invalid) throw new Error('invalid fixture license');
@@ -255,18 +255,6 @@ describe("hosted bridge in the full server", () => {
       policyEvidence.push({ newTask: created.body.task, botDefaults: { approvalMode: created.body.bot.approvalMode, autoApprove: created.body.bot.autoApprove, alwaysAllow: created.body.bot.alwaysAllow } });
     }
   }, 30_000);
-  it("fails closed if a configured deployment loses its enterprise hook, with local owner access retained", async () => {
-    await restart({ ODB_ENTERPRISE_DIR: join(home, "absent-layer"), ODB_ADMIN_MEMBERSHIP: "portal", ODB_SHARED_WORKSPACE_FULL_ACCESS: "1" });
-    await policyHealth(false);
-    await refuseFullTask();
-    expect((await call("/api/health/hosted")).status).toBe(503);
-    expect((await call("/api/auth/hosted/start")).status).toBe(503);
-    expect((await call("/")).status).toBe(503);
-    expect((await call("/pair")).status).toBe(503);
-    expect((await call("/api/auth/session", { token: pairedToken })).status).toBe(503);
-    expect((await call("/api/auth/email/verify", { method: "POST" })).status).toBe(403);
-    expect((await call("/api/auth/session", { local: true })).body.kind).toBe("loopback");
-  }, 25_000);
   it("uses explicit portal membership without local allow-list synchronization and still revokes quiet streams", async () => {
     await waitForExit(child, { signal: "SIGTERM" });
     state();
@@ -316,28 +304,15 @@ describe("hosted bridge in the full server", () => {
     expect((await call("/api/health")).status).toBe(200);
   }, 25_000);
   it.each([
-    ["invalid license", { invalid: true }, {}],
-    ["missing admin entitlement", { features: [] }, {}],
-    ["missing license", {}, { ODB_LICENSE_KEY: undefined }],
-  ] satisfies [string, Parameters<typeof state>[2], NodeJS.ProcessEnv][])("does not attest portal readiness without valid admin entitlement (%s)", async (_name, license, env) => {
+    ["an invalid license", { invalid: true }, {}],
+    ["a license without the admin entitlement", { features: [] }, {}],
+    ["no license key", {}, { ODB_LICENSE_KEY: undefined }],
+  ] satisfies [string, Parameters<typeof state>[2], NodeJS.ProcessEnv][])("attests portal readiness with %s: this edition includes the admin entitlement", async (_name, license, env) => {
     state("admin", false, license);
     await restart({ ODB_ADMIN_MEMBERSHIP: "portal", ODB_SHARED_WORKSPACE_FULL_ACCESS: "1", ...env });
-    expect((await call("/api/health/hosted")).status).toBe(503);
-    expect((await call("/api/health")).status).toBe(200);
-    await policyHealth(false);
-    await refuseFullTask();
-  }, 25_000);
-  it("withdraws hosted readiness the moment the running server's license grace period ends", async () => {
-    // Expired a week ago less eight seconds: inside the 7-day grace, which ends mid-test.
-    state("admin", false, { expiresAt: new Date(Date.now() + 8_000 - 7 * 24 * 60 * 60_000).toISOString() });
-    await restart({ ODB_ADMIN_MEMBERSHIP: "portal", ODB_SHARED_WORKSPACE_FULL_ACCESS: "1" });
     expect((await call("/api/health/hosted")).status).toBe(200);
     await policyHealth(true);
-    await expect.poll(async () => (await call("/api/health/hosted")).status, { timeout: 10_000, interval: 100 }).toBe(503);
-    expect((await call("/api/health")).status).toBe(200);
-    await policyHealth(false);
-    await refuseFullTask();
-  }, 30_000);
+  }, 25_000);
   it("never activates the shared Full policy in a desktop-managed process", async () => {
     state();
     await policyBot();

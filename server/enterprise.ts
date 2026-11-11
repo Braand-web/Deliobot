@@ -9,6 +9,7 @@ import type { RequestAuth } from "./request-auth.ts";
 import type { SessionRegistry } from "./sessions.ts";
 
 import { SERVER_ROOT } from "./proxy-paths.ts";
+import { createHostedWorkspaceAccess } from "./workspace-access.ts";
 
 export interface EditionStatus {
   edition: "oss" | "enterprise";
@@ -49,8 +50,9 @@ function layerEntry(dir: string): string | undefined {
   return [join(dir, "server", "index.ts"), join(dir, "server", "index.js")].find((candidate) => existsSync(candidate));
 }
 
-/** Entitlements this edition ships with, licence or not: spend limits, sell prices and white-label branding. */
-export const INCLUDED_FEATURES: readonly string[] = ["billing", "budgets", "whitelabel"];
+/** Entitlements this edition ships with, licence or not: hosted sign-in through Delio Admin, spend limits, sell prices and
+ * white-label branding. */
+export const INCLUDED_FEATURES: readonly string[] = ["admin", "billing", "budgets", "whitelabel"];
 
 let current: EditionStatus = { edition: "oss", features: [...INCLUDED_FEATURES] };
 let workspaceAccessFactory: ((options: WorkspaceAccessOptions) => WorkspaceAccess) | undefined;
@@ -110,7 +112,8 @@ export function sharedWorkspaceFullAccessConfigured(env: NodeJS.ProcessEnv = pro
 /** A configured server without this hook must refuse hosted access, never fall back to email or QR credentials. */
 export function createWorkspaceAccess(options: Omit<WorkspaceAccessOptions, "entitled">): WorkspaceAccess | null {
   if (!hostedWorkspaceConfigured(options.env)) return null;
-  return workspaceAccessFactory?.({ ...options, entitled: () => entitled("admin") }) ?? null;
+  const full = { ...options, entitled: () => entitled("admin") };
+  return workspaceAccessFactory ? workspaceAccessFactory(full) : createHostedWorkspaceAccess(full);
 }
 
 function oss(notice?: string): EditionStatus {
