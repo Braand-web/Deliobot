@@ -192,29 +192,48 @@ export function PricesCard() {
   );
 }
 
-/** A hosted workspace's Delio credits; nothing on a server that has none. */
-function CreditsCard() {
-  const [credits, setCredits] = useState<{ credits: number; usedThisMonth: number } | null>(null);
+type Credits = { credits: number; usedThisMonth: number; billingUrl?: string };
+
+async function loadCredits(): Promise<Credits | null> {
+  const hosted = await Promise.resolve().then(() => api<Credits>("/api/credits", { background: true })).catch(() => null);
+  if (typeof hosted?.credits === "number") return hosted;
+  const account = await Promise.resolve().then(() => api<Partial<Credits> & { connected?: boolean }>("/api/delio/account", { background: true })).catch(() => null);
+  return account?.connected && typeof account.credits === "number" && typeof account.usedThisMonth === "number"
+    ? { credits: account.credits, usedThisMonth: account.usedThisMonth, ...(account.billingUrl ? { billingUrl: account.billingUrl } : {}) }
+    : null;
+}
+
+/** Delio credits of a hosted workspace or of the Delio account this app is connected to; null otherwise. */
+export function useDelioCredits(): Credits | null {
+  const [credits, setCredits] = useState<Credits | null>(null);
   useEffect(() => {
     let cancelled = false;
-    api<{ credits: number; usedThisMonth: number }>("/api/credits", { background: true }).then(
-      (view) => { if (!cancelled && typeof view?.credits === "number") setCredits(view); },
-      () => undefined,
-    );
+    void loadCredits().then((view) => { if (!cancelled) setCredits(view); });
     return () => { cancelled = true; };
   }, []);
-  if (!credits) return null;
+  return credits;
+}
+
+export function DelioCreditsCard({ credits }: { credits: Credits }) {
   const format = (value: number) => value.toLocaleString(undefined, { maximumFractionDigits: 1 });
   return (
     <Card title={t("usage.credits.title")}>
-      <div className="flex items-baseline gap-2" data-testid="credits-balance">
-        <span className={credits.credits <= 0 ? "text-[22px] font-semibold text-danger" : "text-[22px] font-semibold text-ink"}>{format(credits.credits)}</span>
-        <span className="text-[13px] text-ink-secondary">{t("usage.credits.left")}</span>
+      <div className="flex items-center gap-3">
+        <div className="flex min-w-0 flex-1 items-baseline gap-2" data-testid="credits-balance">
+          <span className={credits.credits <= 0 ? "text-[22px] font-semibold text-danger" : "text-[22px] font-semibold text-ink"}>{format(credits.credits)}</span>
+          <span className="text-[13px] text-ink-secondary">{t("usage.credits.left")}</span>
+        </div>
+        {credits.billingUrl && <a href={credits.billingUrl} target="_blank" rel="noreferrer" className="ui-button shrink-0">{t("usage.credits.topUp")}</a>}
       </div>
       <p className="mt-1 text-[12px] text-ink-secondary">{t("usage.credits.used", { credits: format(credits.usedThisMonth) })}</p>
       {credits.credits <= 0 && <p className="mt-2 text-[12px] text-danger">{t("usage.credits.empty")}</p>}
     </Card>
   );
+}
+
+function CreditsCard() {
+  const credits = useDelioCredits();
+  return credits ? <DelioCreditsCard credits={credits} /> : null;
 }
 
 export function UsageBudgetCards({ budget }: { budget: BudgetState | null }) {

@@ -4,6 +4,11 @@ import { PASS, type RouteHandler } from "./routes/table.ts";
 
 export interface CreditsView { credits: number; usedThisMonth: number }
 
+/** Where an admin of the workspace buys a plan or a top-up. */
+export function portalBillingUrl(portal: string | URL, workspace: string): string {
+  return new URL(`/billing?workspace=${encodeURIComponent(workspace)}`, portal).href;
+}
+
 const TTL_MS = 60_000;
 
 export function createHostedCredits(options: { env?: NodeJS.ProcessEnv; fetchImpl?: typeof fetch; now?: () => number } = {}) {
@@ -40,7 +45,7 @@ export function createHostedCredits(options: { env?: NodeJS.ProcessEnv; fetchImp
     res.setHeader("cache-control", "no-store");
     if (!available) return json(res, 404, { error: "This workspace has no Delio credits." });
     const view = await load();
-    return view ? json(res, 200, view) : json(res, 503, { error: "Delio Admin did not answer. Try again in a moment." });
+    return view ? json(res, 200, { ...view, billingUrl: portalBillingUrl(hosted!.admin, hosted!.workspace) }) : json(res, 503, { error: "Delio Admin did not answer. Try again in a moment." });
   };
   return { available, load, routes };
 }

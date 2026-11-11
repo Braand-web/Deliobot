@@ -25,6 +25,7 @@ import { CloudUsageDetails, CloudUsageSummaryView, useCloudUsageSettings } from 
 import { Card, SettingRow, SettingsDisclosureRow, SettingsGroup, SettingsRows } from "./SettingsPrimitives";
 import { UsageSection } from "./UsageSection";
 import { PlanUsageSummary } from "./PlanUsage";
+import { DelioCreditsCard, useDelioCredits } from "./UsageBudget";
 import { SkinPicker } from "./SkinPicker";
 import { useSkinChoice } from "./ThemeRow";
 import { resolveSkin, SKINS } from "@/lib/skins";
@@ -242,10 +243,13 @@ export function SimpleBillingPage({ has, disclose, cloudAccount }: { has: Has; d
   const { usage, upgrade, dialog } = useCloudUsageSettings();
   const plan = useCloudPlan();
   const signedOut = plan?.view.kind === "signed-out" || plan?.view.kind === "removed";
+  const credits = useDelioCredits();
   return (
     <>
       <div data-settings-block="usage" className="scroll-mt-4">
-        {usage ? <CloudUsageSummaryView usage={usage} upgrade={upgrade}>{dialog}</CloudUsageSummaryView> : <AdminOnly note="settings.adminOnly.usage"><PlanUsageSummary /></AdminOnly>}
+        {usage ? <CloudUsageSummaryView usage={usage} upgrade={upgrade}>{dialog}</CloudUsageSummaryView>
+          : credits ? <DelioCreditsCard credits={credits} />
+          : <AdminOnly note="settings.adminOnly.usage"><PlanUsageSummary /></AdminOnly>}
       </div>
       {(usage || has("usage")) && (
         <SettingsDisclosureRow title={t("settings.simple.billing.limits")} {...disclose("billing-limits")}>

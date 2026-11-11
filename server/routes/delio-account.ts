@@ -1,5 +1,6 @@
 import { delioConnection, type createDelioAccount } from "../delio-account.ts";
 import type { AppConfig } from "../config.ts";
+import { portalBillingUrl } from "../hosted-credits.ts";
 import { PASS, type RouteHandler } from "./table.ts";
 
 /** Settings' Delio account card: connect with a device code, see the credits left, disconnect. */
@@ -22,7 +23,7 @@ export function createDelioAccountRoutes(account: ReturnType<typeof createDelioA
     }
     if (path === "/api/delio/account" && method === "GET") {
       const connection = delioConnection(config());
-      return json(res, 200, connection ? { connected: true, workspace: connection.workspace, portal: connection.portal, ...(await account.balance()) } : { connected: false });
+      return json(res, 200, connection ? { connected: true, workspace: connection.workspace, portal: connection.portal, billingUrl: portalBillingUrl(connection.portal, connection.workspace), ...(await account.balance()) } : { connected: false });
     }
     return json(res, 405, { error: "method not allowed" });
   };

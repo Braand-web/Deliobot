@@ -10040,6 +10040,7 @@
   "usage.credits.title": "Delio credits",
   "usage.credits.left": "credits left",
   "usage.credits.used": "{credits} credits used this month",
+  "usage.credits.topUp": "Top up",
   "usage.credits.empty": "Out of credits: bots stop using AI until an admin tops up in Delio Admin \u2192 Billing.",
   "delioAccount.title": "Delio account",
   "delioAccount.pitch": "Use Delio's AI with your account's credits, without your own keys: the Delio engine, images, video and music.",
