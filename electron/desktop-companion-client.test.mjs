@@ -70,7 +70,7 @@ describe("desktop companion endpoint", () => {
     expect(normalizeDesktopCompanionEndpoint(`https://${LABEL}.opendeliobot.com`)).toBe(
       `https://${LABEL}.opendeliobot.com`,
     );
-    expect(normalizeDesktopCompanionEndpoint(` ${LABEL.toUpperCase()}.Delio.SI/ `)).toBe(
+    expect(normalizeDesktopCompanionEndpoint(` ${LABEL.toUpperCase()}.OpenDeliobot.COM/ `)).toBe(
       `https://${LABEL}.opendeliobot.com`,
     );
     for (const endpoint of [
@@ -109,7 +109,7 @@ describe("desktop companion endpoint", () => {
   it("accepts one c-<32 hex> label under each listed domain, and only those", () => {
     // The third domain is a one-line change; until the owner names it, nothing new is accepted.
     expect(NEXT_MANAGED_COMPANION_HOST_SUFFIX).toBe("");
-    expect(MANAGED_COMPANION_HOST_SUFFIXES).toEqual(["opendeliobot.com", "opendeliobot.com"]);
+    expect(MANAGED_COMPANION_HOST_SUFFIXES).toEqual(["opendeliobot.com"]);
     expect(Object.isFrozen(MANAGED_COMPANION_HOST_SUFFIXES)).toBe(true);
     for (const suffix of MANAGED_COMPANION_HOST_SUFFIXES) {
       expect(suffix).toMatch(/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/);
@@ -127,7 +127,7 @@ describe("desktop companion endpoint", () => {
         expect(normalizeDesktopCompanionEndpoint(near), near).toBe("");
       }
     }
-    for (const unlisted of ["example.net", "opendeliobot.net", "opendeliobot.com", "si", "com", ""]) {
+    for (const unlisted of ["example.net", "opendeliobot.net", "deliobot.com", "si", "com", ""]) {
       expect(normalizeDesktopCompanionEndpoint(`https://${LABEL}.${unlisted}`), unlisted).toBe("");
     }
   });

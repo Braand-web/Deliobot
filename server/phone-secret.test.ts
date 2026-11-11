@@ -242,7 +242,7 @@ describe("PhoneSecretBridge", () => {
 describe("phoneSecretAAD", () => {
   it("has the exact stable cross-platform serialization", () => {
     expect(new TextDecoder().decode(phoneSecretAAD(baseContext("AAAAAAAAAAAAAAAAAAAAAA")))).toBe([
-      "opendeliobot-phone-credential-v1",
+      "openmausbot-phone-credential-v1",
       "AAAAAAAAAAAAAAAAAAAAAA",
       "paired-device-1",
       "bot-1",
