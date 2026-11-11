@@ -16,7 +16,7 @@ export interface AgentsConversation {
   /** Only bots or automation drive it (`botDrivenConversation`): no turn in it is a person's own message to pick a computer for. */
   botDriven?: boolean;
   /** `x`: a research credential is held (a treg key or a plan's); `research`: research works for it too. */
-  host: { skillAuthoring: boolean; sharedComputers: boolean; cloudHome: boolean; team: boolean; voiceNotes: boolean; x: boolean; research: boolean; imageGeneration: boolean; meetings?: boolean };
+  host: { skillAuthoring: boolean; sharedComputers: boolean; cloudHome: boolean; team: boolean; voiceNotes: boolean; x: boolean; research: boolean; imageGeneration: boolean; videoGeneration?: boolean; meetings?: boolean };
 }
 
 /** What one turn may do. Its bearer carries this to the harness, which checks it on every call. */
@@ -49,6 +49,7 @@ export function agentsServerEnv(conversation: AgentsConversation, turn: AgentsTu
     ODB_RESEARCH: flag(host.x && host.research && bot.xResearch !== false),
     ...roleToolEnv(bot),
     ODB_IMAGE_GENERATION: flag(host.imageGeneration),
+    ODB_VIDEO_GENERATION: flag(host.videoGeneration === true),
     ODB_MEETINGS: flag(host.meetings === true && !conversation.room),
     ODB_COMPUTER_SELECTION: flag(!conversation.room && bot.computer !== "off" && !conversation.teamComputer && !conversation.botDriven),
   };

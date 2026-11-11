@@ -7,6 +7,8 @@ import { join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { z } from "zod";
 import type { ImageGenerationConfig } from "../shared/image-generation.ts";
+import { validFalModel } from "./fal.ts";
+import { VIDEO_SECONDS_MAX, type VideoGenerationConfig } from "../shared/video-generation.ts";
 import { imageGenConfigSchema, imageGenPatchSchema, keepKeysOutOfImageModels, type ImageGenCredentialPatch } from "./image-generation-config.ts";
 import { botAvatarUrlSchema } from "../shared/bot-avatar.ts";
 import { writeFileAtomic } from "./atomic.ts";
@@ -331,6 +333,8 @@ const appConfigSchema = z.object({
   openai: z.object({ key: optionalText }).optional(),
   /** OpenRouter key, for the `openrouter` instance only. */
   openrouter: z.object({ key: optionalText }).optional(),
+  /** fal.ai key, for image and video generation. */
+  fal: z.object({ key: optionalText }).optional(),
   /** Workspace monthly spend limit; enforced only with the `budgets` entitlement. */
   budgets: z
     .object({
@@ -384,6 +388,14 @@ const appConfigSchema = z.object({
   live: liveConfigSchema.optional(),
   /** Image provider credentials stay separate; choosing a router never reuses a cloud key. */
   imageGen: imageGenConfigSchema.optional(),
+  /** Video clips bots make on fal.ai with `fal.key`; off unless `enabled`. */
+  videoGen: z.object({
+    enabled: z.boolean().optional(),
+    model: z.string().trim().max(200).refine((value) => !value || validFalModel(value), "Use a fal.ai model ID, such as fal-ai/kling-video/v2.5-turbo/pro/text-to-video").optional(),
+    maxSeconds: z.number().int().min(1).max(VIDEO_SECONDS_MAX).optional(),
+    maxPerTurn: z.number().int().min(1).max(4).optional(),
+    dailyCap: z.number().int().min(1).max(500).optional(),
+  }).strict().optional(),
   /** Non-secret profile details; aboutMe is shared with every bot, and so are everyBotRules, ahead of each bot's own instructions. */
   everyBotRules: z.string().max(24_000).optional(), profile: z.object({ name: optionalText, email: optionalText, aboutMe: z.string().max(24_000).optional(), avatarUrl: z.union([z.literal(""), botAvatarUrlSchema]).optional() }).optional(),
   /** UI language override (BCP-47, lowercase), absent follows the system; what a paired phone calls this computer, "" for the default. */
@@ -458,6 +470,7 @@ export interface AppConfig extends HelperConfig {
   anthropic?: { key?: string; url?: string; everyClaudeBot?: boolean };
   openai?: { key?: string };
   openrouter?: { key?: string };
+  fal?: { key?: string };
   budgets?: { monthlyUsd?: number; warnAtPercent?: number };
   decisions?: { retentionDays?: number };
   loopGuard?: LoopGuardConfig;
@@ -473,6 +486,7 @@ export interface AppConfig extends HelperConfig {
   tts?: { key?: string; fishKey?: string; geminiKey?: string; voice?: string; provider?: "elevenlabs" | "fish" | "system" | "chatterbox" | "xai" | "gemini" | "openai"; baseUrl?: string; model?: string; fishModel?: FishTtsModel; everyReply?: boolean };
   decider?: DeciderConfig;
   imageGen?: ImageGenerationConfig;
+  videoGen?: VideoGenerationConfig;
   live?: LiveConfig;
   profile?: { name?: string; email?: string; aboutMe?: string; avatarUrl?: string }; everyBotRules?: string;
   rooms?: { turnTimeoutMinutes: number };
@@ -734,6 +748,8 @@ export function loadConfig(): AppConfig {
   if (process.env.ODB_OPENAI_API_KEY !== undefined) cfg.openai.key = process.env.ODB_OPENAI_API_KEY;
   cfg.openrouter = { ...cfg.openrouter };
   if (process.env.ODB_OPENROUTER_API_KEY !== undefined) cfg.openrouter.key = process.env.ODB_OPENROUTER_API_KEY;
+  cfg.fal = { ...cfg.fal };
+  if (process.env.ODB_FAL_KEY !== undefined) cfg.fal.key = process.env.ODB_FAL_KEY;
   cfg.openaiCompat = { ...cfg.openaiCompat };
   if (process.env.OPENAI_COMPAT_API_KEY !== undefined) cfg.openaiCompat.key = process.env.OPENAI_COMPAT_API_KEY;
   if (process.env.OPENAI_COMPAT_URL !== undefined) cfg.openaiCompat.url = process.env.OPENAI_COMPAT_URL;
@@ -789,6 +805,7 @@ export function syncCredentialEnv(patch: Partial<Omit<AppConfig, "threads" | "ne
     [patch.openaiCompat?.key, "OPENAI_COMPAT_API_KEY"],
     [patch.openai?.key, "ODB_OPENAI_API_KEY"],
     [patch.openrouter?.key, "ODB_OPENROUTER_API_KEY"],
+    [patch.fal?.key, "ODB_FAL_KEY"],
     [patch.composio?.apiKey, "COMPOSIO_API_KEY"],
     [patch.box?.token, "BOX_TOKEN"],
     [patch.opencodeGo?.apiKey, "OPENCODE_API_KEY"],
@@ -899,7 +916,7 @@ export function saveConfig(
   const keepImageModels = keepKeysOutOfImageModels(disk, checkedPatch.imageGen);
   const storedProfiles = storedBrowserProfilesSchema.safeParse(disk.browserProfiles);
   if (storedProfiles.success) disk.browserProfiles = storedProfiles.data;
-  for (const key of ["xai", "anthropic", "mistral", "cerebras", "treg", "postiz", "groq", "greenference", "meta", "deepseek", "openai", "openrouter", "openaiCompat", "composio", "box", "opencodeGo", "tts", "decider", "imageGen", "live", "profile", "rooms", "mcp", "threads", "context", "memory", "localVm", "features", "budgets", "billing", "decisions", "loopGuard", "onboarding", "browserEngine", "newBots", "safetyFloor"] as const) {
+  for (const key of ["xai", "anthropic", "mistral", "cerebras", "treg", "postiz", "groq", "greenference", "meta", "deepseek", "openai", "openrouter", "fal", "openaiCompat", "composio", "box", "opencodeGo", "tts", "decider", "imageGen", "videoGen", "live", "profile", "rooms", "mcp", "threads", "context", "memory", "localVm", "features", "budgets", "billing", "decisions", "loopGuard", "onboarding", "browserEngine", "newBots", "safetyFloor"] as const) {
     const section = checkedPatch[key];
     if (!section) continue;
     const current = jsonObjectSchema.safeParse(disk[key]);

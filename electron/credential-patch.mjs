@@ -4,6 +4,7 @@ export const CREDENTIAL_PATCH = {
   // everyClaudeBot travels with the key, so no moment exists where a first key moves every signed-in Claude bot onto API billing.
   anthropicApiKey: (value, options) => ({ anthropic: { key: value, ...(options?.everyClaudeBot === false ? { everyClaudeBot: false } : {}) } }),
   openrouterApiKey: (value) => ({ openrouter: { key: value } }),
+  falApiKey: (value) => ({ fal: { key: value } }),
   mistralApiKey: (value) => ({ mistral: { key: value } }),
   cerebrasApiKey: (value) => ({ cerebras: { key: value } }),
   groqApiKey: (value) => ({ groq: { key: value } }),

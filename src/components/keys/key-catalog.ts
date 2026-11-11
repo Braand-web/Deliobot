@@ -1,4 +1,4 @@
-import { AudioLines, Blocks, CalendarClock, Fingerprint, Image, LockKeyhole, Monitor, Phone, Search, Server, Zap, type LucideIcon } from "lucide-react";
+import { AudioLines, Blocks, CalendarClock, Clapperboard, Fingerprint, Image, LockKeyhole, Monitor, Phone, Search, Server, Zap, type LucideIcon } from "lucide-react";
 import type { AppSettingsSection, ConfigStatus } from "@/state/store";
 import type { SavedKey } from "@/state/config-status";
 import type { KeyProvider } from "@/lib/analytics-allowlist";
@@ -43,7 +43,7 @@ export interface KeyTarget {
 }
 
 export type KeyId =
-  | "openai" | "anthropic" | "xai" | "openrouter" | "mistral" | "cerebras" | "groq" | "greenference" | "meta" | "deepseek" | "opencodeGo" | "opencodeProviders"
+  | "openai" | "anthropic" | "xai" | "openrouter" | "fal" | "mistral" | "cerebras" | "groq" | "greenference" | "meta" | "deepseek" | "opencodeGo" | "opencodeProviders"
   | "ollama" | "lmStudio" | "openaiCompat" | "liveCalls" | "liveKey" | "elevenlabs" | "fishAudio" | "geminiTts" | "box" | "vps" | "onePassword" | "composio" | "treg" | "postiz"
   | "jev" | "openrouterHelper" | "workersAi" | "imageOpenai" | "imageGemini" | "imageCustom";
 
@@ -70,7 +70,7 @@ function flag(saved: SavedKey | undefined): SavedState {
   return { configured: saved?.configured === true, ...(saved?.configured && saved.last4 ? { last4: saved.last4 } : {}) };
 }
 
-type TopLevelKey = "openai" | "openrouter" | "xai" | "mistral" | "cerebras" | "groq" | "greenference" | "meta" | "deepseek" | "treg";
+type TopLevelKey = "openai" | "openrouter" | "fal" | "xai" | "mistral" | "cerebras" | "groq" | "greenference" | "meta" | "deepseek" | "treg";
 
 function providerKey(name: TopLevelKey, rest: Omit<KeyTarget, "patch" | "saved">): KeyTarget {
   return { patch: (value) => ({ [name]: { key: value } }), saved: (config) => flag(config[name]), ...rest };
@@ -94,6 +94,9 @@ export const KEY_CATALOG: readonly KeyEntry[] = [
   { id: "openrouter", section: "ai", labelKey: "keys.openrouter.label", purposeKey: "keys.purpose.openrouter", name: "OpenRouter", env: ["ODB_OPENROUTER_API_KEY"],
     words: ["openrouter", "router", "models"], mark: provider("openai-compat", "openrouter"), kind: "key",
     target: providerKey("openrouter", { slot: "openrouterApiKey", placeholder: "sk-or-v1-…", href: "https://openrouter.ai/keys", test: "openrouter", analytics: "openrouter", shape: /^sk-or-/ }) },
+  { id: "fal", section: "ai", labelKey: "keys.fal.label", purposeKey: "keys.purpose.fal", name: "fal.ai", env: ["ODB_FAL_KEY"],
+    words: ["fal", "fal.ai", "images", "video", "flux"], mark: { icon: Clapperboard }, kind: "key",
+    target: providerKey("fal", { slot: "falApiKey", placeholder: "…", placeholderKey: "keys.fal.placeholder", href: "https://fal.ai/dashboard/keys", analytics: "fal" }) },
   { id: "mistral", section: "ai", labelKey: "keys.mistral.label", purposeKey: "keys.purpose.mistral", name: "Mistral", env: ["MISTRAL_API_KEY"],
     words: ["mistral"], mark: provider("mistral", "mistral"), kind: "key",
     target: providerKey("mistral", { slot: "mistralApiKey", placeholder: "…", placeholderKey: "keys.mistral.placeholder", href: "https://console.mistral.ai/api-keys", test: "mistral", analytics: "mistral" }) },

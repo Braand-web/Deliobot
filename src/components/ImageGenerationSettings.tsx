@@ -10,9 +10,10 @@ import { saveCredential } from "./keys/key-save";
 import { Card, SettingRow } from "./SettingsPrimitives";
 import { Select } from "./Select";
 import { productName } from "@/lib/brand";
+import { useFalModels, VideoGenerationSettings } from "./VideoGenerationSettings";
 
 const PROVIDER_LABEL: Record<ImageProvider, string> = {
-  openai: "OpenAI", xai: "Grok (xAI)", gemini: "Gemini", openrouter: "OpenRouter", custom: "Custom",
+  openai: "OpenAI", xai: "Grok (xAI)", gemini: "Gemini", openrouter: "OpenRouter", fal: "fal.ai", custom: "Custom",
 };
 const OWN_KEYS = {
   openai: { credential: "openaiImageApiKey", patch: (key: string) => ({ imageGen: { key } }), label: "imageGen.key.openai" },
@@ -22,17 +23,18 @@ const OWN_KEYS = {
 const SHARED_KEYS = {
   xai: { label: "imageGen.key.xai", note: "imageGen.key.sharedXai" },
   openrouter: { label: "imageGen.key.openrouter", note: "imageGen.key.sharedOpenrouter" },
+  fal: { label: "imageGen.key.fal", note: "imageGen.key.sharedFal" },
 } as const satisfies Partial<Record<ImageProvider, { label: LocaleKey; note: LocaleKey }>>;
 const KEY_URL: Partial<Record<ImageProvider, string>> = {
   openai: "https://platform.openai.com/api-keys", gemini: "https://aistudio.google.com/apikey",
-  xai: "https://console.x.ai", openrouter: "https://openrouter.ai/keys",
+  xai: "https://console.x.ai", openrouter: "https://openrouter.ai/keys", fal: "https://fal.ai/dashboard/keys",
 };
 const INPUT_CLASS = "w-full min-w-0 rounded-lg border border-hairline/40 bg-inset px-3 py-2 text-[13px] text-ink placeholder:text-ink-secondary focus:outline-none disabled:opacity-50";
 const BUTTON_CLASS = "flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-control px-3 py-2 text-[13px] text-ink hover:bg-raised-hover disabled:cursor-not-allowed disabled:opacity-50";
 
 type Slot = "primary" | "fallback";
 type ModelChoice = { id: string; name: string; group: "recommended" | "more" };
-type OpenRouterImageModels = { source: "openrouter" | "builtin"; models: ModelChoice[] };
+type OpenRouterImageModels = { source: "openrouter" | "fal" | "builtin"; models: ModelChoice[] };
 const OTHER_MODEL = "\u0000other";
 
 /** A fixed sentence per verdict: the vendor's own body never reaches the page. */
@@ -55,6 +57,7 @@ function keyConfigured(status: ImageGenStatus | undefined, provider: ImageProvid
   if (provider === "xai") return status?.xaiConfigured === true;
   if (provider === "gemini") return status?.geminiConfigured === true;
   if (provider === "openrouter") return status?.openrouterConfigured === true;
+  if (provider === "fal") return status?.falConfigured === true;
   return status?.customKeyConfigured === true;
 }
 
@@ -67,6 +70,7 @@ export function ImageGenerationSettings() {
   const [error, setError] = useState<string | null>(null);
   const [openrouterModels, setOpenrouterModels] = useState<OpenRouterImageModels | null>(null);
   const usesOpenrouter = primary.provider === "openrouter" || fallback?.provider === "openrouter";
+  const falModels = useFalModels("image", primary.provider === "fal" || fallback?.provider === "fal");
 
   useEffect(() => {
     if (!usesOpenrouter || openrouterModels) return;
@@ -115,11 +119,11 @@ export function ImageGenerationSettings() {
       </section>
 
       <SlotRow
-        slot="primary" provider={primary.provider} model={primary.model} configured={primary.configured} openrouterModels={openrouterModels}
+        slot="primary" provider={primary.provider} model={primary.model} configured={primary.configured} openrouterModels={primary.provider === "fal" ? falModels : openrouterModels}
         disabled={saving || !state.config} onProvider={chooseProvider} onModel={(model) => void save({ imageGen: { primary: { provider: primary.provider, model } } })}
       />
       <SlotRow
-        slot="fallback" provider={fallback?.provider ?? null} model={fallback?.model ?? ""} configured={fallback?.configured === true} exclude={primary.provider} openrouterModels={openrouterModels}
+        slot="fallback" provider={fallback?.provider ?? null} model={fallback?.model ?? ""} configured={fallback?.configured === true} exclude={primary.provider} openrouterModels={fallback?.provider === "fal" ? falModels : openrouterModels}
         disabled={saving || !state.config} onProvider={chooseProvider} onModel={(model) => fallback && void save({ imageGen: { fallback: { provider: fallback.provider, model } } })}
       />
       <SettingRow title={t("imageGen.maxPerTurn.label")} subtitle={t("imageGen.maxPerTurn.help")}>
@@ -137,6 +141,8 @@ export function ImageGenerationSettings() {
       {error && <p role="alert" className="px-4 text-[12px] text-danger">{error}</p>}
 
       {providers.map((provider) => <ProviderKeyCard key={provider} provider={provider} status={status} />)}
+
+      <VideoGenerationSettings keyCard={providers.includes("fal") ? null : <ProviderKeyCard provider="fal" status={status} />} />
     </>
   );
 }
@@ -186,7 +192,7 @@ function ModelRow({ slot, slotLabel, provider, model, openrouterModels, disabled
   onModel: (model: string) => void;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
-  const live = provider === "openrouter" && openrouterModels?.source === "openrouter" ? openrouterModels.models : null;
+  const live = (provider === "openrouter" || provider === "fal") && openrouterModels && openrouterModels.source !== "builtin" ? openrouterModels.models : null;
   const choices: ModelChoice[] = live ?? IMAGE_MODEL_CHOICES[provider].map((choice) => ({ ...choice, group: "recommended" }));
   const typing = draft !== null || choices.length === 0;
   const commit = () => {
@@ -202,7 +208,7 @@ function ModelRow({ slot, slotLabel, provider, model, openrouterModels, disabled
   return (
     <SettingRow
       title={t("decider.model.label")}
-      subtitle={provider === "openrouter" && openrouterModels?.source === "builtin" ? t("decider.model.builtinNote") : undefined}
+      subtitle={(provider === "openrouter" || provider === "fal") && openrouterModels?.source === "builtin" ? t("decider.model.builtinNote") : undefined}
     >
       <div className="flex flex-wrap items-center justify-end gap-2">
         {choices.length > 0 && (
@@ -259,7 +265,7 @@ function ProviderKeyCard({ provider, status }: { provider: ImageProvider; status
   const setVerdict = (next: { ok: boolean; text: string } | null) => setTested(next && { ...next, models });
   const configured = keyConfigured(status, provider);
   const own = provider === "openai" || provider === "gemini" || provider === "custom" ? OWN_KEYS[provider] : null;
-  const shared = provider === "xai" || provider === "openrouter" ? SHARED_KEYS[provider] : null;
+  const shared = provider === "xai" || provider === "openrouter" || provider === "fal" ? SHARED_KEYS[provider] : null;
   const customUrl = url ?? status?.customUrl ?? "";
 
   const run = async (work: () => Promise<ConfigStatus>) => {
@@ -277,7 +283,7 @@ function ProviderKeyCard({ provider, status }: { provider: ImageProvider; status
     }
   };
   const saveKey = (key: string) => run(async () => {
-    if (provider === "xai" || provider === "openrouter") return saveCredential(provider, key, false);
+    if (provider === "xai" || provider === "openrouter" || provider === "fal") return saveCredential(provider, key, false);
     return window.odb?.setCredential && own
       ? window.odb.setCredential(own.credential, key)
       : api("/api/config", { method: "PUT", body: JSON.stringify(own!.patch(key)) });

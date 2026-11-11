@@ -76,6 +76,12 @@ export const CREDENTIAL_TARGETS = {
     placeholder: "sk-or-v1-…",
     helpUrl: "https://openrouter.ai/keys",
   },
+  falApiKey: {
+    label: "fal.ai API key",
+    description: "Makes images and videos with the models on fal.ai.",
+    placeholder: "Paste your fal.ai key",
+    helpUrl: "https://fal.ai/dashboard/keys",
+  },
   mistralApiKey: {
     label: "Mistral API key",
     description: "Runs Mistral models with your own key.",
@@ -121,7 +127,7 @@ export type LoginCredentialTargetId = "onePasswordToken";
 export type ConfigCredentialTargetId = Exclude<CredentialTargetId, LoginCredentialTargetId>;
 /** AI provider keys: refused where Admin manages the models, and typed only in the computer's own app or a desktop paired to it, never on a phone. */
 export const PROVIDER_CREDENTIAL_TARGETS = [
-  "openaiApiKey", "anthropicApiKey", "openrouterApiKey", "mistralApiKey", "cerebrasApiKey", "groqApiKey", "greenferenceApiKey", "metaApiKey", "deepseekApiKey",
+  "openaiApiKey", "anthropicApiKey", "openrouterApiKey", "falApiKey", "mistralApiKey", "cerebrasApiKey", "groqApiKey", "greenferenceApiKey", "metaApiKey", "deepseekApiKey",
 ] as const satisfies readonly ConfigCredentialTargetId[];
 export type DesktopCredentialSlot = ConfigCredentialTargetId;
 export type CredentialConfig = {
@@ -134,6 +140,7 @@ export type CredentialConfig = {
   openai?: { key?: string };
   anthropic?: { key?: string; everyClaudeBot?: boolean };
   openrouter?: { key?: string };
+  fal?: { key?: string };
   mistral?: { key?: string };
   cerebras?: { key?: string };
   groq?: { key?: string };
@@ -200,6 +207,8 @@ export function credentialConfigPatch(id: ConfigCredentialTargetId, value: strin
       return { anthropic: { key: value, everyClaudeBot: false } };
     case "openrouterApiKey":
       return { openrouter: { key: value } };
+    case "falApiKey":
+      return { fal: { key: value } };
     case "mistralApiKey":
       return { mistral: { key: value } };
     case "cerebrasApiKey":
@@ -241,6 +250,8 @@ export function credentialIsConfigured(config: CredentialConfig, id: CredentialT
       return Boolean(config.anthropic?.key);
     case "openrouterApiKey":
       return Boolean(config.openrouter?.key);
+    case "falApiKey":
+      return Boolean(config.fal?.key);
     case "mistralApiKey":
       return Boolean(config.mistral?.key);
     case "cerebrasApiKey":

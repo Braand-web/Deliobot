@@ -43,7 +43,7 @@ const imageKeysOnly = z.object({ key: z.string().optional(), geminiKey: z.string
 /** Every key `imageProviderKey` reads (importing it here would loop back through config.ts). */
 function storedImageKeys(disk: Record<string, unknown>): string[] {
   const image = imageKeysOnly.parse(disk.imageGen ?? {});
-  return [image.key, image.geminiKey, image.customApiKey, keyed.parse(disk.xai ?? {}).key, keyed.parse(disk.openrouter ?? {}).key]
+  return [image.key, image.geminiKey, image.customApiKey, keyed.parse(disk.xai ?? {}).key, keyed.parse(disk.openrouter ?? {}).key, keyed.parse(disk.fal ?? {}).key]
     .map((key) => key?.trim() ?? "").filter(Boolean);
 }
 

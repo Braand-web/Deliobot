@@ -56,7 +56,7 @@ describe("every credential has one home on the keys page", () => {
     const homes: Record<keyof typeof CREDENTIAL_TARGETS, KeyId> = {
       xaiApiKey: "xai", boxToken: "box", opencodeGoApiKey: "opencodeGo", ttsKey: "elevenlabs", fishAudioKey: "fishAudio", geminiTtsKey: "geminiTts",
       openaiImageApiKey: "imageOpenai", onePasswordToken: "onePassword", composioApiKey: "composio", openaiApiKey: "openai",
-      anthropicApiKey: "anthropic", openrouterApiKey: "openrouter", mistralApiKey: "mistral", cerebrasApiKey: "cerebras", groqApiKey: "groq",
+      anthropicApiKey: "anthropic", openrouterApiKey: "openrouter", falApiKey: "fal", mistralApiKey: "mistral", cerebrasApiKey: "cerebras", groqApiKey: "groq",
       greenferenceApiKey: "greenference", metaApiKey: "meta", deepseekApiKey: "deepseek",
     };
     expect(Object.keys(homes).sort()).toEqual(Object.keys(CREDENTIAL_TARGETS).sort());

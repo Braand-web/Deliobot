@@ -120,7 +120,7 @@ describe("avatar image generation", () => {
     expect(avatarImageStatus({})).toEqual({
       provider: "openai", configured: false, model: "gpt-image-2", customUrl: "", customModel: "",
       primary: { provider: "openai", model: "gpt-image-2", configured: false }, fallback: null, ready: false, maxPerTurn: 4,
-      openaiConfigured: false, xaiConfigured: false, customKeyConfigured: false, geminiConfigured: false, openrouterConfigured: false,
+      openaiConfigured: false, xaiConfigured: false, customKeyConfigured: false, geminiConfigured: false, openrouterConfigured: false, falConfigured: false,
     });
     expect(avatarImageStatus({ imageGen: { key: "k", primary: { provider: "gemini" }, fallback: { provider: "openai" } } })).toMatchObject({
       primary: { provider: "gemini", configured: false }, fallback: { provider: "openai", configured: true }, ready: true,

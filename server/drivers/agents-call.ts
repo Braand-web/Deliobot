@@ -23,6 +23,7 @@ import { callWaitTool, WAIT_TOOL_NAMES } from "./agents-wait-tools.ts";
 import { callBurstTool } from "./agents-burst-tool.ts";
 import { callComputerAskTool, COMPUTER_ASK_TOOL_NAMES } from "./agents-computer-ask-tool.ts";
 import { callImageTool, IMAGE_TOOL_NAMES } from "./agents-image-tools.ts";
+import { callVideoTool, VIDEO_TOOL_NAMES } from "./agents-video-tools.ts";
 import { callMeetingTool, MEETING_TOOL_NAMES } from "./agents-meeting-tools.ts";
 import { callDelioTool, DELIO_TOOL_NAMES } from "./agents-delio-tools.ts";
 import { callPageTool, PAGE_TOOL_NAMES } from "./agents-pages-tools.ts";
@@ -245,6 +246,7 @@ export async function callTool(called: string, input: Json, context: ToolCallCon
   if (RESEARCH_TOOL_NAMES.has(name)) return callResearchTool(name, args, context);
   if (HELPER_TOOL_NAMES.has(name)) return callHelperTool(name, args, context);
   if (IMAGE_TOOL_NAMES.has(name)) return callImageTool(name, args, context);
+  if (VIDEO_TOOL_NAMES.has(name)) return callVideoTool(name, args, context);
   if (MEETING_TOOL_NAMES.has(name)) return callMeetingTool(name, args, context);
   if (DELIO_TOOL_NAMES.has(name)) return callDelioTool(name, args, context);
   if (PAGE_TOOL_NAMES.has(name)) return callPageTool(name, args, context);

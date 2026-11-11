@@ -28,6 +28,7 @@ export interface CatalogProfile {
   /** A room's thread: the wait tools are not mounted, since a room holds no wait. */
   room?: boolean;
   imageGeneration?: boolean;
+  videoGeneration?: boolean;
   /** A cloud computer can be had here (Boat): the meeting tools are mounted. */
   meetings?: boolean;
 }
@@ -49,6 +50,7 @@ export function catalogProfileFromEnv(env: NodeJS.ProcessEnv): CatalogProfile {
     computerSelection: env.ODB_COMPUTER_SELECTION === "1",
     room: env.ODB_ROOM === "1",
     imageGeneration: env.ODB_IMAGE_GENERATION === "1",
+    videoGeneration: env.ODB_VIDEO_GENERATION === "1",
     meetings: env.ODB_MEETINGS === "1",
   };
 }

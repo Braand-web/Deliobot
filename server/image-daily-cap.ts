@@ -21,10 +21,10 @@ export interface ImageDailyCap {
   settle(made: boolean): void;
 }
 
-export function createImageDailyCap(dataDir: string, options: { cap?: number; now?: () => Date } = {}): ImageDailyCap {
+export function createImageDailyCap(dataDir: string, options: { cap?: number; now?: () => Date; file?: string } = {}): ImageDailyCap {
   const cap = options.cap ?? IMAGE_DAILY_CAP;
   const now = options.now ?? (() => new Date());
-  const file = join(dataDir, IMAGE_DAY_FILE);
+  const file = join(dataDir, options.file ?? IMAGE_DAY_FILE);
   let held = 0;
   const madeToday = (): number => {
     try {

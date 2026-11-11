@@ -18,6 +18,7 @@ export const WORKSPACE_CREDENTIAL_ENV = [
   "OPENAI_COMPAT_URL",
   "ODB_OPENAI_API_KEY",
   "ODB_OPENROUTER_API_KEY",
+  "ODB_FAL_KEY",
   "BOX_TOKEN",
   "OPENCODE_API_KEY",
   "ODB_TTS_KEY",
@@ -57,7 +58,7 @@ export function stripWorkspaceCredentialEnv(env: Record<string, string | undefin
   stripControlPlaneEnv(env);
 }
 
-const DESKTOP_STORE_KEY_ENV: ReadonlySet<string> = new Set(["MISTRAL_API_KEY", "CEREBRAS_API_KEY", "OPENAI_COMPAT_API_KEY", "ODB_OPENAI_API_KEY", "ODB_OPENROUTER_API_KEY"]);
+const DESKTOP_STORE_KEY_ENV: ReadonlySet<string> = new Set(["MISTRAL_API_KEY", "CEREBRAS_API_KEY", "OPENAI_COMPAT_API_KEY", "ODB_OPENAI_API_KEY", "ODB_OPENROUTER_API_KEY", "ODB_FAL_KEY"]);
 
 /** A key an operator set on the server. Security: under the desktop app these variables hold workspace keys from its
  * encrypted store, which reach only the instances the workspace routes, never one with a URL of its own. */

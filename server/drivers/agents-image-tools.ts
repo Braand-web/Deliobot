@@ -23,7 +23,7 @@ export const IMAGE_TOOL_DEFINITIONS = [
       properties: {
         prompt: { type: "string", minLength: 1, maxLength: IMAGE_PROMPT_MAX_CHARS, description: "What the image shows: subject, setting, style, lighting." },
         aspect: { type: "string", enum: ["1:1", "16:9", "9:16"], description: "Shape; square when omitted." },
-        provider: { type: "string", enum: ["openai", "xai", "gemini", "openrouter", "custom"], description: "Only when the person named one; it must be their base or backup." },
+        provider: { type: "string", enum: ["openai", "xai", "gemini", "openrouter", "fal", "custom"], description: "Only when the person named one; it must be their base or backup." },
       },
       required: ["prompt"],
     },

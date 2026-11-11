@@ -33,6 +33,7 @@ export interface ConfigStatus {
   anthropic?: SavedKey & { everyClaudeBot?: boolean };
   openai?: SavedKey;
   openrouter?: SavedKey;
+  fal?: SavedKey;
   openaiCompat?: SavedKey & { url?: string };
   /** what this server is entitled to; Settings shows only what works here.
    * `license` reaches admins only, and only while the key is inside its
@@ -136,7 +137,10 @@ export interface ConfigStatus {
     customKeyConfigured?: boolean;
     geminiConfigured?: boolean;
     openrouterConfigured?: boolean;
+    falConfigured?: boolean;
   };
+  /** Video clips on fal.ai: the saved choices, and whether bots are offered generate_video now. */
+  videoGen?: import("../../shared/video-generation").VideoGenerationConfig & { ready: boolean };
   /** who's using the app — collected in onboarding, shown in the sidebar */
   profile?: { name: string; email: string; aboutMe?: string; avatarUrl?: string };
   /** Rules every bot follows, ahead of its department's context and its own instructions; sent to admins only. */

@@ -1,10 +1,10 @@
 export type AvatarImageProvider = "openai" | "xai" | "custom";
-export const IMAGE_PROVIDERS = ["openai", "xai", "gemini", "openrouter", "custom"] as const;
+export const IMAGE_PROVIDERS = ["openai", "xai", "gemini", "openrouter", "fal", "custom"] as const;
 export type ImageProvider = (typeof IMAGE_PROVIDERS)[number];
 
 export const IMAGE_MAX_PER_TURN_DEFAULT = 4;
 export const IMAGE_DEFAULT_MODELS: Record<ImageProvider, string> = {
-  openai: "gpt-image-2", xai: "grok-imagine-image-2.0", gemini: "gemini-2.5-flash-image", openrouter: "google/gemini-2.5-flash-image", custom: "",
+  openai: "gpt-image-2", xai: "grok-imagine-image-2.0", gemini: "gemini-2.5-flash-image", openrouter: "google/gemini-2.5-flash-image", fal: "fal-ai/flux/schnell", custom: "",
 };
 
 /** What Settings' Test learns about a provider; no image is made. */
@@ -18,7 +18,7 @@ export interface ImageModelChoice {
   name: string;
 }
 
-/** Offered first in Settings; OpenRouter adds the rest of its live image catalog, and any other ID can be typed. */
+/** Offered first in Settings; OpenRouter and fal.ai add the rest of their live image catalogs, and any other ID can be typed. */
 export const IMAGE_MODEL_CHOICES: Record<ImageProvider, readonly ImageModelChoice[]> = {
   openai: [
     { id: "gpt-image-2", name: "GPT Image 2" },
@@ -36,6 +36,15 @@ export const IMAGE_MODEL_CHOICES: Record<ImageProvider, readonly ImageModelChoic
     { id: "bytedance-seed/seedream-5-0-pro", name: "ByteDance Seed: Seedream 5.0 Pro" },
     { id: "x-ai/grok-imagine-image-2.0", name: "xAI: Grok Imagine Image 2.0" },
     { id: "qwen/qwen-image-3", name: "Qwen: Qwen Image 3" },
+  ],
+  fal: [
+    { id: "fal-ai/flux/schnell", name: "FLUX.1 [schnell]" },
+    { id: "fal-ai/nano-banana-pro", name: "Nano Banana Pro" },
+    { id: "fal-ai/nano-banana-2", name: "Nano Banana 2" },
+    { id: "fal-ai/flux-2-pro", name: "FLUX.2 [pro]" },
+    { id: "fal-ai/flux/dev", name: "FLUX.1 [dev]" },
+    { id: "openai/gpt-image-2", name: "GPT Image 2" },
+    { id: "fal-ai/flux-pro/v1.1-ultra", name: "FLUX1.1 [pro] ultra" },
   ],
   custom: [],
 };

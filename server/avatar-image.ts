@@ -36,6 +36,7 @@ export function avatarImageStatus(cfg: ImageCredentials) {
     customKeyConfigured: Boolean(cfg.imageGen?.customApiKey?.trim()),
     geminiConfigured: Boolean(cfg.imageGen?.geminiKey?.trim()),
     openrouterConfigured: Boolean(cfg.openrouter?.key?.trim()),
+    falConfigured: Boolean(cfg.fal?.key?.trim()),
   };
 }
 

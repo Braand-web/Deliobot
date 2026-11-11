@@ -2,9 +2,12 @@
 import { z } from "zod";
 
 import { IMAGE_MODEL_CHOICES, IMAGE_PROVIDERS, type ImageProvider, type ImageProviderTest } from "../../shared/image-generation.ts";
+import { VIDEO_MODEL_CHOICES } from "../../shared/video-generation.ts";
 import { avatarGenerationRequestSchema, generateAvatarImage } from "../avatar-image.ts";
 import { parseBotProfilePatch } from "../bot-profile.ts";
 import { createOpenRouterModelCatalog } from "../decider/openrouter-models.ts";
+import { FAL_API_URL } from "../fal.ts";
+import { createFalModelCatalog } from "../fal-models.ts";
 import { customImageUrl, imageProviderKey, imageSlots, type ImageCredentials } from "../image-generation.ts";
 import { checkProviderKey, type ProviderKeyKind } from "../provider-key-check.ts";
 import { PASS, type RouteHandler } from "./table.ts";
@@ -13,7 +16,7 @@ const GEMINI_OPENAI_BASE = "https://generativelanguage.googleapis.com/v1beta/ope
 const testSchema = z.object({ provider: z.enum(IMAGE_PROVIDERS) });
 
 /** Every openaiCompat target carries its own URL: without one, the key check would fall back to OpenRouter. */
-function keyCheckTarget(cfg: ImageCredentials, provider: ImageProvider): { provider: ProviderKeyKind; url?: string } | null {
+function keyCheckTarget(cfg: ImageCredentials, provider: Exclude<ImageProvider, "fal">): { provider: ProviderKeyKind; url?: string } | null {
   if (provider === "gemini") return { provider: "openaiCompat", url: GEMINI_OPENAI_BASE };
   if (provider === "custom") {
     const url = customImageUrl(cfg);
@@ -36,7 +39,24 @@ async function openrouterHasModel(model: string, fetchImpl: typeof fetch): Promi
   }
 }
 
+/** fal.ai's price list needs a valid key and makes nothing, so it answers whether the key works. */
+export async function testFalKey(key: string, fetchImpl: typeof fetch = fetch): Promise<ImageProviderTest> {
+  if (!key) return { ok: false, reason: "no_key" };
+  try {
+    const response = await fetchImpl(`${FAL_API_URL}/models/pricing?endpoint_id=fal-ai/flux/schnell`, {
+      headers: { authorization: `Key ${key}`, accept: "application/json" }, signal: AbortSignal.timeout(10_000), redirect: "error",
+    });
+    await response.body?.cancel().catch(() => undefined);
+    if (response.ok) return { ok: true, check: "authentication" };
+    if (response.status === 401 || response.status === 403) return { ok: false, reason: "rejected", status: response.status };
+    return { ok: false, reason: "unexpected", status: response.status };
+  } catch {
+    return { ok: false, reason: "unreachable" };
+  }
+}
+
 export async function testImageProvider(cfg: ImageCredentials, provider: ImageProvider, fetchImpl: typeof fetch = fetch): Promise<ImageProviderTest> {
+  if (provider === "fal") return testFalKey(imageProviderKey(cfg, provider), fetchImpl);
   const target = keyCheckTarget(cfg, provider);
   if (!target) return { ok: false, reason: "no_url" };
   const key = imageProviderKey(cfg, provider);
@@ -58,7 +78,8 @@ export async function testImageProvider(cfg: ImageCredentials, provider: ImagePr
 
 export function createImageSettingsRoutes(deps: { config: () => ImageCredentials; fetch?: typeof fetch }): RouteHandler {
   const models = createOpenRouterModelCatalog({ fetch: deps.fetch, output: "image", curated: IMAGE_MODEL_CHOICES.openrouter });
-  return async ({ req, res, path, method, json, readBody }) => {
+  const falModels = createFalModelCatalog({ fetch: deps.fetch, curated: { image: IMAGE_MODEL_CHOICES.fal, video: VIDEO_MODEL_CHOICES } });
+  return async ({ req, res, url, path, method, json, readBody }) => {
     if (method === "POST" && path === "/api/bot-defaults/avatar") {
       const body = await readBody(req);
       if (!body || typeof body !== "object" || Array.isArray(body)) return json(res, 400, { error: "avatar preview must be a JSON object" });
@@ -74,6 +95,12 @@ export function createImageSettingsRoutes(deps: { config: () => ImageCredentials
     if (path === "/api/images/openrouter-models" && method === "GET") {
       res.setHeader("cache-control", "no-store");
       return json(res, 200, await models.load());
+    }
+    if (path === "/api/media/fal-models" && method === "GET") {
+      const kind = url.searchParams.get("kind");
+      if (kind !== "image" && kind !== "video") return json(res, 400, { error: "kind must be image or video" });
+      res.setHeader("cache-control", "no-store");
+      return json(res, 200, await falModels.load(kind));
     }
     if (path !== "/api/images/test" || method !== "POST") return PASS;
     const parsed = testSchema.safeParse(await readBody(req, 8192));

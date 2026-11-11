@@ -127,7 +127,7 @@ export function createConfigRoutes(deps: ConfigRouteDeps): RouteHandler {
     }
     if ((method === "PUT" || method === "PATCH") && path === "/api/config") {
       const body = await readBody(req);
-      if (hostedModels && ["instances", "anthropic", "openai", "openrouter", "openaiCompat", "xai", "mistral", "cerebras", "groq", "greenference", "meta", "opencodeGo"].some(key => Object.hasOwn(body, key))) return json(res, 403, { error: HOSTED_PROVIDER_SETTINGS_ERROR });
+      if (hostedModels && ["instances", "anthropic", "openai", "openrouter", "fal", "openaiCompat", "xai", "mistral", "cerebras", "groq", "greenference", "meta", "opencodeGo"].some(key => Object.hasOwn(body, key))) return json(res, 403, { error: HOSTED_PROVIDER_SETTINGS_ERROR });
       const patch = parseConfigPatchForPerson(body);
       if (patch.profile && ownProfile) {
         // The address is the verified claim's; a profile names no other.
@@ -547,6 +547,7 @@ export function createConfigRoutes(deps: ConfigRouteDeps): RouteHandler {
           if (persisted.openai?.key !== undefined) persisted.openai.key = "";
           if (persisted.anthropic?.key !== undefined) persisted.anthropic.key = "";
           if (persisted.openrouter?.key !== undefined) persisted.openrouter.key = "";
+          if (persisted.fal?.key !== undefined) persisted.fal.key = "";
           if (persisted.mistral?.key !== undefined) persisted.mistral.key = "";
           if (persisted.cerebras?.key !== undefined) persisted.cerebras.key = "";
           if (persisted.groq?.key !== undefined) persisted.groq.key = "";

@@ -88,7 +88,7 @@ describe("Image generation settings", () => {
   it("offers every provider but the base as the backup, and None", async () => {
     const view = await mount({ configured: true, ready: true, primary: { provider: "openai", model: "gpt-image-2", configured: true }, fallback: null });
     const options = [...view.querySelectorAll<HTMLOptionElement>('select[aria-label="Backup provider"] option')].map((option) => option.value);
-    expect(options).toEqual(["", "xai", "gemini", "openrouter", "custom"]);
+    expect(options).toEqual(["", "xai", "gemini", "openrouter", "fal", "custom"]);
   });
 
   it("saves a chosen base, a cleared backup and the per-reply limit", async () => {
