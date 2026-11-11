@@ -35,7 +35,7 @@ describe("spend cap inside a team goal run", () => {
   const put = (body: unknown) => api("/api/config", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 
   it("ends a capped goal as a blocked run with the cap detail, without retrying the refusal", async () => {
-    expect((await (await api("/api/edition")).json())).toMatchObject({ edition: "enterprise", features: ["admin", "billing", "budgets", "whitelabel"] });
+    expect((await (await api("/api/edition")).json())).toMatchObject({ edition: "enterprise", features: ["admin", "billing", "budgets"] });
 
     // The fake engine reports $0.01 per turn: a $0.01 cap lets the coordinator's goal turn finish, then blocks the next at execution.
     expect((await put({

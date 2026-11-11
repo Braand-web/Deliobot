@@ -1,0 +1,7 @@
+{
+  "$schema": "../control-plane/node_modules/wrangler/config-schema.json",
+  "name": "deliobot",
+  "compatibility_date": "2026-08-25",
+  "workers_dev": true,
+  "assets": { "directory": "./public", "not_found_handling": "404-page" }
+}

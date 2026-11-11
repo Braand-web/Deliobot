@@ -75,11 +75,12 @@ describe("enterprise hook point", () => {
   });
   it("is the open-source edition when the folder is absent, and says so if a key was set anyway", async () => {
     const absent = join(tmpdir(), "odb-enterprise-absent");
-    expect(await loadEnterpriseLayer({ dir: absent, licenseKey: undefined })).toEqual({ edition: "oss", features: ["admin", "billing", "budgets", "whitelabel"] });
+    expect(await loadEnterpriseLayer({ dir: absent, licenseKey: undefined })).toEqual({ edition: "oss", features: ["admin", "billing", "budgets"] });
     const status = await loadEnterpriseLayer({ dir: absent, licenseKey: "odb1.x.y" });
     expect(status.edition).toBe("oss");
     expect(status.notice).toContain("ODB_LICENSE_KEY is set but no enterprise layer exists");
-    expect(entitled("whitelabel"), "included in this edition").toBe(true);
+    expect(entitled("budgets"), "included in this edition").toBe(true);
+    expect(entitled("whitelabel"), "switched off in this edition unless a licensed layer grants it").toBe(false);
     expect(entitled("sso"), "only a licensed layer grants it").toBe(false);
     expect(describeEdition(status)).toContain("open-source edition (ODB_LICENSE_KEY is set");
   });
@@ -101,8 +102,8 @@ describe("enterprise hook point", () => {
   it("loads a compiled layer (server/index.js) the way an image ships it", async () => {
     const dir = fakeLayer(`export function register() { return { customer: "Built", features: ["admin"], expiresAt: null }; }`, "index.js");
     const status = await loadEnterpriseLayer({ dir, licenseKey: "k" });
-    expect(status).toEqual({ edition: "enterprise", customer: "Built", features: ["admin", "billing", "budgets", "whitelabel"], expiresAt: null });
-    expect(describeEdition(status)).toBe("opendeliobot enterprise edition for Built: admin, billing, budgets, whitelabel");
+    expect(status).toEqual({ edition: "enterprise", customer: "Built", features: ["admin", "billing", "budgets"], expiresAt: null });
+    expect(describeEdition(status)).toBe("opendeliobot enterprise edition for Built: admin, billing, budgets");
   });
 
   it("warns for 30 days, keeps working for a 7-day grace, then stops granting features without a restart", async () => {
@@ -125,7 +126,7 @@ describe("enterprise hook point", () => {
     expect(entitled("sso", at("2026-12-31T23:59:59Z"))).toBe(true);
     // expired, in grace: still enterprise, still entitled, and it says so
     const grace = editionStatus(at("2027-01-03T00:00:00Z"));
-    expect(grace).toMatchObject({ edition: "enterprise", features: ["admin", "billing", "budgets", "sso", "whitelabel"], expiresInDays: -2, graceEndsAt: "2027-01-08" });
+    expect(grace).toMatchObject({ edition: "enterprise", features: ["admin", "billing", "budgets", "sso"], expiresInDays: -2, graceEndsAt: "2027-01-08" });
     expect(grace.notice).toBe("ODB_LICENSE_KEY expired on 2027-01-01; enterprise features keep working until 2027-01-08 while it is renewed");
     expect(licenseWarning(grace)).toContain("keep working until 2027-01-08");
     expect(entitled("sso", at("2027-01-01T00:00:00Z"))).toBe(true);
@@ -138,8 +139,8 @@ describe("enterprise hook point", () => {
     expect(lapsed.expiresInDays).toBeUndefined();
     expect(lapsed.notice).toMatch(/expired on 2027-01-01; renew it/);
     expect(licenseWarning(lapsed)).toBeNull();
-    expect(editionForMembers(grace)).toEqual({ edition: "enterprise", customer: "Acme", features: ["admin", "billing", "budgets", "sso", "whitelabel"], expiresAt: "2027-01-01" });
-    expect(editionForMembers(lapsed)).toEqual({ edition: "oss", features: ["admin", "billing", "budgets", "whitelabel"] });
+    expect(editionForMembers(grace)).toEqual({ edition: "enterprise", customer: "Acme", features: ["admin", "billing", "budgets", "sso"], expiresAt: "2027-01-01" });
+    expect(editionForMembers(lapsed)).toEqual({ edition: "oss", features: ["admin", "billing", "budgets"] });
   });
 
   it("never warns about a perpetual key or the open-source edition", async () => {
@@ -189,7 +190,7 @@ describe("enterprise hook point", () => {
   it("tells the operator when the layer is present but no key is configured", async () => {
     const dir = fakeLayer(`export function register() { return { customer: "x", features: [], expiresAt: null }; }`);
     const status = await loadEnterpriseLayer({ dir, licenseKey: undefined });
-    expect(status).toEqual({ edition: "oss", features: ["admin", "billing", "budgets", "whitelabel"], notice: "enterprise layer present but ODB_LICENSE_KEY is not set" });
+    expect(status).toEqual({ edition: "oss", features: ["admin", "billing", "budgets"], notice: "enterprise layer present but ODB_LICENSE_KEY is not set" });
   });
 
   it("refuses a layer that does not honour the contract", async () => {

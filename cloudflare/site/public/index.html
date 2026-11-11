@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deliobot — vos collègues IA</title>
+<meta name="description" content="Deliobot donne à votre équipe des bots IA qui travaillent avec vos outils : Gmail, Slack, GitHub, Notion et des centaines d'autres. Sur le web, sur ordinateur et sur mobile.">
+<link rel="icon" href="/assets/delio-idle.webp">
+<meta property="og:title" content="Deliobot — vos collègues IA">
+<meta property="og:description" content="Des bots IA qui travaillent avec les outils de votre équipe.">
+<meta property="og:image" content="/assets/delio-happy.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--canvas:#0f0f10;--surface:#18181a;--surface-2:#1f1f22;--hairline:#2e2e31;--ink:#f5f5f5;--ink-2:#f5f5f5a8;--ink-3:#f5f5f575;--accent:#1084fe;--accent-text:#7fc0ff;--violet:#a98bff;--success:#38d591;color-scheme:dark}
+@media (prefers-color-scheme:light){:root{--canvas:#f7f7f8;--surface:#fff;--surface-2:#f1f1f3;--hairline:#e2e2e5;--ink:#141416;--ink-2:#141416a3;--ink-3:#14141670;--accent:#1084fe;--accent-text:#0a64c8;--violet:#6b4fd8;--success:#178a5a;color-scheme:light}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--canvas);color:var(--ink);font:16px/1.6 "Geist",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+header{position:sticky;top:0;z-index:10;backdrop-filter:blur(12px);background:color-mix(in srgb,var(--canvas) 82%,transparent);border-bottom:1px solid var(--hairline)}
+header .wrap{display:flex;align-items:center;gap:10px;height:62px}
+header img{width:30px;height:30px}
+header b{font-weight:600;font-size:17px}
+header nav{margin-left:auto;display:flex;gap:22px;font-size:14px;color:var(--ink-2)}
+header nav a{text-decoration:none}header nav a:hover{color:var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;border-radius:10px;font-weight:500;font-size:15px;text-decoration:none;border:1px solid var(--hairline);background:var(--surface);color:var(--ink);transition:transform .15s,background .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.hero{text-align:center;padding:84px 0 56px}
+.mascot{width:168px;height:168px;margin:0 auto 18px;display:block;animation:float 4.5s ease-in-out infinite;filter:drop-shadow(0 18px 40px rgba(16,132,254,.28))}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@media (prefers-reduced-motion:reduce){.mascot{animation:none}.btn:hover{transform:none}}
+h1{font-size:clamp(34px,6vw,58px);line-height:1.08;letter-spacing:-.025em;margin:0 auto 18px;max-width:820px;font-weight:700}
+h1 span{background:linear-gradient(90deg,var(--accent),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:clamp(17px,2.2vw,20px);color:var(--ink-2);max-width:640px;margin:0 auto 30px}
+.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.platforms{margin-top:22px;font-size:14px;color:var(--ink-3)}
+section{padding:72px 0;border-top:1px solid var(--hairline)}
+h2{font-size:clamp(26px,4vw,38px);letter-spacing:-.02em;margin:0 0 10px;text-align:center}
+.sub{color:var(--ink-2);text-align:center;max-width:600px;margin:0 auto 42px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:22px}
+.card h3{margin:10px 0 6px;font-size:17px}
+.card p{margin:0;color:var(--ink-2);font-size:15px}
+.icon{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:var(--surface-2);font-size:20px}
+.soon{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--violet);border:1px solid color-mix(in srgb,var(--violet) 45%,transparent);border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:middle}
+.steps{counter-reset:s;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.steps .card::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;font-weight:600;font-size:14px}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:14px;align-items:stretch}
+.plan{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--hairline);border-radius:16px;padding:22px}
+.plan.hl{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 20px 50px -20px rgba(16,132,254,.45)}
+.plan .tag{font-size:12px;font-weight:600;color:var(--accent-text);text-transform:uppercase;letter-spacing:.05em;min-height:18px}
+.plan h3{margin:4px 0 2px;font-size:20px}
+.price{font-size:32px;font-weight:700;letter-spacing:-.02em;margin:8px 0 0}
+.price small{font-size:14px;font-weight:400;color:var(--ink-2)}
+.plan .credits{color:var(--ink-2);font-size:14px;margin:4px 0 14px}
+.plan ul{list-style:none;padding:0;margin:0 0 18px;font-size:14px;color:var(--ink-2);flex:1}
+.plan li{padding:5px 0 5px 22px;position:relative}
+.plan li::before{content:"✓";position:absolute;left:0;color:var(--success);font-weight:700}
+.plan .btn{width:100%}
+.note{text-align:center;color:var(--ink-3);font-size:13px;margin-top:22px}
+.faq{max-width:760px;margin:0 auto}
+details{background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:16px 20px;margin-bottom:10px}
+summary{cursor:pointer;font-weight:500;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";float:right;color:var(--ink-3)}
+details[open] summary::after{content:"−"}
+details p{color:var(--ink-2);margin:10px 0 0;font-size:15px}
+.final{text-align:center}
+.final img{width:110px;height:110px}
+footer{border-top:1px solid var(--hairline);padding:28px 0;color:var(--ink-3);font-size:13px}
+footer .wrap{display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
+@media (max-width:640px){header nav{display:none}.hero{padding:56px 0 40px}section{padding:56px 0}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <img src="/assets/delio-idle.webp" alt=""><b>Deliobot</b>
+  <nav><a href="#fonctions">Fonctions</a><a href="#tarifs">Tarifs</a><a href="#faq">Questions</a></nav>
+</div></header>
+
+<main>
+<div class="wrap hero">
+  <img class="mascot" src="/assets/delio-happy.webp" alt="Delio, la mascotte de Deliobot" width="168" height="168">
+  <h1>Des collègues IA qui <span>travaillent vraiment</span> avec votre équipe</h1>
+  <p class="lead">Deliobot donne à votre équipe des bots IA branchés sur vos outils — Gmail, Slack, GitHub, Notion et des centaines d'autres. Ils répondent, cherchent, rédigent et agissent, avec les accès de chacun.</p>
+  <div class="cta">
+    <a class="btn primary" href="#tarifs">Essayer pour 1 €</a>
+    <a class="btn" href="#fonctions">Voir les fonctions</a>
+  </div>
+  <p class="platforms">Sur le web · sur ordinateur (macOS, Windows, Linux) · sur mobile</p>
+</div>
+
+<section id="fonctions"><div class="wrap">
+  <h2>Tout ce qu'il faut pour une équipe augmentée</h2>
+  <p class="sub">Un espace de travail par entreprise, des bots par service, et les meilleurs modèles d'IA au même endroit.</p>
+  <div class="grid">
+    <div class="card"><div class="icon">🧠</div><h3>Les meilleurs modèles</h3><p>Claude, GPT, Gemini, Llama et des centaines d'autres. Choisissez, ou laissez le mode Auto prendre le bon modèle pour chaque tâche.</p></div>
+    <div class="card"><div class="icon">🔌</div><h3>Branché sur vos outils</h3><p>Gmail, Slack, GitHub, Notion, Google Drive… Vos bots lisent et agissent là où votre équipe travaille déjà.</p></div>
+    <div class="card"><div class="icon">🎨</div><h3>Images et vidéo</h3><p>Créez des visuels directement dans la conversation. La vidéo arrive bientôt.<span class="soon">bientôt</span></p></div>
+    <div class="card"><div class="icon">🖥️</div><h3>Des ordinateurs pour vos bots</h3><p>Chaque bot peut disposer de son propre ordinateur dans le cloud pour naviguer, tester et accomplir des tâches longues.</p></div>
+    <div class="card"><div class="icon">👥</div><h3>Pensé pour les équipes</h3><p>Membres, rôles, invitations et connexion d'entreprise (SSO). Retirer quelqu'un coupe son accès en quelques secondes.</p></div>
+    <div class="card"><div class="icon">🔑</div><h3>Vos clés, si vous préférez</h3><p>Utilisez nos crédits inclus, ou apportez vos propres clés d'IA avec l'offre BYOK, moins chère.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Prêt en trois étapes</h2>
+  <p class="sub">Pas d'installation compliquée : votre espace est créé pour vous.</p>
+  <div class="steps">
+    <div class="card"><h3>Créez votre espace</h3><p>Choisissez un nom, invitez votre équipe. Votre espace a sa propre adresse sécurisée.</p></div>
+    <div class="card"><h3>Branchez vos outils</h3><p>Connectez Gmail, Slack ou GitHub en quelques clics, et donnez un rôle à chaque bot.</p></div>
+    <div class="card"><h3>Travaillez ensemble</h3><p>Sur le web, sur ordinateur ou sur votre téléphone : un seul compte, un seul solde de crédits.</p></div>
+  </div>
+</div></section>
+
+<section id="tarifs"><div class="wrap">
+  <h2>Des tarifs simples</h2>
+  <p class="sub">Un abonnement par personne, avec des crédits d'IA inclus. Rechargez quand vous voulez.</p>
+  <div class="plans">
+    <div class="plan">
+      <div class="tag">Pour découvrir</div><h3>Essai</h3>
+      <div class="price">1 € <small>/ 3 jours</small></div><div class="credits">100 crédits</div>
+      <ul><li>Tout Pro pendant 3 jours</li><li>Images et mode Auto</li><li>Passe en Pro ensuite, résiliable en un clic</li></ul>
+      <a class="btn" href="#bientot">Commencer</a>
+    </div>
+    <div class="plan hl">
+      <div class="tag">Le plus choisi</div><h3>Pro</h3>
+      <div class="price">25 € <small>/ utilisateur / mois</small></div><div class="credits">2 000 crédits par utilisateur</div>
+      <ul><li>Modèles standard et mode Auto</li><li>Génération d'images</li><li>1 ordinateur cloud à la fois</li><li>Recharges disponibles</li></ul>
+      <a class="btn primary" href="#bientot">Choisir Pro</a>
+    </div>
+    <div class="plan">
+      <div class="tag">Vos propres clés</div><h3>Pro BYOK</h3>
+      <div class="price">12 € <small>/ utilisateur / mois</small></div><div class="credits">Vos clés d'IA</div>
+      <ul><li>Tout le logiciel Deliobot</li><li>Vos clés OpenRouter, fal, Boat</li><li>Aucun coût d'IA chez nous</li></ul>
+      <a class="btn" href="#bientot">Choisir BYOK</a>
+    </div>
+    <div class="plan">
+      <div class="tag">Haut de gamme</div><h3>Business</h3>
+      <div class="price">59 € <small>/ utilisateur / mois</small></div><div class="credits">6 000 crédits par utilisateur</div>
+      <ul><li>Modèles premium (Claude Opus…)</li><li>Connexion d'entreprise (SSO)</li><li>5 ordinateurs cloud, plafonds par personne</li><li>Support prioritaire</li></ul>
+      <a class="btn" href="#bientot">Choisir Business</a>
+    </div>
+    <div class="plan">
+      <div class="tag">Grandes équipes</div><h3>Entreprise</h3>
+      <div class="price">Sur devis</div><div class="credits">Crédits sur mesure</div>
+      <ul><li>Tout Business</li><li>Contrat et facture annuelle</li><li>Serveur dédié, SLA</li><li>Accompagnement</li></ul>
+      <a class="btn" href="#bientot">Nous contacter</a>
+    </div>
+  </div>
+  <p class="note" id="bientot">Les inscriptions ouvrent très bientôt. Prix hors taxes. Recharges : 5 000 crédits pour 20 €, valables 12 mois.</p>
+</div></section>
+
+<section id="faq"><div class="wrap faq">
+  <h2>Questions fréquentes</h2>
+  <p class="sub">&nbsp;</p>
+  <details><summary>Qu'est-ce qu'un crédit ?</summary><p>Un crédit est l'unité de consommation de l'IA. Un message en mode Auto coûte en général 1 à 3 crédits, une image de 2 à 20 selon le modèle. Votre solde est visible à tout moment.</p></details>
+  <details><summary>Que se passe-t-il quand mes crédits sont épuisés ?</summary><p>Vos bots s'arrêtent d'utiliser l'IA jusqu'à la recharge ou au mois suivant. Rien n'est facturé en plus sans votre accord, et vos données restent accessibles.</p></details>
+  <details><summary>C'est quoi le mode Auto ?</summary><p>Le mode Auto choisit pour chaque demande le modèle le plus adapté : rapide et économique pour les questions simples, puissant pour les tâches complexes. Vos crédits durent plus longtemps.</p></details>
+  <details><summary>Puis-je utiliser mes propres clés d'IA ?</summary><p>Oui, avec l'offre Pro BYOK : vous branchez vos clés et vous ne payez que le logiciel.</p></details>
+  <details><summary>Ça marche sur ordinateur et sur téléphone ?</summary><p>Oui. Deliobot fonctionne dans le navigateur, en application pour macOS, Windows et Linux, et sur mobile. Un seul compte, un seul solde.</p></details>
+  <details><summary>Mes données sont-elles en sécurité ?</summary><p>Chaque entreprise a son propre espace isolé, avec son adresse sécurisée. L'accès passe par votre compte, avec rôles et connexion d'entreprise (SSO) en option.</p></details>
+</div></section>
+
+<section><div class="wrap final">
+  <img src="/assets/delio-curious.webp" alt="" width="110" height="110">
+  <h2>Prêt à rencontrer Delio ?</h2>
+  <p class="sub">Essayez Deliobot pendant 3 jours pour 1 €.</p>
+  <div class="cta"><a class="btn primary" href="#tarifs">Voir les offres</a></div>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <span>© 2026 Deliobot</span>
+  <span>Deliobot est construit sur OpenDeliobot, un logiciel open source sous licence Apache-2.0.</span>
+</div></footer>
+</body>
+</html>

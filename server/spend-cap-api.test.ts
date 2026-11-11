@@ -135,7 +135,7 @@ describe("spend cap and prices through real turns", () => {
 
   it("refuses the next turn once the month reaches the cap, prices turns, and lets a raised cap through", async () => {
     const edition = (await (await api("/api/edition")).json()) as { edition: string; features: string[] };
-    expect(edition).toMatchObject({ edition: "enterprise", features: ["admin", "billing", "budgets", "whitelabel"] });
+    expect(edition).toMatchObject({ edition: "enterprise", features: ["admin", "billing", "budgets"] });
 
     // The fake engine reports $0.01 per turn: a $0.015 cap allows two turns and refuses the third.
     expect((await put({ budgets: { monthlyUsd: 0.015, warnAtPercent: 50 }, billing: { currency: "USD", prices: { default: { inputPerMillion: 1000, outputPerMillion: 2000 } } } })).status).toBe(200);
@@ -231,7 +231,7 @@ describe("spend cap and prices through real turns", () => {
 
   it("refuses the next room member at execution time once the cap is reached", async () => {
     const edition = (await (await api("/api/edition")).json()) as { edition: string; features: string[] };
-    expect(edition).toMatchObject({ edition: "enterprise", features: ["admin", "billing", "budgets", "whitelabel"] });
+    expect(edition).toMatchObject({ edition: "enterprise", features: ["admin", "billing", "budgets"] });
 
     // The fake engine reports $0.01 per turn: a $0.01 cap lets the first room member finish, then blocks the second before dispatch.
     expect((await put({
@@ -296,7 +296,7 @@ describe("spend cap and prices with no licence layer: this edition includes them
   const send = (botId: string, text: string) => api(`/api/bots/${encodeURIComponent(botId)}/messages`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }) });
 
   it("refuses the turn past the cap and prices turns into a billable column", async () => {
-    expect(await (await api("/api/edition")).json()).toMatchObject({ edition: "oss", features: ["admin", "billing", "budgets", "whitelabel"] });
+    expect(await (await api("/api/edition")).json()).toMatchObject({ edition: "oss", features: ["admin", "billing", "budgets"] });
     expect((await put({ budgets: { monthlyUsd: 0.015, warnAtPercent: 50 }, billing: { currency: "USD", prices: { default: { inputPerMillion: 1000, outputPerMillion: 2000 } } } })).status).toBe(200);
     const botId = (await control(["new-bot", "--name", "Cap probe"])).bot.id as string;
     for (const text of ["first", "second"]) {

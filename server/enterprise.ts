@@ -52,7 +52,7 @@ function layerEntry(dir: string): string | undefined {
 
 /** Entitlements this edition ships with, licence or not: hosted sign-in through Delio Admin, spend limits, sell prices and
  * white-label branding. */
-export const INCLUDED_FEATURES: readonly string[] = ["admin", "billing", "budgets", "whitelabel"];
+export const INCLUDED_FEATURES: readonly string[] = ["admin", "billing", "budgets"];
 
 let current: EditionStatus = { edition: "oss", features: [...INCLUDED_FEATURES] };
 let workspaceAccessFactory: ((options: WorkspaceAccessOptions) => WorkspaceAccess) | undefined;
