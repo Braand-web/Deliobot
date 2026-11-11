@@ -45,16 +45,16 @@ describe("license expiry through the running server", () => {
     const expiresAt = day(12);
     const server = await boot(expiresAt);
     const edition = await server.edition();
-    expect(edition).toMatchObject({ edition: "enterprise", features: ["budgets"], expiresAt });
+    expect(edition).toMatchObject({ edition: "enterprise", features: ["billing", "budgets", "whitelabel"], expiresAt });
     expect(edition.expiresInDays).toBeGreaterThanOrEqual(11);
     expect(edition.expiresInDays).toBeLessThanOrEqual(12);
     expect(server.log()).toContain(`ODB_LICENSE_KEY expires on ${expiresAt}`);
     expect((await server.adminConfig()).edition).toEqual({
-      edition: "enterprise", features: ["budgets"], license: { expiresAt, expiresInDays: edition.expiresInDays },
+      edition: "enterprise", features: ["billing", "budgets", "whitelabel"], license: { expiresAt, expiresInDays: edition.expiresInDays },
     });
-    expect((await server.memberConfig()).edition).toEqual({ edition: "enterprise", features: ["budgets"] });
+    expect((await server.memberConfig()).edition).toEqual({ edition: "enterprise", features: ["billing", "budgets", "whitelabel"] });
     const member = await server.memberEdition();
-    expect(member).toMatchObject({ edition: "enterprise", features: ["budgets"] });
+    expect(member).toMatchObject({ edition: "enterprise", features: ["billing", "budgets", "whitelabel"] });
     expect(member).not.toHaveProperty("expiresInDays");
   }, 90_000);
 
@@ -64,20 +64,20 @@ describe("license expiry through the running server", () => {
     const graceEndsAt = new Date(Date.parse(expiresAt) + 7 * DAY_MS).toISOString().slice(0, 10);
     const server = await boot(expiresAt);
     const edition = await server.edition();
-    expect(edition).toMatchObject({ edition: "enterprise", features: ["budgets"], expiresAt, graceEndsAt });
+    expect(edition).toMatchObject({ edition: "enterprise", features: ["billing", "budgets", "whitelabel"], expiresAt, graceEndsAt });
     expect(edition.notice).toBe(`ODB_LICENSE_KEY expired on ${expiresAt}; enterprise features keep working until ${graceEndsAt} while it is renewed`);
     expect(server.log()).toContain(`enterprise features keep working until ${graceEndsAt}`);
     expect((await server.adminConfig()).edition.license).toMatchObject({ expiresAt, graceEndsAt });
     expect((await server.memberConfig()).edition.license).toBeUndefined();
     const member = await server.memberEdition();
-    expect(member).toMatchObject({ edition: "enterprise", features: ["budgets"] });
+    expect(member).toMatchObject({ edition: "enterprise", features: ["billing", "budgets", "whitelabel"] });
     for (const field of ["expiresInDays", "graceEndsAt", "notice"]) expect(member).not.toHaveProperty(field);
   }, 90_000);
 
   it("stays quiet far from expiry", async () => {
     const server = await boot(day(90));
     expect((await server.edition()).expiresInDays).toBeGreaterThan(30);
-    expect((await server.adminConfig()).edition).toEqual({ edition: "enterprise", features: ["budgets"] });
+    expect((await server.adminConfig()).edition).toEqual({ edition: "enterprise", features: ["billing", "budgets", "whitelabel"] });
     expect(server.log()).not.toContain("ODB_LICENSE_KEY expires on");
   }, 90_000);
 });

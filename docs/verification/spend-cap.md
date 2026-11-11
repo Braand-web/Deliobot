@@ -18,11 +18,11 @@
   do not spend tokens and still run at the cap.
 - Price turns from the operator's list (`driver/model`, then model, then
   `default`) into a billable column in `/api/usage` and its CSV.
-- Do nothing at all without the `budgets` / `billing` entitlements.
+- This edition includes the `budgets` and `billing` entitlements; no licence layer is needed.
 
 ## User path
 
-Settings → Usage → **Monthly spend limit** and **Sell prices** (enterprise).
+Settings → Usage → **Monthly spend limit** and **Sell prices**.
 The History card shows a billable column once prices exist; the composer's
 send is refused with the limit message once the cap is reached.
 

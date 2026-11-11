@@ -14,7 +14,7 @@ export interface EditionStatus {
   edition: "oss" | "enterprise";
   /** Enterprise only: who the license was issued to. */
   customer?: string;
-  /** Entitlement ids the license grants (sorted). Empty for the open-source edition. */
+  /** Entitlement ids in force (sorted): INCLUDED_FEATURES, plus any a licensed layer grants. */
   features: string[];
   /** Enterprise only: ISO date the license stops working, null for perpetual. */
   expiresAt?: string | null;
@@ -49,7 +49,10 @@ function layerEntry(dir: string): string | undefined {
   return [join(dir, "server", "index.ts"), join(dir, "server", "index.js")].find((candidate) => existsSync(candidate));
 }
 
-let current: EditionStatus = { edition: "oss", features: [] };
+/** Entitlements this edition ships with, licence or not: spend limits, sell prices and white-label branding. */
+export const INCLUDED_FEATURES: readonly string[] = ["billing", "budgets", "whitelabel"];
+
+let current: EditionStatus = { edition: "oss", features: [...INCLUDED_FEATURES] };
 let workspaceAccessFactory: ((options: WorkspaceAccessOptions) => WorkspaceAccess) | undefined;
 
 export interface WorkspaceAccessOptions {
@@ -111,7 +114,7 @@ export function createWorkspaceAccess(options: Omit<WorkspaceAccessOptions, "ent
 }
 
 function oss(notice?: string): EditionStatus {
-  current = notice ? { edition: "oss", features: [], notice } : { edition: "oss", features: [] };
+  current = notice ? { edition: "oss", features: [...INCLUDED_FEATURES], notice } : { edition: "oss", features: [...INCLUDED_FEATURES] };
   return current;
 }
 
@@ -141,7 +144,7 @@ export async function loadEnterpriseLayer(
     current = {
       edition: "enterprise",
       customer: layer.customer,
-      features: [...new Set(layer.features)].sort(),
+      features: [...new Set([...INCLUDED_FEATURES, ...layer.features])].sort(),
       expiresAt: layer.expiresAt,
     };
     return current;
@@ -168,7 +171,7 @@ export function editionStatus(now: number = Date.now()): EditionStatus {
   if (expired(now)) {
     return {
       edition: "oss",
-      features: [],
+      features: [...INCLUDED_FEATURES],
       notice: `enterprise layer disabled: ODB_LICENSE_KEY expired on ${current.expiresAt}; renew it to keep enterprise features`,
     };
   }
@@ -191,7 +194,7 @@ export function editionForMembers(status: EditionStatus): EditionStatus {
 
 /** Core feature gates ask only this; unknown ids are never granted. */
 export function entitled(feature: string, now: number = Date.now()): boolean {
-  return !expired(now) && current.features.includes(feature);
+  return INCLUDED_FEATURES.includes(feature) || (!expired(now) && current.features.includes(feature));
 }
 
 export function licenseWarning(status: EditionStatus): string | null {

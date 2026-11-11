@@ -135,7 +135,7 @@ describe("spend cap and prices through real turns", () => {
 
   it("refuses the next turn once the month reaches the cap, prices turns, and lets a raised cap through", async () => {
     const edition = (await (await api("/api/edition")).json()) as { edition: string; features: string[] };
-    expect(edition).toMatchObject({ edition: "enterprise", features: ["billing", "budgets"] });
+    expect(edition).toMatchObject({ edition: "enterprise", features: ["billing", "budgets", "whitelabel"] });
 
     // The fake engine reports $0.01 per turn: a $0.015 cap allows two turns and refuses the third.
     expect((await put({ budgets: { monthlyUsd: 0.015, warnAtPercent: 50 }, billing: { currency: "USD", prices: { default: { inputPerMillion: 1000, outputPerMillion: 2000 } } } })).status).toBe(200);
@@ -231,7 +231,7 @@ describe("spend cap and prices through real turns", () => {
 
   it("refuses the next room member at execution time once the cap is reached", async () => {
     const edition = (await (await api("/api/edition")).json()) as { edition: string; features: string[] };
-    expect(edition).toMatchObject({ edition: "enterprise", features: ["billing", "budgets"] });
+    expect(edition).toMatchObject({ edition: "enterprise", features: ["billing", "budgets", "whitelabel"] });
 
     // The fake engine reports $0.01 per turn: a $0.01 cap lets the first room member finish, then blocks the second before dispatch.
     expect((await put({
@@ -276,4 +276,39 @@ describe("spend cap and prices through real turns", () => {
     expect(usage.budget).toMatchObject({ monthlyUsd: 0.01, exceeded: true, warn: true });
     expect(usage.total.turns).toBe(1);
   }, 150_000);
+});
+
+describe("spend cap and prices with no licence layer: this edition includes them", () => {
+  let session: VerificationServer;
+
+  beforeEach(async () => {
+    session = await launchVerificationServer(process.env);
+  }, 60_000);
+
+  afterEach(async () => {
+    console.info(JSON.stringify(session.info));
+    await session.close();
+  });
+
+  const control = (args: string[]) => runControlOdb([...args, "--url", session.info.url]) as Promise<any>;
+  const api = (path: string, init: RequestInit = {}) => fetch(`${session.info.url}${path}`, init);
+  const put = (body: unknown) => api("/api/config", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  const send = (botId: string, text: string) => api(`/api/bots/${encodeURIComponent(botId)}/messages`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }) });
+
+  it("refuses the turn past the cap and prices turns into a billable column", async () => {
+    expect(await (await api("/api/edition")).json()).toMatchObject({ edition: "oss", features: ["billing", "budgets", "whitelabel"] });
+    expect((await put({ budgets: { monthlyUsd: 0.015, warnAtPercent: 50 }, billing: { currency: "USD", prices: { default: { inputPerMillion: 1000, outputPerMillion: 2000 } } } })).status).toBe(200);
+    const botId = (await control(["new-bot", "--name", "Cap probe"])).bot.id as string;
+    for (const text of ["first", "second"]) {
+      expect((await send(botId, text)).status).toBeLessThan(300);
+      expect(JSON.stringify(await control(["wait", "--bot", botId, "--timeout", "30"]))).toContain("settled");
+    }
+    const refused = await send(botId, "third");
+    expect(refused.status).toBe(409);
+    expect(await refused.json()).toMatchObject({ code: "spend_cap" });
+    const usage = (await (await api("/api/usage?groupBy=bot")).json()) as any;
+    expect(usage.budget).toMatchObject({ monthlyUsd: 0.015, exceeded: true });
+    expect(usage.total.billableUsd).toBeGreaterThan(0);
+    expect((await (await api("/api/usage.csv")).text()).split("\n")[0]).toContain("billable_usd");
+  }, 120_000);
 });

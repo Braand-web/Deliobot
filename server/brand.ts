@@ -1,5 +1,5 @@
-// White-label: a brand.json next to the data dir, applied only with the `whitelabel` entitlement (an unlicensed server
-// reports what it found and keeps the default). Read on every request, so an edit shows on the next reload.
+// White-label: a brand.json next to the data dir, applied with the `whitelabel` entitlement (this edition includes it; a server
+// without it reports what it found and keeps the default). Read on every request, so an edit shows on the next reload.
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { z } from "zod";
