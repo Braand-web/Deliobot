@@ -1,0 +1,12 @@
+{
+  "name": "@opendeliobot/admin",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Delio Admin: accounts, workspaces, members, invitations and single sign-on for hosted Deliobot workspaces.",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "start": "node src/main.ts",
+    "dev": "node --watch src/main.ts"
+  }
+}
