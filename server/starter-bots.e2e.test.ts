@@ -11,15 +11,15 @@ import { removeTempDir, waitForExit } from "./testing/cleanup.ts";
 import { freePortBlock } from "./testing/ports.ts";
 
 const SERVER_DIR = dirname(fileURLToPath(import.meta.url));
-const HOST = "omb-t-0123456789ab.fly.dev";
+const HOST = "odb-t-0123456789ab.fly.dev";
 const FORWARDED = { host: HOST, "x-forwarded-for": "203.0.113.9", "x-forwarded-proto": "https" };
 const CLAUDE = { instanceId: "claude", model: "claude-sonnet-5" };
 const PACKAGE = JSON.parse(readFileSync(join(SERVER_DIR, "..", "shared", "package-fixtures", "full-team.v2.json"), "utf8"));
-const manifest = (name: string) => ({ format: "openmaus.team", version: 2, team: { name, members: [{ key: "helper", name: `${name} helper`, appearance: { color: "blue" } }] } });
+const manifest = (name: string) => ({ format: "opendelio.team", version: 2, team: { name, members: [{ key: "helper", name: `${name} helper`, appearance: { color: "blue" } }] } });
 
 class Cloud {
-  home = mkdtempSync(join(tmpdir(), "omb-starter-bots-"));
-  dataDir = join(this.home, ".openmausbot");
+  home = mkdtempSync(join(tmpdir(), "odb-starter-bots-"));
+  dataDir = join(this.home, ".opendeliobot");
   gate = join(this.home, "finish");
   dump = join(this.home, "claude.json");
   secret = randomBytes(32).toString("base64url");
@@ -65,9 +65,9 @@ await import(${JSON.stringify(pathToFileURL(join(SERVER_DIR, "testing", "fake-cl
     const prelude = `data:text/javascript,${encodeURIComponent('const real = globalThis.fetch; globalThis.fetch = async (url, init) => String(url).startsWith("http://127.0.0.1:") ? real(url, init) : new Response("{}", { status: 503 });')}`;
     this.child = spawn(process.execPath, ["--import", prelude, join(SERVER_DIR, "index.ts")], {
       cwd: join(SERVER_DIR, ".."),
-      env: { PATH: process.env.PATH, HOME: this.home, USERPROFILE: this.home, OMB_DATA_DIR: this.dataDir, OMB_PORT: String(this.port), OMB_WEBHOOK_PORT: String(this.port + 1),
-        OMB_CLOUD_ROLE: "home", OMB_CLOUD_MACHINE_ID: "3f9c2a4e-8b1d-4c6e-9a7f-2d5e8c1b0a93", OMB_CLOUD_ADMIN_URL: "https://cloud.example.test",
-        OMB_CLOUD_BOOTSTRAP_SECRET: this.secret, OMB_PUBLIC_URL: `https://${HOST}` },
+      env: { PATH: process.env.PATH, HOME: this.home, USERPROFILE: this.home, ODB_DATA_DIR: this.dataDir, ODB_PORT: String(this.port), ODB_WEBHOOK_PORT: String(this.port + 1),
+        ODB_CLOUD_ROLE: "home", ODB_CLOUD_MACHINE_ID: "3f9c2a4e-8b1d-4c6e-9a7f-2d5e8c1b0a93", ODB_CLOUD_ADMIN_URL: "https://cloud.example.test",
+        ODB_CLOUD_BOOTSTRAP_SECRET: this.secret, ODB_PUBLIC_URL: `https://${HOST}` },
       stdio: ["ignore", "pipe", "pipe"],
     });
     this.child.stdout?.on("data", (chunk) => { this.log += chunk; });
@@ -79,10 +79,10 @@ await import(${JSON.stringify(pathToFileURL(join(SERVER_DIR, "testing", "fake-cl
     if (!this.token) await this.pair();
   }
   async pair() {
-    const body = JSON.stringify({ label: "OpenMausBot app (Cloud)", ttlSeconds: 300 });
+    const body = JSON.stringify({ label: "OpenDeliobot app (Cloud)", ttlSeconds: 300 });
     const timestamp = String(Math.floor(Date.now() / 1000)), nonce = randomBytes(16).toString("base64url");
     const response = await fetch(`${this.base}/api/cloud/pairing`, { method: "POST", headers: { ...FORWARDED, "content-type": "application/json",
-      "x-omb-cloud-timestamp": timestamp, "x-omb-cloud-nonce": nonce, "x-omb-cloud-signature": `v1=${cloudPairingSignature(this.secret, timestamp, nonce, body)}` }, body });
+      "x-odb-cloud-timestamp": timestamp, "x-odb-cloud-nonce": nonce, "x-odb-cloud-signature": `v1=${cloudPairingSignature(this.secret, timestamp, nonce, body)}` }, body });
     const granted = await response.json() as { code: string };
     this.token = (await this.api("POST", "/api/auth/pair", { code: granted.code })).body.token;
   }
@@ -90,7 +90,7 @@ await import(${JSON.stringify(pathToFileURL(join(SERVER_DIR, "testing", "fake-cl
   async tellPlan(tier: string) {
     const body = JSON.stringify({ v: 1, tier }), timestamp = String(Math.floor(Date.now() / 1000)), nonce = randomBytes(16).toString("base64url");
     const response = await fetch(`${this.base}/api/cloud/plan`, { method: "POST", body, headers: { ...FORWARDED, "content-type": "application/json",
-      "x-omb-cloud-timestamp": timestamp, "x-omb-cloud-nonce": nonce, "x-omb-cloud-signature": `v1=${cloudRequestSignature(this.secret, timestamp, nonce, "POST", "/api/cloud/plan", body)}` } });
+      "x-odb-cloud-timestamp": timestamp, "x-odb-cloud-nonce": nonce, "x-odb-cloud-signature": `v1=${cloudRequestSignature(this.secret, timestamp, nonce, "POST", "/api/cloud/plan", body)}` } });
     expect(response.status).toBe(200);
   }
   async bots() { return (await this.api("GET", "/api/bots?messages=0")).body.bots as any[]; }
@@ -105,13 +105,13 @@ await import(${JSON.stringify(pathToFileURL(join(SERVER_DIR, "testing", "fake-cl
   /** The capability of a real turn of this Cloud's Chief, for what the bot's own tools call. */
   async chiefTurn() {
     const chief = (await this.bots()).find((bot) => bot.chiefOfStaff);
-    expect(chief, "a new Cloud's MausBot is its Chief").toBeTruthy();
+    expect(chief, "a new Cloud's Delio is its Chief").toBeTruthy();
     const sent = await this.api("POST", `/api/bots/${chief.id}/messages`, { text: "Add a specialist." });
     expect(sent.status, JSON.stringify(sent.body)).toBe(202);
     await expect.poll(() => existsSync(this.dump), { timeout: 20_000 }).toBe(true);
     const agents = JSON.parse(readFileSync(this.dump, "utf8")).mcpConfig.mcpServers.agents;
-    const env = agents.env.OMB_GATE_UPSTREAM ? JSON.parse(agents.env.OMB_GATE_UPSTREAM).env : agents.env;
-    return { chief, token: env.OMB_COMMS_TOKEN as string };
+    const env = agents.env.ODB_GATE_UPSTREAM ? JSON.parse(agents.env.ODB_GATE_UPSTREAM).env : agents.env;
+    return { chief, token: env.ODB_COMMS_TOKEN as string };
   }
   async internal(path: string, token: string, body: unknown) {
     const response = await fetch(`${this.base}${path}`, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${token}` }, body: JSON.stringify(body) });

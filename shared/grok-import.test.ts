@@ -76,10 +76,10 @@ describe("reading what a Bot wrote", () => {
     expect(refused({ format: GROK_EXPORT_FORMAT, version: 2, bots: [{ name: "x" }] }).code).toBe("newerVersion");
   });
 
-  it("reads a bare Bot file, and the earlier openmaus.grok/1 export", () => {
+  it("reads a bare Bot file, and the earlier opendelio.grok/1 export", () => {
     expect(parseGrokExport(JSON.stringify({ name: "Bare", instructions: "x" }))[0]!.name).toBe("Bare");
     const old = {
-      format: "openmaus.grok/1", source: "Grok Bot", name: "Old", description: "Does things.", instructions: "Be old.",
+      format: "opendelio.grok/1", source: "Grok Bot", name: "Old", description: "Does things.", instructions: "Be old.",
       skills: [{ name: "s", description: "d", body: "the body" }],
       routines: [{ name: "r", schedule: "0 9 * * 1-5", cron: "", timeZone: "Asia/Tokyo", prompt: "Go." }],
       plugins: ["Slack"], memories: ["a"],

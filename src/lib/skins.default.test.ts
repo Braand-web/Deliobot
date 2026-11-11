@@ -12,7 +12,7 @@ async function boot() {
   const [{ readAdvancedMode }, { settleInterfaceMode }, skins] = await Promise.all([import("./interface-mode"), import("./new-look"), import("./skins")]);
   settleInterfaceMode();
   skins.applySkinChoice(skins.readSkinChoice());
-  return { skin: document.documentElement.dataset.skin, advanced: readAdvancedMode(), stored: values.get("omb-skin") };
+  return { skin: document.documentElement.dataset.skin, advanced: readAdvancedMode(), stored: values.get("odb-skin") };
 }
 
 function setOsDark(dark: boolean) {
@@ -42,7 +42,7 @@ afterEach(() => { vi.unstubAllGlobals(); });
 describe("default skin", () => {
   it("opens a fresh install following the computer's light or dark setting, in Simple mode, and keeps following it", async () => {
     expect(await boot()).toEqual({ skin: "daylight", advanced: false, stored: "system" });
-    values.set("omb-installed", "2026-10-17T00:00:00.000Z");
+    values.set("odb-installed", "2026-10-17T00:00:00.000Z");
     os.dark = true;
     expect(await boot()).toEqual({ skin: "midnight", advanced: false, stored: "system" });
   });
@@ -61,27 +61,27 @@ describe("default skin", () => {
     skins.applySkin("meadow");
     setOsDark(true);
     expect(document.documentElement.dataset.skin).toBe("meadow");
-    expect(values.get("omb-skin")).toBe("meadow");
+    expect(values.get("odb-skin")).toBe("meadow");
   });
 
   it("keeps an install that ran before in Midnight when nobody picked a skin", async () => {
-    values.set("omb-skin", "midnight");
+    values.set("odb-skin", "midnight");
     expect(await boot()).toMatchObject({ skin: "midnight", stored: "midnight" });
   });
 
   it("keeps Midnight for an earlier install whose saved skin is missing or no longer exists", async () => {
-    values.set("omb-installed", "2026-01-01T00:00:00.000Z");
+    values.set("odb-installed", "2026-01-01T00:00:00.000Z");
     expect(await boot()).toEqual({ skin: "midnight", advanced: true, stored: "midnight" });
-    values.set("omb-skin", "retired-skin");
+    values.set("odb-skin", "retired-skin");
     expect(await boot()).toMatchObject({ skin: "midnight", stored: "midnight" });
   });
 
   it("always honours a skin someone chose", async () => {
-    values.set("omb-skin", "lagoon");
+    values.set("odb-skin", "lagoon");
     expect(await boot()).toMatchObject({ skin: "lagoon" });
     values.clear();
-    values.set("omb-skin", "midnight");
-    values.set("omb-advanced-mode", "0");
+    values.set("odb-skin", "midnight");
+    values.set("odb-advanced-mode", "0");
     expect(await boot()).toMatchObject({ skin: "midnight", advanced: false });
   });
 

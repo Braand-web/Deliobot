@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const hooks = join(root, "scripts", "git-hooks");
 
-if (process.env.CI || process.env.OMB_SKIP_HOOKS || !existsSync(join(root, ".git")) || !existsSync(hooks)) {
+if (process.env.CI || process.env.ODB_SKIP_HOOKS || !existsSync(join(root, ".git")) || !existsSync(hooks)) {
   process.exit(0);
 }
 try {
@@ -20,6 +20,6 @@ try {
 }
 try {
   execFileSync("git", ["config", "core.hooksPath", "scripts/git-hooks"], { cwd: root, stdio: "ignore" });
-  console.log("git hooks: core.hooksPath -> scripts/git-hooks (pre-push checks the changed files in seconds; OMB_SKIP_HOOKS=1 or --no-verify to skip)");
+  console.log("git hooks: core.hooksPath -> scripts/git-hooks (pre-push checks the changed files in seconds; ODB_SKIP_HOOKS=1 or --no-verify to skip)");
 } catch {
 }

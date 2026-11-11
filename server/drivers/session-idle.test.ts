@@ -18,42 +18,42 @@ describe("sessionIdlePolicy", () => {
     expect(sessionIdlePolicy("CLAUDE", {}, 1.5 * GB).idleMs).toBe(SMALL_BOX_IDLE_MS);
     expect(sessionIdlePolicy("ACP", {}, 512 * 1024 ** 2).idleMs).toBe(SMALL_BOX_IDLE_MS);
     expect(sessionIdlePolicy("ACP", {}, 2 * GB).idleMs).toBe(10 * 60_000);
-    expect(sessionIdlePolicy("CLAUDE", { OMB_SESSION_IDLE_MS: "600000" }, GB).idleMs).toBe(600_000);
-    expect(sessionIdlePolicy("ACP", { OMB_ACP_SESSION_IDLE_MIN_MS: "200000" }, GB)).toEqual({ idleMs: 200_000, minimumMs: 200_000 });
+    expect(sessionIdlePolicy("CLAUDE", { ODB_SESSION_IDLE_MS: "600000" }, GB).idleMs).toBe(600_000);
+    expect(sessionIdlePolicy("ACP", { ODB_ACP_SESSION_IDLE_MIN_MS: "200000" }, GB)).toEqual({ idleMs: 200_000, minimumMs: 200_000 });
   });
 
   it("honors each harness's own legacy names", () => {
-    expect(sessionIdlePolicy("CLAUDE", { OMB_CLAUDE_SESSION_IDLE_MS: "120000" }).idleMs).toBe(120_000);
-    expect(sessionIdlePolicy("ACP", { OMB_ACP_SESSION_IDLE_MS: "120000" }).idleMs).toBe(120_000);
-    expect(sessionIdlePolicy("CLAUDE", { OMB_CLAUDE_SESSION_IDLE_MIN_MS: "30000" }).minimumMs).toBe(30_000);
-    expect(sessionIdlePolicy("ACP", { OMB_ACP_SESSION_IDLE_MIN_MS: "30000" }).minimumMs).toBe(30_000);
+    expect(sessionIdlePolicy("CLAUDE", { ODB_CLAUDE_SESSION_IDLE_MS: "120000" }).idleMs).toBe(120_000);
+    expect(sessionIdlePolicy("ACP", { ODB_ACP_SESSION_IDLE_MS: "120000" }).idleMs).toBe(120_000);
+    expect(sessionIdlePolicy("CLAUDE", { ODB_CLAUDE_SESSION_IDLE_MIN_MS: "30000" }).minimumMs).toBe(30_000);
+    expect(sessionIdlePolicy("ACP", { ODB_ACP_SESSION_IDLE_MIN_MS: "30000" }).minimumMs).toBe(30_000);
   });
 
   it("lets the unified names set every harness at once, below a per-harness override", () => {
-    expect(sessionIdlePolicy("CLAUDE", { OMB_SESSION_IDLE_MS: "90000" }).idleMs).toBe(90_000);
-    expect(sessionIdlePolicy("ACP", { OMB_SESSION_IDLE_MS: "90000", OMB_ACP_SESSION_IDLE_MS: "120000" }).idleMs).toBe(120_000);
-    expect(sessionIdlePolicy("ACP", { OMB_SESSION_IDLE_MIN_MS: "4000", OMB_ACP_SESSION_IDLE_MIN_MS: "30000" }).minimumMs).toBe(30_000);
-    expect(sessionIdlePolicy("CLAUDE", { OMB_SESSION_IDLE_MIN_MS: "4000" }).minimumMs).toBe(10_000);
+    expect(sessionIdlePolicy("CLAUDE", { ODB_SESSION_IDLE_MS: "90000" }).idleMs).toBe(90_000);
+    expect(sessionIdlePolicy("ACP", { ODB_SESSION_IDLE_MS: "90000", ODB_ACP_SESSION_IDLE_MS: "120000" }).idleMs).toBe(120_000);
+    expect(sessionIdlePolicy("ACP", { ODB_SESSION_IDLE_MIN_MS: "4000", ODB_ACP_SESSION_IDLE_MIN_MS: "30000" }).minimumMs).toBe(30_000);
+    expect(sessionIdlePolicy("CLAUDE", { ODB_SESSION_IDLE_MIN_MS: "4000" }).minimumMs).toBe(10_000);
   });
 
   it("never floors below ten seconds, however low the configured minimum", () => {
-    expect(sessionIdlePolicy("CLAUDE", { OMB_CLAUDE_SESSION_IDLE_MIN_MS: "2000" }).minimumMs).toBe(10_000);
+    expect(sessionIdlePolicy("CLAUDE", { ODB_CLAUDE_SESSION_IDLE_MIN_MS: "2000" }).minimumMs).toBe(10_000);
     expect(
-      sessionIdlePolicy("CLAUDE", { OMB_CLAUDE_SESSION_IDLE_MS: "15000", OMB_CLAUDE_SESSION_IDLE_MIN_MS: "2000" }).idleMs,
+      sessionIdlePolicy("CLAUDE", { ODB_CLAUDE_SESSION_IDLE_MS: "15000", ODB_CLAUDE_SESSION_IDLE_MIN_MS: "2000" }).idleMs,
     ).toBe(15_000);
     expect(
-      sessionIdlePolicy("ACP", { OMB_ACP_SESSION_IDLE_MS: "1", OMB_ACP_SESSION_IDLE_MIN_MS: "2000" }).idleMs,
+      sessionIdlePolicy("ACP", { ODB_ACP_SESSION_IDLE_MS: "1", ODB_ACP_SESSION_IDLE_MIN_MS: "2000" }).idleMs,
     ).toBe(10_000);
-    expect(sessionIdlePolicy("ACP", { OMB_SESSION_IDLE_MIN_MS: "-5" }).minimumMs).toBe(10_000);
+    expect(sessionIdlePolicy("ACP", { ODB_SESSION_IDLE_MIN_MS: "-5" }).minimumMs).toBe(10_000);
   });
 
   it("rejects unusable delays before the floor instead of coercing them to a 1 ms timer", () => {
     for (const raw of ["not-a-number", "0", "-5", "", "Infinity", "1e309", "2147483648"]) {
-      expect(sessionIdlePolicy("CLAUDE", { OMB_CLAUDE_SESSION_IDLE_MS: raw }, DESKTOP).idleMs).toBe(10 * 60_000);
-      expect(sessionIdlePolicy("ACP", { OMB_SESSION_IDLE_MS: raw }, DESKTOP).idleMs).toBe(10 * 60_000);
+      expect(sessionIdlePolicy("CLAUDE", { ODB_CLAUDE_SESSION_IDLE_MS: raw }, DESKTOP).idleMs).toBe(10 * 60_000);
+      expect(sessionIdlePolicy("ACP", { ODB_SESSION_IDLE_MS: raw }, DESKTOP).idleMs).toBe(10 * 60_000);
     }
-    expect(sessionIdlePolicy("CLAUDE", { OMB_CLAUDE_SESSION_IDLE_MS: "2147483647" }).idleMs).toBe(2_147_483_647);
-    expect(sessionIdlePolicy("ACP", { OMB_ACP_SESSION_IDLE_MIN_MS: "Infinity" }).minimumMs).toBe(10_000);
+    expect(sessionIdlePolicy("CLAUDE", { ODB_CLAUDE_SESSION_IDLE_MS: "2147483647" }).idleMs).toBe(2_147_483_647);
+    expect(sessionIdlePolicy("ACP", { ODB_ACP_SESSION_IDLE_MIN_MS: "Infinity" }).minimumMs).toBe(10_000);
   });
 });
 

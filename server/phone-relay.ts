@@ -1,4 +1,4 @@
-// `serve --relay`: phones reach this server through MausBot Relay, end-to-end encrypted as they reach the desktop app.
+// `serve --relay`: phones reach this server through Delio Relay, end-to-end encrypted as they reach the desktop app.
 // The server dials out to the relay, the phone dials the relay, and the relay splices sealed bytes it cannot open. Every
 // encrypted stream lands in the server's own request handler as a remote request, so a phone signs in with its own session.
 import { AsyncLocalStorage } from "node:async_hooks";
@@ -27,9 +27,9 @@ import { isPairingCredential, type SessionRegistry } from "./sessions.ts";
 import { describeTunnelAccount, FLEET_CREDENTIAL_ENV, fleetCredential, openTunnelCredentials } from "./tunnel.ts";
 import type { E2ESession } from "../companion/src/e2e/session.ts";
 
-export const PHONE_RELAY_ENV = "OMB_PHONE_RELAY";
-/** `serve --tunnel` sets it. OMB_TUNNEL_SOCKET alone is no tunnel: Docker's Caddy reaches the server over that socket. */
-export const SERVES_TUNNEL_ENV = "OMB_SERVES_TUNNEL";
+export const PHONE_RELAY_ENV = "ODB_PHONE_RELAY";
+/** `serve --tunnel` sets it. ODB_TUNNEL_SOCKET alone is no tunnel: Docker's Caddy reaches the server over that socket. */
+export const SERVES_TUNNEL_ENV = "ODB_SERVES_TUNNEL";
 export const PHONE_RELAY_KEY_FILE = "phone-relay-key.json";
 export const PHONE_RELAY_PHONES_FILE = "phone-relay-phones.json";
 /** The relay admits 32 per host; 20 phones, 2 pairing windows and the live pairing sessions stay under it. */
@@ -152,7 +152,7 @@ export function tunnelHolder(env: NodeJS.ProcessEnv, dataDir: string): string | 
   const account = openTunnelCredentials(dataDir);
   if (account.status === "unavailable") return `${account.file} could not be read, so this machine may hold a tunnel address`;
   const document = account.read();
-  if (describeTunnelAccount(document).address || document[MANAGED_COMPANION_ENDPOINT_FIELD]) return "this machine holds a tunnel address from `openmausbot login`";
+  if (describeTunnelAccount(document).address || document[MANAGED_COMPANION_ENDPOINT_FIELD]) return "this machine holds a tunnel address from `opendeliobot login`";
   return null;
 }
 
@@ -168,7 +168,7 @@ function offForTunnel(reason: string): PhoneRelay {
 
 const TUNNEL_HELD = "tunnel_held";
 
-/** Null unless OMB_PHONE_RELAY=1, and when it cannot run here: the server works on without it either way. */
+/** Null unless ODB_PHONE_RELAY=1, and when it cannot run here: the server works on without it either way. */
 export function startPhoneRelay(options: PhoneRelayOptions): PhoneRelay | null {
   if (options.env[PHONE_RELAY_ENV] !== "1") return null;
   const log = options.log ?? ((line: string) => console.log(line));
@@ -179,7 +179,7 @@ export function startPhoneRelay(options: PhoneRelayOptions): PhoneRelay | null {
   const { sessions, dataDir } = options;
   const holder = tunnelHolder(options.env, dataDir);
   if (holder) {
-    log(`phone relay: off: ${holder}. Use the relay on a machine signed in with \`openmausbot login --relay\`, which holds no tunnel address.`);
+    log(`phone relay: off: ${holder}. Use the relay on a machine signed in with \`opendeliobot login --relay\`, which holds no tunnel address.`);
     return offForTunnel(holder);
   }
   let key: KeyPair;
@@ -210,7 +210,7 @@ export function startPhoneRelay(options: PhoneRelayOptions): PhoneRelay | null {
   let relay: RelayClient | null = null;
   let grantState: PhoneRelayGrantState = "waiting";
   let tunnelReason: string | null = null;
-  const baseUrl = relayBaseUrlOverride(options.env.OMB_PHONE_RELAY_URL);
+  const baseUrl = relayBaseUrlOverride(options.env.ODB_PHONE_RELAY_URL);
   const descriptor = () => e2e.descriptor(null);
 
   const counts = () => {
@@ -306,7 +306,7 @@ export function startPhoneRelay(options: PhoneRelayOptions): PhoneRelay | null {
    * remote, and whatever Host, proxy, cookie or owner headers the phone wrote are replaced: it needs a session of its own. */
   function scrub(req: IncomingMessage, peer: Peer): void {
     for (const name of Object.keys(req.headers)) {
-      if (name === "cookie" || name.startsWith("x-openmausbot-") || (PROXY_HEADERS as readonly string[]).includes(name)) delete req.headers[name];
+      if (name === "cookie" || name.startsWith("x-opendeliobot-") || (PROXY_HEADERS as readonly string[]).includes(name)) delete req.headers[name];
     }
     req.headers.host = "phone-relay.invalid";
     req.headers["x-forwarded-for"] = sourceOf(peer);
@@ -323,7 +323,7 @@ export function startPhoneRelay(options: PhoneRelayOptions): PhoneRelay | null {
     if (peer.kind === "pairing") {
       if (!PAIRING_SESSION_ROUTES.has(`${method} ${path}`)) return reply(res, 401, { error: "pair this phone first" });
       if (method === "POST" && devices.records().length >= MAX_RELAY_PHONES) {
-        return reply(res, 409, { error: `This server has ${MAX_RELAY_PHONES} phones on MausBot Relay. Remove one (openmausbot devices revoke ID), then pair again.` });
+        return reply(res, 409, { error: `This server has ${MAX_RELAY_PHONES} phones on Delio Relay. Remove one (opendeliobot devices revoke ID), then pair again.` });
       }
     } else {
       const bearer = bearerToken(req.headers.authorization);

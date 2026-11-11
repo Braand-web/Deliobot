@@ -93,7 +93,7 @@ afterEach(async () => {
 });
 
 async function fixture(script: Script, provider: Provider = "openai-compat", apiKey = API_KEY_CANARY) {
-  const directory = mkdtempSync(join(tmpdir(), "omb-chat-tools-"));
+  const directory = mkdtempSync(join(tmpdir(), "odb-chat-tools-"));
   const requests: ChatRequest[] = [];
   const rpcStarted = deferred<{ name: string; args: Record<string, unknown> }>();
   const server = createServer(async (request, response) => {
@@ -303,7 +303,7 @@ describe("a searched MCP catalog", () => {
 });
 
 describe("approvals that follow the other engines", () => {
-  it("runs OpenMausBot's own agents tools without a card, while a configured server's tool still asks", async () => {
+  it("runs OpenDeliobot's own agents tools without a card, while a configured server's tool still asks", async () => {
     const f = await fixture((_body, response, round) => {
       if (round === 1) sse(response, [chunk({ tool_calls: [toolCall("agents_write", '{"name":"peer","value":"sent"}', "call_agents")] }, "tool_calls")]);
       else if (round === 2) sse(response, [chunk({ tool_calls: [toolCall("audit_write", '{"name":"receipt","value":"done"}', "call_audit")] }, "tool_calls")]);

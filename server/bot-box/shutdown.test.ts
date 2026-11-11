@@ -34,7 +34,7 @@ describe.skipIf(process.platform === "win32").each(servers)("$name shutdown", ({
     { client: "partial GET", headers: "GET / HTTP/1.1\r\nHost: fixture\r\n" },
     { client: "partial CONNECT", headers: "CONNECT fixture:443 HTTP/1.1\r\nHost: fixture\r\n" },
   ])("closes with a $client client still connected", async ({ headers }) => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-shutdown-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-shutdown-"));
     try {
       const opened = await open(join(dir, "s.sock"));
       const client = createConnection(opened.socketPath);

@@ -1,14 +1,14 @@
 // An 8-hour Local VM screen stream, compressed: about 10 GB in 12 KiB frames (some 870k records) through the real
 // sidecar and the real relay, with a relay token refresh and a control-socket replacement mid-run. Opt-in like the
-// nightly fuzz: OMB_E2E_SOAK=1 (OMB_E2E_SOAK_BYTES to change the size). Run it through the heavy-run lock.
+// nightly fuzz: ODB_E2E_SOAK=1 (ODB_E2E_SOAK_BYTES to change the size). Run it through the heavy-run lock.
 import { execFileSync } from "node:child_process";
 import { request } from "node:http";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { freePort, pairViaRelay, spawnRelay, startRig, waitFor, type RelayProcess, type Rig } from "./rig.ts";
 
-const ENABLED = process.env.OMB_E2E_SOAK === "1";
-const TOTAL = Number(process.env.OMB_E2E_SOAK_BYTES) || 10 * 1024 ** 3;
+const ENABLED = process.env.ODB_E2E_SOAK === "1";
+const TOTAL = Number(process.env.ODB_E2E_SOAK_BYTES) || 10 * 1024 ** 3;
 const rssMb = (pid: number) => Number(execFileSync("ps", ["-o", "rss=", "-p", String(pid)], { encoding: "utf8" }).trim()) / 1024;
 
 let rig: Rig;
@@ -49,12 +49,12 @@ describe.skipIf(!ENABLED)("a long screen stream through the relay", () => {
             }
             if (!refreshed && fraction > 0.3) {
               refreshed = true;
-              void rig.control("PUT", "/e2e/relay", { hostId: rig.hid, nodes: ["relay1.openmausbot.com"], relayToken: rig.relayToken() });
+              void rig.control("PUT", "/e2e/relay", { hostId: rig.hid, nodes: ["relay1.openopendeliobot.com"], relayToken: rig.relayToken() });
             }
             if (!replaced && fraction > 0.6) {
               replaced = true;
               // A different node list makes the sidecar redial: a new control socket replaces the old one.
-              void rig.control("PUT", "/e2e/relay", { hostId: rig.hid, nodes: ["relay1.openmausbot.com", "relay2.openmausbot.com"], relayToken: rig.relayToken() });
+              void rig.control("PUT", "/e2e/relay", { hostId: rig.hid, nodes: ["relay1.openopendeliobot.com", "relay2.openopendeliobot.com"], relayToken: rig.relayToken() });
             }
           });
           res.on("end", resolve);

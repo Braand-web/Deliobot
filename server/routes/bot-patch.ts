@@ -5,7 +5,7 @@ import { normalizeConnectorScopes } from "../../shared/connector-scopes.ts";
 import { normalizeOutboundPolicy } from "../../shared/outbound.ts";
 import { normalizePhoneApps } from "../../shared/phone-apps.ts";
 import { parseToolScope, toolScopeWidens } from "../../shared/tool-scope.ts";
-import { isMausColor, MAUS_COLOR_NAMES, type WireBot, type WireGroup } from "../../shared/wire.ts";
+import { isDelioColor, DELIO_COLOR_NAMES, type WireBot, type WireGroup } from "../../shared/wire.ts";
 import { validateBotCwd } from "../bot-cwd.ts";
 import { parseBotProfilePatch } from "../bot-profile.ts";
 import { accessFromVisibility } from "../../shared/bot-access.ts";
@@ -105,7 +105,7 @@ export function createBotPatchRoutes(deps: BotPatchRouteDeps): RouteHandler {
       if (!body || typeof body !== "object" || Array.isArray(body)) {
         return json(res, 400, { error: "body must be a JSON object" });
       }
-      const pairedDevice = req.headers["x-openmausbot-companion"] === "1";
+      const pairedDevice = req.headers["x-opendeliobot-companion"] === "1";
       if ((auth.kind === "session" && !auth.scopes.includes("admin")) || pairedDevice) {
         const session = auth.kind === "session" ? auth.session : undefined;
         const level = pairedDevice ? "chat" : deps.levelOf(auth, m[1]);
@@ -120,8 +120,8 @@ export function createBotPatchRoutes(deps: BotPatchRouteDeps): RouteHandler {
           });
         }
       }
-      if (body.color !== undefined && !isMausColor(body.color)) {
-        return json(res, 400, { error: `color must be ${MAUS_COLOR_NAMES.slice(0, -1).join(", ")}, or ${MAUS_COLOR_NAMES.at(-1)}` });
+      if (body.color !== undefined && !isDelioColor(body.color)) {
+        return json(res, 400, { error: `color must be ${DELIO_COLOR_NAMES.slice(0, -1).join(", ")}, or ${DELIO_COLOR_NAMES.at(-1)}` });
       }
       if (body.mascotExpression !== undefined && body.mascotExpression !== null &&
         (typeof body.mascotExpression !== "string" || body.mascotExpression.length > 80)) {

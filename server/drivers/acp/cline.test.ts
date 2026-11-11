@@ -22,7 +22,7 @@ describe("Cline ACP driver", () => {
 
   beforeEach(() => {
     ensureDirs();
-    scratch = mkdtempSync(join(tmpdir(), "omb-cline-contract-"));
+    scratch = mkdtempSync(join(tmpdir(), "odb-cline-contract-"));
   });
   afterEach(async () => {
     recorder?.stop();
@@ -60,7 +60,7 @@ describe("Cline ACP driver", () => {
   it("preserves Cline's configured provider and mounts scoped team tools", async () => {
     const { instance, recorder } = await create();
     vi.stubEnv("CLINE_API_KEY", "cline-fixture-key");
-    vi.stubEnv("OMB_LICENSE_KEY", "operator-fixture-secret");
+    vi.stubEnv("ODB_LICENSE_KEY", "operator-fixture-secret");
     vi.stubEnv("BOX_TOKEN", "workspace-fixture-secret");
     const { turnId } = await instance.adapter.sendTurn({
       threadId: "cline-chat", text: "hello", model: "cline-default", approvalMode: "ask",
@@ -75,7 +75,7 @@ describe("Cline ACP driver", () => {
     expect(launch.argv).not.toContain("cline-default");
     expect(launch.argv).not.toContain("--provider");
     expect(launch.env.CLINE_API_KEY).toBe("cline-fixture-key");
-    expect(launch.env.OMB_LICENSE_KEY).toBeUndefined();
+    expect(launch.env.ODB_LICENSE_KEY).toBeUndefined();
     expect(launch.env.BOX_TOKEN).toBeUndefined();
     const session = JSON.parse(readFileSync(join(scratch, "launch.json.session.json"), "utf8"));
     expect(session.mcpServers).toEqual(expect.arrayContaining([expect.objectContaining({ name: "agents" })]));

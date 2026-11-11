@@ -41,7 +41,7 @@ const ON = { features: { agentsToolBridge: true } };
 // Every folder a decision below reads is one of these: never the machine's
 // own home, project or policy files.
 const folders: string[] = [];
-const folder = () => { const made = mkdtempSync(join(tmpdir(), "omb-bridge-switch-")); folders.push(made); return made; };
+const folder = () => { const made = mkdtempSync(join(tmpdir(), "odb-bridge-switch-")); folders.push(made); return made; };
 afterAll(async () => { for (const made of folders) await removeTempDir(made); });
 /** A machine with no Claude settings anywhere. */
 const HOST: EngineHost = { home: folder(), managedPolicyFiles: [join(folder(), "managed-settings.json")] };
@@ -66,18 +66,18 @@ describe("the agents tool bridge switch", () => {
     expect(agentsToolBridgeEnabled(parseStoredConfig({ features: { skillAuthoring: true, sharedComputers: true } }), {})).toBe(false);
   });
 
-  it("is switched on by the config key or by OMB_AGENTS_TOOL_BRIDGE=1", () => {
+  it("is switched on by the config key or by ODB_AGENTS_TOOL_BRIDGE=1", () => {
     expect(agentsToolBridgeEnabled(ON, {})).toBe(true);
-    expect(agentsToolBridgeEnabled({}, { OMB_AGENTS_TOOL_BRIDGE: "1" })).toBe(true);
-    expect(TOOL_BRIDGE_ENV).toBe("OMB_AGENTS_TOOL_BRIDGE");
+    expect(agentsToolBridgeEnabled({}, { ODB_AGENTS_TOOL_BRIDGE: "1" })).toBe(true);
+    expect(TOOL_BRIDGE_ENV).toBe("ODB_AGENTS_TOOL_BRIDGE");
   });
 
   it("lets the environment override the saved setting either way, and ignores any other value", () => {
-    expect(agentsToolBridgeEnabled(ON, { OMB_AGENTS_TOOL_BRIDGE: "0" })).toBe(false);
-    expect(agentsToolBridgeEnabled({ features: { agentsToolBridge: false } }, { OMB_AGENTS_TOOL_BRIDGE: "1" })).toBe(true);
+    expect(agentsToolBridgeEnabled(ON, { ODB_AGENTS_TOOL_BRIDGE: "0" })).toBe(false);
+    expect(agentsToolBridgeEnabled({ features: { agentsToolBridge: false } }, { ODB_AGENTS_TOOL_BRIDGE: "1" })).toBe(true);
     for (const value of ["", "true", "yes", "on", "2"]) {
-      expect(agentsToolBridgeEnabled({}, { OMB_AGENTS_TOOL_BRIDGE: value }), value).toBe(false);
-      expect(agentsToolBridgeEnabled(ON, { OMB_AGENTS_TOOL_BRIDGE: value }), value).toBe(true);
+      expect(agentsToolBridgeEnabled({}, { ODB_AGENTS_TOOL_BRIDGE: value }), value).toBe(false);
+      expect(agentsToolBridgeEnabled(ON, { ODB_AGENTS_TOOL_BRIDGE: value }), value).toBe(true);
     }
   });
 
@@ -118,7 +118,7 @@ describe("which engines a turn is bridged on", () => {
     expect(engineBridgeRefusal(ON, { driverKind: "codex", instanceId: "chatgpt", config: { authMode: "chatgpt-plan" } }, {}, HOST)).toBe(reason);
     // whatever its environment says about where that configuration is
     expect(agentsToolBridgeEnv(ON, bot, { driverKind: "codex", environment: { CODEX_HOME: join(folder(), "gone") } }, { HOME: folder() })).toEqual(off);
-    expect(agentsToolBridgeEnv({}, bot, { driverKind: "codex" }, { OMB_AGENTS_TOOL_BRIDGE: "1" })).toEqual(off);
+    expect(agentsToolBridgeEnv({}, bot, { driverKind: "codex" }, { ODB_AGENTS_TOOL_BRIDGE: "1" })).toEqual(off);
   });
 
   it("does not bridge Pi: it loads the person's own extensions, which can block a tool by its name", () => {
@@ -130,7 +130,7 @@ describe("which engines a turn is bridged on", () => {
     expect(engineBridgeRefusal(ON, { driverKind: "piAgent", instanceId: "pi" }, {}, HOST)).toBe(reason);
     expect(engineBridgeRefusal(ON, { driverKind: "piAgent", cwd: folder() }, {}, HOST)).toBe(reason);
     expect(agentsToolBridgeEnv(ON, bot, { driverKind: "piAgent" }, {})).toEqual(off);
-    expect(agentsToolBridgeEnv({}, bot, { driverKind: "piAgent" }, { OMB_AGENTS_TOOL_BRIDGE: "1" })).toEqual(off);
+    expect(agentsToolBridgeEnv({}, bot, { driverKind: "piAgent" }, { ODB_AGENTS_TOOL_BRIDGE: "1" })).toEqual(off);
   });
 
   it.each([
@@ -142,7 +142,7 @@ describe("which engines a turn is bridged on", () => {
   ])("does not bridge %s", (driverKind) => {
     expect(engineBridgeRefusal(ON, { driverKind, version: "2.1.232" }, {}, HOST)).toEqual(expect.any(String));
     expect(agentsToolBridgeEnv(ON, bot, { driverKind }, {})).toEqual(off);
-    expect(agentsToolBridgeEnv({}, bot, { driverKind }, { OMB_AGENTS_TOOL_BRIDGE: "1" })).toEqual(off);
+    expect(agentsToolBridgeEnv({}, bot, { driverKind }, { ODB_AGENTS_TOOL_BRIDGE: "1" })).toEqual(off);
   });
 
   it("does not bridge a turn with no engine at all", () => {
@@ -161,15 +161,15 @@ describe("which engines a turn is bridged on", () => {
   describe("Claude Code's exceptions", () => {
     it("is not bridged when the bot inherits this machine's own Claude Code setup", () => {
       // settings the harness never sees may deny an agents tool by name
-      expect(agentsToolBridgeEnv(ON, bot, CLAUDE, { OMB_CLAUDE_INHERIT_USER_CONFIG: "1" })).toEqual(off);
-      expect(agentsToolBridgeEnv(ON, bot, { ...CLAUDE, environment: { OMB_CLAUDE_INHERIT_USER_CONFIG: "1" } }, {})).toEqual(off);
+      expect(agentsToolBridgeEnv(ON, bot, CLAUDE, { ODB_CLAUDE_INHERIT_USER_CONFIG: "1" })).toEqual(off);
+      expect(agentsToolBridgeEnv(ON, bot, { ...CLAUDE, environment: { ODB_CLAUDE_INHERIT_USER_CONFIG: "1" } }, {})).toEqual(off);
       // the instance's environment is laid over the server's, as the driver lays it
-      expect(agentsToolBridgeEnv(ON, bot, { ...CLAUDE, environment: { OMB_CLAUDE_INHERIT_USER_CONFIG: "0" } }, { OMB_CLAUDE_INHERIT_USER_CONFIG: "1" })).toEqual(on);
+      expect(agentsToolBridgeEnv(ON, bot, { ...CLAUDE, environment: { ODB_CLAUDE_INHERIT_USER_CONFIG: "0" } }, { ODB_CLAUDE_INHERIT_USER_CONFIG: "1" })).toEqual(on);
       // and the person's own Claude Code MCP servers are part of that setup
       expect(agentsToolBridgeEnv({ features: { agentsToolBridge: true, claudeUserMcp: true } }, bot, CLAUDE, {})).toEqual(off);
       expect(agentsToolBridgeEnv({ features: { agentsToolBridge: true, claudeUserMcp: false } }, bot, CLAUDE, {})).toEqual(on);
       // neither is a reason on another engine
-      expect(agentsToolBridgeEnv({ features: { agentsToolBridge: true, claudeUserMcp: true } }, bot, { driverKind: "openai-compat" }, { OMB_CLAUDE_INHERIT_USER_CONFIG: "1" })).toEqual(on);
+      expect(agentsToolBridgeEnv({ features: { agentsToolBridge: true, claudeUserMcp: true } }, bot, { driverKind: "openai-compat" }, { ODB_CLAUDE_INHERIT_USER_CONFIG: "1" })).toEqual(on);
     });
 
     const PATTERNS = "the engine's tool patterns name the agents server or match tools by pattern";
@@ -243,7 +243,7 @@ describe("which engines a turn is bridged on", () => {
 
     it("is not bridged when a settings file's deny or ask rules match tools by pattern, whatever server they are about", () => {
       // The CLI matches a deny or ask rule's whole tool name as a glob, so
-      // such a rule can reach a MausBot tool by pattern even when it was
+      // such a rule can reach a Delio tool by pattern even when it was
       // written for another server; allow rules do not glob.
       expect(agentsToolBridgeRefusal(ON, bot, inFolder("settings.json", { permissions: { deny: ["mcp__github__*"] } }))).toBe(WILDCARD);
       expect(agentsToolBridgeRefusal(ON, bot, inFolder("settings.json", { permissions: { ask: ["*exec*"] } }))).toBe(WILDCARD);
@@ -491,9 +491,9 @@ describe("which engines a turn is bridged on", () => {
   });
 
   it("describes a turn's engine from what the harness holds: the instance, its config, its last snapshot and the turn's folder", () => {
-    const configs = { claude: { driver: "claudeAgent", config: { disallowedTools: ["Bash"] }, environment: { OMB_CLAUDE_INHERIT_USER_CONFIG: "0" } } };
+    const configs = { claude: { driver: "claudeAgent", config: { disallowedTools: ["Bash"] }, environment: { ODB_CLAUDE_INHERIT_USER_CONFIG: "0" } } };
     expect(turnEngine({ instanceId: "claude", driverKind: "claudeAgent" }, configs, { version: "2.1.232 (Claude Code)" }, "/work/site")).toEqual({
-      driverKind: "claudeAgent", instanceId: "claude", config: { disallowedTools: ["Bash"] }, environment: { OMB_CLAUDE_INHERIT_USER_CONFIG: "0" }, version: "2.1.232 (Claude Code)", cwd: "/work/site",
+      driverKind: "claudeAgent", instanceId: "claude", config: { disallowedTools: ["Bash"] }, environment: { ODB_CLAUDE_INHERIT_USER_CONFIG: "0" }, version: "2.1.232 (Claude Code)", cwd: "/work/site",
     });
     // nothing configured, never described, no folder of its own
     expect(turnEngine({ instanceId: "pi", driverKind: "piAgent" }, {}, undefined, undefined)).toEqual({ driverKind: "piAgent", instanceId: "pi" });
@@ -518,7 +518,7 @@ describe("a bot on a local model gets the bridge without the switch", () => {
   });
 
   it("not when the operator's variable says no", () => {
-    expect(agentsToolBridgeRefusal({}, onOllama, onServer("http://127.0.0.1:1234/v1"), { OMB_AGENTS_TOOL_BRIDGE: "0" })).toBe("the switch is off");
+    expect(agentsToolBridgeRefusal({}, onOllama, onServer("http://127.0.0.1:1234/v1"), { ODB_AGENTS_TOOL_BRIDGE: "0" })).toBe("the switch is off");
   });
 
   it("not past the rules everyone else keeps: a tool selection, or an engine that judges tools by name", () => {
@@ -532,8 +532,8 @@ describe("which bots a turn is bridged for", () => {
   it("writes the switch on every turn, so a value inherited from the server's own environment cannot stand in", () => {
     expect(agentsToolBridgeEnv({}, bot, CLAUDE, {})).toEqual(off);
     expect(agentsToolBridgeEnv(ON, bot, CLAUDE, {})).toEqual(on);
-    expect(agentsToolBridgeEnv({}, bot, CLAUDE, { OMB_AGENTS_TOOL_BRIDGE: "1" })).toEqual(on);
-    expect(agentsToolBridgeEnv(ON, bot, CLAUDE, { OMB_AGENTS_TOOL_BRIDGE: "0" })).toEqual(off);
+    expect(agentsToolBridgeEnv({}, bot, CLAUDE, { ODB_AGENTS_TOOL_BRIDGE: "1" })).toEqual(on);
+    expect(agentsToolBridgeEnv(ON, bot, CLAUDE, { ODB_AGENTS_TOOL_BRIDGE: "0" })).toEqual(off);
     expect(Object.keys(agentsToolBridgeEnv(ON, bot, CLAUDE, {}))).toEqual([TOOL_BRIDGE_ENV]);
     expect(agentsToolBridgeRefusal({}, bot, CLAUDE, {})).toBe("the switch is off");
   });
@@ -541,23 +541,23 @@ describe("which bots a turn is bridged for", () => {
   it("starts every agents proxy unbridged until a turn's decision says otherwise", () => {
     // what server/index.ts spreads into each agents integration it builds
     expect(agentsProxyLaunch()).toEqual({ command: process.execPath, args: [SPAWNED_PROXIES.agents] });
-    expect(AGENTS_PROXY_ENV).toEqual({ ELECTRON_RUN_AS_NODE: "1", OMB_AGENTS_TOOL_BRIDGE: "0" });
+    expect(AGENTS_PROXY_ENV).toEqual({ ELECTRON_RUN_AS_NODE: "1", ODB_AGENTS_TOOL_BRIDGE: "0" });
   });
 
   it("gives back the integration a turn mounts with the decision in it, over whatever it carried, and leaves the rest alone", () => {
-    const agents = { command: "node", args: ["agents-proxy.js"], env: { OMB_BOT_ID: "bot-1", OMB_AGENTS_TOOL_BRIDGE: "0", OMB_COMMS_TOKEN: "t" } };
+    const agents = { command: "node", args: ["agents-proxy.js"], env: { ODB_BOT_ID: "bot-1", ODB_AGENTS_TOOL_BRIDGE: "0", ODB_COMMS_TOKEN: "t" } };
     const mounted = bridgedAgents("thread-mount", agents, ON, bot, CLAUDE, {}, HOST);
-    expect(mounted).toEqual({ command: "node", args: ["agents-proxy.js"], env: { OMB_BOT_ID: "bot-1", OMB_AGENTS_TOOL_BRIDGE: "1", OMB_COMMS_TOKEN: "t" } });
+    expect(mounted).toEqual({ command: "node", args: ["agents-proxy.js"], env: { ODB_BOT_ID: "bot-1", ODB_AGENTS_TOOL_BRIDGE: "1", ODB_COMMS_TOKEN: "t" } });
     // a new value for the turn to assign: what was handed in is not rewritten
-    expect(agents.env.OMB_AGENTS_TOOL_BRIDGE).toBe("0");
-    const asked = { ...agents, env: { ...agents.env, OMB_AGENTS_TOOL_BRIDGE: "1" } };
-    expect(bridgedAgents("thread-mount-acp", asked, ON, bot, { driverKind: "grokAgent" }, {}, HOST)!.env.OMB_AGENTS_TOOL_BRIDGE).toBe("0");
+    expect(agents.env.ODB_AGENTS_TOOL_BRIDGE).toBe("0");
+    const asked = { ...agents, env: { ...agents.env, ODB_AGENTS_TOOL_BRIDGE: "1" } };
+    expect(bridgedAgents("thread-mount-acp", asked, ON, bot, { driverKind: "grokAgent" }, {}, HOST)!.env.ODB_AGENTS_TOOL_BRIDGE).toBe("0");
     // a turn that mounts no agents tools has nothing to decide
     expect(bridgedAgents("thread-mount-none", undefined, ON, bot, CLAUDE, {}, HOST)).toBeUndefined();
     expect(agentsToolBridged(mounted)).toBe(true);
     expect(agentsToolBridged(agents)).toBe(false);
     // no agents tools mounted, or an integration that says nothing: no bridge
-    for (const none of [undefined, {}, { env: {} }, { env: { OMB_AGENTS_TOOL_BRIDGE: "true" } }]) expect(agentsToolBridged(none)).toBe(false);
+    for (const none of [undefined, {}, { env: {} }, { env: { ODB_AGENTS_TOOL_BRIDGE: "true" } }]) expect(agentsToolBridged(none)).toBe(false);
   });
 
   it("writes the decision into the integrations a turn mounts, and gives a turn with no agents tools no agents key at all", () => {
@@ -566,18 +566,18 @@ describe("which bots a turn is bridged for", () => {
     applyAgentsBridge("thread-apply-none", integrations, ON, bot, CLAUDE, {}, HOST);
     expect(Object.hasOwn(integrations, "agents")).toBe(false);
     expect(integrations).toEqual({ composio: { env: { KEY: "k" } } });
-    const mounted = { agents: { command: "node", args: ["agents-proxy.js"], env: { OMB_BOT_ID: "bot-1", OMB_AGENTS_TOOL_BRIDGE: "0" } } };
+    const mounted = { agents: { command: "node", args: ["agents-proxy.js"], env: { ODB_BOT_ID: "bot-1", ODB_AGENTS_TOOL_BRIDGE: "0" } } };
     applyAgentsBridge("thread-apply", mounted, ON, bot, CLAUDE, {}, HOST);
-    expect(mounted.agents).toEqual({ command: "node", args: ["agents-proxy.js"], env: { OMB_BOT_ID: "bot-1", OMB_AGENTS_TOOL_BRIDGE: "1" } });
+    expect(mounted.agents).toEqual({ command: "node", args: ["agents-proxy.js"], env: { ODB_BOT_ID: "bot-1", ODB_AGENTS_TOOL_BRIDGE: "1" } });
     expect(agentsToolBridged(mounted.agents)).toBe(true);
     expect(bridgedToolTitle("thread-apply", "use_tool", { name: "list_triggers" })).toBe("list_triggers");
     // the next turn of that thread mounts no agents tools: its mark goes
     applyAgentsBridge("thread-apply", {}, ON, bot, CLAUDE, {}, HOST);
     expect(bridgedToolTitle("thread-apply", "use_tool", { name: "list_triggers" })).toBe("use_tool");
     // a bot or an engine that is turned down is written in as "0"
-    const turnedDown = { agents: { command: "node", args: [] as string[], env: { OMB_AGENTS_TOOL_BRIDGE: "1" } } };
+    const turnedDown = { agents: { command: "node", args: [] as string[], env: { ODB_AGENTS_TOOL_BRIDGE: "1" } } };
     applyAgentsBridge("thread-apply-acp", turnedDown, ON, bot, { driverKind: "grokAgent" }, {}, HOST);
-    expect(turnedDown.agents.env).toEqual({ OMB_AGENTS_TOOL_BRIDGE: "0" });
+    expect(turnedDown.agents.env).toEqual({ ODB_AGENTS_TOOL_BRIDGE: "0" });
   });
 
   it("stays off for a bot with a tool selection, whose gates read the tool's own name", () => {
@@ -594,7 +594,7 @@ describe("which bots a turn is bridged for", () => {
     ]) {
       expect(agentsToolBridgeRefusal(ON, { ...bot, toolScope }, CLAUDE, {}), JSON.stringify(toolScope)).toBe("the bot has a tool selection");
       expect(agentsToolBridgeEnv(ON, { ...bot, toolScope }, CLAUDE, {}), JSON.stringify(toolScope)).toEqual(off);
-      expect(agentsToolBridgeEnv({}, { ...bot, toolScope }, CLAUDE, { OMB_AGENTS_TOOL_BRIDGE: "1" }), JSON.stringify(toolScope)).toEqual(off);
+      expect(agentsToolBridgeEnv({}, { ...bot, toolScope }, CLAUDE, { ODB_AGENTS_TOOL_BRIDGE: "1" }), JSON.stringify(toolScope)).toEqual(off);
     }
     // a stored selection that cannot be read refuses the turn elsewhere; never on here
     for (const toolScope of [false, [], "all", { allow: "all" }, { unrecognized: true }, null]) {
@@ -612,7 +612,7 @@ describe("which bots a turn is bridged for", () => {
 
 describe("the decision cannot fail a turn", () => {
   const FAILED = "the decision failed";
-  const agents = () => ({ command: "node", args: [] as string[], env: { OMB_BOT_ID: "bot-1" } as Record<string, string> });
+  const agents = () => ({ command: "node", args: [] as string[], env: { ODB_BOT_ID: "bot-1" } as Record<string, string> });
   /** A machine whose home cannot be asked for without an error that carries a path. */
   const throwingHost = (message: string): EngineHost => ({ get home(): string { throw new Error(message); }, managedPolicyFiles: [] });
   const quiet = () => vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -624,12 +624,12 @@ describe("the decision cannot fail a turn", () => {
       const engine = { ...CLAUDE, cwd: undefined };
       expect(agentsToolBridgeRefusal(ON, bot, engine, {}, host)).toBe(FAILED);
       expect(agentsToolBridgeEnv(ON, bot, engine, {}, host)).toEqual(off);
-      const asked = { ...agents(), env: { ...agents().env, OMB_AGENTS_TOOL_BRIDGE: "1" } };
+      const asked = { ...agents(), env: { ...agents().env, ODB_AGENTS_TOOL_BRIDGE: "1" } };
       expect(bridgedAgents("thread-throws", asked, ON, bot, engine, {}, host)).toEqual(bridgedAgents("thread-off-for-comparison", asked, {}, bot, CLAUDE, {}, HOST));
       expect(bridgedToolTitle("thread-throws", "mcp__agents__use_tool", { name: "list_triggers" })).toBe("mcp__agents__use_tool");
       const integrations = { agents: asked };
       applyAgentsBridge("thread-throws-apply", integrations, ON, bot, engine, {}, host);
-      expect(integrations.agents.env.OMB_AGENTS_TOOL_BRIDGE).toBe("0");
+      expect(integrations.agents.env.ODB_AGENTS_TOOL_BRIDGE).toBe("0");
       // one line each time, naming the class of what was thrown and nothing it carried
       expect(warn).toHaveBeenCalledTimes(4);
       for (const [line] of warn.mock.calls) {
@@ -698,7 +698,7 @@ describe("the decision cannot fail a turn", () => {
 });
 
 describe("the name a bridged call is given", () => {
-  const agents = () => ({ command: "node", args: [] as string[], env: { OMB_BOT_ID: "bot-1" } as Record<string, string> });
+  const agents = () => ({ command: "node", args: [] as string[], env: { ODB_BOT_ID: "bot-1" } as Record<string, string> });
 
   it("is the tool it ran on a turn that was bridged, for any tool of today's catalog, and its own for anything else", () => {
     bridgedAgents("thread-bridged", agents(), ON, bot, CLAUDE, {}, HOST);
@@ -785,12 +785,12 @@ describe("the prompt of a bridged turn", () => {
     { id: "memory", label: "Memory", text: "\nMEMORY: the deploy script lives in scripts/." },
     { id: "credential", label: "Credentials", text: " Use request_credential for a missing key." },
   ];
-  const bridged = { env: { OMB_AGENTS_TOOL_BRIDGE: "1", OMB_BOT_ID: "bot-1" } };
+  const bridged = { env: { ODB_AGENTS_TOOL_BRIDGE: "1", ODB_BOT_ID: "bot-1" } };
 
   it("is unchanged, to the byte, without the bridge", () => {
     const plain = buildSystemPrompt("You are Kiwi.", "Be brief.", parts);
     expect(buildSystemPrompt("You are Kiwi.", "Be brief.", parts, undefined)).toEqual(plain);
-    expect(buildSystemPrompt("You are Kiwi.", "Be brief.", parts, { env: { OMB_AGENTS_TOOL_BRIDGE: "0" } })).toEqual(plain);
+    expect(buildSystemPrompt("You are Kiwi.", "Be brief.", parts, { env: { ODB_AGENTS_TOOL_BRIDGE: "0" } })).toEqual(plain);
     expect(buildSystemPrompt("You are Kiwi.", "Be brief.", parts, { env: {} })).toEqual(plain);
     expect(buildSystemPrompt("You are Kiwi.", "Be brief.", parts, {})).toEqual(plain);
     expect(plain.text).not.toContain(FIND_TOOL);
@@ -848,6 +848,6 @@ describe("the prompt of a bridged turn", () => {
     expect(later.stable).toBe(first.stable);
     expect(later.volatile).not.toBe(first.volatile);
     // and it is the same text for every bot and every turn that has it
-    expect(buildSystemPrompt("You are Pip.", "", [], { env: { OMB_AGENTS_TOOL_BRIDGE: "1", OMB_CHIEF_OF_STAFF: "1" } }).sections.find((entry) => entry.id === "tool-bridge")!.text).toBe(AGENTS_TOOL_BRIDGE_PROMPT);
+    expect(buildSystemPrompt("You are Pip.", "", [], { env: { ODB_AGENTS_TOOL_BRIDGE: "1", ODB_CHIEF_OF_STAFF: "1" } }).sections.find((entry) => entry.id === "tool-bridge")!.text).toBe(AGENTS_TOOL_BRIDGE_PROMPT);
   });
 });

@@ -1180,7 +1180,7 @@
       "mcp_server"
     ]
   },
-  "default+mausbot": {
+  "default+delio": {
     "bytes": 62105,
     "sha256": "6ed238881df8e394e1fbc6696bd58e2619a6d6325ffd9c04e965a0e23ff6980d",
     "tools": [
@@ -1235,7 +1235,7 @@
       "mark_notifications_read"
     ]
   },
-  "skills+shared+voice+mausbot": {
+  "skills+shared+voice+delio": {
     "bytes": 68227,
     "sha256": "c6ab39a67adbd922de5471f38e4d9924e608c6d8d1e847a8e8e7173af567fbfd",
     "tools": [

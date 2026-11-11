@@ -3,11 +3,11 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, it } from "vitest";
-import { launchVerificationServer, runControlOmb } from "../scripts/control-omb.ts";
+import { launchVerificationServer, runControlOdb } from "../scripts/control-odb.ts";
 
 it("launches two threads of one bot with the same system prompt, each with its own folder in its first message", async () => {
   const fixture = await launchVerificationServer();
-  const control = (args: string[]) => runControlOmb([...args, "--url", fixture.info.url]) as Promise<any>;
+  const control = (args: string[]) => runControlOdb([...args, "--url", fixture.info.url]) as Promise<any>;
   const api = async (method: string, path: string, body: unknown) => {
     const response = await fetch(`${fixture.info.url}${path}`, { method, headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
     expect(response.ok).toBe(true);

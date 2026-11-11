@@ -29,7 +29,7 @@ const RECIPE: Recipe = {
 };
 const LABEL = '"Document" in TextEdit';
 const FAILED = { kind: "failed", done: 1, total: 2, tool: "set_value", label: LABEL, error: "Fixture failure." } as const;
-const COMPUTER = { command: "gated-computer", args: ["--turn"], env: { OMB_CONTROL_TOKEN: "turn-token" }, platform: "darwin" as const, scope: "local-computer" as const };
+const COMPUTER = { command: "gated-computer", args: ["--turn"], env: { ODB_CONTROL_TOKEN: "turn-token" }, platform: "darwin" as const, scope: "local-computer" as const };
 const INPUT: SendTurnInput = { threadId: "t1", botId: "b1", text: REQUEST, approvalMode: "full", integrations: { localComputer: COMPUTER } };
 const MESSAGE: Message = { id: "m1", at: 1, role: "user", kind: "text", text: REQUEST };
 const REQ: ReplayRequest = { botId: "b1", message: MESSAGE, turnText: REQUEST, placePicked: true };
@@ -769,7 +769,7 @@ describe("SavedStepsDispatch with the quick model fallback", () => {
   });
 
   it("shows a refused quick model's retry as the replay's one turn", async () => {
-    scratch = mkdtempSync(join(tmpdir(), "omb-saved-steps-dispatch-"));
+    scratch = mkdtempSync(join(tmpdir(), "odb-saved-steps-dispatch-"));
     vi.spyOn(console, "warn").mockImplementation(() => {});
     const listeners = new Set<RuntimeEventListener>();
     const sent: SendTurnInput[] = [];

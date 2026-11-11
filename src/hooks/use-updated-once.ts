@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { InstanceInfo } from "@/state/store";
 
-const SEEN_KEY = "omb-engine-updated-seen";
+const SEEN_KEY = "odb-engine-updated-seen";
 
 function seen(): Record<string, string> {
   try {

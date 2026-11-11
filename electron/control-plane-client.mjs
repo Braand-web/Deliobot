@@ -1,5 +1,5 @@
 const INSTALLATION_CREDENTIAL =
-  /^omb_install_[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43}$/;
+  /^odb_install_[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43}$/;
 const INSTALLATION_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const CLIENT_INSTANCE = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
@@ -296,7 +296,7 @@ export function createControlPlaneClient({
       });
       if (
         payload.ok !== true ||
-        payload.service !== "openmausbot-control-plane"
+        payload.service !== "opendeliobot-control-plane"
       ) {
         throw new ControlPlaneError("control_plane_unavailable");
       }
@@ -429,7 +429,7 @@ export function createControlPlaneClient({
       return { endpoint, connectorToken };
     },
 
-    /** MausBot Relay: `{token, hostId, nodes, expiresAt, refreshAfter}`, or `relay_unavailable` (503) while this
+    /** Delio Relay: `{token, hostId, nodes, expiresAt, refreshAfter}`, or `relay_unavailable` (503) while this
      * computer is outside the rollout. */
     async relayToken(installationCredential, { appVersion, devices, kind }) {
       if (typeof installationCredential !== "string" || !INSTALLATION_CREDENTIAL.test(installationCredential)) {

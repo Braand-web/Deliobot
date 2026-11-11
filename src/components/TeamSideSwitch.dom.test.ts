@@ -36,7 +36,7 @@ const bot = (overrides: Partial<Bot> = {}): Bot => ({
   id: "scout", threadId: "scout-main", mainThreadId: "scout-main", name: "Scout", title: "", description: "", notifications: true, color: "green", unread: false,
   modelSelection: { instanceId: "claude", model: "test" }, messages: [], tasks: [MAIN, OWN], ...overrides,
 } as Bot);
-const MINE = bot({ id: "mine", name: "MausBot", threadId: "mine-main", mainThreadId: "mine-main", defaultBot: { person: "ada@acme.test" } as never, tasks: [task("mine-main", "Inbox")] });
+const MINE = bot({ id: "mine", name: "Delio", threadId: "mine-main", mainThreadId: "mine-main", defaultBot: { person: "ada@acme.test" } as never, tasks: [task("mine-main", "Inbox")] });
 const ROOM = { id: "room-1", name: "Relaunch", threadId: "room-thread", unread: false, members: [], messages: [] } as unknown as Group;
 const acme = (extra: Partial<AppState> = {}): AppState =>
   ({ ...initialState, config: { team: { id: "team-acme", name: "Acme" } }, bots: [bot(), MINE], groups: [ROOM], selectedId: "scout", activeView: "chat", ...extra }) as unknown as AppState;
@@ -187,7 +187,7 @@ describe("who can see it, by the message box", () => {
     box(acme(), { group: ROOM });
     expect(label()?.textContent).toBe("Shared · everyone in this group chat can see");
     box(acme(), { bot: MINE });
-    expect(label()?.textContent, "the person's own MausBot").toBe("Private · only you");
+    expect(label()?.textContent, "the person's own Delio").toBe("Private · only you");
   });
 
   it("never follows the switch: with Just me chosen, a shared chat on screen still says Shared", () => {
@@ -222,7 +222,7 @@ describe("who can see it, by the message box", () => {
     expect(checked()).toBe("team");
     expect(savedTeamSide()).toBe("team");
     box(acme({ selectedId: "mine" }), { bot: MINE });
-    expect(checked(), "their own MausBot, picked from search").toBe("me");
+    expect(checked(), "their own Delio, picked from search").toBe("me");
     expect(savedTeamSide()).toBe("me");
     expect(fixture.dispatch).not.toHaveBeenCalled();
   });
@@ -243,7 +243,7 @@ describe("who can see it, by the message box", () => {
     expect(fixture.dispatch).toHaveBeenCalledWith({ type: "switchTask", botId: "scout", threadId: "ada-own" });
     expect(checked(), "the switch does not move for it").toBe("me");
     expect(savedTeamSide()).toBe("me");
-    expect(stored.get("omb.team-side.team-acme.ada@acme.test")).not.toBe("team");
+    expect(stored.get("odb.team-side.team-acme.ada@acme.test")).not.toBe("team");
     expect(label()?.textContent, "and until their chat is on screen the label says what is").toBe("Shared · everyone in Acme can see");
   });
 
@@ -255,7 +255,7 @@ describe("who can see it, by the message box", () => {
     expect(fixture.dispatch).toHaveBeenCalledWith({ type: "switchTask", botId: "scout", threadId: "ada-own" });
     expect(checked()).toBe("me");
     expect(savedTeamSide(), "nobody chose Team").toBe("me");
-    expect(stored.get("omb.team-side.team-acme.ada@acme.test")).not.toBe("team");
+    expect(stored.get("odb.team-side.team-acme.ada@acme.test")).not.toBe("team");
   });
 
   it("does not take the shared chat the app opened as it started, before it knew this is a team, for the person's choice", () => {
@@ -267,7 +267,7 @@ describe("who can see it, by the message box", () => {
     expect(fixture.dispatch).toHaveBeenCalledWith({ type: "switchTask", botId: "scout", threadId: "ada-own" });
     expect(checked()).toBe("me");
     expect(savedTeamSide(), "nobody chose Team").toBe("me");
-    expect(stored.get("omb.team-side.team-acme.ada@acme.test")).not.toBe("team");
+    expect(stored.get("odb.team-side.team-acme.ada@acme.test")).not.toBe("team");
   });
 
   it("after a reload with Team chosen, goes to the bot's shared chat and keeps Team", () => {

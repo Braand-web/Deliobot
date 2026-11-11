@@ -9,7 +9,7 @@ const dirs: string[] = [];
 afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }); });
 
 function settledFile(text: string): string {
-  const dir = mkdtempSync(join(tmpdir(), "omb-settled-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-settled-"));
   dirs.push(dir);
   const path = join(dir, "config.json");
   writeFileSync(path, text);

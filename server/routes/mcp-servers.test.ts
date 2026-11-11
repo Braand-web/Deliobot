@@ -254,7 +254,7 @@ describe.skipIf(process.platform === "win32")("Test, where bots reach URL server
   });
   /** A broker; `slash` forwards a request for the server's own address with a slash added, as the broker once did. */
   async function brokerPath(slash = false): Promise<BrokerPath> {
-    dir = mkdtempSync(join(tmpdir(), "omb-mcp-test-route-"));
+    dir = mkdtempSync(join(tmpdir(), "odb-mcp-test-route-"));
     const request = ((target: RequestOptions, callback: Parameters<typeof httpRequest>[1]) =>
       httpRequest({ ...target, path: slash ? String(target.path).replace(/^\/mcp(?=\?|$)/, "/mcp/") : target.path }, callback as never)) as typeof httpRequest;
     broker = await openCredentialBroker({ socketPath: join(dir, "b.sock"), request });

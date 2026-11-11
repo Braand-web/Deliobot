@@ -1,4 +1,4 @@
-// OpenMausBot's own connection to a command MCP server (an app's page and calls) where the bot box is on: the command is
+// OpenDeliobot's own connection to a command MCP server (an app's page and calls) where the bot box is on: the command is
 // one a bot's turns also start, and may be the bot's own, so it starts in the box, where the data folder is an empty one.
 import { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
@@ -33,7 +33,7 @@ describe.skipIf(process.platform === "win32")("an app's connection to a command 
 
   it("starts the command in the bot box where turns are boxed: as its bot, or with no bot's folder", async () => {
     ensureDirs();
-    const scratch = mkdtempSync(join(tmpdir(), "omb-app-box-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-app-box-"));
     dirs.push(scratch);
     const fakeBwrap = join(scratch, "fake-bwrap.sh");
     writeFileSync(fakeBwrap, MARKING_BWRAP);
@@ -73,7 +73,7 @@ describe.skipIf(process.platform === "win32")("an app's connection to a command 
   // engine folder in the data folder in its environment, is not a grant.
   it("shows a configured server none of the data folder its command line or environment names", async () => {
     ensureDirs();
-    const scratch = mkdtempSync(join(tmpdir(), "omb-app-named-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-app-named-"));
     dirs.push(scratch);
     const fakeBwrap = join(scratch, "fake-bwrap.sh");
     writeFileSync(fakeBwrap, MARKING_BWRAP);
@@ -99,7 +99,7 @@ describe.skipIf(process.platform === "win32")("an app's connection to a command 
   }, 60_000);
 
   it("with the box off, starts it as it did", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-app-nobox-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-app-nobox-"));
     dirs.push(scratch);
     const marker = join(scratch, "started.txt");
     const connections = new AppConnections({ asBot: () => ({ id: "bot-a", cwd: join(scratch, "missing") }) });

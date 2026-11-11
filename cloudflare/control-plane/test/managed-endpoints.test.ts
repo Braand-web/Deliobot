@@ -11,7 +11,7 @@ import { forgetCachedCapacity } from "../src/tunnel-capacity";
 import { rolloutBucket } from "../src/relay";
 import { forgetTunnelRelease } from "../src/tunnel-release";
 
-const BASE_URL = "https://auth.openmausbot.test";
+const BASE_URL = "https://auth.opendeliobot.test";
 const CONNECTOR_TOKEN = "eyJhbGciOiJIUzI1NiJ9.test-only-connector-token.signature";
 /** An endpoint whose hostname is not under its account's suffix refuses to act. */
 const HOST_SUFFIX = env.COMPANION_HOST_SUFFIX;
@@ -834,7 +834,7 @@ describe("managed companion endpoints", () => {
     const worker = createWorker(cloudflare.fetch);
     const owner = await signIn(worker, "managed-adopt@example.com");
     const installation = await createInstallation(worker, owner.token, "managed-adopt");
-    const tunnelName = "omb-c-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    const tunnelName = "odb-c-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     const hostname = `c-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.${HOST_SUFFIX}`;
     const tunnel: FakeTunnel = {
       id: "20000000-0000-4000-8000-000000000001",
@@ -1001,7 +1001,7 @@ describe("managed companion endpoints", () => {
     const hostname = `c-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.${HOST_SUFFIX}`;
     const tunnel: FakeTunnel = {
       id: "30000000-0000-4000-8000-000000000001",
-      name: "omb-c-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      name: "odb-c-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     };
     cloudflare.tunnels.set(tunnel.name, tunnel);
     cloudflare.dns.set(hostname, {
@@ -1222,7 +1222,7 @@ describe("managed companion endpoints", () => {
     cloudflare.dns.set(hostname, {
       ...record,
       content: "203.0.113.50",
-      name: "repurposed.openmausbot.test",
+      name: "repurposed.opendeliobot.test",
       proxied: false,
       type: "A",
     });
@@ -1236,7 +1236,7 @@ describe("managed companion endpoints", () => {
     expect(cloudflare.calls.some((entry) => entry.method === "DELETE")).toBe(false);
     expect(cloudflare.dns.get(hostname)).toMatchObject({
       content: "203.0.113.50",
-      name: "repurposed.openmausbot.test",
+      name: "repurposed.opendeliobot.test",
       type: "A",
     });
     const retained = await env.DB.prepare(
@@ -1349,7 +1349,7 @@ describe("managed companion endpoints", () => {
     await env.DB.batch(Array.from({ length: 25 }, (_, index) => {
       const opaque = index.toString(16).padStart(32, "0");
       const hostname = `c-${opaque}.${HOST_SUFFIX}`;
-      const tunnelName = `omb-c-${opaque}`;
+      const tunnelName = `odb-c-${opaque}`;
       const tunnelId = `10000000-0000-4000-8000-${(index + 1).toString(16).padStart(12, "0")}`;
       cloudflare.tunnels.set(tunnelName, { id: tunnelId, name: tunnelName });
       cloudflare.dns.set(hostname, {
@@ -1376,9 +1376,9 @@ describe("managed companion endpoints", () => {
       "SELECT status, COUNT(*) AS count FROM installation_endpoints GROUP BY status ORDER BY status",
     ).all<{ count: number; status: string }>()).results;
 
-    // Workers Free deployments set OMB_CLEANUP_SWEEP_LIMIT=4: forty cleanup
+    // Workers Free deployments set ODB_CLEANUP_SWEEP_LIMIT=4: forty cleanup
     // calls plus the two capacity reads stay under 50 subrequests.
-    await runScheduledCleanup(worker, { OMB_CLEANUP_SWEEP_LIMIT: "4" });
+    await runScheduledCleanup(worker, { ODB_CLEANUP_SWEEP_LIMIT: "4" });
     expect(await counts()).toEqual([
       { count: 4, status: "deleted" },
       { count: 21, status: "deleting" },
@@ -1389,7 +1389,7 @@ describe("managed companion endpoints", () => {
     // Workers Paid (the code default of 20): twenty rows at ten calls each is
     // about 200 of the token's 1,200 requests per five minutes.
     cloudflare.calls.length = 0;
-    await runScheduledCleanup(worker, { OMB_CLEANUP_SWEEP_LIMIT: "20" });
+    await runScheduledCleanup(worker, { ODB_CLEANUP_SWEEP_LIMIT: "20" });
     expect(await counts()).toEqual([
       { count: 24, status: "deleted" },
       { count: 1, status: "deleting" },
@@ -1410,7 +1410,7 @@ describe("managed companion endpoints", () => {
     ).bind(
       "orphan-backoff",
       `c-${"a".repeat(32)}.${HOST_SUFFIX}`,
-      `omb-c-${"a".repeat(32)}`,
+      `odb-c-${"a".repeat(32)}`,
       now - 14 * 60 * 1_000,
       now - 25 * 60 * 60 * 1_000,
       now - 25 * 60 * 60 * 1_000,
@@ -1626,7 +1626,7 @@ describe("idle tunnel reclaim", () => {
 
     // The deployed policy, pinned here so retuning wrangler.jsonc cannot change
     // which of these endpoints count as idle.
-    await runScheduledCleanup(worker, { OMB_TUNNEL_OFFLINE_RECLAIM_DAYS: "3" });
+    await runScheduledCleanup(worker, { ODB_TUNNEL_OFFLINE_RECLAIM_DAYS: "3" });
 
     for (const reclaimed of [neverConnected, offline]) {
       expect(await endpointState(reclaimed.id)).toMatchObject({
@@ -1687,7 +1687,7 @@ describe("idle tunnel reclaim", () => {
     const longAgo = now - 30 * DAY_MS;
     const leftBehind = async (clientInstanceId: string, opaque: string, leaseExpiresAt: number, updatedAt: number) => {
       const installation = await createInstallation(worker, owner.token, clientInstanceId);
-      const tunnel: FakeTunnel = { id: `${opaque.slice(0, 8)}-0000-4000-8000-${opaque.slice(-12)}`, name: `omb-c-${opaque}` };
+      const tunnel: FakeTunnel = { id: `${opaque.slice(0, 8)}-0000-4000-8000-${opaque.slice(-12)}`, name: `odb-c-${opaque}` };
       neverRan(tunnel, 30);
       cloudflare.tunnels.set(tunnel.name, tunnel);
       await env.DB.batch([
@@ -1711,7 +1711,7 @@ describe("idle tunnel reclaim", () => {
     cloudflare.calls.length = 0;
     const logged = vi.spyOn(console, "log").mockImplementation(() => undefined);
 
-    await runScheduledCleanup(worker, { OMB_TUNNEL_OFFLINE_RECLAIM_DAYS: "3" });
+    await runScheduledCleanup(worker, { ODB_TUNNEL_OFFLINE_RECLAIM_DAYS: "3" });
 
     expect(await endpointState(stopped.id)).toMatchObject({ dns_record_id: null, status: "deleted", tunnel_id: null });
     expect(cloudflare.tunnels.has(stopped.tunnel.name)).toBe(false);
@@ -1742,7 +1742,7 @@ describe("idle tunnel reclaim", () => {
     cloudflare.calls.length = 0;
     const logged = vi.spyOn(console, "log").mockImplementation(() => undefined);
 
-    await runScheduledCleanup(worker, { OMB_TUNNEL_RECLAIM: "observe" });
+    await runScheduledCleanup(worker, { ODB_TUNNEL_RECLAIM: "observe" });
 
     expect(await endpointState(idle.id)).toMatchObject({ reclaim_requested_at: null, status: "ready" });
     expect(deleteURLs(cloudflare)).toHaveLength(0);
@@ -1759,10 +1759,10 @@ describe("idle tunnel reclaim", () => {
     const cloudflare = new FakeCloudflare();
     const worker = createWorker(cloudflare.fetch);
     const stale = iso(Date.now() - 90 * DAY_MS);
-    cloudflare.tunnels.set("omb-c-ffffffffffffffffffffffffffffffff", {
+    cloudflare.tunnels.set("odb-c-ffffffffffffffffffffffffffffffff", {
       created_at: stale,
       id: "40000000-0000-4000-8000-000000000001",
-      name: "omb-c-ffffffffffffffffffffffffffffffff",
+      name: "odb-c-ffffffffffffffffffffffffffffffff",
       status: "inactive",
     });
     cloudflare.tunnels.set("another-service", {
@@ -1990,7 +1990,7 @@ describe("idle tunnel reclaim", () => {
         `INSERT INTO installation_endpoints
           (installation_id, hostname, tunnel_name, status, delete_requested_at, created_at, updated_at)
          VALUES (?, ?, ?, 'deleting', ?, ?, ?)`,
-      ).bind(`orphan-limited-${index}`, `c-${opaque}.${HOST_SUFFIX}`, `omb-c-${opaque}`, now, now, now);
+      ).bind(`orphan-limited-${index}`, `c-${opaque}.${HOST_SUFFIX}`, `odb-c-${opaque}`, now, now, now);
     }));
     cloudflare.rateLimited.add("list_tunnels");
     const logged = vi.spyOn(console, "log").mockImplementation(() => undefined);
@@ -2071,15 +2071,15 @@ describe("managed endpoint provider capacity", () => {
 
     cloudflare.providerErrors.clear();
     const now = Date.now();
-    cloudflare.tunnels.set(`omb-c-${"e".repeat(32)}`, {
+    cloudflare.tunnels.set(`odb-c-${"e".repeat(32)}`, {
       id: "60000000-0000-4000-8000-000000000001",
-      name: `omb-c-${"e".repeat(32)}`,
+      name: `odb-c-${"e".repeat(32)}`,
     });
     await env.DB.prepare(
       `INSERT INTO installation_endpoints
         (installation_id, hostname, tunnel_name, status, delete_requested_at, created_at, updated_at)
        VALUES ('orphan-capacity', ?, ?, 'deleting', ?, ?, ?)`,
-    ).bind(`c-${"e".repeat(32)}.${HOST_SUFFIX}`, `omb-c-${"e".repeat(32)}`, now, now, now).run();
+    ).bind(`c-${"e".repeat(32)}.${HOST_SUFFIX}`, `odb-c-${"e".repeat(32)}`, now, now, now).run();
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     await runScheduledCleanup(worker);
     expect(await capacityRejectedAt()).toBeNull();
@@ -2110,7 +2110,7 @@ describe("managed endpoint provider capacity", () => {
 
     cloudflare.providerErrors.clear();
     const now = Date.now();
-    const tunnelName = `omb-c-${"f".repeat(32)}`;
+    const tunnelName = `odb-c-${"f".repeat(32)}`;
     cloudflare.tunnels.set(tunnelName, { id: "60000000-0000-4000-8000-000000000002", name: tunnelName });
     await env.DB.prepare(
       `INSERT INTO installation_endpoints
@@ -2225,7 +2225,7 @@ describe("managed endpoint provider capacity", () => {
     const text = await response.text();
     expect(JSON.parse(text)).toMatchObject({
       ok: true,
-      service: "openmausbot-control-plane",
+      service: "opendeliobot-control-plane",
       capacity: {
         checkedAt: expect.any(Number),
         dnsRecords: { limit: 3500, used: 400 },
@@ -2240,7 +2240,7 @@ describe("managed endpoint provider capacity", () => {
     }
 
     errors.mockClear();
-    await runScheduledCleanup(worker, { OMB_TUNNEL_LIMIT: "2000" });
+    await runScheduledCleanup(worker, { ODB_TUNNEL_LIMIT: "2000" });
     expect(loggedJSON(errors, "managed endpoint capacity high")).toEqual([]);
     cloudflare.tunnelTotalCount = 1000;
     cloudflare.dnsTotalCount = 3400;
@@ -2259,9 +2259,9 @@ describe("managed endpoint provider capacity", () => {
 const ENDPOINT_PATH = "/v1/installations/self/endpoint";
 const SECOND_ACCOUNT_ID = "2b".repeat(16);
 const SECOND_ZONE_ID = "3c".repeat(16);
-const SECOND_SUFFIX = "mausbot.si";
-const SECOND_TOKEN_SECRET = "CLOUDFLARE_API_TOKEN_MAUSBOT_SI";
-const SECOND_TOKEN = "test-only-mausbot-si-api-token-with-no-real-access";
+const SECOND_SUFFIX = "opendeliobot.com";
+const SECOND_TOKEN_SECRET = "CLOUDFLARE_API_TOKEN_DELIO_SI";
+const SECOND_TOKEN = "test-only-delio-si-api-token-with-no-real-access";
 
 interface AccountsFixture {
   env: Env;
@@ -2273,7 +2273,7 @@ interface AccountsFixture {
   worker: TestWorker;
 }
 
-/** The primary account plus mausbot.si in a second account, each with its
+/** The primary account plus opendeliobot.com in a second account, each with its
  * own fake API behind a router that checks every request's token. */
 function twoAccounts(entry: Record<string, unknown> = {}): AccountsFixture {
   const first = new FakeCloudflare();
@@ -2400,7 +2400,7 @@ async function orphanIn(
   deleteRequestedAt = Date.now(),
 ) {
   const installationId = `orphan-${opaque}`;
-  const tunnelName = `omb-c-${opaque}`;
+  const tunnelName = `odb-c-${opaque}`;
   const hostname = `c-${opaque}.${suffix}`;
   const tunnelId = `${opaque.slice(0, 8)}-0000-4000-8000-${opaque.slice(-12)}`;
   fake.tunnels.set(tunnelName, { id: tunnelId, name: tunnelName });
@@ -2420,7 +2420,7 @@ async function orphanIn(
   return { hostname, installationId, tunnelName };
 }
 
-const ON_SECOND_ACCOUNT = /^c-[0-9a-f]{32}\.mausbot\.si$/;
+const ON_SECOND_ACCOUNT = /^c-[0-9a-f]{32}\.delio\.si$/;
 
 describe("managed endpoints in several Cloudflare accounts", () => {
   afterEach(() => {
@@ -2685,10 +2685,10 @@ describe("managed endpoints in several Cloudflare accounts", () => {
         `INSERT INTO installation_endpoints
           (installation_id, hostname, tunnel_name, status, last_error_code, created_at, updated_at)
          VALUES (?, ?, ?, 'error', 'cf_rate_limited', ?, ?)`,
-      ).bind(installation.installation.id, `c-${opaque}.${HOST_SUFFIX}`, `omb-c-${opaque}`, now, now).run();
+      ).bind(installation.installation.id, `c-${opaque}.${HOST_SUFFIX}`, `odb-c-${opaque}`, now, now).run();
     }
     // An earlier create for the second row committed before its response was lost.
-    const leftBehind: FakeTunnel = { id: "60000000-0000-4000-8000-000000000066", name: `omb-c-${"6".repeat(32)}` };
+    const leftBehind: FakeTunnel = { id: "60000000-0000-4000-8000-000000000066", name: `odb-c-${"6".repeat(32)}` };
     fixture.first.tunnels.set(leftBehind.name, leftBehind);
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     vi.spyOn(console, "error").mockImplementation(() => undefined);
@@ -2720,7 +2720,7 @@ describe("managed endpoints in several Cloudflare accounts", () => {
   it("moves a new endpoint in the same request when its zone refuses the DNS record, giving its tunnel back", async () => {
     const fixture = twoAccounts({ dnsRecordLimit: 200 });
     const owner = await signIn(fixture.worker, "accounts-dns-full@example.com");
-    // At the last scan mausbot.si had the most room; its zone has filled since.
+    // At the last scan opendeliobot.com had the most room; its zone has filled since.
     await setSnapshot(PRIMARY_ACCOUNT, { dns_record_count: 995, tunnel_count: 974 });
     await setSnapshot(SECOND_ACCOUNT_ID, { dns_record_count: 150, tunnel_count: 230 });
     fixture.second.providerErrors.set("create_dns", 81_045);
@@ -2767,11 +2767,11 @@ describe("managed endpoints in several Cloudflare accounts", () => {
   it("gives back the tunnel of a row stranded without a DNS record, then moves it or answers locally", async () => {
     const fixture = twoAccounts({ dnsRecordLimit: 200 });
     const owner = await signIn(fixture.worker, "accounts-stranded@example.com");
-    // What an interrupted request leaves in mausbot.si: a tunnel that never
+    // What an interrupted request leaves in opendeliobot.com: a tunnel that never
     // connected, no DNS record, and a row its app keeps retrying.
     const stranded = async (clientInstanceId: string, opaque: string) => {
       const installation = await createInstallation(fixture.worker, owner.token, clientInstanceId);
-      const tunnel: FakeTunnel = { id: `${opaque.slice(0, 8)}-0000-4000-8000-${opaque.slice(-12)}`, name: `omb-c-${opaque}` };
+      const tunnel: FakeTunnel = { id: `${opaque.slice(0, 8)}-0000-4000-8000-${opaque.slice(-12)}`, name: `odb-c-${opaque}` };
       neverRan(tunnel, 1);
       fixture.second.tunnels.set(tunnel.name, tunnel);
       const now = Date.now();
@@ -2839,8 +2839,8 @@ describe("managed endpoints in several Cloudflare accounts", () => {
       `INSERT INTO installation_endpoints
         (installation_id, provider_account, hostname, tunnel_name, status, last_error_code, created_at, updated_at)
        VALUES (?, ?, ?, ?, 'error', 'cf_api_81045', ?, ?)`,
-    ).bind(waiting.installation.id, SECOND_ACCOUNT_ID, `c-${opaque}.${SECOND_SUFFIX}`, `omb-c-${opaque}`, now, now).run();
-    // mausbot.si refused it a record eleven minutes ago: that refusal no
+    ).bind(waiting.installation.id, SECOND_ACCOUNT_ID, `c-${opaque}.${SECOND_SUFFIX}`, `odb-c-${opaque}`, now, now).run();
+    // opendeliobot.com refused it a record eleven minutes ago: that refusal no
     // longer closes the account, but its zone is still full.
     await setSnapshot(PRIMARY_ACCOUNT, { dns_record_count: 995, tunnel_count: 974 });
     await setSnapshot(SECOND_ACCOUNT_ID, {
@@ -2957,7 +2957,7 @@ describe("managed endpoints in several Cloudflare accounts", () => {
     const owner = await signIn(fixture.worker, "accounts-reclaimed-unready@example.com");
     const installation = await createInstallation(fixture.worker, owner.token, "accounts-reclaimed-unready");
     const opaque = "d1".repeat(16);
-    const tunnel: FakeTunnel = { id: `${opaque.slice(0, 8)}-0000-4000-8000-${opaque.slice(-12)}`, name: `omb-c-${opaque}` };
+    const tunnel: FakeTunnel = { id: `${opaque.slice(0, 8)}-0000-4000-8000-${opaque.slice(-12)}`, name: `odb-c-${opaque}` };
     neverRan(tunnel, 30);
     fixture.first.tunnels.set(tunnel.name, tunnel);
     const longAgo = Date.now() - 30 * DAY_MS;
@@ -2974,7 +2974,7 @@ describe("managed endpoints in several Cloudflare accounts", () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     vi.spyOn(console, "error").mockImplementation(() => undefined);
 
-    await runScheduledCleanup(fixture.worker, { ...fixture.vars, OMB_TUNNEL_OFFLINE_RECLAIM_DAYS: "3" });
+    await runScheduledCleanup(fixture.worker, { ...fixture.vars, ODB_TUNNEL_OFFLINE_RECLAIM_DAYS: "3" });
     expect(await endpointState(installation.installation.id)).toMatchObject({ status: "deleted", tunnel_id: null });
     expect(fixture.first.tunnels.has(tunnel.name)).toBe(false);
     expect(await env.DB.prepare("SELECT last_reconciled_at FROM installation_endpoints WHERE installation_id = ?")
@@ -3000,7 +3000,7 @@ describe("managed endpoints in several Cloudflare accounts", () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     vi.spyOn(console, "error").mockImplementation(() => undefined);
 
-    // Registered by a release that cannot pair a desktop with mausbot.si: it
+    // Registered by a release that cannot pair a desktop with opendeliobot.com: it
     // stays with the full account.
     const old = await provisionIn(fixture, owner.token, "accounts-version", { appVersion: "0.1.102" });
     expect(old.response.status).toBe(503);
@@ -3120,7 +3120,7 @@ describe("managed endpoints in several Cloudflare accounts", () => {
     const fixture = twoAccounts({ dnsRecordLimit: 200, minAppVersion: "0.1.104" });
     const owner = await signIn(fixture.worker, "accounts-free-room@example.com");
     // The scans of 2026-10-20: the primary had 26 tunnels free and 1,878
-    // dormant endpoints; mausbot.si had 770 tunnels free, 207 dormant
+    // dormant endpoints; opendeliobot.com had 770 tunnels free, 207 dormant
     // endpoints, and every record of its Free zone used.
     const scans = async (primaryTunnels: number) => {
       await setSnapshot(PRIMARY_ACCOUNT, { dns_record_count: 995, dormant_endpoints: 1878, tunnel_count: primaryTunnels });
@@ -3285,7 +3285,7 @@ describe("managed endpoints in several Cloudflare accounts", () => {
         (installation_id, provider_account, hostname, tunnel_name, tunnel_id, dns_record_id,
          status, last_reconciled_at, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, 'dns-retired', 'ready', ?, ?, ?)`,
-    ).bind(installation.installation.id, retired, `c-${opaque}.retired.example`, `omb-c-${opaque}`, tunnelId, now, now, now).run();
+    ).bind(installation.installation.id, retired, `c-${opaque}.retired.example`, `odb-c-${opaque}`, tunnelId, now, now, now).run();
     const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
     const provisioned = await call(worker, ENDPOINT_PATH, { method: "POST", token: installation.credential });
@@ -3313,7 +3313,7 @@ describe("managed endpoints in several Cloudflare accounts", () => {
     const orphan = await orphanIn(cloudflare, PRIMARY_ACCOUNT, HOST_SUFFIX, "8".repeat(32), now + 1);
     errors.mockClear();
     vi.spyOn(console, "log").mockImplementation(() => undefined);
-    await runScheduledCleanup(worker, { OMB_CLEANUP_SWEEP_LIMIT: "1" });
+    await runScheduledCleanup(worker, { ODB_CLEANUP_SWEEP_LIMIT: "1" });
     expect(await endpointState(orphan.installationId)).toMatchObject({ status: "deleted" });
     expect(await endpointState(installation.installation.id)).toMatchObject({
       last_error_code: "endpoint_account_unavailable",
@@ -3369,7 +3369,7 @@ describe("managed endpoints in several Cloudflare accounts", () => {
     const text = await response.text();
     expect(JSON.parse(text)).toEqual({
       ok: true,
-      service: "openmausbot-control-plane",
+      service: "opendeliobot-control-plane",
       capacity: {
         status: "ok",
         checkedAt: now - 120_000,
@@ -3433,7 +3433,7 @@ describe("managed endpoints in several Cloudflare accounts", () => {
     const kept = await createInstallation(fixture.worker, owner.token, "accounts-closed-kept");
     const opaque = "c".repeat(32);
     const hostname = `c-${opaque}.${SECOND_SUFFIX}`;
-    const tunnel: FakeTunnel = { id: "b0000000-0000-4000-8000-0000000000cc", name: `omb-c-${opaque}` };
+    const tunnel: FakeTunnel = { id: "b0000000-0000-4000-8000-0000000000cc", name: `odb-c-${opaque}` };
     fixture.second.tunnels.set(tunnel.name, tunnel);
     fixture.second.dns.set(hostname, {
       content: `${tunnel.id}.cfargotunnel.com`,
@@ -3617,7 +3617,7 @@ describe("managed endpoints in several Cloudflare accounts", () => {
     ];
     const longAgo = Date.now() - 30 * DAY_MS;
     for (const row of rows) {
-      const tunnel: FakeTunnel = { id: row.tunnelId, name: `omb-c-${row.opaque}` };
+      const tunnel: FakeTunnel = { id: row.tunnelId, name: `odb-c-${row.opaque}` };
       neverRan(tunnel, 30);
       cloudflare.tunnels.set(tunnel.name, tunnel);
       await env.DB.prepare(
@@ -3899,7 +3899,7 @@ describe("releasing tunnels the relay has replaced", () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     cloudflare.failures.add("delete_tunnel");
-    const vars = relayVars({ RELAY_TUNNEL_RELEASE_PERCENT: "100", OMB_CLEANUP_SWEEP_LIMIT: "2" });
+    const vars = relayVars({ RELAY_TUNNEL_RELEASE_PERCENT: "100", ODB_CLEANUP_SWEEP_LIMIT: "2" });
     const deleting = async () => (await Promise.all(computers.map((each) => endpointState(each.id)))).filter((state) => state.status === "deleting").length;
 
     await runScheduledCleanup(worker, vars);
@@ -4069,19 +4069,19 @@ describe("the idle reclaim dry run", () => {
       return (await health.json<{ capacity: { reclaim: Record<string, unknown> } }>()).capacity.reclaim;
     };
 
-    const live = { OMB_TUNNEL_OFFLINE_RECLAIM_DAYS: "3" };
+    const live = { ODB_TUNNEL_OFFLINE_RECLAIM_DAYS: "3" };
     await runScheduledCleanup(worker, live);
     expect(await reclaim(live)).toEqual({ mode: "on", pending: 0 });
 
-    const preview = { ...live, OMB_TUNNEL_RECLAIM_PREVIEW_DAYS: "1" };
+    const preview = { ...live, ODB_TUNNEL_RECLAIM_PREVIEW_DAYS: "1" };
     await runScheduledCleanup(worker, preview);
     expect(await reclaim(preview)).toEqual({ mode: "on", pending: 0, preview: { offlineDays: 1, eligible: 1 } });
     expect((await endpointState(twoDays.id)).status).toBe("ready");
     expect(cloudflare.tunnels.size).toBe(2);
 
     // Another threshold has no finished pass yet; the live threshold itself still reclaims.
-    expect(await reclaim({ ...live, OMB_TUNNEL_RECLAIM_PREVIEW_DAYS: "2" })).toMatchObject({ preview: { offlineDays: 2, eligible: null } });
-    await runScheduledCleanup(worker, { OMB_TUNNEL_OFFLINE_RECLAIM_DAYS: "1" });
+    expect(await reclaim({ ...live, ODB_TUNNEL_RECLAIM_PREVIEW_DAYS: "2" })).toMatchObject({ preview: { offlineDays: 2, eligible: null } });
+    await runScheduledCleanup(worker, { ODB_TUNNEL_OFFLINE_RECLAIM_DAYS: "1" });
     expect((await endpointState(twoDays.id)).status).toBe("deleted");
     expect((await endpointState(online.id)).status).toBe("ready");
   });
@@ -4188,7 +4188,7 @@ describe("removing a tunnel whose computer is online", () => {
     cloudflare.reconnectsAfterCleanup = 1_000;
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     vi.spyOn(console, "error").mockImplementation(() => undefined);
-    const vars = minimum({ OMB_CLEANUP_SWEEP_LIMIT: "1" });
+    const vars = minimum({ ODB_CLEANUP_SWEEP_LIMIT: "1" });
     const firstTunnel = tunnelOf(cloudflare, first).id;
     cloudflare.calls.length = 0;
 
@@ -4228,7 +4228,7 @@ describe("removing a tunnel whose computer is online", () => {
     cloudflare.failures.add("cleanup_connections");
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     vi.spyOn(console, "error").mockImplementation(() => undefined);
-    const vars = minimum({ OMB_CLEANUP_SWEEP_LIMIT: "1" });
+    const vars = minimum({ ODB_CLEANUP_SWEEP_LIMIT: "1" });
 
     await runScheduledCleanup(worker, vars);
     expect(await endpointState(first.id)).toMatchObject({ status: "deleting", last_error_code: "cf_api_10000", tunnel_id: tunnel.id });
@@ -4314,7 +4314,7 @@ describe("self-hosted servers keep their tunnel", () => {
     ...extra,
   });
 
-  /** `openmausbot serve --tunnel` and `openmausbot login`: registration as any client sends it, `kind` only when given. */
+  /** `opendeliobot serve --tunnel` and `opendeliobot login`: registration as any client sends it, `kind` only when given. */
   async function register(worker: TestWorker, accountToken: string, clientInstanceId: string, appVersion: string, kind?: string) {
     const response = await call(worker, "/v1/installations", {
       body: { clientInstanceId, name: "home-server", platform: "linux", appVersion, ...(kind ? { kind } : {}) },

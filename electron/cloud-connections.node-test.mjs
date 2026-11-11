@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { adoptComposioId, collectConnections, ConnectionMoveError, parseConnections, releaseConnections, sendConnections } from "./cloud-connections.mjs";
 
-const COMPUTER = { environmentId: "env-desktop-1", label: "Milind's MacBook" };
+const COMPUTER = { environmentId: "env-desktop-1", label: "Alex's MacBook" };
 const INSTALLATION = "0f1e2d3c-4b5a-4968-8778-695a4b3c2d1e";
 const D1 = "1".repeat(64), D2 = "2".repeat(64);
 const linearSignIn = (refresh) => ({ url: "https://mcp.linear.app/sse", state: "signed-in", tokens: { access: `a-${refresh}`, refresh } });
@@ -35,7 +35,7 @@ function cloud({ connections = [], engines = [], commands = ["npx", "node"], rep
       calls.push([method, route, body]);
       if (method === "GET" && route === "/api/cloud-connections") {
         reads++;
-        return { ok: true, status: 200, body: { computer: { environmentId: "env-cloud", label: "omb-u-1" }, connections, engines: reads > readyAfter ? engines : [], commands, ...(vaultKeys ? { vaultKeys } : {}) } };
+        return { ok: true, status: 200, body: { computer: { environmentId: "env-cloud", label: "odb-u-1" }, connections, engines: reads > readyAfter ? engines : [], commands, ...(vaultKeys ? { vaultKeys } : {}) } };
       }
       const answer = reply(method, route, body) ?? { status: 200, body: {} };
       return { ok: answer.status >= 200 && answer.status < 300, ...answer };
@@ -231,7 +231,7 @@ test("connected apps: the same account already, the person's own project, a Clou
   assert.deepEqual(keeps.calls[0], ["POST", "/api/cloud-connections/connected-apps", { apiKey: "ck", userId: "u1", apps: ["gmail"] }]);
 });
 
-test("a server of the person's own with no connected-apps service keeps MausBot's connected apps here for good, and still takes their own project", async () => {
+test("a server of the person's own with no connected-apps service keeps Delio's connected apps here for good, and still takes their own project", async () => {
   const here = { id: "composio", kind: "composio", label: "Connected apps", mode: "managed", account: "managed:aaa" };
   const local = computer({ connections: [here], answers: { composio: { connection: { composio: { apiKey: "ck", userId: "u1" } } } }, connected: { gmail: { connected: true } } });
   assert.deepEqual(parseConnections({ computer: COMPUTER, connections: [], managedApps: false }).managedApps, false);

@@ -5,8 +5,8 @@ import { afterAll, describe, expect, it } from "vitest";
 
 import { buildZip, type ZipFixtureMember } from "./testing/zip-fixture.ts";
 
-const DATA_ROOT = mkdtempSync(join(tmpdir(), "omb-xmind-test-"));
-process.env.OMB_DATA_DIR = join(DATA_ROOT, "data");
+const DATA_ROOT = mkdtempSync(join(tmpdir(), "odb-xmind-test-"));
+process.env.ODB_DATA_DIR = join(DATA_ROOT, "data");
 
 const { outlineFromJson, outlineFromXml, saveXmindUpload } = await import("./xmind.ts");
 
@@ -86,7 +86,7 @@ async function* body(bytes: Buffer): AsyncIterable<Uint8Array> {
 }
 
 const archive = (members: ZipFixtureMember[]) => body(buildZip(members));
-const scratchDirs = () => readdirSync(tmpdir()).filter((name) => name.startsWith("omb-xmind-") && !name.startsWith("omb-xmind-test-"));
+const scratchDirs = () => readdirSync(tmpdir()).filter((name) => name.startsWith("odb-xmind-") && !name.startsWith("odb-xmind-test-"));
 
 describe("XMind outlines", () => {
   it("renders content.json as one section per sheet with notes, labels, markers and floating topics", () => {

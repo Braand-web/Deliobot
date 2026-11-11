@@ -16,7 +16,7 @@ import { removeTempDir, waitForExit } from "./testing/cleanup.ts";
 import { freePortBlock } from "./testing/ports.ts";
 
 const SERVER_DIR = dirname(fileURLToPath(import.meta.url));
-const HOST = "omb-t-0123456789ab.fly.dev";
+const HOST = "odb-t-0123456789ab.fly.dev";
 const secret = randomBytes(32).toString("base64url");
 const brokerToken = randomBytes(32).toString("hex");
 const CATALOG = ["outlook", "linkedin", "calendly", "gmail", "slack"];
@@ -61,11 +61,11 @@ globalThis.fetch = async (input, init) => {
       PATH: process.env.PATH,
       ...(process.env.PATHEXT ? { PATHEXT: process.env.PATHEXT } : {}),
       ...(process.env.SystemRoot ? { SystemRoot: process.env.SystemRoot } : {}),
-      HOME: home, USERPROFILE: home, OMB_DATA_DIR: dataDir, OMB_PORT: String(port), OMB_WEBHOOK_PORT: String(port + 1), OMB_STATIC_DIR: join(home, "web"),
-      OMB_CLOUD_ROLE: "home", OMB_CLOUD_MACHINE_ID: "3f9c2a4e-8b1d-4c6e-9a7f-2d5e8c1b0a93", OMB_CLOUD_ADMIN_URL: "https://cloud.example.test",
-      OMB_CLOUD_BOOTSTRAP_SECRET: secret, OMB_PUBLIC_URL: `https://${HOST}`,
+      HOME: home, USERPROFILE: home, ODB_DATA_DIR: dataDir, ODB_PORT: String(port), ODB_WEBHOOK_PORT: String(port + 1), ODB_STATIC_DIR: join(home, "web"),
+      ODB_CLOUD_ROLE: "home", ODB_CLOUD_MACHINE_ID: "3f9c2a4e-8b1d-4c6e-9a7f-2d5e8c1b0a93", ODB_CLOUD_ADMIN_URL: "https://cloud.example.test",
+      ODB_CLOUD_BOOTSTRAP_SECRET: secret, ODB_PUBLIC_URL: `https://${HOST}`,
       // From source the server registers nowhere unless told where, as here.
-      OMB_COMPOSIO_BROKER_URL: brokerUrl,
+      ODB_COMPOSIO_BROKER_URL: brokerUrl,
       ...env,
     },
     stdio: ["ignore", "pipe", "pipe"],
@@ -82,11 +82,11 @@ globalThis.fetch = async (input, init) => {
     if (Date.now() > deadline) throw new Error(`the Cloud home did not start:\n${log}`);
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  const body = JSON.stringify({ label: "OpenMausBot app (Cloud)", ttlSeconds: 300 });
+  const body = JSON.stringify({ label: "OpenDeliobot app (Cloud)", ttlSeconds: 300 });
   const timestamp = String(Math.floor(Date.now() / 1000)), nonce = randomBytes(16).toString("base64url");
   const granted = await api("POST", "/api/cloud/pairing", { remote: true, headers: {
-    "content-type": "application/json", "x-omb-cloud-timestamp": timestamp, "x-omb-cloud-nonce": nonce,
-    "x-omb-cloud-signature": `v1=${cloudPairingSignature(secret, timestamp, nonce, body)}`,
+    "content-type": "application/json", "x-odb-cloud-timestamp": timestamp, "x-odb-cloud-nonce": nonce,
+    "x-odb-cloud-signature": `v1=${cloudPairingSignature(secret, timestamp, nonce, body)}`,
   }, body: JSON.parse(body) });
   ownerToken = (await api("POST", "/api/auth/pair", { remote: true, body: { code: granted.body.code } })).body.token as string;
 }
@@ -125,8 +125,8 @@ beforeAll(async () => {
   await new Promise<void>((resolve) => broker.listen(0, "127.0.0.1", resolve));
   brokerUrl = `http://127.0.0.1:${(broker.address() as AddressInfo).port}`;
 
-  home = mkdtempSync(join(tmpdir(), "omb-cloud-connected-apps-"));
-  dataDir = join(home, ".openmausbot");
+  home = mkdtempSync(join(tmpdir(), "odb-cloud-connected-apps-"));
+  dataDir = join(home, ".opendeliobot");
   mkdirSync(dataDir, { recursive: true });
   const cli = join(home, "fixture-claude.mjs");
   writeFileSync(cli, `#!/usr/bin/env node
@@ -143,7 +143,7 @@ await import(${JSON.stringify(pathToFileURL(join(SERVER_DIR, "testing", "fake-cl
     },
   }));
   mkdirSync(join(home, "web"));
-  writeFileSync(join(home, "web", "index.html"), "<!doctype html><title>OpenMausBot</title>");
+  writeFileSync(join(home, "web", "index.html"), "<!doctype html><title>OpenDeliobot</title>");
   port = await freePortBlock([0, 1]);
   base = `http://127.0.0.1:${port}`;
   await boot();
@@ -212,14 +212,14 @@ describe("connected apps on a Cloud home", { timeout: 90_000 }, () => {
   }
 
   it("with the owner's own key, starts without a word to the service, not even its token check", async () => {
-    await bootOffTheService({ COMPOSIO_API_KEY: "ak_owner_project", OMB_CLOUD_CONNECTED_APPS_GRANT: "grant" });
+    await bootOffTheService({ COMPOSIO_API_KEY: "ak_owner_project", ODB_CLOUD_CONNECTED_APPS_GRANT: "grant" });
     await expect.poll(async () => (await api("GET", "/api/connectors/catalog")).body?.mode, { timeout: 15_000, interval: 150 }).toBe("self-hosted");
     await new Promise((resolve) => setTimeout(resolve, 1_500));
     expect(brokerCalls).toEqual([]);
   });
 
-  it("with OMB_COMPOSIO_BROKER=off, starts without a word to the service and asks for a key", async () => {
-    await bootOffTheService({ OMB_COMPOSIO_BROKER: "off", OMB_CLOUD_CONNECTED_APPS_GRANT: "grant" });
+  it("with ODB_COMPOSIO_BROKER=off, starts without a word to the service and asks for a key", async () => {
+    await bootOffTheService({ ODB_COMPOSIO_BROKER: "off", ODB_CLOUD_CONNECTED_APPS_GRANT: "grant" });
     const reply = await api("GET", "/api/connectors/catalog");
     expect(reply.status).toBe(200);
     expect(reply.body).toMatchObject({ configured: false, mode: "unavailable", setup: "needs-setup" });

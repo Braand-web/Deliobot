@@ -61,7 +61,7 @@ export function createLendingIndicator({ Tray, Menu, nativeImage, iconPath, onPa
     if (!tray || tray.isDestroyed()) return;
     const { line, title, screen, pending, problems = [] } = indicatorText(view, device, t);
     const fix = screen ? screenFixLabel(view.screen, t) : null;
-    tray.setToolTip(`OpenMausBot: ${line}${pending ? `. ${pending}` : ""}${screen ? `. ${screen}` : ""}${problems.length ? `. ${problems.join(". ")}` : ""}`);
+    tray.setToolTip(`OpenDeliobot: ${line}${pending ? `. ${pending}` : ""}${screen ? `. ${screen}` : ""}${problems.length ? `. ${problems.join(". ")}` : ""}`);
     // Electron shows a tray title beside the icon on macOS only.
     tray.setTitle?.(title);
     tray.setContextMenu(Menu.buildFromTemplate([

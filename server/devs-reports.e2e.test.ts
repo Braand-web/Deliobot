@@ -1,4 +1,4 @@
-// @devs end to end: a fixture server with the synthetic Claude CLI and a fake MausBot team endpoint on loopback. A
+// @devs end to end: a fixture server with the synthetic Claude CLI and a fake Delio team endpoint on loopback. A
 // message that tags @devs sends exactly one report, with the bot's report_bug summary or, when the bot never calls it,
 // with the server's own facts; secrets are masked, the conversation itself never goes, and the person sees the line.
 // Then the loop closes: the server asks the team about its reports (every 1.5 s here), the person's message shows each
@@ -10,7 +10,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, expect, it } from "vitest";
 
-import { launchVerificationServer, type VerificationServer } from "../scripts/control-omb.ts";
+import { launchVerificationServer, type VerificationServer } from "../scripts/control-odb.ts";
 import { hostTimeout } from "./testing/host-timeout.ts";
 
 const KEY = `sk-ant-${"k".repeat(40)}`;
@@ -61,7 +61,7 @@ beforeAll(async () => {
     request.on("end", () => {
       if (request.method === "POST" && request.url === "/api/bug-reports/status" && request.headers["content-type"] === "application/json") {
         const body = JSON.parse(Buffer.concat(chunks).toString("utf8")) as { installId: string; ids: string[] };
-        questions.push({ body, signed: "x-omb-cloud-signature" in request.headers });
+        questions.push({ body, signed: "x-odb-cloud-signature" in request.headers });
         const reports = body.ids.map((id) => ({ id, status: team.status, fixedIn: team.status === "fixed" ? team.fixedIn : null }));
         response.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ reports, notify: team.notify }));
         return;
@@ -75,12 +75,12 @@ beforeAll(async () => {
     });
   });
   await new Promise<void>((resolve) => endpoint.listen(0, "127.0.0.1", resolve));
-  script = mkdtempSync(join(tmpdir(), "omb-devs-e2e-"));
+  script = mkdtempSync(join(tmpdir(), "odb-devs-e2e-"));
   plan([], "Hello.");
   fixture = await launchVerificationServer({
     ...process.env,
-    OMB_BUG_REPORT_URL: `http://127.0.0.1:${(endpoint.address() as AddressInfo).port}/api/bug-reports`,
-    OMB_DEVS_STATUS_MS: "1500",
+    ODB_BUG_REPORT_URL: `http://127.0.0.1:${(endpoint.address() as AddressInfo).port}/api/bug-reports`,
+    ODB_DEVS_STATUS_MS: "1500",
     FAKE_CLAUDE_TOOL_CALLS_FILE: join(script, "tool-calls.json"),
     FAKE_CLAUDE_REPLY_FILE: join(script, "reply.txt"),
   });
@@ -125,8 +125,8 @@ it("sends one report with the bot's report_bug summary and the facts, redacted, 
   expect(whole).not.toContain("convert in.png out.webp");
 
   const dump = JSON.parse(readFileSync(fixture.fixtureDumpPath, "utf8")) as { prompt: unknown };
-  expect(JSON.stringify(dump.prompt)).toContain("this message tags @devs, so it is a bug report for the MausBot team");
-  const line = "Sent to the MausBot team (report report-1). Milind and Omkar get it by email and will reply to ada@example.com.";
+  expect(JSON.stringify(dump.prompt)).toContain("this message tags @devs, so it is a bug report for the Delio team");
+  const line = "Sent to the Delio team (report report-1). Alex and Omkar get it by email and will reply to ada@example.com.";
   await until(async () => (await rows()).some((row) => row.kind === "activity" && row.tool?.name === `notice: ${line}`), 20_000);
   const tool = (await rows()).find((row) => row.kind === "activity" && row.tool?.name === "report_bug");
   expect(tool?.tool?.output).toContain(line);
@@ -140,8 +140,8 @@ it("still sends the report, with the server's facts, when the bot never calls re
   expect(report.description.split("\n")[0]).toBe("the send button froze again");
   expect(report.description).toContain("No summary from a bot: the bot did not call report_bug.");
   expect(report.diagnostics).toContain("tool Bash failed: convert: command not found");
-  expect(report.diagnostics).toContain("notice: Sent to the MausBot team (report report-1)");
-  const line = "Sent to the MausBot team (report report-2). Milind and Omkar get it by email and will reply to ada@example.com.";
+  expect(report.diagnostics).toContain("notice: Sent to the Delio team (report report-1)");
+  const line = "Sent to the Delio team (report report-2). Alex and Omkar get it by email and will reply to ada@example.com.";
   await until(async () => (await rows()).some((row) => row.kind === "activity" && row.tool?.name === `notice: ${line}`), 20_000);
 
   plan([], "Noted.");

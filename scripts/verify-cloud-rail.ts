@@ -2,14 +2,14 @@
 // disposable fake-engine server; the desktop bridge's rail and add-a-Cloud answers are the preview's own fixtures.
 // Run: node --experimental-strip-types scripts/verify-cloud-rail.ts [--shots <dir> [--only <view,view>] [--size <width>x<height>]]
 // With --shots it photographs each view in a light and a dark skin with a headless Chrome in a throwaway profile
-// (OMB_CDP_CHROME, else the installed Google Chrome) at twice the window's size (1280x800 unless --size says) and
+// (ODB_CDP_CHROME, else the installed Google Chrome) at twice the window's size (1280x800 unless --size says) and
 // exits; without, it prints the preview's address and waits. With --shots it also checks that the sidebar's button for
 // the window's rail lands on the same spot with the rail shown and hidden, and fails if it doesn't.
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
-import { launchVerificationServer, runControlOmb } from "./control-omb.ts";
+import { launchVerificationServer, runControlOdb } from "./control-odb.ts";
 import { duskPng } from "./testing/dusk-banner.ts";
 import { openHeadlessChrome } from "./testing/headless-chrome.ts";
 import { mountPreview, parkUntilSignal, type MountedPreview } from "./testing/preview-fixture.ts";
@@ -95,14 +95,14 @@ async function openChrome(profile: string) {
 const fixture = await launchVerificationServer();
 let ui: MountedPreview | undefined;
 try {
-  for (const name of ["Chief of Staff", "Research", "Inbox"]) await runControlOmb(["new-bot", "--name", name, "--url", fixture.info.url]);
+  for (const name of ["Chief of Staff", "Research", "Inbox"]) await runControlOdb(["new-bot", "--name", name, "--url", fixture.info.url]);
   ui = await mountPreview(fixture, { entry: "/scripts/testing/rail-preview.tsx", route: "/__cloud-rail.html", title: "Isolated rail of Clouds", logLevel: "warn" });
   if (!shots) {
     console.log(JSON.stringify({ ...fixture.info, previewUrl: ui.previewUrl }, null, 2));
     await parkUntilSignal();
   } else {
     mkdirSync(shots, { recursive: true });
-    const profile = mkdtempSync(join(tmpdir(), "omb-rail-chrome-"));
+    const profile = mkdtempSync(join(tmpdir(), "odb-rail-chrome-"));
     const chrome = await openChrome(profile);
     try {
       let banner = false;

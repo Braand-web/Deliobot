@@ -49,7 +49,7 @@ afterEach(async () => {
 
 async function setup(options: { team?: boolean; origins?: string[]; lifetimeMs?: number } = {}) {
   const provider: FakePostiz = await startFakePostiz({ signInPage: SIGN_IN_PAGE });
-  const dataDir = mkdtempSync(join(tmpdir(), "omb-mcp-sign-in-card-"));
+  const dataDir = mkdtempSync(join(tmpdir(), "odb-mcp-sign-in-card-"));
   const url = `${provider.url}/mcp-oauth-dynamic`;
   const cfg = { mcpServers: { linear: { type: "http", url, headers: {}, enabled: true } } } as unknown as AppConfig;
 
@@ -167,10 +167,10 @@ describe("the Sign in card", () => {
     const f = await setup();
     const posted = await f.signIn();
     expect(posted.status).toBe(202);
-    expect(posted.body.text).toBe("A Sign in card for linear is now visible to the person. End this turn and wait; OpenMausBot resumes you when they finish.");
+    expect(posted.body.text).toBe("A Sign in card for linear is now visible to the person. End this turn and wait; OpenDeliobot resumes you when they finish.");
     expect(posted.card).toMatchObject({
       role: "bot", kind: "connector",
-      text: "Linear's MCP server needs a sign-in. Open this conversation in OpenMausBot to sign in.",
+      text: "Linear's MCP server needs a sign-in. Open this conversation in OpenDeliobot to sign in.",
       connector: {
         source: "mcp", slug: "linear", label: "Linear", status: "required",
         description: `Kiwi added Linear's MCP server (${new URL(f.url).host}). Sign in so Kiwi can use it.`,
@@ -268,19 +268,19 @@ describe("the Sign in card", () => {
     expect(local.current(card).connector).toMatchObject({ status: "required" });
     expect(local.current(card).connector!.error).toBeUndefined();
 
-    const reachable = await setup({ origins: ["https://omb.example.com"] });
+    const reachable = await setup({ origins: ["https://odb.example.com"] });
     const other = (await reachable.signIn()).card;
     const link = new URL((await reachable.authorize(other, phone)).body.url as string);
-    expect(link.searchParams.get("redirect_uri")).toBe("https://omb.example.com/mcp-oauth/callback");
+    expect(link.searchParams.get("redirect_uri")).toBe("https://odb.example.com/mcp-oauth/callback");
   });
 
   it("a remote session uses the public callback origin", async () => {
-    const f = await setup({ origins: ["https://omb.example.com"] });
+    const f = await setup({ origins: ["https://odb.example.com"] });
     const { card } = await f.signIn();
-    const away = { host: "omb.example.com", origin: "https://omb.example.com", "x-forwarded-proto": "https" };
+    const away = { host: "odb.example.com", origin: "https://odb.example.com", "x-forwarded-proto": "https" };
     const authorized = await f.authorize(card, session("olive@acme.test", ["admin", "client"]), away);
     const link = new URL(authorized.body.url as string);
-    expect(link.searchParams.get("redirect_uri")).toBe("https://omb.example.com/mcp-oauth/callback");
+    expect(link.searchParams.get("redirect_uri")).toBe("https://odb.example.com/mcp-oauth/callback");
     expect(await f.approve(link.href)).toBe(200);
     expect(f.current(card).connector).toMatchObject({ status: "connected", resumed: true });
   });
@@ -289,7 +289,7 @@ describe("the Sign in card", () => {
     const f = await setup();
     const { card } = await f.signIn();
     const olive = session("olive@acme.test", ["admin", "client"]);
-    const noVouchedOrigin = { host: "omb.example.com", "x-forwarded-proto": "https" };
+    const noVouchedOrigin = { host: "odb.example.com", "x-forwarded-proto": "https" };
     expect(await f.authorize(card, olive, noVouchedOrigin)).toEqual({ status: 409, body: { error: "Finish this sign-in in Apps → MCP servers." } });
     expect(f.provider.counts.register, "decided before any client is registered").toBe(0);
     expect(f.current(card).connector).toMatchObject({ status: "required" });
@@ -297,23 +297,23 @@ describe("the Sign in card", () => {
     expect(onTheMac.status).toBe(200);
     expect(await f.approve(onTheMac.body.url as string)).toBe(200);
 
-    const preRegistered = await setup({ origins: ["https://omb.example.com"] });
-    (preRegistered.cfg.mcpServers!.linear as { oauth?: unknown }).oauth = { clientId: "omb-app" };
+    const preRegistered = await setup({ origins: ["https://odb.example.com"] });
+    (preRegistered.cfg.mcpServers!.linear as { oauth?: unknown }).oauth = { clientId: "odb-app" };
     const other = (await preRegistered.signIn()).card;
-    const away = { host: "omb.example.com", origin: "https://omb.example.com", "x-forwarded-proto": "https" };
+    const away = { host: "odb.example.com", origin: "https://odb.example.com", "x-forwarded-proto": "https" };
     expect(await preRegistered.authorize(other, olive, away)).toEqual({ status: 409, body: { error: "Finish this sign-in in Apps → MCP servers." } });
     expect(preRegistered.mcpOAuth.authState("linear", preRegistered.url)).toBe("none");
     expect(preRegistered.current(other).connector).toMatchObject({ status: "required" });
   });
 
   it("a second tap from a browser elsewhere replaces a sign-in that would come back to this computer", async () => {
-    const f = await setup({ origins: ["https://omb.example.com"] });
+    const f = await setup({ origins: ["https://odb.example.com"] });
     const { card } = await f.signIn();
     const onTheMac = new URL((await f.authorize(card)).body.url as string);
     expect(onTheMac.searchParams.get("redirect_uri")).toMatch(/^http:\/\/127\.0\.0\.1:\d+\//);
-    const away = { host: "omb.example.com", origin: "https://omb.example.com", "x-forwarded-proto": "https" };
+    const away = { host: "odb.example.com", origin: "https://odb.example.com", "x-forwarded-proto": "https" };
     const fromThePhone = new URL((await f.authorize(card, session("olive@acme.test", ["admin", "client"]), away)).body.url as string);
-    expect(fromThePhone.searchParams.get("redirect_uri")).toBe("https://omb.example.com/mcp-oauth/callback");
+    expect(fromThePhone.searchParams.get("redirect_uri")).toBe("https://odb.example.com/mcp-oauth/callback");
     expect(f.current(card).connector).toMatchObject({ status: "authorizing" });
     expect(await f.approve(onTheMac.href).catch(() => "listener closed")).toBe("listener closed");
     expect(await f.approve(fromThePhone.href)).toBe(200);

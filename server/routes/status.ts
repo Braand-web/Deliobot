@@ -34,7 +34,7 @@ export interface StatusRouteDeps {
   threadShown?(auth: RequestAuth): (threadId: string) => boolean;
   /** On a Team Cloud: the decision and admin rows as this reader may see them (host/private-records.ts). */
   records?: Pick<PrivateRecords, "decisionRow" | "adminActionShown">;
-  /** Whether bots run in the bot box: the MausBot connector reads it on a server its owner runs, on or off and nothing more. */
+  /** Whether bots run in the bot box: the Delio connector reads it on a server its owner runs, on or off and nothing more. */
   boxOn?(): boolean;
 }
 
@@ -50,7 +50,7 @@ export function createStatusRoutes(deps: StatusRouteDeps): RouteHandler {
     const decision = deps.records?.decisionRow(auth) ?? ((row: DecisionRow) => row);
     // The packaged app's port fallback: the forked child proves it is ours by echoing its pid.
     if (method === "GET" && path === "/api/health") {
-      return json(res, 200, { app: "openmausbot", pid: process.pid, static: Boolean(STATIC_DIR), capabilities: {
+      return json(res, 200, { app: "opendeliobot", pid: process.pid, static: Boolean(STATIC_DIR), capabilities: {
         guardedMessages: 1, guardedRequests: 1, guardedFullAccess: 1, guardedOnBehalfOf: 1,
         ...(sharedWorkspaceFullAccessEnabled() ? { sharedWorkspaceFullAccess: 1 } : {}),
       }, ...(deps.boxOn ? { box: deps.boxOn() ? "on" : "off" } : {}) });
@@ -84,7 +84,7 @@ export function createStatusRoutes(deps: StatusRouteDeps): RouteHandler {
     if (fleetRoute) {
       if (!entitled("admin")) return json(res, 403, { error: "Workspaces need an enterprise licence with the admin feature." });
       const socket = fleetSocketPath();
-      if (!fleetAvailable(socket)) return json(res, 404, { error: "No fleet agent on this server. Run `openmausbot fleet init --domain … --operator <this user>` as root." });
+      if (!fleetAvailable(socket)) return json(res, 404, { error: "No fleet agent on this server. Run `opendeliobot fleet init --domain … --operator <this user>` as root." });
       const [, resource, slug, sub] = fleetRoute;
       let forward: { method: string; path: string; body?: unknown } | null = null;
       if (method === "GET" && !resource) forward = { method: "GET", path: "/workspaces" };

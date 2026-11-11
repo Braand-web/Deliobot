@@ -36,7 +36,7 @@ describe.skipIf(process.platform === "win32")("an MCP server that refuses a boxe
   async function boxed(options: FakeHttpMcpOptions, headers: Record<string, string> = {}) {
     oauth = await startFakeOAuth();
     server = await startFakeHttpMcp({ guard: "listed-tools", acceptBearer: () => false, wwwAuthenticate: oauth.challenge, tools: [READ], ...options });
-    dir = mkdtempSync(join(tmpdir(), "omb-broker-refusal-"));
+    dir = mkdtempSync(join(tmpdir(), "odb-broker-refusal-"));
     credentials = await openCredentialBroker({ socketPath: join(dir, "b.sock") });
     bridge = await openBridge({ port: 0, socket: credentials.socketPath });
     const broker: BoxBroker = { port: (bridge.address() as AddressInfo).port, mintForThread: credentials.mintForThread, touchThread: credentials.touchThread, revokeThread: credentials.revokeThread, lookup: credentials.lookup };

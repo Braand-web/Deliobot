@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, it } from "vitest";
-import { launchVerificationServer, runControlOmb } from "../scripts/control-omb.ts";
+import { launchVerificationServer, runControlOdb } from "../scripts/control-odb.ts";
 
 it("shows a work conversation's interval monitor and stop rule in main chat, then reads back its pause", async () => {
   const fixture = await launchVerificationServer(process.env, undefined, undefined, undefined, undefined, { scripted: true });
@@ -17,7 +17,7 @@ it("shows a work conversation's interval monitor and stop rule in main chat, the
     expect(response.ok, JSON.stringify(value)).toBe(true);
     return value;
   };
-  const cli = (...args: string[]) => runControlOmb([...args, "--url", fixture.info.url]) as Promise<any>;
+  const cli = (...args: string[]) => runControlOdb([...args, "--url", fixture.info.url]) as Promise<any>;
   try {
     const { bot } = await cli("new-bot", "--name", "Payment fixture");
     const main = bot.activeTaskId as string;

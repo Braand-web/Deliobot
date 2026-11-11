@@ -1,8 +1,8 @@
 # Pages and apps in a room
 
 A bot in a room can show a page (`show_html`), a widget (`show_widget`), an MCP server's app or a published page's
-card there, and everyone who can see the room sees it, view-only. Inside a room's frame, `mausbot.room` is `true`,
-and `mausbot.send` and `mausbot.setContext` resolve without doing anything; the host refuses `ui/message`,
+card there, and everyone who can see the room sees it, view-only. Inside a room's frame, `delio.room` is `true`,
+and `delio.send` and `delio.setContext` resolve without doing anything; the host refuses `ui/message`,
 `ui/update-model-context` and an MCP app's calls to its server; and the server refuses an app's message, its context,
 its server calls and a widget press for a room's thread.
 
@@ -13,7 +13,7 @@ pnpm exec vitest run scripts/testing/room-pages-ui.e2e.test.ts
 ```
 
 It runs when an agent-browser binary resolves, as in [Chat UI, driven headlessly](chat-ui.md), and is skipped
-otherwise; `OMB_UI_E2E=1` forces the verified download. The launcher's fixture runs the fake engine in `slow` mode,
+otherwise; `ODB_UI_E2E=1` forces the verified download. The launcher's fixture runs the fake engine in `slow` mode,
 with the fake MCP app server (`server/testing/fake-stdio-app-server.ts`) added as the `board` server. Pepper and Basil
 share a room whose lead is Pepper.
 
@@ -29,7 +29,7 @@ share a room whose lead is Pepper.
   refusal. The renderer makes no request but GETs meanwhile, the room gains no message and no app row gains context,
   and a direct `POST /api/bots/<id>/messages` with the page's `appMessage` is refused with 409.
 
-Evidence (with `OMB_UI_EVIDENCE_DIR`): `room-pages-shown.png`, `room-pages-clicked-send.png`,
+Evidence (with `ODB_UI_EVIDENCE_DIR`): `room-pages-shown.png`, `room-pages-clicked-send.png`,
 `room-pages-clicked-app.png` and `room-pages.json` (the rows, the page document's head, the requests and the console).
 
 What it looks like when the recipe passes: both rows in the room, the page without Point or Share

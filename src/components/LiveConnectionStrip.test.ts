@@ -55,7 +55,7 @@ it.each([true, false])("offers help and a retry after a prolonged connection fai
   expect(retry.textContent).toBe(t("liveConnection.retry"));
   const sent = vi.spyOn(window, "dispatchEvent");
   act(() => retry.click());
-  expect(sent).toHaveBeenCalledWith(expect.objectContaining({ type: "omb:retry-live-events" }));
+  expect(sent).toHaveBeenCalledWith(expect.objectContaining({ type: "odb:retry-live-events" }));
   draw(true, hydrated);
   expect(container.textContent).toBe("");
   draw(false, hydrated);

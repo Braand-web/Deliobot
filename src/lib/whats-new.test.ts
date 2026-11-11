@@ -18,7 +18,7 @@ const free: CloudAccountState = { status: "connected", account: { id: "a", email
 const onPlan = (tier: string, extra: Partial<CloudAccountState> = {}): CloudAccountState =>
   ({ ...free, entitlement: { plan: "pro", tier, status: "active", expiresAt: NOW + 30 * DAY, version: 2 }, ...extra });
 const listed = (patch: Partial<CloudListEntry>): CloudListEntry => ({ id: "c1", name: "My Cloud", color: null, role: "owner", tier: "pro", runsOn: "cloud", status: "ready",
-  origin: "https://omb-c1.fly.dev", teamId: null, primary: true, managed: true, ...patch });
+  origin: "https://odb-c1.fly.dev", teamId: null, primary: true, managed: true, ...patch });
 const team = { id: "t1", name: "Design Studio", role: "member" as const, machine: null };
 const running = { state: "active" as const, tier: "pro", endsAt: NOW + DAY, amount: 4900, chargeAt: NOW + DAY, holdUntil: null, deleteAt: null, keep: "none" as const };
 
@@ -100,10 +100,10 @@ describe("the slides' plans, from the Admin's offer", () => {
 describe("the funnel", () => {
   it("each slide's links carry its own source tag, to the Cloud website or the staging Admin's", () => {
     expect(WHATS_NEW_SOURCES).toEqual({ pro: "app_whats_new_pro", team: "app_whats_new_team" });
-    expect(newCloudUrl()).toBe("https://cloud.openmausbot.com/cloud?src=app_whats_new_pro");
-    expect(startTeamUrl()).toBe("https://cloud.openmausbot.com/pro/buy?plan=team&src=app_whats_new_team");
-    expect(newCloudUrl(true)).toBe("https://omb-cloud-staging.fly.dev/cloud?src=app_whats_new_pro");
-    expect(startTeamUrl(true)).toBe("https://omb-cloud-staging.fly.dev/pro/buy?plan=team&src=app_whats_new_team");
+    expect(newCloudUrl()).toBe("https://cloud.openopendeliobot.com/cloud?src=app_whats_new_pro");
+    expect(startTeamUrl()).toBe("https://cloud.openopendeliobot.com/pro/buy?plan=team&src=app_whats_new_team");
+    expect(newCloudUrl(true)).toBe("https://odb-cloud-staging.fly.dev/cloud?src=app_whats_new_pro");
+    expect(startTeamUrl(true)).toBe("https://odb-cloud-staging.fly.dev/pro/buy?plan=team&src=app_whats_new_team");
     for (const tag of Object.values(WHATS_NEW_SOURCES)) expect(tag, "the Admin's tag form").toMatch(/^[a-z0-9_]{1,32}$/);
   });
 

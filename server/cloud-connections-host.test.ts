@@ -13,7 +13,7 @@ import { removeTempDir } from "./testing/cleanup.ts";
 
 const dirs: string[] = [];
 afterEach(async () => { for (const dir of dirs.splice(0)) await removeTempDir(dir); });
-const temp = () => { const dir = mkdtempSync(join(tmpdir(), "omb-connections-host-")); dirs.push(dir); return dir; };
+const temp = () => { const dir = mkdtempSync(join(tmpdir(), "odb-connections-host-")); dirs.push(dir); return dir; };
 
 const LINEAR = "https://mcp.linear.app/sse";
 const signIn = (access: string, refresh: string): McpOAuthRecord => ({ url: LINEAR, state: "signed-in", clientId: "client", tokenEndpoint: "https://linear.app/token", tokens: { access, refresh, expiresAt: 10 } });
@@ -22,7 +22,7 @@ function host(cloudHome: boolean) {
   const dir = temp();
   const config = { mcpServers: { linear: { type: "http", url: LINEAR, headers: {}, enabled: true }, dodo: { command: "npx", args: ["dodo"], env: {}, enabled: true } } } as unknown as AppConfig;
   const mcpOAuth = new McpOAuthManager({ file: join(dir, "mcp-oauth.json") });
-  const connections = createCloudConnectionsHost({ cloudHome: cloudHome ? { publicOrigin: "https://omb-u-1.fly.dev" } : null, config: () => config,
+  const connections = createCloudConnectionsHost({ cloudHome: cloudHome ? { publicOrigin: "https://odb-u-1.fly.dev" } : null, config: () => config,
     environmentId: "env-desktop-1", mcpOAuth, engines: async () => ["claude", "openrouter"] });
   async function call(method: string, path: string, body?: unknown, type = "application/json") {
     let status = 0, answered: unknown = null;
@@ -86,7 +86,7 @@ describe("a move's routes and private port", () => {
     const desktop = host(false), cloud = host(true);
     cloud.mcpOAuth.markNeedsSignIn("linear", LINEAR);
     desktop.mcpOAuth.markNeedsSignIn("linear", LINEAR);
-    expect(cloud.connections.prompt({})).toContain("linear (sign in here: https://omb-u-1.fly.dev/?connect=mcp%3Alinear)");
+    expect(cloud.connections.prompt({})).toContain("linear (sign in here: https://odb-u-1.fly.dev/?connect=mcp%3Alinear)");
     expect(desktop.connections.prompt({})).toBe("");
   });
 });

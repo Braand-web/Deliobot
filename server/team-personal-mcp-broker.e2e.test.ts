@@ -32,7 +32,7 @@ describe.skipIf(process.platform === "win32")("a member's own MCP server and the
   let mounted: Record<string, McpServerSpec> = {};
 
   beforeAll(async () => {
-    dir = mkdtempSync(join(tmpdir(), "omb-team-box-mcp-"));
+    dir = mkdtempSync(join(tmpdir(), "odb-team-box-mcp-"));
     own = await startFakeHttpMcp({ exactPath: true, tools: [{ name: "plan_seating" }], requireHeader: { name: "Authorization", value: ADA_KEY } });
     gateway = await startFakeHttpMcp({
       exactPath: true, tools: [{ name: "lookup_order" }],
@@ -90,7 +90,7 @@ describe.skipIf(process.platform === "win32")("a member's own MCP server and the
   it("gives the engine only the broker's address for each, with no header", () => {
     for (const name of ["mi-boda-hq", "orders"]) {
       const server = mounted[name] as RemoteMcpSpec;
-      expect(server.url, name).toMatch(new RegExp(`^http://127\\.0\\.0\\.1:${broker.port}/b/omb_t0_[a-f0-9]{48}/mcp-${name}$`));
+      expect(server.url, name).toMatch(new RegExp(`^http://127\\.0\\.0\\.1:${broker.port}/b/odb_t0_[a-f0-9]{48}/mcp-${name}$`));
       expect(server.headers, name).toEqual({});
     }
     const listed = JSON.stringify(mounted);

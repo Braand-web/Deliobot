@@ -161,7 +161,7 @@ describe("the native tee", () => {
       for (let n = 0; n < 5; n++) appendNative("t-exit", { dir: "in", source: "claude.sdk.message", msg: { type: "assistant", n } });
       process.exit(0);`;
     const child = spawnSync(process.execPath, ["--experimental-strip-types", "--input-type=module", "-e", script], {
-      env: { ...process.env, OMB_DATA_DIR: dirname(NATIVE_DIR) }, encoding: "utf8",
+      env: { ...process.env, ODB_DATA_DIR: dirname(NATIVE_DIR) }, encoding: "utf8",
     });
     expect(child.status, child.stderr).toBe(0);
     expect(rows("t-exit").map((row) => row.msg.n)).toEqual([0, 1, 2, 3, 4]);

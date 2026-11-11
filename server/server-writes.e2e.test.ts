@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, expect, it } from "vitest";
 
-import { launchVerificationServer, runControlOmb, type VerificationServer } from "../scripts/control-omb.ts";
+import { launchVerificationServer, runControlOdb, type VerificationServer } from "../scripts/control-odb.ts";
 import { waitForExit } from "./testing/cleanup.ts";
 import { hostTimeout } from "./testing/host-timeout.ts";
 
@@ -23,7 +23,7 @@ const json = (path: string) => {
 it.each(["SIGKILL", "SIGTERM"] as const)("a turn and a routine run cut by %s keep everything saved so far", async (signal) => {
   fixture = await launchVerificationServer({ ...process.env, FAKE_CLAUDE_MODE: "hang" });
   const { url, dataDir } = fixture.info;
-  const cli = (...args: string[]) => runControlOmb([...args, "--url", url]) as Promise<any>;
+  const cli = (...args: string[]) => runControlOdb([...args, "--url", url]) as Promise<any>;
   const api = async (method: string, path: string, body?: unknown) => {
     const response = await fetch(`${url}${path}`, { method, headers: { "content-type": "application/json", origin: url }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
     expect(response.status, path).toBeLessThan(300);

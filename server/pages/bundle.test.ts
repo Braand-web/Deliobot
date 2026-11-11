@@ -12,7 +12,7 @@ vi.mock("node:fs/promises", async (importOriginal) => {
   return { ...real, open: vi.fn(real.open), readdir: vi.fn(real.readdir), realpath: vi.fn(real.realpath), stat: vi.fn(real.stat) };
 });
 
-const folder = () => realpathSync(mkdtempSync(join(tmpdir(), "omb-page-bundle-")));
+const folder = () => realpathSync(mkdtempSync(join(tmpdir(), "odb-page-bundle-")));
 
 describe("readPageBundle", () => {
   it("does not follow its folder swapped for a link while it is being read", async () => {

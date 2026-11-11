@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { cn } from "@/lib/cn";
-import { CHROME_EYES, CHROME_GRADIENT, MAUS_COLORS, type MausColor, type MausMotion, type MausState } from "@/lib/mascot";
+import { CHROME_EYES, CHROME_GRADIENT, DELIO_COLORS, type DelioColor, type DelioMotion, type DelioState } from "@/lib/mascot";
 import { CursorAvatar, type CursorAvatarHandle } from "./CursorAvatar";
 import { avatarCropRadius, botAvatarProfile, clampAvatarFocus, clampAvatarZoom, mascotFaceInk, type BotAvatarCrop, type MascotFaceColor } from "../../shared/bot-avatar";
 import { MASCOT_BODIES, botMascotBody } from "../../shared/mascot-bodies";
@@ -26,7 +26,7 @@ const POINTER_GAZE = { forward: 1, authored: 0.25 };
 
 interface MotionFaces
   extends Partial<
-    Record<Exclude<MausMotion, "none">, { state?: MausState; blink?: boolean; spin?: number }>
+    Record<Exclude<DelioMotion, "none">, { state?: DelioState; blink?: boolean; spin?: number }>
   > {}
 
 const MOTION_FACE: MotionFaces = {
@@ -59,13 +59,13 @@ function mix(hex: string, toward: string, t: number): string {
     .join("")}`;
 }
 
-const gradientFor = (color: MausColor): [string, string, string] => {
+const gradientFor = (color: DelioColor): [string, string, string] => {
   if (color === "chrome") return CHROME_GRADIENT;
-  const fill = MAUS_COLORS[color] ?? MAUS_COLORS.green;
+  const fill = DELIO_COLORS[color] ?? DELIO_COLORS.green;
   return [mix(fill, "#ffffff", 0.55), fill, mix(fill, "#000000", 0.42)];
 };
 
-export function roomAvatarGradient(color: MausColor): [string, string, string] {
+export function roomAvatarGradient(color: DelioColor): [string, string, string] {
   const fill = `var(--identity-${color})`;
   return [
     `color-mix(in srgb, ${fill} 82%, #ffffff)`,
@@ -74,15 +74,15 @@ export function roomAvatarGradient(color: MausColor): [string, string, string] {
   ];
 }
 
-export type MausAvatarHandle = CursorAvatarHandle;
+export type DelioAvatarHandle = CursorAvatarHandle;
 
-export type MausAvatarProps = {
-  color: MausColor;
-  state?: MausState;
+export type DelioAvatarProps = {
+  color: DelioColor;
+  state?: DelioState;
   expression?: number;
   size?: number;
   label?: string;
-  motion?: MausMotion;
+  motion?: DelioMotion;
   motionKey?: number;
   turn?: number;
   gaze?: { x?: number; y?: number };
@@ -99,7 +99,7 @@ export type MausAvatarProps = {
   faceColor?: MascotFaceColor | null;
 };
 
-function MausAvatarComponent(props: MausAvatarProps, ref: React.Ref<MausAvatarHandle>) {
+function DelioAvatarComponent(props: DelioAvatarProps, ref: React.Ref<DelioAvatarHandle>) {
   const { bodyId, color, size, state, motion, motionKey, gaze, trackPointer, animated, label } = props;
   if (isCarvedBody(bodyId)) {
     return (
@@ -144,8 +144,8 @@ function GradientAvatarComponent(
     bodyId,
     gradient,
     faceColor,
-  }: MausAvatarProps,
-  ref: React.Ref<MausAvatarHandle>,
+  }: DelioAvatarProps,
+  ref: React.Ref<DelioAvatarHandle>,
 ) {
   const silhouette = MASCOT_BODIES[botMascotBody(bodyId)];
   const chrome = color === "chrome";
@@ -157,7 +157,7 @@ function GradientAvatarComponent(
     setExpression: (index: number) => inner.current?.setExpression(index),
   }));
 
-  const [motionState, setMotionState] = useState<MausState | null>(null);
+  const [motionState, setMotionState] = useState<DelioState | null>(null);
   useEffect(() => {
     if (motion === "none" || !animated) return;
     const beat = MOTION_FACE[motion];
@@ -213,13 +213,13 @@ function GradientAvatarComponent(
 
 const GradientAvatar = forwardRef(GradientAvatarComponent);
 
-export const MausAvatar = memo(forwardRef(MausAvatarComponent));
+export const DelioAvatar = memo(forwardRef(DelioAvatarComponent));
 
-export type BotAvatarProps = Omit<MausAvatarProps, "color" | "gradient"> & {
+export type BotAvatarProps = Omit<DelioAvatarProps, "color" | "gradient"> & {
   readable?: boolean;
   bot: {
     name?: string;
-    color: MausColor;
+    color: DelioColor;
     avatarUrl?: string | null;
     avatarCrop?: BotAvatarCrop;
     avatarZoom?: number;
@@ -260,7 +260,7 @@ export function BotAvatar({ bot, size = 44, label, readable = false, ...mascotPr
 
   if (outcome !== "flatImage") {
     return (
-      <MausAvatar
+      <DelioAvatar
         bodyId={wornBody(bot.mascotBody, bot.color, festival)}
         {...mascotProps}
         color={bot.color}

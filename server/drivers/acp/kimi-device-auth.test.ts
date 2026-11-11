@@ -87,7 +87,7 @@ describe("Kimi sign-out from the server", () => {
   });
 
   it("reports an unreadable credential folder as unknown instead of signed-out", () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-kimi-state-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-kimi-state-"));
     try {
       const env = { KIMI_CODE_HOME: scratch };
       expect(KIMI_DEVICE_SIGN_IN.signInState!(env)).toBe("signed-out");
@@ -107,7 +107,7 @@ describe.skipIf(process.platform === "win32")("Kimi Code sign-in with a device c
       instanceId: "kimi", displayName: "Kimi", enabled: true,
       config: KimiAgentDriver.decodeConfig({ cli: FAKE_KIMI }),
       // A stray Moonshot key must not reach the subscription login.
-      environment: { HOME: home, USERPROFILE: home, OMB_DEVICE_AUTH_FIXTURE: "1", FAKE_KIMI_MODE: mode, MOONSHOT_API_KEY: "sk-fixture-must-not-leak", ...environment },
+      environment: { HOME: home, USERPROFILE: home, ODB_DEVICE_AUTH_FIXTURE: "1", FAKE_KIMI_MODE: mode, MOONSHOT_API_KEY: "sk-fixture-must-not-leak", ...environment },
     });
     instances.push(instance);
     return instance;
@@ -119,7 +119,7 @@ describe.skipIf(process.platform === "win32")("Kimi Code sign-in with a device c
 
   beforeEach(() => {
     chmodSync(FAKE_KIMI, 0o755);
-    home = mkdtempSync(join(tmpdir(), "omb-kimi-device-"));
+    home = mkdtempSync(join(tmpdir(), "odb-kimi-device-"));
     instances = [];
   });
   afterEach(async () => {
@@ -204,7 +204,7 @@ describe.skipIf(process.platform === "win32")("Kimi Code sign-in with a device c
   it("does not show a page on another host, and gives up waiting for one", async () => {
     const controller = new DeviceAuthController(KIMI_DEVICE_SIGN_IN, {
       cli: FAKE_KIMI, startupTimeoutMs: 1_000, terminateTimeoutMs: 50,
-      environment: () => ({ ...process.env, HOME: home, OMB_DEVICE_AUTH_FIXTURE: "1", FAKE_KIMI_MODE: "evil" }),
+      environment: () => ({ ...process.env, HOME: home, ODB_DEVICE_AUTH_FIXTURE: "1", FAKE_KIMI_MODE: "evil" }),
     });
     try {
       await expect(controller.start()).rejects.toThrow("Kimi did not provide a sign-in code in time");
@@ -232,7 +232,7 @@ describe.skipIf(process.platform === "win32")("Kimi Code sign-in with a device c
     const missing = await KimiAgentDriver.create({
       instanceId: "kimi-missing", displayName: "Kimi", enabled: true,
       config: KimiAgentDriver.decodeConfig({ cli: join(home, "no-such-kimi") }),
-      environment: { HOME: home, OMB_DEVICE_AUTH_FIXTURE: "1" },
+      environment: { HOME: home, ODB_DEVICE_AUTH_FIXTURE: "1" },
     });
     instances.push(missing);
     await expect(missing.startAuthentication!()).rejects.toThrow("Kimi is not installed on this server.");
@@ -242,7 +242,7 @@ describe.skipIf(process.platform === "win32")("Kimi Code sign-in with a device c
     const instance = await kimi("approve");
     const start = await instance.startAuthentication!();
     expect((await instance.getAuthentication!(start.flowId!)).phase).toBe("waiting");
-    writeFileSync(join(home, ".omb-fake-kimi-approved"), "approve fixture only\n");
+    writeFileSync(join(home, ".odb-fake-kimi-approved"), "approve fixture only\n");
     await expect.poll(async () => (await instance.getAuthentication!(start.flowId!)).phase, { timeout: 5_000 }).toBe("succeeded");
   });
 

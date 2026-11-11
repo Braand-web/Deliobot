@@ -124,7 +124,7 @@ describe("LimitResetClock", () => {
   const dirs: string[] = [];
   afterEach(() => {
     vi.useRealTimers();
-    delete process.env.OMB_TEST_PLAN_USAGE_FILE;
+    delete process.env.ODB_TEST_PLAN_USAGE_FILE;
     for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
   });
   const accounts = [{ id: "claude", name: "Claude", driver: "claude" as const, environment: {} }];
@@ -210,10 +210,10 @@ describe("LimitResetClock", () => {
     await instance.ensureFresh();
     expect(load).toHaveBeenCalledTimes(2);
 
-    const dir = mkdtempSync(join(tmpdir(), "omb-limit-fixture-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-limit-fixture-"));
     dirs.push(dir);
-    process.env.OMB_TEST_PLAN_USAGE_FILE = join(dir, "usage.json");
-    writeFileSync(process.env.OMB_TEST_PLAN_USAGE_FILE, JSON.stringify(report(claude([91, NOW + 5 * HOUR], [1, NOW + 90 * HOUR]))));
+    process.env.ODB_TEST_PLAN_USAGE_FILE = join(dir, "usage.json");
+    writeFileSync(process.env.ODB_TEST_PLAN_USAGE_FILE, JSON.stringify(report(claude([91, NOW + 5 * HOUR], [1, NOW + 90 * HOUR]))));
     const fixture = clock().instance;
     await fixture.refresh(true);
     expect(fixture.limit("claude")).toMatchObject({ usedPercent: 91, resetsAt: NOW + 5 * HOUR });
@@ -344,7 +344,7 @@ describe("LimitResetClock and the turns that follow a refusal", () => {
   });
 
   it("keeps a refusal's hold through a restart, so a new conversation does not go to the limited engine first", () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-limit-holds-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-limit-holds-"));
     try {
       const file = join(dir, "limit-holds.json");
       let now = NOW;
@@ -379,7 +379,7 @@ describe("LimitResetClock and the turns that follow a refusal", () => {
 
   it("ends a Codex hold once fresh usage shows room and no window resetting at the hold's time, as after a plan upgrade", () => {
     const codexAccounts = [{ id: "codex", name: "Codex", driver: "codex" as const, environment: {} }];
-    const dir = mkdtempSync(join(tmpdir(), "omb-limit-holds-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-limit-holds-"));
     try {
       const file = join(dir, "limit-holds.json");
       const boot = () => new LimitResetClock({ accounts: () => codexAccounts, now: () => NOW, file });
@@ -409,7 +409,7 @@ describe("LimitResetClock and the turns that follow a refusal", () => {
   });
 
   it("still ignores a usage read from before the refusal after a restart, including a hold saved without its start", () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-limit-held-at-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-limit-held-at-"));
     try {
       const file = join(dir, "limit-holds.json");
       let now = NOW;

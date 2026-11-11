@@ -13,7 +13,7 @@ describe("Codex login check", () => {
   const env = (mode: string) => ({ PATH: process.env.PATH, HOME: home, USERPROFILE: home, CODEX_HOME: home, FAKE_CODEX_MODE: mode });
 
   beforeEach(() => {
-    home = mkdtempSync(join(tmpdir(), "omb-codex-login-"));
+    home = mkdtempSync(join(tmpdir(), "odb-codex-login-"));
     chmodSync(FAKE_CLI, 0o755);
   });
   afterEach(async () => { await removeTempDir(home); });

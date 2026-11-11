@@ -1,6 +1,6 @@
 # Sharing a whole department
 
-The sidebar groups bots into departments. **Share department…** saves one department as a single file (`<team>-<version>.openmaus.json`).
+The sidebar groups bots into departments. **Share department…** saves one department as a single file (`<team>-<version>.opendelio.json`).
 Someone else adds it in **Templates → Import**, or an organization uploads it
 in Admin → Packages and its desktops add it from **Templates → From
 {Organization}** ([org-library.md](org-library.md)). Open it from the department's menu in the sidebar (right-click
@@ -114,7 +114,7 @@ writes down its own setup.
    `grok-bot-export-<name>.json` or replies with it.
 2. Bring that back: paste the whole reply (chat text and code fences are fine),
    drop the file or choose it. In the desktop app, on the computer running
-   OpenMausBot, files named `grok-bot-export*` in Downloads are offered in one
+   OpenDeliobot, files named `grok-bot-export*` in Downloads are offered in one
    tap; a split or re-saved export joins up.
 3. The preview names the Bot and counts its skills, routines and memories. Nothing
    is written yet.
@@ -132,7 +132,7 @@ Cloud, a hosted member, a branded build and a desktop an organization runs.
 
 | In Grok Bot | Here |
 | --- | --- |
-| Name, title, instructions | A new bot in its own section, through the `openmaus.package` import |
+| Name, title, instructions | A new bot in its own section, through the `opendelio.package` import |
 | Skills | That bot's skills, switched on. One the skill scan flags stays off, and the dialog names it |
 | Memories and facts about you | That bot's `MEMORY.md`, repeats dropped |
 | Routine on a schedule | A routine named `<Bot>: <routine>`, paused, with its schedule and time zone and the skills it uses named in its prompt |
@@ -150,9 +150,9 @@ privilege-bearing field itself. A server name you already have is skipped, and a
 Bot already moved is not added twice. One file or item that can't be read costs
 the rest nothing.
 
-The earlier `openmaus.grok/1` export still reads.
+The earlier `opendelio.grok/1` export still reads.
 
-After the button is pressed, and on the computer running OpenMausBot only, the
+After the button is pressed, and on the computer running OpenDeliobot only, the
 desktop app reads through `GET /api/setup-import/grok` (its own window only, never
 a paired device, a browser, a bot's shell, a Cloud or a hosted server) those
 Downloads files and one slice of the Grok Bot app's UI cache in
@@ -168,7 +168,7 @@ popup in `src/components/GrokMovePopup.tsx`.
 
 ## The file format
 
-`openmaus.package` version 2, defined in `shared/package-format.ts`, the one
+`opendelio.package` version 2, defined in `shared/package-format.ts`, the one
 module the app, the import preview and Admin all validate with. It still
 reads version 1 files (JSON and the BotMRR Markdown playbook). Older apps
 refuse version 2 files with their existing "not supported" message; Admin can

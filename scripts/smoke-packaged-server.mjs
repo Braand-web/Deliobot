@@ -48,16 +48,16 @@ async function freePorts(count) {
   }
 }
 
-const staging = mkdtempSync(join(tmpdir(), "omb-smoke-"));
-const home = mkdtempSync(join(tmpdir(), "omb-smoke-home-"));
+const staging = mkdtempSync(join(tmpdir(), "odb-smoke-"));
+const home = mkdtempSync(join(tmpdir(), "odb-smoke-home-"));
 const [port, webhookPort] = await freePorts(2);
 
-// OMB_SMOKE_DIST lets the release workflow aim this at a packaged app's
+// ODB_SMOKE_DIST lets the release workflow aim this at a packaged app's
 // Resources/server tree instead of the repo build.
 try {
   // A desktop install can live beneath a user's CommonJS package scope.
   writeFileSync(join(staging, "package.json"), '{"type":"commonjs"}\n');
-  cpSync(process.env.OMB_SMOKE_DIST ?? join(root, "dist-server"), join(staging, "server"), { recursive: true });
+  cpSync(process.env.ODB_SMOKE_DIST ?? join(root, "dist-server"), join(staging, "server"), { recursive: true });
   if (browserBundle) cpSync(resolve(browserBundle), join(staging, "browser-engine"), { recursive: true });
 } catch (error) {
   for (const directory of [staging, home]) rmSync(directory, { recursive: true, force: true });
@@ -74,13 +74,13 @@ const fixtureEnv = {
   XDG_CONFIG_HOME: join(home, ".config"),
   XDG_CACHE_HOME: join(home, ".cache"),
   XDG_DATA_HOME: join(home, ".local", "share"),
-  OMB_DATA_DIR: join(home, ".openmausbot"),
-  OMB_PORT: String(port),
-  OMB_WEBHOOK_PORT: String(webhookPort),
+  ODB_DATA_DIR: join(home, ".opendeliobot"),
+  ODB_PORT: String(port),
+  ODB_WEBHOOK_PORT: String(webhookPort),
   // Not a genuine key: enough to make the server look for its enterprise layer.
-  OMB_LICENSE_KEY: "omb1.not.real",
+  ODB_LICENSE_KEY: "odb1.not.real",
   ...(browserBundle ? {
-    OMB_RESOURCES_PATH: staging,
+    ODB_RESOURCES_PATH: staging,
     // A global engine on the developer's PATH must not make this test pass.
     PATH: process.platform === "win32" ? join(process.env.SystemRoot ?? "C:\\Windows", "System32") : "/usr/bin:/bin",
   } : {}),
@@ -127,7 +127,7 @@ while (Date.now() < deadline) {
 let versionReport = null;
 if (listening) {
   try {
-    versionReport = (await (await fetch(`http://127.0.0.1:${port}/.well-known/openmausbot/environment`, { signal: AbortSignal.timeout(5_000) })).json()).version;
+    versionReport = (await (await fetch(`http://127.0.0.1:${port}/.well-known/opendeliobot/environment`, { signal: AbortSignal.timeout(5_000) })).json()).version;
   } catch (error) { versionReport = String(error); }
 }
 
@@ -241,8 +241,8 @@ if (listening) {
 let headlessReport = null;
 if (listening) {
   const runCli = (args) => new Promise((resolve) => {
-    const cli = spawn(process.execPath, [join(staging, "server", "openmausbot.js"), ...args], {
-      cwd: staging, env: { ...fixtureEnv, OPENMAUSBOT_URL: `http://127.0.0.1:${port}` }, stdio: ["ignore", "pipe", "pipe"],
+    const cli = spawn(process.execPath, [join(staging, "server", "opendeliobot.js"), ...args], {
+      cwd: staging, env: { ...fixtureEnv, OPENDELIOBOT_URL: `http://127.0.0.1:${port}` }, stdio: ["ignore", "pipe", "pipe"],
     });
     let stdout = "";
     let stderr = "";
@@ -271,12 +271,12 @@ if (listening) {
     });
     assert.equal(response.status, 200, "Packaged backup worker did not export successfully");
     const archive = await response.json();
-    assert.equal(archive.summary.format, "openmaus.workspace-backup");
+    assert.equal(archive.summary.format, "opendelio.workspace-backup");
     const download = await fetch(`http://127.0.0.1:${port}/api/workspace-backup/download/${archive.id}`);
     assert.equal(download.status, 200);
     const bytes = Buffer.from(await download.arrayBuffer());
     assert.equal(bytes.length, archive.bytes);
-    assert.equal(bytes.subarray(0, 16).toString(), "OMB-WORKSPACE-1\n");
+    assert.equal(bytes.subarray(0, 16).toString(), "ODB-WORKSPACE-1\n");
     backupReport = { ok: true, bytes: bytes.length };
   } catch (error) { backupReport = { error: String(error) }; }
 }
@@ -287,12 +287,12 @@ if (listening) {
 // the same bundle again at service trust and check both sides of that gate.
 let serviceTrustReport = null;
 if (listening) {
-  const serviceHome = mkdtempSync(join(tmpdir(), "omb-smoke-service-"));
+  const serviceHome = mkdtempSync(join(tmpdir(), "odb-smoke-service-"));
   const [servicePort, serviceWebhookPort] = await freePorts(2);
   const service = spawn(process.execPath, [join(staging, "server", "index.js")], {
     cwd: staging,
-    env: { ...fixtureEnv, HOME: serviceHome, USERPROFILE: serviceHome, OMB_DATA_DIR: join(serviceHome, ".openmausbot"),
-      OMB_PORT: String(servicePort), OMB_WEBHOOK_PORT: String(serviceWebhookPort), OMB_LOOPBACK_TRUST: "service" },
+    env: { ...fixtureEnv, HOME: serviceHome, USERPROFILE: serviceHome, ODB_DATA_DIR: join(serviceHome, ".opendeliobot"),
+      ODB_PORT: String(servicePort), ODB_WEBHOOK_PORT: String(serviceWebhookPort), ODB_LOOPBACK_TRUST: "service" },
     stdio: ["ignore", "pipe", "pipe"],
   });
   let serviceOutput = "";
@@ -336,11 +336,11 @@ if (listening) {
 // cache on the data volume, and SIGTERM must end both with a clean exit.
 let launcherReport = null;
 if (listening && process.platform !== "win32") {
-  const launcherHome = mkdtempSync(join(tmpdir(), "omb-smoke-launcher-"));
+  const launcherHome = mkdtempSync(join(tmpdir(), "odb-smoke-launcher-"));
   const [launcherPort, launcherWebhookPort] = await freePorts(2);
   const launcher = spawn(process.execPath, [join(staging, "server", "server-launcher.js")], {
     cwd: staging,
-    env: { ...fixtureEnv, HOME: launcherHome, USERPROFILE: launcherHome, OMB_DATA_DIR: join(launcherHome, ".openmausbot"), OMB_PORT: String(launcherPort), OMB_WEBHOOK_PORT: String(launcherWebhookPort) },
+    env: { ...fixtureEnv, HOME: launcherHome, USERPROFILE: launcherHome, ODB_DATA_DIR: join(launcherHome, ".opendeliobot"), ODB_PORT: String(launcherPort), ODB_WEBHOOK_PORT: String(launcherWebhookPort) },
     stdio: ["ignore", "pipe", "pipe"],
   });
   let launcherOutput = "";
@@ -358,7 +358,7 @@ if (listening && process.platform !== "win32") {
       if (serverPid === null) await new Promise((resolve) => setTimeout(resolve, 300));
     }
     // The bootstrap writes the cache about 10 s after the server starts.
-    const launcherCache = join(launcherHome, ".openmausbot", "cache", "node-compile");
+    const launcherCache = join(launcherHome, ".opendeliobot", "cache", "node-compile");
     let cached = false;
     for (const written = Date.now() + 30_000; serverPid !== null && !cached && Date.now() < written && launcher.exitCode === null;) {
       try { cached = readdirSync(launcherCache).some((name) => /^v\d+\.\d+\.\d+-/.test(name)); } catch { /* not yet */ }
@@ -384,7 +384,7 @@ if (listening && process.platform !== "win32") {
 // while it runs (Windows has no SIGTERM, so a kill skips the exit-time write).
 let desktopEntryReport = null;
 if (listening) {
-  const entryHome = mkdtempSync(join(tmpdir(), "omb-smoke-entry-"));
+  const entryHome = mkdtempSync(join(tmpdir(), "odb-smoke-entry-"));
   const cacheDir = join(entryHome, "server-compile-cache");
   const cacheEntries = () => {
     try {
@@ -398,8 +398,8 @@ if (listening) {
       const [entryPort, entryWebhookPort] = await freePorts(2);
       const entry = spawn(process.execPath, [join(staging, "server", "desktop-entry.mjs")], {
         cwd: staging,
-        env: { ...fixtureEnv, HOME: entryHome, USERPROFILE: entryHome, OMB_DATA_DIR: join(entryHome, ".openmausbot"),
-          OMB_PORT: String(entryPort), OMB_WEBHOOK_PORT: String(entryWebhookPort), OMB_SERVER_COMPILE_CACHE: cacheDir },
+        env: { ...fixtureEnv, HOME: entryHome, USERPROFILE: entryHome, ODB_DATA_DIR: join(entryHome, ".opendeliobot"),
+          ODB_PORT: String(entryPort), ODB_WEBHOOK_PORT: String(entryWebhookPort), ODB_SERVER_COMPILE_CACHE: cacheDir },
         stdio: ["ignore", "pipe", "pipe"],
       });
       let entryOutput = "";
@@ -456,7 +456,7 @@ if (!listening) {
 }
 
 const repoVersion = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).version;
-if (!process.env.OMB_SMOKE_DIST && versionReport !== repoVersion) {
+if (!process.env.ODB_SMOKE_DIST && versionReport !== repoVersion) {
   console.error(`The packaged server reports version ${JSON.stringify(versionReport)}, not ${repoVersion}.`);
   process.exit(1);
 }
@@ -492,7 +492,7 @@ if (
   mcpReport.error ||
   mcpReport.exit?.timeout ||
   mcpReport.exit?.code !== 0 ||
-  mcpReport.responses?.find((response) => response.id === 1)?.result?.serverInfo?.name !== "openmausbot-mcp" ||
+  mcpReport.responses?.find((response) => response.id === 1)?.result?.serverInfo?.name !== "opendeliobot-mcp" ||
   mcpReport.responses?.find((response) => response.id === 2)?.result?.structuredContent?.status !== "connected" ||
   JSON.stringify(mcpReport.responses?.find((response) => response.id === 3)?.result) !== "{}"
 ) {
@@ -503,7 +503,7 @@ if (
 
 if (!headlessReport || headlessReport.error || headlessReport.doctor.body?.server?.capabilities?.jobs !== true ||
   headlessReport.bots.code !== 0 || !Array.isArray(headlessReport.bots.body?.bots)) {
-  console.error("the packaged openmausbot command's headless verbs failed:");
+  console.error("the packaged opendeliobot command's headless verbs failed:");
   console.error(JSON.stringify(headlessReport, null, 2));
   process.exit(1);
 }
@@ -521,7 +521,7 @@ if (!serviceTrustReport || serviceTrustReport.error || serviceTrustReport.servin
 console.log(`packaged server started with no node_modules in reach (port ${port}) ✓`);
 console.log(`all ${count} spawned proxy paths resolve inside the packaged server dir ✓`);
 console.log("packaged MCP stdio server reached the API and flushed its final frames ✓");
-console.log("packaged openmausbot doctor and bots answered from the bundle ✓");
+console.log("packaged opendeliobot doctor and bots answered from the bundle ✓");
 console.log("packaged backup worker exported an encrypted archive ✓");
 console.log("packaged loopback trust gate: health serves, a public mutation is refused at service trust ✓");
 if (launcherReport) console.log("packaged container launcher ran the server as its child and stopped it cleanly ✓");

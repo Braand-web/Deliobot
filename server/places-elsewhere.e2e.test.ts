@@ -15,9 +15,9 @@ let fx: OwnHomeFixture;
 let garage: OwnServer, family: OwnServer;
 
 beforeAll(async () => {
-  fx = await launchOwnHomeFixture({ env: { OMB_TEST_INTERNAL_CAPABILITY_KEY: KEY } });
+  fx = await launchOwnHomeFixture({ env: { ODB_TEST_INTERNAL_CAPABILITY_KEY: KEY } });
   garage = await fx.addServer("Garage server", { FAKE_CLAUDE_DUMP: join(fx.root, "garage-turn.json") });
-  family = await fx.addServer("Family server", { OMB_SIGNIN_MEMBER_EMAILS: "friend@example.test" });
+  family = await fx.addServer("Family server", { ODB_SIGNIN_MEMBER_EMAILS: "friend@example.test" });
 }, hostTimeout(120_000));
 afterAll(async () => { await fx?.close(); });
 
@@ -30,7 +30,7 @@ async function made(side: Side, name: string): Promise<Bot> {
 }
 /** A turn of `bot`'s on the server at `base` asks for a teammate by name, as coordinate_bots does. */
 async function coordinate(base: string, bot: Bot, name: string): Promise<{ status: number; error: string }> {
-  const minted = await fetch(`${base}/api/testing/internal-capability`, { method: "POST", headers: { "content-type": "application/json", "x-openmausbot-test-capability": KEY },
+  const minted = await fetch(`${base}/api/testing/internal-capability`, { method: "POST", headers: { "content-type": "application/json", "x-opendeliobot-test-capability": KEY },
     body: JSON.stringify({ botId: bot.id, threadId: bot.threadId }) });
   const { token } = await minted.json() as { token: string };
   const asked = await fetch(`${base}/api/internal/coordinate-bots`, { method: "POST", headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
@@ -54,7 +54,7 @@ it("a bot asking for a teammate on the person's other place hears where it lives
   const file = join(fx.root, "two-places.json");
   const main = installTwoPlacesMain({
     ipcMain: { handle: () => {} }, guard: (_channel: string, handler: (...args: unknown[]) => unknown) => handler,
-    localRequest: (route: string, init: RequestInit = {}) => fetch(`${fx.desktopBase}${route}`, { ...init, headers: { ...init.headers as Record<string, string>, "x-openmausbot-desktop-owner": fx.ownerCapability } }),
+    localRequest: (route: string, init: RequestInit = {}) => fetch(`${fx.desktopBase}${route}`, { ...init, headers: { ...init.headers as Record<string, string>, "x-opendeliobot-desktop-owner": fx.ownerCapability } }),
     fetch: fx.windowFetch, environments: () => [garage.place, family.place], cloud: () => ({ origin: null, asleep: false }),
     oneHome: { journal: () => null, keep: { state: () => ({ shown: false, on: false, moved: false }), set: async () => {} } },
     ownHome: fx.main, tell: () => {},

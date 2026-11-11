@@ -9,7 +9,7 @@ import { AGENTS_TOOL_ALIASES } from "../../shared/agents-tool-names.ts";
 import type { Json } from "./agents-client.ts";
 
 /** The proxy's switch: "1" lists through the bridge, anything else lists the whole catalog. */
-export const TOOL_BRIDGE_ENV = "OMB_AGENTS_TOOL_BRIDGE";
+export const TOOL_BRIDGE_ENV = "ODB_AGENTS_TOOL_BRIDGE";
 export const FIND_TOOL = "find_tool";
 export const USE_TOOL = "use_tool";
 
@@ -154,7 +154,7 @@ export function createToolBridge(tools: readonly BridgeTool[]): ToolBridge {
     ...hot,
     {
       name: FIND_TOOL,
-      description: `Find an OpenMausBot tool that is not in your tool list. Say what you want to do in a few words, or give the tool's name. Each match comes back with its description and exact input schema; run one with ${USE_TOOL}. Tools reached this way: ${namesList(hidden.map((tool) => tool.name), BRIDGE_NAMES_MAX_CHARS)}`,
+      description: `Find an OpenDeliobot tool that is not in your tool list. Say what you want to do in a few words, or give the tool's name. Each match comes back with its description and exact input schema; run one with ${USE_TOOL}. Tools reached this way: ${namesList(hidden.map((tool) => tool.name), BRIDGE_NAMES_MAX_CHARS)}`,
       inputSchema: {
         type: "object",
         additionalProperties: false,
@@ -167,7 +167,7 @@ export function createToolBridge(tools: readonly BridgeTool[]): ToolBridge {
     },
     {
       name: USE_TOOL,
-      description: `Run one OpenMausBot tool that ${FIND_TOOL} gave you, by its exact name, with its input as arguments. It runs exactly as if you had called it directly: the same permissions, limits and refusals apply, and its result comes back unchanged. Read the tool's description and input schema from ${FIND_TOOL} before the first call.`,
+      description: `Run one OpenDeliobot tool that ${FIND_TOOL} gave you, by its exact name, with its input as arguments. It runs exactly as if you had called it directly: the same permissions, limits and refusals apply, and its result comes back unchanged. Read the tool's description and input schema from ${FIND_TOOL} before the first call.`,
       inputSchema: {
         type: "object",
         additionalProperties: false,

@@ -23,7 +23,7 @@ function servers(answers) {
     if (server?.down) throw new TypeError("fetch failed");
     if (!server) return new Response("", { status: 502 });
     if (pathname === "/api/auth/session") return Response.json(server.signedIn === false ? { error: "unauthorized" } : { kind: "session", scopes: ["admin"], ...(server.own ? { own: true } : {}) }, { status: server.signedIn === false ? 401 : 200 });
-    if (pathname === "/.well-known/openmausbot/environment") return Response.json({ environmentId: server.environmentId ?? ID, capabilities: server.move === false ? {} : { move: 1 } });
+    if (pathname === "/.well-known/opendeliobot/environment") return Response.json({ environmentId: server.environmentId ?? ID, capabilities: server.move === false ? {} : { move: 1 } });
     return new Response("", { status: 404 });
   };
   return { fetch, asked };
@@ -35,7 +35,7 @@ function install({ answers, cloudJournal = null, journal = null, choice = null, 
   const own = installOwnHome({
     localRequest: async () => new Response("", { status: 503 }),
     fetch,
-    environments: () => [garage, family, { id: "home", kind: "remote", name: "My Cloud", origin: "https://omb-u-1.fly.dev", home: true }],
+    environments: () => [garage, family, { id: "home", kind: "remote", name: "My Cloud", origin: "https://odb-u-1.fly.dev", home: true }],
     handoff: async () => null,
     journal: memory(journal),
     choice: memory(choice),
@@ -75,7 +75,7 @@ test("a server's circle offers Make my home only once it said it is this person'
   assert.equal(own.offers(garage), false, "an old word is asked again first");
   own.close();
 
-  const moving = install({ answers: { [garage.origin]: { own: true } }, cloudJournal: { v: 1, phase: "copy", cloud: { origin: "https://omb-u-1.fly.dev", account: "acct" } } });
+  const moving = install({ answers: { [garage.origin]: { own: true } }, cloudJournal: { v: 1, phase: "copy", cloud: { origin: "https://odb-u-1.fly.dev", account: "acct" } } });
   moving.own.refresh();
   await new Promise((resolve) => setTimeout(resolve, 20));
   assert.equal(moving.own.offers(garage), false, "this computer's bots are on their way to My Cloud");
@@ -86,7 +86,7 @@ test("starting asks the server once more, and keeps this computer's bots here wh
   const cases = [
     [{ own: false }, "Garage server has other people on it, so your bots stay here."],
     [{ signedIn: false }, "This app isn't signed in to Garage server."],
-    [{ own: true, move: false }, "Update OpenMausBot on Garage server first"],
+    [{ own: true, move: false }, "Update OpenDeliobot on Garage server first"],
   ];
   for (const [answer, words] of cases) {
     const { own } = install({ answers: { [garage.origin]: answer } });
@@ -94,7 +94,7 @@ test("starting asks the server once more, and keeps this computer's bots here wh
     assert.equal(own.chosen(), null);
     own.close();
   }
-  const cloud = install({ answers: { [garage.origin]: { own: true } }, cloudJournal: { v: 1, phase: "done", cloud: { origin: "https://omb-u-1.fly.dev", account: "acct" } } });
+  const cloud = install({ answers: { [garage.origin]: { own: true } }, cloudJournal: { v: 1, phase: "done", cloud: { origin: "https://odb-u-1.fly.dev", account: "acct" } } });
   await assert.rejects(cloud.own.start("g"), /moving to My Cloud/u);
   cloud.own.close();
   const unknown = install({ answers: {} });

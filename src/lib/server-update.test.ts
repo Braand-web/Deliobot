@@ -22,8 +22,8 @@ describe("self-hosted update row", () => {
       label: "Version 0.1.93 available (release notes)",
       subtitle: "Update with: git pull && ./update.sh",
     });
-    const npm = check({ install: "npm", available: true, latest: "0.1.93", command: "npm install -g openmausbot@latest", restart: true });
-    expect(serverUpdateRow("available", npm).subtitle).toBe("Update with: npm install -g openmausbot@latest, then restart the app");
+    const npm = check({ install: "npm", available: true, latest: "0.1.93", command: "npm install -g opendeliobot@latest", restart: true });
+    expect(serverUpdateRow("available", npm).subtitle).toBe("Update with: npm install -g opendeliobot@latest, then restart the app");
     // an install it cannot recognise still learns there is a new version
     expect(serverUpdateRow("available", check({ install: "unknown", available: true, latest: "0.1.93" }))).toEqual({
       label: "Version 0.1.93 available (release notes)",
@@ -55,7 +55,7 @@ describe("self-hosted update row", () => {
 
   it("explains servers that are updated elsewhere", () => {
     expect(serverUpdateRow("up-to-date", check({ install: "desktop" })).label).toBe(
-      "Updates come from the MausBot app on the computer these bots run on",
+      "Updates come from the Delio app on the computer these bots run on",
     );
     expect(serverUpdateRow("up-to-date", check({ install: "managed" })).label).toBe("Kept up to date for you");
   });
@@ -66,12 +66,12 @@ describe("self-hosted update row", () => {
 });
 
 describe("the update row for another server the app shows", () => {
-  const npm = check({ current: "0.1.116", install: "npm", available: true, latest: "0.1.127", command: "npm install -g openmausbot@latest", restart: true });
+  const npm = check({ current: "0.1.116", install: "npm", available: true, latest: "0.1.127", command: "npm install -g opendeliobot@latest", restart: true });
 
   it("says whose update it is, and that whoever runs that server installs it", () => {
     expect(serverUpdateRow("available", npm, "0.1.116", "Office Mac")).toEqual({
       label: "Office Mac can update to 0.1.127",
-      subtitle: "Whoever runs that server updates it with: npm install -g openmausbot@latest, then restarts it",
+      subtitle: "Whoever runs that server updates it with: npm install -g opendeliobot@latest, then restarts it",
     });
     const docker = check({ available: true, latest: "0.1.127", command: "git pull && ./update.sh", restart: false });
     expect(serverUpdateRow("available", docker, "0.1.116", "Office Mac").subtitle).toBe(
@@ -85,7 +85,7 @@ describe("the update row for another server the app shows", () => {
 
   it("keeps the rows of servers updated for their owner, and the row of this computer", () => {
     expect(serverUpdateRow("up-to-date", check({ install: "desktop" }), "0.1.116", "Office Mac").label).toBe(
-      "Updates come from the MausBot app on the computer these bots run on",
+      "Updates come from the Delio app on the computer these bots run on",
     );
     expect(serverUpdateRow("up-to-date", check({ install: "managed" }), "0.1.116", "Office Mac").label).toBe("Kept up to date for you");
     expect(serverUpdateRow("available", npm, "0.1.116", null).label).toBe("Version 0.1.127 available (release notes)");
@@ -96,7 +96,7 @@ describe("the update row for another server the app shows", () => {
     try {
       expect(serverUpdateRow("available", npm, "0.1.116", "Office Mac")).toEqual({
         label: "Office Mac kann auf 0.1.127 aktualisiert werden",
-        subtitle: "Wer diesen Server betreibt, aktualisiert ihn mit: npm install -g openmausbot@latest und startet ihn danach neu",
+        subtitle: "Wer diesen Server betreibt, aktualisiert ihn mit: npm install -g opendeliobot@latest und startet ihn danach neu",
       });
     } finally {
       setLocale("en");

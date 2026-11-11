@@ -3,7 +3,7 @@
 The host CUA gate must run as a headless Node process even inside a packaged
 Electron app. Without `ELECTRON_RUN_AS_NODE=1`, spawning `process.execPath`
 can launch another desktop instance; its single-instance handler then shows
-and focuses the existing OMB window instead of answering MCP requests.
+and focuses the existing ODB window instead of answering MCP requests.
 
 Run the isolated regression:
 
@@ -47,7 +47,7 @@ outside this narrow change; the active macOS launch/status calls are asynchronou
 Reference: OpenClaw's [macOS host coordinator](https://github.com/openclaw/openclaw/blob/7e1b9a63cf64fa5e77b92a7f77e8fccba7b61812/apps/macos/Sources/OpenClaw/CuaDriverHostCoordinator.swift)
 keeps the daemon owned by the desktop host, and its
 [window action adapter](https://github.com/openclaw/openclaw/blob/7e1b9a63cf64fa5e77b92a7f77e8fccba7b61812/extensions/cua-computer/src/window-actions.ts)
-distinguishes window delivery from full-desktop input. OMB retains its existing
+distinguishes window delivery from full-desktop input. ODB retains its existing
 CUA driver, permission broker, and human-control gate rather than importing
 OpenClaw's application-specific gateway or unrestricted authorization policy.
 
@@ -136,7 +136,7 @@ holds the current set.
 The bundled Windows driver (0.28.2) sends a foreground `type_text` as one burst
 of key packets, which Windows 11 Notepad scrambles, and answers a click that
 picks a menu item with `foreground_unavailable` after the click worked. With a
-driver older than 0.35.0, OpenMausBot types such text one character at a time
+driver older than 0.35.0, OpenDeliobot types such text one character at a time
 and tells the bot that the click was sent:
 
 ```sh
@@ -190,4 +190,4 @@ apps on an unlocked Mac. Check focus throughout the action, not only afterward:
 AX click, pixel click, typing, scroll, covered windows, other Spaces, and actual
 user takeover. Keep permissions and the host control gate enabled. Repeat through
 the packaged embedded daemon, including signing and supported Mac architectures.
-Do not use the operator's OMB data or authenticated browser profiles as fixtures.
+Do not use the operator's ODB data or authenticated browser profiles as fixtures.

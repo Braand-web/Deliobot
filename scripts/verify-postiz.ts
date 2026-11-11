@@ -2,13 +2,13 @@
 import assert from "node:assert/strict";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { launchVerificationServer } from "./control-omb.ts";
+import { launchVerificationServer } from "./control-odb.ts";
 import { fixtureApi, mountPreview, type MountedPreview } from "./testing/preview-fixture.ts";
 import { FAKE_POSTIZ_KEY, startFakePostiz } from "../server/testing/fake-postiz.ts";
 
 const cloud = await startFakePostiz();
 const own = await startFakePostiz();
-const fixture = await launchVerificationServer({ ...process.env, OMB_POSTIZ_CLOUD_URL: cloud.url });
+const fixture = await launchVerificationServer({ ...process.env, ODB_POSTIZ_CLOUD_URL: cloud.url });
 let ui: MountedPreview | undefined;
 let browser: { close(): Promise<void> } | undefined;
 try {
@@ -41,8 +41,8 @@ try {
       } },
     ],
   });
-  const { chromium } = await import(process.env.OMB_VERIFY_PLAYWRIGHT || "playwright");
-  browser = await chromium.launch({ headless: true, executablePath: process.env.OMB_VERIFY_BROWSER_CHROME || undefined, args: ["--use-mock-keychain"] });
+  const { chromium } = await import(process.env.ODB_VERIFY_PLAYWRIGHT || "playwright");
+  browser = await chromium.launch({ headless: true, executablePath: process.env.ODB_VERIFY_BROWSER_CHROME || undefined, args: ["--use-mock-keychain"] });
   const context = await (browser as any).newContext({ viewport: { width: 1100, height: 900 } });
   const page = await context.newPage();
   const errors: string[] = [];
@@ -53,7 +53,7 @@ try {
   await page.goto(ui.previewUrl);
   assert.equal(await page.evaluate(async (code: string) => (await fetch("/api/auth/pair", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ code, cookie: true, label: "Postiz fixture" }) })).status, pairing.code), 200);
   await page.reload();
-  const output = process.env.OMB_UI_EVIDENCE_DIR || "/tmp/omb-postiz-evidence";
+  const output = process.env.ODB_UI_EVIDENCE_DIR || "/tmp/odb-postiz-evidence";
   mkdirSync(output, { recursive: true });
   // Pills and buttons fade between colours: a shot waits for them to settle.
   const shot = async (name: string) => { await page.waitForTimeout(400); await page.screenshot({ path: join(output, `${name}.png`) }); };

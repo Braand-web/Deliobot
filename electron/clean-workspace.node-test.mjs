@@ -10,15 +10,15 @@ import { createLendingTarget } from "./lending-target.mjs";
 import { installOneHome } from "./one-home-main.mjs";
 import { WELCOME_VERSION } from "./onboarding-record.mjs";
 
-const CLOUD = "https://omb-t-1.fly.dev";
+const CLOUD = "https://odb-t-1.fly.dev";
 const json = (value, status = 200) => new Response(JSON.stringify(value), { status });
 
 /** A computer's data folder on disk, frozen for My Cloud, with the one server the app runs at a time: `running`, and each
  * request as [the folder it reached, method, route]. */
 function computer(t, { frozen = { v: 1, at: 1, cloud: CLOUD } } = {}) {
-  const parent = mkdtempSync(join(tmpdir(), "omb-clean-"));
+  const parent = mkdtempSync(join(tmpdir(), "odb-clean-"));
   t.after(() => rmSync(parent, { recursive: true, force: true }));
-  const dataDir = join(parent, ".openmausbot");
+  const dataDir = join(parent, ".opendeliobot");
   const w = { dataDir, cleanDir: cleanWorkspaceDir(dataDir), running: dataDir, swaps: [], requests: [], swapFails: false, changes: 0 };
   mkdirSync(dataDir, { recursive: true });
   w.write = (name, text) => { writeFileSync(join(dataDir, name), text); };
@@ -34,7 +34,7 @@ function computer(t, { frozen = { v: 1, at: 1, cloud: CLOUD } } = {}) {
 }
 
 test("a clean workspace sits beside the data folder, never in it: a move carries that folder and forgetting the copy empties it", () => {
-  assert.equal(cleanWorkspaceDir("/Users/a/.openmausbot"), "/Users/a/.openmausbot-clean");
+  assert.equal(cleanWorkspaceDir("/Users/a/.opendeliobot"), "/Users/a/.opendeliobot-clean");
 });
 
 test("opening it starts the server on its own folder, once, set up so the new-user setup never shows", async (t) => {
@@ -127,7 +127,7 @@ test("the move's server, while the clean workspace runs: the copy's own marker a
   w.requests.length = 0;
   await w.clean.enter();
   assert.deepEqual(await (await request("/api/move/freeze")).json(), { frozen: true, cloud: CLOUD });
-  assert.deepEqual(await (await request("/.well-known/openmausbot/environment")).json(), { environmentId: "own-copy-id" }, "the Admin never hears the clean folder's identity as this computer's");
+  assert.deepEqual(await (await request("/.well-known/opendeliobot/environment")).json(), { environmentId: "own-copy-id" }, "the Admin never hears the clean folder's identity as this computer's");
   for (const [route, init] of [["/api/bots?messages=0"], ["/api/cloud-send?move=1"], ["/api/config"], ["/api/move/freeze", { method: "POST" }], ["/api/move/freeze", { method: "DELETE" }], ["/api/move/forget", { method: "POST" }], ["/api/workspace-backup/upload", { method: "POST" }]]) {
     await assert.rejects(request(route, init), { code: "clean-workspace" }, `${init?.method ?? "GET"} ${route}`);
   }
@@ -175,7 +175,7 @@ function moved(t, { state, journal = null, marker, gone = null, version = "0.1.1
   t.after(() => w.main.close());
   return w;
 }
-const owner = { id: "acct-1", email: "a@omb-test.example" };
+const owner = { id: "acct-1", email: "a@odb-test.example" };
 const ready = (extra = {}) => ({ status: "connected", account: owner, deviceId: "d1", entitlement: { plan: "pro", status: "active" }, machine: { status: "ready", origin: CLOUD, moves: true }, ...extra });
 const done = (extra = {}) => ({ v: 1, phase: "done", cloud: { origin: CLOUD, account: owner.id, machine: CLOUD }, startedAt: 1, doneAt: 2, frozenAt: 2, version: "0.1.140", reported: "d1", lent: true, phoneStopped: true, ...extra });
 const onClean = (w) => w.requests.filter(([folder]) => folder === w.cleanDir);
@@ -240,7 +240,7 @@ test("no first move and no freeze from the clean workspace: the frozen copy's ow
 });
 
 test("another account leaves the journal alone, and nothing reaches the clean workspace", async (t) => {
-  const w = moved(t, { state: ready({ account: { id: "acct-2", email: "b@omb-test.example" } }), journal: done() });
+  const w = moved(t, { state: ready({ account: { id: "acct-2", email: "b@odb-test.example" } }), journal: done() });
   await w.clean.enter();
   const before = structuredClone(w.journal);
   await w.main.kick();
@@ -249,7 +249,7 @@ test("another account leaves the journal alone, and nothing reaches the clean wo
 });
 
 test("a Cloud that's gone still brings this computer home from the clean workspace: the lift reaches the frozen copy, not the clean one", async (t) => {
-  const elsewhere = "https://omb-other-2.fly.dev";
+  const elsewhere = "https://odb-other-2.fly.dev";
   const w = moved(t, { state: ready({ machine: { status: "ready", origin: elsewhere, moves: true } }), journal: null, gone: "deleted" });
   await w.clean.enter();
   await w.main.kick();
@@ -297,8 +297,8 @@ test("no lending from the clean workspace: nothing is lent or asked while it run
 });
 
 test("a profile sits in a folder of its own, by its stable id, under one folder beside the data folder: never in the frozen copy's", () => {
-  assert.equal(profilesDir("/Users/a/.openmausbot"), "/Users/a/.openmausbot-profiles");
-  assert.equal(profileDir("/Users/a/.openmausbot", DEFAULT_PROFILE), join("/Users/a/.openmausbot-profiles", "default"));
+  assert.equal(profilesDir("/Users/a/.opendeliobot"), "/Users/a/.opendeliobot-profiles");
+  assert.equal(profileDir("/Users/a/.opendeliobot", DEFAULT_PROFILE), join("/Users/a/.opendeliobot-profiles", "default"));
 });
 
 test("This Mac's profile opens fresh on its own folder, and the frozen copy stays frozen: its marker, its bots and its config untouched", async (t) => {
@@ -328,7 +328,7 @@ test("This Mac's profile opens fresh on its own folder, and the frozen copy stay
 
 test("a profile id is a folder name and nothing else, and the move's code never reaches a profile", async (t) => {
   const w = computer(t);
-  for (const id of ["../.openmausbot", "", "Work", "a/b", "."]) assert.equal(await w.clean.open(id), false, id);
+  for (const id of ["../.opendeliobot", "", "Work", "a/b", "."]) assert.equal(await w.clean.open(id), false, id);
   assert.deepEqual(w.swaps, []);
   await w.clean.open();
   const request = w.clean.realCopy(w.request);
@@ -362,7 +362,7 @@ test("a named local environment is not this computer's own copy: the move gets t
   w.running = workFolder(w);
   assert.deepEqual([w.clean.active(), w.clean.profile(), w.clean.ownCopy()], [false, null, false]);
   assert.deepEqual(await (await request("/api/move/freeze")).json(), { frozen: true, cloud: CLOUD });
-  assert.deepEqual(await (await request("/.well-known/openmausbot/environment")).json(), { environmentId: "own-copy-id" }, "the Admin never hears the environment's identity as this computer's");
+  assert.deepEqual(await (await request("/.well-known/opendeliobot/environment")).json(), { environmentId: "own-copy-id" }, "the Admin never hears the environment's identity as this computer's");
   for (const [route, init] of [["/api/bots?messages=0"], ["/api/cloud-send?move=1"], ["/api/move/freeze", { method: "POST" }], ["/api/move/freeze", { method: "DELETE" }], ["/api/move/forget", { method: "POST" }]]) {
     await assert.rejects(request(route, init), { code: "clean-workspace" }, `${init?.method ?? "GET"} ${route}`);
   }
@@ -375,7 +375,7 @@ test("only the data folder itself is this computer's own copy: however it is spe
   const w = computer(t);
   w.running = `${w.dataDir}${sep}`;
   assert.equal(w.clean.ownCopy(), true, "a trailing separator is the same folder");
-  w.running = join(w.dataDir, "..", ".openmausbot");
+  w.running = join(w.dataDir, "..", ".opendeliobot");
   assert.equal(w.clean.ownCopy(), true);
   w.running = null;
   assert.equal(w.clean.ownCopy(), false);

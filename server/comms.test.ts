@@ -32,39 +32,39 @@ describe("mentionedBots", () => {
   const peers = [
     { id: "1", name: "New Bot" },
     { id: "2", name: "New Bot 2" },
-    { id: "3", name: "Milind" },
+    { id: "3", name: "Alex" },
     { id: "4", name: "Ghost", hidden: true },
   ];
   it("matches a tag at a word start, case-insensitively", () => {
-    expect(mentionedBots("hey @milind, look", peers).map((b) => b.id)).toEqual(["3"]);
-    expect(mentionedBots("@Milind first thing", peers).map((b) => b.id)).toEqual(["3"]);
+    expect(mentionedBots("hey @alex, look", peers).map((b) => b.id)).toEqual(["3"]);
+    expect(mentionedBots("@Alex first thing", peers).map((b) => b.id)).toEqual(["3"]);
   });
   it("prefers the longest name so prefixes never half-match", () => {
     expect(mentionedBots("ask @New Bot 2 about it", peers).map((b) => b.id)).toEqual(["2"]);
   });
   it("dedupes repeats and collects multiple bots", () => {
-    expect(mentionedBots("@Milind and @New Bot and @Milind", peers).map((b) => b.id)).toEqual(["3", "1"]);
+    expect(mentionedBots("@Alex and @New Bot and @Alex", peers).map((b) => b.id)).toEqual(["3", "1"]);
   });
   it("ignores emails, hidden bots, and mid-word @", () => {
-    expect(mentionedBots("mail milind@milind.dev please", peers)).toEqual([]);
+    expect(mentionedBots("mail alex@alex.dev please", peers)).toEqual([]);
     expect(mentionedBots("@Ghost around?", peers)).toEqual([]);
   });
   it("routes Markdown- and punctuation-wrapped mentions", () => {
-    expect(mentionedBots("**@Milind** (@New Bot 2) 【@New Bot】", peers).map((bot) => bot.id))
+    expect(mentionedBots("**@Alex** (@New Bot 2) 【@New Bot】", peers).map((bot) => bot.id))
       .toEqual(["3", "2", "1"]);
-    expect(mentionedBots("user@Milind /@Milind", peers)).toEqual([]);
+    expect(mentionedBots("user@Alex /@Alex", peers)).toEqual([]);
   });
   it("requires a word boundary at the end of the name", () => {
     expect(mentionedBots("ask @New Bottle about it", peers)).toEqual([]);
-    expect(mentionedBots("@Milindo is someone else", peers)).toEqual([]);
-    expect(mentionedBots("@Milind𐐀 is someone else", peers)).toEqual([]);
+    expect(mentionedBots("@Alexo is someone else", peers)).toEqual([]);
+    expect(mentionedBots("@Alex𐐀 is someone else", peers)).toEqual([]);
   });
 });
 
 describe("roomResponders", () => {
   const members = [
     { id: "atlas", name: "Atlas" },
-    { id: "milind", name: "Milind" },
+    { id: "alex", name: "Alex" },
   ];
 
   it("routes an unmentioned message to the configured lead", () => {
@@ -72,7 +72,7 @@ describe("roomResponders", () => {
   });
 
   it("lets explicit mentions override the configured lead", () => {
-    expect(roomResponders("@Milind take this", members, { kind: "member", botId: "atlas" })).toEqual([members[1]]);
+    expect(roomResponders("@Alex take this", members, { kind: "member", botId: "atlas" })).toEqual([members[1]]);
   });
 
   it("supports everyone and mentions-only room policies", () => {
@@ -120,7 +120,7 @@ describe("routine comms e2e on the job runtime (fake ACP fleet)", () => {
           name: candidate.name, busy: candidate.busy,
           tail: (candidate.messages ?? []).slice(-6).map((m: any) => ({ role: m.role, kind: m.kind, text: m.text?.slice(0, 300), tool: m.tool?.name, from: m.from?.name })),
         }));
-        const rows = readHandoffs(join(home, ".openmausbot")).map(({ id, parentId, botId, status, outcome, mode, result }) => ({ id, parentId, botId, status, outcome, mode, result: result.slice(0, 200) }));
+        const rows = readHandoffs(join(home, ".opendeliobot")).map(({ id, parentId, botId, status, outcome, mode, result }) => ({ id, parentId, botId, status, outcome, mode, result: result.slice(0, 200) }));
         throw new Error(`${what}.\nbots: ${JSON.stringify(tails)}\nrows: ${JSON.stringify(rows)}\nstderr: ${stderr.slice(-1500)}`);
       }
       await new Promise((r) => setTimeout(r, 250));
@@ -136,7 +136,7 @@ describe("routine comms e2e on the job runtime (fake ACP fleet)", () => {
   };
   const bot = async (botId: string): Promise<any> => (await api("GET", "/api/bots")).body.bots.find((candidate: any) => candidate.id === botId);
   const threadMessages = async (threadId: string): Promise<any[]> => (await api("GET", `/api/threads/${threadId}/messages?limit=200`)).body.messages ?? [];
-  const rows = () => readHandoffs(join(home, ".openmausbot"));
+  const rows = () => readHandoffs(join(home, ".opendeliobot"));
   const assignments = (helperId: string, askerId: string) => rows().filter((node) => node.botId === helperId && node.parentId
     && rows().find((parent) => parent.id === node.parentId)?.botId === askerId);
   const helperPrompt = (): string => {
@@ -190,7 +190,7 @@ describe("routine comms e2e on the job runtime (fake ACP fleet)", () => {
 
   beforeAll(async () => {
     chmodSync(FAKE_CLI, 0o755);
-    home = mkdtempSync(join(tmpdir(), "omb-comms-test-"));
+    home = mkdtempSync(join(tmpdir(), "odb-comms-test-"));
     gateFile = join(home, "helper-gate");
     holdFile = join(home, "helper-hold");
     const antigravityDirectory = join(home, "fake-antigravity");
@@ -208,7 +208,7 @@ describe("routine comms e2e on the job runtime (fake ACP fleet)", () => {
     }
     const antigravityProfile = join(
       home,
-      ".openmausbot",
+      ".opendeliobot",
       "providers",
       "antigravity",
       createHash("sha256").update("geminiAsker").digest("hex"),
@@ -238,9 +238,9 @@ describe("routine comms e2e on the job runtime (fake ACP fleet)", () => {
     });
     await new Promise<void>((resolve) => compat.listen(0, "127.0.0.1", resolve));
     compatUrl = `http://127.0.0.1:${(compat.address() as AddressInfo).port}/v1`;
-    mkdirSync(join(home, ".openmausbot"), { recursive: true });
+    mkdirSync(join(home, ".opendeliobot"), { recursive: true });
     writeFileSync(
-      join(home, ".openmausbot", "config.json"),
+      join(home, ".opendeliobot", "config.json"),
       JSON.stringify({
         threads: { maxConcurrentPerBot: 3 },
         openaiCompat: { key: "comms-compat-key", url: compatUrl },
@@ -356,8 +356,8 @@ describe("routine comms e2e on the job runtime (fake ACP fleet)", () => {
     const env: NodeJS.ProcessEnv = {
       HOME: home,
       USERPROFILE: home,
-      OMB_PORT: String(PORT),
-      OMB_TEST_INTERNAL_CAPABILITY_KEY: TEST_CAPABILITY_KEY,
+      ODB_PORT: String(PORT),
+      ODB_TEST_INTERNAL_CAPABILITY_KEY: TEST_CAPABILITY_KEY,
     };
     if (process.env.PATH) env.PATH = process.env.PATH;
     // Without SystemRoot, winsock fails to initialize in the child.
@@ -781,7 +781,7 @@ describe("routine comms e2e on the job runtime (fake ACP fleet)", () => {
         expect(taskId).toBeTruthy();
         const minted = await request("/api/testing/internal-capability", {
           method: "POST",
-          headers: { "content-type": "application/json", "x-openmausbot-test-capability": TEST_CAPABILITY_KEY },
+          headers: { "content-type": "application/json", "x-opendeliobot-test-capability": TEST_CAPABILITY_KEY },
           body: JSON.stringify({ botId: chief.id, threadId: sourceThreadId, kind: "agents" }),
         });
         expect(minted.status).toBe(201);
@@ -818,7 +818,7 @@ describe("routine comms e2e on the job runtime (fake ACP fleet)", () => {
   );
 
   it(
-    "keeps OpenMausBot tools authorized for Hermes after Stop issues a new bearer",
+    "keeps OpenDeliobot tools authorized for Hermes after Stop issues a new bearer",
     async () => {
       // Stop issues a new bearer; a pooled Hermes keeps its first agents server, so the next turn must run on a fresh process.
       for (const existing of (await api("GET", "/api/bots")).body.bots) {

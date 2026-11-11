@@ -165,9 +165,9 @@ describe("the owner's routines", () => {
   let dir = "";
   afterEach(() => { if (dir) rmSync(dir, { recursive: true, force: true }); dir = ""; });
   const routine = { prompt: "Tidy ~/Downloads on my Mac", target: "bot", botId: "b1", attachments: [{ id: "a1", path: "/x" }],
-    schedule: { type: "interval", everyMinutes: 1440, anchorAt: 1_790_000_000_000 }, runOn: "maus" };
+    schedule: { type: "interval", everyMinutes: 1440, anchorAt: 1_790_000_000_000 }, runOn: "delio" };
   it("keeps a routine outside work wrote outside when a bot's change would make it nobody's; a person's save still makes it theirs", () => {
-    dir = mkdtempSync(join(tmpdir(), "omb-cloud-lending-"));
+    dir = mkdtempSync(join(tmpdir(), "odb-cloud-lending-"));
     const authors = createCloudRoutineAuthors(join(dir, "lending-routines.json"));
     authors.wrote("r1", CLOUD_OUTSIDE_KEY);
     authors.wrote("r1", CLOUD_NOBODY_KEY);
@@ -178,7 +178,7 @@ describe("the owner's routines", () => {
   });
 
   it("records what the owner wrote; any change to the instructions, target or attachments no longer matches", () => {
-    dir = mkdtempSync(join(tmpdir(), "omb-cloud-lending-"));
+    dir = mkdtempSync(join(tmpdir(), "odb-cloud-lending-"));
     const authors = createCloudRoutineAuthors(join(dir, "lending-routines.json"));
     authors.record("r1", routine);
     expect(authors.authored("r1", routine)).toBe(true);
@@ -193,7 +193,7 @@ describe("the owner's routines", () => {
     expect(createCloudRoutineAuthors(join(dir, "lending-routines.json")).authored("r1", routine)).toBe(false);
   });
   it("a damaged or linked record grants nothing", () => {
-    dir = mkdtempSync(join(tmpdir(), "omb-cloud-lending-"));
+    dir = mkdtempSync(join(tmpdir(), "odb-cloud-lending-"));
     writeFileSync(join(dir, "damaged.json"), "{not json");
     expect(createCloudRoutineAuthors(join(dir, "damaged.json")).authored("r1", routine)).toBe(false);
     writeFileSync(join(dir, "real.json"), JSON.stringify({ version: 1, routines: { r1: routineFingerprint(routine) } }));

@@ -8,7 +8,7 @@ import { pipeline } from "node:stream/promises";
 const MAX_BYTES = 10 * 1024 ** 3;
 const PART_BYTES = 64 * 1024 ** 2;
 const SPACE_MARGIN = 64 * 1024 ** 2;
-const MAGIC = Buffer.from("OMB-WORKSPACE-1\n");
+const MAGIC = Buffer.from("ODB-WORKSPACE-1\n");
 const HEADER_BYTES = MAGIC.length + 16 + 12;
 const MIN_BYTES = HEADER_BYTES + 16;
 const UUID = /^[a-f\d]{8}-[a-f\d]{4}-4[a-f\d]{3}-[89ab][a-f\d]{3}-[a-f\d]{12}$/;
@@ -235,7 +235,7 @@ export function createCompanyBackups({ localRequest, portalRequest, tempRoot, fe
         if (!identifier(receipt.id)) fail("invalid_response", "This installation returned an invalid upload receipt.");
         await checkSpace(directory, backup.sizeBytes * 2); operationSignal.throwIfAborted();
         const preview = await localJson(`${LOCAL}/preview`, { id: receipt.id, password }, operationSignal, true);
-        if (!identifier(preview.id) || !record(preview.summary) || preview.summary.format !== "openmaus.workspace-backup" || preview.summary.version !== 1 ||
+        if (!identifier(preview.id) || !record(preview.summary) || preview.summary.format !== "opendelio.workspace-backup" || preview.summary.version !== 1 ||
             !identifier(preview.summary.id) || !Number.isSafeInteger(preview.summary.bytes) || preview.summary.bytes < 0 || preview.summary.bytes > MAX_BYTES) fail("invalid_response", "This installation returned an invalid restore preview.");
         report("ready", backup.sizeBytes, backup.sizeBytes);
         return { id: preview.id, summary: preview.summary };

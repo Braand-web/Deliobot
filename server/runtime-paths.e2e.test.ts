@@ -5,7 +5,7 @@ import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 import { expect, it } from "vitest";
 
-import { launchVerificationServer, runControlOmb, verificationServerArgs, verificationServerEnvironment } from "../scripts/control-omb.ts";
+import { launchVerificationServer, runControlOdb, verificationServerArgs, verificationServerEnvironment } from "../scripts/control-odb.ts";
 import { ENVELOPE_MARK } from "./runtime/envelope.ts";
 import { waitForExit } from "./testing/cleanup.ts";
 import { readHandoffs } from "./testing/handoff-rows.ts";
@@ -39,7 +39,7 @@ async function scenario(test: (f: any) => Promise<void>) {
       try { parsed = JSON.parse(raw); } catch {}
       return { status: response.status, body: parsed };
     };
-    const cli = (...args: string[]) => runControlOmb([...args, "--url", url]) as Promise<any>;
+    const cli = (...args: string[]) => runControlOdb([...args, "--url", url]) as Promise<any>;
     // Two peers of one section: each can reach the other with every tool.
     const owner = (await cli("new-bot", "--name", "Owner", "--section", "Ops")).bot;
     const peer = (await cli("new-bot", "--name", "Peer", "--section", "Ops")).bot;
@@ -87,8 +87,8 @@ async function scenario(test: (f: any) => Promise<void>) {
         try {
           const dump = JSON.parse(readFileSync(session.fixtureDumpPath, "utf8"));
           const env = dump.mcpConfig?.mcpServers?.agents?.env;
-          if (env?.OMB_THREAD_ID !== threadId) return false;
-          found = env.OMB_COMMS_TOKEN;
+          if (env?.ODB_THREAD_ID !== threadId) return false;
+          found = env.ODB_COMMS_TOKEN;
           return Boolean(found);
         } catch { return false; }
       }, { timeout: 20_000 }).toBe(true);

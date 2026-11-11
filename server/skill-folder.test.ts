@@ -12,7 +12,7 @@ const SKILL = "---\nname: tidy\ndescription: Keeps things tidy.\n---\n\n# Tidy\n
 
 let scratch: string;
 beforeEach(() => {
-  scratch = mkdtempSync(join(tmpdir(), "omb-skill-folder-"));
+  scratch = mkdtempSync(join(tmpdir(), "odb-skill-folder-"));
 });
 afterEach(async () => {
   await removeTempDir(scratch);

@@ -66,7 +66,7 @@ export function secretFields(category: string, content: OnePasswordItemContent):
 /** The SDK did not load: a fault in this installation, never in the person's token, which was not even checked. */
 export class OnePasswordUnavailableError extends Error {
   constructor() {
-    super("1Password could not start on this server, so your token was not checked: this installation is missing its 1Password part. Update OpenMausBot, then connect again.");
+    super("1Password could not start on this server, so your token was not checked: this installation is missing its 1Password part. Update OpenDeliobot, then connect again.");
     this.name = "OnePasswordUnavailableError";
   }
 }
@@ -78,7 +78,7 @@ export function onePasswordUnavailable(error: unknown, log: (line: string) => vo
 }
 
 export async function sdkOnePasswordClient(sdk: OnePasswordSdk, token: string, version: string): Promise<OnePasswordClient> {
-  const client = await sdk.createClient({ auth: token, integrationName: "OpenMausBot", integrationVersion: version });
+  const client = await sdk.createClient({ auth: token, integrationName: "OpenDeliobot", integrationVersion: version });
   return {
     vaults: async () => (await client.vaults.list()).map((vault) => ({ id: vault.id, title: vault.title })),
     items: async (vaultId) => (await client.items.list(vaultId))

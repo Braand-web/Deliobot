@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, it } from "vitest";
 
-import { launchVerificationServer } from "../scripts/control-omb.ts";
+import { launchVerificationServer } from "../scripts/control-odb.ts";
 import { startFakePostiz, type FakePostiz } from "./testing/fake-postiz.ts";
 
 /** A real server with the fake Claude engine held mid-turn until the gate opens, a stand-in OAuth provider, and Iris's
@@ -14,7 +14,7 @@ async function onSignInCard(run: (f: {
   messages: () => Promise<any[]>; card: () => Promise<any>; endTurn: () => Promise<void>;
 }) => Promise<void>) {
   const provider = await startFakePostiz();
-  const scratch = mkdtempSync(join(tmpdir(), "omb-mcp-sign-in-"));
+  const scratch = mkdtempSync(join(tmpdir(), "odb-mcp-sign-in-"));
   const gate = join(scratch, "finish");
   const fixture = await launchVerificationServer({ FAKE_CLAUDE_MODE: "slow", FAKE_CLAUDE_SLOW_FINISH_GATE: gate });
   const api = async (method: string, path: string, body?: unknown, expected = 200, token?: string) => {
@@ -33,7 +33,7 @@ async function onSignInCard(run: (f: {
     await api("POST", `/api/bots/${iris.id}/messages`, { threadId: iris.threadId, text: "Connect Postiz", sendId: "mcp-sign-in-e2e-send-0001" }, 202);
     let first: any;
     await expect.poll(() => { first = dump(); return JSON.stringify(first?.prompt ?? "").includes("Connect Postiz"); }, { timeout: 20_000 }).toBe(true);
-    const token: string = first.mcpConfig.mcpServers.agents.env.OMB_COMMS_TOKEN;
+    const token: string = first.mcpConfig.mcpServers.agents.env.ODB_COMMS_TOKEN;
     const serverUrl = `${provider.url}/mcp-oauth-dynamic`;
     const added = await api("POST", "/api/internal/mcp-servers", { action: "add", name: "postiz", type: "http", url: serverUrl }, 201, token);
     expect(added.text).toContain("Test: needs sign-in. Call mcp_server with action sign_in and name postiz, then end your turn.");
@@ -60,7 +60,7 @@ it("a bot adds an OAuth server and asks the person to sign in; they sign in on t
   await endTurn();
   const shown = await card();
   expect(shown.connector).toMatchObject({ slug: "postiz", label: "Postiz", status: "required" });
-  expect(shown.text).toBe("Postiz's MCP server needs a sign-in. Open this conversation in OpenMausBot to sign in.");
+  expect(shown.text).toBe("Postiz's MCP server needs a sign-in. Open this conversation in OpenDeliobot to sign in.");
 
   const window = await api("POST", "/api/auth/pairing", { scopes: ["client"] });
   const paired = await (await fetch(`${url}/api/auth/pair`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ code: window.code }) })).json() as { token: string };
@@ -74,7 +74,7 @@ it("a bot adds an OAuth server and asks the person to sign in; they sign in on t
   const { url: link } = await api("POST", `${cardPath}/authorize`, { threadId: iris.threadId });
   expect((await api("GET", `${cardPath}/status?threadId=${iris.threadId}`))).toEqual({ connected: false, pending: true, status: "authorizing" });
   const page = await fetch(link);
-  expect(await page.text()).toBe("Signed in. You can close this tab and return to OpenMausBot.");
+  expect(await page.text()).toBe("Signed in. You can close this tab and return to OpenDeliobot.");
 
   let resumed: any;
   await expect.poll(() => { resumed = dump(); return JSON.stringify(resumed?.prompt ?? "").includes("the person signed in to postiz"); }, { timeout: 20_000 }).toBe(true);

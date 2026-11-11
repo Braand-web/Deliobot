@@ -5,7 +5,7 @@ import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { expect, it } from "vitest";
-import { launchVerificationServer, runControlOmb } from "../scripts/control-omb.ts";
+import { launchVerificationServer, runControlOdb } from "../scripts/control-odb.ts";
 import { request } from "../scripts/mcp-server.ts";
 import { lastNonReceipt } from "../src/lib/receipts.ts";
 import { listSystemVoices } from "./tts/system-voices.ts";
@@ -18,7 +18,7 @@ async function withVoiceFixture(test: (f: any) => Promise<void>, options?: { fai
   const session = await launchVerificationServer(
     {
       ...process.env,
-      ...(options?.failFirstAudioAppend ? { OMB_TEST_FAIL_AUDIO_APPEND_ONCE: "1" } : {}),
+      ...(options?.failFirstAudioAppend ? { ODB_TEST_FAIL_AUDIO_APPEND_ONCE: "1" } : {}),
     },
     undefined,
     undefined,
@@ -26,7 +26,7 @@ async function withVoiceFixture(test: (f: any) => Promise<void>, options?: { fai
     undefined,
     { scripted: true },
   );
-  const cli = (...args: string[]) => runControlOmb(args, { env: { OPENMAUSBOT_URL: session.info.url } }) as Promise<any>;
+  const cli = (...args: string[]) => runControlOdb(args, { env: { OPENDELIOBOT_URL: session.info.url } }) as Promise<any>;
   const api = (path: string, body?: unknown, method = "POST") =>
     request(path, body === undefined ? {} : { method, body: JSON.stringify(body) }, session.info.url) as Promise<any>;
   let ttsServer: Server | undefined;

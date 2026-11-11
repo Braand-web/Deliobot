@@ -88,7 +88,7 @@ describe("the bridge on the desktop", () => {
     expect(posted).toHaveBeenCalledTimes(1);
     const [answer, target] = posted.mock.calls[0]! as [any, string];
     expect(target).toBe("*");
-    expect(answer).toMatchObject({ jsonrpc: "2.0", id: 1, result: { hostInfo: { name: "mausbot", version: "9.9.9" }, hostContext: { theme: "dark" } } });
+    expect(answer).toMatchObject({ jsonrpc: "2.0", id: 1, result: { hostInfo: { name: "delio", version: "9.9.9" }, hostContext: { theme: "dark" } } });
     // a bot's page has no server tools
     expect(answer.result.hostCapabilities.serverTools).toBeUndefined();
     expect(answer.result.hostCapabilities.sandbox).toEqual({ permissions: {}, csp: { connectDomains: doc.network.connect, resourceDomains: doc.network.resources } });
@@ -122,7 +122,7 @@ describe("a row leaving the page", () => {
   afterEach(() => {
     if (original) proto.moveBefore = original;
     else delete proto.moveBefore;
-    document.getElementById("omb-app-frames-leaving")?.remove();
+    document.getElementById("odb-app-frames-leaving")?.remove();
   });
 
   function initialized() {
@@ -152,7 +152,7 @@ describe("a row leaving the page", () => {
     const iframe = host.iframe;
     const width = iframe.style.width;
     host.retire();
-    const place = document.getElementById("omb-app-frames-leaving")!;
+    const place = document.getElementById("odb-app-frames-leaving")!;
     expect(moves).toEqual([{ place, node: iframe }]);
     expect(iframe.style.width).not.toBe(width);
     expect(place.getAttribute("aria-hidden")).toBe("true");
@@ -190,7 +190,7 @@ describe("a row leaving the page", () => {
     host.retire();
     expect(teardownRequest()).toBeTruthy();
     expect(host.iframe.isConnected).toBe(false);
-    expect(document.getElementById("omb-app-frames-leaving")).toBeNull();
+    expect(document.getElementById("odb-app-frames-leaving")).toBeNull();
   });
 });
 

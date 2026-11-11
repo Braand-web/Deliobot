@@ -29,9 +29,9 @@ const input = (now = 1_000_000) => ({
 });
 
 beforeEach(() => {
-  root = mkdtempSync(join(tmpdir(), "omb-migrate-"));
+  root = mkdtempSync(join(tmpdir(), "odb-migrate-"));
   home = join(root, "home");
-  dataDir = join(home, ".openmausbot");
+  dataDir = join(home, ".opendeliobot");
   mkdirSync(dataDir, { recursive: true });
 });
 afterEach(() => rmSync(root, { recursive: true, force: true }));

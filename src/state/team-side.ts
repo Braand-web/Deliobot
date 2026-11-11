@@ -12,7 +12,7 @@ type SideGroup = { id: string; unread?: boolean };
 
 /**
  * Security invariant: a conversation is "Just me" only when the server marked it private, or this page made it through
- * the server's private new-conversation route, or it is a chat with the person's own MausBot, which the server sends to
+ * the server's private new-conversation route, or it is a chat with the person's own Delio, which the server sends to
  * nobody else. Anything else, a conversation this page knows nothing of included, is the team's. So nothing ever says
  * "only you" over a composer whose words others can read.
  */
@@ -22,7 +22,7 @@ export function sideOfThread(bot: Pick<SideBot, "tasks" | "defaultBot">, threadI
   return task?.sharedChat !== true && (task?.private === true || ownChatStarted(threadId)) ? "me" : "team";
 }
 
-/** The bot's shared chat, as the server names it; null for a bot that has none (a person's own MausBot). */
+/** The bot's shared chat, as the server names it; null for a bot that has none (a person's own Delio). */
 export const teamThreadOf = (bot: Pick<SideBot, "tasks" | "defaultBot">): string | null =>
   bot.defaultBot?.person ? null : bot.tasks?.find((task) => task.sharedChat === true && task.private !== true)?.threadId ?? null;
 
@@ -72,7 +72,7 @@ export function teamSideView<B extends SideBot, G extends SideGroup>(bots: B[], 
 
 type SideStorage = Pick<Storage, "getItem" | "setItem">;
 const deviceStorage = (): SideStorage | null => (typeof localStorage === "undefined" ? null : localStorage);
-const keyOf = (team: TeamChats) => (team.person ? `omb.team-side.${team.teamId}.${team.person}` : null);
+const keyOf = (team: TeamChats) => (team.person ? `odb.team-side.${team.teamId}.${team.person}` : null);
 
 let shown: { page: string; side: TeamSide } | null = null;
 let version = 0;

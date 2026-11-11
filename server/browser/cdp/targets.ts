@@ -18,8 +18,8 @@ export const CLIPBOARD_TEXT_LIMIT = 1024 * 1024;
  * cut that a real key press makes is captured here instead of read back from it.
  */
 export const BOOTSTRAP = `(() => {
-  if (globalThis.__ombBootstrapped) return;
-  globalThis.__ombBootstrapped = true;
+  if (globalThis.__odbBootstrapped) return;
+  globalThis.__odbBootstrapped = true;
   let keying = false;
   let copied = "";
   addEventListener("keydown", (event) => {
@@ -44,7 +44,7 @@ export const BOOTSTRAP = `(() => {
     addEventListener(type, snapshot, true);
     addEventListener(type, replace);
   }
-  globalThis.__ombTakeCopy = () => { const text = copied; copied = ""; return text; };
+  globalThis.__odbTakeCopy = () => { const text = copied; copied = ""; return text; };
 })();`;
 
 export interface TargetSetup {

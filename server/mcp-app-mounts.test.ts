@@ -12,7 +12,7 @@ import type { McpAppReport } from "./mcp-app-observer.ts";
 
 const FAKE_APP = fileURLToPath(new URL("./testing/fake-stdio-app-server.ts", import.meta.url));
 const HARNESS = "http://127.0.0.1:8799";
-const agents = { command: process.execPath, args: ["agents-proxy.js"], env: { OMB_HARNESS_URL: HARNESS, OMB_COMMS_TOKEN: "comms-fixture" } };
+const agents = { command: process.execPath, args: ["agents-proxy.js"], env: { ODB_HARNESS_URL: HARNESS, ODB_COMMS_TOKEN: "comms-fixture" } };
 const board = { command: "board-mcp", args: ["--stdio"], env: { BOARD_KEY: "k" } };
 const notes = { command: "notes-mcp", args: [], env: {} };
 const draw = { type: "http" as const, url: "https://draw.example/mcp", headers: { Authorization: "Bearer d" } };
@@ -40,13 +40,13 @@ describe("the shared decision", () => {
   it("gates a command app server with no budget or selection, and puts its settings in a private record when asked", () => {
     const gated = gateServer({ name: "board", server: board, threadId: "t", budget: 0, apps: mount("board") })!;
     expect(gated.args[0]).toContain("mcp-gate");
-    expect(env(gated, "OMB_GATE_APPS")).toEqual(mount("board"));
-    expect(env(gated, "OMB_GATE_UPSTREAM")).toEqual(board);
-    expect(gated.env).not.toHaveProperty("OMB_GATE_TOOL_SCOPE");
-    const record = `OMB_GATE_CONFIG_${"a".repeat(64)}`;
+    expect(env(gated, "ODB_GATE_APPS")).toEqual(mount("board"));
+    expect(env(gated, "ODB_GATE_UPSTREAM")).toEqual(board);
+    expect(gated.env).not.toHaveProperty("ODB_GATE_TOOL_SCOPE");
+    const record = `ODB_GATE_CONFIG_${"a".repeat(64)}`;
     const shared = gateServer({ name: "board", server: board, threadId: "t", budget: 0, apps: mount("board"), configEnvName: record })!;
     expect(Object.keys(shared.env)).toEqual([record]);
-    expect(JSON.parse(JSON.parse(shared.env[record]!).OMB_GATE_APPS)).toEqual(mount("board"));
+    expect(JSON.parse(JSON.parse(shared.env[record]!).ODB_GATE_APPS)).toEqual(mount("board"));
     // a private record is still refused for a gate that neither selects nor observes
     expect(() => gateServer({ name: "notes", server: notes, threadId: "t", budget: 5, configEnvName: record })).toThrow(/private MCP gate/);
   });
@@ -54,12 +54,12 @@ describe("the shared decision", () => {
   it("observes a URL app server in the proxy: alone without a selection, inside a gate that does not observe with one", () => {
     const proxy = gateServer({ name: "draw", server: draw, threadId: "t", budget: 1_000, apps: mount("draw"), directory: true })!;
     expect(proxy.args[0]).toContain("mcp-remote-proxy");
-    expect(env(proxy, "OMB_REMOTE_MCP_APPS")).toEqual(mount("draw"));
-    expect(env(proxy, "OMB_REMOTE_MCP_DIRECTORY")).toEqual({ name: "draw" });
+    expect(env(proxy, "ODB_REMOTE_MCP_APPS")).toEqual(mount("draw"));
+    expect(env(proxy, "ODB_REMOTE_MCP_DIRECTORY")).toEqual({ name: "draw" });
     const gated = gateServer({ name: "draw", server: draw, threadId: "t", budget: 0, toolScope: { allow: ["mcp:draw:*"] }, apps: mount("draw") })!;
     expect(gated.args[0]).toContain("mcp-gate");
-    expect(gated.env).not.toHaveProperty("OMB_GATE_APPS");
-    expect(env(env(gated, "OMB_GATE_UPSTREAM"), "OMB_REMOTE_MCP_APPS")).toEqual(mount("draw"));
+    expect(gated.env).not.toHaveProperty("ODB_GATE_APPS");
+    expect(env(env(gated, "ODB_GATE_UPSTREAM"), "ODB_REMOTE_MCP_APPS")).toEqual(mount("draw"));
   });
 
   it("leaves a server without apps byte for byte as before", () => {
@@ -74,9 +74,9 @@ describe("the ACP family and Muse Code (turn-mcp.ts)", () => {
   it("mounts a command app server behind an observing gate and a URL one behind an observing proxy; the rest as before", () => {
     const servers = Object.fromEntries(turnStdioMcpServers(turn()).map((server) => [server.name, server]));
     expect(servers.board!.args[0]).toContain("mcp-gate");
-    expect(env(servers.board, "OMB_GATE_APPS")).toEqual(mount("board"));
+    expect(env(servers.board, "ODB_GATE_APPS")).toEqual(mount("board"));
     expect(servers.draw!.args[0]).toContain("mcp-remote-proxy");
-    expect(env(servers.draw, "OMB_REMOTE_MCP_APPS")).toEqual(mount("draw"));
+    expect(env(servers.draw, "ODB_REMOTE_MCP_APPS")).toEqual(mount("draw"));
     const before = Object.fromEntries(turnStdioMcpServers(turn({ integrations: { agents, custom: { board, notes, draw, docs } } })).map((server) => [server.name, server]));
     expect(servers.notes).toEqual(before.notes);
     expect(servers.docs).toEqual(before.docs);
@@ -87,24 +87,24 @@ describe("the ACP family and Muse Code (turn-mcp.ts)", () => {
   it("with a selection, gates each server once: the command app server's gate observes, a URL one's gate does not", () => {
     const servers = Object.fromEntries(turnStdioMcpServers(turn({ toolScope: { allow: ["mcp:board:*", "mcp:draw:*", "mcp:agents:*"] } })).map((server) => [server.name, server]));
     expect(Object.keys(servers).sort()).toEqual(["agents", "board", "draw"]);
-    expect(env(servers.board, "OMB_GATE_APPS")).toEqual(mount("board"));
-    expect(env(servers.board, "OMB_GATE_TOOL_SCOPE")).toBeDefined();
-    expect(env(servers.board, "OMB_GATE_UPSTREAM")).toEqual(board);
-    expect(servers.draw!.env).not.toHaveProperty("OMB_GATE_APPS");
-    expect(env(env(servers.draw, "OMB_GATE_UPSTREAM"), "OMB_REMOTE_MCP_APPS")).toEqual(mount("draw"));
+    expect(env(servers.board, "ODB_GATE_APPS")).toEqual(mount("board"));
+    expect(env(servers.board, "ODB_GATE_TOOL_SCOPE")).toBeDefined();
+    expect(env(servers.board, "ODB_GATE_UPSTREAM")).toEqual(board);
+    expect(servers.draw!.env).not.toHaveProperty("ODB_GATE_APPS");
+    expect(env(env(servers.draw, "ODB_GATE_UPSTREAM"), "ODB_REMOTE_MCP_APPS")).toEqual(mount("draw"));
   });
 });
 
 describe("Pi", () => {
   it("adds the apps settings to the gate or proxy each server already has", () => {
     const servers = buildMcpServers(turn())!;
-    expect(env(servers.board as never, "OMB_GATE_APPS")).toEqual(mount("board"));
-    expect(env(servers.draw as never, "OMB_REMOTE_MCP_APPS")).toEqual(mount("draw"));
-    expect(env(servers.draw as never, "OMB_REMOTE_MCP_DIRECTORY")).toEqual({ name: "draw" });
+    expect(env(servers.board as never, "ODB_GATE_APPS")).toEqual(mount("board"));
+    expect(env(servers.draw as never, "ODB_REMOTE_MCP_APPS")).toEqual(mount("draw"));
+    expect(env(servers.draw as never, "ODB_REMOTE_MCP_DIRECTORY")).toEqual({ name: "draw" });
     const before = buildMcpServers(turn({ integrations: { agents, custom: { board, notes, draw, docs } } }))!;
     expect(servers.notes).toEqual(before.notes);
     expect(servers.docs).toEqual(before.docs);
-    expect(env(before.board as never, "OMB_GATE_APPS")).toBeUndefined();
+    expect(env(before.board as never, "ODB_GATE_APPS")).toBeUndefined();
   });
 });
 
@@ -130,7 +130,7 @@ describe("the Chat Completions runtime", () => {
     await new Promise<void>((resolve) => harness!.listen(0, "127.0.0.1", resolve));
     const url = `http://127.0.0.1:${(harness.address() as AddressInfo).port}`;
     // The agents mount carries the turn's capability; any MCP server stands in for it here.
-    const reporting = { ...app(), env: { OMB_HARNESS_URL: url, OMB_COMMS_TOKEN: "comms-fixture" } };
+    const reporting = { ...app(), env: { ODB_HARNESS_URL: url, ODB_COMMS_TOKEN: "comms-fixture" } };
     const controller = new AbortController();
     session = await mountChatTools({ agents: reporting, custom: { board: app(), strict: app({ FAKE_APP_STRICT: "1" }), plain: app() },
       mcpApps: { board: { extension: true }, strict: { extension: true } } }, controller.signal);

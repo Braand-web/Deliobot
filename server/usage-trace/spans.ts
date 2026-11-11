@@ -31,7 +31,7 @@ export interface ToolSpan {
   endedAt?: number;
   status: TraceStatus;
   error?: string;
-  timedBy: "engine" | "omb";
+  timedBy: "engine" | "odb";
 }
 
 export type SpanRecord = StepSpan | ToolSpan;

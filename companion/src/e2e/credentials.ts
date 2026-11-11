@@ -25,8 +25,8 @@ export function sameBytes(a: Uint8Array, b: Uint8Array): boolean {
 export const KEY_ID_BYTES = 16;
 export const HOST_ID_BYTES = 16;
 
-const PSK_LABEL = Buffer.from("omb-e2e psk v1", "utf8");
-const ADMISSION_LABEL = Buffer.from("omb-relay admission v1", "utf8");
+const PSK_LABEL = Buffer.from("odb-e2e psk v1", "utf8");
+const ADMISSION_LABEL = Buffer.from("odb-relay admission v1", "utf8");
 
 /** `SHA256(cred)`: the raw digest of the token's UTF-8 bytes. The desktop stores its hex as `tokenHash`. */
 export const credentialHash = (token: string): Buffer => sha256(Buffer.from(token, "utf8"));

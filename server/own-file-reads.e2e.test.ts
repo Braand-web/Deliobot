@@ -7,7 +7,7 @@ import { connect, type Socket } from "node:net";
 import { join } from "node:path";
 import { expect, it } from "vitest";
 
-import { launchVerificationServer } from "../scripts/control-omb.ts";
+import { launchVerificationServer } from "../scripts/control-odb.ts";
 
 // The reads asked about are a POSIX shell's commands on POSIX paths.
 it.skipIf(process.platform === "win32")("answers a bot's plain reads of its own files at Ask with no card, and still asks for anything else", async () => {

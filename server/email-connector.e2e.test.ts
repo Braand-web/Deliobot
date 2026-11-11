@@ -15,7 +15,7 @@ import { removeTempDir, waitForExit } from "./testing/cleanup.ts";
 import { freePortBlock } from "./testing/ports.ts";
 
 const SERVER_DIR = dirname(fileURLToPath(import.meta.url));
-const ADDRESS = "e2e@omb-test.example";
+const ADDRESS = "e2e@odb-test.example";
 const PASSWORD = "fake pässword-with spaces 7";
 const SERVER = { imapHost: "localhost", imapPort: 11993, smtpHost: "localhost", smtpPort: 11587 };
 const PDF = Buffer.concat([Buffer.from("%PDF-1.4\n"), randomBytes(512), Buffer.from("\n%%EOF\n")]);
@@ -25,7 +25,7 @@ const MAIL = [
   ["From: invoices@example.net", `To: ${ADDRESS}`, "Subject: =?UTF-8?B?UmVjaG51bmcgTcOkcno=?=", "Date: Mon, 2 Nov 2026 10:02:00 +0100", "Message-ID: <invoice@example.net>", "MIME-Version: 1.0", 'Content-Type: multipart/mixed; boundary="b1"', "", "--b1", "Content-Type: text/plain", "", "See the invoice.", "--b1", 'Content-Type: application/pdf; name="r.pdf"', "Content-Transfer-Encoding: base64", 'Content-Disposition: attachment; filename="r.pdf"', "", PDF.toString("base64"), "--b1--", ""].join("\r\n"),
 ];
 
-describe.skipIf(!process.env.OMB_EMAIL_REAL_TEST)("Email end to end", () => {
+describe.skipIf(!process.env.ODB_EMAIL_REAL_TEST)("Email end to end", () => {
   let home = "", base = "", log = "";
   let child: ChildProcess;
   const said: string[] = [];
@@ -63,8 +63,8 @@ describe.skipIf(!process.env.OMB_EMAIL_REAL_TEST)("Email end to end", () => {
       if ((seed.mailbox as { exists: number }).exists) await seed.messageDelete("1:*");
       for (const raw of MAIL) await seed.append("INBOX", Buffer.from(raw), []);
     } finally { lock.release(); await seed.logout(); }
-    home = mkdtempSync(join(tmpdir(), "omb-email-e2e-"));
-    const dataDir = join(home, ".openmausbot");
+    home = mkdtempSync(join(tmpdir(), "odb-email-e2e-"));
+    const dataDir = join(home, ".opendeliobot");
     mkdirSync(dataDir, { recursive: true });
     const cli = join(home, "fixture-claude.mjs");
     writeFileSync(cli, `#!/usr/bin/env node
@@ -80,7 +80,7 @@ await import(${JSON.stringify(pathToFileURL(join(SERVER_DIR, "testing", "fake-cl
     const port = await freePortBlock([0, 1]);
     base = `http://127.0.0.1:${port}`;
     child = spawn(process.execPath, [join(SERVER_DIR, "index.ts")], { cwd: join(SERVER_DIR, ".."), stdio: ["ignore", "pipe", "pipe"], env: {
-      PATH: process.env.PATH, HOME: home, OMB_DATA_DIR: dataDir, OMB_PORT: String(port), OMB_WEBHOOK_PORT: String(port + 1), NODE_EXTRA_CA_CERTS: process.env.NODE_EXTRA_CA_CERTS,
+      PATH: process.env.PATH, HOME: home, ODB_DATA_DIR: dataDir, ODB_PORT: String(port), ODB_WEBHOOK_PORT: String(port + 1), NODE_EXTRA_CA_CERTS: process.env.NODE_EXTRA_CA_CERTS,
     } });
     child.stdout?.on("data", (chunk) => { log += chunk; });
     child.stderr?.on("data", (chunk) => { log += chunk; });

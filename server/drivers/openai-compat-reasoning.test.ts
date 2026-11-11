@@ -26,7 +26,7 @@ function server(rows: unknown[]) {
 const create = async (config: Record<string, unknown>) => {
   const instance = await OpenAICompatDriver.create({
     instanceId: randomUUID(), displayName: undefined, enabled: true,
-    config: OpenAICompatDriver.decodeConfig({ apiKeyEnv: "OMB_FIXTURE_KEY", ...config }), environment: { OMB_FIXTURE_KEY: "fixture-key" },
+    config: OpenAICompatDriver.decodeConfig({ apiKeyEnv: "ODB_FIXTURE_KEY", ...config }), environment: { ODB_FIXTURE_KEY: "fixture-key" },
   });
   await instance.refreshModels?.();
   return instance;

@@ -32,7 +32,7 @@ curl -X POST "https://your.domain/hooks/api/bots/<botId>/messages" \
 The address lives under the webhook receiver's `/hooks` path, so wherever this
 bot's webhooks are reachable (a Cloud's public name, a self-hosted edge that
 forwards `/hooks/*` as [deploy/Caddyfile](../deploy/Caddyfile) does, or
-`OMB_WEBHOOK_PUBLIC_URL`) the API is too; nothing new to open.
+`ODB_WEBHOOK_PUBLIC_URL`) the API is too; nothing new to open.
 
 The JSON body takes:
 
@@ -68,7 +68,7 @@ saved memory and the thread itself, whoever writes there next:
 - It runs confined and in Ask, whatever the bot's own level, with none of its
   saved allowances. Nothing answers an approval for the caller.
 - It has no shell, computer, browser, phone, connected apps, MCP servers or data
-  tools, and none of OpenMausBot's own tools, so it can't start a thread, ask a
+  tools, and none of OpenDeliobot's own tools, so it can't start a thread, ask a
   teammate, make a routine or webhook, change the bot, write its memory or search
   other conversations.
 - It works in the thread's own empty folder, and its words stay out of the person's

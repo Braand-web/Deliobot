@@ -71,11 +71,11 @@ describe("bot-first sidebar", () => {
   it.each([false, true])("uses the selected mode for bot and room tool previews (advanced: %s)", (advanced) => {
     fixture.advanced = advanced;
     fixture.showThreads = false;
-    const messages: Bot["messages"] = [{ id: "step", role: "bot", kind: "activity", at: 1, tool: { name: "mcp__omb__computer_batch", ok: true } }];
+    const messages: Bot["messages"] = [{ id: "step", role: "bot", kind: "activity", at: 1, tool: { name: "mcp__odb__computer_batch", ok: true } }];
     const candidate = { ...bot, messages, tasks: [], projects: [] };
     const group: Group = { id: "room", threadId: "room-thread", name: "Team", memberIds: [bot.id], messages, defaultResponder: { kind: "mentions" }, bulletin: "", unread: false, createdAt: 1 };
-    const expected = advanced ? "mcp__omb__computer_batch" : "Use the screen";
-    const other = advanced ? "Use the screen" : "mcp__omb__computer_batch";
+    const expected = advanced ? "mcp__odb__computer_batch" : "Use the screen";
+    const other = advanced ? "Use the screen" : "mcp__odb__computer_batch";
     for (const markup of [
       renderToStaticMarkup(createElement(BotListItem, rowProps("comfortable", candidate))),
       renderToStaticMarkup(createElement(GroupListItem, { group, density: "comfortable", onMenu: vi.fn() })),

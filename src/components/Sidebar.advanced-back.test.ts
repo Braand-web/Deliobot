@@ -15,7 +15,7 @@ vi.mock("@/lib/analytics", () => ({ track: vi.fn() }));
 vi.mock("@/lib/cloud-guest", () => ({ useCanWriteIn: () => true }));
 
 // What the one-time cleanup left: the record that this browser was on Advanced, no mode key, no threads choice.
-const stored = new Map<string, string>([["omb-new-look", "seen"], ["omb-skin", "midnight"]]);
+const stored = new Map<string, string>([["odb-new-look", "seen"], ["odb-skin", "midnight"]]);
 vi.stubGlobal("localStorage", { getItem: (key: string) => stored.get(key) ?? null, setItem: (key: string, value: string) => void stored.set(key, String(value)),
   removeItem: (key: string) => void stored.delete(key) });
 const { settleInterfaceMode } = await import("@/lib/new-look");
@@ -62,7 +62,7 @@ afterAll(() => {
 describe("thread folders after Advanced mode comes back", () => {
   it("shows a browser put back on Advanced its thread folders, threads being on by default", async () => {
     expect(readAdvancedMode()).toBe(true);
-    expect(stored.has("omb-show-threads")).toBe(false);
+    expect(stored.has("odb-show-threads")).toBe(false);
     await draw();
     expect(folder(), "folded until opened").toBeNull();
     flushSync(() => expand()!.click());

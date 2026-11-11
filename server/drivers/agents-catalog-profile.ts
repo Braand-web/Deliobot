@@ -1,4 +1,4 @@
-// The OMB_* switches the harness gives the agents proxy, read into the profile agents-catalog.ts lists tools for.
+// The ODB_* switches the harness gives the agents proxy, read into the profile agents-catalog.ts lists tools for.
 
 /** Which tools a conversation is shown, the same on every one of its turns. Presentation only: the server still
  * authenticates and scopes every call. */
@@ -20,8 +20,8 @@ export interface CatalogProfile {
   botId: string;
   /** A Team Cloud: message_person is mounted. */
   team?: boolean;
-  /** The person's MausBot with a Chief's powers: its notification tools are mounted. */
-  mausbot?: boolean;
+  /** The person's Delio with a Chief's powers: its notification tools are mounted. */
+  delio?: boolean;
   /** A direct chat whose bot may pick where it works (Works on is not Off and no team computer is its own): select_computer
    * is mounted, and the harness refuses a pick on any turn but a person's own message. */
   computerSelection?: boolean;
@@ -35,20 +35,20 @@ export interface CatalogProfile {
 /** Everything is off unless the harness says "1". */
 export function catalogProfileFromEnv(env: NodeJS.ProcessEnv): CatalogProfile {
   return {
-    skillAuthoring: env.OMB_SKILL_AUTHORING_ENABLED === "1",
-    sharedComputers: env.OMB_SHARED_COMPUTERS_ENABLED === "1",
-    voiceNotes: env.OMB_VOICE_NOTES === "1",
-    xResearch: env.OMB_X_RESEARCH === "1",
-    research: env.OMB_RESEARCH === "1",
-    cloudHome: env.OMB_CLOUD_HOME === "1",
-    memoryEnabled: env.OMB_MEMORY_ENABLED !== "0",
-    chief: env.OMB_CHIEF_OF_STAFF === "1",
-    botId: env.OMB_BOT_ID ?? "",
-    team: env.OMB_TEAM_PEOPLE === "1",
-    mausbot: env.OMB_MAUSBOT === "1",
-    computerSelection: env.OMB_COMPUTER_SELECTION === "1",
-    room: env.OMB_ROOM === "1",
-    imageGeneration: env.OMB_IMAGE_GENERATION === "1",
-    meetings: env.OMB_MEETINGS === "1",
+    skillAuthoring: env.ODB_SKILL_AUTHORING_ENABLED === "1",
+    sharedComputers: env.ODB_SHARED_COMPUTERS_ENABLED === "1",
+    voiceNotes: env.ODB_VOICE_NOTES === "1",
+    xResearch: env.ODB_X_RESEARCH === "1",
+    research: env.ODB_RESEARCH === "1",
+    cloudHome: env.ODB_CLOUD_HOME === "1",
+    memoryEnabled: env.ODB_MEMORY_ENABLED !== "0",
+    chief: env.ODB_CHIEF_OF_STAFF === "1",
+    botId: env.ODB_BOT_ID ?? "",
+    team: env.ODB_TEAM_PEOPLE === "1",
+    delio: env.ODB_DELIO === "1",
+    computerSelection: env.ODB_COMPUTER_SELECTION === "1",
+    room: env.ODB_ROOM === "1",
+    imageGeneration: env.ODB_IMAGE_GENERATION === "1",
+    meetings: env.ODB_MEETINGS === "1",
   };
 }

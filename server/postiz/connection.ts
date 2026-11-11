@@ -38,7 +38,7 @@ export function postizAddress(input: string | null | undefined, options: { loopb
 
 /** Postiz Cloud, or the stand-in a test server was started with (https, or http on this computer). */
 export function postizCloud(env: NodeJS.ProcessEnv = process.env): string {
-  const override = env.OMB_POSTIZ_CLOUD_URL?.trim();
+  const override = env.ODB_POSTIZ_CLOUD_URL?.trim();
   if (!override) return POSTIZ_CLOUD;
   try {
     const url = new URL(override);

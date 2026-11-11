@@ -3,12 +3,12 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, it } from "vitest";
-import { launchVerificationServer, runControlOmb } from "../scripts/control-omb.ts";
+import { launchVerificationServer, runControlOdb } from "../scripts/control-odb.ts";
 
 it("starts a teammate's thread in the delegating bot's project folder by default, and hands off without one when there is none, even when asked", async () => {
   const session = await launchVerificationServer(process.env, undefined, undefined, undefined, undefined, { scripted: true });
   const { url, dataDir } = session.info;
-  const cli = (...args: string[]) => runControlOmb([...args, "--url", url]) as Promise<any>;
+  const cli = (...args: string[]) => runControlOdb([...args, "--url", url]) as Promise<any>;
   const api = async (method: string, path: string, body?: unknown) => {
     const response = await fetch(url + path, {
       method,
@@ -19,8 +19,8 @@ it("starts a teammate's thread in the delegating bot's project folder by default
     expect(response.ok, `${method} ${path} ${response.status}: ${JSON.stringify(value)}`).toBe(true);
     return value;
   };
-  // A project lives outside OpenMausBot's data; folders inside it are bots' private workspaces.
-  const site = mkdtempSync(join(tmpdir(), "omb-site-"));
+  // A project lives outside OpenDeliobot's data; folders inside it are bots' private workspaces.
+  const site = mkdtempSync(join(tmpdir(), "odb-site-"));
   const evidence = () => {
     try { return readFileSync(join(dataDir, "room-plan.json.evidence.jsonl"), "utf8").trim().split("\n").filter(Boolean).map((line) => JSON.parse(line)); } catch { return []; }
   };

@@ -2,7 +2,7 @@
 import type { FishTtsModel } from "../config.ts";
 import { userErrorThrown } from "../user-errors.ts";
 
-const API = (process.env.OMB_FISH_AUDIO_API || "https://api.fish.audio").replace(/\/+$/, "");
+const API = (process.env.ODB_FISH_AUDIO_API || "https://api.fish.audio").replace(/\/+$/, "");
 export const DEFAULT_FISH_MODEL: FishTtsModel = "s2.1-pro";
 const MAX_ERROR_LENGTH = 240;
 const PAGE_SIZE = 100;

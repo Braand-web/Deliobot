@@ -157,7 +157,7 @@ if (params.has("railpage")) {
     workspaces: {
       state: async () => (computer ? { local: true, name: "This computer" }
         : onTeam ? { local: false, name: teamName, origin: "https://acme.example", color: "purple", role: "Admin" }
-          : { local: false, name: "My Cloud", origin: "https://omb-u-1.fly.dev", color: "blue" }),
+          : { local: false, name: "My Cloud", origin: "https://odb-u-1.fly.dev", color: "blue" }),
       menu: ok, line: async () => null, open: ok, add: ok,
       places: async () => (hidden ? { ...rail, places: [] } : chrome ? { ...rail, places: [], beside: true as const } : rail),
       onChanged: (heard: () => void) => { placesHeard.add(heard); return () => { placesHeard.delete(heard); }; },
@@ -226,7 +226,7 @@ if (params.has("railpage")) {
     bar.setAttribute("aria-hidden", "true");
     const dark = ["midnight", "foundry", "graphite", "dusk", "halloween", "diwali", "aurora"].includes(params.get("skin") ?? "midnight");
     bar.style.cssText = `position:fixed;inset:0 0 auto 0;height:31px;display:flex;align-items:center;z-index:100;font:12px "Segoe UI",sans-serif;padding-left:12px;${dark ? "background:#202020;color:#fff" : "background:#f3f3f3;color:#000"}`;
-    bar.innerHTML = `<span style="flex:1">MausBot</span>${["\u2013", "\u2610", "\u2715"].map((glyph) => `<span style="width:46px;text-align:center">${glyph}</span>`).join("")}`;
+    bar.innerHTML = `<span style="flex:1">Delio</span>${["\u2013", "\u2610", "\u2715"].map((glyph) => `<span style="width:46px;text-align:center">${glyph}</span>`).join("")}`;
     document.body.append(bar);
     const below = document.createElement("style");
     below.textContent = "html { padding-top: 31px !important; box-sizing: border-box !important; } #root { height: calc(100vh - 31px) !important; }";

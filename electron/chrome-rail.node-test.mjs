@@ -38,7 +38,7 @@ function world({ wanted = true, hidden = false, frame = true } = {}) {
   const { made, createView } = viewMaker();
   const state = { wanted, hidden, changes: 0 };
   const prefs = { railHidden: () => state.hidden, setRailHidden: (value) => { state.hidden = value; }, windowFrame: () => frame };
-  const rail = createChromeRail({ createView, preload: "/app/preload.cjs", args: () => ["--omb-local-origin=http://127.0.0.1:8799", "--omb-company-desktop=1"], url: () => RAIL,
+  const rail = createChromeRail({ createView, preload: "/app/preload.cjs", args: () => ["--odb-local-origin=http://127.0.0.1:8799", "--odb-company-desktop=1"], url: () => RAIL,
     wanted: () => state.wanted, prefs: () => prefs, changed: () => { state.changes++; } });
   const handlers = new Map();
   rail.install({ handle: (channel, handler) => handlers.set(channel, handler) });
@@ -58,7 +58,7 @@ test("two places or more: the rail's own page in a view at the window's left edg
   assert.equal(view.background, "#00000000", "transparent where the rail draws nothing");
   assert.deepEqual(view.webContents.loaded, [RAIL]);
   assert.deepEqual(view.options.webPreferences, { contextIsolation: true, sandbox: true, nodeIntegration: false, preload: "/app/preload.cjs",
-    additionalArguments: ["--omb-local-origin=http://127.0.0.1:8799", "--omb-company-desktop=1"] });
+    additionalArguments: ["--odb-local-origin=http://127.0.0.1:8799", "--odb-company-desktop=1"] });
   assert.deepEqual(w.page.told, [CHROME_RAIL_WIDTH], "the page beside it is told how wide the rail is");
   w.win.size = [1000, 700];
   w.win.emit("resize");
@@ -267,7 +267,7 @@ function pageWithPreload(origin = "https://bots.example.test", pathname = "/", a
   const frame = { zoom: 1 }, navigator = { userActivation: { isActive: false } };
   let bridge = null;
   vm.runInNewContext(readFileSync(new URL("./preload.cjs", import.meta.url), "utf8"), {
-    process: { platform: "darwin", argv: ["--omb-local-origin=http://127.0.0.1:8799", "--omb-company-desktop=1"] },
+    process: { platform: "darwin", argv: ["--odb-local-origin=http://127.0.0.1:8799", "--odb-company-desktop=1"] },
     location: { origin, pathname }, navigator, TextEncoder, localStorage: { getItem: () => null }, queueMicrotask, document,
     window: { addEventListener: (type, listener) => listeners.set(type, listener) },
     require: () => ({ webUtils: {}, webFrame: { getZoomFactor: () => frame.zoom }, contextBridge: { exposeInMainWorld: (_name, value) => { bridge = value; } },

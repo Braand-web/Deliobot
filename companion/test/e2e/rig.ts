@@ -112,25 +112,25 @@ export async function startRig(relayUrl: (signingPublicKey: Buffer) => Promise<s
   const hid = b64u(hostId);
   const controlToken = randomBytes(32).toString("base64url");
   const [companionPort, controlPort, webhookPort] = await freePorts(3);
-  const dir = mkdtempSync(join(tmpdir(), "omb-e2e-sidecar-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-e2e-sidecar-"));
   const sidecar: ChildProcess = spawn(process.execPath, [ENTRY], {
     env: {
       PATH: process.env.PATH,
       HOME: dir,
-      OMB_PORT: String(harness.port),
-      OMB_WEBHOOK_PORT: String(webhookPort),
-      OMB_COMPANION_PORT: String(companionPort),
-      OMB_CONTROL_PORT: String(controlPort),
-      OMB_CONTROL_TOKEN: controlToken,
-      OMB_COMPANION_DIR: dir,
-      OMB_COMPANION_NAME: "Test Mac",
-      OMB_COMPANION_E2E: "1",
-      OMB_COMPANION_BONJOUR: "0",
-      OMB_COMPANION_RELAY_URL: url,
+      ODB_PORT: String(harness.port),
+      ODB_WEBHOOK_PORT: String(webhookPort),
+      ODB_COMPANION_PORT: String(companionPort),
+      ODB_CONTROL_PORT: String(controlPort),
+      ODB_CONTROL_TOKEN: controlToken,
+      ODB_COMPANION_DIR: dir,
+      ODB_COMPANION_NAME: "Test Mac",
+      ODB_COMPANION_E2E: "1",
+      ODB_COMPANION_BONJOUR: "0",
+      ODB_COMPANION_RELAY_URL: url,
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
-  if (process.env.OMB_E2E_DEBUG) for (const stream of [sidecar.stdout!, sidecar.stderr!]) stream.on("data", (chunk: Buffer) => process.stderr.write(`[sidecar] ${chunk}`));
+  if (process.env.ODB_E2E_DEBUG) for (const stream of [sidecar.stdout!, sidecar.stderr!]) stream.on("data", (chunk: Buffer) => process.stderr.write(`[sidecar] ${chunk}`));
   await new Promise<void>((resolve, reject) => {
     let out = "";
     sidecar.stdout!.on("data", (chunk: Buffer) => {
@@ -147,13 +147,13 @@ export async function startRig(relayUrl: (signingPublicKey: Buffer) => Promise<s
   const control = async (method: string, path: string, body?: unknown): Promise<State> => {
     const res = await fetch(`http://127.0.0.1:${controlPort}${path}`, {
       method,
-      headers: { "x-openmausbot-control-token": controlToken, ...(body ? { "content-type": "application/json" } : {}) },
+      headers: { "x-opendeliobot-control-token": controlToken, ...(body ? { "content-type": "application/json" } : {}) },
       body: body ? JSON.stringify(body) : undefined,
     });
     if (!res.ok) throw new Error(`${method} ${path}: ${res.status} ${await res.text()}`);
     return (await res.json()) as State;
   };
-  await control("PUT", "/e2e/relay", { hostId: hid, nodes: ["relay1.openmausbot.com"], relayToken: relayToken() });
+  await control("PUT", "/e2e/relay", { hostId: hid, nodes: ["relay1.openopendeliobot.com"], relayToken: relayToken() });
   await waitFor(async () => (await control("GET", "/state")).e2e.relay === "connected", 10_000);
   const transportKey = (state: State) => fromB64u(state.e2e.descriptor!.k)!;
   return {

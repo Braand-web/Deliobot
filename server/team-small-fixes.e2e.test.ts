@@ -26,7 +26,7 @@ const TEAM_LINE = "Acme's bots never use anyone's own computer; they use Acme's 
 const SECRET = "Zebrafinch42";
 const SHARED = "Okapi77";
 const PASSWORD = "correct horse battery staple";
-const clockDir = mkdtempSync(join(tmpdir(), "omb-wait-clock-"));
+const clockDir = mkdtempSync(join(tmpdir(), "odb-wait-clock-"));
 const CLOCK = join(clockDir, "offset");
 writeFileSync(CLOCK, "0");
 
@@ -92,7 +92,7 @@ beforeAll(async () => {
   gateway = await startFakeHttpMcp({ tools: [{ name: "lookup_order", inputSchema: { type: "object", properties: {} } }], callResult: () => ({ content: [{ type: "text", text: "ok" }] }) });
   broker = await startBrokerFake();
   fx = await launchCloudSendFixture({ onePasswordToken: `ops_fake-team-${randomBytes(8).toString("hex")}`, broker, team: { id: "team-acme-3", name: "Acme", engine: ENGINE,
-    env: { OMB_BOT_BOX: "0", OMB_TEST_WAIT_CLOCK: CLOCK, NODE_OPTIONS: `--import=${new URL("./testing/wait-clock-hooks.mjs", import.meta.url).href}`, FIXTURE_ADMIN_STAND_IN: `http://127.0.0.1:${(adminServer.address() as AddressInfo).port}` } } });
+    env: { ODB_BOT_BOX: "0", ODB_TEST_WAIT_CLOCK: CLOCK, NODE_OPTIONS: `--import=${new URL("./testing/wait-clock-hooks.mjs", import.meta.url).href}`, FIXTURE_ADMIN_STAND_IN: `http://127.0.0.1:${(adminServer.address() as AddressInfo).port}` } } });
   team = fx.team!;
   ada = (await team.pair(ADA)).token!;
   mira = (await team.pair(MIRA)).token!;
@@ -154,11 +154,11 @@ it("a lent computer: a team's bot hears the team's one line, not a personal Clou
   expect(body.say).toBe(TEAM_LINE);
   expect(body.unavailable).toBe(TEAM_LINE);
 
-  const environment = await fetch(`${team.base}/.well-known/openmausbot/environment`, { headers: fx.edge });
+  const environment = await fetch(`${team.base}/.well-known/opendeliobot/environment`, { headers: fx.edge });
   const environmentId = ((await environment.json()) as { environmentId: string }).environmentId;
   const lent = await team.as(ada, "POST", "/api/shared-computers/connect",
     { id: randomUUID(), name: "Ada's Mac", environmentId, folders: [], terminal: true, computer: true, platform: "darwin" },
-    { "x-omb-computer-secret": createHash("sha256").update("ada-mac").digest("hex") });
+    { "x-odb-computer-secret": createHash("sha256").update("ada-mac").digest("hex") });
   expect(lent.status, JSON.stringify(lent.body)).toBe(200);
   const used = await fetch(`${team.base}/api/internal/shared-computers`, { method: "POST", headers: { authorization: `Bearer ${bearer}`, "content-type": "application/json" },
     body: JSON.stringify({ action: "list_files", computer_id: randomUUID(), path: "/" }) });
@@ -208,7 +208,7 @@ it("the Owner's export carries the team's chats and nothing of a member's alone,
   expect(made.status, JSON.stringify(made.body)).toBe(200);
   const download = await fetch(`${team.base}/api/workspace-backup/download/${made.body.id}`, { headers: { ...fx.edge, authorization: `Bearer ${ada}` } });
   expect(download.status).toBe(200);
-  const unpack = mkdtempSync(join(tmpdir(), "omb-team-export-"));
+  const unpack = mkdtempSync(join(tmpdir(), "odb-team-export-"));
   try {
     const archive = join(unpack, "export.ombbackup");
     writeFileSync(archive, Buffer.from(await download.arrayBuffer()));
@@ -228,7 +228,7 @@ it("a question left for a day is said in the person's own inbox chat, once the c
   const reporter = await create({ name: "Reporter", title: "Reports", section: "Support", reportsTo: MIRA.email });
   expect((await team.as(ada, "PATCH", `/api/bots/${reporter.id}`, { approvalMode: "ask" })).status).toBe(200);
   const bots = async () => (await team.as(mira, "GET", "/api/bots")).body.bots as Array<Bot & { defaultBot?: unknown; tasks?: Array<{ threadId: string; inbox?: true; openAsks?: number }> }>;
-  // A User's own MausBot: no crown and no Chief's powers.
+  // A User's own Delio: no crown and no Chief's powers.
   const own = (await bots()).find((bot) => bot.defaultBot) as Bot & { chiefOfStaff?: boolean };
   expect(MIRA.role).toBe("member");
   expect(own.chiefOfStaff).toBeFalsy();

@@ -1,6 +1,6 @@
 // The rail's "{name}: needs you" in the real packaged app, with a synthetic Admin and synthetic Clouds at their real
 // addresses. Run on a disposable GitHub macOS runner only: it edits /etc/hosts and trusts a throwaway certificate.
-//   node scripts/verify-place-inbox-rail.mjs --app release/mac-arm64/OpenMausBot.app --out <evidence dir>
+//   node scripts/verify-place-inbox-rail.mjs --app release/mac-arm64/OpenDeliobot.app --out <evidence dir>
 import assert from "node:assert/strict";
 import { execFileSync, spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
@@ -12,17 +12,17 @@ import { setTimeout as delay } from "node:timers/promises";
 
 const option = (name) => { const at = process.argv.indexOf(name); return at === -1 ? undefined : process.argv[at + 1]; };
 if (process.env.GITHUB_ACTIONS !== "true" || process.platform !== "darwin") throw new Error("This check edits /etc/hosts and the system keychain: it runs on a disposable GitHub macOS runner only.");
-const APP = resolve(option("--app") ?? "release/mac-arm64/OpenMausBot.app");
-const OUT = resolve(option("--out") ?? mkdtempSync(join(tmpdir(), "omb-rail-evidence-")));
+const APP = resolve(option("--app") ?? "release/mac-arm64/OpenDeliobot.app");
+const OUT = resolve(option("--out") ?? mkdtempSync(join(tmpdir(), "odb-rail-evidence-")));
 mkdirSync(OUT, { recursive: true });
 const ROOT = new URL("..", import.meta.url);
-const WORK = mkdtempSync(join(tmpdir(), "omb-rail-"));
+const WORK = mkdtempSync(join(tmpdir(), "odb-rail-"));
 const POLL_MS = 150_000;
 const DEBUG_PORT = 9333;
 
-const ADMIN_HOST = "cloud.openmausbot.com", AWAKE_HOST = "omb-u-aaaaaaaaaaaa.fly.dev", ASLEEP_HOST = "omb-u-bbbbbbbbbbbb.fly.dev";
+const ADMIN_HOST = "cloud.openopendeliobot.com", AWAKE_HOST = "odb-u-aaaaaaaaaaaa.fly.dev", ASLEEP_HOST = "odb-u-bbbbbbbbbbbb.fly.dev";
 const BLOCKED = ["us.i.posthog.com", "us-assets.i.posthog.com", "app.posthog.com"];
-const TOKEN = `omc_${"T".repeat(43)}`, COOKIE = "omb_session_fixture";
+const TOKEN = `omc_${"T".repeat(43)}`, COOKIE = "odb_session_fixture";
 const results = [];
 const log = (line) => { console.log(line); appendFileSync(join(OUT, "progress.log"), `${line}\n`); };
 function passed(name, detail = "") { results.push({ name, passed: true, detail }); log(`PASS ${name}${detail ? `: ${detail}` : ""}`); }
@@ -74,7 +74,7 @@ function serve(tls) {
     if (!cloud) return reply(404, { error: "not_found" });
     const signedIn = (req.headers.cookie ?? "").includes(`${COOKIE}=`);
     if (path === "/api/inbox/count") {
-      cloud.requests.push({ at: Date.now(), cookie: signedIn, background: req.headers["x-omb-background"] === "1" });
+      cloud.requests.push({ at: Date.now(), cookie: signedIn, background: req.headers["x-odb-background"] === "1" });
       return signedIn ? reply(200, { count: cloud.count }) : reply(401, { error: "sign in" });
     }
     cloud.requests.push({ at: Date.now(), other: `${req.method} ${path}` });
@@ -134,7 +134,7 @@ let app, server, rail, failure = null;
 try {
   const { certFile, ...tls } = trustThrowawayCertificate();
   server = await serve(tls);
-  const home = join(WORK, "home"), dataDir = join(home, ".openmausbot");
+  const home = join(WORK, "home"), dataDir = join(home, ".opendeliobot");
   mkdirSync(dataDir, { recursive: true });
   const plan = join(WORK, "room-plan.json");
   writeFileSync(plan, "{}");
@@ -151,10 +151,10 @@ await import(${JSON.stringify(new URL("server/testing/fake-claude-cli.ts", ROOT)
     claude: { driver: "claudeAgent", displayName: "Claude", config: { cli } },
   } }));
 
-  const binary = join(APP, "Contents", "MacOS", "OpenMausBot");
+  const binary = join(APP, "Contents", "MacOS", "OpenDeliobot");
   assert.ok(existsSync(binary), `no app at ${binary}`);
   const appLog = join(OUT, "app.log");
-  app = spawn(binary, ["--use-mock-keychain", `--remote-debugging-port=${DEBUG_PORT}`], { env: { ...process.env, HOME: home, OMB_DATA_DIR: dataDir, NODE_EXTRA_CA_CERTS: certFile }, stdio: ["ignore", "pipe", "pipe"] });
+  app = spawn(binary, ["--use-mock-keychain", `--remote-debugging-port=${DEBUG_PORT}`], { env: { ...process.env, HOME: home, ODB_DATA_DIR: dataDir, NODE_EXTRA_CA_CERTS: certFile }, stdio: ["ignore", "pipe", "pipe"] });
   for (const stream of [app.stdout, app.stderr]) stream.on("data", (chunk) => appendFileSync(appLog, chunk));
   app.once("exit", (code, signal) => { if (!failure) log(`app exited: ${code ?? signal}`); });
 

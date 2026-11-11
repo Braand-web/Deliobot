@@ -85,7 +85,7 @@ const FILL_BUDGET_MS = 25_000;
 const POLL_MS = 250;
 const MAX_STEPS = 3;
 
-const MARK = "data-omb-login";
+const MARK = "data-odb-login";
 
 // Shared by every page script: what a person could see, which fields this fill marked, a site's error line, a CAPTCHA.
 const PAGE_HELPERS = `
@@ -182,8 +182,8 @@ const FOCUS_FIELD = `((nonce, key, mode, keep) => {
   const el = document.querySelector("[" + MARK + "=\\"" + key + "\\"]");
   if (!(el instanceof HTMLInputElement)) return JSON.stringify({ href: location.href, focused: false, same: false });
   if (mode === "type" && typeof keep === "string" && el.value === keep) return JSON.stringify({ href: location.href, focused: true, same: true });
-  if (mode === "submit" && !window["__ombLogin" + nonce]) {
-    const sent = window["__ombLogin" + nonce] = { submitted: false, leaving: false };
+  if (mode === "submit" && !window["__odbLogin" + nonce]) {
+    const sent = window["__odbLogin" + nonce] = { submitted: false, leaving: false };
     addEventListener("submit", () => { sent.submitted = true; }, true);
     addEventListener("beforeunload", () => { sent.leaving = true; }, true);
   }
@@ -226,7 +226,7 @@ const MARK_SUBMIT = `((key) => {
 const PAGE_STATE = `((nonce) => {
   ${PAGE_HELPERS}
   const ours = marked(nonce + ":").filter((el) => el instanceof HTMLInputElement);
-  const sent = window["__ombLogin" + nonce] || {};
+  const sent = window["__odbLogin" + nonce] || {};
   return JSON.stringify({
     href: location.href, title: document.title, present: ours.some(visible), busy: sending(ours),
     submitted: sent.submitted === true, leaving: sent.leaving === true, alert: alertText(), human: humanCheck(),
@@ -250,7 +250,7 @@ const CLEAR_SECRETS = `((nonce) => {
 const UNMARK = `((nonce) => {
   ${PAGE_HELPERS}
   for (const el of marked(nonce + ":")) el.removeAttribute(MARK);
-  try { delete window["__ombLogin" + nonce]; } catch {}
+  try { delete window["__odbLogin" + nonce]; } catch {}
   return JSON.stringify({ href: location.href });
 })`;
 
@@ -296,13 +296,13 @@ const EMAIL_LOGIN = "An email sign-in";
 export const CODE_FROM_INBOX = "If the site sent it to the person's own email or phone, read it from their connected email or messages and type it in yourself; otherwise call request_sign_in so the person enters it.";
 
 const CODE_MISS: Record<CodeMiss, string> = {
-  "wrong-sender": "An email that looked like a sign-in code arrived, but not from an address of this site, so OpenMausBot did not use it.",
-  ambiguous: "The site's email held more than one possible code, or two different codes arrived, so OpenMausBot typed none rather than guess.",
-  used: "The only code in the site's email had already been tried here, so OpenMausBot did not type it again.",
+  "wrong-sender": "An email that looked like a sign-in code arrived, but not from an address of this site, so OpenDeliobot did not use it.",
+  ambiguous: "The site's email held more than one possible code, or two different codes arrived, so OpenDeliobot typed none rather than guess.",
+  used: "The only code in the site's email had already been tried here, so OpenDeliobot did not type it again.",
   "not-found": "No email with a code from this site arrived in the connected mailbox within about a minute.",
-  unreadable: "OpenMausBot could not read the connected mailbox just now.",
+  unreadable: "OpenDeliobot could not read the connected mailbox just now.",
 };
-const FROM_MAILBOX = " OpenMausBot read the code from the person's connected email and typed it; you never see it or the email.";
+const FROM_MAILBOX = " OpenDeliobot read the code from the person's connected email and typed it; you never see it or the email.";
 
 interface PageState { href: string; title: string; present: boolean; busy: boolean; submitted: boolean; leaving: boolean; alert: string; human: boolean }
 
@@ -647,7 +647,7 @@ class LoginRun {
     if (answer.kind === "miss") this.codeHelp = `${CODE_MISS[answer.why]} ${CODE_FROM_INBOX}`;
     if (answer.kind === "no-mailbox") {
       this.wantsMailbox = true;
-      this.codeHelp = "No email account is connected for OpenMausBot to read it.";
+      this.codeHelp = "No email account is connected for OpenDeliobot to read it.";
     }
     return answer;
   }

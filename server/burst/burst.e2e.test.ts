@@ -2,14 +2,14 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, it } from "vitest";
-import { launchVerificationServer, runControlOmb } from "../../scripts/control-omb.ts";
+import { launchVerificationServer, runControlOdb } from "../../scripts/control-odb.ts";
 import { request } from "../../scripts/mcp-server.ts";
 
 const PARTS = ["Acme", "Globex", "Initech"];
 
 it("previews, runs only on Run, and writes one merged result", async () => {
   const session = await launchVerificationServer(process.env, undefined, undefined, undefined, undefined, { scripted: true });
-  const cli = (...args: string[]) => runControlOmb(args, { env: { OPENMAUSBOT_URL: session.info.url } }) as Promise<any>;
+  const cli = (...args: string[]) => runControlOdb(args, { env: { OPENDELIOBOT_URL: session.info.url } }) as Promise<any>;
   const api = (path: string, body?: unknown, method = "POST") =>
     request(path, body === undefined ? {} : { method, body: JSON.stringify(body) }, session.info.url) as Promise<any>;
   try {

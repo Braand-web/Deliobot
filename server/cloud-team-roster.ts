@@ -1,5 +1,5 @@
 // A Team Cloud's roster check: every 5 minutes it asks the Admin, signed with its bootstrap secret, whether the people
-// whose sessions were used in the last hour are still in the team, and at which role (openmaus-cloud docs/team-cloud.md "A
+// whose sessions were used in the last hour are still in the team, and at which role (opendelio-cloud docs/team-cloud.md "A
 // session that lives without a desktop"). A member found at their role keeps each session they use until an hour after its
 // last use, so a browser or a phone stays signed in with no desktop re-pairing; anyone the Admin no longer lists is signed
 // out at once, at the next check.
@@ -11,17 +11,17 @@ import type { CloudHomeConfig } from "./cloud-home.ts";
 import { isTeamRole } from "./cloud-team.ts";
 import type { SessionRegistry } from "./sessions.ts";
 
-/** On the Admin; must match openmaus-cloud's TEAM_ROSTER_MACHINE_PATH. */
+/** On the Admin; must match opendelio-cloud's TEAM_ROSTER_MACHINE_PATH. */
 export const TEAM_ROSTER_ADMIN_PATH = "/api/cloud/machines/team-member";
 export const TEAM_ROSTER_EVERY_MS = 5 * 60_000;
 /** The Admin's own limit on one ask. */
 export const TEAM_ROSTER_MAX = 50;
 const FETCH_TIMEOUT_MS = 15_000, ANSWER_MAX_BYTES = 64 * 1024;
 
-/** Must match openmaus-cloud's teamRosterSignature: a context of its own, so no other signed request reads as one. */
+/** Must match opendelio-cloud's teamRosterSignature: a context of its own, so no other signed request reads as one. */
 export function teamRosterSignature(secret: string, machineId: string, timestamp: string, nonce: string, body: string): string {
   const bodyHash = createHash("sha256").update(body).digest("base64url");
-  return createHmac("sha256", secret).update(`omb-team-roster-v1\n${machineId}\n${timestamp}\n${nonce}\n${bodyHash}`).digest("base64url");
+  return createHmac("sha256", secret).update(`odb-team-roster-v1\n${machineId}\n${timestamp}\n${nonce}\n${bodyHash}`).digest("base64url");
 }
 
 const answerSchema = z.object({ members: z.record(z.string(), z.unknown()) });
@@ -62,8 +62,8 @@ export function startTeamRoster(options: TeamRosterOptions): TeamRoster {
     let response: Response;
     try {
       response = await fetcher(`${options.adminOrigin}${TEAM_ROSTER_ADMIN_PATH}`, { method: "POST", redirect: "error", cache: "no-store", body, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS), headers: {
-        accept: "application/json", "content-type": "application/json", "x-omb-cloud-machine": options.machineId, "x-omb-cloud-timestamp": timestamp, "x-omb-cloud-nonce": nonce,
-        "x-omb-cloud-signature": `v1=${teamRosterSignature(options.secret, options.machineId, timestamp, nonce, body)}`,
+        accept: "application/json", "content-type": "application/json", "x-odb-cloud-machine": options.machineId, "x-odb-cloud-timestamp": timestamp, "x-odb-cloud-nonce": nonce,
+        "x-odb-cloud-signature": `v1=${teamRosterSignature(options.secret, options.machineId, timestamp, nonce, body)}`,
       } });
     } catch (error) {
       log(`team roster: the Admin can't be reached (${error instanceof Error ? error.name : "error"}); sessions end at their hour`);

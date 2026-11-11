@@ -201,7 +201,7 @@ describe("address watcher", () => {
   });
 
   it("re-advertises when the computer is renamed", async () => {
-    let name = "OpenMausBot";
+    let name = "OpenDeliobot";
     const { watcher, calls } = rig(["192.168.1.42"], { name: () => name });
     await watcher.check();
     await watcher.check();

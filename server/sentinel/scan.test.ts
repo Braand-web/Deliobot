@@ -13,7 +13,7 @@ describe("sentinel scan", () => {
   let out: string;
   let fixture: FixtureDataDir;
   beforeEach(() => {
-    dir = mkdtempSync(join(tmpdir(), "omb-sentinel-scan-"));
+    dir = mkdtempSync(join(tmpdir(), "odb-sentinel-scan-"));
     out = join(dir, "out");
     fixture = fixtureDataDir(join(dir, "data"), [{ id: "b1", name: "Probe", threadId: "t1" }]);
   });

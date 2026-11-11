@@ -5,14 +5,14 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, it } from "vitest";
 
-import { launchVerificationServer } from "../scripts/control-omb.ts";
+import { launchVerificationServer } from "../scripts/control-odb.ts";
 import { removeTempDir } from "./testing/cleanup.ts";
 import { hostTimeout } from "./testing/host-timeout.ts";
 
 const CALLED = /The user ran/;
 
 it("calls a skill mid-message from what a person typed, never from a webhook, another bot, an app or a bot's own shell", async () => {
-  const gates = mkdtempSync(join(tmpdir(), "omb-skill-commands-"));
+  const gates = mkdtempSync(join(tmpdir(), "odb-skill-commands-"));
   const gate = join(gates, "finish");
   const fixture = await launchVerificationServer({ FAKE_CLAUDE_MODE: "slow", FAKE_CLAUDE_SLOW_FINISH_GATE: gate });
   const base = fixture.info.url;
@@ -50,7 +50,7 @@ it("calls a skill mid-message from what a person typed, never from a webhook, an
     // Another bot's words, while its own turn holds a live capability.
     await api("POST", `/api/bots/${asker.id}/messages`, { threadId: asker.threadId, sendId: sendId(), text: "asker-start" });
     await reached("asker-start");
-    const comms: string = dump().mcpConfig.mcpServers.agents.env.OMB_COMMS_TOKEN;
+    const comms: string = dump().mcpConfig.mcpServers.agents.env.ODB_COMMS_TOKEN;
     const page = await api("POST", "/api/internal/options-card", { tool: "show_html", html: "<p>Pick a slot</p>", title: "Booking" }, comms);
     await api("POST", "/api/internal/coordinate-bots", { botIds: [scout.id], reply: "none", message: "/standup peer-marker please /standup now\n/standup again" }, comms);
     await reached("peer-marker");

@@ -157,7 +157,7 @@ describe("a session with the interop server", () => {
   });
 
   it("is refused with 4001 for an unknown token or the wrong transport", async () => {
-    await expect(connect(ready.direct, "omb_not_paired")).rejects.toEqual(new SessionClosed(4001));
+    await expect(connect(ready.direct, "odb_not_paired")).rejects.toEqual(new SessionClosed(4001));
     await expect(connect(ready.relayTransport, ready.deviceToken, TRANSPORT_DIRECT)).rejects.toEqual(new SessionClosed(4001));
   });
 

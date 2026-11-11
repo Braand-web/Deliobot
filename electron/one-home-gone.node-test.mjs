@@ -9,7 +9,7 @@ import { moveStatus } from "./move-status.mjs";
 // another becomes My Cloud. The Admin's word on the Cloud moved to brings this computer home by itself, with every
 // automation off; nothing else does (an Admin that can't say, a session not verified, another account, a server of the
 // person's own). Every side is faked; nothing reaches the network.
-const GONE = "https://omb-trial-1.fly.dev", MINE = "https://omb-other-2.fly.dev";
+const GONE = "https://odb-trial-1.fly.dev", MINE = "https://odb-other-2.fly.dev";
 const reply = (status, body = {}) => ({ ok: status < 400, status, body });
 
 function computer({ journal = null, marker = { frozen: true, cloud: GONE }, admin = { [GONE]: "deleted" }, cloud = {} } = {}) {
@@ -32,7 +32,7 @@ function computer({ journal = null, marker = { frozen: true, cloud: GONE }, admi
     local: {
       async freeze(origin) { w.server.marker = { frozen: true, cloud: origin }; return { frozen: true }; },
       async unfreeze(options) {
-        if (w.unfreezeFails > 0) { w.unfreezeFails--; throw new Error("OpenMausBot on this computer could not go on again."); }
+        if (w.unfreezeFails > 0) { w.unfreezeFails--; throw new Error("OpenDeliobot on this computer could not go on again."); }
         w.server.thaws.push(options ?? null);
         if (options?.automations === "off") for (const key of Object.keys(w.server.on)) w.server.on[key] = false;
         w.server.marker = { frozen: false };

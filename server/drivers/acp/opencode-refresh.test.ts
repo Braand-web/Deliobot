@@ -34,7 +34,7 @@ afterEach(async () => {
 });
 
 function home(cached: string, offered: string) {
-  const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-refresh-"));
+  const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-refresh-"));
   scratches.push(scratch);
   const cache = join(scratch, "models-cache");
   const upstream = join(scratch, "models-upstream");

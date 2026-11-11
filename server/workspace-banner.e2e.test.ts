@@ -46,7 +46,7 @@ it("its Super admin sets the banner, a member sees it and can't change it, and n
   expect(bytes.includes("Secret"), "the camera, the author and the profile stay behind").toBe(false);
   expect((await team.as(bob, "GET", "/api/config")).body.workspaceBanner).toEqual(saved.body.banner);
 
-  for (const [who, token] of [["signed out", undefined], ["a made-up token", "omb_not-a-session"]] as const) {
+  for (const [who, token] of [["signed out", undefined], ["a made-up token", "odb_not-a-session"]] as const) {
     const refused = await banner(token);
     expect(refused.status, who).toBeGreaterThanOrEqual(400);
     expect(refused.headers.get("content-type"), who).not.toBe("image/png");
@@ -69,7 +69,7 @@ it("a picture that isn't one is refused plainly, and removing the banner leaves 
 /** A request as the desktop app's own page sends it to this computer's server: the window's session adds the owner's
  * header, and Chromium marks the page as the server's own. */
 const ownPage = (path: string, init: RequestInit = {}) => fetch(`${fx.desktopBase}${path}`, { ...init, headers: { ...init.headers as Record<string, string>,
-  "x-openmausbot-desktop-owner": fx.ownerCapability, "sec-fetch-site": "same-origin", "sec-fetch-mode": "cors", "sec-fetch-dest": "empty",
+  "x-opendeliobot-desktop-owner": fx.ownerCapability, "sec-fetch-site": "same-origin", "sec-fetch-mode": "cors", "sec-fetch-dest": "empty",
   ...(init.method && init.method !== "GET" ? { origin: fx.desktopBase } : {}) } });
 const pictureOf = async (send: (path: string) => Promise<Response>) => ((await (await send("/api/config")).json()) as { workspaceBanner?: unknown }).workspaceBanner ?? null;
 

@@ -18,7 +18,7 @@ const linksTo = (path: string, target: string) => isLink(path) && realpathSync(p
 const snapshot = () => Object.fromEntries(readdirSync(plan).sort().map(name => [name, isLink(join(plan, name)) ? readlinkSync(join(plan, name)) : "real"]));
 
 beforeEach(() => {
-  root = mkdtempSync(join(tmpdir(), "omb-codex-shared-home-"));
+  root = mkdtempSync(join(tmpdir(), "odb-codex-shared-home-"));
   shared = join(root, "person", ".codex");
   plan = join(root, "data", "providers", "chatgpt-plan", "abc", "codex");
   vi.spyOn(console, "error").mockImplementation(() => {});

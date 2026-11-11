@@ -198,7 +198,7 @@ describe("Claude endpoint catalog", () => {
         ANTHROPIC_API_KEY: "sk-fixture",
         ANTHROPIC_MODEL: "deepseek-chat",
       },
-      config: decoded({ configDir: "/tmp/omb-endpoint-fixture", requireApiKey: true, endpointModels: ["deepseek-chat", "deepseek-reasoner"] }),
+      config: decoded({ configDir: "/tmp/odb-endpoint-fixture", requireApiKey: true, endpointModels: ["deepseek-chat", "deepseek-reasoner"] }),
     });
     try {
       expect(instance.models).toEqual({

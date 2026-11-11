@@ -19,7 +19,7 @@ import { ensureTaskWorkspace } from "./workspace.ts";
 
 // HOME and the data folder are this test file's own temporary ones (server/testing/setup.ts).
 afterEach(() => {
-  if (!DATA_DIR.startsWith(join(tmpdir(), "omb-test-home-"))) throw new Error(`refusing to clean ${DATA_DIR}: not this test's home`);
+  if (!DATA_DIR.startsWith(join(tmpdir(), "odb-test-home-"))) throw new Error(`refusing to clean ${DATA_DIR}: not this test's home`);
   rmSync(IMPORTED_SKILLS_DIR, { recursive: true, force: true });
   rmSync(join(DATA_DIR, "skill-state", "imported-skills.json"), { force: true });
 });
@@ -130,7 +130,7 @@ describe("skills brought in from this computer", () => {
     // "Also use my Claude Code skills" already hands Claude ~/.claude/skills: the copy would be a second pdf.
     expect(claude(true)).toEqual(["review"]);
     expect(claude(false)).toEqual(["pdf", "review"]);
-    expect(claude(false, { OMB_CLAUDE_INHERIT_USER_CONFIG: "1" })).toEqual(["review"]);
+    expect(claude(false, { ODB_CLAUDE_INHERIT_USER_CONFIG: "1" })).toEqual(["review"]);
     // Codex loads $CODEX_HOME/skills from the person's own home, linked into a ChatGPT-plan home too; a company home does not.
     expect(codex()).toEqual(["pdf"]);
     expect(codex({ authMode: "chatgpt-plan" })).toEqual(["pdf"]);

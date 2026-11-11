@@ -80,9 +80,9 @@ test("settings already in the new shape are read as written", () => {
 });
 
 test("paired devices are read from the companion's own store", () => {
-  const dir = mkdtempSync(path.join(tmpdir(), "omb-companion-settings-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "odb-companion-settings-"));
   try {
-    const file = companionDevicesFile({ OMB_COMPANION_DIR: dir });
+    const file = companionDevicesFile({ ODB_COMPANION_DIR: dir });
     assert.equal(file, path.join(dir, "devices.json"));
     assert.equal(countPairedPhones(file), 0, "nothing paired yet");
     writeFileSync(file, JSON.stringify({ devices: [{ id: "a" }, { id: "b" }] }));

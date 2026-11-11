@@ -95,8 +95,8 @@ beforeAll(async () => {
   gateway = await startFakeHttpMcp({ tools: [{ name: "lookup_order", inputSchema: { type: "object", properties: {} } }], callResult: () => ({ content: [{ type: "text", text: "order 7 shipped" }] }) });
   broker = await startBrokerFake();
   fx = await launchCloudSendFixture({ onePasswordToken: "ops_fake-running-turn", broker, team: { id: "team-acme-1", name: "Acme", engine: ENGINE, env: {
-    OMB_BOT_BOX: "0", FIXTURE_ADMIN_STAND_IN: `http://127.0.0.1:${(adminServer.address() as AddressInfo).port}`,
-    OMB_CLOUD_BOAT_URL: `http://127.0.0.1:${(relay.address() as AddressInfo).port}/relay/api/box/v1`, OMB_CLOUD_BOAT_TOKEN: "box_omb_running",
+    ODB_BOT_BOX: "0", FIXTURE_ADMIN_STAND_IN: `http://127.0.0.1:${(adminServer.address() as AddressInfo).port}`,
+    ODB_CLOUD_BOAT_URL: `http://127.0.0.1:${(relay.address() as AddressInfo).port}/relay/api/box/v1`, ODB_CLOUD_BOAT_TOKEN: "box_odb_running",
   } } });
   team = fx.team!;
   writeFileSync(join(team.home, "reply.txt"), FINISHED);

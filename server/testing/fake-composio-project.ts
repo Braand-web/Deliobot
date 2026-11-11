@@ -1,4 +1,4 @@
-// A loopback stand-in for a team's own Composio project, as OMB_COMPOSIO_API names it: Tool Router Sessions, connect
+// A loopback stand-in for a team's own Composio project, as ODB_COMPOSIO_API names it: Tool Router Sessions, connect
 // links, connected accounts and each Session's MCP endpoint, kept per Composio user. Every request is recorded with the
 // user it was made for, so a test can say whose connection a call used. Nothing leaves the machine.
 import { createServer, type IncomingMessage } from "node:http";
@@ -7,7 +7,7 @@ import type { AddressInfo } from "node:net";
 export interface FakeComposioAccount { id: string; user_id: string; toolkit: { slug: string }; status: string; updated_at: string }
 
 export interface FakeComposioProject {
-  /** What OMB_COMPOSIO_API is set to. */
+  /** What ODB_COMPOSIO_API is set to. */
   api: string;
   origin: string;
   accounts: FakeComposioAccount[];

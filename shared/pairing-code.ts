@@ -3,8 +3,8 @@
 export const PAIRING_CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
 export const PAIRING_CODE_LENGTH = 12;
 /** The high-entropy credential a QR carries instead of the code; accepted wherever a code is, never shown. */
-export const PAIRING_CREDENTIAL_PREFIX = "omb_pair_";
-const PAIRING_CREDENTIAL = /^omb_pair_[A-Za-z0-9_-]{43}$/;
+export const PAIRING_CREDENTIAL_PREFIX = "odb_pair_";
+const PAIRING_CREDENTIAL = /^odb_pair_[A-Za-z0-9_-]{43}$/;
 
 export function normalizePairingCode(input: string): string {
   return input
@@ -30,7 +30,7 @@ export type PairingInputProblem = "emailCode" | "oldCode" | "scriptKey" | "notAC
 /** English for each problem; src/locales/en.json carries the same sentences under the same keys. */
 export const PAIRING_INPUT_PROBLEM_TEXT = {
   "serverError.pair.emailCode": "That's a sign-in code from an email. Pairing needs a 12-character code like 7KQ2-M9XD-H4TP.",
-  "serverError.pair.oldCode": "That's a code from an older MausBot. Make a new one on the other computer: Phone & devices → Pair a device.",
+  "serverError.pair.oldCode": "That's a code from an older Delio. Make a new one on the other computer: Phone & devices → Pair a device.",
   "serverError.pair.scriptKey": "That's a script key. Pairing needs a pairing code.",
   "serverError.pair.notACode": "That isn't a pairing code. Pairing needs a 12-character code like 7KQ2-M9XD-H4TP.",
 } as const;
@@ -54,7 +54,7 @@ function fromLink(raw: string): string | null {
   return url.searchParams.get("token") ?? url.searchParams.get("code") ?? hash.get("code");
 }
 
-/** Reads a typed code, an `omb_pair_` credential, or a link that carries either (`openmausbot://pair?…`,
+/** Reads a typed code, an `odb_pair_` credential, or a link that carries either (`opendeliobot://pair?…`,
  * `…/pair#code=…`, `?code=…`). */
 export function readPairingInput(raw: string): PairingInput {
   let value = raw.trim();
@@ -64,7 +64,7 @@ export function readPairingInput(raw: string): PairingInput {
     if (!carried) return { kind: "wrong", problem: "notACode" };
     value = carried.trim();
   }
-  if (value.startsWith("omb_sess_")) return { kind: "wrong", problem: "scriptKey" };
+  if (value.startsWith("odb_sess_")) return { kind: "wrong", problem: "scriptKey" };
   if (value.startsWith(PAIRING_CREDENTIAL_PREFIX)) {
     return PAIRING_CREDENTIAL.test(value) ? { kind: "credential", credential: value } : { kind: "wrong", problem: "notACode" };
   }

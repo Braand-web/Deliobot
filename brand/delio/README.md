@@ -7,7 +7,7 @@
   URL parameter: `mascot.html?expr=happy`.
 - `renders/` — the ten expressions at 1024 px, and a sheet of all of them.
 
-The app shows the mascot from `src/assets/mausbot-steel/cursor-<px>.webp`
+The app shows the mascot from `src/assets/delio-steel/cursor-<px>.webp`
 (resting face) and `cursor.<expression>-<px>.webp` (the others), in six
 sizes. `src/lib/steel-body.ts` maps each of the app's states to one of the
 ten expressions.

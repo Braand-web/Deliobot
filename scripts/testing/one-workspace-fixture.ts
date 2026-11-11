@@ -49,7 +49,7 @@ const MAIN = readFileSync(join(REPO_ROOT, "electron", "main.mjs"), "utf8").repla
 const SPLASH_ICON = join(REPO_ROOT, "electron", "resources", "app-icon.png");
 export const ACCOUNT_ID = "acct-fixture";
 /** The renderer's own routes to its server; the same keys as vite.config.ts, so none of its own targets is kept. */
-const PROXIED = ["/api", "/.well-known/openmausbot/environment"];
+const PROXIED = ["/api", "/.well-known/opendeliobot/environment"];
 
 type Cdp = Awaited<ReturnType<typeof connectCdp>>;
 type Handler = (params: any, sessionId?: string) => void;
@@ -189,7 +189,7 @@ function readBody(req: IncomingMessage): Promise<string> {
 function preloadStandIn(ipcBase: string, localOrigin: string, tab = "window"): string {
   return `(() => {
   if (!/^https?:/.test(location.protocol)) return;
-  try { localStorage.setItem("omb-analytics-opt-out", "1"); localStorage.setItem("omb-email-gate", "skipped"); localStorage.setItem("omb-advanced-mode", "0");
+  try { localStorage.setItem("odb-analytics-opt-out", "1"); localStorage.setItem("odb-email-gate", "skipped"); localStorage.setItem("odb-advanced-mode", "0");
     for (const notice of ${JSON.stringify(NOTICES)}) localStorage.setItem(notice, "1"); } catch {}
   const listeners = new Map();
   window.__ogbEmit = (channel, ...args) => { for (const listener of [...(listeners.get(channel) ?? [])]) listener({}, ...args); };
@@ -214,7 +214,7 @@ function preloadStandIn(ipcBase: string, localOrigin: string, tab = "window"): s
     removeListener: (channel, listener) => { listeners.get(channel)?.delete(listener); },
   };
   const electron = { contextBridge: { exposeInMainWorld: (key, value) => { window[key] = value; } }, ipcRenderer, webUtils: { getPathForFile: () => "" } };
-  const process = { platform: "darwin", argv: ["--omb-local-origin=${localOrigin}", "--omb-company-desktop=1"] };
+  const process = { platform: "darwin", argv: ["--odb-local-origin=${localOrigin}", "--odb-company-desktop=1"] };
   (function (require, process) {
 ${PRELOAD}
   })(() => electron, process);
@@ -235,7 +235,7 @@ export interface HomeWorld {
   home: ReturnType<typeof createHomeWindow>;
   /** A launch of the app: the startup screen, then show() as main's launch does. */
   launch(): Promise<void>;
-  /** The MausBot Cloud sign-in main reads: its state, and the power word of a Cloud that sleeps. */
+  /** The Delio Cloud sign-in main reads: its state, and the power word of a Cloud that sleeps. */
   account: { state: Record<string, any>; power: { state: "awake" | "asleep" | "waking"; since: number; sleeps: true } | null; wakeMs: number; wakes: number; signIns: string[] };
   /** Down: every request on the way to My Cloud fails, the window's and main's alike; `teamDown`: the team's Cloud only;
    * `nameMissing`: My Cloud's name isn't found (a resolver kept the answer it got while My Cloud was set up). */
@@ -252,7 +252,7 @@ export interface HomeWorld {
   environments(): { environments: any[]; activeId: string };
   /** The switcher's entries as main's native menu would list them (environments.cjs). */
   menu(): Array<{ label?: string; sublabel?: string; checked?: boolean }>;
-  /** The MausBot Cloud sign-in changed: main's own two steps (the places follow the session, then the window). */
+  /** The Delio Cloud sign-in changed: main's own two steps (the places follow the session, then the window). */
   sync(): Promise<void>;
   /** With `profiles`: the window's rail as its own page, main's list for it, the profile swap and this computer's lending. */
   rail: TabWindow | null;
@@ -378,7 +378,7 @@ export async function launchHomeWorld(fx: CloudSendFixture, { chrome, ports, ver
       }
       next();
     });
-  }, Object.fromEntries(PROXIED.map((path) => [path, { target: fx.desktopBase, ws: true, headers: { "x-openmausbot-desktop-owner": fx.ownerCapability } }])));
+  }, Object.fromEntries(PROXIED.map((path) => [path, { target: fx.desktopBase, ws: true, headers: { "x-opendeliobot-desktop-owner": fx.ownerCapability } }])));
   cleanup.push(() => localEdge.close());
 
   // Main's ipcMain, reached by the preload's ipcRenderer.
@@ -399,8 +399,8 @@ export async function launchHomeWorld(fx: CloudSendFixture, { chrome, ports, ver
       const listed = req.method === "POST" && req.headers.authorization === "Bearer omc_fixture" && account.state.status === "connected" && (account.state.teams ?? []).some((team: any) => team.id === id) && !admin.removed.has(id);
       if (!listed) return reply(404, { error: "not_found" });
       admin.teamPairings.push(id);
-      const grant = await fx.grant("OpenMausBot app (Team Cloud)");
-      return reply(200, { cloudContractVersion: 1, origin: teamOrigin, code: grant.code, pairingUrl: `${teamOrigin}/pair#code=${grant.code}`, expiresAt: grant.expiresAt, credential: "omb_pair_fixture" });
+      const grant = await fx.grant("OpenDeliobot app (Team Cloud)");
+      return reply(200, { cloudContractVersion: 1, origin: teamOrigin, code: grant.code, pairingUrl: `${teamOrigin}/pair#code=${grant.code}`, expiresAt: grant.expiresAt, credential: "odb_pair_fixture" });
     }
     if (!sync && !asked) { res.writeHead(200, { "content-type": "text/html" }); res.end("<!doctype html><title>Another server</title><p>Another server</p>"); return; }
     const { args = [] } = JSON.parse((await readBody(req)) || "{}") as { args?: unknown[] };
@@ -446,7 +446,7 @@ export async function launchHomeWorld(fx: CloudSendFixture, { chrome, ports, ver
   };
 
   // Chrome, its two tabs' worth of windows.
-  const profile = mkdtempSync(join(tmpdir(), "omb-one-workspace-chrome-"));
+  const profile = mkdtempSync(join(tmpdir(), "odb-one-workspace-chrome-"));
   cleanup.push(() => rmSync(profile, { recursive: true, force: true }));
   const browser: ChildProcess = spawn(chrome, ["--headless=new", "--no-sandbox", "--no-first-run", "--no-default-browser-check", "--disable-background-networking",
     "--password-store=basic", "--use-mock-keychain", "--remote-debugging-port=0", `--user-data-dir=${profile}`, "about:blank"], {
@@ -496,7 +496,7 @@ export async function launchHomeWorld(fx: CloudSendFixture, { chrome, ports, ver
   });
   const pairHome = async () => {
     if (account.state.status !== "connected" || network.down) throw new Error("My Cloud is not ready to connect yet.");
-    const grant = await fx.grant("OpenMausBot app (Cloud)");
+    const grant = await fx.grant("OpenDeliobot app (Cloud)");
     return { ...grant, origin: cloudOrigin };
   };
   /** The real client's `pairTeam` shape against the fake Admin's route: the Admin's answer, read as the app reads it. */
@@ -565,7 +565,7 @@ export async function launchHomeWorld(fx: CloudSendFixture, { chrome, ports, ver
     },
     changed: () => lending?.cloudChanged(),
   }) : null;
-  const ownCopy = async (route: string, init?: RequestInit) => fetch(`${fx.desktopBase}${route}`, { ...init, headers: { "x-openmausbot-desktop-owner": fx.ownerCapability } });
+  const ownCopy = async (route: string, init?: RequestInit) => fetch(`${fx.desktopBase}${route}`, { ...init, headers: { "x-opendeliobot-desktop-owner": fx.ownerCapability } });
   const makeHome = () => createHomeWindow({
     ...(clean ? { clean } : {}),
     journal: () => (moves.moved ? { v: 1, phase: "done", cloud: { origin: cloudOrigin, account: ACCOUNT_ID, machine: cloudOrigin }, doneAt: Date.now() } : null),
@@ -671,7 +671,7 @@ export async function launchHomeWorld(fx: CloudSendFixture, { chrome, ports, ver
     win.webContents.on("did-navigate", () => railHandlers?.changed());
     await railRef.loadURL(`${localOrigin}/rail`);
     // This computer, lent to My Cloud on the window's own session, as main's sharingController lends it.
-    const lentHome = mkdtempSync(join(tmpdir(), "omb-profile-lent-"));
+    const lentHome = mkdtempSync(join(tmpdir(), "odb-profile-lent-"));
     cleanup.push(() => rmSync(lentHome, { recursive: true, force: true }));
     const target = createLendingTarget({ account: () => client as never, clean, environments: () => envState.environments });
     lending = createComputerSharing({
@@ -697,8 +697,8 @@ export async function launchHomeWorld(fx: CloudSendFixture, { chrome, ports, ver
       for (const tab of [win, railRef].filter(Boolean) as TabWindow[]) {
         await cdp.request("Emulation.setEmulatedMedia", { features: [{ name: "prefers-color-scheme", value: dark ? "dark" : "light" }] }, tab.sessionId);
         // The app follows the OS's look once its skin is System; a page reads that choice as it loads.
-        if (await tab.evaluate("localStorage.getItem('omb-skin') === 'system'").catch(() => true)) continue;
-        await tab.evaluate("localStorage.setItem('omb-skin', 'system')").catch(() => {});
+        if (await tab.evaluate("localStorage.getItem('odb-skin') === 'system'").catch(() => true)) continue;
+        await tab.evaluate("localStorage.setItem('odb-skin', 'system')").catch(() => {});
         await cdp.request("Page.reload", {}, tab.sessionId).catch(() => {});
       }
       await new Promise((resolve) => setTimeout(resolve, 3_000));
@@ -739,7 +739,7 @@ export async function launchHomeWorld(fx: CloudSendFixture, { chrome, ports, ver
 }
 
 export function shotsDir(fallback: string): string {
-  const dir = process.env.OMB_ONE_WORKSPACE_SHOTS ?? join(fallback, "shots");
+  const dir = process.env.ODB_ONE_WORKSPACE_SHOTS ?? join(fallback, "shots");
   mkdirSync(dir, { recursive: true });
   return dir;
 }

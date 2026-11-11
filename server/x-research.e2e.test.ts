@@ -1,19 +1,19 @@
 // End-to-end coverage for research through treg on a real server and a real agents proxy: which bots are shown the X
-// and research tools, and where their calls go. One loopback stub stands in for both treg (OMB_TREG_URL, for a person's
-// own treg key) and the Admin's relay (OMB_CLOUD_X_URL and OMB_CLOUD_X_TOKEN, as a Cloud home is wired). No external
+// and research tools, and where their calls go. One loopback stub stands in for both treg (ODB_TREG_URL, for a person's
+// own treg key) and the Admin's relay (ODB_CLOUD_X_URL and ODB_CLOUD_X_TOKEN, as a Cloud home is wired). No external
 // service is reached.
 import { createServer, type Server } from "node:http";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, it } from "vitest";
-import { launchVerificationServer, runControlOmb } from "../scripts/control-omb.ts";
+import { launchVerificationServer, runControlOdb } from "../scripts/control-odb.ts";
 import { request } from "../scripts/mcp-server.ts";
 
 interface Seen { method: string; path: string; authorization: string | undefined; tregToken: string | undefined; idempotencyKey: string | undefined; body: unknown }
-const RELAY_PATH = "/api/cloud/services/x", PLAN_TOKEN = "omb_x_e2e_fixture", OWN_KEY = "treg_e2e_own_key";
+const RELAY_PATH = "/api/cloud/services/x", PLAN_TOKEN = "odb_x_e2e_fixture", OWN_KEY = "treg_e2e_own_key";
 const RESEARCH_TOOLS = ["x_search", "research_search", "research_endpoint", "research_call"];
 const POSTS = { output: { data: { items: [
-  { id: "2107987482155561188", authorUsername: "maus", authorName: "Maus", createdUtc: 1791418354, text: "MausBot searched X", likeCount: 4, viewCount: 120 },
+  { id: "2107987482155561188", authorUsername: "delio", authorName: "Delio", createdUtc: 1791418354, text: "Delio searched X", likeCount: 4, viewCount: 120 },
 ], nextCursor: "" } } };
 const USAGE = { calls: 312, max: 5_000, resetsAt: "2026-11-01T00:00:00.000Z" };
 const USED_UP = "Your Pro plan's 5,000 X research calls for October are used up. They reset on 1 November.";
@@ -42,7 +42,7 @@ async function serveStub(seen: Seen[], options: { researchOff?: boolean } = {}):
       if (own && path === "/orgs/org-e2e/balance?limit=1") return send(200, { balance_micro: 4_250_000 });
       if (own && path === "/call/anyapi.x.search.posts") return send(200, POSTS, { "x-treg-cost-micro": "750" });
       if (own && path === "/catalog/endpoints/apollo.people.search") return send(200, { endpoint: PEOPLE_ROW });
-      if (own && path === "/call/apollo.people.search?q_organization_domains=openmausbot.com") return send(200, { people: [{ name: "Maus" }] }, { "x-treg-cost-micro": "2000", "x-treg-call-id": "call-e2e" });
+      if (own && path === "/call/apollo.people.search?q_organization_domains=openopendeliobot.com") return send(200, { people: [{ name: "Delio" }] }, { "x-treg-cost-micro": "2000", "x-treg-call-id": "call-e2e" });
       if (plan && req.method === "GET" && path === PROBE) {
         return options.researchOff ? send(503, { error: "service_unavailable", message: "Research isn't available right now." })
           : send(400, { error: "invalid_request", message: "Say what the research is for in q." });
@@ -50,7 +50,7 @@ async function serveStub(seen: Seen[], options: { researchOff?: boolean } = {}):
       if (plan && req.method === "GET" && path === `${RELAY_PATH}/usage`) return send(200, USAGE);
       if (plan && path === `${RELAY_PATH}/call/anyapi.x.search.posts` && raw.includes("used up")) return send(429, { error: "quota_exceeded", message: USED_UP });
       if (plan && path === `${RELAY_PATH}/call/anyapi.x.search.posts`) return send(200, POSTS);
-      if (plan && path === `${RELAY_PATH}/research/call/apollo.people.search`) return send(200, { people: [{ name: "Maus" }] }, { "x-omb-research-charged-usd": "0.002" });
+      if (plan && path === `${RELAY_PATH}/research/call/apollo.people.search`) return send(200, { people: [{ name: "Delio" }] }, { "x-odb-research-charged-usd": "0.002" });
       send(404, { error: "not_found" });
     });
   });
@@ -63,9 +63,9 @@ async function serveStub(seen: Seen[], options: { researchOff?: boolean } = {}):
 async function withFixture(test: (f: any) => Promise<void>, options: { plan: boolean; ownKey: boolean; researchOff?: boolean }) {
   const seen: Seen[] = [];
   const stub = await serveStub(seen, { researchOff: options.researchOff });
-  const env = { OMB_TREG_URL: stub.url, ...(options.plan ? { OMB_CLOUD_X_URL: `${stub.url}${RELAY_PATH}`, OMB_CLOUD_X_TOKEN: PLAN_TOKEN } : {}) };
+  const env = { ODB_TREG_URL: stub.url, ...(options.plan ? { ODB_CLOUD_X_URL: `${stub.url}${RELAY_PATH}`, ODB_CLOUD_X_TOKEN: PLAN_TOKEN } : {}) };
   const session = await launchVerificationServer({ ...process.env, ...env }, undefined, undefined, undefined, undefined, { scripted: true });
-  const cli = (...args: string[]) => runControlOmb(args, { env: { OPENMAUSBOT_URL: session.info.url } }) as Promise<any>;
+  const cli = (...args: string[]) => runControlOdb(args, { env: { OPENDELIOBOT_URL: session.info.url } }) as Promise<any>;
   const api = (path: string, body?: unknown, method = "POST") =>
     request(path, body === undefined ? {} : { method, body: JSON.stringify(body) }, session.info.url) as Promise<any>;
   const planPath = join(session.info.dataDir, "room-plan.json");
@@ -106,8 +106,8 @@ async function withFixture(test: (f: any) => Promise<void>, options: { plan: boo
   }
 }
 
-const SEARCH = { tool: "x_search", arguments: { query: "mausbot" } };
-const PEOPLE = { tool: "research_call", arguments: { id: "apollo.people.search", params: { q_organization_domains: "openmausbot.com" } } };
+const SEARCH = { tool: "x_search", arguments: { query: "delio" } };
+const PEOPLE = { tool: "research_call", arguments: { id: "apollo.people.search", params: { q_organization_domains: "openopendeliobot.com" } } };
 
 it("shows no research tools without a treg key or a Cloud plan, even to a bot switched on", async () => withFixture(async (f) => {
   const config = await f.api("/api/config", undefined, "GET");
@@ -129,13 +129,13 @@ it("with the person's own treg key, every bot has the tools by default and calls
   expect(bot.xResearch).toBeUndefined();
   const { tools, results } = await f.turn(bot, [SEARCH, PEOPLE]);
   expect(tools).toEqual(expect.arrayContaining(RESEARCH_TOOLS));
-  expect(results[0].posts).toEqual([expect.objectContaining({ id: "2107987482155561188", author: "@maus", text: "MausBot searched X" })]);
-  expect(results[1]).toEqual({ result: { people: [{ name: "Maus" }] }, cost: "$0.0020", callId: "call-e2e" });
+  expect(results[0].posts).toEqual([expect.objectContaining({ id: "2107987482155561188", author: "@delio", text: "Delio searched X" })]);
+  expect(results[1]).toEqual({ result: { people: [{ name: "Delio" }] }, cost: "$0.0020", callId: "call-e2e" });
   const calls = f.seen.filter((seen: Seen) => !seen.path.startsWith("/auth/") && !seen.path.startsWith("/orgs/"));
   expect(calls.map((seen: Seen) => [seen.method, seen.path, seen.tregToken, seen.authorization])).toEqual([
     ["POST", "/call/anyapi.x.search.posts", OWN_KEY, undefined],
     ["GET", "/catalog/endpoints/apollo.people.search", OWN_KEY, undefined],
-    ["GET", "/call/apollo.people.search?q_organization_domains=openmausbot.com", OWN_KEY, undefined],
+    ["GET", "/call/apollo.people.search?q_organization_domains=openopendeliobot.com", OWN_KEY, undefined],
   ]);
   expect(calls[2].idempotencyKey).toMatch(/^[0-9a-f-]{36}$/);
   expect(f.seen.some((seen: Seen) => seen.path.startsWith(RELAY_PATH))).toBe(false);
@@ -151,7 +151,7 @@ it("with only a Cloud plan, calls go through the relay with the plan's token, an
   const { tools, results } = await f.turn(on, [SEARCH, PEOPLE]);
   expect(tools).toEqual(expect.arrayContaining(RESEARCH_TOOLS));
   expect(results[0].newestId).toBe("2107987482155561188");
-  expect(results[1]).toEqual({ result: { people: [{ name: "Maus" }] }, cost: "$0.0020" });
+  expect(results[1]).toEqual({ result: { people: [{ name: "Delio" }] }, cost: "$0.0020" });
   // The server asked once, at start, whether research is on, with a request that spends nothing.
   expect(f.seen.filter(isProbe).map((seen: Seen) => seen.authorization)).toEqual([`Bearer ${PLAN_TOKEN}`]);
   const calls = f.seen.filter((seen: Seen) => !isProbe(seen));
@@ -159,7 +159,7 @@ it("with only a Cloud plan, calls go through the relay with the plan's token, an
     ["POST", `${RELAY_PATH}/call/anyapi.x.search.posts`, `Bearer ${PLAN_TOKEN}`, undefined],
     ["POST", `${RELAY_PATH}/research/call/apollo.people.search`, `Bearer ${PLAN_TOKEN}`, undefined],
   ]);
-  expect(calls[1].body).toEqual({ params: { q_organization_domains: "openmausbot.com" } });
+  expect(calls[1].body).toEqual({ params: { q_organization_domains: "openopendeliobot.com" } });
   expect(calls[1].idempotencyKey).toMatch(/^[0-9a-f-]{36}$/);
   expect(await f.status()).toEqual({ using: "included", ownKey: false, included: true, usage: USAGE });
   expect(f.seen.at(-1)).toMatchObject({ method: "GET", path: `${RELAY_PATH}/usage`, authorization: `Bearer ${PLAN_TOKEN}`, tregToken: undefined });

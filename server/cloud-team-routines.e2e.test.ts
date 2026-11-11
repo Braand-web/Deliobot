@@ -1,4 +1,4 @@
-// A routine is where it lives (docs/team-cloud.md "Routines"). A real Team Cloud (OMB_CLOUD_ROLE=team) with the Owner,
+// A routine is where it lives (docs/team-cloud.md "Routines"). A real Team Cloud (ODB_CLOUD_ROLE=team) with the Owner,
 // an Admin and two members, Bob and Ben: a routine Bob makes from his private chat, or points at it, is his alone in
 // every list, stream, file, export and bot tool, and its runs land in his audience; one he makes for the shared chat
 // stays the team's. When Bob leaves, his private routines go with his chats, the shared ones he wrote are handed to whoever
@@ -27,9 +27,9 @@ let fx: CloudSendFixture, team: CloudTeamFixture;
 let owner = "", admin = "", bob = "", ben = "";
 let scout: Bot, ledger: Bot;
 let bobThread = "", benThread = "", fileName = "";
-let kumquat = "", quince = "", standup = "", tally = "", digest = "", justMe = "", mausbotRoutine = "";
+let kumquat = "", quince = "", standup = "", tally = "", digest = "", justMe = "", delioRoutine = "";
 
-const dataDir = (...rest: string[]) => join(team.home, ".openmausbot", ...rest);
+const dataDir = (...rest: string[]) => join(team.home, ".opendeliobot", ...rest);
 const sleep = (ms: number) => new Promise((done) => setTimeout(done, ms));
 async function until(done: () => Promise<boolean> | boolean, timeoutMs = 60_000): Promise<void> {
   const end = Date.now() + timeoutMs;
@@ -223,13 +223,13 @@ it("a member's routine for the shared chat lands where everyone reads it, run by
     expect((await routinesOf(token)).routines.map((routine) => routine.id)).not.toContain(justMe);
     expect((await team.as(token, "GET", `/api/threads/${ran.threadId}/messages`)).status).toBe(404);
   }
-  // A teammate's own MausBot takes no routine from anyone else, and one Bob sets up for his is his alone.
-  const bobsMausBot = (await botsOf(bob)).find((bot) => bot.name === "MausBot")!;
-  expect((await team.as(owner, "POST", "/api/routines", { name: "Peek", prompt: "x", botId: bobsMausBot.id, schedule: LATER })).status).toBe(404);
-  const own = await team.as(bob, "POST", "/api/routines", { name: "Bee check", prompt: "Check the bees", botId: bobsMausBot.id, schedule: LATER });
+  // A teammate's own Delio takes no routine from anyone else, and one Bob sets up for his is his alone.
+  const bobsDelio = (await botsOf(bob)).find((bot) => bot.name === "Delio")!;
+  expect((await team.as(owner, "POST", "/api/routines", { name: "Peek", prompt: "x", botId: bobsDelio.id, schedule: LATER })).status).toBe(404);
+  const own = await team.as(bob, "POST", "/api/routines", { name: "Bee check", prompt: "Check the bees", botId: bobsDelio.id, schedule: LATER });
   expect(own.status, JSON.stringify(own.body)).toBe(201);
-  mausbotRoutine = own.body.routine.id;
-  for (const token of [admin, owner]) expect((await routinesOf(token)).routines.map((routine) => routine.id)).not.toContain(mausbotRoutine);
+  delioRoutine = own.body.routine.id;
+  for (const token of [admin, owner]) expect((await routinesOf(token)).routines.map((routine) => routine.id)).not.toContain(delioRoutine);
 }, hostTimeout(180_000));
 
 it("when Bob leaves, his private routines go and the shared ones he wrote are handed over and keep running", async () => {

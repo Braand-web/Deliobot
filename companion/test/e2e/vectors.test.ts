@@ -87,8 +87,8 @@ describe("V1 derivations", () => {
     const hash = credentialHash(v.inputs.deviceToken);
     const label = (text: string) => Buffer.from(text, "utf8");
     const viaHmac = (msg: Buffer) => createHmac("sha256", hash).update(msg).digest("hex");
-    expect(viaHmac(Buffer.concat([label("omb-e2e psk v1"), bytes(v.V1.keyId)]))).toBe(v.V1.credentials[0].psk);
-    expect(viaHmac(Buffer.concat([label("omb-relay admission v1"), bytes(v.inputs.hostId)]))).toBe(v.V1.credentials[0].adm);
+    expect(viaHmac(Buffer.concat([label("odb-e2e psk v1"), bytes(v.V1.keyId)]))).toBe(v.V1.credentials[0].psk);
+    expect(viaHmac(Buffer.concat([label("odb-relay admission v1"), bytes(v.inputs.hostId)]))).toBe(v.V1.credentials[0].adm);
     expect(sha256(T.publicKey).subarray(0, 16).toString("hex")).toBe(v.V1.keyId);
   });
 
@@ -121,7 +121,7 @@ function straightLine(transport: number, pskBytes: Buffer) {
   let h: Buffer = Buffer.concat([Buffer.from("Noise_NKpsk0_P256_AESGCM_SHA256"), Buffer.alloc(1)]);
   let ck: Buffer = h;
   let k: Buffer;
-  h = hash(h, Buffer.from([...Buffer.from("omb-e2e/1"), 0, transport]));
+  h = hash(h, Buffer.from([...Buffer.from("odb-e2e/1"), 0, transport]));
   h = hash(h, T.publicKey);
   let tempH: Buffer;
   [ck, tempH, k] = hkdf(ck, pskBytes, 3);
@@ -153,7 +153,7 @@ describe.each([
   const vector = v[name];
 
   it("matches an independent straight-line derivation", () => {
-    expect(vector.prologue).toBe(Buffer.from([...Buffer.from("omb-e2e/1"), 0, transport]).toString("hex"));
+    expect(vector.prologue).toBe(Buffer.from([...Buffer.from("odb-e2e/1"), 0, transport]).toString("hex"));
     expect(straightLine(transport, PSKS[pskName])).toEqual({
       message1: vector.message1,
       message2: vector.message2,

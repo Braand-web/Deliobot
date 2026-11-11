@@ -11,7 +11,7 @@ import { oneHomeCloud } from "./one-home-main.mjs";
 // among its `formerOrigins`. A computer whose bots moved to it keeps them there, follows it, and never brings them back,
 // which would run them in two places; a Cloud that truly is another still ends the move as before. Every side is faked;
 // nothing reaches the network or the disk.
-const OLD = "https://omb-u-1a2b3c4d5e6f.fly.dev", NEW = "https://omb-u-1a2b3c4d5e6f.homes.example", OTHER = "https://omb-u-other.homes.example";
+const OLD = "https://odb-u-1a2b3c4d5e6f.fly.dev", NEW = "https://odb-u-1a2b3c4d5e6f.homes.example", OTHER = "https://odb-u-other.homes.example";
 const reply = (status, body = {}) => ({ ok: status < 400, status, body });
 
 function computer({ journal, cloud = {}, admin = {} }) {
@@ -92,7 +92,7 @@ test("the id is kept once the session lists it, even before the Cloud ever moves
 
 test("a Cloud that truly is another still counts as ended: a move not switched yet stops, and a done one comes home on the Admin's word", async () => {
   // Another id, another address, and the journal's address not among the ones it had before.
-  const other = { origin: OTHER, machine: OTHER, id: "c-other", formerOrigins: ["https://omb-u-other.fly.dev"] };
+  const other = { origin: OTHER, machine: OTHER, id: "c-other", formerOrigins: ["https://odb-u-other.fly.dev"] };
   const moving = computer({ journal: { v: 1, phase: "copy", cloud: movedTo(OLD, { id: "c-home" }), startedAt: 1_000 }, cloud: other });
   moving.server.marker = { frozen: false };
   await moving.home.kick();
@@ -145,7 +145,7 @@ const session = ({ machine = {}, clouds } = {}) => ({
 const listed = (over = {}) => ({ id: "c-home", name: "My Cloud", color: null, role: "owner", tier: "pro", runsOn: "cloud", status: "ready", origin: NEW, teamId: null, primary: true, managed: true, ...over });
 
 test("the Admin's formerOrigins are read beside a Cloud's origin, strictly, and an Admin without them reads as before", () => {
-  assert.deepEqual(parseCloudSummary({ state: "ready", origin: NEW, formerOrigins: [OLD, OLD, NEW, "http://omb-u-x.fly.dev", `${OLD}/path`, 7, null] }),
+  assert.deepEqual(parseCloudSummary({ state: "ready", origin: NEW, formerOrigins: [OLD, OLD, NEW, "http://odb-u-x.fly.dev", `${OLD}/path`, 7, null] }),
     { status: "ready", origin: NEW, formerOrigins: [OLD] });
   assert.deepEqual(parseCloudSummary({ state: "ready", origin: NEW }), { status: "ready", origin: NEW });
   for (const formerOrigins of [OLD, {}, [], ["nope"]]) assert.deepEqual(parseCloudSummary({ state: "ready", origin: NEW, formerOrigins }), { status: "ready", origin: NEW }, JSON.stringify(formerOrigins));
@@ -155,8 +155,8 @@ test("the Admin's formerOrigins are read beside a Cloud's origin, strictly, and 
 });
 
 test("My Cloud's identity: its id from the list at its address, and every address it had before, the summary's and the list's", () => {
-  assert.deepEqual(myCloudOf(session({ machine: { formerOrigins: [OLD] }, clouds: [listed({ formerOrigins: ["https://omb-u-older.fly.dev"] })] })),
-    { origin: NEW, id: "c-home", formerOrigins: [OLD, "https://omb-u-older.fly.dev"] });
+  assert.deepEqual(myCloudOf(session({ machine: { formerOrigins: [OLD] }, clouds: [listed({ formerOrigins: ["https://odb-u-older.fly.dev"] })] })),
+    { origin: NEW, id: "c-home", formerOrigins: [OLD, "https://odb-u-older.fly.dev"] });
   assert.deepEqual(myCloudOf(session({ clouds: [listed({ origin: OTHER })] })), { origin: NEW, id: null, formerOrigins: [] }, "an id only from the Cloud at its address");
   assert.deepEqual(myCloudOf(session({ clouds: [listed({ role: "member" })] })).id, null, "never a team's");
   assert.equal(myCloudOf({ status: "unavailable", machine: { status: "ready", origin: NEW } }), null, "only a verified session's word");

@@ -66,7 +66,7 @@ describe("CustomAcpDriver turns (fake CLI)", () => {
   beforeEach(() => {
     ensureDirs();
     chmodSync(FAKE_CLI, 0o755);
-    scratch = mkdtempSync(join(tmpdir(), "omb-custom-acp-test-"));
+    scratch = mkdtempSync(join(tmpdir(), "odb-custom-acp-test-"));
   });
 
   afterEach(async () => {

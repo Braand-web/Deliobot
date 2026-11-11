@@ -1,13 +1,13 @@
 // The X card in the real Apps pop-up, against fake-engine servers and one loopback stand-in for both treg and the
-// MausBot Cloud relay: no real treg key, account or call.
+// Delio Cloud relay: no real treg key, account or call.
 import assert from "node:assert/strict";
 import { createServer, type Server } from "node:http";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { launchVerificationServer, type VerificationServer } from "./control-omb.ts";
+import { launchVerificationServer, type VerificationServer } from "./control-odb.ts";
 import { fixtureApi, mountPreview, type MountedPreview } from "./testing/preview-fixture.ts";
 
-const RELAY_PATH = "/api/cloud/services/x", PLAN_TOKEN = "omb_x_verify_fixture", OWN_KEY = "treg_verify_fixture_key";
+const RELAY_PATH = "/api/cloud/services/x", PLAN_TOKEN = "odb_x_verify_fixture", OWN_KEY = "treg_verify_fixture_key";
 const month = { calls: 312, max: 5_000, resetsAt: "2026-11-01T00:00:00.000Z" };
 let usedUp = false;
 
@@ -29,15 +29,15 @@ async function serveStub(): Promise<{ server: Server; url: string }> {
 }
 
 const stub = await serveStub();
-const output = process.env.OMB_UI_EVIDENCE_DIR || "/tmp/omb-x-connector-evidence";
+const output = process.env.ODB_UI_EVIDENCE_DIR || "/tmp/odb-x-connector-evidence";
 mkdirSync(output, { recursive: true });
-const { chromium } = await import(process.env.OMB_VERIFY_PLAYWRIGHT || "playwright");
-const browser = await chromium.launch({ headless: true, executablePath: process.env.OMB_VERIFY_BROWSER_CHROME || undefined });
+const { chromium } = await import(process.env.ODB_VERIFY_PLAYWRIGHT || "playwright");
+const browser = await chromium.launch({ headless: true, executablePath: process.env.ODB_VERIFY_BROWSER_CHROME || undefined });
 const opened: Array<{ fixture: VerificationServer; ui: MountedPreview }> = [];
 
 async function open(plan: boolean) {
-  const fixture = await launchVerificationServer({ ...process.env, OMB_TREG_URL: stub.url,
-    ...(plan ? { OMB_CLOUD_X_URL: `${stub.url}${RELAY_PATH}`, OMB_CLOUD_X_TOKEN: PLAN_TOKEN } : {}) });
+  const fixture = await launchVerificationServer({ ...process.env, ODB_TREG_URL: stub.url,
+    ...(plan ? { ODB_CLOUD_X_URL: `${stub.url}${RELAY_PATH}`, ODB_CLOUD_X_TOKEN: PLAN_TOKEN } : {}) });
   const ui = await mountPreview(fixture, {
     entry: "/scripts/testing/whop-preview.tsx", route: "/__x.html", title: "Isolated X card",
     extraRoutes: [

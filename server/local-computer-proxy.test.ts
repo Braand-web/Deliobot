@@ -28,7 +28,7 @@ readline.createInterface({input: process.stdin}).on("line", (line) => {
   process.stdout.write(JSON.stringify({jsonrpc:"2.0",id:message.id,result:{
     forwarded:message.method,calls,
     marker:process.env.CUA_FIXTURE_MARKER,
-    tokenPresent:Boolean(process.env.OMB_CONTROL_TOKEN),
+    tokenPresent:Boolean(process.env.ODB_CONTROL_TOKEN),
     path:process.env.PATH,
     argv:process.argv.slice(1),
     tail:message.params?.large ? "x".repeat(150000) : ""
@@ -94,7 +94,7 @@ describe("local computer proxy (isolated child and control endpoint)", () => {
     };
     const control = { url: `http://127.0.0.1:${(server.address() as AddressInfo).port}/control`, token: "isolated-control-token" };
     let connection = gatedLocalComputer(original, control);
-    const home = mkdtempSync(join(tmpdir(), "omb-cua-launch-"));
+    const home = mkdtempSync(join(tmpdir(), "odb-cua-launch-"));
     let child: ChildProcess | undefined;
     try {
       if (runtime === "electron") {
@@ -104,10 +104,10 @@ describe("local computer proxy (isolated child and control endpoint)", () => {
         const moduleUrl = new URL("./local-computer.ts", import.meta.url).href;
         const bootstrap = spawnSync(electron, ["--input-type=module", "-e", `
           const { gatedLocalComputer } = await import(${JSON.stringify(moduleUrl)});
-          const { original, control } = JSON.parse(process.env.OMB_FIXTURE_CONNECTION);
+          const { original, control } = JSON.parse(process.env.ODB_FIXTURE_CONNECTION);
           process.stdout.write(JSON.stringify(gatedLocalComputer(original, control)));
         `], {
-          env: { ...process.env, HOME: home, USERPROFILE: home, ELECTRON_RUN_AS_NODE: "1", OMB_FIXTURE_CONNECTION: JSON.stringify({ original, control }) },
+          env: { ...process.env, HOME: home, USERPROFILE: home, ELECTRON_RUN_AS_NODE: "1", ODB_FIXTURE_CONNECTION: JSON.stringify({ original, control }) },
           encoding: "utf8", timeout: 10_000,
         });
         expect(bootstrap.status, bootstrap.stderr).toBe(0);
@@ -116,7 +116,7 @@ describe("local computer proxy (isolated child and control endpoint)", () => {
       }
       expect(connection.env.ELECTRON_RUN_AS_NODE).toBe("1");
       child = spawn(connection.command, connection.args, { env: { ...process.env, ...connection.env,
-        HOME: home, USERPROFILE: home, OMB_EXTRA_PATH: dirname(process.execPath), PATH: "",
+        HOME: home, USERPROFILE: home, ODB_EXTRA_PATH: dirname(process.execPath), PATH: "",
       }, stdio: ["pipe", "pipe", "pipe"] });
       const input = createInterface({ input: child.stdout! });
       const replies = new Map<number, (value: any) => void>();
@@ -216,7 +216,7 @@ readline.createInterface({input: process.stdin}).on("line", (line) => {
       }
     };
     try {
-      await run({ OMB_COMPUTER_JOURNAL: "1" }, async (rpc) => {
+      await run({ ODB_COMPUTER_JOURNAL: "1" }, async (rpc) => {
         const first = await rpc(1);
         expect(posts).toHaveLength(1);
         expect(first.at).toBeGreaterThanOrEqual(posts[0].at + 250);
@@ -236,7 +236,7 @@ readline.createInterface({input: process.stdin}).on("line", (line) => {
         expect(second.message.id).toBe(2);
       });
       posts.length = 0;
-      await run({ OMB_COMPUTER_JOURNAL: "" }, async (rpc) => {
+      await run({ ODB_COMPUTER_JOURNAL: "" }, async (rpc) => {
         await rpc(3);
         expect(posts).toHaveLength(0);
       });
@@ -478,13 +478,13 @@ readline.createInterface({input: process.stdin}).on("line", (line) => {
 
   it("rejects malformed environment and missing authority without printing connection secrets", () => {
     for (const overrides of [
-      { OMB_CUA_ARGS: "not-json-private-value" },
-      { OMB_CUA_ARGS: '["mcp",7]' },
-      { OMB_CONTROL_TOKEN: "" },
-      { OMB_CONTROL_URL: "https://outside.example/control" },
+      { ODB_CUA_ARGS: "not-json-private-value" },
+      { ODB_CUA_ARGS: '["mcp",7]' },
+      { ODB_CONTROL_TOKEN: "" },
+      { ODB_CONTROL_URL: "https://outside.example/control" },
     ]) {
       const result = spawnSync(process.execPath, ["--experimental-strip-types", SPAWNED_PROXIES.localComputer], {
-        env: { ...process.env, OMB_CUA_COMMAND: process.execPath, OMB_CUA_ARGS: "[]", OMB_CONTROL_URL: "http://127.0.0.1:1/control", OMB_CONTROL_TOKEN: "private-fixture-token", ...overrides },
+        env: { ...process.env, ODB_CUA_COMMAND: process.execPath, ODB_CUA_ARGS: "[]", ODB_CONTROL_URL: "http://127.0.0.1:1/control", ODB_CONTROL_TOKEN: "private-fixture-token", ...overrides },
         encoding: "utf8", timeout: 5_000,
       });
       expect(result.status).toBe(2);

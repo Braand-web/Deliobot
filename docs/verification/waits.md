@@ -19,22 +19,22 @@ never renews itself.
 ```sh
 W=$(mktemp -d)
 printf '[{"server":"agents","name":"wait_until","input":{"label":"the report","kind":"file_exists","path":"%s/report.txt","follow_up":"Say the report is ready."}}]' "$W" > "$W/calls.json"
-FAKE_CLAUDE_TOOL_CALLS_FILE="$W/calls.json" node --experimental-strip-types scripts/control-omb.ts launch
+FAKE_CLAUDE_TOOL_CALLS_FILE="$W/calls.json" node --experimental-strip-types scripts/control-odb.ts launch
 ```
 
 Second terminal (same `W`; `DATA` is the `dataDir` the launcher printed):
 
 ```sh
-pnpm control:omb new-bot --name Pepper --url http://127.0.0.1:PORT
-pnpm control:omb send --bot BOT_ID --text "Tell me when report.txt is there, then say so" --url http://127.0.0.1:PORT
-pnpm control:omb wait --bot BOT_ID --timeout 30 --url http://127.0.0.1:PORT
-pnpm control:omb messages --bot BOT_ID --limit 12 --url http://127.0.0.1:PORT
+pnpm control:odb new-bot --name Pepper --url http://127.0.0.1:PORT
+pnpm control:odb send --bot BOT_ID --text "Tell me when report.txt is there, then say so" --url http://127.0.0.1:PORT
+pnpm control:odb wait --bot BOT_ID --timeout 30 --url http://127.0.0.1:PORT
+pnpm control:odb messages --bot BOT_ID --limit 12 --url http://127.0.0.1:PORT
 touch "$W/report.txt"; sleep 25
-pnpm control:omb wait --bot BOT_ID --timeout 60 --url http://127.0.0.1:PORT
-pnpm control:omb messages --bot BOT_ID --limit 12 --url http://127.0.0.1:PORT
+pnpm control:odb wait --bot BOT_ID --timeout 60 --url http://127.0.0.1:PORT
+pnpm control:odb messages --bot BOT_ID --limit 12 --url http://127.0.0.1:PORT
 curl -s http://127.0.0.1:PORT/api/notifications
 cat "$DATA/waits.json"
-sleep 10; pnpm control:omb messages --bot BOT_ID --limit 12 --url http://127.0.0.1:PORT
+sleep 10; pnpm control:odb messages --bot BOT_ID --limit 12 --url http://127.0.0.1:PORT
 ```
 
 Expected:
@@ -62,7 +62,7 @@ internet, and what a real model does with the follow-up (the fake engine replies
 ## Last exercised
 
 2026-10-28, Node 24, branch `feat/bot-waits` at `4fc4ef0bb`, fixture log
-`/var/folders/7b/15jj691d4tj_7vq99cqvwgbr0000gn/T/openmausbot-verification-evidence/server-1793162265419-23568.log`.
+`/var/folders/7b/15jj691d4tj_7vq99cqvwgbr0000gn/T/opendeliobot-verification-evidence/server-1793162265419-23568.log`.
 Every expectation above held. The lines below are abridged: only these fields of each
 message are kept, and `<W>` stands for the temp dir.
 

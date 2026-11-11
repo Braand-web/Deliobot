@@ -1,4 +1,4 @@
-// A real Team Cloud home (OMB_CLOUD_ROLE=team) whose idle windows are a quarter second (the power clock): it agrees to
+// A real Team Cloud home (ODB_CLOUD_ROLE=team) whose idle windows are a quarter second (the power clock): it agrees to
 // the Admin's sleep request once nobody uses it, waits while a member does, and waits for work one bot handed another
 // until it is done. The engine is the synthetic Claude CLI with each bot's tool calls scripted; nothing leaves loopback.
 import { randomBytes } from "node:crypto";
@@ -14,7 +14,7 @@ import { hostTimeout } from "./testing/host-timeout.ts";
 import { freePortBlock } from "./testing/ports.ts";
 
 const SERVER_DIR = fileURLToPath(new URL("./", import.meta.url));
-const HOST = "omb-t-3f2e1d0c9b8a.fly.dev";
+const HOST = "odb-t-3f2e1d0c9b8a.fly.dev";
 const MACHINE = "8e2f4a6b-1c3d-4e5f-8a7b-9c0d1e2f3a4b";
 const TEAM = { id: "team-sleep-1", name: "Harbor" };
 const OWNER = { email: "olive@harbor.test", role: "owner" as const }, MEMBER = { email: "ada@harbor.test", role: "member" as const };
@@ -38,7 +38,7 @@ async function admin(method: "GET" | "POST", path: string, body = "") {
   const timestamp = String(Math.floor(Date.now() / 1000)), nonce = randomBytes(16).toString("base64url");
   const response = await fetch(`${base}${path}`, { method, ...(method === "POST" ? { body } : {}), headers: {
     ...EDGE, ...(method === "POST" ? { "content-type": "application/json" } : {}),
-    "x-omb-cloud-timestamp": timestamp, "x-omb-cloud-nonce": nonce, "x-omb-cloud-signature": `v1=${cloudRequestSignature(secret, timestamp, nonce, method, path, body)}`,
+    "x-odb-cloud-timestamp": timestamp, "x-odb-cloud-nonce": nonce, "x-odb-cloud-signature": `v1=${cloudRequestSignature(secret, timestamp, nonce, method, path, body)}`,
   } });
   return { status: response.status, body: await response.json().catch(() => null) as any };
 }
@@ -46,10 +46,10 @@ const askToSleep = (idleMinutes?: number) => admin("POST", "/api/cloud/power/sle
 
 /** The Admin's signed pairing with a member claim, redeemed into that member's bearer. */
 async function pair(person: { email: string; role: "owner" | "member" }) {
-  const body = JSON.stringify({ label: "OpenMausBot app (Team Cloud)", ttlSeconds: 300, team: TEAM, member: person });
+  const body = JSON.stringify({ label: "OpenDeliobot app (Team Cloud)", ttlSeconds: 300, team: TEAM, member: person });
   const timestamp = String(Math.floor(Date.now() / 1000)), nonce = randomBytes(16).toString("base64url");
   const minted = await fetch(`${base}/api/cloud/pairing`, { method: "POST", body, headers: { ...EDGE, "content-type": "application/json",
-    "x-omb-cloud-timestamp": timestamp, "x-omb-cloud-nonce": nonce, "x-omb-cloud-signature": `v1=${cloudPairingSignature(secret, timestamp, nonce, body)}` } });
+    "x-odb-cloud-timestamp": timestamp, "x-odb-cloud-nonce": nonce, "x-odb-cloud-signature": `v1=${cloudPairingSignature(secret, timestamp, nonce, body)}` } });
   expect(minted.status, log.slice(-2000)).toBe(200);
   const { code } = await minted.json() as { code: string };
   const paired = await fetch(`${base}/api/auth/pair`, { method: "POST", headers: { ...EDGE, "content-type": "application/json" }, body: JSON.stringify({ code }) });
@@ -73,7 +73,7 @@ async function sleepsWithin(ms: number) {
 }
 
 beforeAll(async () => {
-  home = mkdtempSync(join(tmpdir(), "omb-cloud-team-sleep-"));
+  home = mkdtempSync(join(tmpdir(), "odb-cloud-team-sleep-"));
   const cli = join(home, "fixture-claude.mjs");
   writeFileSync(cli, `#!/usr/bin/env node
 import { readdirSync } from "node:fs";
@@ -91,10 +91,10 @@ await import(${JSON.stringify(pathToFileURL(join(SERVER_DIR, "testing", "fake-cl
   child = spawn(process.execPath, ["--import", offline, "--import", new URL("./testing/power-clock-hooks.mjs", import.meta.url).href, join(SERVER_DIR, "index.ts")], {
     cwd: join(SERVER_DIR, ".."),
     env: {
-      PATH: process.env.PATH, ...(process.env.SystemRoot ? { SystemRoot: process.env.SystemRoot } : {}), HOME: home, USERPROFILE: home, OMB_DATA_DIR: home,
-      OMB_PORT: String(port), OMB_WEBHOOK_PORT: String(port + 1), OMB_CLOUD_ROLE: "team", OMB_CLOUD_TEAM_ID: TEAM.id, OMB_CLOUD_TEAM_NAME: TEAM.name,
-      OMB_CLOUD_MACHINE_ID: MACHINE, OMB_CLOUD_ADMIN_URL: "https://cloud.example.test", OMB_CLOUD_BOOTSTRAP_SECRET: secret, OMB_PUBLIC_URL: `https://${HOST}`,
-      OMB_TEST_POWER_CLOCK: "1",
+      PATH: process.env.PATH, ...(process.env.SystemRoot ? { SystemRoot: process.env.SystemRoot } : {}), HOME: home, USERPROFILE: home, ODB_DATA_DIR: home,
+      ODB_PORT: String(port), ODB_WEBHOOK_PORT: String(port + 1), ODB_CLOUD_ROLE: "team", ODB_CLOUD_TEAM_ID: TEAM.id, ODB_CLOUD_TEAM_NAME: TEAM.name,
+      ODB_CLOUD_MACHINE_ID: MACHINE, ODB_CLOUD_ADMIN_URL: "https://cloud.example.test", ODB_CLOUD_BOOTSTRAP_SECRET: secret, ODB_PUBLIC_URL: `https://${HOST}`,
+      ODB_TEST_POWER_CLOCK: "1",
     },
     stdio: ["ignore", "pipe", "pipe"],
   });

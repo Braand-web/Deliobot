@@ -9,7 +9,7 @@ import { disabledNativeSkillNames, isNativeSkillEnabled, setNativeSkillEnabled }
 import { nativeSkillListing } from "./native-skills.ts";
 
 afterEach(() => {
-  if (!DATA_DIR.startsWith(join(tmpdir(), "omb-test-home-"))) throw new Error(`refusing to clean ${DATA_DIR}: not this test's home`);
+  if (!DATA_DIR.startsWith(join(tmpdir(), "odb-test-home-"))) throw new Error(`refusing to clean ${DATA_DIR}: not this test's home`);
   rmSync(join(DATA_DIR, "skill-state"), { recursive: true, force: true });
 });
 

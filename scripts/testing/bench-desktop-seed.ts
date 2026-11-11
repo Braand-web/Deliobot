@@ -1,13 +1,13 @@
 // Seeds a fixture data folder for scripts/bench-desktop.ts before its server starts: many bots in departments, two
 // threads each, a few unread, and one long conversation of markdown, code, tables, images and tool rows. Runs only in
-// a child whose OMB_DATA_DIR and HOME are the fixture's own folder; prints the ids the bench needs as JSON.
-//   OMB_DATA_DIR=... node --experimental-strip-types scripts/testing/bench-desktop-seed.ts BOTS THREADS MESSAGES
+// a child whose ODB_DATA_DIR and HOME are the fixture's own folder; prints the ids the bench needs as JSON.
+//   ODB_DATA_DIR=... node --experimental-strip-types scripts/testing/bench-desktop-seed.ts BOTS THREADS MESSAGES
 import { copyFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const dataDir = process.env.OMB_DATA_DIR;
-if (!dataDir || !dataDir.includes("openmausbot-bench-")) throw new Error("bench-desktop-seed runs only on a bench fixture folder");
+const dataDir = process.env.ODB_DATA_DIR;
+if (!dataDir || !dataDir.includes("opendeliobot-bench-")) throw new Error("bench-desktop-seed runs only on a bench fixture folder");
 const [bots = 150, threads = 300, messages = 2000] = process.argv.slice(2).map(Number);
 
 const { Store } = await import("../../server/store.ts");

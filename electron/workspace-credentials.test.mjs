@@ -18,7 +18,7 @@ describe("workspace credential migration", () => {
     } }, {});
     expect(result.credentials).toEqual({ openaiImageApiKey: "openai-only", customImageApiKey: "router-only" });
     expect(result.config.imageGen).toEqual({ provider: "custom", customUrl: "http://127.0.0.1:4000/v1", customModel: "local/image" });
-    expect(workspaceCredentialEnv(result.credentials)).toEqual({ OMB_OPENAI_IMAGE_KEY: "openai-only", OMB_CUSTOM_IMAGE_KEY: "router-only" });
+    expect(workspaceCredentialEnv(result.credentials)).toEqual({ ODB_OPENAI_IMAGE_KEY: "openai-only", ODB_CUSTOM_IMAGE_KEY: "router-only" });
   });
   it("moves every plaintext secret into the store and deletes the field", () => {
     const config = {
@@ -60,9 +60,9 @@ describe("workspace credential migration", () => {
     expect(result.config.decider).toEqual({ provider: "openrouter", openrouterModel: "openai/gpt-4o-mini", enabled: true });
     expect(result.config.openrouter).toEqual({});
     expect(workspaceCredentialEnv(result.credentials)).toEqual({
-      OMB_JEV_API_KEY: "jev-secret",
-      OMB_OPENROUTER_DECIDER_KEY: "sk-or-secret",
-      OMB_OPENROUTER_API_KEY: "engine-openrouter-key",
+      ODB_JEV_API_KEY: "jev-secret",
+      ODB_OPENROUTER_DECIDER_KEY: "sk-or-secret",
+      ODB_OPENROUTER_API_KEY: "engine-openrouter-key",
     });
   });
 
@@ -142,10 +142,10 @@ describe("workspace credential env", () => {
     ).toEqual({
       XAI_API_KEY: "xai-secret",
       BOX_TOKEN: "boat-secret",
-      OMB_TTS_KEY: "tts-secret",
-      OMB_FISH_AUDIO_API_KEY: "fish-secret",
+      ODB_TTS_KEY: "tts-secret",
+      ODB_FISH_AUDIO_API_KEY: "fish-secret",
       OPENCODE_API_KEY: "ocg-secret",
-      OMB_OPENAI_IMAGE_KEY: "image-secret",
+      ODB_OPENAI_IMAGE_KEY: "image-secret",
     });
   });
 
@@ -163,16 +163,16 @@ describe("workspace credential env", () => {
 });
 
 const AI_PROVIDER_KEYS = [
-  ["openai", "openaiApiKey", "OMB_OPENAI_API_KEY"],
-  ["anthropic", "anthropicApiKey", "OMB_ANTHROPIC_API_KEY"],
-  ["openrouter", "openrouterApiKey", "OMB_OPENROUTER_API_KEY"],
+  ["openai", "openaiApiKey", "ODB_OPENAI_API_KEY"],
+  ["anthropic", "anthropicApiKey", "ODB_ANTHROPIC_API_KEY"],
+  ["openrouter", "openrouterApiKey", "ODB_OPENROUTER_API_KEY"],
   ["mistral", "mistralApiKey", "MISTRAL_API_KEY"],
   ["cerebras", "cerebrasApiKey", "CEREBRAS_API_KEY"],
-  ["groq", "groqApiKey", "OMB_GROQ_API_KEY"],
-  ["greenference", "greenferenceApiKey", "OMB_GREENFERENCE_API_KEY"],
-  ["modelgo", "modelgoApiKey", "OMB_MODELGO_API_KEY"],
-  ["meta", "metaApiKey", "OMB_META_API_KEY"],
-  ["deepseek", "deepseekApiKey", "OMB_DEEPSEEK_API_KEY"],
+  ["groq", "groqApiKey", "ODB_GROQ_API_KEY"],
+  ["greenference", "greenferenceApiKey", "ODB_GREENFERENCE_API_KEY"],
+  ["modelgo", "modelgoApiKey", "ODB_MODELGO_API_KEY"],
+  ["meta", "metaApiKey", "ODB_META_API_KEY"],
+  ["deepseek", "deepseekApiKey", "ODB_DEEPSEEK_API_KEY"],
   ["openaiCompat", "openaiCompatApiKey", "OPENAI_COMPAT_API_KEY"],
 ];
 
@@ -199,7 +199,7 @@ describe("AI provider keys in the encrypted store", () => {
 describe("migrating config.json on disk", () => {
   const folders = [];
   const configFile = (config) => {
-    const folder = mkdtempSync(join(tmpdir(), "omb-workspace-credentials-"));
+    const folder = mkdtempSync(join(tmpdir(), "odb-workspace-credentials-"));
     folders.push(folder);
     const path = join(folder, "config.json");
     writeFileSync(path, JSON.stringify(config));

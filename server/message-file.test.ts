@@ -20,7 +20,7 @@ import {
 } from "./message-file.ts";
 
 const referencesAttachment = (text: string, requested: string) => messageAttachmentName(text, requested) !== null;
-const suite = mkdtempSync(join(tmpdir(), "omb-message-file-"));
+const suite = mkdtempSync(join(tmpdir(), "odb-message-file-"));
 const workspace = join(suite, "workspace");
 const outside = join(suite, "outside");
 
@@ -68,21 +68,21 @@ describe("message-linked files", () => {
 
   it("matches Unix, Windows, and UNC links independently of the server OS", () => {
     expect(messageReferencesFile(
-      "[Open the notes](file:///Users/milind/Project/release%20notes.md)",
-      "/Users/milind/Project/release notes.md",
+      "[Open the notes](file:///Users/alex/Project/release%20notes.md)",
+      "/Users/alex/Project/release notes.md",
     )).toBe(true);
     expect(messageReferencesFile(
-      "I created /Users/milind/Project/release notes.md for you.",
-      "/Users/milind/Project/release notes.md",
+      "I created /Users/alex/Project/release notes.md for you.",
+      "/Users/alex/Project/release notes.md",
     ))
       .toBe(false);
     expect(messageReferencesFile(
-      "[Open it](C:\\Users\\Maus\\report.md)",
-      "C:\\Users\\Maus\\report.md",
+      "[Open it](C:\\Users\\Delio\\report.md)",
+      "C:\\Users\\Delio\\report.md",
     )).toBe(true);
     expect(messageReferencesFile(
-      "[Open it](file:///C:/Users/Maus/release%20notes.md)",
-      "C:\\Users\\Maus\\release notes.md",
+      "[Open it](file:///C:/Users/Delio/release%20notes.md)",
+      "C:\\Users\\Delio\\release notes.md",
     )).toBe(true);
     expect(messageReferencesFile(
       "[Open it](file://server/share/phone%20report.md)",
@@ -96,23 +96,23 @@ describe("message-linked files", () => {
       "[Open A&amp;B](docs/A&amp;B.md \"download\")",
       "docs/A&B.md",
     )).toBe(true);
-    expect(messageReferencesFile("<file:///Users/milind/report.md>", "/Users/milind/report.md"))
+    expect(messageReferencesFile("<file:///Users/alex/report.md>", "/Users/alex/report.md"))
       .toBe(true);
 
     expect(messageReferencesFile(
-      "[Open it](C:/Users/Maus/drafts/../report.md)",
-      "C:\\Users\\Maus\\report.md",
+      "[Open it](C:/Users/Delio/drafts/../report.md)",
+      "C:\\Users\\Delio\\report.md",
     )).toBe(true);
-    expect(messageReferencesFile("[Open it](/C:/Users/Maus/report.md)", "C:/Users/Maus/report.md"))
+    expect(messageReferencesFile("[Open it](/C:/Users/Delio/report.md)", "C:/Users/Delio/report.md"))
       .toBe(false);
-    expect(messageReferencesFile("[Open it](C:/Users/Maus/report.md)", "c:/users/maus/report.md"))
+    expect(messageReferencesFile("[Open it](C:/Users/Delio/report.md)", "c:/users/delio/report.md"))
       .toBe(false);
   });
 
   it("normalizes encoded Windows and UNC targets before authorization", () => {
     expect(messageReferencesFile(
-      "[Open it](C:/Users/Maus/release%20notes.md?download=1#latest)",
-      "C:\\Users\\Maus\\release notes.md",
+      "[Open it](C:/Users/Delio/release%20notes.md?download=1#latest)",
+      "C:\\Users\\Delio\\release notes.md",
     )).toBe(true);
     expect(messageReferencesFile(
       "[Web link](//server/share/team%20notes.md?download=1#latest)",
@@ -124,27 +124,27 @@ describe("message-linked files", () => {
     )).toBe(true);
 
     expect(messageReferencesFile(
-      "[Open it](C:/Users/Maus/release%2520notes.md?download=1)",
-      "C:\\Users\\Maus\\release notes.md",
+      "[Open it](C:/Users/Delio/release%2520notes.md?download=1)",
+      "C:\\Users\\Delio\\release notes.md",
     )).toBe(false);
   });
 
-  it("keeps a Windows path's backslash before punctuation, as in \\.openmausbot", () => {
-    const report = "C:\\Users\\Maus\\.openmausbot\\workspaces\\bot\\_drafts\\report.md";
-    const chart = "C:\\Users\\Maus\\.openmausbot\\workspaces\\bot\\chart.png";
-    const notes = "C:\\Users\\Maus\\.openmausbot\\release notes.md";
+  it("keeps a Windows path's backslash before punctuation, as in \\.opendeliobot", () => {
+    const report = "C:\\Users\\Delio\\.opendeliobot\\workspaces\\bot\\_drafts\\report.md";
+    const chart = "C:\\Users\\Delio\\.opendeliobot\\workspaces\\bot\\chart.png";
+    const notes = "C:\\Users\\Delio\\.opendeliobot\\release notes.md";
     const markdown = `[Report](${report})\n\n![Chart](${chart})\n\n[Notes][notes]\n\n[notes]: <${notes}>`;
 
     expect(messageReferencesFile(markdown, report)).toBe(true);
     expect(messageReferencesFile(markdown, notes)).toBe(true);
     expect(messageImageTargetAt(markdown, markdown.indexOf("![Chart]"))).toBe(chart);
-    expect(messageReferencesFile(markdown, "C:\\Users\\Maus.openmausbot\\workspaces\\bot_drafts\\report.md")).toBe(false);
+    expect(messageReferencesFile(markdown, "C:\\Users\\Delio.opendeliobot\\workspaces\\bot_drafts\\report.md")).toBe(false);
   });
 
   it("resolves only definitions used by rendered reference links", () => {
     expect(messageReferencesFile(
-      "[Open the report][Download]\n\n[download]: /Users/milind/report.md",
-      "/Users/milind/report.md",
+      "[Open the report][Download]\n\n[download]: /Users/alex/report.md",
+      "/Users/alex/report.md",
     )).toBe(true);
     expect(messageReferencesFile(
       "[unused]: /project/.env",
@@ -267,10 +267,10 @@ describe("message-linked files", () => {
   it("normalizes an encoded Windows path before opening it", async () => {
     const path = process.platform === "win32"
       ? join(workspace, "release notes.md")
-      : join(workspace, "C:\\Users\\Maus\\release notes.md");
+      : join(workspace, "C:\\Users\\Delio\\release notes.md");
     const href = process.platform === "win32"
       ? `${path.replace("release notes.md", "release%20notes.md")}?download=1#latest`
-      : "C:\\Users\\Maus\\release%20notes.md?download=1#latest";
+      : "C:\\Users\\Delio\\release%20notes.md?download=1#latest";
     writeFileSync(path, "windows path bytes");
 
     const opened = await openMessageFile(href, [workspace]);

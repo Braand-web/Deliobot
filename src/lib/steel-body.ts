@@ -1,9 +1,9 @@
 import type { CursorState } from "@/components/CursorAvatar";
 
-// The mascot as finished pictures, face included: src/assets/mausbot-steel/<body>-<px>.webp for its resting face and
+// The mascot as finished pictures, face included: src/assets/delio-steel/<body>-<px>.webp for its resting face and
 // <body>.<expression>-<px>.webp for the others, square, framing the mascot's whole SVG viewBox, at <px> device pixels.
 // A body with no pictures keeps the drawn steel finish.
-const files = import.meta.glob<string>("../assets/mausbot-steel/*.{webp,png}", { eager: true, query: "?url", import: "default" });
+const files = import.meta.glob<string>("../assets/delio-steel/*.{webp,png}", { eager: true, query: "?url", import: "default" });
 
 /** The faces a picture set can carry; every other state borrows the closest one. */
 export type PictureExpression =

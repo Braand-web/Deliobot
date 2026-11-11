@@ -15,7 +15,7 @@ afterEach(() => {
 
 describe("readClaudeModelCatalog", () => {
   it("returns the official models when settings are missing", () => {
-    expect(readClaudeModelCatalog({ HOME: join(tmpdir(), "omb-claude-missing-home") })).toEqual(STATIC_CLAUDE_MODELS);
+    expect(readClaudeModelCatalog({ HOME: join(tmpdir(), "odb-claude-missing-home") })).toEqual(STATIC_CLAUDE_MODELS);
     expect(STATIC_CLAUDE_MODELS.options).toEqual(expect.arrayContaining([
       { id: "claude-fable-5-2", label: "Claude Fable 5.2", contextWindow: 1_000_000 },
       { id: "claude-fable-5-1", label: "Claude Fable 5.1" },
@@ -38,14 +38,14 @@ describe("readClaudeModelCatalog", () => {
   });
 
   it("lists ANTHROPIC_MODEL from the instance environment when settings are missing", () => {
-    const home = mkdtempSync(join(tmpdir(), "omb-claude-missing-home-"));
+    const home = mkdtempSync(join(tmpdir(), "odb-claude-missing-home-"));
     scratchDirs.push(home);
     const catalog = readClaudeModelCatalog({ HOME: join(home, "missing"), ANTHROPIC_MODEL: "MiniMax-M3" });
     expect(catalog.options).toEqual([...STATIC_CLAUDE_MODELS.options, { id: "MiniMax-M3", label: "MiniMax-M3", custom: true }]);
   });
 
   it("tags extra settings models as custom and leaves official rows untagged", () => {
-    const home = mkdtempSync(join(tmpdir(), "omb-claude-catalog-"));
+    const home = mkdtempSync(join(tmpdir(), "odb-claude-catalog-"));
     scratchDirs.push(home);
     const dir = join(home, ".claude");
     mkdirSync(dir, { recursive: true });
@@ -69,7 +69,7 @@ describe("readClaudeModelCatalog", () => {
   });
 
   it("lists Claude Code's custom model option and non-Claude tier models as custom", () => {
-    const home = mkdtempSync(join(tmpdir(), "omb-claude-catalog-"));
+    const home = mkdtempSync(join(tmpdir(), "odb-claude-catalog-"));
     scratchDirs.push(home);
     const dir = join(home, ".claude");
     mkdirSync(dir, { recursive: true });
@@ -96,7 +96,7 @@ describe("readClaudeModelCatalog", () => {
   });
 
   it("lists a newer Anthropic model from extraModels with the official rows, not as custom", () => {
-    const home = mkdtempSync(join(tmpdir(), "omb-claude-catalog-"));
+    const home = mkdtempSync(join(tmpdir(), "odb-claude-catalog-"));
     scratchDirs.push(home);
     const dir = join(home, ".claude");
     mkdirSync(dir, { recursive: true });
@@ -116,7 +116,7 @@ describe("readClaudeModelCatalog", () => {
   });
 
   it.each(["settings", "instance"])("keeps an official-looking model override custom for a compatible endpoint in %s", (source) => {
-    const home = mkdtempSync(join(tmpdir(), "omb-claude-compatible-"));
+    const home = mkdtempSync(join(tmpdir(), "odb-claude-compatible-"));
     scratchDirs.push(home);
     const dir = join(home, ".claude");
     mkdirSync(dir, { recursive: true });
@@ -137,7 +137,7 @@ describe("readClaudeModelCatalog", () => {
   });
 
   it("keeps official-looking availableModels and customModels custom", () => {
-    const home = mkdtempSync(join(tmpdir(), "omb-claude-custom-catalog-"));
+    const home = mkdtempSync(join(tmpdir(), "odb-claude-custom-catalog-"));
     scratchDirs.push(home);
     const dir = join(home, ".claude");
     mkdirSync(dir, { recursive: true });
@@ -151,7 +151,7 @@ describe("readClaudeModelCatalog", () => {
   });
 
   it("does not list settings.model as a Custom leftover", () => {
-    const home = mkdtempSync(join(tmpdir(), "omb-claude-leftover-"));
+    const home = mkdtempSync(join(tmpdir(), "odb-claude-leftover-"));
     scratchDirs.push(home);
     const dir = join(home, ".claude");
     mkdirSync(dir, { recursive: true });
@@ -166,7 +166,7 @@ describe("readClaudeModelCatalog", () => {
 
 describe("ClaudeDriver catalog", () => {
   it.each([false, true])("offers Haiku 5.5 after discovery (existing installation: %s)", async (existing) => {
-    const home = mkdtempSync(join(tmpdir(), "omb-claude-haiku-"));
+    const home = mkdtempSync(join(tmpdir(), "odb-claude-haiku-"));
     scratchDirs.push(home);
     const instanceId = "claude-haiku-catalog";
     if (existing) {
@@ -201,7 +201,7 @@ describe("ClaudeDriver catalog", () => {
   it.skipIf(process.platform === "win32")("marks a model the installed CLI is too old for, and only then", async () => {
     const fable = "claude-fable-5-2";
     for (const [installed, marked] of [["2.1.320", true], ["2.1.321", false]] as const) {
-      const home = mkdtempSync(join(tmpdir(), "omb-claude-cli-"));
+      const home = mkdtempSync(join(tmpdir(), "odb-claude-cli-"));
       scratchDirs.push(home);
       const cli = join(home, "fake-claude");
       writeFileSync(cli, `#!/bin/sh\necho "${installed} (Claude Code)"\n`, { mode: 0o755 });
@@ -224,7 +224,7 @@ describe("ClaudeDriver catalog", () => {
   });
 
   it("loads extras when the instance is created", async () => {
-    const home = mkdtempSync(join(tmpdir(), "omb-claude-instance-"));
+    const home = mkdtempSync(join(tmpdir(), "odb-claude-instance-"));
     scratchDirs.push(home);
     const dir = join(home, ".claude");
     mkdirSync(dir, { recursive: true });

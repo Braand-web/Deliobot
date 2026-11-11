@@ -18,7 +18,7 @@ import { freePortBlock } from "./testing/ports.ts";
 
 const SERVER_DIR = dirname(fileURLToPath(import.meta.url));
 const FAKE_CLAUDE = join(SERVER_DIR, "testing", "fake-claude-cli.ts");
-const HOST = "omb-t-0123456789ab.fly.dev";
+const HOST = "odb-t-0123456789ab.fly.dev";
 const REMOTE = { host: HOST, "x-forwarded-for": "203.0.113.9", "x-forwarded-proto": "https" };
 const ENDPOINT = "https://fixture.openai.azure.com";
 const SESSIONS = `${ENDPOINT}/openai/v1/live/sessions`;
@@ -36,12 +36,12 @@ afterEach(async () => {
 
 async function boot(env: NodeJS.ProcessEnv, config: Record<string, unknown> = {}) {
   chmodSync(FAKE_CLAUDE, 0o755);
-  const home = mkdtempSync(join(tmpdir(), "omb-live-azure-"));
-  const dataDir = join(home, ".openmausbot");
+  const home = mkdtempSync(join(tmpdir(), "odb-live-azure-"));
+  const dataDir = join(home, ".opendeliobot");
   const fetches = join(home, "fetches.log");
   mkdirSync(dataDir, { recursive: true });
   mkdirSync(join(home, "web"));
-  writeFileSync(join(home, "web", "index.html"), "<!doctype html><title>OpenMausBot</title>");
+  writeFileSync(join(home, "web", "index.html"), "<!doctype html><title>OpenDeliobot</title>");
   writeFileSync(join(dataDir, "config.json"), JSON.stringify({
     instances: {
       ...Object.fromEntries(["codex", "cursor", "githubCopilot", "openaiCompat", "qwen", "hermes", "pi"].map((id) => [id, { driver: "not-a-real-driver" }])),
@@ -59,7 +59,7 @@ async function boot(env: NodeJS.ProcessEnv, config: Record<string, unknown> = {}
     cwd: join(SERVER_DIR, ".."),
     env: {
       PATH: process.env.PATH, ...(process.env.PATHEXT ? { PATHEXT: process.env.PATHEXT } : {}), ...(process.env.SystemRoot ? { SystemRoot: process.env.SystemRoot } : {}),
-      HOME: home, USERPROFILE: home, OMB_DATA_DIR: dataDir, OMB_PORT: String(port), OMB_WEBHOOK_PORT: String(port + 1), OMB_STATIC_DIR: join(home, "web"),
+      HOME: home, USERPROFILE: home, ODB_DATA_DIR: dataDir, ODB_PORT: String(port), ODB_WEBHOOK_PORT: String(port + 1), ODB_STATIC_DIR: join(home, "web"),
       ...env,
     },
     stdio: ["ignore", "pipe", "pipe"],
@@ -90,10 +90,10 @@ async function boot(env: NodeJS.ProcessEnv, config: Record<string, unknown> = {}
   };
   /** A pairing the Admin signs, for a Cloud's owner or a team's member. */
   const signedSession = async (claim: Record<string, unknown> = {}): Promise<Headers> => {
-    const body = JSON.stringify({ label: "OpenMausBot app (Cloud)", ttlSeconds: 300, ...claim });
+    const body = JSON.stringify({ label: "OpenDeliobot app (Cloud)", ttlSeconds: 300, ...claim });
     const timestamp = String(Math.floor(Date.now() / 1000)), nonce = randomBytes(16).toString("base64url");
     const response = await fetch(`${base}/api/cloud/pairing`, { method: "POST", headers: {
-      ...REMOTE, "content-type": "application/json", "x-omb-cloud-timestamp": timestamp, "x-omb-cloud-nonce": nonce, "x-omb-cloud-signature": `v1=${cloudPairingSignature(secret, timestamp, nonce, body)}`,
+      ...REMOTE, "content-type": "application/json", "x-odb-cloud-timestamp": timestamp, "x-odb-cloud-nonce": nonce, "x-odb-cloud-signature": `v1=${cloudPairingSignature(secret, timestamp, nonce, body)}`,
     }, body });
     const granted = await response.json() as { code: string };
     return redeem(granted.code);
@@ -113,8 +113,8 @@ async function boot(env: NodeJS.ProcessEnv, config: Record<string, unknown> = {}
 }
 
 const CLOUD_ENV = {
-  OMB_CLOUD_MACHINE_ID: "3f9c2a4e-8b1d-4c6e-9a7f-2d5e8c1b0a93", OMB_CLOUD_ADMIN_URL: "https://cloud.example.test",
-  OMB_CLOUD_BOOTSTRAP_SECRET: secret, OMB_PUBLIC_URL: `https://${HOST}`,
+  ODB_CLOUD_MACHINE_ID: "3f9c2a4e-8b1d-4c6e-9a7f-2d5e8c1b0a93", ODB_CLOUD_ADMIN_URL: "https://cloud.example.test",
+  ODB_CLOUD_BOOTSTRAP_SECRET: secret, ODB_PUBLIC_URL: `https://${HOST}`,
 };
 
 it("on a self-hosted server: the owner and their devices get through; a chat-only device is refused, and from then on a local request is not taken for the owner", async () => {
@@ -152,7 +152,7 @@ it("on a self-hosted server with a sign-in list: an admin's session gets through
 }, 90_000);
 
 it("on a person's own Cloud: their session gets through, a bot's shell does not", async () => {
-  const s = await boot({ OMB_CLOUD_ROLE: "home", ...CLOUD_ENV });
+  const s = await boot({ ODB_CLOUD_ROLE: "home", ...CLOUD_ENV });
   const owner = await s.signedSession();
   const botId = await s.newBot(owner);
   expect(await s.start(botId, owner)).toEqual(THROUGH);
@@ -162,7 +162,7 @@ it("on a person's own Cloud: their session gets through, a bot's shell does not"
 }, 90_000);
 
 it("on a Team Cloud: a Super admin and an Admin get through; a User is refused in plain words, on the app or their phone, and a bot's shell does not get through", async () => {
-  const s = await boot({ OMB_CLOUD_ROLE: "team", OMB_CLOUD_TEAM_ID: TEAM.id, OMB_CLOUD_TEAM_NAME: TEAM.name, ...CLOUD_ENV });
+  const s = await boot({ ODB_CLOUD_ROLE: "team", ODB_CLOUD_TEAM_ID: TEAM.id, ODB_CLOUD_TEAM_NAME: TEAM.name, ...CLOUD_ENV });
   const session = (email: string, role: string) => s.signedSession({ team: TEAM, member: { email, role } });
   const owner = await session("olive@acme.test", "owner");
   const admin = await session("ben@acme.test", "admin");
@@ -179,7 +179,7 @@ it("on a Team Cloud: a Super admin and an Admin get through; a User is refused i
   const phone = await s.redeem(made.body.code);
   expect(await s.start(botId, phone)).toEqual(REFUSED);
   // The companion's header carries no authority.
-  expect(await s.start(botId, { ...member, "x-openmausbot-companion": "1", "x-openmausbot-companion-device": "phone-1" })).toEqual(REFUSED);
+  expect(await s.start(botId, { ...member, "x-opendeliobot-companion": "1", "x-opendeliobot-companion-device": "phone-1" })).toEqual(REFUSED);
   expect(await s.start(botId)).toMatchObject({ status: 403, body: { error: expect.stringContaining("may only use the service routes") } });
   expect(s.liveSessions()).toHaveLength(2);
 
@@ -310,7 +310,7 @@ it("the desktop's way of saving, with the key kept outside the file, ties it jus
 }, 60_000);
 
 it("a server set up in the environment: the key goes to the endpoint set beside it, until an admin changes the endpoint", async () => {
-  const s = await boot({ OMB_LIVE_PROVIDER: "azure", OMB_AZURE_OPENAI_LIVE_ENDPOINT: ENDPOINT, OMB_OPENAI_LIVE_KEY: "operators-key" }, { live: {} });
+  const s = await boot({ ODB_LIVE_PROVIDER: "azure", ODB_AZURE_OPENAI_LIVE_ENDPOINT: ENDPOINT, ODB_OPENAI_LIVE_KEY: "operators-key" }, { live: {} });
   const botId = await s.newBot();
   const { reaches, asksForKey } = keyChecks(s, botId);
   await reaches(SESSIONS, "operators-key");
@@ -319,7 +319,7 @@ it("a server set up in the environment: the key goes to the endpoint set beside 
 }, 60_000);
 
 it.each([
-  ["the environment", { OMB_LIVE_PROVIDER: "azure", OMB_AZURE_OPENAI_LIVE_ENDPOINT: ENDPOINT }, null],
+  ["the environment", { ODB_LIVE_PROVIDER: "azure", ODB_AZURE_OPENAI_LIVE_ENDPOINT: ENDPOINT }, null],
   ["PUT /api/config", {}, { provider: "azure", azureEndpoint: ENDPOINT }],
 ] as const)("a provider set by %s gives way to a later PATCH /api/live/settings", async (_from, env, viaConfig) => {
   const s = await boot({ ...env }, { live: {} });

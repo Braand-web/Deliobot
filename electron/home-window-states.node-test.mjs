@@ -121,7 +121,7 @@ test("Remove from list on this computer's screen: the Admin first, then the wind
 });
 
 // A computer whose bots moved to one Cloud of the person's while My Cloud is now another (several Clouds per account).
-const MOVED_TO = "https://omb-trial-1.fly.dev";
+const MOVED_TO = "https://odb-trial-1.fly.dev";
 test("a freeze that names another Cloud on the person's own list is theirs, never another account's; one not on it is said to be another account's", async () => {
   const listed = world({ journal: null, marker: { frozen: true, cloud: CLIENT }, state: { ...connected(), clouds: [CLIENT_A] } });
   await listed.home.show();

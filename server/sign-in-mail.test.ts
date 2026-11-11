@@ -26,7 +26,7 @@ describe("sign-in codes through the server's own mail server", () => {
     const box = mailbox();
     const mail = createSignInMail({ url: URL_, transport: box.transport });
     expect(await mail.send("her@example.test")).toBe("sent");
-    expect(box.sent[0]).toMatchObject({ from: "signin@example.test", to: "her@example.test", subject: "Your MausBot sign-in code" });
+    expect(box.sent[0]).toMatchObject({ from: "signin@example.test", to: "her@example.test", subject: "Your Delio sign-in code" });
     const code = box.code();
     expect(code).toMatch(/^\d{8}$/);
     expect(mail.check("other@example.test", code)).toBe("wrong");
@@ -37,9 +37,9 @@ describe("sign-in codes through the server's own mail server", () => {
 
   it("names the server the code signs in to in the subject", async () => {
     const box = mailbox();
-    await createSignInMail({ url: URL_, transport: box.transport }).send("her@example.test", "maus.example.com");
-    expect(box.sent[0]).toMatchObject({ subject: "Your MausBot sign-in code for maus.example.com" });
-    expect(box.sent[0]?.text).toContain("to sign in to maus.example.com is");
+    await createSignInMail({ url: URL_, transport: box.transport }).send("her@example.test", "delio.example.com");
+    expect(box.sent[0]).toMatchObject({ subject: "Your Delio sign-in code for delio.example.com" });
+    expect(box.sent[0]?.text).toContain("to sign in to delio.example.com is");
   });
 
   it("ends a code after ten minutes or five wrong tries, and sends at most one every 30 seconds", async () => {
@@ -70,14 +70,14 @@ describe("sign-in codes through the server's own mail server", () => {
     refuse = false;
     expect(await mail.send("her@example.test")).toBe("sent");
     await expect(createSignInMail({ url: "smtp://localhost:25", transport: { sendMail: async () => undefined } }).send("her@example.test"))
-      .rejects.toThrow("OMB_SIGNIN_SMTP_FROM");
+      .rejects.toThrow("ODB_SIGNIN_SMTP_FROM");
   });
 
-  it("is what email sign-in uses when OMB_SIGNIN_SMTP_URL is set: no account service, the allow-list as before", async () => {
+  it("is what email sign-in uses when ODB_SIGNIN_SMTP_URL is set: no account service, the allow-list as before", async () => {
     const box = mailbox();
     const signIn = createEmailSignIn({
       allow: { admins: ["her@example.test"], members: ["@team.test"] },
-      env: { OMB_SIGNIN_SMTP_URL: URL_, OMB_CONTROL_PLANE_URL: "https://control-plane.invalid" },
+      env: { ODB_SIGNIN_SMTP_URL: URL_, ODB_CONTROL_PLANE_URL: "https://control-plane.invalid" },
       fetchImpl: async () => { throw new Error("the account service must not be asked"); },
       mailTransport: box.transport,
     });
@@ -93,10 +93,10 @@ describe("sign-in codes through the server's own mail server", () => {
   });
 
   it("says why when the mail server cannot be used", async () => {
-    const signIn = createEmailSignIn({ allow: { admins: ["her@example.test"], members: [] }, env: { OMB_SIGNIN_SMTP_URL: "smtp://localhost:25" } });
+    const signIn = createEmailSignIn({ allow: { admins: ["her@example.test"], members: [] }, env: { ODB_SIGNIN_SMTP_URL: "smtp://localhost:25" } });
     const refused = await signIn.start("her@example.test");
     expect(refused).toMatchObject({ ok: false, status: 502 });
-    expect(refused.ok ? "" : refused.error).toContain("OMB_SIGNIN_SMTP_FROM");
+    expect(refused.ok ? "" : refused.error).toContain("ODB_SIGNIN_SMTP_FROM");
   });
 });
 

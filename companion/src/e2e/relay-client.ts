@@ -1,9 +1,9 @@
-// The computer's side of MausBot Relay: one outbound control socket, and one data socket per phone session. The relay
+// The computer's side of Delio Relay: one outbound control socket, and one data socket per phone session. The relay
 // splices sealed bytes and can't open them; everything here is outside the encryption. Wire spec: README section 9.
 import { webSocketTransport } from "./phone.ts";
 import type { RecordTransport } from "./session.ts";
 
-export const RELAY_PROTOCOL = "omb-relay.v1";
+export const RELAY_PROTOCOL = "odb-relay.v1";
 export type RelayStatus = "connected" | "connecting" | "off";
 
 const BACKOFF_MS = [0, 1_000, 2_000, 4_000, 8_000, 16_000, 32_000, 60_000];

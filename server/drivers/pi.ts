@@ -465,7 +465,7 @@ export const PiDriver: ProviderDriver<PiConfig> = {
       // Written on every turn: the extension also carries ask_user.
       const mcpServers = buildMcpServers(turn);
       const askUser = toolScope === undefined || allowsTool(toolScope, { kind: "native", name: ASK_USER_TOOL });
-      const mcpTempDir = mkdtempSync(join(tmpdir(), "omb-pi-mcp-"));
+      const mcpTempDir = mkdtempSync(join(tmpdir(), "odb-pi-mcp-"));
       const scopeReadyPath = toolScope !== undefined ? join(mcpTempDir, "scope-ready.json") : undefined;
       try {
         writeFileSync(join(mcpTempDir, "mcp.json"), JSON.stringify({ mcpServers: mcpServers ?? {}, toolScope, scopeReadyPath, approvalMode: turn.approvalMode, askUser }), { mode: 0o600 });
@@ -487,7 +487,7 @@ export const PiDriver: ProviderDriver<PiConfig> = {
             env: piEnvironment({
               ...process.env,
               ...input.environment,
-              OMB_MCP_CONFIG: join(mcpTempDir, "mcp.json"),
+              ODB_MCP_CONFIG: join(mcpTempDir, "mcp.json"),
             }),
           }, "bot");
         } catch (err) {
@@ -874,7 +874,7 @@ export const PiDriver: ProviderDriver<PiConfig> = {
           ready = receipt.ok === true && JSON.stringify(receipt.toolScope) === JSON.stringify(toolScope);
         } catch { /* Missing or malformed readiness is never a grant. */ }
         if (!ready) {
-          const message = "Pi tool selection enforcement is unavailable. Update Pi and check the OpenMausBot extension before retrying.";
+          const message = "Pi tool selection enforcement is unavailable. Update Pi and check the OpenDeliobot extension before retrying.";
           emit({ ...base(threadId, turnId), type: "runtime.error", message });
           settle(false);
           throw new Error(message);

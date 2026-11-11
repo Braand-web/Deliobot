@@ -17,7 +17,7 @@ pnpm test:packaged-server
 ```
 
 The API fixture launches the shared isolated server and fake engine. It uses
-`control-omb` for create, send, wait, edit and Stop. Its new manual operation is
+`control-odb` for create, send, wait, edit and Stop. Its new manual operation is
 `POST /api/bots/:id/compact` with `{ "threadId": "owned-thread-id" }`; this uses
 normal turn admission, returns 202, and completes through that thread's ordinary
 busy/idle state. The route accepts no agent-written summary or file path.
@@ -37,9 +37,9 @@ the next turn starts small.
 - **When:** a direct conversation (not a room or a routine's run) whose turn
   ended with 100k tokens or more of context gets one about 3 minutes later. A
   conversation at 80% or more of where Claude Code summarizes by itself
-  (`OMB_CLAUDE_AUTOCOMPACT`, 200,000 by default) gets one about 10 seconds
+  (`ODB_CLAUDE_AUTOCOMPACT`, 200,000 by default) gets one about 10 seconds
   later, because its next turn would summarize anyway. For other engines,
-  OpenMausBot's own fold runs while idle once the conversation is at 85% of
+  OpenDeliobot's own fold runs while idle once the conversation is at 85% of
   the threshold its next turn would fold at.
 - **Claude Code:** `/compact` with instructions to keep the person's latest
   requests and every open question (open question cards are named), on a
@@ -54,7 +54,7 @@ the next turn starts small.
   existing "not seen yet" path, which is saved with the conversation.
 - **Shown in the chat:** the line "summarized this conversation while it was
   idle; the latest messages carry on word for word", in the language of the
-  conversation's person (`server.warmSummary.summarized`). OpenMausBot's fold
+  conversation's person (`server.warmSummary.summarized`). OpenDeliobot's fold
   shows its usual summary note instead.
 - **A turn that starts meanwhile wins:** the summary is abandoned and nothing
   changes. The exception is a turn that would summarize at its start anyway,
@@ -75,7 +75,7 @@ the next turn starts small.
   the conversation's engine process alive for 10 minutes past the person's
   last activity.
 - **Turning it off:** `context.autoCompact: false` turns warm summaries off
-  with the rest of automatic compaction; `OMB_WARM_SUMMARY=0` turns off only
+  with the rest of automatic compaction; `ODB_WARM_SUMMARY=0` turns off only
   warm summaries. The summary's model call is booked to the bot like a
   keep-warm ping.
 
@@ -89,7 +89,7 @@ The fixture runs the real server with the fake Claude Code:
 - the conversation grows 20k tokens a turn from 110k;
 - Claude Code's own compaction fires at 162k and takes 6 s (standing in for
   35 to 58 s);
-- warm summaries run at 1/100 of their delays (`OMB_WARM_SUMMARY_TIME_SCALE`).
+- warm summaries run at 1/100 of their delays (`ODB_WARM_SUMMARY_TIME_SCALE`).
 
 It proves:
 
@@ -108,7 +108,7 @@ It also proves:
   not.
 
 The times are kept in
-`<tmp>/openmausbot-verification-evidence/warm-summary-timings.jsonl`. No live
+`<tmp>/opendeliobot-verification-evidence/warm-summary-timings.jsonl`. No live
 model runs: whether a real Claude Code honours `--fork-session` for
 `/compact` in print mode is checked only by the fake.
 
@@ -144,7 +144,7 @@ that another member's turn replaces a bot's process and clears its warning.
 ### Room sessions (off by default, Claude Code only)
 
 With `"context": { "roomSessions": true }` in config.json (or
-`PATCH /api/config`; `OMB_ROOM_SESSIONS=1` / `0` wins over the file), a room
+`PATCH /api/config`; `ODB_ROOM_SESSIONS=1` / `0` wins over the file), a room
 member whose own provider session is known to hold the room is sent only the
 lines that session has not been handed, under one note, instead of the
 bounded transcript again. The room remembers, in memory, which native session
@@ -159,7 +159,7 @@ too.) With the setting off nothing is remembered or computed.
 
 Only Claude Code is covered, and only when all of these hold: the CLI is new
 enough to declare strict resume (2.1.267), and the turn mounts the
-engine-hook channel (on unless `OMB_HOOKS=0`), which is how the harness hears
+engine-hook channel (on unless `ODB_HOOKS=0`), which is how the harness hears
 that the engine compacted a session. Codex, ACP agents, Pi, Muse Code and the
 API models keep the call described above whatever the setting says, and so
 does Claude Code without the hook channel.
@@ -173,7 +173,7 @@ Every other turn is the call described above, unchanged:
 | Its last turn failed, was stopped, held, timed out, or ended in another session than it began in | whole transcript |
 | Compact now, or the automatic 90% threshold | whole transcript, fresh session, the usual line |
 | **Claude Code compacted the session** (`PreCompact`, `SessionStart` with source `compact`) | whole transcript on the same warm session: it holds the CLI's summary now, not the room's lines. Also for a turn that was running when it compacted |
-| Its last measured context here is at 80% or more of where the engine compacts (`OMB_CLAUDE_AUTOCOMPACT`, 200,000 tokens by default; the model's window when that is `auto` or `off`) | whole transcript, so no delta is handed to a session about to compact |
+| Its last measured context here is at 80% or more of where the engine compacts (`ODB_CLAUDE_AUTOCOMPACT`, 200,000 tokens by default; the model's window when that is `auto` or `off`) | whole transcript, so no delta is handed to a session about to compact |
 | **Its measured context here is lower than after its turn before, in the same native session** | whole transcript. A session's context only grows from one turn's end to the next, so it was compacted, trimmed or replaced, whatever the hooks said |
 | Its last turn here ended more than ten minutes ago (the driver's own idle time, counted from when that turn ended, however long it ran) | whole transcript |
 | It missed more lines than the window holds | whole transcript |
@@ -303,7 +303,7 @@ temporary home. No live account, computer or user workspace is touched.
 
 A session rebuilt from the inline replay (an engine switched in mid-thread, a
 rewind, a session the provider lost, a compaction) is sent what was said. With
-`context.replayToolHistory: true` in config.json, or `OMB_REPLAY_TOOL_HISTORY=1`
+`context.replayToolHistory: true` in config.json, or `ODB_REPLAY_TOOL_HISTORY=1`
 in the server's environment (`0` forces it off), that replay also names each
 earlier tool call on one line, between the two messages it ran between, as
 `[ran: Bash: pnpm test — failed]` or `[ran: Read: server/config.ts — ok]`. It is
@@ -315,7 +315,7 @@ pnpm exec vitest run server/context-rebuild.test.ts server/replay-settings.test.
 ```
 
 The fixture's engine runs a command and reads a file each turn. The test rewinds
-with `control-omb edit` and reads the prompt the engine received: no such line
+with `control-odb edit` and reads the prompt the engine received: no such line
 while the setting is off, both lines in order once it is on (the command, and
 the file read), and the plain message for every turn that resumes its session.
 It then switches the bot to the fixture's Codex and reads what that engine was

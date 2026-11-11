@@ -416,10 +416,10 @@ describe("the stall handler", () => {
 
   it("never lets the environment switch the watchdog off", () => {
     for (const endless of ["Infinity", "1e309", "-Infinity"]) {
-      const { context } = load(undefined, { OMB_TURN_STALL_MS: endless, OMB_TOOL_STALL_MS: endless });
+      const { context } = load(undefined, { ODB_TURN_STALL_MS: endless, ODB_TOOL_STALL_MS: endless });
       expect(context.watchdog.options).toMatchObject({ stallMs: 20 * 60_000, toolStallMs: 2 * 60 * 60_000 });
     }
-    const { context } = load(undefined, { OMB_TURN_STALL_MS: "3900000", OMB_TOOL_STALL_MS: "1e309" });
+    const { context } = load(undefined, { ODB_TURN_STALL_MS: "3900000", ODB_TOOL_STALL_MS: "1e309" });
     expect(context.watchdog.options).toMatchObject({ stallMs: 3_900_000, toolStallMs: 2 * 60 * 60_000 });
   });
 

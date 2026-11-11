@@ -46,7 +46,7 @@ export interface CloudConnectionsHostDeps {
 const managedService = (): boolean => { try { return brokerAccess() !== null; } catch { return false; } };
 
 export function createCloudConnectionsHost(deps: CloudConnectionsHostDeps) {
-  const label = (process.env.OMB_ENVIRONMENT_LABEL?.trim() || hostname()).slice(0, 120).trim() || "the person's computer";
+  const label = (process.env.ODB_ENVIRONMENT_LABEL?.trim() || hostname()).slice(0, 120).trim() || "the person's computer";
   const computer: McpRunsOn = { environmentId: deps.environmentId, label };
   let commands: string[] | null = null;
   const mcpAuth = (name: string, url: string) => deps.mcpOAuth.authState(name, url);

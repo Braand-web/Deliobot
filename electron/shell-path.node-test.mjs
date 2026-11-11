@@ -9,14 +9,14 @@ import { commandPath, probeShellPath } from "./shell-path.mjs";
 const payload = result => JSON.parse(result.content[0].text);
 
 test("a lent command finds the tools on the person's shell PATH though the app was opened from the Dock", { skip: process.platform === "win32" }, async t => {
-  const dir = await realpath(await mkdtemp(path.join(tmpdir(), "omb-shell-path-")));
+  const dir = await realpath(await mkdtemp(path.join(tmpdir(), "odb-shell-path-")));
   t.after(() => rm(dir, { recursive: true, force: true }));
   const bin = path.join(dir, "brew", "bin");
   await mkdir(bin, { recursive: true });
   await writeFile(path.join(bin, "fixture-gh"), "#!/bin/sh\necho fixture-gh-ran\n");
   await chmod(path.join(bin, "fixture-gh"), 0o755);
   const shell = path.join(dir, "login-shell");
-  await writeFile(shell, `#!/bin/sh\necho "Last login: rc noise"\nprintf '__OMB_PATH__%s' '${bin}:/usr/bin:/bin'\n`);
+  await writeFile(shell, `#!/bin/sh\necho "Last login: rc noise"\nprintf '__ODB_PATH__%s' '${bin}:/usr/bin:/bin'\n`);
   await chmod(shell, 0o755);
   const saved = { PATH: process.env.PATH, SHELL: process.env.SHELL };
   t.after(() => Object.assign(process.env, saved));

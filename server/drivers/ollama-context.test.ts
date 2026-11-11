@@ -70,11 +70,11 @@ describe("serveWithWindow", () => {
   it("creates one name that carries the window, from the same weights, and remembers it", async () => {
     const lab = ollama();
     const served = await serveWithWindow(ORIGIN, "qwen3.5:4b", lab.server, 24 * GB);
-    expect(served).toEqual({ model: "qwen3.5:4b-omb-64k", window: 65_536 });
-    expect(lab.created).toEqual([{ model: "qwen3.5:4b-omb-64k", from: "qwen3.5:4b", parameters: { num_ctx: 65_536 }, stream: false }]);
+    expect(served).toEqual({ model: "qwen3.5:4b-odb-64k", window: 65_536 });
+    expect(lab.created).toEqual([{ model: "qwen3.5:4b-odb-64k", from: "qwen3.5:4b", parameters: { num_ctx: 65_536 }, stream: false }]);
     await serveWithWindow(ORIGIN, "qwen3.5:4b", lab.server, 24 * GB);
     expect(lab.created).toHaveLength(1);
-    expect(servedModel(ORIGIN, "qwen3.5:4b")?.model).toBe("qwen3.5:4b-omb-64k");
+    expect(servedModel(ORIGIN, "qwen3.5:4b")?.model).toBe("qwen3.5:4b-odb-64k");
   });
 
   describe("once our name exists", () => {
@@ -85,9 +85,9 @@ describe("serveWithWindow", () => {
       const gone: string[] = [];
       const lab = ollama({ gone });
       await serveWithWindow(ORIGIN, "qwen3.5:4b", lab.server, 24 * GB);
-      gone.push("qwen3.5:4b-omb-64k");
+      gone.push("qwen3.5:4b-odb-64k");
       aMinuteLater();
-      expect((await serveWithWindow(ORIGIN, "qwen3.5:4b", lab.server, 24 * GB)).model).toBe("qwen3.5:4b-omb-64k");
+      expect((await serveWithWindow(ORIGIN, "qwen3.5:4b", lab.server, 24 * GB)).model).toBe("qwen3.5:4b-odb-64k");
       expect(lab.created).toHaveLength(2);
     });
 
@@ -96,7 +96,7 @@ describe("serveWithWindow", () => {
       await serveWithWindow(ORIGIN, "qwen3.5:4b", lab.server, 24 * GB);
       aMinuteLater();
       const dead = (async () => { throw new Error("timeout"); }) as unknown as typeof fetch;
-      expect((await serveWithWindow(ORIGIN, "qwen3.5:4b", dead, 24 * GB)).model).toBe("qwen3.5:4b-omb-64k");
+      expect((await serveWithWindow(ORIGIN, "qwen3.5:4b", dead, 24 * GB)).model).toBe("qwen3.5:4b-odb-64k");
       expect(lab.created).toHaveLength(1);
     });
 
@@ -110,7 +110,7 @@ describe("serveWithWindow", () => {
   });
 
   it("names a model with no tag", async () => {
-    expect((await serveWithWindow(ORIGIN, "mymodel", ollama().server, 24 * GB)).model).toBe("mymodel:latest-omb-16k");
+    expect((await serveWithWindow(ORIGIN, "mymodel", ollama().server, 24 * GB)).model).toBe("mymodel:latest-odb-16k");
   });
 
   it("shares one decision between turns that start together", async () => {
@@ -152,15 +152,15 @@ describe("serveWithWindow", () => {
 
   it("never wraps a name that already carries a window", async () => {
     const lab = ollama();
-    expect(await serveWithWindow(ORIGIN, "qwen3.5:4b-omb-64k", lab.server)).toEqual({ model: "qwen3.5:4b-omb-64k" });
+    expect(await serveWithWindow(ORIGIN, "qwen3.5:4b-odb-64k", lab.server)).toEqual({ model: "qwen3.5:4b-odb-64k" });
     expect(lab.asked).toEqual([]);
   });
 });
 
 describe("names", () => {
   it("goes back to the name a person picked", () => {
-    expect(pickedName("qwen3.5:4b-omb-64k")).toBe("qwen3.5:4b");
-    expect(pickedName("mymodel:latest-omb-16k")).toBe("mymodel:latest");
+    expect(pickedName("qwen3.5:4b-odb-64k")).toBe("qwen3.5:4b");
+    expect(pickedName("mymodel:latest-odb-16k")).toBe("mymodel:latest");
     expect(pickedName("llama3.2:latest")).toBe("llama3.2:latest");
     expect(isContextName("qwen3.5:4b")).toBe(false);
   });
@@ -182,15 +182,15 @@ describe("every engine picks up the name", () => {
     expect(decodeInjectId(pick)).toEqual({ host: "ollama", model: "qwen3.5:4b" });
     expect(injectedContextWindow(pick)).toBeUndefined();
     await serveWithWindow(origin, "qwen3.5:4b", ollama().server, 24 * GB);
-    expect(decodeInjectId(pick)).toEqual({ host: "ollama", model: "qwen3.5:4b-omb-64k" });
+    expect(decodeInjectId(pick)).toEqual({ host: "ollama", model: "qwen3.5:4b-odb-64k" });
     expect(injectedContextWindow(pick)).toBe(65_536);
   });
 
   it("tells Claude Code the window it really has", async () => {
     await serveWithWindow(origin, "qwen3.5:4b", ollama().server, 24 * GB);
     const env: Record<string, string | undefined> = {};
-    expect(applyClaudeInject(env, pick)).toEqual({ model: "qwen3.5:4b-omb-64k", injected: true });
-    expect(env).toMatchObject({ ANTHROPIC_MODEL: "qwen3.5:4b-omb-64k", CLAUDE_CODE_MAX_CONTEXT_TOKENS: "65536" });
+    expect(applyClaudeInject(env, pick)).toEqual({ model: "qwen3.5:4b-odb-64k", injected: true });
+    expect(env).toMatchObject({ ANTHROPIC_MODEL: "qwen3.5:4b-odb-64k", CLAUDE_CODE_MAX_CONTEXT_TOKENS: "65536" });
   });
 
   it("does not touch another host's pick", async () => {
@@ -214,7 +214,7 @@ describe("every engine picks up the name", () => {
     } finally {
       globalThis.fetch = realFetch;
     }
-    expect(sent).toEqual(["claude-opus", expect.stringMatching(/^qwen3\.5:4b-omb-\d+k$/)]);
+    expect(sent).toEqual(["claude-opus", expect.stringMatching(/^qwen3\.5:4b-odb-\d+k$/)]);
   });
 });
 
@@ -227,7 +227,7 @@ describe("the chat engine on a server someone added by URL", () => {
       for await (const part of request) data += part.toString();
       const path = request.url ?? "";
       const json = (body: unknown) => { response.setHeader("content-type", "application/json"); response.end(JSON.stringify(body)); };
-      if (path === "/v1/models") return json({ data: [{ id: "qwen3.5:4b" }, { id: "qwen3.5:4b-omb-64k" }] });
+      if (path === "/v1/models") return json({ data: [{ id: "qwen3.5:4b" }, { id: "qwen3.5:4b-odb-64k" }] });
       if (path === "/v1/chat/completions") {
         sent.push((JSON.parse(data) as { model: string }).model);
         response.writeHead(200, { "content-type": "text/event-stream" });
@@ -271,7 +271,7 @@ describe("the chat engine on a server someone added by URL", () => {
       await f.turn();
       expect(f.created).toHaveLength(1);
       expect(f.sent).toEqual(f.created);
-      expect(f.sent[0]).toMatch(/^qwen3\.5:4b-omb-\d+k$/);
+      expect(f.sent[0]).toMatch(/^qwen3\.5:4b-odb-\d+k$/);
       expect(f.instance.models.options.find((option) => option.id === "qwen3.5:4b")?.contextWindow).toBeGreaterThanOrEqual(16_384);
     } finally { await f.stop(); }
   });

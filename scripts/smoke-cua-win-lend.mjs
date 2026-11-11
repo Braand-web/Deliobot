@@ -28,10 +28,10 @@ for (const { from } of resources) {
   if (!existsSync(join(root, from))) throw new Error(`${from} is missing: run pnpm build:cua:win first`);
 }
 
-const work = mkdtempSync(join(tmpdir(), "omb-cua-lend-"));
-const installed = join(work, "OpenMausBot");
+const work = mkdtempSync(join(tmpdir(), "odb-cua-lend-"));
+const installed = join(work, "OpenDeliobot");
 cpSync(dirname(createRequire(import.meta.url)("electron")), installed, { recursive: true });
-renameSync(join(installed, "electron.exe"), join(installed, "OpenMausBot.exe"));
+renameSync(join(installed, "electron.exe"), join(installed, "OpenDeliobot.exe"));
 for (const { from, to } of resources) cpSync(join(root, from), join(installed, "resources", to), { recursive: true });
 
 /** One smoke of the electron/ modules under `code`, in a data folder of its own; its exit code once it reported. */
@@ -39,12 +39,12 @@ async function lendSmoke(label, code) {
   const run = join(work, label.replace(/\W+/g, "-"));
   mkdirSync(run, { recursive: true });
   const report = join(run, "report.json");
-  const env = { ...process.env, OMB_SMOKE_USER_DATA: join(run, "user-data"), OMB_SMOKE_REPORT: report, OMB_SMOKE_CODE: code, OMB_SMOKE_LABEL: label,
+  const env = { ...process.env, ODB_SMOKE_USER_DATA: join(run, "user-data"), ODB_SMOKE_REPORT: report, ODB_SMOKE_CODE: code, ODB_SMOKE_LABEL: label,
     CUA_DRIVER_RS_TELEMETRY_ENABLED: "0" };
   delete env.CUA_DRIVER_PATH;
   delete env.ELECTRON_RUN_AS_NODE;
   console.log(`--- ${label}`);
-  const child = spawn(join(installed, "OpenMausBot.exe"), [join(root, "scripts", "smoke-cua-win-lend.electron.cjs")], {
+  const child = spawn(join(installed, "OpenDeliobot.exe"), [join(root, "scripts", "smoke-cua-win-lend.electron.cjs")], {
     env, stdio: ["ignore", "inherit", "inherit"], windowsHide: true,
   });
   const watchdog = setTimeout(() => {

@@ -3,18 +3,18 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, it, vi } from "vitest";
-import { launchVerificationServer, runControlOmb } from "../scripts/control-omb.ts";
+import { launchVerificationServer, runControlOdb } from "../scripts/control-odb.ts";
 import { removeTempDir } from "./testing/cleanup.ts";
 import { openSse } from "./testing/sse.ts";
 
 it("posts one rescue notice into a silent first reply, readable as plain text, and settles it when the reply starts", async () => {
-  const scratch = mkdtempSync(join(tmpdir(), "omb-first-reply-"));
+  const scratch = mkdtempSync(join(tmpdir(), "odb-first-reply-"));
   const release = join(scratch, "release");
   const fixture = await launchVerificationServer({
-    ...process.env, FAKE_CLAUDE_MODE: "hang", FAKE_CLAUDE_RELEASE: release, OMB_FIRST_REPLY_NOTICE_MS: "1500",
+    ...process.env, FAKE_CLAUDE_MODE: "hang", FAKE_CLAUDE_RELEASE: release, ODB_FIRST_REPLY_NOTICE_MS: "1500",
   });
   const { url } = fixture.info;
-  const control = (args: string[]) => runControlOmb([...args, "--url", url]) as Promise<any>;
+  const control = (args: string[]) => runControlOdb([...args, "--url", url]) as Promise<any>;
   const api = async (method: string, path: string) => {
     const response = await fetch(`${url}${path}`, { method, headers: { origin: url } });
     const result = await response.json() as any;
@@ -24,7 +24,7 @@ it("posts one rescue notice into a silent first reply, readable as plain text, a
   const messages = async (threadId: string) => (await api("GET", `/api/threads/${threadId}/messages?limit=100`)).messages as any[];
   const stream = await openSse(`${url}/api/events`, { origin: url });
   try {
-    const { bot } = await control(["new-bot", "--name", "Maus"]);
+    const { bot } = await control(["new-bot", "--name", "Delio"]);
     const threadId = bot.activeTaskId;
     const instanceId = bot.modelSelection.instanceId;
     const ai = ((await api("GET", "/api/instances")).instances as any[]).find((instance) => instance.instanceId === instanceId).displayName;
@@ -40,7 +40,7 @@ it("posts one rescue notice into a silent first reply, readable as plain text, a
     expect(notice).toMatchObject({ role: "bot", kind: "activity", turnId: expect.any(String) });
     const asked = (await messages(threadId)).find((message) => message.role === "user" && message.text === "Hello?");
     expect(notice.tool).toEqual({
-      name: `notice: Maus hasn't heard back from ${ai} yet.`,
+      name: `notice: Delio hasn't heard back from ${ai} yet.`,
       ok: true,
       rescue: { botId: bot.id, threadId, turnId: notice.turnId, requestMessageId: asked.id, instanceId, ai },
     });

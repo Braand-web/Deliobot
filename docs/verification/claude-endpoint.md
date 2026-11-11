@@ -9,7 +9,7 @@ calls a real provider and never reads or writes a real `~/.claude`.
 Launch the fixture and keep its printed `url`, `dataDir` and `logPath`:
 
 ```sh
-node --experimental-strip-types scripts/control-omb.ts launch
+node --experimental-strip-types scripts/control-odb.ts launch
 ```
 
 Its `config.json` has one **Verification fixture** Claude account whose CLI is
@@ -94,4 +94,4 @@ pnpm lint
 This proves the wiring, isolation and API behavior with the fake CLI. It does
 not prove that a real DeepSeek or GLM endpoint answers, because no real token
 is used; do that once by hand with your own key. The Settings surface is
-driven by hand; `control-omb` cannot drive Settings yet.
+driven by hand; `control-odb` cannot drive Settings yet.

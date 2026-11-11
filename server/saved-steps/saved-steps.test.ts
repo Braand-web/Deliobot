@@ -40,7 +40,7 @@ describe("savedStepsEnabled", () => {
 
 describe("createSavedSteps", () => {
   it("runs the AI when the thread has no turn generation to keep the request from saving", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-saved-steps-facade-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-saved-steps-facade-"));
     dirs.push(dir);
     const events: RuntimeEvent[] = [];
     const slots = new Map<string, ProviderInstance>();
@@ -72,7 +72,7 @@ describe("createSavedSteps", () => {
   });
 
   it("replays from the bot's own store on the turn's computer and keeps the request from saving", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-saved-steps-facade-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-saved-steps-facade-"));
     dirs.push(dir);
     const events: RuntimeEvent[] = [];
     const slots = new Map<string, ProviderInstance>();
@@ -92,7 +92,7 @@ describe("createSavedSteps", () => {
     steps.recipes.save("b1", RECIPE);
     const engine = { instanceId: "claude", driverKind: "claudeAgent", adapter: { provider: "claudeAgent" } } as unknown as ProviderInstance;
     const start = vi.fn(async (_input: SendTurnInput): Promise<TurnStartResult> => ({ turnId: "e1" }));
-    const computer = { command: process.execPath, args: ["--experimental-strip-types", FAKE], env: { OMB_CONTROL_URL: "http://127.0.0.1:1/control", OMB_CONTROL_TOKEN: "t" }, scope: "local-computer" as const };
+    const computer = { command: process.execPath, args: ["--experimental-strip-types", FAKE], env: { ODB_CONTROL_URL: "http://127.0.0.1:1/control", ODB_CONTROL_TOKEN: "t" }, scope: "local-computer" as const };
 
     const { turnId } = await steps.dispatch.sendTurn(engine, { botId: "b1", message: { id: "m1", at: 1, role: "user", kind: "text", text: REQUEST }, turnText: REQUEST, placePicked: true },
       { threadId: "t1", botId: "b1", text: REQUEST, approvalMode: "full", integrations: { localComputer: computer } }, start);
@@ -147,7 +147,7 @@ describe("SavedSteps.requestSettled", () => {
   const saved = () => steps.recipes.find("b1", requestKey(REQUEST));
 
   beforeEach(() => {
-    folder = mkdtempSync(join(tmpdir(), "omb-saved-steps-settle-"));
+    folder = mkdtempSync(join(tmpdir(), "odb-saved-steps-settle-"));
     dirs.push(folder);
     patches = [];
     enabled = true;

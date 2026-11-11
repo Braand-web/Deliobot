@@ -21,13 +21,13 @@ export { TOOL_BRIDGE_ENV };
 export const agentsProxyLaunch = () => ({ command: process.execPath, args: [SPAWNED_PROXIES.agents] });
 
 /** Every agents proxy's starting environment. The bridge is always set, never inherited: an engine may
- * hand its MCP children this server's environment, where OMB_AGENTS_TOOL_BRIDGE=1 is the operator switch. */
+ * hand its MCP children this server's environment, where ODB_AGENTS_TOOL_BRIDGE=1 is the operator switch. */
 export const AGENTS_PROXY_ENV = { ...AGENTS_NODE_FLAG, [TOOL_BRIDGE_ENV]: "0" } as const;
 
 type BridgeConfig = { features?: { agentsToolBridge?: boolean; claudeUserMcp?: boolean } };
 
-/** The workspace switch: `{"features": {"agentsToolBridge": true}}` in ~/.openmausbot/config.json, or
- * OMB_AGENTS_TOOL_BRIDGE set to exactly "1" or "0", which wins over the saved setting. */
+/** The workspace switch: `{"features": {"agentsToolBridge": true}}` in ~/.opendeliobot/config.json, or
+ * ODB_AGENTS_TOOL_BRIDGE set to exactly "1" or "0", which wins over the saved setting. */
 export function agentsToolBridgeEnabled(cfg: BridgeConfig, env: NodeJS.ProcessEnv = process.env): boolean {
   const override = env[TOOL_BRIDGE_ENV];
   if (override === "1") return true;
@@ -36,7 +36,7 @@ export function agentsToolBridgeEnabled(cfg: BridgeConfig, env: NodeJS.ProcessEn
 }
 
 /** A model on this machine or network reads the whole list on every turn, out of a small window and at laptop speed:
- * about 15,000 tokens before the person has said anything. OMB_AGENTS_TOOL_BRIDGE=0 still wins. */
+ * about 15,000 tokens before the person has said anything. ODB_AGENTS_TOOL_BRIDGE=0 still wins. */
 function runsLocalModel(bot: { modelSelection?: { model?: unknown } } | null | undefined, engine: BridgeEngine | null | undefined): boolean {
   const model = bot?.modelSelection?.model;
   if (typeof model === "string" && decodeInjectId(model)) return true;
@@ -188,7 +188,7 @@ function walkSettings(value: unknown, found: SettingsFindings): void {
 type SettingsReading = "silent" | "names" | "hooks" | "wildcard" | "managed-only" | "unreadable";
 
 /** What one Claude settings file means for the bridge; the first reading that holds wins. Security:
- * OpenMausBot's own hooks reach the CLI through a private --settings file this never reads, so none of
+ * OpenDeliobot's own hooks reach the CLI through a private --settings file this never reads, so none of
  * them may be a PreToolUse or PermissionRequest hook. */
 function claudeSettings(file: string, managed: boolean): SettingsReading {
   const text = textOf(file);
@@ -216,7 +216,7 @@ function claudeSettings(file: string, managed: boolean): SettingsReading {
 /** Why a Claude Code turn is not bridged, or null. `--allowedTools mcp__agents` pre-allows the whole
  * agents server, so the harness asks nothing by name; what the CLI itself reads is checked here. */
 function claudeRefusal(cfg: BridgeConfig, engine: BridgeEngine, env: NodeJS.ProcessEnv, host: EngineHost): string | null {
-  if ({ ...env, ...engine.environment }.OMB_CLAUDE_INHERIT_USER_CONFIG === "1" || cfg.features?.claudeUserMcp === true) {
+  if ({ ...env, ...engine.environment }.ODB_CLAUDE_INHERIT_USER_CONFIG === "1" || cfg.features?.claudeUserMcp === true) {
     return "the bot inherits this machine's own Claude Code setup";
   }
   const config = engine.config && typeof engine.config === "object" ? engine.config as { tools?: unknown; disallowedTools?: unknown } : {};

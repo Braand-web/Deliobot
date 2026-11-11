@@ -1,5 +1,5 @@
 // The device kind's MCP entry: tools/list follows the phone's apps and the bot's grant, a call becomes a job that a
-// scripted phone leases and answers, a send goes to the phone with no card of OpenMausBot's own (the person taps Send
+// scripted phone leases and answers, a send goes to the phone with no card of OpenDeliobot's own (the person taps Send
 // there), and only the owner's own turns reach a phone.
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -33,7 +33,7 @@ afterEach(async () => {
   for (const dir of dirs.splice(0)) { await flushDecisionLog(dir); await removeTempDir(dir); }
 });
 
-const bot = (fields: Partial<BotRecord>) => ({ id: "chief", name: "MausBot", color: "teal", ...fields }) as BotRecord;
+const bot = (fields: Partial<BotRecord>) => ({ id: "chief", name: "Delio", color: "teal", ...fields }) as BotRecord;
 const chief = bot({ chiefOfStaff: true });
 const registration = (name: string, capabilities: PhoneRegistration["capabilities"], platform: "ios" | "android" = "ios"): PhoneRegistration =>
   ({ installId: `install-${name.replace(/\W+/g, "-")}`, name, platform, appVersion: "1.6.0", timeZone: "Asia/Kolkata", capabilities });
@@ -41,7 +41,7 @@ const call = (name: string, args: Record<string, unknown> = {}) => ({ method: "t
 const text = (result: PhoneToolsList | PhoneToolResult) => (result as PhoneToolResult).content[0]!.text;
 
 function harness(options: { bot?: () => BotRecord | null } = {}) {
-  const dir = mkdtempSync(join(tmpdir(), "omb-phone-rpc-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-phone-rpc-"));
   dirs.push(dir);
   const clock = { now: 1_800_000_000_000 };
   const registry = new PhoneRegistry(join(dir, "phones.json"), () => clock.now);
@@ -96,7 +96,7 @@ describe("phone MCP host", () => {
     expect(h.host.mounts(bot({ phoneApps: { messages: "write" } }), OWNER)).toBe(false);
     expect(h.host.integration(chief, OWNER, () => "turn-token", "http://127.0.0.1:1")).toEqual({
       command: process.execPath, args: [SPAWNED_PROXIES.harnessMcp, "device"],
-      env: { ...AGENTS_NODE_FLAG, OMB_MCP_TOKEN_DEVICE: "turn-token", OMB_HARNESS_URL: "http://127.0.0.1:1" },
+      env: { ...AGENTS_NODE_FLAG, ODB_MCP_TOKEN_DEVICE: "turn-token", ODB_HARNESS_URL: "http://127.0.0.1:1" },
     });
     expect(h.host.prompt(chief, OWNER)).toContain("Omkar's iPhone is an iPhone; this bot may use: Calendar.");
     expect(h.host.prompt(chief, OWNER)).not.toContain("Guest Pixel");
@@ -113,7 +113,7 @@ describe("phone MCP host", () => {
     expect(h.host.toolListing()?.phone.map((tool) => tool.name)).toEqual([...PHONE_TOOL_NAMES]);
     const rows = await h.rows();
     expect(rows.filter((row) => row.decision === "auto-approved").map((row) => row.tool)).toEqual(names);
-    expect(rows[0]).toMatchObject({ threadId: TURN.threadId, botId: "chief", botName: "MausBot", source: "connector-scope", rule: "scope:phone:calendar" });
+    expect(rows[0]).toMatchObject({ threadId: TURN.threadId, botId: "chief", botName: "Delio", source: "connector-scope", rule: "scope:phone:calendar" });
   });
 
   it("a read runs on the phone and the result names the phone", async () => {
@@ -130,7 +130,7 @@ describe("phone MCP host", () => {
     expect(text(result)).toContain("Omkar's iPhone");
     expect(text(result)).toContain("events");
     expect(result.structuredContent).toEqual({ phone: { name: "Omkar's iPhone", platform: "ios" }, events: [] });
-    expect(request.mock.calls[0]![3]).toMatchObject({ timeoutMs: PHONE_JOB_TIMEOUT_MS, offlineText: "Omkar's iPhone is offline. Open the MausBot app on it." });
+    expect(request.mock.calls[0]![3]).toMatchObject({ timeoutMs: PHONE_JOB_TIMEOUT_MS, offlineText: "Omkar's iPhone is offline. Open the Delio app on it." });
     expect(h.registry.get(IPHONE)!.lastUsedAt).toBe(h.clock.now);
     expect(h.messages).toEqual([]);
     expect(h.checks()).toBe(2);
@@ -164,7 +164,7 @@ describe("phone MCP host", () => {
     await again;
     expect(h.messages[1]!.message).toEqual({
       role: "bot", kind: "activity", tool: { name: "mcp__device__PHONE_DELETE_EVENT", ok: true, summary: "Delete event on Omkar's iPhone", summaryCode: "chat.notice.phone.write.PHONE_DELETE_EVENT", summaryParams: { phone: "Omkar's iPhone" } },
-      from: { botId: "chief", name: "MausBot", color: "teal" },
+      from: { botId: "chief", name: "Delio", color: "teal" },
     });
     // A write the phone refused records no row and reaches the bot with the phone's reason.
     const failed = h.handle(call("PHONE_UPDATE_EVENT", { id: "evt-1", title: "Dentist (moved)" }));
@@ -180,7 +180,7 @@ describe("phone MCP host", () => {
     ]);
   });
 
-  it("a send goes straight to the phone: no card of OpenMausBot's own, the person taps Send there", async () => {
+  it("a send goes straight to the phone: no card of OpenDeliobot's own, the person taps Send there", async () => {
     expect(PHONE_TOOL_NAMES.filter((name) => isOutboundTool(name))).toEqual(["PHONE_RESPOND_TO_INVITE", "PHONE_SEND_MESSAGE", "PHONE_SEND_WHATSAPP"]);
     const h = harness();
     h.registry.register(IPHONE, OWNER, registration("Omkar's iPhone", { calendar: "full", messages: "send" }));
@@ -221,7 +221,7 @@ describe("phone MCP host", () => {
     const request = vi.spyOn(h.jobs, "request");
     const result = await h.handle(call("PHONE_SEND_MESSAGE", { to: "Mom", text: "On my way" })) as PhoneToolResult;
     expect(result).toMatchObject({ isError: true, structuredContent: { code: "refused" } });
-    expect(text(result)).toBe("OpenMausBot did not run this: Phone Messages is read-only for Scout, and Send message would write to it. Ask the user before trying again.");
+    expect(text(result)).toBe("OpenDeliobot did not run this: Phone Messages is read-only for Scout, and Send message would write to it. Ask the user before trying again.");
     expect(request).not.toHaveBeenCalled();
     expect(h.messages).toEqual([]);
     expect((await h.rows()).map((row) => [row.decision, row.rule])).toEqual([["auto-denied", "scope:phone:messages:write"]]);
@@ -264,7 +264,7 @@ describe("phone MCP host", () => {
     // Neither allows Messages: refused before any job.
     const message = await h.handle(call("PHONE_SEND_MESSAGE", { to: "Mom", text: "On my way" })) as PhoneToolResult;
     expect(message.isError).toBe(true);
-    expect(text(message)).toBe("MausBot can't use Messages on this phone: it is not allowed in the MausBot app on the phone.");
+    expect(text(message)).toBe("Delio can't use Messages on this phone: it is not allowed in the Delio app on the phone.");
     // A named phone without the app is refused too, though another phone allows it.
     const rsvp = await h.handle(call("PHONE_RESPOND_TO_INVITE", { id: "inv-1", response: "decline", phone: "work pixel" })) as PhoneToolResult;
     expect(rsvp).toMatchObject({ isError: true, structuredContent: { code: "denied" } });
@@ -356,7 +356,7 @@ describe("phone MCP host", () => {
     await vi.advanceTimersByTimeAsync(15_000);
     const result = await pending as PhoneToolResult;
     expect(result).toMatchObject({ isError: true, structuredContent: { code: "offline" } });
-    expect(text(result)).toBe("Omkar's iPhone is offline. Open the MausBot app on it.");
+    expect(text(result)).toBe("Omkar's iPhone is offline. Open the Delio app on it.");
     expect(h.jobs.busy(IPHONE)).toBe(false);
     expect(h.registry.get(IPHONE)!.lastUsedAt).toBeNull();
   });

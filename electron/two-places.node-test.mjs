@@ -16,7 +16,7 @@ function world({ here = ["Scout"], cloud = null, garage = ["Ledger"], settled = 
   const place = (key, name, kind, bots) => ({ key, name, kind, read: async () => { w.reads++; return w[bots] ? summary(...w[bots]) : null; }, bring: async () => { w.brought.push(key); } });
   w.two = createTwoPlaces({
     local: async () => summary(...w.here),
-    places: () => [...(w.cloud ? [place("cloud:https://omb-u-1.fly.dev", "My Cloud", "cloud", "cloud")] : []), place("server:https://garage.example.test", "Garage server", "server", "garage")],
+    places: () => [...(w.cloud ? [place("cloud:https://odb-u-1.fly.dev", "My Cloud", "cloud", "cloud")] : []), place("server:https://garage.example.test", "Garage server", "server", "garage")],
     settled: () => w.settled, dismissed: w.dismissed, onChange: () => { w.changes++; }, now: () => w.at,
   });
   return w;
@@ -61,8 +61,8 @@ test("no suggestion when only one place has bots, while a move is under way, or 
 test("Not now is remembered for that place, after the app opens again too; another place may still be suggested", async () => {
   const w = world({ cloud: ["Chief"] });
   await w.two.refresh();
-  assert.equal(w.two.state().suggest?.key, "cloud:https://omb-u-1.fly.dev");
-  assert.deepEqual(w.two.dismiss("cloud:https://omb-u-1.fly.dev"), { suggest: { key: "server:https://garage.example.test", name: "Garage server", kind: "server" } });
+  assert.equal(w.two.state().suggest?.key, "cloud:https://odb-u-1.fly.dev");
+  assert.deepEqual(w.two.dismiss("cloud:https://odb-u-1.fly.dev"), { suggest: { key: "server:https://garage.example.test", name: "Garage server", kind: "server" } });
   w.two.dismiss("server:https://garage.example.test");
   assert.deepEqual(w.two.state(), { suggest: null });
   const reopened = createTwoPlaces({ local: async () => summary("Scout"), settled: () => true, dismissed: w.dismissed, now: () => w.at,
@@ -79,7 +79,7 @@ test("the one tap starts the move to the place suggested, and only to it", async
   assert.deepEqual(both.brought, []);
   const w = world();
   await w.two.refresh();
-  await assert.rejects(w.two.accept("cloud:https://omb-u-1.fly.dev"), /can't be brought together there/u);
+  await assert.rejects(w.two.accept("cloud:https://odb-u-1.fly.dev"), /can't be brought together there/u);
   assert.deepEqual(await w.two.accept("server:https://garage.example.test"), { suggest: null });
   assert.deepEqual(w.brought, ["server:https://garage.example.test"]);
 });
@@ -102,13 +102,13 @@ test("main's places: My Cloud only while the person keeps this computer's bots h
   const environments = [
     { id: "garage", kind: "remote", name: "Garage server", origin: "https://garage.example.test" },
     { id: "family", kind: "remote", name: "Family server", origin: "https://family.example.test" },
-    { id: "acme", kind: "remote", name: "Acme", origin: "https://omb-t-acme.fly.dev", team: { id: "t-acme", role: "owner" } },
+    { id: "acme", kind: "remote", name: "Acme", origin: "https://odb-t-acme.fly.dev", team: { id: "t-acme", role: "owner" } },
   ];
   const main = installTwoPlacesMain({
     ipcMain: { handle: (channel, handler) => handlers.set(channel, handler) }, guard: (_channel, handler) => handler,
     localRequest: async () => Response.json(summary("Scout")),
     fetch: async (url) => { asked.push(new URL(url).origin); return Response.json(summary("Chief")); },
-    environments: () => environments, cloud: () => ({ origin: "https://omb-u-1.fly.dev", asleep: false }),
+    environments: () => environments, cloud: () => ({ origin: "https://odb-u-1.fly.dev", asleep: false }),
     oneHome: { journal: () => journal, keep: { state: () => keep, set: async (on) => { keep = { ...keep, on }; } } },
     ownHome: { owns: (place) => offered.has(place.id), offers: (place) => offered.has(place.id), start: async (id) => { active = true; asked.push(`start:${id}`); }, active: () => active,
       away: () => false, refresh: () => {} },
@@ -116,13 +116,13 @@ test("main's places: My Cloud only while the person keeps this computer's bots h
   });
   try {
     await main.refresh({ force: true });
-    assert.deepEqual(await handlers.get("two-places:state")({}), { suggest: { key: "cloud:https://omb-u-1.fly.dev", name: "My Cloud", kind: "cloud" } });
-    assert.deepEqual([...new Set(asked)].sort(), ["https://garage.example.test", "https://omb-u-1.fly.dev"], "never the team's Cloud or a server others use");
-    await handlers.get("two-places:accept")({}, "cloud:https://omb-u-1.fly.dev");
+    assert.deepEqual(await handlers.get("two-places:state")({}), { suggest: { key: "cloud:https://odb-u-1.fly.dev", name: "My Cloud", kind: "cloud" } });
+    assert.deepEqual([...new Set(asked)].sort(), ["https://garage.example.test", "https://odb-u-1.fly.dev"], "never the team's Cloud or a server others use");
+    await handlers.get("two-places:accept")({}, "cloud:https://odb-u-1.fly.dev");
     assert.equal(keep.on, false, "the one tap lets this computer's bots move to My Cloud, as anyone's first move");
     await main.refresh({ force: true });
     assert.equal(main.state().suggest?.key, "server:https://garage.example.test");
-    journal = { v: 1, phase: "copy", cloud: { origin: "https://omb-u-1.fly.dev", account: "acct" } };
+    journal = { v: 1, phase: "copy", cloud: { origin: "https://odb-u-1.fly.dev", account: "acct" } };
     assert.deepEqual(main.state(), { suggest: null }, "nothing while a move is under way");
     journal = null;
     offered = new Set();
@@ -138,7 +138,7 @@ test("each place of the person's own hears which bots their other places have, n
   const two = createTwoPlaces({
     local: async () => (mine === null ? null : summary(...mine)),
     here: { name: async () => "Work laptop", tell: async (payload) => { told.here.push(payload); } },
-    places: () => [place("cloud:https://omb-u-1.fly.dev", "My Cloud", "cloud", () => ["Chief"], "cloud"), place("server:https://garage.example.test", "Garage server", "server", () => ledger, "garage")],
+    places: () => [place("cloud:https://odb-u-1.fly.dev", "My Cloud", "cloud", () => ["Chief"], "cloud"), place("server:https://garage.example.test", "Garage server", "server", () => ledger, "garage")],
     settled: () => true, quiet: () => moving, dismissed: memory(),
   });
   await two.refresh();

@@ -51,7 +51,7 @@ const cleanups: Array<() => Promise<void>> = [];
 afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) await cleanup(); });
 
 async function fixture(script: Script, driver: "local" | "hosted" = "local") {
-  const directory = mkdtempSync(join(tmpdir(), "omb-chat-local-"));
+  const directory = mkdtempSync(join(tmpdir(), "odb-chat-local-"));
   const requests: ChatRequest[] = [];
   const server = createServer(async (request, response) => {
     if (request.url === "/v1/models") { response.setHeader("content-type", "application/json"); response.end('{"data":[]}'); return; }

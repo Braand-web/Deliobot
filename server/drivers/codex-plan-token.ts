@@ -4,7 +4,7 @@ import { SPAWNED_PROXIES } from "../proxy-paths.ts";
 import { startChatGptTokenBridge } from "./chatgpt-plan-token-bridge.ts";
 
 /** What a bridged run adds to Codex's environment; none of it may reach the agent's shell. */
-export const PLAN_TOKEN_BRIDGE_ENV = ["OMB_CODEX_AUTH_SOCKET", "OMB_CODEX_AUTH_SECRET", "ELECTRON_RUN_AS_NODE"];
+export const PLAN_TOKEN_BRIDGE_ENV = ["ODB_CODEX_AUTH_SOCKET", "ODB_CODEX_AUTH_SECRET", "ELECTRON_RUN_AS_NODE"];
 
 export interface PlanTokenBridge {
   env: Record<string, string>;
@@ -23,14 +23,14 @@ export function chatgptPlanCodexArgs(renewing = false): string[] {
       "-c", `model_providers.openai_chatgpt_plan.auth.args=[${JSON.stringify(SPAWNED_PROXIES.chatgptPlanToken)}]`,
       "-c", "model_providers.openai_chatgpt_plan.auth.refresh_interval_ms=30000",
       "-c", "model_providers.openai_chatgpt_plan.auth.timeout_ms=60000",
-    ] : ["-c", 'model_providers.openai_chatgpt_plan.env_key="OPENMAUSBOT_CHATGPT_TOKEN"']),
+    ] : ["-c", 'model_providers.openai_chatgpt_plan.env_key="OPENDELIOBOT_CHATGPT_TOKEN"']),
     "-c", 'model_providers.openai_chatgpt_plan.wire_api="responses"',
     "-c", "model_providers.openai_chatgpt_plan.requires_openai_auth=false",
     "-c", "model_providers.openai_chatgpt_plan.supports_websockets=false",
     "-c", 'cli_auth_credentials_store="ephemeral"',
     "-c", "features.tool_search=false",
     "-c", "shell_environment_policy.ignore_default_excludes=false",
-    // OPENMAUSBOT_CHATGPT_TOKEN is excluded via extendShellExclusions: a `-c exclude` here would replace the lower layers' list.
+    // OPENDELIOBOT_CHATGPT_TOKEN is excluded via extendShellExclusions: a `-c exclude` here would replace the lower layers' list.
   ];
 }
 

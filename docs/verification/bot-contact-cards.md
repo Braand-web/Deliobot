@@ -24,6 +24,6 @@ fixture's middleware maps Vapi's official address to that fake. It checks:
   counts it in **Connected**; no listing ever returns the key.
 - **Disconnect** deletes the server and its key.
 
-Screenshots go to `OMB_UI_EVIDENCE_DIR` (default
-`/tmp/omb-contact-cards-evidence`). No real Vapi, Telnyx, AgentMail or
+Screenshots go to `ODB_UI_EVIDENCE_DIR` (default
+`/tmp/odb-contact-cards-evidence`). No real Vapi, Telnyx, AgentMail or
 AgentPhone account is used.

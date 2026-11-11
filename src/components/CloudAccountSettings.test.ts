@@ -49,7 +49,7 @@ it("names the verified tier; no tier is today's Pro, and a tier newer than the a
   await ready(free);
   for (const [tier, text] of [[undefined, "Pro active"], ["personal", "Personal active"], ["pro", "Pro active"], ["max", "Max active"], ["team", "Cloud active"], ["constructor", "Cloud active"]] as const) {
     push({ ...free, entitlement: { plan: "pro", ...(tier ? { tier } : {}), status: "active", expiresAt: 1_900_000_000_000, version: 3 } });
-    expect(render().html).toContain(`${text} · verified by MausBot Cloud`); expect(render().html).toContain("Manage Cloud subscription");
+    expect(render().html).toContain(`${text} · verified by Delio Cloud`); expect(render().html).toContain("Manage Cloud subscription");
   }
   push({ ...free, entitlement: { plan: "pro", tier: "max", status: "inactive", expiresAt: null, version: 4 } });
   expect(render().html).toContain("Max · not active right now"); expect(render().html).not.toContain("Max active");
@@ -57,9 +57,9 @@ it("names the verified tier; no tier is today's Pro, and a tier newer than the a
   expect(cloudPlanLabel()).toBe("Pro"); expect(cloudPlanLabel("toString")).toBe("Cloud");
 });
 it("sign-out requires confirmation and preserves local and organization wording", async () => {
-  await ready(free); click("Sign out of MausBot Cloud"); expect(bridge.signOut).not.toHaveBeenCalled();
+  await ready(free); click("Sign out of Delio Cloud"); expect(bridge.signOut).not.toHaveBeenCalled();
   expect(render().html).toContain("does not cancel your subscription"); click("Keep signed in"); expect(bridge.signOut).not.toHaveBeenCalled();
-  click("Sign out of MausBot Cloud"); click("Sign out of MausBot Cloud"); await flush(); expect(bridge.signOut).toHaveBeenCalledExactlyOnceWith();
+  click("Sign out of Delio Cloud"); click("Sign out of Delio Cloud"); await flush(); expect(bridge.signOut).toHaveBeenCalledExactlyOnceWith();
   expect(render().html).toContain("Sign in to your Cloud plan"); expect(fetch).not.toHaveBeenCalled();
 });
 it("never accesses account bridge from remote companion pages", async () => {
@@ -68,7 +68,7 @@ it("never accesses account bridge from remote companion pages", async () => {
 });
 it("a late initial snapshot cannot replace a newer revoked state", async () => {
   let resolve!: (state: CloudAccountState) => void; vi.mocked(bridge.state).mockReturnValueOnce(new Promise(done => { resolve = done; }));
-  render(); f.effects[0](); push({ status: "reauth-required" }); resolve(free); await flush(); expect(render().html).toContain("no longer signed in to MausBot Cloud");
+  render(); f.effects[0](); push({ status: "reauth-required" }); resolve(free); await flush(); expect(render().html).toContain("no longer signed in to Delio Cloud");
 });
 
 const all = (html: string, texts: string[]) => texts.forEach(text => expect(html).toContain(text));
@@ -81,13 +81,13 @@ it("a failed re-check keeps the plan, Cloud and Connect, and only says it is che
   const machine = { status: "ready" as const, origin: "https://home-7f3k2.fly.dev" };
   await ready({ ...free, entitlement: { plan: "pro", tier: "max", status: "active", expiresAt: 1_900_000_000_000, version: 3 }, machine, checking: true });
   const { html } = render();
-  all(html, ["Max active · verified by MausBot Cloud", "Checking with MausBot Cloud…", "Open the Cloud", "Manage Cloud subscription"]);
+  all(html, ["Max active · verified by Delio Cloud", "Checking with Delio Cloud…", "Open the Cloud", "Manage Cloud subscription"]);
   none(html, [...BUY, ...ALARM]);
 });
-it("OMB Cloud out of reach: the plan last verified stays named, calmly, with no offer to buy", async () => {
+it("ODB Cloud out of reach: the plan last verified stays named, calmly, with no offer to buy", async () => {
   await ready({ status: "unavailable", message: "unreachable", account: { id: "fixture", email: "person@example.test" }, lastPlan: { tier: "personal", active: true } });
   let html = render().html;
-  all(html, ["Personal · checking with MausBot Cloud…", "be reached right now, so this app", "Nothing has changed with your plan", "Manage Cloud subscription"]);
+  all(html, ["Personal · checking with Delio Cloud…", "be reached right now, so this app", "Nothing has changed with your plan", "Manage Cloud subscription"]);
   none(html, [...BUY, ...ALARM]);
   push({ status: "unavailable", message: "unreachable", account: { id: "fixture", email: "person@example.test" } });
   html = render().html; expect(html).toContain("Open your Plan page"); none(html, [...BUY, ...ALARM]);
@@ -97,9 +97,9 @@ it("a saved sign-in that couldn't be cleared names the Sign out button on the ca
     f.values = []; f.platform = platform;
     await ready({ status: "unavailable", message: "signout-storage-failed" });
     const { html } = render();
-    all(html, ["could not be read or cleared", "Choose Sign out of MausBot Cloud, then sign in again."]);
+    all(html, ["could not be read or cleared", "Choose Sign out of Delio Cloud, then sign in again."]);
     none(html, ["keychain"]);
-    expect(button("Sign out of MausBot Cloud")).toBeTruthy();
+    expect(button("Sign out of Delio Cloud")).toBeTruthy();
   }
 });
 const statusText = () => render().nodes.filter(node => node.type === "p" && (node.props as { role?: string }).role === "status")
@@ -124,13 +124,13 @@ it("a sign-in that ended asks to sign in again, keeps the plan, and offers nothi
   button("Sign in again")!.props.onClick!(); await flush();
   expect(bridge.signInAgain).toHaveBeenCalledExactlyOnceWith(); expect(bridge.signOut).not.toHaveBeenCalled(); expect(bridge.begin).not.toHaveBeenCalled();
   push({ status: "reauth-required", message: "access-ended", account: { id: "fixture", email: "person@example.test" } });
-  all(render().html, ["no longer signed in to MausBot Cloud", "Sign in again"]); none(render().html, BUY);
+  all(render().html, ["no longer signed in to Delio Cloud", "Sign in again"]); none(render().html, BUY);
 });
 it("a payment problem or a stopped Cloud is never 'Free account' with a plan to choose", async () => {
   const origin = "https://home-7f3k2.fly.dev";
   await ready({ ...free, machine: { status: "payment-problem", origin } });
   let html = render().html;
-  all(html, ["MausBot Cloud · not active right now", "problem with your payment", "Update payment in your browser"]); none(html, BUY);
+  all(html, ["Delio Cloud · not active right now", "problem with your payment", "Update payment in your browser"]); none(html, BUY);
   push({ ...free, machine: { status: "stopped", origin } });
   html = render().html; all(html, ["Subscribe again on your Plan page", "Open your Plan page"]); none(html, BUY);
   expect(html).not.toContain("shows why and how to fix it");
@@ -142,7 +142,7 @@ it("a payment being linked says so, with its date, and asks nobody to pay again"
   const html = render().html;
   all(html, ["Personal · payment received", "Received Oct 2, 2026", "no need to pay again", "Open your Plan page"]); none(html, BUY);
   push({ ...free, purchase: { state: "held" } });
-  all(render().html, ["MausBot Cloud · payment received", "linking your payment"]); none(render().html, BUY);
+  all(render().html, ["Delio Cloud · payment received", "linking your payment"]); none(render().html, BUY);
 });
 it("where this app can keep another account beside this one, the other email is added, with nothing signed out", async () => {
   vi.stubGlobal("window", { ogb: { cloudAccount: bridge, accounts: { addCancel: vi.fn(), list: vi.fn(), onChanged: vi.fn() } } });
@@ -187,7 +187,7 @@ it("a saved sign-in that can't be read right now says the app tries again by its
   await ready({ status: "unavailable", message: "restore-failed" });
   const html = render().html;
   expect(html).toContain("This computer couldn&#x27;t open its saved Cloud sign-in. Unlock your keychain, and the app tries again by itself.");
-  none(html, ["could not be read or cleared", "sign out again", "Sign out of MausBot Cloud, then"]);
+  none(html, ["could not be read or cleared", "sign out again", "Sign out of Delio Cloud, then"]);
 });
 it("a sign-out that could not clear the saved sign-in still asks for it", async () => {
   await ready({ status: "unavailable", message: "signout-storage-failed" });
@@ -216,19 +216,19 @@ it("on the person's own Cloud, Settings shows the plan read only, with Manage, a
   const view = () => { f.index = 0; f.effects = []; let tree: ReactNode; function Capture() { tree = CloudPlanOnCloud({ bridge: plan }); return tree; }
     return { html: renderToStaticMarkup(createElement(Capture)), nodes: nodes(tree) }; };
   view(); f.effects[0](); await flush();
-  all(view().html, ["Max active · verified by MausBot Cloud", "Manage in your browser"]); none(view().html, [...BUY, "Switch to this computer", "Sign in again"]);
+  all(view().html, ["Max active · verified by Delio Cloud", "Manage in your browser"]); none(view().html, [...BUY, "Switch to this computer", "Sign in again"]);
   view().nodes.find(node => node.type === "button" && node.props.children === "Manage in your browser")!.props.onClick!();
   await flush(); expect(plan.manage).toHaveBeenCalledExactlyOnceWith();
   plan.state.mockResolvedValueOnce({ status: "checking", tier: "pro" }); f.values = []; view(); f.effects[0](); await flush();
-  expect(view().html).toContain("Pro · checking with MausBot Cloud…");
+  expect(view().html).toContain("Pro · checking with Delio Cloud…");
   plan.state.mockResolvedValueOnce({ status: "signin", tier: "max" }); f.values = []; view(); f.effects[0](); await flush();
-  all(view().html, ["Max plan", "This computer needs to sign in to MausBot Cloud again"]); none(view().html, [...BUY, "Could not complete", "Switch to this computer"]);
+  all(view().html, ["Max plan", "This computer needs to sign in to Delio Cloud again"]); none(view().html, [...BUY, "Could not complete", "Switch to this computer"]);
   expect(view().nodes.filter(node => node.type === "button" && node.props.children === "Sign in again")).toHaveLength(1);
   view().nodes.find(node => node.type === "button" && node.props.children === "Sign in again")!.props.onClick!();
   await flush(); expect(plan.signIn).toHaveBeenCalledExactlyOnceWith();
   plan.state.mockRejectedValueOnce(new Error("cloud-plan:state is only available in this app's window")); f.values = []; view(); f.effects[0](); await flush();
   const refused = view();
-  expect(refused.html).toContain("Your plan is managed in the MausBot app on your computer.");
+  expect(refused.html).toContain("Your plan is managed in the Delio app on your computer.");
   expect(refused.nodes.some(node => node.type === "button")).toBe(false);
   none(refused.html, ["Could not complete", 'role="alert"', "Loading"]);
 });
@@ -238,12 +238,12 @@ it("on My Cloud once it is home, Settings is that app's own: the plan is managed
   const view = () => { f.index = 0; f.effects = []; let tree: ReactNode; function Capture() { tree = CloudPlanOnCloud({ bridge: plan }); return tree; }
     return { html: renderToStaticMarkup(createElement(Capture)), nodes: nodes(tree) }; };
   view(); f.effects[0](); await flush();
-  all(view().html, ["Your plan is managed on your Plan page.", "Your plan, as MausBot Cloud verified it.", "Manage in your browser"]);
-  none(view().html, ["MausBot app", "on your computer"]);
+  all(view().html, ["Your plan is managed on your Plan page.", "Your plan, as Delio Cloud verified it.", "Manage in your browser"]);
+  none(view().html, ["Delio app", "on your computer"]);
   plan.state.mockResolvedValueOnce({ status: "paid", tier: "pro", home: true }); f.values = []; view(); f.effects[0](); await flush();
-  all(view().html, ["Pro active · verified by MausBot Cloud", "Your plan, as MausBot Cloud verified it."]); none(view().html, ["on your computer"]);
+  all(view().html, ["Pro active · verified by Delio Cloud", "Your plan, as Delio Cloud verified it."]); none(view().html, ["on your computer"]);
   plan.state.mockResolvedValueOnce({ status: "none" }); f.values = []; view(); f.effects[0](); await flush();
-  all(view().html, ["Your plan is managed in the MausBot app on your computer.", "verified it for the app on your computer"]);
+  all(view().html, ["Your plan is managed in the Delio app on your computer.", "verified it for the app on your computer"]);
 });
 
 const pro: CloudAccountState = { ...free, entitlement: { plan: "pro", status: "active", expiresAt: 1_900_000_000_000, version: 2 } };
@@ -478,7 +478,7 @@ it("on a Team Cloud, sends people to the Plan page for its people and plan, neve
   expect(card.props.team).toBe(team);
   const html = renderToStaticMarkup(createElement(TeamPeopleCard, { team }));
   all(html, ["People and plan", "Invite people to Acme, change their roles and manage its plan on your Plan page.", 'href="https://cloud.example.com/cloud"', "Open your Plan page"]);
-  none(html, ["managed in the MausBot app on your computer"]);
+  none(html, ["managed in the Delio app on your computer"]);
   expect(renderToStaticMarkup(createElement(TeamPeopleCard, { team: { name: "Acme" } }))).not.toContain("href=");
   // My Cloud's own page is unchanged.
   expect(render({ cloudHome: true }).nodes.some(node => node.type === CloudPlanOnCloud)).toBe(true);
@@ -493,7 +493,7 @@ it("a free trial says what happens and when, in the notice's words, with its nex
   await ready({ ...pro, entitlement: { plan: "pro", tier: "pro", status: "active", expiresAt: ENDS + 3 * DAY, version: 3 }, machine,
     trial: onTrial("ending", { deleteAt: ENDS + 3 * DAY, keep: "portal" }), credit });
   const html = render().html;
-  all(html, ["Pro free trial · verified by MausBot Cloud", "Your free trial ends on Oct 15", "Renewal is off, so the Cloud stops then and its files are deleted on Oct 18.",
+  all(html, ["Pro free trial · verified by Delio Cloud", "Your free trial ends on Oct 15", "Renewal is off, so the Cloud stops then and its files are deleted on Oct 18.",
     "Trial Claude credit: $3.20 of $5 left.", 'data-cloud-trial="ending"', 'data-cloud-credit="active"']);
   none(html, ["Pro active", "Manage Cloud subscription", ...BUY]);
   click("Subscribe to keep it"); await flush(); expect(bridge.openDashboard).toHaveBeenCalledExactlyOnceWith();
@@ -536,11 +536,11 @@ it("on My Cloud, Settings shows the trial and its credit, and its button names t
   const view = () => { f.index = 0; f.effects = []; let tree: ReactNode; function Capture() { tree = CloudPlanOnCloud({ bridge: plan }); return tree; }
     return { html: renderToStaticMarkup(createElement(Capture)), nodes: nodes(tree) }; };
   view(); f.effects[0](); await flush();
-  all(view().html, ["Pro free trial · verified by MausBot Cloud", "Your free trial ends on Oct 15", "Then Pro is $49/month plus tax, charged on Oct 15.", "Trial Claude credit: $3.20 of $5 left."]);
+  all(view().html, ["Pro free trial · verified by Delio Cloud", "Your free trial ends on Oct 15", "Then Pro is $49/month plus tax, charged on Oct 15.", "Trial Claude credit: $3.20 of $5 left."]);
   view().nodes.find(node => node.type === "button" && node.props.children === "Manage subscription")!.props.onClick!();
   await flush(); expect(plan.manage).toHaveBeenCalledExactlyOnceWith();
   plan.state.mockResolvedValueOnce({ status: "paid", tier: "pro" }); f.values = []; view(); f.effects[0](); await flush();
-  all(view().html, ["Pro active · verified by MausBot Cloud", "Manage in your browser"]); none(view().html, ["free trial", "Claude credit"]);
+  all(view().html, ["Pro active · verified by Delio Cloud", "Manage in your browser"]); none(view().html, ["free trial", "Claude credit"]);
 });
 it("Sign in is the sheet's email code when Settings hands it over; the staging Admin is marked plainly", async () => {
   const onSignIn = vi.fn();
@@ -558,7 +558,7 @@ it("a Team plan has no Cloud of its own: the team's Cloud under its name, Open {
   const onTeam = (machine: Machine): CloudAccountState => ({ ...free, entitlement: { plan: "pro", tier: "team", status: "active", expiresAt: 1_900_000_000_000, version: 2 },
     teams: [{ id: "team-acme", name: "Acme", role: "owner", machine }] });
   bridge.openTeam = vi.fn().mockResolvedValue(undefined);
-  await ready(onTeam({ status: "ready", origin: "https://omb-t-2.fly.dev" }));
+  await ready(onTeam({ status: "ready", origin: "https://odb-t-2.fly.dev" }));
   let html = render().html;
   all(html, ['data-cloud-team="true"', "Acme is ready. It keeps your team&#x27;s bots running 24/7", "Open Acme"]);
   none(html, ["Setting up", "Reserving your machine", "Open the Cloud", PHONE, "is not ready yet"]);
@@ -569,6 +569,6 @@ it("a Team plan has no Cloud of its own: the team's Cloud under its name, Open {
   all(html, ["Setting up your team&#x27;s Cloud", 'data-cloud-setup="storage"', "Reserving your machine"]); none(html, ["Open Acme", PHONE]);
   push({ ...onTeam(null), teams: undefined });
   all(render().html, ["Your team&#x27;s Cloud", "Setting up your team&#x27;s Cloud"]);
-  push({ ...onTeam({ status: "ready", origin: "https://omb-t-2.fly.dev" }), entitlement: { plan: "pro", tier: "pro", status: "active", expiresAt: 1_900_000_000_000, version: 3 } });
+  push({ ...onTeam({ status: "ready", origin: "https://odb-t-2.fly.dev" }), entitlement: { plan: "pro", tier: "pro", status: "active", expiresAt: 1_900_000_000_000, version: 3 } });
   all(render().html, ["Setting up the Cloud", 'data-cloud-phone="steps"']);
 });

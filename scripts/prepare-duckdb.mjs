@@ -111,12 +111,12 @@ export async function packedPackage(name, version, cache, scope = SCOPE) {
 
 /** The trees to stage on this host: both mac arches on macOS (each app is
  *  single-arch), x64 elsewhere, matching electron-builder.yml. On Linux the
- *  Docker build names the image's CPU in OMB_DUCKDB_ARCH: it stages on the
+ *  Docker build names the image's CPU in ODB_DUCKDB_ARCH: it stages on the
  *  build host's CPU for either image. */
 export function targetsFor(platform = process.platform, env = process.env) {
   if (platform === "darwin") return resolveCuaMacArches(env).map((arch) => ({ platform, arch }));
-  const arch = (platform === "linux" && env.OMB_DUCKDB_ARCH) || "x64";
-  if (arch !== "x64" && arch !== "arm64") throw new Error(`OMB_DUCKDB_ARCH must be x64 or arm64; found ${arch}`);
+  const arch = (platform === "linux" && env.ODB_DUCKDB_ARCH) || "x64";
+  if (arch !== "x64" && arch !== "arm64") throw new Error(`ODB_DUCKDB_ARCH must be x64 or arm64; found ${arch}`);
   return [{ platform, arch }];
 }
 
@@ -191,7 +191,7 @@ export async function stageDuckdb({
   nodeModules = join(root, "node_modules"),
   stage = join(root, "dist-native", "duckdb"),
   targets = targetsFor(),
-  cache = join(nodeModules, ".cache", "openmausbot", "duckdb"),
+  cache = join(nodeModules, ".cache", "opendeliobot", "duckdb"),
   pack = packedPackage,
   sign = process.platform === "darwin",
   log = console.log,

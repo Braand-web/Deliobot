@@ -5,21 +5,21 @@ export const CONNECTOR_VERSION = "1.0.0";
 
 /** Docker objects the connector owns. */
 export const NAMES = {
-  connector: "mausbot-connector",
-  connectorNext: "mausbot-connector-next",
-  home: "mausbot-home",
-  dataVolume: "mausbot-data",
-  stateVolume: "mausbot-connector",
-  snapshotVolume: "mausbot-snapshot",
-  backupPrefix: "mausbot-backup-",
+  connector: "delio-connector",
+  connectorNext: "delio-connector-next",
+  home: "delio-home",
+  dataVolume: "delio-data",
+  stateVolume: "delio-connector",
+  snapshotVolume: "delio-snapshot",
+  backupPrefix: "delio-backup-",
 } as const;
 
 export const LABELS = {
-  role: "com.mausbot.role",
-  instance: "com.mausbot.instance",
-  created: "com.mausbot.created",
-  image: "com.mausbot.image",
-  env: "com.mausbot.env",
+  role: "com.delio.role",
+  instance: "com.delio.instance",
+  created: "com.delio.created",
+  image: "com.delio.image",
+  env: "com.delio.env",
 } as const;
 
 /** Backups the connector keeps; a newer one replaces the oldest. */
@@ -27,28 +27,28 @@ export const BACKUPS_KEPT = 3;
 
 /** Inside the connector's container. */
 export const PATHS = {
-  state: process.env.MAUSBOT_STATE_DIR || "/state",
-  docker: process.env.MAUSBOT_DOCKER_SOCKET || "/var/run/docker.sock",
-  /** /etc/mausbot on the host, mounted read-only: the seccomp profile install.sh put there. */
-  hostConfig: process.env.MAUSBOT_HOST_CONFIG_DIR || "/etc/mausbot",
+  state: process.env.DELIO_STATE_DIR || "/state",
+  docker: process.env.DELIO_DOCKER_SOCKET || "/var/run/docker.sock",
+  /** /etc/delio on the host, mounted read-only: the seccomp profile install.sh put there. */
+  hostConfig: process.env.DELIO_HOST_CONFIG_DIR || "/etc/delio",
   /** The connector's own copies, which install.sh installs from this image. */
-  profiles: process.env.MAUSBOT_PROFILES_DIR || "/app/profiles",
-  /** /var/log/mausbot on the host, mounted read-write: the audit log the server's owner reads. */
-  audit: process.env.MAUSBOT_AUDIT_DIR || "/var/log/mausbot",
-  /** In the container's own /tmp: `mausbot-connector job` reaches the running connector here. */
-  jobs: process.env.MAUSBOT_JOBS_SOCKET || "/tmp/mausbot-jobs.sock",
-  /** /var/lib/mausbot/update on the host, on a customer-run server only: where an update is handed to the server's own updater. */
-  update: process.env.MAUSBOT_UPDATE_DIR || "/var/lib/mausbot/update",
+  profiles: process.env.DELIO_PROFILES_DIR || "/app/profiles",
+  /** /var/log/delio on the host, mounted read-write: the audit log the server's owner reads. */
+  audit: process.env.DELIO_AUDIT_DIR || "/var/log/delio",
+  /** In the container's own /tmp: `delio-connector job` reaches the running connector here. */
+  jobs: process.env.DELIO_JOBS_SOCKET || "/tmp/delio-jobs.sock",
+  /** /var/lib/delio/update on the host, on a customer-run server only: where an update is handed to the server's own updater. */
+  update: process.env.DELIO_UPDATE_DIR || "/var/lib/delio/update",
 } as const;
 
 export const AUDIT_FILE = "audit.jsonl";
 
-export const SECCOMP_FILE = "seccomp-omb-home.json";
-export const APPARMOR_PROFILE = "omb-home-narrow";
+export const SECCOMP_FILE = "seccomp-odb-home.json";
+export const APPARMOR_PROFILE = "odb-home-narrow";
 
 /** Where the home's edge listens on the server: loopback only, reached by the connector. */
 export const HOME_PORT = 8080;
-/** With OMB_CLOUD_EDGE_TLS=1 the edge also serves HTTPS on the owner's domain here, published on IPv4 only: over IPv6, Docker's
+/** With ODB_CLOUD_EDGE_TLS=1 the edge also serves HTTPS on the owner's domain here, published on IPv4 only: over IPv6, Docker's
  * proxy on the default bridge hands every client the bridge's address, the connector's own, so one stranger's wrong
  * pairing codes would lock out the Admin's signed pairing too. */
 export const HOME_TLS_PORT = 443;
@@ -77,11 +77,11 @@ export const HIDEPID_CAPABILITIES = ["SYS_ADMIN", "SETPCAP"] as const;
 
 /** The home's secrets: kept out of its container's environment (docker inspect shows that) once its launcher reads the file. */
 export const HOME_SECRET_ENV = [
-  "OMB_CLOUD_BOOTSTRAP_SECRET", "OMB_CLOUD_BOAT_TOKEN", "OMB_CLOUD_VOICE_TOKEN", "OMB_CLOUD_DECIDER_TOKEN", "OMB_CLOUD_AI_TOKEN",
-  "OMB_CLOUD_CONNECTED_APPS_GRANT", "OMB_CLOUD_X_TOKEN", "OMB_CLOUD_TUNNEL_TOKEN",
+  "ODB_CLOUD_BOOTSTRAP_SECRET", "ODB_CLOUD_BOAT_TOKEN", "ODB_CLOUD_VOICE_TOKEN", "ODB_CLOUD_DECIDER_TOKEN", "ODB_CLOUD_AI_TOKEN",
+  "ODB_CLOUD_CONNECTED_APPS_GRANT", "ODB_CLOUD_X_TOKEN", "ODB_CLOUD_TUNNEL_TOKEN",
 ] as const;
 /** In the home: a read-only folder holding only `secrets.json`, root's alone. The launcher reads it at start. */
-export const HOME_SECRETS_TARGET = "/run/mausbot";
+export const HOME_SECRETS_TARGET = "/run/delio";
 /** In the connector's state volume: the folder mounted at HOME_SECRETS_TARGET. */
 export const HOME_SECRETS_DIR = "home-secrets";
 export const HOME_SECRETS_FILE = "secrets.json";

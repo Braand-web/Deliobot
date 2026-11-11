@@ -89,7 +89,7 @@ export function WelcomeFiles({ name, headingRef, onFinish }: { name: string; hea
 
 export function WelcomeDone({ name, bot, headingRef, onSayHi, onJob, invite = null }: {
   name: string; bot: Bot | null; headingRef: Ref<HTMLHeadingElement>; onSayHi: () => void; onJob: () => void;
-  /** The team's People page on MausBot Cloud, for its Owner: the last step is bringing people in. */
+  /** The team's People page on Delio Cloud, for its Owner: the last step is bringing people in. */
   invite?: string | null;
 }) {
   return <section aria-labelledby="cloud-welcome-step" data-welcome-step="done" className="flex flex-col items-start gap-4">

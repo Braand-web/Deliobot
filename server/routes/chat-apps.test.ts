@@ -77,7 +77,7 @@ async function fixture(extra: Partial<ChatAppRouteDeps> = {}) {
   const room = () => store.createGroup("Launch", [bot.id, other.id]);
   /** A folder page with a data file beside its index.html, shown by `bot` in `threadId`. */
   const folderPage = async (threadId: string) => {
-    const base = realpathSync(mkdtempSync(join(tmpdir(), "omb-room-page-")));
+    const base = realpathSync(mkdtempSync(join(tmpdir(), "odb-room-page-")));
     mkdirSync(join(base, "dash"));
     writeFileSync(join(base, "dash", "index.html"), "<h1>Dash</h1>");
     writeFileSync(join(base, "dash", "data.csv"), "a\n1");

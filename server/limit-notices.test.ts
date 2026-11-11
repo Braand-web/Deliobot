@@ -10,7 +10,7 @@ const dirs: string[] = [];
 afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }); });
 
 function notices(now: { at: number }) {
-  const dir = mkdtempSync(join(tmpdir(), "omb-limit-notices-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-limit-notices-"));
   dirs.push(dir);
   return { file: join(dir, "limit-notices.json"), make: () => new LimitNotices(join(dir, "limit-notices.json"), () => now.at) };
 }

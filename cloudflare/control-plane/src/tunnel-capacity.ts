@@ -35,7 +35,7 @@ export const TUNNEL_SCAN_PAGE_SIZE = 100;
  * queue cannot outgrow the cleanup sweep by more than one run's worth. */
 export const RECLAIM_MARK_LIMIT = 20;
 const MAX_SCAN_PAGE = 1_000;
-const MANAGED_TUNNEL_NAME = /^omb-c-[0-9a-f]{32}$/;
+const MANAGED_TUNNEL_NAME = /^odb-c-[0-9a-f]{32}$/;
 /** /healthz is the busiest public path and its capacity detail only a report
  * (allocation gating reads D1 directly), so each data center reuses one read. */
 const CAPACITY_HEALTH_CACHE_SECONDS = 120;
@@ -447,7 +447,7 @@ async function scanAccount(
 
   const policy = idlePolicy(config);
   const idle: Record<IdleReason, number> = { never_connected: 0, offline: 0 };
-  // The dry run: the same rules at OMB_TUNNEL_RECLAIM_PREVIEW_DAYS, counted
+  // The dry run: the same rules at ODB_TUNNEL_RECLAIM_PREVIEW_DAYS, counted
   // before anything is marked and never acted on.
   const previewPolicy = config.capacity.reclaimPreviewMs === null
     ? null

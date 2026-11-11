@@ -70,7 +70,7 @@ describe("the follow-up setting", () => {
   });
 
   it("falls back to steering on a stored value it does not know, or storage it cannot read", async () => {
-    local.setItem("omb-follow-up", "restart");
+    local.setItem("odb-follow-up", "restart");
     const setting = await import("./follow-up");
     expect(setting.readFollowUpDefault()).toBe("steer");
     vi.resetModules();

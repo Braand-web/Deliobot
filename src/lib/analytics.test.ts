@@ -135,7 +135,7 @@ describe("the stored choice", () => {
     expect(fresh.analyticsEnabled()).toBe(false);
     await fresh.initAnalytics();
     expect(ph.loads).toBe(0);
-    expect(store.get("omb-installed")).toBeUndefined();
+    expect(store.get("odb-installed")).toBeUndefined();
   });
 
   it("treats unusable storage as a fresh install rather than failing", () => {
@@ -154,7 +154,7 @@ describe("the stored choice", () => {
 
 describe("initAnalytics while opted out", () => {
   it("returns before loading the client or touching the install marker", async () => {
-    store.set("omb-analytics-opt-out", "1");
+    store.set("odb-analytics-opt-out", "1");
     const fresh = await freshAnalytics();
 
     expect(fresh.analyticsEnabled()).toBe(false);
@@ -163,7 +163,7 @@ describe("initAnalytics while opted out", () => {
 
     expect(ph.loads).toBe(0);
     expect(ph.calls).toEqual([]);
-    expect(store.get("omb-installed")).toBeUndefined();
+    expect(store.get("odb-installed")).toBeUndefined();
   });
 });
 
@@ -219,22 +219,22 @@ describe("loading the client", () => {
     await fresh.initAnalytics();
     expect(ph.options[0]).toMatchObject({ save_referrer: false, save_campaign_params: false, disable_capture_url_hashes: true });
     const beforeSend = ph.options[0]!.before_send as (event: unknown) => unknown;
-    const page = "https://ada-tenant.mausbot.cloud/?share-computer=cmp_123&utm_source=hn#copy-to";
+    const page = "https://ada-tenant.delio.cloud/?share-computer=cmp_123&utm_source=hn#copy-to";
     const event = {
       uuid: "u", event: "app_snapshot",
       properties: {
         token: "phc_token", distinct_id: "d", app_version: "0.1.111", surface: "server", bots: 3, key_providers: ["boat"], $os: "Mac OS X",
-        $current_url: page, $host: "ada-tenant.mausbot.cloud", $pathname: "/", $referrer: "https://www.google.com/?q=ada", $referring_domain: "www.google.com",
+        $current_url: page, $host: "ada-tenant.delio.cloud", $pathname: "/", $referrer: "https://www.google.com/?q=ada", $referring_domain: "www.google.com",
         $search_engine: "google", ph_keyword: "ada", utm_source: "hn", utm_campaign: "launch", gclid: "g1", fbclid: "f1", gad_source: "1",
-        $session_entry_url: page, $session_entry_host: "ada-tenant.mausbot.cloud", $session_entry_pathname: "/", $session_entry_referrer: "https://www.google.com/",
+        $session_entry_url: page, $session_entry_host: "ada-tenant.delio.cloud", $session_entry_pathname: "/", $session_entry_referrer: "https://www.google.com/",
         $session_entry_referring_domain: "www.google.com", $session_entry_utm_source: "hn", $session_entry_gclid: "g1", $prev_pageview_pathname: "/old",
         $set: { email: "ada@example.com", $current_url: page },
       },
       $set: { email: "ada@example.com", $current_url: page, $pathname: "/", $referrer: "https://www.google.com/", $referring_domain: "www.google.com" },
       $set_once: {
-        $initial_current_url: page, $initial_host: "ada-tenant.mausbot.cloud", $initial_pathname: "/", $initial_referrer: "https://www.google.com/",
+        $initial_current_url: page, $initial_host: "ada-tenant.delio.cloud", $initial_pathname: "/", $initial_referrer: "https://www.google.com/",
         $initial_referring_domain: "www.google.com", $initial_utm_source: "hn", $initial_gclid: "g1", $initial_search_engine: "google", $initial_ph_keyword: "ada",
-        $current_url: page, $host: "ada-tenant.mausbot.cloud", $referrer: "https://www.google.com/", utm_medium: "social",
+        $current_url: page, $host: "ada-tenant.delio.cloud", $referrer: "https://www.google.com/", utm_medium: "social",
       },
     };
     const sent = beforeSend(structuredClone(event));
@@ -244,7 +244,7 @@ describe("loading the client", () => {
       $set: { email: "ada@example.com" },
       $set_once: {},
     });
-    expect(JSON.stringify(sent)).not.toMatch(/mausbot\.cloud|google|share-computer|cmp_123|hn|g1|f1/);
+    expect(JSON.stringify(sent)).not.toMatch(/delio\.cloud|google|share-computer|cmp_123|hn|g1|f1/);
     expect(beforeSend(null)).toBeNull();
   });
 
@@ -273,7 +273,7 @@ describe("loading the client", () => {
     await loading;
 
     expect(ph.calls).toEqual([]);
-    expect(store.get("omb-installed")).toBeUndefined();
+    expect(store.get("odb-installed")).toBeUndefined();
 
     fresh.setAnalyticsEnabled(true);
     await fresh.initAnalytics();
@@ -334,7 +334,7 @@ describe("loading the client", () => {
 });
 
 describe("app_active", () => {
-  const DAY = "omb-analytics-active-day";
+  const DAY = "odb-analytics-active-day";
   const HOUR = 60 * 60_000;
 
   // A window showing the app: each load drops the last load's listeners and timers, as a reload does.
@@ -369,7 +369,7 @@ describe("app_active", () => {
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ["setInterval", "clearInterval", "Date"] });
     vi.setSystemTime(new Date(2026, 9, 23, 9, 0));
-    store.set("omb-advanced-mode", "0");
+    store.set("odb-advanced-mode", "0");
     page = openPage();
   });
   afterEach(() => {
@@ -402,7 +402,7 @@ describe("app_active", () => {
   it("says which mode the page is in that day, Simple or Advanced", async () => {
     await page.load();
     expect(active()).toEqual([{ event: "app_active", props: { platform: "browser", mode: "simple" } }]);
-    store.set("omb-advanced-mode", "1");
+    store.set("odb-advanced-mode", "1");
     vi.setSystemTime(new Date(2026, 9, 24, 9, 0));
     await page.load();
     expect(active()[1]).toEqual({ event: "app_active", props: { platform: "browser", mode: "advanced" } });
@@ -450,7 +450,7 @@ describe("app_active", () => {
   });
 
   it("sends nothing, loads nothing and stores no day while analytics is off", async () => {
-    store.set("omb-analytics-opt-out", "1");
+    store.set("odb-analytics-opt-out", "1");
     await page.load();
     page.fire("focus");
     page.fire("visibilitychange");

@@ -56,19 +56,19 @@ describe("the relay client", () => {
   it("authenticates, then sends the admission set, and again only when it changes", async () => {
     const relay = await relayAt();
     let set = ["a", "b"];
-    const { instance } = client({ "relay1.openmausbot.com": relay }, { admissionSet: () => set });
+    const { instance } = client({ "relay1.openopendeliobot.com": relay }, { admissionSet: () => set });
     instance.start();
     await waitFor(() => instance.status === "connected");
     await waitFor(() => relay.admitted(hid).size === 2);
     set = ["a", "b", "c"];
     instance.refreshAdmission();
     await waitFor(() => relay.admitted(hid).has("c"));
-    expect(instance.node).toBe("relay1.openmausbot.com");
+    expect(instance.node).toBe("relay1.openopendeliobot.com");
   });
 
   it("refreshes the token on the same socket", async () => {
     const relay = await relayAt();
-    const { instance } = client({ "relay1.openmausbot.com": relay });
+    const { instance } = client({ "relay1.openopendeliobot.com": relay });
     instance.start();
     await waitFor(() => instance.status === "connected");
     const socket = relay.hosts.get(hid)!.control;
@@ -81,7 +81,7 @@ describe("the relay client", () => {
 
   it("asks for a new token on 4401 and reconnects once it has one", async () => {
     const relay = await relayAt();
-    const { instance, rejected } = client({ "relay1.openmausbot.com": relay }, { token: token(3600, "k9") });
+    const { instance, rejected } = client({ "relay1.openopendeliobot.com": relay }, { token: token(3600, "k9") });
     instance.start();
     await waitFor(() => rejected.length === 1);
     expect(instance.status).toBe("connecting");
@@ -91,10 +91,10 @@ describe("the relay client", () => {
 
   it("stops when a newer control socket for the same computer takes over (4409)", async () => {
     const relay = await relayAt();
-    const first = client({ "relay1.openmausbot.com": relay });
+    const first = client({ "relay1.openopendeliobot.com": relay });
     first.instance.start();
     await waitFor(() => first.instance.status === "connected");
-    const second = client({ "relay1.openmausbot.com": relay });
+    const second = client({ "relay1.openopendeliobot.com": relay });
     second.instance.start();
     await waitFor(() => second.instance.status === "connected");
     await waitFor(() => first.instance.status === "off");
@@ -102,7 +102,7 @@ describe("the relay client", () => {
 
   it("reconnects after the relay announces a restart", async () => {
     const relay = await relayAt();
-    const { instance, statuses } = client({ "relay1.openmausbot.com": relay });
+    const { instance, statuses } = client({ "relay1.openopendeliobot.com": relay });
     instance.start();
     await waitFor(() => instance.status === "connected");
     relay.restart();
@@ -114,21 +114,21 @@ describe("the relay client", () => {
     const firstPort = (await relayAt()).port;
     await cleanup.pop()!();
     const nodes: Record<string, FakeRelay> = {
-      "relay1.openmausbot.com": { url: `ws://127.0.0.1:${firstPort}` } as FakeRelay,
-      "relay2.openmausbot.com": second,
+      "relay1.openopendeliobot.com": { url: `ws://127.0.0.1:${firstPort}` } as FakeRelay,
+      "relay2.openopendeliobot.com": second,
     };
     const { instance } = client(nodes, { timing: { firstNodeRetryMs: 300 } });
     instance.start();
-    await waitFor(() => instance.node === "relay2.openmausbot.com", 5_000);
+    await waitFor(() => instance.node === "relay2.openopendeliobot.com", 5_000);
     const first = await relayAt(firstPort);
-    await waitFor(() => instance.node === "relay1.openmausbot.com", 5_000);
+    await waitFor(() => instance.node === "relay1.openopendeliobot.com", 5_000);
     await waitFor(() => first.admitted(hid).size === 2);
     await waitFor(() => !second.hosts.has(hid));
   });
 
   it("redials at once when the wall clock jumps past the monotonic one (sleep)", async () => {
     const relay = await relayAt();
-    const { instance, statuses } = client({ "relay1.openmausbot.com": relay }, { timing: { sleepCheckMs: 50 } });
+    const { instance, statuses } = client({ "relay1.openopendeliobot.com": relay }, { timing: { sleepCheckMs: 50 } });
     instance.start();
     await waitFor(() => instance.status === "connected");
     const realNow = Date.now.bind(Date);
@@ -140,7 +140,7 @@ describe("the relay client", () => {
     const relay = await relayAt();
     const accepted: number[] = [];
     const adm = Buffer.from("admission value");
-    const { instance } = client({ "relay1.openmausbot.com": relay }, {
+    const { instance } = client({ "relay1.openopendeliobot.com": relay }, {
       admissionSet: () => [b64u(createHash("sha256").update(adm).digest())],
       accept: (transport) => {
         accepted.push(Date.now());
@@ -149,7 +149,7 @@ describe("the relay client", () => {
     });
     instance.start();
     await waitFor(() => relay.admitted(hid).size === 1);
-    const phone = new WebSocket(`${relay.url}/v1/phone`, ["omb-relay.v1"]);
+    const phone = new WebSocket(`${relay.url}/v1/phone`, ["odb-relay.v1"]);
     await new Promise((resolve) => phone.once("open", resolve));
     phone.send(JSON.stringify({ t: "phone", v: 1, hid, adm: b64u(adm) }));
     const ready = await new Promise<string>((resolve) => phone.once("message", (data) => resolve(String(data))));

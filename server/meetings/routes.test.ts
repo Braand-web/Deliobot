@@ -35,8 +35,8 @@ function setup(current: MeetingRecord, over: Partial<MeetingRouteDeps> = {}) {
   const markOutside = vi.fn();
   const postNotes = vi.fn(async () => "notes-1");
   const routes = createMeetingRoutes({
-    meetings: () => meetings, computerOwner: () => "b1", personName: () => "Milind", sendsFreely: () => false,
-    outbound: () => ({ hold, beforeDispatch }), markOutside, folder: () => mkdtempSync(join(tmpdir(), "omb-meeting-folder-")), postNotes,
+    meetings: () => meetings, computerOwner: () => "b1", personName: () => "Alex", sendsFreely: () => false,
+    outbound: () => ({ hold, beforeDispatch }), markOutside, folder: () => mkdtempSync(join(tmpdir(), "odb-meeting-folder-")), postNotes,
     createRoutine: () => "Set up the routine.", dateLine: () => "Saturday, November 7, 2026", ...over,
   });
   const call = async (action: string, body: Record<string, unknown>) => {
@@ -90,7 +90,7 @@ describe("meeting routes", () => {
     const { call, meetings } = setup(record({ phase: "starting" }));
     const joined = await call("join", { link: "https://meet.jit.si/x" }) as { status: number; body: { text: string } };
     expect(joined.body.text).toMatch(/^meeting_id m-1\. Joining the Jitsi Meet meeting/);
-    expect(meetings.join).toHaveBeenCalledWith(expect.objectContaining({ botId: "b1", person: "Milind", owner: "b1" }));
+    expect(meetings.join).toHaveBeenCalledWith(expect.objectContaining({ botId: "b1", person: "Alex", owner: "b1" }));
     expect(await call("join", { every_calendar_meeting: true })).toEqual({ status: 200, body: { text: "Set up the routine." } });
     const none = setup(record(), { computerOwner: () => ({ error: "No cloud computer here." }) });
     expect(await none.call("join", { link: "https://meet.jit.si/x" })).toEqual({ status: 409, body: { error: "No cloud computer here." } });

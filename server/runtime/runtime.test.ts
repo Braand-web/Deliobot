@@ -45,7 +45,7 @@ function fakeRunner(script: Script = () => undefined): Fake {
       fake.reports.push({ a, ...(parent ? { parent } : {}) });
     },
     changed: rows => { fake.changes.push([...rows]); },
-    names: a => ({ requester: a.requester.botId ?? "Milind", assignee: a.assignee.botId, person: "Milind" }),
+    names: a => ({ requester: a.requester.botId ?? "Alex", assignee: a.assignee.botId, person: "Alex" }),
     async release(id, result) {
       const resolve = fake.held.get(id);
       if (!resolve) throw new Error(`no held turn ${id}`);
@@ -1058,7 +1058,7 @@ describe("Runtime: a root's later executions (every turn a root)", () => {
     expect(store.inbox({ threadId: "chief-chat" })).toEqual([]);
     second.runtime.tick();
     expect(second.runner.runs.map(r => r.a.id)).toEqual(["root-cut"]);
-    expect(second.runner.runs[0]!.input).toMatchObject({ turn: "rerun", resumed: true, restartNote: expect.stringMatching(/^OpenMausBot restarted while your previous turn here was running/) });
+    expect(second.runner.runs[0]!.input).toMatchObject({ turn: "rerun", resumed: true, restartNote: expect.stringMatching(/^OpenDeliobot restarted while your previous turn here was running/) });
     expect(store.get("root-cut")).toMatchObject({ status: "running", executions: 2 });
     second.runtime.close();
 
@@ -1147,12 +1147,12 @@ describe("Runtime: a cut turn that already acted outward (contract §5)", () => 
 describe("tree.ts: the outward wording and the loop guard", () => {
   it("outwardDetail dedupes, trims and clips the labels, names at most four as verb phrases, and keeps the exact prefix and close", () => {
     expect(outwardDetail(["git push", "git push", "  GMAIL_SEND_EMAIL  "]))
-      .toBe("Interrupted by an OpenMausBot restart after it already pushed (git push), sent an email (GMAIL_SEND_EMAIL); not resumed, so nothing is done twice.");
+      .toBe("Interrupted by an OpenDeliobot restart after it already pushed (git push), sent an email (GMAIL_SEND_EMAIL); not resumed, so nothing is done twice.");
     expect(outwardDetail(["git commit", "STRIPE_CREATE_REFUND", "SLACK_SEND_MESSAGE", "TWITTER_CREATION_OF_A_POST", "COMPOSIO_PROXY_EXECUTE", "x"]))
       .toBe(`${INTERRUPTED_OUTWARD} committed (git commit), made a payment (STRIPE_CREATE_REFUND), sent a message (SLACK_SEND_MESSAGE), posted (TWITTER_CREATION_OF_A_POST) and 2 more; not resumed, so nothing is done twice.`);
     expect(outwardDetail(["COMPOSIO_PROXY_EXECUTE"])).toContain("completed an outward action (COMPOSIO_PROXY_EXECUTE)");
     const long = outwardDetail([`git push ${"origin/".repeat(20)}`, "", "   "]);
-    expect(long).toMatch(/^Interrupted by an OpenMausBot restart after it already pushed \(git push [^)]{0,40}\); not resumed, so nothing is done twice\.$/);
+    expect(long).toMatch(/^Interrupted by an OpenDeliobot restart after it already pushed \(git push [^)]{0,40}\); not resumed, so nothing is done twice\.$/);
     expect(long.length).toBeLessThan(200);
     expect(outwardDetail(["a\nb\tc"])).toContain("(a b c)");
   });

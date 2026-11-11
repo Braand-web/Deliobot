@@ -22,7 +22,7 @@ describe("team import preview", () => {
   });
   it("previews portable backups and validates their references before confirmation", () => {
     const backup = {
-      format: "openmaus.backup", version: 1, name: "Saved team", exportedAt: 0,
+      format: "opendelio.backup", version: 1, name: "Saved team", exportedAt: 0,
       bots: [{ key: "bot", name: "Scout", title: "Research", description: "", color: "cyan", chiefOfStaff: false,
         hidden: true, playbooks: [], activeTask: "thread", tasks: [{ key: "thread", title: "Chat", createdAt: 0,
           activeLeafId: "message", messages: [{ id: "message", parentId: null, role: "user", text: "Hello", at: 0 }] }] }],
@@ -36,7 +36,7 @@ describe("team import preview", () => {
 
   it.each([1, 2])("previews version %s team files", (version) => {
     const preview = teamImportPreview({
-      format: "openmaus.team",
+      format: "opendelio.team",
       version,
       team: {
         name: " Engineering ",
@@ -56,15 +56,15 @@ describe("team import preview", () => {
   });
 
   it("rejects unsupported and empty files", () => {
-    expect(() => teamImportPreview({ format: "openmaus.team", version: 3, team: {} })).toThrow("not supported");
+    expect(() => teamImportPreview({ format: "opendelio.team", version: 3, team: {} })).toThrow("not supported");
     expect(() =>
-      teamImportPreview({ format: "openmaus.team", version: 2, team: { name: "Empty", members: [] } }),
+      teamImportPreview({ format: "opendelio.team", version: 2, team: { name: "Empty", members: [] } }),
     ).toThrow("no members");
   });
 
   it("previews the complete package setup before installation", () => {
     const preview = teamImportPreview({
-      format: "openmaus.package",
+      format: "opendelio.package",
       version: 1,
       package: {
         name: "Lead Desk",

@@ -19,7 +19,7 @@ import { PageBoundary } from "./components/PageBoundary";
 import { endedBeforeReload, forgetEndedSession } from "./lib/session-ended";
 import "./styles.css";
 
-// Before first paint; settleInterfaceMode must run before applySkin writes omb-skin.
+// Before first paint; settleInterfaceMode must run before applySkin writes odb-skin.
 settleInterfaceMode();
 applySkinChoice(readSkinChoice());
 applyFont(readFont());
@@ -34,7 +34,7 @@ const loadApp = () => import("./App").catch((error: unknown) => ({ default: (): 
 const appPage = PAGES_WITHOUT_THE_APP.has(location.pathname) ? null : loadApp();
 
 /** A team's name as its server describes itself to anyone (the descriptor's label), null when it can't say. */
-const teamName = () => fetch("/.well-known/openmausbot/environment").then((res) => res.json() as Promise<{ label?: unknown; capabilities?: { cloudTeam?: unknown } }>)
+const teamName = () => fetch("/.well-known/opendeliobot/environment").then((res) => res.json() as Promise<{ label?: unknown; capabilities?: { cloudTeam?: unknown } }>)
   .then((descriptor) => (descriptor.capabilities?.cloudTeam === true && typeof descriptor.label === "string" ? descriptor.label : null), () => null);
 
 async function chooseRoot(): Promise<React.ReactNode> {

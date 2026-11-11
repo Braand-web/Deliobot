@@ -113,9 +113,9 @@ function hostileState(): SnapshotState {
     sections: [HOSTILE, "Ops"],
     routines: [
       { name: HOSTILE, prompt: HOSTILE, enabled: true, runOn: "cloud", target: "bot", schedule: { type: "cron", expression: HOSTILE, timeZone: HOSTILE } },
-      { name: HOSTILE, prompt: HOSTILE, enabled: false, runOn: "maus", target: "room-goal", schedule: { type: "daily", time: "09:00", weekdays: [1] } },
-      { name: HOSTILE, prompt: HOSTILE, enabled: true, runOn: "maus", target: "bot", schedule: { type: "once", at: 1 } },
-      { name: HOSTILE, prompt: HOSTILE, enabled: true, runOn: "maus", target: "bot", schedule: { type: "interval", everyMinutes: 60, anchorAt: 0 } },
+      { name: HOSTILE, prompt: HOSTILE, enabled: false, runOn: "delio", target: "room-goal", schedule: { type: "daily", time: "09:00", weekdays: [1] } },
+      { name: HOSTILE, prompt: HOSTILE, enabled: true, runOn: "delio", target: "bot", schedule: { type: "once", at: 1 } },
+      { name: HOSTILE, prompt: HOSTILE, enabled: true, runOn: "delio", target: "bot", schedule: { type: "interval", everyMinutes: 60, anchorAt: 0 } },
     ] as unknown as SnapshotState["routines"],
     routinesLoadState: "ready",
     webhooks: [{ id: HOSTILE, name: HOSTILE }] as unknown as SnapshotState["webhooks"],
@@ -167,7 +167,7 @@ function hostileSources(overrides: Partial<UsageSources> = {}): UsageSources & {
           status: "connected", account: { id: HOSTILE, email: `${HOSTILE}@example.com` }, deviceId: HOSTILE,
           entitlement: { plan: "pro", tier: "max", status: "active", expiresAt: null, version: 1 },
           trial: { state: "active", tier: "max", endsAt: 1, amount: 9900, chargeAt: 1, holdUntil: null },
-          machine: { status: "ready", origin: `https://${HOSTILE}.mausbot.cloud` },
+          machine: { status: "ready", origin: `https://${HOSTILE}.delio.cloud` },
         } as never;
       },
     },
@@ -210,7 +210,7 @@ describe("the daily usage snapshot", () => {
     expect(Object.keys(sent!).sort()).toEqual([...DOCUMENTED].sort());
     expectOnlyCountsFlagsAndWords(sent!);
     const wire = JSON.stringify(ph.captured);
-    for (const fragment of [HOSTILE, "HOSTILE", "example.com", "mausbot.cloud", "iPhone", "Owner", "3f0c2b1e", "/Users/"]) expect(wire).not.toContain(fragment);
+    for (const fragment of [HOSTILE, "HOSTILE", "example.com", "delio.cloud", "iPhone", "Owner", "3f0c2b1e", "/Users/"]) expect(wire).not.toContain(fragment);
   });
 
   it("sends once per UTC day, writing the day before it gathers, and again after midnight", async () => {
@@ -218,18 +218,18 @@ describe("the daily usage snapshot", () => {
     let release!: () => void;
     const slow = hostileSources({ connectedApps: () => new Promise((resolve) => { release = () => resolve({ services: {}, authoritative: true }); }) });
     const first = snapshot.sendDailySnapshot(hostileState(), slow, DAY);
-    expect(storage.get("omb-analytics-snapshot-day")).toBe("2026-10-15");
+    expect(storage.get("odb-analytics-snapshot-day")).toBe("2026-10-15");
     expect(await snapshot.sendDailySnapshot(hostileState(), hostileSources(), DAY + 60_000)).toBe(false);
     release();
     expect(await first).toBe(true);
     expect(await snapshot.sendDailySnapshot(hostileState(), hostileSources(), DAY + 3_600_000)).toBe(false);
     expect(await snapshot.sendDailySnapshot(hostileState(), hostileSources(), NEXT_DAY)).toBe(true);
     expect(snapshots()).toHaveLength(2);
-    expect(storage.get("omb-analytics-snapshot-day")).toBe("2026-10-16");
+    expect(storage.get("odb-analytics-snapshot-day")).toBe("2026-10-16");
   });
 
   it("sends nothing on a page that already sent today, as another window of the same app would have", async () => {
-    storage.set("omb-analytics-snapshot-day", "2026-10-15");
+    storage.set("odb-analytics-snapshot-day", "2026-10-15");
     const { snapshot } = await freshModules();
     const sources = hostileSources();
     expect(await snapshot.sendDailySnapshot(hostileState(), sources, DAY)).toBe(false);
@@ -292,14 +292,14 @@ describe("the daily usage snapshot", () => {
 
 describe("an opted-out install", () => {
   it("captures nothing and asks no server, bridge or provider anything", async () => {
-    storage.set("omb-analytics-opt-out", "1");
+    storage.set("odb-analytics-opt-out", "1");
     const { snapshot } = await freshModules();
     const sources = hostileSources();
     const spies = [vi.spyOn(sources, "request"), vi.spyOn(sources, "connectedApps"), vi.spyOn(sources.companion!, "state"), vi.spyOn(sources.cloudAccount!, "state"), vi.spyOn(sources.cloudPlan!, "state")];
     expect(await snapshot.sendDailySnapshot(hostileState(), sources, DAY)).toBe(false);
     for (const spy of spies) expect(spy).not.toHaveBeenCalled();
     expect(ph.captured).toEqual([]);
-    expect(storage.has("omb-analytics-snapshot-day")).toBe(false);
+    expect(storage.has("odb-analytics-snapshot-day")).toBe(false);
   });
 
   it("drops a snapshot when analytics is switched off while it gathers", async () => {

@@ -39,20 +39,20 @@ describe("custom MCP registry", () => {
   });
 
   it("refuses harness-owned environment names in stored and renderer entries", () => {
-    for (const key of ["OMB_HARNESS_URL", "OGB_BOX_TOKEN"]) {
+    for (const key of ["ODB_HARNESS_URL", "OGB_BOX_TOKEN"]) {
       expect(parseStoredMcpServer("notes", { command: "notes-mcp", env: { [key]: "bad" } })).toEqual({
         ok: false,
-        error: `Environment variable “${key}” is reserved by OpenMausBot.`,
+        error: `Environment variable “${key}” is reserved by OpenDeliobot.`,
       });
       expect(parseMcpServerMutation("notes", { command: "notes-mcp", env: { [key]: "bad" } })).toEqual({
         ok: false,
-        error: `Environment variable “${key}” is reserved by OpenMausBot.`,
+        error: `Environment variable “${key}” is reserved by OpenDeliobot.`,
       });
     }
   });
 
   it("lets a custom server run an Electron binary as node, and nothing else", () => {
-    const refused = "Environment variable “ELECTRON_RUN_AS_NODE” is reserved by OpenMausBot; a custom server may set it to “1” only.";
+    const refused = "Environment variable “ELECTRON_RUN_AS_NODE” is reserved by OpenDeliobot; a custom server may set it to “1” only.";
     expect(parseStoredMcpServer("notes", { command: "notes-mcp", env: { ELECTRON_RUN_AS_NODE: "0" } })).toEqual({ ok: false, error: refused });
     expect(parseMcpServerMutation("notes", { command: "notes-mcp", env: { ELECTRON_RUN_AS_NODE: "true" } })).toEqual({ ok: false, error: refused });
     const stored = parseStoredMcpServer("bundled", {
@@ -220,7 +220,7 @@ describe("parseMcpServersImport", () => {
     });
     expect(parseMcpServersImport('{"mcpServers": {"web": {"url": "x.example/mcp"}}}')).toMatchObject({ ok: false, error: expect.stringMatching(/full address/) });
     expect(parseMcpServersImport('{"mcpServers": {"computer": {"command": "x"}}}')).toMatchObject({ ok: false, error: expect.stringMatching(/reserved/i) });
-    expect(parseMcpServersImport('{"mcpServers": {"ok": {"command": "x", "env": {"OMB_TOKEN": "1"}}}}')).toMatchObject({ ok: false });
+    expect(parseMcpServersImport('{"mcpServers": {"ok": {"command": "x", "env": {"ODB_TOKEN": "1"}}}}')).toMatchObject({ ok: false });
     expect(parseMcpServersImport("not json")).toMatchObject({ ok: false, error: expect.stringMatching(/JSON/i) });
     expect(parseMcpServersImport("[]")).toMatchObject({ ok: false });
   });
@@ -339,7 +339,7 @@ describe("a server's result size limit", () => {
 });
 
 describe("a server of another computer's", () => {
-  const MAC = { environmentId: "env-desktop-1", label: "Milind's MacBook" };
+  const MAC = { environmentId: "env-desktop-1", label: "Alex's MacBook" };
 
   it("keeps the computer it runs on, which an edit keeps unless it says null, and lists it", () => {
     const stored = parseStoredMcpServer("notes", { command: "/usr/local/bin/notes-mcp", runsOn: MAC });

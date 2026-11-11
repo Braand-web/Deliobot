@@ -31,7 +31,7 @@ describe("GitHub Copilot ACP driver", () => {
 
   beforeEach(() => {
     ensureDirs();
-    scratch = mkdtempSync(join(tmpdir(), "omb-copilot-contract-"));
+    scratch = mkdtempSync(join(tmpdir(), "odb-copilot-contract-"));
   });
   afterEach(async () => {
     recorder?.stop();
@@ -199,27 +199,27 @@ describe("GitHub Copilot ACP driver", () => {
   it("removes only the session folder the discovery itself left behind", async () => {
     const home = join(scratch, "copilot-home");
     // The fields and their plain-scalar style are Copilot CLI 1.0.105's own workspace.yaml.
-    const session = (id: string, cwd: string, client = "openmausbot-model-discovery") => {
+    const session = (id: string, cwd: string, client = "opendeliobot-model-discovery") => {
       mkdirSync(join(home, "session-state", id, "checkpoints"), { recursive: true });
       writeFileSync(join(home, "session-state", id, "workspace.yaml"), `id: ${id}\ncwd: ${cwd}\nclient_name: ${client}\nuser_named: false\n`
         + "summary_count: 0\nfork_count: 0\ncreated_at: 2026-10-28T01:45:38.058Z\nupdated_at: 2026-10-28T01:45:38.116Z\n");
       return join(home, "session-state", id);
     };
     const env = { COPILOT_HOME: home };
-    const ours = session("ours", join(scratch, "omb-acp-models-x"));
-    await forgetCopilotDiscoverySession({ sessionId: "ours", cwd: join(scratch, "omb-acp-models-x"), env });
+    const ours = session("ours", join(scratch, "odb-acp-models-x"));
+    await forgetCopilotDiscoverySession({ sessionId: "ours", cwd: join(scratch, "odb-acp-models-x"), env });
     expect(existsSync(ours)).toBe(false);
     // A quoted value, a trailing separator or (on Windows) another case still names the same folder.
-    const quoted = session("quoted", JSON.stringify(join(scratch, "omb-acp-models-y")));
-    await forgetCopilotDiscoverySession({ sessionId: "quoted", cwd: join(scratch, "omb-acp-models-y"), env });
-    const spelled = session("spelled", `${process.platform === "win32" ? join(scratch, "OMB-ACP-MODELS-Z") : join(scratch, "omb-acp-models-z")}${sep}`);
-    await forgetCopilotDiscoverySession({ sessionId: "spelled", cwd: join(scratch, "omb-acp-models-z"), env });
+    const quoted = session("quoted", JSON.stringify(join(scratch, "odb-acp-models-y")));
+    await forgetCopilotDiscoverySession({ sessionId: "quoted", cwd: join(scratch, "odb-acp-models-y"), env });
+    const spelled = session("spelled", `${process.platform === "win32" ? join(scratch, "ODB-ACP-MODELS-Z") : join(scratch, "odb-acp-models-z")}${sep}`);
+    await forgetCopilotDiscoverySession({ sessionId: "spelled", cwd: join(scratch, "odb-acp-models-z"), env });
     expect([existsSync(quoted), existsSync(spelled)]).toEqual([false, false]);
     const person = session("person", join(scratch, "project"), "copilot-cli");
     await forgetCopilotDiscoverySession({ sessionId: "person", cwd: join(scratch, "project"), env });
     const elsewhere = session("elsewhere", join(scratch, "other"));
-    await forgetCopilotDiscoverySession({ sessionId: "elsewhere", cwd: join(scratch, "omb-acp-models-x"), env });
-    await forgetCopilotDiscoverySession({ sessionId: "../copilot-home", cwd: join(scratch, "omb-acp-models-x"), env });
+    await forgetCopilotDiscoverySession({ sessionId: "elsewhere", cwd: join(scratch, "odb-acp-models-x"), env });
+    await forgetCopilotDiscoverySession({ sessionId: "../copilot-home", cwd: join(scratch, "odb-acp-models-x"), env });
     expect([existsSync(person), existsSync(elsewhere), existsSync(home)]).toEqual([true, true, true]);
   });
 
@@ -279,9 +279,9 @@ describe("GitHub Copilot ACP driver", () => {
         threadId: "copilot-tools", text: "Which automation controls are available?", model: "auto",
         integrations: {
           agents: { command: process.execPath, args: [SPAWNED_PROXIES.agents],
-            env: { OMB_HARNESS_URL: "http://127.0.0.1:1", OMB_COMMS_TOKEN: "fixture-token", OMB_BOT_ID: "fixture" } },
+            env: { ODB_HARNESS_URL: "http://127.0.0.1:1", ODB_COMMS_TOKEN: "fixture-token", ODB_BOT_ID: "fixture" } },
           browser: { command: process.execPath, args: [SPAWNED_PROXIES.mcpRemote],
-            env: { OMB_REMOTE_MCP_SERVER: JSON.stringify({ type: "http", url: browser.url }) } },
+            env: { ODB_REMOTE_MCP_SERVER: JSON.stringify({ type: "http", url: browser.url }) } },
         },
       });
       expect(await recorder.until((event) => event.type === "turn.completed" && event.turnId === turnId)).toMatchObject({ ok: true });
@@ -297,7 +297,7 @@ describe("GitHub Copilot ACP driver", () => {
     const launches = join(scratch, "launches.txt");
     const { instance, recorder } = await create({ FAKE_ACP_MODE: "mcp-tools", FAKE_ACP_LAUNCH_COUNT_FILE: launches });
     const agents = (token: string) => ({ agents: { command: process.execPath, args: [SPAWNED_PROXIES.agents],
-      env: { OMB_HARNESS_URL: "http://127.0.0.1:1", OMB_COMMS_TOKEN: token, OMB_BOT_ID: "fixture" } } });
+      env: { ODB_HARNESS_URL: "http://127.0.0.1:1", ODB_COMMS_TOKEN: token, ODB_BOT_ID: "fixture" } } });
     const run = async (threadId: string, token: string, allow: string[], resumeCursor?: string) => {
       const { turnId } = await instance.adapter.sendTurn({
         threadId, text: "List tools", model: "auto", resumeCursor, integrations: agents(token), toolScope: { allow },

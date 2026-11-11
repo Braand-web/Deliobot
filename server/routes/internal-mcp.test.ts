@@ -56,7 +56,7 @@ interface Options {
 }
 
 function fixture(options: Options = {}) {
-  const dataDir = mkdtempSync(join(tmpdir(), "omb-internal-mcp-"));
+  const dataDir = mkdtempSync(join(tmpdir(), "odb-internal-mcp-"));
   const cfg: Pick<AppConfig, "mcpServers" | "postiz"> = { mcpServers: structuredClone(options.servers ?? {}) };
   const mcpOAuth = new McpOAuthManager({ file: join(dataDir, "mcp-oauth.json") });
   let busy = false;
@@ -161,7 +161,7 @@ function fixture(options: Options = {}) {
   const card = () => chat.at(-1)?.card;
   const respond = (behavior: "allow" | "deny") => cards.respond({ botId: BOT, threadId: THREAD, requestId: card()!.requestId!, behavior }, true);
   const later = (ms: number) => { clock += ms; };
-  /** A fresh request service over the same chat, as after OpenMausBot restarts. */
+  /** A fresh request service over the same chat, as after OpenDeliobot restarts. */
   const restart = () => { cards = service(); };
   return { cfg, config, mcpOAuth, deps, sender, call, post, stored, ref, listedOn, decided, lines, dataDir, setBusy, chat, card, respond, answers, decisions, later, signIns, restart };
 }
@@ -430,9 +430,9 @@ describe("internal mcp_server route, Full access", () => {
     expect(testElsewhere).toHaveBeenCalledWith("notes", expect.objectContaining({ command: "npx", runsOn: MAC }), "cloud-home", expect.any(AbortSignal));
     expect(probe).not.toHaveBeenCalled();
 
-    testElsewhere.mockResolvedValueOnce({ status: 409, error: "notes runs on your Mac (Ada's Mac), which is offline right now: OpenMausBot on it is closed, or the Mac is asleep or off." });
+    testElsewhere.mockResolvedValueOnce({ status: 409, error: "notes runs on your Mac (Ada's Mac), which is offline right now: OpenDeliobot on it is closed, or the Mac is asleep or off." });
     const offline = await post({ action: "test", name: "notes" });
-    expect(offline.body.text).toBe("MCP server notes: Not tested: notes runs on your Mac (Ada's Mac), which is offline right now: OpenMausBot on it is closed, or the Mac is asleep or off.");
+    expect(offline.body.text).toBe("MCP server notes: Not tested: notes runs on your Mac (Ada's Mac), which is offline right now: OpenDeliobot on it is closed, or the Mac is asleep or off.");
     expect(offline.body.text).not.toContain("Could not reach");
   });
 
@@ -902,7 +902,7 @@ describe("internal mcp_server route, below Full access", () => {
 
   it("a client-id-only update does not say the destination changed, and a url change still names it", async () => {
     probeWith({ ok: true, tools: [] });
-    const app = { ...linear, oauth: { clientId: "omb-app", clientSecret: "old-client-secret" } };
+    const app = { ...linear, oauth: { clientId: "odb-app", clientSecret: "old-client-secret" } };
     const idOnly = await fixture({ servers: { linear: app } }).post({ action: "update", name: "linear", oauth: { clientId: "other-app" } });
     expect(idOnly.body.dropped).toEqual(["oauth client secret"]);
     expect(idOnly.body.text).toContain("OAuth client id changed");
@@ -914,13 +914,13 @@ describe("internal mcp_server route, below Full access", () => {
 
   it("a new literal OAuth client secret shows as its own change line without its value", async () => {
     probeWith({ ok: true, tools: [] });
-    const signedApp = { ...linear, enabled: false, oauth: { clientId: "omb-app", clientSecret: "old-client-secret" } };
+    const signedApp = { ...linear, enabled: false, oauth: { clientId: "odb-app", clientSecret: "old-client-secret" } };
     const { post, respond, stored, card } = fixture({ full: false, servers: { linear: signedApp } });
     expect((await post({ action: "update", name: "linear", oauth: { clientSecret: "new-client-secret" } })).status).toBe(202);
     expect(card()?.subtitle).toBe("new OAuth client secret");
     expect(JSON.stringify(card())).not.toMatch(/new-client-secret|old-client-secret/);
     await respond("allow");
-    expect(stored("linear")).toMatchObject({ oauth: { clientId: "omb-app", clientSecret: "new-client-secret" } });
+    expect(stored("linear")).toMatchObject({ oauth: { clientId: "odb-app", clientSecret: "new-client-secret" } });
   });
 
   it("a Change card lists each field as old → new with no secret value, and allow merges onto the server as it is then", async () => {
@@ -977,7 +977,7 @@ describe("internal mcp_server route, below Full access", () => {
     for (const full of [true, false]) {
       const { post, signIns, lines, decided } = fixture({ full, servers: { linear } });
       expect(await post({ action: "sign_in", name: "linear" })).toEqual({ status: 202, body: {
-        text: "A Sign in card for linear is now visible to the person. End this turn and wait; OpenMausBot resumes you when they finish.",
+        text: "A Sign in card for linear is now visible to the person. End this turn and wait; OpenDeliobot resumes you when they finish.",
       } });
       expect(signIns).toEqual([{ name: "linear", url: linear.url }]);
       expect(lines).toEqual(["Asked to sign in to MCP server linear"]);
@@ -1021,7 +1021,7 @@ describe("internal mcp_server route, below Full access", () => {
   });
 });
 
-describe("a card answered after OpenMausBot restarts", () => {
+describe("a card answered after OpenDeliobot restarts", () => {
   it("Turn on applies and resumes the bot with the test result", async () => {
     const probe = probeWith({ ok: true, tools: [{ name: "list_issues" }] });
     const { post, respond, restart, stored, card, answers } = fixture({ full: false, servers: { linear: { ...linear, enabled: false } } });
@@ -1065,8 +1065,8 @@ describe("a card answered after OpenMausBot restarts", () => {
     await respond("allow");
     expect(stored("notes")).toMatchObject({ args: ["-y", "notes-mcp"], env: { NOTES_TOKEN: "saved-token" } });
     expect(probe).not.toHaveBeenCalled();
-    expect(card()).toMatchObject({ expired: true, held: "OpenMausBot restarted, so this request expired.", mcpRequest: { result: { state: "expired" } } });
-    expect(answers[0]).toContain("OpenMausBot restarted, so this request expired. Ask again if you still need it.");
+    expect(card()).toMatchObject({ expired: true, held: "OpenDeliobot restarted, so this request expired.", mcpRequest: { result: { state: "expired" } } });
+    expect(answers[0]).toContain("OpenDeliobot restarted, so this request expired. Ask again if you still need it.");
     for (const sent of [fresh, "sk-live-9", "fresh-token", "saved-token"]) expect(JSON.stringify(chat), sent).not.toContain(sent);
   });
 

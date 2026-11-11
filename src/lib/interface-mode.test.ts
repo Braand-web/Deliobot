@@ -35,13 +35,13 @@ afterEach(() => {
 
 describe("with Simple the only mode", () => {
   it("reads Advanced as off whatever this browser stored, and never turns it on", async () => {
-    local.setItem("omb-skin", "lagoon");
-    local.setItem("omb-advanced-mode", "1");
+    local.setItem("odb-skin", "lagoon");
+    local.setItem("odb-advanced-mode", "1");
     const { readAdvancedMode, setAdvancedMode } = await fresh(true);
     expect(readAdvancedMode()).toBe(false);
     setAdvancedMode(true);
     expect(readAdvancedMode()).toBe(false);
-    expect(local.getItem("omb-advanced-mode")).toBe("1");
+    expect(local.getItem("odb-advanced-mode")).toBe("1");
   });
 
   it("ships with the switch off: Advanced mode can be turned on, and stays on", async () => {
@@ -51,7 +51,7 @@ describe("with Simple the only mode", () => {
     expect(readAdvancedMode()).toBe(false);
     setAdvancedMode(true);
     expect(readAdvancedMode()).toBe(true);
-    expect(local.getItem("omb-advanced-mode")).toBe("1");
+    expect(local.getItem("odb-advanced-mode")).toBe("1");
     vi.resetModules();
     expect((await import("./interface-mode")).readAdvancedMode(), "after a relaunch").toBe(true);
   });
@@ -62,13 +62,13 @@ describe("with the switch back", () => {
     const { readAdvancedMode, settleAdvancedModeDefault, ADVANCED_MODE_KEY } = await fresh();
     expect(readAdvancedMode()).toBe(false);
     settleAdvancedModeDefault();
-    local.setItem("omb-skin", "midnight");
+    local.setItem("odb-skin", "midnight");
     expect(local.getItem(ADVANCED_MODE_KEY)).toBe("0");
     expect((await fresh()).readAdvancedMode()).toBe(false);
   });
 
   it("defaults an existing install to Advanced so an update hides nothing", async () => {
-    local.setItem("omb-skin", "lagoon");
+    local.setItem("odb-skin", "lagoon");
     const { readAdvancedMode, settleAdvancedModeDefault, ADVANCED_MODE_KEY } = await fresh();
     expect(readAdvancedMode()).toBe(true);
     settleAdvancedModeDefault();
@@ -76,7 +76,7 @@ describe("with the switch back", () => {
   });
 
   it("keeps an explicit choice over the existing-install default", async () => {
-    local.setItem("omb-skin", "midnight");
+    local.setItem("odb-skin", "midnight");
     (await fresh()).setAdvancedMode(false);
     expect((await fresh()).readAdvancedMode()).toBe(false);
   });

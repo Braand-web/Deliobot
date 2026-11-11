@@ -17,7 +17,7 @@ export { friendlyCompanionAccountError };
 
 export { managedEndpointNeed, PHONE_UNUSED_RELEASE_MS } from "./companion-endpoint-need.mjs";
 
-export const DEFAULT_COMPANION_CONTROL_PLANE_URL = "https://accounts.openmausbot.com";
+export const DEFAULT_COMPANION_CONTROL_PLANE_URL = "https://accounts.openopendeliobot.com";
 
 export const COMPANION_CLIENT_INSTANCE_FIELD = "companionClientInstanceId";
 export const COMPANION_ACCOUNT_TOKEN_FIELD = "companionAccountToken";
@@ -39,7 +39,7 @@ export const COMPANION_TUNNEL_WAITING_FIELD = "companionTunnelWaiting";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const INSTALLATION_ID = UUID;
-const INSTALLATION_CREDENTIAL = /^omb_install_[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43}$/;
+const INSTALLATION_CREDENTIAL = /^odb_install_[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43}$/;
 const DEFAULT_HEALTH_CACHE_MS = 30_000;
 const DEFAULT_AUTO_RETRY_BASE_MS = 10 * 60_000;
 const DEFAULT_AUTO_RETRY_MAX_MS = 6 * 60 * 60_000;
@@ -83,8 +83,8 @@ export function resolveCompanionControlPlaneURL({
   isPackaged,
   environment = process.env,
 } = {}) {
-  if (Object.hasOwn(environment, "OMB_CONTROL_PLANE_URL")) {
-    return normalizeControlPlaneURL(environment.OMB_CONTROL_PLANE_URL);
+  if (Object.hasOwn(environment, "ODB_CONTROL_PLANE_URL")) {
+    return normalizeControlPlaneURL(environment.ODB_CONTROL_PLANE_URL);
   }
   return isPackaged ? DEFAULT_COMPANION_CONTROL_PLANE_URL : "";
 }
@@ -232,7 +232,7 @@ export function createCompanionAccountService({
   firstEndpointCheckMs = DEFAULT_FIRST_ENDPOINT_CHECK_MS,
   onDemand = false,
   managedEndpointNeeded = async () => null,
-  /** MausBot Relay: `capable` makes a "no" need hold even right after sign-in; `legacyDevices` counts old phones. */
+  /** Delio Relay: `capable` makes a "no" need hold even right after sign-in; `legacyDevices` counts old phones. */
   relay = { capable: () => false, legacyDevices: async () => null },
   releaseGraceMs = DEFAULT_RELEASE_GRACE_MS,
   releaseJitterMs = DEFAULT_RELEASE_JITTER_MS,

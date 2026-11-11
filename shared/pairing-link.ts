@@ -1,4 +1,4 @@
-// The one `openmausbot://pair` link builder, read by the Android and iOS
+// The one `opendeliobot://pair` link builder, read by the Android and iOS
 // scanners (`PairingInvite.parse`). Every value is written with
 // encodeURIComponent, so a space is `%20`.
 
@@ -18,7 +18,7 @@ export interface PairingE2EDescriptor {
 }
 
 const B64U_FIELD = /^[A-Za-z0-9_-]+$/;
-const RELAY_HOST = /^relay[1-9][0-9]?\.openmausbot\.com$/;
+const RELAY_HOST = /^relay[1-9][0-9]?\.opendeliobot\.com$/;
 
 /** The QR's `e2e` value, or null for anything a phone would refuse: then the link goes out without it, as from a
  * computer without the encrypted connection. A QR never says "local": a restriction is set per phone, later. */
@@ -174,7 +174,7 @@ export function phonePairingLink({
   e2e,
 }: PhonePairingLinkOptions): string | null {
   const dial = linkAddress(address, port);
-  if (!dial || !/^omb_pair_[A-Za-z0-9_-]{43}$/.test(token)) return null;
+  if (!dial || !/^odb_pair_[A-Za-z0-9_-]{43}$/.test(token)) return null;
   if (code !== undefined && !/^\d{6}$/.test(code)) return null;
 
   const fields: Array<[string, string]> = [["address", dial], ["token", token]];
@@ -194,5 +194,5 @@ export function phonePairingLink({
   const descriptor = encodePairingE2E(e2e);
   if (descriptor) fields.push(["e2e", descriptor]);
 
-  return `openmausbot://pair?${fields.map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join("&")}`;
+  return `opendeliobot://pair?${fields.map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join("&")}`;
 }

@@ -4,7 +4,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import type { AppConfig } from "./config.ts";
 
 const BOX = "bx_23456789", OTHER_BOX = "bx_3456789a";
-const OWN_KEY = "boat_own-synthetic-key", INCLUDED = "box_omb_included-synthetic-token";
+const OWN_KEY = "boat_own-synthetic-key", INCLUDED = "box_odb_included-synthetic-token";
 type Process = { polls: number; runningFor: number; exitCode: number | null; stdout: string; stderr: string; lost?: boolean };
 let server: Server;
 let base = "";
@@ -189,9 +189,9 @@ describe.each([
 ])("background commands with %s", (_label, cfg, root, authorization) => {
   beforeEach(() => {
     vi.stubEnv("BOX_TOKEN", undefined);
-    vi.stubEnv("OMB_BOAT_API", `${base}/boat/api/v1`);
-    vi.stubEnv("OMB_CLOUD_BOAT_URL", `${base}/relay/api/box/v1`);
-    vi.stubEnv("OMB_CLOUD_BOAT_TOKEN", INCLUDED);
+    vi.stubEnv("ODB_BOAT_API", `${base}/boat/api/v1`);
+    vi.stubEnv("ODB_CLOUD_BOAT_URL", `${base}/relay/api/box/v1`);
+    vi.stubEnv("ODB_CLOUD_BOAT_TOKEN", INCLUDED);
   });
 
   const call = (name: string, args: unknown, boxId = BOX, budgetMs?: number) => {

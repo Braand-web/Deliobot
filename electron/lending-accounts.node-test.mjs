@@ -9,7 +9,7 @@ import { createComputerSharing } from "./computer-sharing.mjs";
 const until = async (check, what) => { for (let i = 0; i < 400; i++) { if (check()) return; await new Promise((resolve) => setTimeout(resolve, 5)); } assert.fail(`never: ${what}`); };
 
 async function fixture(t, { screen = () => false } = {}) {
-  const dir = await mkdtemp(path.join(tmpdir(), "omb-lending-accounts-"));
+  const dir = await mkdtemp(path.join(tmpdir(), "odb-lending-accounts-"));
   const env = { id: "cloud-a", origin: "https://a.fixture.test", name: "A's Cloud", cloud: { id: "c" } };
   const f = { env, account: "acct-a", status: "connected", origin: env.origin, places: [env], polls: [], asks: [], routes: [], live: () => [...f.polls, ...f.asks].filter((signal) => !signal.aborted).length };
   const identity = { sessionId: randomUUID(), environmentId: randomUUID() };
@@ -22,7 +22,7 @@ async function fixture(t, { screen = () => false } = {}) {
       const route = new URL(url).pathname;
       f.routes.push(route);
       if (route === "/api/auth/session") return Response.json({ kind: "session", id: identity.sessionId, cloudHome: true, scopes: ["admin"] });
-      if (route === "/.well-known/openmausbot/environment") return Response.json({ environmentId: identity.environmentId, capabilities: { sharedComputers: true, computerAsks: true, asks: true } });
+      if (route === "/.well-known/opendeliobot/environment") return Response.json({ environmentId: identity.environmentId, capabilities: { sharedComputers: true, computerAsks: true, asks: true } });
       if (route.endsWith("/poll")) await hold(signal, f.polls);
       if (route === "/api/shared-computers/asks") await hold(signal, f.asks);
       return Response.json({ ok: true });

@@ -10,11 +10,11 @@ const bot = (id: string, extra: Partial<BotRecord> = {}): BotRecord => ({
   modelSelection: { instanceId: "claude", model: "claude-sonnet-5" }, resumeCursors: {}, createdAt: 1, tasks: [], ...extra,
 } as unknown as BotRecord);
 const list = <T>(values: T[]) => ({ list: () => values });
-const routine = (id: string, botId: string, target = "bot") => ({ id, name: id, prompt: "p", target, botId, runOn: "maus", enabled: true, schedule: { type: "daily", time: "09:00" }, durationMinutes: 5, createdAt: 1 });
+const routine = (id: string, botId: string, target = "bot") => ({ id, name: id, prompt: "p", target, botId, runOn: "delio", enabled: true, schedule: { type: "daily", time: "09:00" }, durationMinutes: 5, createdAt: 1 });
 
 function kinds(): MoveKindsDeps {
   return {
-    dataDir: "/omb", store: { bots: [], bot: () => undefined, group: () => undefined } as never,
+    dataDir: "/odb", store: { bots: [], bot: () => undefined, group: () => undefined } as never,
     routines: () => ({ listRoutines: () => [routine("r-scout", "scout"), routine("r-goal", "scout", "room-goal"), routine("r-pip", "pip")], listRuns: () => [] }) as never,
     calls: () => list([{ id: "c1", name: "Standup", botIds: ["scout"] }]) as never,
     webhooks: () => list([{ id: "w1", name: "Hook", botId: "scout" }]) as never,

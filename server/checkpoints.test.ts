@@ -16,7 +16,7 @@ afterAll(async () => {
 
 let seq = 0;
 function workspace() {
-  const cwd = mkdtempSync(join(tmpdir(), "omb-ckpt-ws-"));
+  const cwd = mkdtempSync(join(tmpdir(), "odb-ckpt-ws-"));
   scratchDirs.push(cwd);
   seq += 1;
   return { bot: `ckpt-test-bot-${seq}`, cwd };
@@ -137,7 +137,7 @@ describe("snapshot", () => {
   // Case-insensitive volumes (macOS default APFS, Windows NTFS): the shadow
   // repo gets core.ignorecase=true, so an incremental add keeps old spellings.
   const caseInsensitiveTmp = (() => {
-    const probe = mkdtempSync(join(tmpdir(), "omb-ckpt-case-"));
+    const probe = mkdtempSync(join(tmpdir(), "odb-ckpt-case-"));
     scratchDirs.push(probe);
     writeFileSync(join(probe, "probe"), "");
     return existsSync(join(probe, "PROBE"));
@@ -242,7 +242,7 @@ describe("snapshot", () => {
     const shadow = shadowOf(bot, cwd);
     writeFileSync(join(cwd, "a.txt"), "crashed mid-turn");
     const leaked = await snapshot(bot, cwd, "turn X", undefined, { pin: "dispatch-X" });
-    expect(userGit(shadow, "for-each-ref", "refs/omb-live/").trim()).toContain(leaked);
+    expect(userGit(shadow, "for-each-ref", "refs/odb-live/").trim()).toContain(leaked);
     // a new process: fresh module state (nothing swept yet), same test home
     vi.resetModules();
     const fresh = await import("./checkpoints.ts");
@@ -250,7 +250,7 @@ describe("snapshot", () => {
     writeFileSync(join(cwd, "a.txt"), "next start");
     const next = await fresh.snapshot(bot, cwd, "turn Y");
     expect(next).not.toBe(leaked);
-    expect(userGit(shadow, "for-each-ref", "refs/omb-live/").trim()).toBe("");
+    expect(userGit(shadow, "for-each-ref", "refs/odb-live/").trim()).toBe("");
     expect(await fresh.diffWorkingTree(bot, cwd, next!)).toEqual({ changed: [], added: [], deleted: [] });
     await fresh.release(bot, cwd, "test-drain");
     expect(() => userGit(shadow, "cat-file", "-e", `${leaked}^{commit}`)).toThrow();
@@ -279,8 +279,8 @@ describe("snapshot", () => {
     writeFileSync(join(cwd, "node_modules", "x.txt"), "installed dependency");
     writeFileSync(join(cwd, ".env"), "API_KEY=hunter2");
     writeFileSync(join(cwd, "run.log"), "log line");
-    mkdirSync(join(cwd, ".openmausbot-secrets", "thread-1"), { recursive: true });
-    writeFileSync(join(cwd, ".openmausbot-secrets", "thread-1", "card-1"), "sk_secret_file");
+    mkdirSync(join(cwd, ".opendeliobot-secrets", "thread-1"), { recursive: true });
+    writeFileSync(join(cwd, ".opendeliobot-secrets", "thread-1", "card-1"), "sk_secret_file");
     const checkpoint = await snapshot(bot, cwd, "turn 1");
     expect(userGit(shadowOf(bot, cwd), "ls-tree", "-r", "--name-only", checkpoint!).trim().split("\n")).toEqual([".gitignore", "a.txt"]);
   });
@@ -385,7 +385,7 @@ describe("refusals", () => {
     expect(refusalReason(homedir())).not.toBeNull();
     expect(refusalReason("/")).not.toBeNull();
     expect(refusalReason(join(homedir(), "Documents"))).not.toBeNull();
-    expect(refusalReason(join(tmpdir(), "omb-ckpt-definitely-missing-xyz"))).not.toBeNull();
+    expect(refusalReason(join(tmpdir(), "odb-ckpt-definitely-missing-xyz"))).not.toBeNull();
     expect(refusalReason("relative/path")).not.toBeNull();
 
     expect(await snapshot(bot, homedir(), "turn 1")).toBeNull();

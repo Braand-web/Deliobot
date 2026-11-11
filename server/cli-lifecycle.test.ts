@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
   // the fleet path is off in these tests: no credential in the environment
   fleetCredential: vi.fn(() => null),
   fleetAccess: vi.fn(),
-  FLEET_CREDENTIAL_ENV: "OMB_INSTALLATION_CREDENTIAL",
+  FLEET_CREDENTIAL_ENV: "ODB_INSTALLATION_CREDENTIAL",
   denyLogOpen: false,
   spawn: vi.fn(),
   tailscaleStatus: vi.fn(), tailscaleServe: vi.fn(), tailscaleStop: vi.fn(), clearLeftoverTailscaleServe: vi.fn(), tailnetListenFallback: vi.fn(),
@@ -88,7 +88,7 @@ beforeEach(() => {
   mocks.clearLeftoverTailscaleServe.mockResolvedValue(false);
   mocks.createTunnelAccount.mockReturnValue({ credentials: { status: "available", read: () => ({}) }, service: { retry: async () => ({}), restore: async () => ({}), dispose: vi.fn() } });
   mocks.describeTunnelAccount.mockReturnValue({ email: "fixture@example.test" });
-  mocks.tunnelAccess.mockReturnValue({ endpoint: "https://fixture.openmausbot.test" });
+  mocks.tunnelAccess.mockReturnValue({ endpoint: "https://fixture.opendeliobot.test" });
   mocks.ensureCloudflared.mockResolvedValue("/fixture/cloudflared");
   mocks.guardianEntry.mockReturnValue("/fixture/guardian");
   mocks.createTunnelOrigin.mockReturnValue({ socketPath: join(dataDir, "fixture.sock") });
@@ -132,12 +132,12 @@ describe("CLI startup lifecycle", () => {
 
   it("starts the server on the tailnet when tailscale serve can't front it, with nothing of Tailscale's to stop", async () => {
     mocks.tailscaleServe.mockResolvedValue({ failure: "https-not-enabled" });
-    mocks.tailnetListenFallback.mockReturnValue({ origin: "http://fixture.tail.ts.net:18451", env: { OMB_TAILNET_NAME: "fixture.tail.ts.net" }, line: "tailscale: listening" });
+    mocks.tailnetListenFallback.mockReturnValue({ origin: "http://fixture.tail.ts.net:18451", env: { ODB_TAILNET_NAME: "fixture.tail.ts.net" }, line: "tailscale: listening" });
     let started: NodeJS.ProcessEnv = {};
     mocks.spawn.mockImplementation((_command: string, _args: string[], spawned: { env: NodeJS.ProcessEnv }) => { started = spawned.env; throw new Error("Fixture spawn failure"); });
     const log = vi.fn();
     await expect(runServe({ ...options, tailscale: true }, log)).rejects.toThrow("Fixture spawn failure");
-    expect(started).toMatchObject({ OMB_TAILNET_NAME: "fixture.tail.ts.net", OMB_PUBLIC_URL: "http://fixture.tail.ts.net:18451" });
+    expect(started).toMatchObject({ ODB_TAILNET_NAME: "fixture.tail.ts.net", ODB_PUBLIC_URL: "http://fixture.tail.ts.net:18451" });
     expect(log).toHaveBeenCalledWith("tailscale: listening");
     expect(mocks.tailscaleStop).not.toHaveBeenCalled();
   });
@@ -174,7 +174,7 @@ describe("CLI startup lifecycle", () => {
       healthRequests++;
       if (healthRequests === 1) return Response.json({}, { status: 503 });
       if (healthRequests === 3) interrupt();
-      return Response.json({ app: "openmausbot", pid: childPid });
+      return Response.json({ app: "opendeliobot", pid: childPid });
     }));
     expect(await runServe({ ...options, tunnel: true }, vi.fn())).toBe(0);
     expect(healthRequests).toBe(3);
@@ -188,7 +188,7 @@ describe("CLI startup lifecycle", () => {
     // Nothing answers before serve starts its server; then it is up.
     vi.stubGlobal("fetch", vi.fn(async () => (++healthRequests === 1
       ? Response.json({}, { status: 503 })
-      : Response.json({ app: "openmausbot", pid: childPid }))));
+      : Response.json({ app: "opendeliobot", pid: childPid }))));
     const service = { retry: vi.fn(async () => ({})), restore: vi.fn(), dispose: vi.fn() };
     mocks.createTunnelAccount.mockReturnValue({ credentials: { status: "available", read: () => ({}) }, service });
     const running = { started: Promise.resolve(), stop: vi.fn().mockResolvedValue(undefined) };
@@ -214,13 +214,13 @@ describe("CLI startup lifecycle", () => {
 
   it("reopens a matching desktop workspace even when its server PID differs from the lease owner", async () => {
     writeFileSync(join(dataDir, "environment-id"), workspaceId);
-    writeFileSync(join(dataDir, "openmausbot-server.lease"), JSON.stringify({
+    writeFileSync(join(dataDir, "opendeliobot-server.lease"), JSON.stringify({
       version: 1, pid: process.pid, host: hostname(), token: workspaceId, createdAt: Date.now(),
     }));
-    vi.stubEnv("OMB_DATA_DIR", process.env.OMB_DATA_DIR);
+    vi.stubEnv("ODB_DATA_DIR", process.env.ODB_DATA_DIR);
     for (const stream of [process.stdin, process.stdout]) Object.defineProperty(stream, "isTTY", { value: true, configurable: true });
     vi.stubGlobal("fetch", vi.fn(async (url: string | URL | Request) => String(url).endsWith("/api/health")
-      ? Response.json({ app: "openmausbot", pid: childPid })
+      ? Response.json({ app: "opendeliobot", pid: childPid })
       : Response.json({ environmentId: workspaceId })));
     const start = vi.fn();
     const open = vi.fn().mockResolvedValue(true);
@@ -233,7 +233,7 @@ describe("CLI startup lifecycle", () => {
 
   it("does not mistake another workspace on the same port for this one", async () => {
     writeFileSync(join(dataDir, "environment-id"), workspaceId);
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValueOnce(Response.json({ app: "openmausbot", pid: childPid }))
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValueOnce(Response.json({ app: "opendeliobot", pid: childPid }))
       .mockResolvedValueOnce(Response.json({ environmentId: "different-workspace" })));
     expect(await isWorkspaceRunning(options)).toBe(false);
   });
@@ -245,9 +245,9 @@ describe("CLI startup lifecycle", () => {
     vi.stubGlobal("fetch", vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
       const address = String(url);
       if (address.endsWith("/api/health")) {
-        return ++healthRequests === 1 ? Response.json({}, { status: 503 }) : Response.json({ app: "openmausbot", pid: childPid });
+        return ++healthRequests === 1 ? Response.json({}, { status: 503 }) : Response.json({ app: "opendeliobot", pid: childPid });
       }
-      if (address.endsWith("/.well-known/openmausbot/environment")) return Response.json({ environmentId: workspaceId, label: "fixture box" });
+      if (address.endsWith("/.well-known/opendeliobot/environment")) return Response.json({ environmentId: workspaceId, label: "fixture box" });
       expect(address).toBe(`http://127.0.0.1:${options.port}/api/auth/pairing`);
       expect(init?.method).toBe("POST");
       pairings.push(JSON.parse(String(init?.body)));
@@ -271,7 +271,7 @@ describe("CLI startup lifecycle", () => {
       requests.push(address);
       expect(init?.method).not.toBe("POST");
       if (address.endsWith("/api/health")) {
-        return ++healthRequests === 1 ? Response.json({}, { status: 503 }) : Response.json({ app: "openmausbot", pid: childPid });
+        return ++healthRequests === 1 ? Response.json({}, { status: 503 }) : Response.json({ app: "opendeliobot", pid: childPid });
       }
       if (address.startsWith("https://")) {
         if (failure === "unreachable") throw new Error("Fixture endpoint offline");
@@ -283,7 +283,7 @@ describe("CLI startup lifecycle", () => {
     expect(await runServe({ ...options, pair: true, phone: "android", publicUrl: "https://fixture.example.test" }, log)).toBe(0);
     expect(log).toHaveBeenCalledWith(expect.stringContaining("no phone pairing code was created"));
     expect(requests.some((url) => url.includes("/api/auth/pairing"))).toBe(false);
-    expect(requests).toContain("https://fixture.example.test/.well-known/openmausbot/environment");
+    expect(requests).toContain("https://fixture.example.test/.well-known/opendeliobot/environment");
   });
 
   it("offers Android client pairing only after verifying the same workspace, without claiming it is connected", async () => {
@@ -291,24 +291,24 @@ describe("CLI startup lifecycle", () => {
     const code = "ABCD-EFGH-JKLM";
     const expiresAt = Date.now() + 300_000;
     const pairingUrl = `${origin}/pair#code=${code}`;
-    // A real server mints both encodings of one window; Android can only scan the openmausbot:// one.
-    const credential = `omb_pair_${"a".repeat(43)}`;
-    const inviteUrl = `openmausbot://pair?address=${encodeURIComponent(origin)}&token=${credential}&name=fixture`;
+    // A real server mints both encodings of one window; Android can only scan the opendeliobot:// one.
+    const credential = `odb_pair_${"a".repeat(43)}`;
+    const inviteUrl = `opendeliobot://pair?address=${encodeURIComponent(origin)}&token=${credential}&name=fixture`;
     let healthRequests = 0;
     const fetcher = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
       const address = String(url);
       if (address.endsWith("/api/health")) {
-        return ++healthRequests === 1 ? Response.json({}, { status: 503 }) : Response.json({ app: "openmausbot", pid: childPid });
+        return ++healthRequests === 1 ? Response.json({}, { status: 503 }) : Response.json({ app: "opendeliobot", pid: childPid });
       }
       if (address === `http://127.0.0.1:${options.port}/api/auth/pairing`) {
         expect(init?.method).toBe("POST");
         expect(JSON.parse(String(init?.body))).toEqual({ label: "Android", scopes: ["client"] });
-        // A server started without OMB_PUBLIC_URL: it mints the credential but
+        // A server started without ODB_PUBLIC_URL: it mints the credential but
         // cannot name itself, so it returns no links at all. The CLI was told
         // the public address with --public-url and must build both from that.
-        return Response.json({ code, url: null, expiresAt, credential, serverName: "fixture", hint: "set OMB_PUBLIC_URL" });
+        return Response.json({ code, url: null, expiresAt, credential, serverName: "fixture", hint: "set ODB_PUBLIC_URL" });
       }
-      expect(address).toMatch(/\/\.well-known\/openmausbot\/environment$/);
+      expect(address).toMatch(/\/\.well-known\/opendeliobot\/environment$/);
       expect(init?.method).not.toBe("POST");
       expect(init?.body).toBeUndefined();
       return Response.json({ environmentId: workspaceId });
@@ -319,16 +319,16 @@ describe("CLI startup lifecycle", () => {
     const requests = fetcher.mock.calls.map(([url]) => String(url));
     const pairingRequest = `http://127.0.0.1:${options.port}/api/auth/pairing`;
     expect(requests.filter((url) => url === pairingRequest)).toHaveLength(1);
-    expect(requests).toContain(`http://127.0.0.1:${options.port}/.well-known/openmausbot/environment`);
-    expect(requests).toContain(`${origin}/.well-known/openmausbot/environment`);
-    expect(requests.indexOf(`${origin}/.well-known/openmausbot/environment`)).toBeLessThan(requests.indexOf(pairingRequest));
+    expect(requests).toContain(`http://127.0.0.1:${options.port}/.well-known/opendeliobot/environment`);
+    expect(requests).toContain(`${origin}/.well-known/opendeliobot/environment`);
+    expect(requests.indexOf(`${origin}/.well-known/opendeliobot/environment`)).toBeLessThan(requests.indexOf(pairingRequest));
     const output = log.mock.calls.map(([line]) => line).join("\n");
     expect(output).toContain(`Pairing code   ${code}   works once, until`);
     expect(output).toContain("· chat and approvals");
     expect(output).toContain(`Link           ${pairingUrl}`);
     expect(output).toMatch(/[▀▄█]/);
     expect(output).toContain(`Or open ${origin}/pair on your phone and enter the code.`);
-    expect(output).toContain("On Android, open the OpenMausBot app and scan the QR with its pairing scanner.");
+    expect(output).toContain("On Android, open the OpenDeliobot app and scan the QR with its pairing scanner.");
     expect(output).toContain(qrToString(inviteUrl));
     expect(output).not.toContain(qrToString(pairingUrl));
     expect(output).toContain("client access: chat and approvals, not settings or pairing administration");

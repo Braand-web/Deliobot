@@ -350,7 +350,7 @@ export function createComputerSharing({ file, fetch: fetchImpl, environments, lo
     const verdict = cloudLendingVerdict(grant.cloud, cloud(env), env);
     if (verdict.allow) return;
     if (verdict.stop) { endCloud(env, verdict.stop); throw new Error("Lending to this Cloud stopped."); }
-    throw new Paused("Waiting for your MausBot Cloud sign-in.");
+    throw new Paused("Waiting for your Delio Cloud sign-in.");
   };
   const store = next => {
     fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -376,7 +376,7 @@ export function createComputerSharing({ file, fetch: fetchImpl, environments, lo
     const response = await fetchImpl(`${env.origin}${route}`, {
       method: body === undefined ? "GET" : "POST", credentials: "include", redirect: "error", cache: "no-store",
       signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(35_000)]) : AbortSignal.timeout(10_000),
-      headers: { origin: env.origin, ...BACKGROUND_HEADERS, ...(body === undefined ? {} : { "content-type": "application/json" }), ...(secret ? { "x-omb-computer-secret": secret } : {}) },
+      headers: { origin: env.origin, ...BACKGROUND_HEADERS, ...(body === undefined ? {} : { "content-type": "application/json" }), ...(secret ? { "x-odb-computer-secret": secret } : {}) },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });
     if (asleepAnswer(response)) {
@@ -389,12 +389,12 @@ export function createComputerSharing({ file, fetch: fetchImpl, environments, lo
       bytes += chunk.length; if (bytes > 4_000_000) throw new Error("Server response exceeded limit");
       chunks.push(Buffer.from(chunk));
     }
-    let json; try { json = JSON.parse(Buffer.concat(chunks).toString("utf8")); } catch { throw new Error("This server does not support computer sharing. Update its OpenMausBot installation."); }
+    let json; try { json = JSON.parse(Buffer.concat(chunks).toString("utf8")); } catch { throw new Error("This server does not support computer sharing. Update its OpenDeliobot installation."); }
     if (!response.ok) throw Object.assign(new Error(response.status === 401 || response.status === 403 ? "Pair this desktop again before sharing computer access." : `Server request failed (${response.status}). Update the server if needed.`), { status: response.status });
     return json;
   };
   const describe = async (env, required = true) => {
-    const [auth, descriptor] = await Promise.all([request(env, "/api/auth/session"), request(env, "/.well-known/openmausbot/environment")])
+    const [auth, descriptor] = await Promise.all([request(env, "/api/auth/session"), request(env, "/.well-known/opendeliobot/environment")])
       .catch(error => { throw error.status === 401 || error.status === 403 ? Object.assign(error, { problem: "connect-first" }) : error; });
     if (auth.kind !== "session" || !uuid(auth.id) || !uuid(descriptor.environmentId)) throw Object.assign(new Error("Complete server pairing or sign-in first"), { problem: "connect-first" });
     // A server of the person's own says what it takes from them in their own sign-in's answer (`lending`), never before pairing.
@@ -456,7 +456,7 @@ export function createComputerSharing({ file, fetch: fetchImpl, environments, lo
       const ended = await runDeviceLink({
         url: linkUrl(env.origin, linkPath(grant.id)), signal, WebSocket: linkSocket, egress, traffic: traffic(env.id), onStream: browsed(env), chrome,
         lends: () => ({ internet: lendsInternet(grant), chrome: grant.chrome === true && supportsChrome.has(env.id) }),
-        headers: { ...signIn, origin: env.origin, ...BACKGROUND_HEADERS, "x-omb-computer-secret": grant.secret },
+        headers: { ...signIn, origin: env.origin, ...BACKGROUND_HEADERS, "x-odb-computer-secret": grant.secret },
         onOpen: () => { opened = true; failures = 0; linked.add(env.id); changed(); },
       });
       linked.delete(env.id); changed();

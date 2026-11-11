@@ -392,8 +392,8 @@ export async function check(context: ActionContext, target: Exclude<Target, Poin
 }
 
 const DRAG_PROBE = `(() => {
-  globalThis.__ombDragStarted = false;
-  addEventListener("dragstart", () => { globalThis.__ombDragStarted = true; }, { capture: true, once: true });
+  globalThis.__odbDragStarted = false;
+  addEventListener("dragstart", () => { globalThis.__odbDragStarted = true; }, { capture: true, once: true });
   return true;
 })()`;
 
@@ -420,7 +420,7 @@ export async function drag(context: ActionContext, from: Target, to: Target, { t
     const distance = Math.hypot(end.x - start.x, end.y - start.y);
     const lead = distance > 0 ? Math.min(distance, Math.max(DRAG_LEAD_PX, distance / 10)) / distance : 0;
     await context.mouse.move(start.x + (distance > 0 ? (end.x - start.x) * lead : DRAG_LEAD_PX), start.y + (end.y - start.y) * lead, { steps: 2 });
-    const started = await valueInWorld<boolean>(context.frames, sourceFrame, "globalThis.__ombDragStarted === true").catch(() => false);
+    const started = await valueInWorld<boolean>(context.frames, sourceFrame, "globalThis.__odbDragStarted === true").catch(() => false);
     if (started) {
       for (const until = Date.now() + 2_000; !intercepted.data && Date.now() < until;) await sleep(10);
     }

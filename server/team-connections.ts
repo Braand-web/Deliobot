@@ -114,13 +114,13 @@ export const isProjectAccess = (access: PersonAppsAccess | null | undefined): ac
 export const asPerson = (cfg: AppConfig, access?: PersonAppsAccess | null): [AppConfig, BrokerAccess | undefined] =>
   isProjectAccess(access) ? [{ ...cfg, composio: access.composio }, undefined] : [cfg, access ?? undefined];
 
-const keyMarkOf = (apiKey: string) => createHash("sha256").update("omb-project-apps\0").update(apiKey).digest("hex").slice(0, 16);
+const keyMarkOf = (apiKey: string) => createHash("sha256").update("odb-project-apps\0").update(apiKey).digest("hex").slice(0, 16);
 
 /** A member's Composio user id in the team's project: the same at every start, from the team's id and the person key (a
  * hash), so Composio is given no address.
- * Security: never `openmausbot_…`, the prefix a personal installation on the same key may adopt as its own user. */
+ * Security: never `opendeliobot_…`, the prefix a personal installation on the same key may adopt as its own user. */
 export function memberComposioUser(teamId: string, person: string): string {
-  return `omb_member_${createHash("sha256").update("omb-team-member\0").update(teamId).update("\0").update(person).digest("hex").slice(0, 32)}`;
+  return `odb_member_${createHash("sha256").update("odb-team-member\0").update(teamId).update("\0").update(person).digest("hex").slice(0, 32)}`;
 }
 
 export interface PeopleConnectionsOptions {

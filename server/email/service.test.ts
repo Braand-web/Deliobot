@@ -19,7 +19,7 @@ type Server = { host: string; port: number; secure: boolean };
 
 /** `sending` answers both the check without a password (login null) and the sign-in; `sent` records only sign-ins. */
 function service(mailbox: (imap: { host: string; port: number }, username: string, password: string) => { messages: number; newest?: { from: string; subject: string } } | EmailError, sending: (host: string, login: Login, server: Server) => Error | void = () => {}, more: { refusal?: string; dataDir?: string; discover?: Partial<DiscoverDeps>; send?: (account: unknown, input: unknown) => void } = {}) {
-  const dataDir = more.dataDir ?? mkdtempSync(join(tmpdir(), "omb-mail-service-")); if (!more.dataDir) dirs.push(dataDir);
+  const dataDir = more.dataDir ?? mkdtempSync(join(tmpdir(), "odb-mail-service-")); if (!more.dataDir) dirs.push(dataDir);
   const tried: string[] = [];
   const sent: string[] = [];
   const logins: string[] = [];
@@ -92,7 +92,7 @@ describe("connecting a mailbox", () => {
 
   it("a typed port says how it speaks TLS: the well-known ports as they are, any other tried in TLS first, then upgraded", async () => {
     const seen: Array<Record<string, unknown>> = [];
-    const dataDir = mkdtempSync(join(tmpdir(), "omb-mail-service-")); dirs.push(dataDir);
+    const dataDir = mkdtempSync(join(tmpdir(), "odb-mail-service-")); dirs.push(dataDir);
     const email = createEmailService({ dataDir, publicOnly: false, discover: NOWHERE, guard: openGuard, test: {
       mailbox: (async (account: { imap: Record<string, unknown> }) => { seen.push(account.imap); return { messages: 1 }; }) as never,
       sending: (async (login: unknown, server: Record<string, unknown>) => { if (login) seen.push(server); }) as never,
@@ -221,7 +221,7 @@ describe("connecting a mailbox", () => {
   });
 
   it("on a Cloud home reaches only the public internet, whatever host is typed, and never tries the password elsewhere", async () => {
-    const dataDir = mkdtempSync(join(tmpdir(), "omb-mail-service-")); dirs.push(dataDir);
+    const dataDir = mkdtempSync(join(tmpdir(), "odb-mail-service-")); dirs.push(dataDir);
     const cloud = createEmailService({ dataDir, publicOnly: true, discover: NOWHERE });
     for (const imapHost of ["127.0.0.1", "169.254.169.254", "10.0.0.5", "localhost"]) {
       expect(await cloud.connect({ address: "me@shop.example", password: PASSWORD, imapHost }), imapHost).toEqual({ ok: false, needsServer: true, error: "My Cloud can only reach mail servers on the public internet." });

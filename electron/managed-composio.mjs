@@ -1,11 +1,11 @@
 const TOKEN = /^[0-9a-f]{64}$/;
 
-/** OpenMausBot's connected-apps service (cloudflare/composio-broker): the packaged desktop app and a Cloud home use it. */
-export const DEFAULT_MANAGED_COMPOSIO_BROKER_URL = "https://openmausbot-composio.milindsoni201.workers.dev";
+/** OpenDeliobot's connected-apps service (cloudflare/composio-broker): the packaged desktop app and a Cloud home use it. */
+export const DEFAULT_MANAGED_COMPOSIO_BROKER_URL = "https://opendeliobot-composio.alexsoni201.workers.dev";
 
-/** OMB_COMPOSIO_BROKER=off: nothing reaches the managed service, whatever else is set. */
+/** ODB_COMPOSIO_BROKER=off: nothing reaches the managed service, whatever else is set. */
 export function managedComposioBrokerOff(environment = process.env) {
-  return /^(off|0|false|no)$/i.test(environment.OMB_COMPOSIO_BROKER?.trim() ?? "");
+  return /^(off|0|false|no)$/i.test(environment.ODB_COMPOSIO_BROKER?.trim() ?? "");
 }
 
 export function ownComposioKey(credentials, environment = process.env) {
@@ -44,12 +44,12 @@ export function managedComposioAccess(brokerUrl, credentials) {
 
 export function managedComposioChildEnvironment(brokerUrl, credentials, environment) {
   const next = { ...environment };
-  delete next.OMB_COMPOSIO_BROKER_URL;
-  delete next.OMB_COMPOSIO_BROKER_TOKEN;
+  delete next.ODB_COMPOSIO_BROKER_URL;
+  delete next.ODB_COMPOSIO_BROKER_TOKEN;
   const access = managedComposioAccess(brokerUrl, credentials);
   if (access) {
-    next.OMB_COMPOSIO_BROKER_URL = access.url;
-    next.OMB_COMPOSIO_BROKER_TOKEN = access.token;
+    next.ODB_COMPOSIO_BROKER_URL = access.url;
+    next.ODB_COMPOSIO_BROKER_TOKEN = access.token;
   }
   return next;
 }

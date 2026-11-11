@@ -21,7 +21,7 @@ describe("retired connected apps", () => {
   });
 
   it("leave the data folder with their sealed tokens and key, and nothing else", () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-retired-apps-")); dirs.push(dir);
+    const dir = mkdtempSync(join(tmpdir(), "odb-retired-apps-")); dirs.push(dir);
     const retired = ["highlevel.json.enc", "highlevel-key", "highlevel.json.enc.4242.05a7b3e0-1234-4abc-8def-0123456789ab.tmp"];
     const kept = ["logins.json.enc", "logins-key", "highlevel.md"];
     for (const name of [...retired, ...kept]) writeFileSync(join(dir, name), "x");

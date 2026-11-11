@@ -11,7 +11,7 @@ import { removeTempDir, waitForExit } from "./testing/cleanup.ts";
 import { freePortBlock } from "./testing/ports.ts";
 
 const SERVER_DIR = dirname(fileURLToPath(import.meta.url));
-const HOST = "omb-t-0123456789ab.fly.dev";
+const HOST = "odb-t-0123456789ab.fly.dev";
 const secret = randomBytes(32).toString("base64url");
 const VENICE = `venice-owner-${randomBytes(8).toString("hex")}`;
 const OWNER_ANTHROPIC = `anthropic-owner-${randomBytes(8).toString("hex")}`;
@@ -39,11 +39,11 @@ async function api(method: string, path: string, body?: unknown) {
 }
 
 async function adminPairing(): Promise<string> {
-  const body = JSON.stringify({ label: "OpenMausBot app (Cloud)", ttlSeconds: 300 });
+  const body = JSON.stringify({ label: "OpenDeliobot app (Cloud)", ttlSeconds: 300 });
   const timestamp = String(Math.floor(Date.now() / 1000)), nonce = randomBytes(16).toString("base64url");
   const response = await fetch(`${base}/api/cloud/pairing`, { method: "POST", headers: {
     host: HOST, "x-forwarded-for": "203.0.113.9", "x-forwarded-proto": "https", "content-type": "application/json",
-    "x-omb-cloud-timestamp": timestamp, "x-omb-cloud-nonce": nonce, "x-omb-cloud-signature": `v1=${cloudPairingSignature(secret, timestamp, nonce, body)}`,
+    "x-odb-cloud-timestamp": timestamp, "x-odb-cloud-nonce": nonce, "x-odb-cloud-signature": `v1=${cloudPairingSignature(secret, timestamp, nonce, body)}`,
   }, body });
   const granted = await response.json() as { code: string };
   return (await api("POST", "/api/auth/pair", { code: granted.code })).body.token;
@@ -60,8 +60,8 @@ const written = (file: string, shape: "document" | "lines" = "document") => {
 };
 
 beforeAll(async () => {
-  home = mkdtempSync(join(tmpdir(), "omb-opencode-keys-"));
-  dataDir = join(home, ".openmausbot");
+  home = mkdtempSync(join(tmpdir(), "odb-opencode-keys-"));
+  dataDir = join(home, ".opendeliobot");
   mkdirSync(dataDir, { recursive: true });
   dump = join(home, "opencode.json");
   // Only OpenCode: nothing probes a CLI installed on this machine.
@@ -80,12 +80,12 @@ beforeAll(async () => {
   const offlinePrelude = `data:text/javascript,${encodeURIComponent(`const real = globalThis.fetch; globalThis.fetch = async (url, init) => String(url).startsWith("http://127.0.0.1:") ? real(url, init) : String(url) === "https://api.venice.ai/api/v1/models?type=text" && new Headers(init?.headers).get("authorization") === "Bearer ${VENICE}" ? new Response(${JSON.stringify(veniceListing)}) : new Response("offline fixture", { status: 503 });`)}`;
   child = spawnWithSecrets(process.execPath, ["--import", offlinePrelude, join(SERVER_DIR, "index.ts")], {
     PATH: process.env.PATH, ...(process.env.SystemRoot ? { SystemRoot: process.env.SystemRoot } : {}),
-    HOME: home, USERPROFILE: home, OMB_DATA_DIR: dataDir, OMB_PORT: String(port), OMB_WEBHOOK_PORT: String(port + 1),
-    OMB_CLOUD_ROLE: "home", OMB_CLOUD_MACHINE_ID: "3f9c2a4e-8b1d-4c6e-9a7f-2d5e8c1b0a93", OMB_CLOUD_ADMIN_URL: "https://cloud.example.test",
-    OMB_PUBLIC_URL: `https://${HOST}`, OMB_CLOUD_SECRETS_FD: "3",
+    HOME: home, USERPROFILE: home, ODB_DATA_DIR: dataDir, ODB_PORT: String(port), ODB_WEBHOOK_PORT: String(port + 1),
+    ODB_CLOUD_ROLE: "home", ODB_CLOUD_MACHINE_ID: "3f9c2a4e-8b1d-4c6e-9a7f-2d5e8c1b0a93", ODB_CLOUD_ADMIN_URL: "https://cloud.example.test",
+    ODB_PUBLIC_URL: `https://${HOST}`, ODB_CLOUD_SECRETS_FD: "3",
     // Provider keys in the server's own environment: never the owner's to spend from a bot.
     ANTHROPIC_API_KEY: "anthropic-server-own", OPENAI_API_KEY: "openai-server-own",
-  }, { OMB_CLOUD_BOOTSTRAP_SECRET: secret }, undefined, true);
+  }, { ODB_CLOUD_BOOTSTRAP_SECRET: secret }, undefined, true);
   for (const stream of [child.stdout, child.stderr]) stream?.on("data", (chunk) => { log += chunk; });
   const deadline = Date.now() + 20_000;
   for (;;) {
@@ -103,7 +103,7 @@ afterAll(async () => {
 });
 
 it("saves keys for any OpenCode provider on a Cloud, shows only their names, and hands them to OpenCode alone", async () => {
-  expect(owner).toMatch(/^omb_sess_/);
+  expect(owner).toMatch(/^odb_sess_/);
   expect((await api("GET", "/api/config")).body.opencodeGo).toEqual({ configured: false, providerKeys: [] });
   await expect.poll(() => written(dump), { timeout: 15_000 }).toBe(true);
   expect(started().env.ANTHROPIC_API_KEY).toBeUndefined();
@@ -150,11 +150,11 @@ it("saves keys for any OpenCode provider on a Cloud, shows only their names, and
   expect(started().env.ANTHROPIC_API_KEY).toBe(OWNER_ANTHROPIC);
 }, 90_000);
 
-it("refuses a name OpenMaus keeps, in one plain line, and saves nothing", async () => {
+it("refuses a name OpenDelio keeps, in one plain line, and saves nothing", async () => {
   const before = readFileSync(join(dataDir, "config.json"), "utf8");
-  const refused = await api("PUT", "/api/config", { opencodeGo: { providerKeys: { OMB_CLOUD_BOAT_TOKEN: "x-token", VENICE_API_KEY: VENICE } } });
+  const refused = await api("PUT", "/api/config", { opencodeGo: { providerKeys: { ODB_CLOUD_BOAT_TOKEN: "x-token", VENICE_API_KEY: VENICE } } });
   expect(refused.status).toBe(400);
-  expect(refused.body.error).toBe("OpenMaus keeps OMB_CLOUD_BOAT_TOKEN for itself, so OpenCode can't be given it here. Put this key in opencode.json instead.");
+  expect(refused.body.error).toBe("OpenDelio keeps ODB_CLOUD_BOAT_TOKEN for itself, so OpenCode can't be given it here. Put this key in opencode.json instead.");
   expect(readFileSync(join(dataDir, "config.json"), "utf8")).toBe(before);
   const opencodeKey = await api("PUT", "/api/config", { opencodeGo: { providerKeys: { OPENCODE_API_KEY: "zen" } } });
   expect(opencodeKey.status).toBe(400);

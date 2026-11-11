@@ -7,19 +7,19 @@ import { CREDENTIAL_TARGETS, credentialConfigPatch, desktopCredentialSlot, isCon
 import { KEY_CATALOG, KEY_SECTIONS, keyEntry, keyForInstance, keyMatches, looksLikeOtherKey, savedState, type KeyId } from "./key-catalog";
 
 const NOT_A_PERSONS_KEY: Record<string, string> = {
-  OMB_ANTHROPIC_API_URL: "the address the Anthropic key goes to, set by a hosted install",
-  OMB_HOSTED_MODEL_TOKEN: "a hosted install's model token",
-  OMB_HOSTED_MODELS: "a hosted install's model list",
-  OMB_COMPOSIO_BROKER_TOKEN: "MausBot Cloud's connected-apps broker",
-  OMB_CLOUD_BOAT_TOKEN: "MausBot Cloud's included computers",
-  OMB_CLOUD_VOICE_TOKEN: "MausBot Cloud's included voice",
-  OMB_CLOUD_DECIDER_TOKEN: "MausBot Cloud's included decisions",
-  OMB_CLOUD_AI_TOKEN: "MausBot Cloud's included AI",
-  OMB_CLOUD_X_TOKEN: "MausBot Cloud's included X research",
-  OMB_CLOUD_CONNECTED_APPS_GRANT: "MausBot Cloud's connected apps",
-  OMB_BROWSER_CONNECTION: "the app's own browser, not a credential",
-  OMB_USER_DATA: "the app's own data folder, not a credential",
-  OMB_BOAT_API: "the Boat address, not a credential",
+  ODB_ANTHROPIC_API_URL: "the address the Anthropic key goes to, set by a hosted install",
+  ODB_HOSTED_MODEL_TOKEN: "a hosted install's model token",
+  ODB_HOSTED_MODELS: "a hosted install's model list",
+  ODB_COMPOSIO_BROKER_TOKEN: "Delio Cloud's connected-apps broker",
+  ODB_CLOUD_BOAT_TOKEN: "Delio Cloud's included computers",
+  ODB_CLOUD_VOICE_TOKEN: "Delio Cloud's included voice",
+  ODB_CLOUD_DECIDER_TOKEN: "Delio Cloud's included decisions",
+  ODB_CLOUD_AI_TOKEN: "Delio Cloud's included AI",
+  ODB_CLOUD_X_TOKEN: "Delio Cloud's included X research",
+  ODB_CLOUD_CONNECTED_APPS_GRANT: "Delio Cloud's connected apps",
+  ODB_BROWSER_CONNECTION: "the app's own browser, not a credential",
+  ODB_USER_DATA: "the app's own data folder, not a credential",
+  ODB_BOAT_API: "the Boat address, not a credential",
 };
 
 const electron = (file: string) => readFileSync(new URL(`../../../electron/${file}`, import.meta.url), "utf8");

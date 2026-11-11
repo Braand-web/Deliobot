@@ -39,7 +39,7 @@ export class NoiseError extends Error {
 }
 
 export function prologue(transport: TransportByte): Buffer {
-  return Buffer.concat([Buffer.from("omb-e2e/1", "utf8"), Buffer.from([0x00, transport])]);
+  return Buffer.concat([Buffer.from("odb-e2e/1", "utf8"), Buffer.from([0x00, transport])]);
 }
 
 export interface KeyPair {

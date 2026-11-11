@@ -66,7 +66,7 @@ const replies = (text: string): Script => (fake, _botId, _prompt, opts) => {
 };
 
 async function harness(script: Script, options: { waitMs?: number; full?: boolean; included?: () => boolean; noConfine?: boolean } = {}) {
-  const dir = mkdtempSync(join(tmpdir(), "omb-bot-api-host-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-bot-api-host-"));
   dirs.push(dir);
   const fake = fakeStore();
   const turns: Array<{ botId: string; prompt: string; opts: BotApiTurnOptions }> = [];
@@ -288,7 +288,7 @@ describe("the Bot API door on the webhook receiver", () => {
     let held = 0, refuse = false;
     const release = { count: 0 };
     const fake = fakeStore();
-    const dir = mkdtempSync(join(tmpdir(), "omb-bot-api-claim-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-bot-api-claim-"));
     dirs.push(dir);
     const host = createBotApiHost({
       store: fake.store, manager: new BotApiManager({ file: join(dir, "bot-api.json") }), waitMs: 5_000,
@@ -386,7 +386,7 @@ describe("the Bot API door on the webhook receiver", () => {
   });
 
   it("answers an unexpected error in fixed words, keeps its text for the person, and removes the thread when the turn never started", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-bot-api-raw-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-bot-api-raw-"));
     dirs.push(dir);
     const fake = fakeStore();
     const manager = new BotApiManager({ file: join(dir, "bot-api.json") });

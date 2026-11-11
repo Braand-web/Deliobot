@@ -16,13 +16,13 @@ export function appMountFor(name: string, turn: Pick<SendTurnInput, "integration
   const app = turn.integrations?.mcpApps?.[name];
   const agents = turn.integrations?.agents?.env;
   if (!app || !Object.hasOwn(turn.integrations?.custom ?? {}, name)) return undefined;
-  if (!agents?.OMB_HARNESS_URL || !agents.OMB_COMMS_TOKEN) return undefined;
-  return { server: name, harnessUrl: agents.OMB_HARNESS_URL, token: agents.OMB_COMMS_TOKEN, extension: app.extension };
+  if (!agents?.ODB_HARNESS_URL || !agents.ODB_COMMS_TOKEN) return undefined;
+  return { server: name, harnessUrl: agents.ODB_HARNESS_URL, token: agents.ODB_COMMS_TOKEN, extension: app.extension };
 }
 
-/** `OMB_MCP_RESULT_BUDGET=0` mounts bot servers directly, for a bot that needs whole payloads. */
+/** `ODB_MCP_RESULT_BUDGET=0` mounts bot servers directly, for a bot that needs whole payloads. */
 export function resultBudget(env: NodeJS.ProcessEnv = process.env): number {
-  const raw = env.OMB_MCP_RESULT_BUDGET;
+  const raw = env.ODB_MCP_RESULT_BUDGET;
   if (raw === undefined || raw === "") return DEFAULT_RESULT_BUDGET;
   const parsed = Number(raw);
   return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : DEFAULT_RESULT_BUDGET;
@@ -117,8 +117,8 @@ export function mcpStdioServer(server: unknown, options: StdioServerOptions = {}
     directory = JSON.stringify({ name: options.directory.name, ...(scope.scope ? { toolScope: scope.scope } : {}) });
   }
   const settings = {
-    OMB_REMOTE_MCP_SERVER: JSON.stringify(remote),
-    ...(directory ? { OMB_REMOTE_MCP_DIRECTORY: directory } : {}),
+    ODB_REMOTE_MCP_SERVER: JSON.stringify(remote),
+    ...(directory ? { ODB_REMOTE_MCP_DIRECTORY: directory } : {}),
     ...(options.apps ? { [REMOTE_MCP_APPS_ENV]: JSON.stringify(options.apps) } : {}),
   };
   return {
@@ -148,7 +148,7 @@ export function gateServer(input: {
   apps?: AppMount;
   /** The engine's provider limits each listed tool schema, so the gate fits them to its profile. */
   schemaProfile?: ToolSchemaProfileId;
-  /** The engine's provider limits how many tools a request carries: the gate lists at most OMB_TOOL_LIMIT of them. */
+  /** The engine's provider limits how many tools a request carries: the gate lists at most ODB_TOOL_LIMIT of them. */
   limitsTools?: boolean;
 }): { command: string; args: string[]; env: Record<string, string> } | null {
   const { name, server, budget, apps, schemaProfile, limitsTools } = input;
@@ -179,15 +179,15 @@ export function gateServer(input: {
   // whatever the turn decided earlier.
   const upstream = scoped && name === "agents" ? unbridgedServer(spec) : spec;
   const env = {
-    OMB_GATE_NAME: name,
-    OMB_GATE_UPSTREAM: JSON.stringify({ command: upstream.command, args: upstream.args ?? [], env: upstream.env ?? {} }),
-    OMB_GATE_SPILL_DIR: spillDir(input.threadId),
-    OMB_GATE_BUDGET: String(budget),
-    ...(scoped ? { OMB_GATE_TOOL_SCOPE: JSON.stringify(parsed.scope) } : {}),
-    ...(directory ? { OMB_GATE_DIRECTORY: "1" } : {}),
+    ODB_GATE_NAME: name,
+    ODB_GATE_UPSTREAM: JSON.stringify({ command: upstream.command, args: upstream.args ?? [], env: upstream.env ?? {} }),
+    ODB_GATE_SPILL_DIR: spillDir(input.threadId),
+    ODB_GATE_BUDGET: String(budget),
+    ...(scoped ? { ODB_GATE_TOOL_SCOPE: JSON.stringify(parsed.scope) } : {}),
+    ...(directory ? { ODB_GATE_DIRECTORY: "1" } : {}),
     ...(apps && !remote ? { [GATE_APPS_ENV]: JSON.stringify(apps) } : {}),
   };
-  if (input.configEnvName && ((!scoped && !(apps && !remote)) || !/^OMB_GATE_CONFIG_[a-f0-9]{64}$/.test(input.configEnvName))) {
+  if (input.configEnvName && ((!scoped && !(apps && !remote)) || !/^ODB_GATE_CONFIG_[a-f0-9]{64}$/.test(input.configEnvName))) {
     throw new Error("Invalid private MCP gate configuration.");
   }
   return {
@@ -210,6 +210,6 @@ export function gateQueryTools(servers: Readonly<Record<string, unknown>>): stri
     if (!Array.isArray(args) || args[0] !== SPAWNED_PROXIES.mcpGate) return [];
     let config: Record<string, unknown> | undefined = env;
     if (args[1] === "--config-env") try { config = JSON.parse(env?.[String(args[2])] ?? "{}"); } catch { return []; }
-    return Number(config?.OMB_GATE_BUDGET) > 0 ? [`mcp__${name}__${QUERY_TOOL_NAME}`] : [];
+    return Number(config?.ODB_GATE_BUDGET) > 0 ? [`mcp__${name}__${QUERY_TOOL_NAME}`] : [];
   });
 }

@@ -58,7 +58,7 @@ describe("a login kept to some bots, and bots that share a browser", () => {
   ];
   const onePassword = { id: "1password", label: "1Password", fresh: async () => {}, items: () => [], read: async () => ({}), markUsed: () => {} } as unknown as OnePasswordLogins;
   const world = () => {
-    const store = new VaultStore({ dataDir: mkdtempSync(join(tmpdir(), "omb-bot-logins-")) });
+    const store = new VaultStore({ dataDir: mkdtempSync(join(tmpdir(), "odb-bot-logins-")) });
     const logins = new BotLogins(store, onePassword, () => bots);
     const place = { site: "capacity.example", hosts: ["capacity.example"], exactHost: false };
     return { store, logins, place };
@@ -124,7 +124,7 @@ describe("the secrets a bot may use", () => {
       ],
       read: async (id: string, field?: string) => { reads.push(`${id}/${field ?? ""}`); return { value: `value-of-${id}-${field ?? "main"}` }; },
     };
-    const store = new VaultStore({ dataDir: mkdtempSync(join(tmpdir(), "omb-bot-logins-")) });
+    const store = new VaultStore({ dataDir: mkdtempSync(join(tmpdir(), "odb-bot-logins-")) });
     store.saveSecret({ name: "Stripe key", value: "sk_fake-saved", source: "card", bots: ["notes"], refOnly: true });
     const logins = new BotLogins(store, provider as unknown as OnePasswordLogins, () => [], (value) => held.push(value));
     expect(logins.secretNamesFor("notes")).toEqual([{ name: "Stripe key", refOnly: true }, { name: "Deploy key" }, { name: "Deploy key user" }]);

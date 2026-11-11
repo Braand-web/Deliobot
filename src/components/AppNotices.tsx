@@ -37,7 +37,7 @@ import { LinkButton, NoticeCard, NoticeToast, NotNowButton } from "./NoticeCard"
 import { useDesktopNotices, useOtherDialogOpen } from "./notice-dialogs";
 import { localDesktopPage } from "./onboarding/WelcomeGate";
 import { UpdatesConsentDialog, updatesConsentBridge, useUpdatesConsent } from "./UpdatesConsent";
-import { useMausBotWelcomeDue } from "./MausBotWelcome";
+import { useDelioWelcomeDue } from "./DelioWelcome";
 import { NewLookNotice, reportNewLook } from "./NewLookNotice";
 import { PhoneUpdateCard, phonesToTell, useRetiredLinkPhones } from "./PhoneUpdateNotice";
 import { reportSimpleModePrompt, SimpleModePrompt } from "./SimpleModePrompt";
@@ -100,7 +100,7 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
   const updater = useUpdaterState();
   const intent = useCloudIntent();
   const moving = useMoveQuiet(now);
-  const mausBot = useMausBotWelcomeDue(viewer);
+  const delio = useDelioWelcomeDue(viewer);
   // Bots in two places: this computer's page only, where main knows what lives here.
   const two = useTwoPlaces();
   const twoFact = !local || two.suggest === null ? false : two.suggest === undefined ? null : true;
@@ -127,7 +127,7 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
   const introAllowed = Boolean(bridge) && brandStatus().source !== "file" && organization !== true && !onboardingCloudOffered(record);
   const stage = introStage(record, now());
   const trialDue = cloudTrialNotice(plan);
-  // What's new: This computer's page of a desktop that sells MausBot Cloud, once per person; never on a branded build or a
+  // What's new: This computer's page of a desktop that sells Delio Cloud, once per person; never on a branded build or a
   // desktop an organization runs.
   const whatsNewHere = Boolean(bridge && desktop) && brandStatus().source !== "file";
   const whatsNewSeen = noticeSeen(record, WHATS_NEW_NOTICE);
@@ -184,16 +184,16 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
   // also for a launch after the one whose welcome just finished. Account and billing notices keep their own rules.
   // Unknown (null) until the bots have loaded, so nothing lower in the queue flashes up before them.
   const firstChat = firstReplyPending(state);
-  // MausBot's first-launch card goes first: the popup and the question wait while it is due. The popup skips a launch the
+  // Delio's first-launch card goes first: the popup and the question wait while it is due. The popup skips a launch the
   // card used; the question may follow the card once it closes, as it follows the popup.
-  const afterWelcome = welcomeFinishedThisLaunch() || launchDialogShown() === "mausbot" || firstChat;
+  const afterWelcome = welcomeFinishedThisLaunch() || launchDialogShown() === "delio" || firstChat;
   const consentWaits = welcomeFinishedThisLaunch() || firstChat;
-  const mausBotFirst = mausBot.due;
-  const consentNow = consentWaits === true || consentFact === false ? false : consentWaits === null || mausBotFirst ? null : consentFact;
+  const delioFirst = delio.due;
+  const consentNow = consentWaits === true || consentFact === false ? false : consentWaits === null || delioFirst ? null : consentFact;
   // The Grok Bot popup: once for everyone who can add a bot, the one thing a first chat may be interrupted by. Nothing reads
   // this computer for it: GrokMoveDialog does that, once opened.
   const grokDue = !remote && viewer?.canSave !== false && !state.config?.team && brandStatus().source !== "file" && organization !== true && moving !== true
-    && launchDialogShown() !== "mausbot" && !noticeSeen(record, GROK_MOVE_NOTICE) && !desktopState?.seen.includes(GROK_MOVE_NOTICE);
+    && launchDialogShown() !== "delio" && !noticeSeen(record, GROK_MOVE_NOTICE) && !desktopState?.seen.includes(GROK_MOVE_NOTICE);
   const grokBlocked = useOtherDialogOpen(grokDue) || Boolean(state.liveCall && state.liveCall.status !== "ended");
   const grokLanding = welcomeFinishedThisLaunch() && !grokLanded;
   useEffect(() => {
@@ -202,14 +202,14 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
     return () => clearTimeout(timer);
   }, [grokDue, grokLanding, waits]);
   const grokNow = !grokDue ? false
-    : !viewer || (desktop && !desktopState) || organization === null || firstChat === null || mausBotFirst || moving === null || grokLanding || grokBlocked ? null : true;
+    : !viewer || (desktop && !desktopState) || organization === null || firstChat === null || delioFirst || moving === null || grokLanding || grokBlocked ? null : true;
   // Everyone, whether or not a bot has answered yet (so not `afterWelcome`, which holds until one has), but never in the launch
-  // the welcome or MausBot's card took, or during a live call.
-  const modelgoNow = !modelgoHere || moving || welcomeFinishedThisLaunch() || launchDialogShown() === "mausbot" || desktopState?.seen.includes(MODELGO_OFFER_NOTICE) ? false
-    : organization === null || moving === null || firstChat === null || mausBotFirst || (state.liveCall && state.liveCall.status !== "ended") || (desktop && !desktopState) ? null : true;
+  // the welcome or Delio's card took, or during a live call.
+  const modelgoNow = !modelgoHere || moving || welcomeFinishedThisLaunch() || launchDialogShown() === "delio" || desktopState?.seen.includes(MODELGO_OFFER_NOTICE) ? false
+    : organization === null || moving === null || firstChat === null || delioFirst || (state.liveCall && state.liveCall.status !== "ended") || (desktop && !desktopState) ? null : true;
   const retiredPhones = phonesToTell(linkPhones, record);
   const phoneNow = retiredPhones?.length === 0 ? false
-    : retiredPhones === undefined || !viewer || mausBotFirst || (state.liveCall && state.liveCall.status !== "ended") ? null : true;
+    : retiredPhones === undefined || !viewer || delioFirst || (state.liveCall && state.liveCall.status !== "ended") ? null : true;
   const launch = launchNotice();
   // After a closed popup only the product-updates question and ModelGo's card may follow in this launch (nextNotice's
   // FOLLOWERS); nothing else does.
@@ -218,10 +218,10 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
     : cards || whatsNewHere || consentHere || simpleDue || boatHere || modelgoHere || twoFact !== false || grokNow !== false || phoneNow !== false ? nextNotice({
     [GROK_MOVE_NOTICE]: grokNow,
     [PHONE_UPDATE_NOTICE]: phoneNow,
-    // As the What's new popup: never in the launch whose welcome just finished, nor over MausBot's first-launch card.
-    [SIMPLE_MODE_NOTICE]: !simpleDue || afterWelcome === true ? false : afterWelcome === null || mausBotFirst || simpleBlocked ? null : true,
+    // As the What's new popup: never in the launch whose welcome just finished, nor over Delio's first-launch card.
+    [SIMPLE_MODE_NOTICE]: !simpleDue || afterWelcome === true ? false : afterWelcome === null || delioFirst || simpleBlocked ? null : true,
     [WHATS_NEW_NOTICE]: whatsNewDue === false || whatsNewState === "none" || moving || afterWelcome === true ? false
-      : whatsNewDue === null || whatsNewState === "loading" || !viewer || afterWelcome === null || mausBotFirst || moving === null || whatsNewBlocked ? null : true,
+      : whatsNewDue === null || whatsNewState === "loading" || !viewer || afterWelcome === null || delioFirst || moving === null || whatsNewBlocked ? null : true,
     [UPDATES_CONSENT_NOTICE]: consentNow,
     [TWO_PLACES_NOTICE]: twoFact,
     [PRODUCT_HUNT_NOTICE]: !cards || moving || firstChat === true || brandStatus().source === "file" || now() >= PRODUCT_HUNT_UNTIL ? false
@@ -232,7 +232,7 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
       : Boolean(kind && !noticeSeen(record, CLOUD_NOTICE_CARD[kind].dismissed)),
     [MODELGO_OFFER_NOTICE]: modelgoNow,
     [BOAT_OFFER_NOTICE]: !boatHere || moving || afterWelcome === true || !usedBefore(state.bots) || desktopState?.seen.includes(BOAT_OFFER_NOTICE) ? false
-      : organization === null || moving === null || afterWelcome === null || mausBotFirst || (desktop && !desktopState) ? null : !organization,
+      : organization === null || moving === null || afterWelcome === null || delioFirst || (desktop && !desktopState) ? null : !organization,
     [STAR_NOTICE]: !bridge || moving || brandStatus().source === "file" || !usedBefore(state.bots) ? false : moving === null ? null : true,
   }, id => id === CLOUD_INTRO ? stage === "done" && !introOpen
     : id === STAR_NOTICE || id === PRODUCT_HUNT_NOTICE || id === BOAT_OFFER_NOTICE || id === MODELGO_OFFER_NOTICE ? noticeSeen(record, id) : false, launch, closed) : null;
@@ -241,7 +241,7 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
   useEffect(() => {
     if (!shownKey || !notice) return;
     markLaunchNotice(notice);
-    // The popups and the question own this launch: MausBot's first-launch card waits for a later one.
+    // The popups and the question own this launch: Delio's first-launch card waits for a later one.
     if (shownKey === GROK_MOVE_NOTICE || shownKey === SIMPLE_MODE_NOTICE || shownKey === WHATS_NEW_NOTICE || shownKey === UPDATES_CONSENT_NOTICE) markLaunchDialog("notices");
     if (shownKey === CLOUD_INTRO) {
       setIntroOpen(true);

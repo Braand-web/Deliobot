@@ -1,34 +1,34 @@
 # Chat UI, driven headlessly
 
-The `ui` group of `control-omb` drives the real React renderer — the same
+The `ui` group of `control-odb` drives the real React renderer — the same
 `<App/>` the desktop shell loads, mounted by `scripts/testing/threads-preview.tsx`
 — in a headless Chrome through the agent-browser binary the harness pins
 (`server/browser-engine-release.ts`, implementation in
-`scripts/testing/control-omb-ui.ts`). Everything it touches is disposable: the
+`scripts/testing/control-odb-ui.ts`). Everything it touches is disposable: the
 fake-engine fixture from `launch`, a Vite preview of the app, and one browser
 session whose `HOME` is the fixture's data directory. The user's app on port
-8799 and `~/.openmausbot` are never involved.
+8799 and `~/.opendeliobot` are never involved.
 
 ## Launch
 
 ```sh
-node --experimental-strip-types scripts/control-omb.ts ui launch \
+node --experimental-strip-types scripts/control-odb.ts ui launch \
   --tool-calls '[{"name":"Bash","input":{"command":"echo hi"},"ok":true}]'
 ```
 
 Run it in the foreground so Ctrl-C reaches it. On first use it downloads the
 pinned agent-browser release (size and SHA-256 verified) and its Chrome for
-Testing into `.omb-scratch/verify-tools` (gitignored); later launches reuse
-them. `OMB_AGENT_BROWSER_PATH` and `AGENT_BROWSER_EXECUTABLE_PATH` take
+Testing into `.odb-scratch/verify-tools` (gitignored); later launches reuse
+them. `ODB_AGENT_BROWSER_PATH` and `AGENT_BROWSER_EXECUTABLE_PATH` take
 precedence when set. The launcher then starts the fixture, pins its language
 to English (`PATCH /api/config`), creates Pepper through the same `new-bot`
 path as [Chat turns](chat-turns.md), mounts the preview, opens it in a headless
-session named `omb-ui-<port>`, and prints a handle:
+session named `odb-ui-<port>`, and prints a handle:
 
 ```json
 {
   "ok": true,
-  "ui": "/tmp/openmausbot-verify-data-XXXXXX/ui.json",
+  "ui": "/tmp/opendeliobot-verify-data-XXXXXX/ui.json",
   "url": "http://127.0.0.1:PORT",
   "previewUrl": "http://127.0.0.1:5178/__threads.html",
   "botId": "…", "dataDir": "…", "logPath": "…"
@@ -43,16 +43,16 @@ a browser it did not launch.
 ## Drive
 
 ```sh
-H=/tmp/openmausbot-verify-data-XXXXXX/ui.json
-pnpm control:omb ui flag --ui $H --set features.showToolCalls=true --dry-run
-pnpm control:omb ui flag --ui $H --set features.showToolCalls=true
-pnpm control:omb ui snapshot --ui $H --interactive
-pnpm control:omb ui type --ui $H --name "Message Pepper" --text hello
-pnpm control:omb ui press --ui $H --keys Enter
-pnpm control:omb ui wait-settle --ui $H --timeout 60
-pnpm control:omb ui snapshot --ui $H
-pnpm control:omb ui click --ui $H --name "Save as skill"
-pnpm control:omb ui eval --ui $H --js "document.querySelector('textarea[aria-label=\"Message Pepper\"]').value"
+H=/tmp/opendeliobot-verify-data-XXXXXX/ui.json
+pnpm control:odb ui flag --ui $H --set features.showToolCalls=true --dry-run
+pnpm control:odb ui flag --ui $H --set features.showToolCalls=true
+pnpm control:odb ui snapshot --ui $H --interactive
+pnpm control:odb ui type --ui $H --name "Message Pepper" --text hello
+pnpm control:odb ui press --ui $H --keys Enter
+pnpm control:odb ui wait-settle --ui $H --timeout 60
+pnpm control:odb ui snapshot --ui $H
+pnpm control:odb ui click --ui $H --name "Save as skill"
+pnpm control:odb ui eval --ui $H --js "document.querySelector('textarea[aria-label=\"Message Pepper\"]').value"
 ```
 
 `snapshot` returns the accessibility tree with `@eN` refs and a `refs` table
@@ -75,9 +75,9 @@ too, so read the transcript landmark, not the whole tree.
 ## Evidence
 
 ```sh
-pnpm control:omb ui screenshot --ui $H --out .omb-scratch/verify-evidence/chat-ui.png
-pnpm control:omb ui console --ui $H
-pnpm control:omb ui eval --ui $H --js "document.title"
+pnpm control:odb ui screenshot --ui $H --out .odb-scratch/verify-evidence/chat-ui.png
+pnpm control:odb ui console --ui $H
+pnpm control:odb ui eval --ui $H --js "document.title"
 ```
 
 Keep the `wait-settle` JSON, both snapshots, the screenshot and the printed
@@ -87,7 +87,7 @@ What the screenshot looks like when the recipe passes (`evidence/chat-ui/chat-ui
 
 ![The isolated app after the recipe: Pepper's greeting, the sent "hello", a passed Bash chip and the fake reply](evidence/chat-ui/chat-ui.png)
 
-The permanent form of this recipe is `scripts/testing/control-omb-ui.e2e.test.ts`:
+The permanent form of this recipe is `scripts/testing/control-odb-ui.e2e.test.ts`:
 
 The fixture also hit-tests the rendered empty band beside **This run**. It
 must target the conversation rather than the transparent dock, while points
@@ -95,7 +95,7 @@ inside the card and composer still target those controls. This checks browser
 pointer targeting, not native OS wheel delivery.
 
 ```sh
-OMB_UI_E2E=1 pnpm exec vitest run scripts/testing/control-omb-ui.e2e.test.ts
+ODB_UI_E2E=1 pnpm exec vitest run scripts/testing/control-odb-ui.e2e.test.ts
 ```
 
 The asserted recipe now also covers the floating **This run** card with a
@@ -140,14 +140,14 @@ includes screenshots and a `.usage-details.json` next to the fixture log.
 These are renderer checks, not native Windows caption-button verification.
 
 It runs when an agent-browser binary resolves and is skipped with a printed
-reason otherwise; `OMB_UI_E2E=1` forces the verified download. The `ui-smoke`
+reason otherwise; `ODB_UI_E2E=1` forces the verified download. The `ui-smoke`
 job in `.github/workflows/ci.yml` runs it on Ubuntu 24.04 and uploads the
 screenshot; it is not one of the required checks.
 
 ## Mobile text and code blocks
 
 ```sh
-OMB_UI_E2E=1 pnpm exec vitest run scripts/testing/mobile-code-blocks-ui.e2e.test.ts
+ODB_UI_E2E=1 pnpm exec vitest run scripts/testing/mobile-code-blocks-ui.e2e.test.ts
 pnpm exec vitest run src/components/ChatMarkdown.block-actions.test.ts src/components/ChatMarkdown.test.ts src/lib/copy-text.test.ts
 ```
 
@@ -208,7 +208,7 @@ and back mid-turn and holds the resumed readout to the same claim stamp,
 keeping a second screenshot.
 
 ```sh
-OMB_UI_E2E=1 pnpm exec vitest run scripts/testing/thinking-timer-ui.e2e.test.ts
+ODB_UI_E2E=1 pnpm exec vitest run scripts/testing/thinking-timer-ui.e2e.test.ts
 ```
 
 ## In-flight reply text
@@ -243,8 +243,8 @@ The quiet-status knobs cross into the fixture, so the sign of life shows in
 seconds:
 
 ```sh
-OMB_ACP_QUIET_NOTICE_MS=10000 OMB_ACP_QUIET_TICK_MS=2000 FAKE_CLAUDE_RELEASE=/tmp/release \
-node --experimental-strip-types scripts/control-omb.ts ui launch --tool-calls \
+ODB_ACP_QUIET_NOTICE_MS=10000 ODB_ACP_QUIET_TICK_MS=2000 FAKE_CLAUDE_RELEASE=/tmp/release \
+node --experimental-strip-types scripts/control-odb.ts ui launch --tool-calls \
   '[{"name":"WebSearch","input":{"query":"Acme construction leads"},"ok":true},
     {"name":"Bash","input":{"command":"cd ~/acme && python3 scrape.py --pages 40"},"hold":"busy"}]'
 ```
@@ -260,7 +260,7 @@ script its command. A bot moved to the `codex` instance then shows `last
 output just now` and the command's last two lines in the card.
 
 The before-and-after screenshots were removed because they showed real example
-data; run the `scripts/control-omb.ts ui launch` command above to see the
+data; run the `scripts/control-odb.ts ui launch` command above to see the
 working line and the Now card.
 
 The checks are `server/step-summary.test.ts` (the words and their redaction),
@@ -274,7 +274,7 @@ chat), `src/components/TurnPresence.test.ts`,
 ## Bot setup and MCP access recipe
 
 `scripts/testing/bot-tools-ui.e2e.test.ts` uses the same full-app launcher and
-optional `OMB_UI_E2E=1` gate. It verifies profile-only role creation, closing
+optional `ODB_UI_E2E=1` gate. It verifies profile-only role creation, closing
 and reopening the dialog during a slow creation without duplicate submissions, recovery
 when the preset PATCH fails after creation, the composer’s Tools shortcut,
 optional setup ideas, a pasted config added from Add MCP server that stays off when it doesn't answer, refreshed

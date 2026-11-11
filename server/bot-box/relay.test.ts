@@ -15,7 +15,7 @@ linuxBox("the relay into a box's own loopback", () => {
   afterEach(() => { for (const step of cleanup.splice(0).reverse()) step(); });
 
   const relayAt = async (): Promise<BoxRelay> => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-relay-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-relay-"));
     const relay = await openBoxRelay(join(dir, "relay.sock"));
     cleanup.push(() => rmSync(dir, { recursive: true, force: true }), () => relay.close());
     return relay;
@@ -65,7 +65,7 @@ linuxBox("the relay into a box's own loopback", () => {
   });
 
   it("the box side drops a connection whose first line is not a port", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-relay-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-relay-"));
     cleanup.push(() => rmSync(dir, { recursive: true, force: true }));
     const host = createNetServer();
     const dialed: Socket[] = [];

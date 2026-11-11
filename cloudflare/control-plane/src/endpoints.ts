@@ -193,7 +193,7 @@ async function ensureEndpointRow(
       installationId,
       account.accountId,
       `c-${opaque}.${account.companionHostSuffix}`,
-      `omb-c-${opaque}`,
+      `odb-c-${opaque}`,
       now,
       now,
     ).run();
@@ -854,7 +854,7 @@ async function relocateClaim(
 
   const opaque = randomHex(16);
   const hostname = `c-${opaque}.${target.companionHostSuffix}`;
-  const tunnelName = `omb-c-${opaque}`;
+  const tunnelName = `odb-c-${opaque}`;
   const result = await env.DB.prepare(
     `UPDATE installation_endpoints
         SET provider_account = ?, hostname = ?, tunnel_name = ?, updated_at = ?

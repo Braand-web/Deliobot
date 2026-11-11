@@ -231,7 +231,7 @@ export const CopilotAgentDriver = {
   /** Creates an instance with thread-isolated launcher config files, removed when the instance is disposed. */
   async create(input: Parameters<ReturnType<typeof createAcpDriver>["create"]>[0]) {
     // Copilot CLI 1.0.105 rejects stdio servers from ACP clients; --additional-mcp-config accepts them from its launcher.
-    const directory = await mkdtemp(join(tmpdir(), "omb-copilot-mcp-"));
+    const directory = await mkdtemp(join(tmpdir(), "odb-copilot-mcp-"));
     const cleanup = () => rm(directory, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     try {
       const instance = await createAcpDriver({
@@ -244,10 +244,10 @@ export const CopilotAgentDriver = {
             : { type: server.type, url: server.url,
               headers: Object.fromEntries(server.headers.map(({ name, value }) => [name, value])), tools: ["*"] }]));
           writeFileAtomicIfChanged(path, JSON.stringify({ mcpServers: servers }), { mode: 0o600, durable: false });
-          env.OMB_COPILOT_MCP_CONFIG = path;
+          env.ODB_COPILOT_MCP_CONFIG = path;
         },
         resolveCommand(env, config) {
-          const path = env.OMB_COPILOT_MCP_CONFIG;
+          const path = env.ODB_COPILOT_MCP_CONFIG;
           if (!path) throw new Error("GitHub Copilot's tool configuration was not prepared.");
           return Promise.resolve({ command: config.cli, args: ["--additional-mcp-config", `@${path}`] });
         },

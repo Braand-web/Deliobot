@@ -18,7 +18,7 @@ type Answer = (request: AwayRequest) => Response | Promise<Response>;
 const ok: Answer = (request) => Response.json({ v: 1, results: request.notices.map(({ id }) => ({ id, state: "sent" })) });
 
 function world(options: { answer?: Answer; here?: Set<string>; members?: string[] } = {}) {
-  const dataDir = mkdtempSync(join(tmpdir(), "omb-team-away-"));
+  const dataDir = mkdtempSync(join(tmpdir(), "odb-team-away-"));
   dirs.push(dataDir);
   let clock = Date.UTC(2026, 10, 10, 9, 0, 0);
   const here = options.here ?? new Set<string>();
@@ -74,9 +74,9 @@ describe("the away email a Team Cloud asks the Admin for", () => {
     expect(Object.keys(request!.body.notices[0]!).sort()).toEqual(["id", "items", "language", "to"]);
     expect(awayKey("inbox:line-1")).toMatch(/^[0-9a-f]{64}$/);
     const headers = request!.headers;
-    expect(headers["x-omb-cloud-machine"]).toBe(MACHINE);
-    expect(headers["x-omb-cloud-timestamp"]).toBe(String(Math.floor(clock() / 1000)));
-    expect(headers["x-omb-cloud-signature"]).toBe(`v1=${teamAwaySignature(SECRET, MACHINE, headers["x-omb-cloud-timestamp"]!, headers["x-omb-cloud-nonce"]!, request!.raw)}`);
+    expect(headers["x-odb-cloud-machine"]).toBe(MACHINE);
+    expect(headers["x-odb-cloud-timestamp"]).toBe(String(Math.floor(clock() / 1000)));
+    expect(headers["x-odb-cloud-signature"]).toBe(`v1=${teamAwaySignature(SECRET, MACHINE, headers["x-odb-cloud-timestamp"]!, headers["x-odb-cloud-nonce"]!, request!.raw)}`);
   });
 
   it("signs the way the Admin checks (a fixed vector both repositories test)", () => {

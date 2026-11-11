@@ -51,7 +51,7 @@ export async function forgetCommandCodeDiscoverySession({ sessionId, env }: { se
   if (!/^[\w-]{1,128}$/.test(sessionId)) return;
   const projects = join(userHome(env), ".commandcode", "projects");
   const folders = await readdir(projects).catch(() => [] as string[]);
-  for (const folder of folders.filter((name) => name.includes("omb-acp-models-"))) {
+  for (const folder of folders.filter((name) => name.includes("odb-acp-models-"))) {
     const files = await readdir(join(projects, folder)).catch(() => [] as string[]);
     const ours = files.filter((name) => name.startsWith(`${sessionId}.`));
     if (!ours.length) continue;

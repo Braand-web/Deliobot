@@ -151,14 +151,14 @@ server.on("upgrade", (req: IncomingMessage, socket: Duplex, head: Buffer) => {
   const route = routes[new URL(req.url ?? "/", "http://interop").pathname];
   if (!route) return void socket.destroy();
   if (route === "impostor") {
-    acceptWebSocket(req, socket, head, { protocol: "omb-e2e.v1", maxPayload: MAX_RECORD_BYTES }, (connection) => ({
+    acceptWebSocket(req, socket, head, { protocol: "odb-e2e.v1", maxPayload: MAX_RECORD_BYTES }, (connection) => ({
       message: () => connection.send(impostorMessage2()),
       close: () => {},
     }));
     return;
   }
   let session: E2ESession<string> | null = null;
-  acceptWebSocket(req, socket, head, { protocol: "omb-e2e.v1", maxPayload: MAX_RECORD_BYTES }, (connection) => {
+  acceptWebSocket(req, socket, head, { protocol: "odb-e2e.v1", maxPayload: MAX_RECORD_BYTES }, (connection) => {
     session = E2ESession.computer({
       transport: connection,
       transportByte: route,

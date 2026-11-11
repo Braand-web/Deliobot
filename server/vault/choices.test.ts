@@ -21,7 +21,7 @@ describe("which saved names could fit what a bot asked for", () => {
 
 describe("Use a saved login on a sign-in card", () => {
   function fixture(open = true) {
-    const dataDir = mkdtempSync(join(tmpdir(), "omb-vault-choices-"));
+    const dataDir = mkdtempSync(join(tmpdir(), "odb-vault-choices-"));
     dirs.push(dataDir);
     const logins = new VaultStore({ dataDir });
     const settled: unknown[] = [];

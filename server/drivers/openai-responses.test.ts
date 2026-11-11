@@ -97,7 +97,7 @@ afterEach(async () => {
 
 async function fixture(script: Script, apiUrl = OPENAI, models: unknown[] = []) {
   vi.spyOn(console, "warn").mockImplementation(() => {});
-  const directory = mkdtempSync(join(tmpdir(), "omb-responses-"));
+  const directory = mkdtempSync(join(tmpdir(), "odb-responses-"));
   const calls: Call[] = [];
   const server = createServer(async (request, response) => {
     if (request.url === "/v1/models") {
@@ -544,7 +544,7 @@ describe("what Responses can answer", () => {
   });
 
   it("stops when the model goes quiet, and when the person stops it", async () => {
-    vi.stubEnv("OPENMAUS_OPENAI_COMPAT_IDLE_TIMEOUT_MS", "1000");
+    vi.stubEnv("OPENDELIO_OPENAI_COMPAT_IDLE_TIMEOUT_MS", "1000");
     cleanups.push(() => { vi.unstubAllEnvs(); });
     const f = await fixture(onResponses((response) => events(response, [created, textDelta("Part")], false)));
     const quiet = await f.turn();

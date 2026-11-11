@@ -217,7 +217,7 @@ export async function releaseBrowserProfile(dir: string | undefined, binaryPath?
 /** Windows has no tree to re-parent to: the Chromes naming the profile, each with its image, start time and its parent's and
  * grandparent's (a pid the system gave on to a newer process is not the parent). Start times are UTC strings, which sort as they compare and
  * keep their precision. The folder goes in through the environment, so no path is ever quoted into the script. */
-const WINDOWS_PROFILE_BROWSERS = "$d = $env:OMB_BROWSER_PROFILE; $all = @(Get-CimInstance Win32_Process); $by = @{}; foreach ($p in $all) { $by[$p.ProcessId] = $p }"
+const WINDOWS_PROFILE_BROWSERS = "$d = $env:ODB_BROWSER_PROFILE; $all = @(Get-CimInstance Win32_Process); $by = @{}; foreach ($p in $all) { $by[$p.ProcessId] = $p }"
   + " ; ConvertTo-Json -Compress -InputObject @($all | Where-Object { $_.CommandLine -and $_.CommandLine.IndexOf($d, [StringComparison]::OrdinalIgnoreCase) -ge 0 }"
   + " | ForEach-Object { $q = $by[$_.ParentProcessId]; $g = $(if ($q) { $by[$q.ParentProcessId] }); [pscustomobject]@{ ProcessId = $_.ProcessId; ParentProcessId = $_.ParentProcessId; CommandLine = $_.CommandLine;"
   + " Name = $_.Name; Started = $_.CreationDate.ToUniversalTime().ToString('o'); ParentName = $(if ($q) { $q.Name });"
@@ -225,7 +225,7 @@ const WINDOWS_PROFILE_BROWSERS = "$d = $env:OMB_BROWSER_PROFILE; $all = @(Get-Ci
   + " GrandparentName = $(if ($g) { $g.Name }); GrandparentStarted = $(if ($g) { $g.CreationDate.ToUniversalTime().ToString('o') }) } })";
 
 /** One process's start time, read again right before it is stopped. */
-const WINDOWS_PROCESS_STARTED = "(Get-CimInstance Win32_Process -Filter ('ProcessId=' + [uint32]$env:OMB_PROCESS_ID)).CreationDate.ToUniversalTime().ToString('o')";
+const WINDOWS_PROCESS_STARTED = "(Get-CimInstance Win32_Process -Filter ('ProcessId=' + [uint32]$env:ODB_PROCESS_ID)).CreationDate.ToUniversalTime().ToString('o')";
 
 /** The images Chrome-family browsers run as, besides the configured Chrome's own: no other program on the list is ever stopped. */
 const CHROMIUM_IMAGE = /^(?:chrome|chromium|msedge|brave|chrome-headless-shell)\.exe$/i;
@@ -263,7 +263,7 @@ async function releaseWindowsProfile(dir: string, binaryPath?: string, chromePat
   const held = heldWindowsProfiles.get(dir);
   if (held && processAlive(held.browser) && await imageOf(held.daemon) === held.image && (held.shell === undefined || await imageOf(held.shell) === "cmd.exe")) return;
   heldWindowsProfiles.delete(dir);
-  const listing = await execText("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", WINDOWS_PROFILE_BROWSERS], { OMB_BROWSER_PROFILE: dir }, 15_000);
+  const listing = await execText("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", WINDOWS_PROFILE_BROWSERS], { ODB_BROWSER_PROFILE: dir }, 15_000);
   let rows: unknown;
   try { rows = JSON.parse(listing ?? ""); } catch { return; }
   const flag = `--user-data-dir=${dir}`.toLowerCase();
@@ -296,7 +296,7 @@ async function releaseWindowsProfile(dir: string, binaryPath?: string, chromePat
       return;
     }
     // Between the listing and now the pid may have gone to another program: only the same Chrome is stopped.
-    const now = await execText("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", WINDOWS_PROCESS_STARTED], { OMB_PROCESS_ID: String(pid) }, 15_000);
+    const now = await execText("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", WINDOWS_PROCESS_STARTED], { ODB_PROCESS_ID: String(pid) }, 15_000);
     if (now?.trim() === started) await execText("taskkill", ["/PID", String(pid), "/T", "/F"]);
   }
   if (browsers.length) await within(2_000, async () => lockReleased(lock));

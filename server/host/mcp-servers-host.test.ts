@@ -23,7 +23,7 @@ function script(data: string, ...parts: string[]): string {
 }
 
 function setup(options: { boxed?: boolean; data?: string; bots?: Array<{ id: string; name: string; mcpServers?: string[]; toolScope?: unknown }> } = {}) {
-  const data = options.data ?? mkdtempSync(join(tmpdir(), "omb-mcp-host-"));
+  const data = options.data ?? mkdtempSync(join(tmpdir(), "odb-mcp-host-"));
   if (!options.data) dirs.push(data);
   const cfg: AppConfig = {
     mcpServers: {
@@ -127,7 +127,7 @@ it("a restart, or turning a server off and on, shows in what the next turn start
   await host.health.settled();
   const notes = () => host.mounted(PAUL).notes as { env: Record<string, string> };
   const fresh = JSON.stringify(host.mounted(PAUL).notes);
-  expect(notes().env.OMB_MCP_RESTART).toBeUndefined();
+  expect(notes().env.ODB_MCP_RESTART).toBeUndefined();
 
   host.health.changed("notes");
   const restarted = JSON.stringify(host.mounted(PAUL).notes);
@@ -156,7 +156,7 @@ it("a package runner's first check waits for its download; any other program's k
 });
 
 it("starts a server with its key read from the Vault, tells a bot the item keeps out, and says when the key is gone", async () => {
-  const data = mkdtempSync(join(tmpdir(), "omb-mcp-host-"));
+  const data = mkdtempSync(join(tmpdir(), "odb-mcp-host-"));
   dirs.push(data);
   const vault = new VaultStore({ dataDir: data });
   const secret = vault.saveSecret({ name: "Stripe secret key", value: "sk_fake-mounted", source: "card", bots: ["iris"] });
@@ -187,7 +187,7 @@ it("starts a server with its key read from the Vault, tells a bot the item keeps
 });
 
 it("forgets which Vault items a server could read when its bot's own server goes with the bot", () => {
-  const data = mkdtempSync(join(tmpdir(), "omb-mcp-host-"));
+  const data = mkdtempSync(join(tmpdir(), "odb-mcp-host-"));
   dirs.push(data);
   const vault = new VaultStore({ dataDir: data });
   vault.grantMcpKeys("bot-server", ["77777777-7777-4777-8777-777777777777"]);

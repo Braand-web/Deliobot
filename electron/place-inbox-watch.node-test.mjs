@@ -12,7 +12,7 @@ function setup(over = {}) {
     places: () => [{ id: "local", local: true }, { id: "a", origin: "https://a.test" }, { id: "b", origin: "https://b.test" }],
     activeId: () => "local",
     local: async (route) => { asked.push(["local", route]); return answer(200, { count: counts.local }); },
-    cloudFetch: async (url, init) => { asked.push([url, init.headers["x-omb-background"]]); const origin = new URL(url).origin; return counts[origin] === null ? answer(404, {}) : answer(200, { count: counts[origin] }); },
+    cloudFetch: async (url, init) => { asked.push([url, init.headers["x-odb-background"]]); const origin = new URL(url).origin; return counts[origin] === null ? answer(404, {}) : answer(200, { count: counts[origin] }); },
     asleep: () => false, shown: () => true, changed: () => { changes += 1; },
     setTimer: (run, ms) => { tick = { run, ms }; return {}; },
     ...over,

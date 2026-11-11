@@ -10,7 +10,7 @@ const dirs: string[] = [];
 afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }); });
 
 function harness() {
-  const dir = mkdtempSync(join(tmpdir(), "omb-bot-api-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-bot-api-"));
   dirs.push(dir);
   const file = join(dir, "bot-api.json");
   let now = new Date("2026-11-02T10:00:00.000Z").getTime();
@@ -145,7 +145,7 @@ describe("how it keeps its records", () => {
 describe("a caller's image tags", () => {
   const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64");
   it("load nothing, however they are disguised, while the plain tag on its own really would", () => {
-    const attachmentsDir = mkdtempSync(join(tmpdir(), "omb-bot-api-img-"));
+    const attachmentsDir = mkdtempSync(join(tmpdir(), "odb-bot-api-img-"));
     dirs.push(attachmentsDir);
     const name = "6f1d2c3e-4a5b-4c6d-8e7f-0123456789ab.png";
     writeFileSync(join(attachmentsDir, name), png);

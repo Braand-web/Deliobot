@@ -75,7 +75,7 @@ describe("browser tool shaping", () => {
   });
 
   it("tells the bot the install command when Chrome cannot load a system library", () => {
-    const launch = "Chrome exited early (exit code: 127) without writing DevToolsActivePort\nChrome stderr:\n  /home/maus/.agent-browser/browsers/chrome-157.0.8103.38/chrome: error while loading shared libraries: libatk-1.0.so.0: cannot open shared object file: No such file or directory";
+    const launch = "Chrome exited early (exit code: 127) without writing DevToolsActivePort\nChrome stderr:\n  /home/delio/.agent-browser/browsers/chrome-157.0.8103.38/chrome: error while loading shared libraries: libatk-1.0.so.0: cannot open shared object file: No such file or directory";
     const platform = process.platform;
     const shape = (result: unknown) => shapeBrowserToolResult(result) as { content: Array<{ text: string }>; isError?: boolean };
     try {
@@ -89,7 +89,7 @@ describe("browser tool shaping", () => {
       expect(shaped.content[0].text).toContain("missing libraries the browser needs (libatk-1.0.so.0)");
       // agent-browser's longer-stderr form of the marker counts too
       expect(shape({ content: [{ type: "text", text: launch.replace("Chrome stderr:", "Chrome stderr (last 20 lines):") }], isError: true }).content[0].text).toContain("--with-deps");
-      expect(shaped.content[0].text).toContain("`sudo openmausbot browser install --with-deps`");
+      expect(shaped.content[0].text).toContain("`sudo opendeliobot browser install --with-deps`");
       // a page that merely mentions the loader's words, or another failure, gets no install advice
       const echoed = "Error: page script failed: /usr/bin/app: error while loading shared libraries: libfoo.so.1: cannot open shared object file";
       // a page error that quotes a whole launch error, marker included, did not come from our launch
@@ -113,14 +113,14 @@ describe("browser tool shaping", () => {
     const text = "line of accessibility tree\n".repeat(4_000);
     const shaped = shapeBrowserToolResult({ content: [{ type: "text", text }], structuredContent: {} }, { toolName: "agent_browser_snapshot" }) as { content: Array<{ text: string }> };
     expect(shaped.content[0].text.length).toBeLessThan(DEFAULT_BROWSER_RESULT_BUDGET + 600);
-    expect(shaped.content[0].text).toContain("TRUNCATED by OpenMausBot");
+    expect(shaped.content[0].text).toContain("TRUNCATED by OpenDeliobot");
     expect(shaped.content[0].text).toContain("agent_browser_get_text");
     const custom = shapeBrowserToolResult({ content: [{ type: "text", text }] }, { budget: 1_000 }) as { content: Array<{ text: string }> };
     expect(custom.content[0].text.length).toBeLessThan(1_600);
   });
 
   it("names only tools the pinned engine advertises", () => {
-    // `agent-browser mcp --tools core` on the pinned 0.37.0 plus OMB's own tools: guidance naming a tool the engine does not list costs a failed call.
+    // `agent-browser mcp --tools core` on the pinned 0.37.0 plus ODB's own tools: guidance naming a tool the engine does not list costs a failed call.
     const advertised = new Set([
       "agent_browser_tools_profiles", "agent_browser_open", "agent_browser_read", "agent_browser_snapshot", "agent_browser_click",
       "agent_browser_fill", "agent_browser_type", "agent_browser_press", "agent_browser_check", "agent_browser_uncheck",

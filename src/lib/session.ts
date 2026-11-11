@@ -31,8 +31,8 @@ export function profileForSession(profile: SessionProfile | undefined, sessionSt
   return profile?.email?.trim().toLowerCase() === email.trim().toLowerCase() ? profile : { email };
 }
 
-const TEAM_SIGN_IN_KEY = "omb.team-sign-in";
-/** A team session's page on MausBot Cloud, kept by this browser for this server, so the page its session ended on can offer
+const TEAM_SIGN_IN_KEY = "odb.team-sign-in";
+/** A team session's page on Delio Cloud, kept by this browser for this server, so the page its session ended on can offer
  * the way back. Nothing that signs anyone in: an address the signed-in session was told. */
 export function rememberTeamSignIn(url: string | undefined): void {
   try { if (url) globalThis.localStorage?.setItem(TEAM_SIGN_IN_KEY, url); } catch {}
@@ -100,7 +100,7 @@ export function takePairingCodeFromLocation(): string | null {
 /** A single-use sign-in credential: taken off the address bar and out of history before anything renders, never shown. */
 export function takeBrowserSignInFromLocation(): string | null {
   if (!/[#&]signin=/.test(location.hash)) return null;
-  const m = /[#&]signin=(omb_pair_[A-Za-z0-9_-]{43})(?:&|$)/.exec(location.hash);
+  const m = /[#&]signin=(odb_pair_[A-Za-z0-9_-]{43})(?:&|$)/.exec(location.hash);
   history.replaceState(null, "", location.pathname + location.search);
   return m ? m[1] : null;
 }

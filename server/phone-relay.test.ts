@@ -1,4 +1,4 @@
-// The server's side of MausBot Relay against the fake relay, driven by the reference phone: the server's own sessions
+// The server's side of Delio Relay against the fake relay, driven by the reference phone: the server's own sessions
 // are the phones, and every relayed request reaches the handler as a remote one.
 import { generateKeyPairSync, randomBytes } from "node:crypto";
 import { mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs";
@@ -20,7 +20,7 @@ import { SessionRegistry } from "./sessions.ts";
 
 const signingKey = generateKeyPairSync("ed25519").privateKey;
 const keys = new Map([["k1", ed25519RawPublicKey(signingKey)]]);
-const NODE = "relay1.openmausbot.com";
+const NODE = "relay1.openopendeliobot.com";
 
 const cleanup: Array<() => unknown> = [];
 afterEach(async () => {
@@ -60,8 +60,8 @@ function serverHandler(sessions: SessionRegistry, relay: () => PhoneRelay | null
       res.once("close", () => clearInterval(tick));
       return;
     }
-    const gate = resolveRequestAuth(req, { sessions, cookieName: "omb_session", streamPath: "/api/events", url });
-    if (url.pathname === "/api/health" && !gate.auth) return send(200, { app: "openmausbot" });
+    const gate = resolveRequestAuth(req, { sessions, cookieName: "odb_session", streamPath: "/api/events", url });
+    if (url.pathname === "/api/health" && !gate.auth) return send(200, { app: "opendeliobot" });
     if (!gate.auth) return send(gate.status, { error: gate.error });
     return send(200, { kind: gate.auth.kind, id: gate.auth.kind === "session" ? gate.auth.session.id : null, source: requestSource(req), host: req.headers.host, via: gate.auth.kind === "session" ? gate.auth.via : null });
   };
@@ -78,7 +78,7 @@ interface Server {
 
 async function startServer(input: Partial<PhoneRelayOptions> & { dir?: string; relay?: FakeRelay } = {}): Promise<Server> {
   const { dir: givenDir, relay: givenRelay, ...overrides } = input;
-  const dir = givenDir ?? mkdtempSync(join(tmpdir(), "omb-phone-relay-"));
+  const dir = givenDir ?? mkdtempSync(join(tmpdir(), "odb-phone-relay-"));
   if (!givenDir) cleanup.push(() => removeTempDir(dir));
   const relay = givenRelay ?? await startFakeRelay({ keys });
   if (!givenRelay) cleanup.push(() => relay.close());
@@ -88,7 +88,7 @@ async function startServer(input: Partial<PhoneRelayOptions> & { dir?: string; r
   const logs: string[] = [];
   let phoneRelay: PhoneRelay | null = null;
   phoneRelay = startPhoneRelay({
-    env: { OMB_PHONE_RELAY: "1", OMB_PHONE_RELAY_URL: relay.url },
+    env: { ODB_PHONE_RELAY: "1", ODB_PHONE_RELAY_URL: relay.url },
     dataDir: dir,
     sessions,
     handle: serverHandler(sessions, () => phoneRelay),
@@ -137,18 +137,18 @@ async function pairPhone(server: Server): Promise<{ token: string; id: string; k
   return { token: reply.token, id: reply.device.id, k, session };
 }
 
-describe("phones through MausBot Relay on a server", () => {
+describe("phones through Delio Relay on a server", () => {
   it("stays off unless asked for, and never runs where the desktop's companion or a Cloud carries phones", () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-phone-relay-off-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-phone-relay-off-"));
     cleanup.push(() => removeTempDir(dir));
     const sessions = new SessionRegistry({ file: join(dir, "sessions.json") });
     cleanup.push(() => sessions.close());
     const logs: string[] = [];
     const base = { dataDir: dir, sessions, handle: () => {}, serverName: () => "VPS", publicOrigin: () => null, version: "0.1.152", log: (line: string) => logs.push(line) };
     expect(startPhoneRelay({ ...base, env: {}, refusal: null })).toBeNull();
-    expect(startPhoneRelay({ ...base, env: { OMB_PHONE_RELAY: "true" }, refusal: null })).toBeNull();
-    expect(startPhoneRelay({ ...base, env: { OMB_PHONE_RELAY: "1" }, refusal: "a MausBot Cloud home" })).toBeNull();
-    expect(logs).toEqual(["phone relay: off on a MausBot Cloud home"]);
+    expect(startPhoneRelay({ ...base, env: { ODB_PHONE_RELAY: "true" }, refusal: null })).toBeNull();
+    expect(startPhoneRelay({ ...base, env: { ODB_PHONE_RELAY: "1" }, refusal: "a Delio Cloud home" })).toBeNull();
+    expect(logs).toEqual(["phone relay: off on a Delio Cloud home"]);
     expect(() => statSync(join(dir, PHONE_RELAY_KEY_FILE))).toThrow();
   });
 
@@ -158,7 +158,7 @@ describe("phones through MausBot Relay on a server", () => {
     expect(server.logs).toContain(`phone relay: connected via ${NODE}`);
     const opened = server.sessions.openPairing({ scopes: ["client"] });
     const link = server.phoneRelay.invite(opened.credential, "VPS", null)!;
-    expect(link).toMatch(/^openmausbot:\/\/pair\?address=relay-only\.invalid%3A443&token=omb_pair_/);
+    expect(link).toMatch(/^opendeliobot:\/\/pair\?address=relay-only\.invalid%3A443&token=odb_pair_/);
     const descriptor = descriptorOf(link);
     expect(descriptor).toEqual({ v: 1, k: expect.any(String), h: b64u(server.hostId), r: [NODE] });
     const k = fromB64u(descriptor.k)!;
@@ -166,7 +166,7 @@ describe("phones through MausBot Relay on a server", () => {
     await waitFor(() => server.relay.admitted(b64u(server.hostId)).has(admissionHash(admission(credentialHash(opened.credential), server.hostId))));
 
     const session = await waitFor(() => viaRelay(server, k, opened.credential).catch(() => null), 6_000);
-    expect(json(await http(session, "GET", "/api/health"))).toEqual({ app: "openmausbot" });
+    expect(json(await http(session, "GET", "/api/health"))).toEqual({ app: "opendeliobot" });
     expect(await http(session, "GET", "/api/auth/session").then((reply) => [reply.status, json(reply).error])).toEqual([401, "pair this phone first"]);
 
     const paired = await http(session, "POST", "/api/pair", { body: JSON.stringify({ credential: opened.credential, deviceName: "Pixel" }), headers: { "content-type": "application/json" } });
@@ -179,7 +179,7 @@ describe("phones through MausBot Relay on a server", () => {
     // The same session now speaks for the new phone, with its own session.
     expect(json(await http(session, "GET", "/api/auth/session", { token: reply.token }))).toEqual({ kind: "session", id: reply.device.id, source: `relay-${reply.device.id}`, host: "phone-relay.invalid", via: "bearer" });
     // Whatever the phone writes, a relayed request is never this machine's.
-    const spoofed = await http(session, "GET", "/api/auth/session", { headers: { host: "127.0.0.1:8799", "x-openmausbot-cli-owner": "x", "x-forwarded-for": "127.0.0.1", cookie: "omb_session=x" } });
+    const spoofed = await http(session, "GET", "/api/auth/session", { headers: { host: "127.0.0.1:8799", "x-opendeliobot-cli-owner": "x", "x-forwarded-for": "127.0.0.1", cookie: "odb_session=x" } });
     expect(spoofed.status).toBe(403);
     expect(json(spoofed).error).toMatch(/proxy/);
     // A token inside the session must be the one whose key opened it.
@@ -218,7 +218,7 @@ describe("phones through MausBot Relay on a server", () => {
   });
 
   it(`refuses a phone past the ${MAX_RELAY_PHONES} the relay admits for one server`, async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-phone-relay-full-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-phone-relay-full-"));
     cleanup.push(() => removeTempDir(dir));
     const seed = new SessionRegistry({ file: join(dir, "sessions.json") });
     const ids = Array.from({ length: MAX_RELAY_PHONES }, (_, n) => seed.issue({ label: `Phone ${n}`, scopes: ["client"] }).session.id);
@@ -238,7 +238,7 @@ describe("phones through MausBot Relay on a server", () => {
   });
 
   it("keeps its connection key, owner-only, across restarts, and never replaces one it cannot read", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-phone-relay-key-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-phone-relay-key-"));
     cleanup.push(() => removeTempDir(dir));
     const relay = await startFakeRelay({ keys });
     cleanup.push(() => relay.close());
@@ -259,7 +259,7 @@ describe("phones through MausBot Relay on a server", () => {
     const logs: string[] = [];
     const sessions = new SessionRegistry({ file: join(dir, "sessions.json") });
     cleanup.push(() => sessions.close());
-    expect(startPhoneRelay({ env: { OMB_PHONE_RELAY: "1" }, dataDir: dir, sessions, handle: () => {}, serverName: () => "VPS", publicOrigin: () => null, version: "0.1.152", refusal: null, log: (line) => logs.push(line) })).toBeNull();
+    expect(startPhoneRelay({ env: { ODB_PHONE_RELAY: "1" }, dataDir: dir, sessions, handle: () => {}, serverName: () => "VPS", publicOrigin: () => null, version: "0.1.152", refusal: null, log: (line) => logs.push(line) })).toBeNull();
     expect(logs[0]).toMatch(/^phone relay: off: .*is not a connection key/);
     expect(readFileSync(join(dir, PHONE_RELAY_KEY_FILE), "utf8")).toBe("{\"v\":1}\n");
   });
@@ -277,7 +277,7 @@ describe("phones through MausBot Relay on a server", () => {
     // The relay itself unreachable: it keeps dialling, and a link still works the moment it connects.
     const gone = await startFakeRelay({ keys });
     await gone.close();
-    const unreachable = await startServer({ relay: gone, env: { OMB_PHONE_RELAY: "1", OMB_PHONE_RELAY_URL: gone.url } });
+    const unreachable = await startServer({ relay: gone, env: { ODB_PHONE_RELAY: "1", ODB_PHONE_RELAY_URL: gone.url } });
     await waitFor(() => unreachable.phoneRelay.status().grant === "ok");
     expect(unreachable.phoneRelay.status().relay).toBe("connecting");
   });
@@ -285,31 +285,31 @@ describe("phones through MausBot Relay on a server", () => {
   it("names the server's public HTTPS address for a phone without the encrypted connection", async () => {
     const server = await startServer();
     await connected(server);
-    const link = new URL(server.phoneRelay.invite(server.sessions.openPairing().credential, "VPS", "https://maus.example.com")!);
-    expect(link.searchParams.get("address")).toBe("maus.example.com:443");
-    expect(JSON.parse(fromB64u(link.searchParams.get("endpoints")!)!.toString("utf8"))).toEqual([{ url: "https://maus.example.com", kind: "hosted", priority: 0 }]);
+    const link = new URL(server.phoneRelay.invite(server.sessions.openPairing().credential, "VPS", "https://delio.example.com")!);
+    expect(link.searchParams.get("address")).toBe("delio.example.com:443");
+    expect(JSON.parse(fromB64u(link.searchParams.get("endpoints")!)!.toString("utf8"))).toEqual([{ url: "https://delio.example.com", kind: "hosted", priority: 0 }]);
     expect(new URL(server.phoneRelay.invite(server.sessions.openPairing().credential, "VPS", "http://localhost:8080")!).searchParams.get("address")).toBe("relay-only.invalid:443");
   });
 
   it("never asks for a relay token on a machine that holds or needs a tunnel", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-phone-relay-tunnel-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-phone-relay-tunnel-"));
     cleanup.push(() => removeTempDir(dir));
     const account = join(dir, "tunnel-account.json");
     expect(tunnelHolder({}, dir)).toBeNull();
-    writeFileSync(account, JSON.stringify({ companionInstallationCredential: "omb_install_x" }));
+    writeFileSync(account, JSON.stringify({ companionInstallationCredential: "odb_install_x" }));
     expect(tunnelHolder({}, dir)).toBeNull();
-    expect(tunnelHolder({ OMB_SERVES_TUNNEL: "1", OMB_TUNNEL_SOCKET: join(dir, "t.sock") }, dir)).toBe("this server runs with --tunnel");
+    expect(tunnelHolder({ ODB_SERVES_TUNNEL: "1", ODB_TUNNEL_SOCKET: join(dir, "t.sock") }, dir)).toBe("this server runs with --tunnel");
     // Docker's Caddy reaches the server over a socket too: that is no tunnel.
-    expect(tunnelHolder({ OMB_TUNNEL_SOCKET: "/run/openmausbot/http.sock" }, dir)).toBeNull();
-    expect(tunnelHolder({ OMB_INSTALLATION_CREDENTIAL: "omb_install_y" }, dir)).toMatch(/^OMB_INSTALLATION_CREDENTIAL is set/);
-    writeFileSync(account, JSON.stringify({ companionInstallationCredential: "omb_install_x", managedCompanionEndpointUrl: "https://c-0123456789abcdef0123456789abcdef.openmausbot.com" }));
+    expect(tunnelHolder({ ODB_TUNNEL_SOCKET: "/run/opendeliobot/http.sock" }, dir)).toBeNull();
+    expect(tunnelHolder({ ODB_INSTALLATION_CREDENTIAL: "odb_install_y" }, dir)).toMatch(/^ODB_INSTALLATION_CREDENTIAL is set/);
+    writeFileSync(account, JSON.stringify({ companionInstallationCredential: "odb_install_x", managedCompanionEndpointUrl: "https://c-0123456789abcdef0123456789abcdef.openopendeliobot.com" }));
     expect(tunnelHolder({}, dir)).toMatch(/holds a tunnel address/);
     writeFileSync(account, "not json");
     expect(tunnelHolder({}, dir)).toMatch(/could not be read/);
 
-    // `serve --tunnel` with OMB_PHONE_RELAY=1 in the environment, and a fleet container: off, and saying why.
-    writeFileSync(account, JSON.stringify({ companionInstallationCredential: "omb_install_x" }));
-    for (const env of [{ OMB_PHONE_RELAY: "1", OMB_SERVES_TUNNEL: "1", OMB_TUNNEL_SOCKET: join(dir, "t.sock") }, { OMB_PHONE_RELAY: "1", OMB_INSTALLATION_CREDENTIAL: "omb_install_y" }]) {
+    // `serve --tunnel` with ODB_PHONE_RELAY=1 in the environment, and a fleet container: off, and saying why.
+    writeFileSync(account, JSON.stringify({ companionInstallationCredential: "odb_install_x" }));
+    for (const env of [{ ODB_PHONE_RELAY: "1", ODB_SERVES_TUNNEL: "1", ODB_TUNNEL_SOCKET: join(dir, "t.sock") }, { ODB_PHONE_RELAY: "1", ODB_INSTALLATION_CREDENTIAL: "odb_install_y" }]) {
       let asked = 0;
       const logs: string[] = [];
       const sessions = new SessionRegistry({ file: join(dir, "sessions.json") });
@@ -344,7 +344,7 @@ describe("phones through MausBot Relay on a server", () => {
     await connected(server);
     const phone = await pairPhone(server);
     phone.session.shutdown();
-    const wrong = () => JSON.stringify({ credential: `omb_pair_${randomBytes(32).toString("base64url")}` });
+    const wrong = () => JSON.stringify({ credential: `odb_pair_${randomBytes(32).toString("base64url")}` });
     const asJson = { "content-type": "application/json" };
     const paired = await waitFor(() => viaRelay(server, phone.k, phone.token).catch(() => null), 6_000);
     const statuses = [];

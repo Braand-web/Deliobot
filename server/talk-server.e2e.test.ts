@@ -1,7 +1,7 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import { afterAll, beforeAll, expect, it } from "vitest";
 import { createTalkServer, QUICK_ASKS_TITLE, type TalkChat, type TalkUpdate } from "../electron/talk-server.mjs";
-import { launchVerificationServer } from "../scripts/control-omb.ts";
+import { launchVerificationServer } from "../scripts/control-odb.ts";
 
 const owner = randomBytes(32).toString("base64url");
 const realFetch = globalThis.fetch;
@@ -9,15 +9,15 @@ let fixture: Awaited<ReturnType<typeof launchVerificationServer>>;
 const request = (route: string, init?: RequestInit) => fetch(`${fixture.info.url}${route}`, init);
 
 beforeAll(async () => {
-  globalThis.fetch = (input, init = {}) => realFetch(input, { ...init, headers: { ...Object.fromEntries(new Headers(init.headers)), "x-openmausbot-desktop-owner": owner } });
-  fixture = await launchVerificationServer({ ...process.env, OMB_TEST_DESKTOP_OWNER_TOKEN: owner });
+  globalThis.fetch = (input, init = {}) => realFetch(input, { ...init, headers: { ...Object.fromEntries(new Headers(init.headers)), "x-opendeliobot-desktop-owner": owner } });
+  fixture = await launchVerificationServer({ ...process.env, ODB_TEST_DESKTOP_OWNER_TOKEN: owner });
 }, 90_000);
 afterAll(async () => {
   globalThis.fetch = realFetch;
   await fixture?.close();
 });
 
-it("asks MausBot in its own Quick asks chat, as the desktop app does, and follows the reply to the end", async () => {
+it("asks Delio in its own Quick asks chat, as the desktop app does, and follows the reply to the end", async () => {
   let saved: TalkChat | null = null;
   const talk = createTalkServer({ request, serverKey: () => "fixture", prefs: { quickAsksChat: () => saved, setQuickAsksChat: (_s, chat) => { saved = chat; } } });
   const before = (await (await request("/api/bots?messages=0")).json() as any).bots.find((b: any) => b.defaultBot);

@@ -14,12 +14,12 @@ import { omittedAsTeamPrivate, routinesWithoutTeamPrivate, stripTeamPrivate, TEA
 const BOB = "p_bobbobbobbobbobbobbob1";
 const PASSWORD = "correct horse battery staple";
 const scratch: string[] = [];
-const envBefore = process.env.OMB_CLOUD_ROLE;
+const envBefore = process.env.ODB_CLOUD_ROLE;
 afterEach(() => {
   for (const path of scratch.splice(0)) rmSync(path, { recursive: true, force: true });
-  if (envBefore === undefined) delete process.env.OMB_CLOUD_ROLE; else process.env.OMB_CLOUD_ROLE = envBefore;
+  if (envBefore === undefined) delete process.env.ODB_CLOUD_ROLE; else process.env.ODB_CLOUD_ROLE = envBefore;
 });
-const directory = () => { const path = mkdtempSync(join(tmpdir(), "omb-team-export-")); scratch.push(path); return path; };
+const directory = () => { const path = mkdtempSync(join(tmpdir(), "odb-team-export-")); scratch.push(path); return path; };
 const json = (path: string, value: unknown) => writeFileSync(path, JSON.stringify(value));
 const file = (path: string, text = "x") => { mkdirSync(join(path, ".."), { recursive: true }); writeFileSync(path, text); };
 
@@ -34,7 +34,7 @@ function teamData(root: string): void {
   json(join(root, "thread-starters.json"), { "bob-chat": BOB, "room-thread": BOB, "outside-thread": CLOUD_OUTSIDE_KEY });
   json(join(root, "groups.json"), [{ id: "room", threadId: "room-thread", memberIds: ["bot"], tasks: [{ threadId: "room-thread" }] }]);
   json(join(root, "bots.json"), [{ id: "bot", name: "Scout", threadId: "main", avatarUrl: "/api/attachments/avatar.png", tasks: [{ threadId: "main", title: "Scout" }, { threadId: "bob-chat", title: "Bob's" }, { threadId: "outside-thread", title: "Webhook" }] },
-    { id: "bobs-own", name: "MausBot", threadId: "bobs-own-main", defaultBot: { person: "bob@acme.test" }, tasks: [{ threadId: "bobs-own-main", title: "MausBot" }, { threadId: "bobs-inbox", title: "Inbox" }] }]);
+    { id: "bobs-own", name: "Delio", threadId: "bobs-own-main", defaultBot: { person: "bob@acme.test" }, tasks: [{ threadId: "bobs-own-main", title: "Delio" }, { threadId: "bobs-inbox", title: "Inbox" }] }]);
   json(join(root, "person-inbox.json"), { items: [{ text: "Bob's inbox line" }] });
   file(join(root, "workspaces", "bobs-own", "MEMORY.md"), "Bob's own bot's notes");
   json(join(root, "config.json"), { language: "en" });
@@ -86,8 +86,8 @@ describe("what a Team Cloud's export leaves out (the private sentence: not the O
     const root = directory();
     teamData(root);
     const files = { starters: join(root, "thread-starters.json"), groups: join(root, "groups.json"), bots: join(root, "bots.json") };
-    expect(teamPrivateThreads(files, { OMB_CLOUD_ROLE: "home" })).toBeNull();
-    const privacy = teamPrivateThreads(files, { OMB_CLOUD_ROLE: "team" })!;
+    expect(teamPrivateThreads(files, { ODB_CLOUD_ROLE: "home" })).toBeNull();
+    const privacy = teamPrivateThreads(files, { ODB_CLOUD_ROLE: "team" })!;
     expect([...privacy.threads].sort()).toEqual(["bob-chat", "bobs-inbox", "bobs-own-main"]);
     expect([...privacy.bots]).toEqual(["bobs-own"]);
     expect(omittedAsTeamPrivate("workspaces/bobs-own/MEMORY.md", privacy)).toBe(true);
@@ -140,7 +140,7 @@ describe("what a Team Cloud's export leaves out (the private sentence: not the O
   });
 
   it("on a Team Cloud the export carries the team's things and nothing of Bob's alone; off a team everything stays", async () => {
-    process.env.OMB_CLOUD_ROLE = "team";
+    process.env.ODB_CLOUD_ROLE = "team";
     const root = directory();
     teamData(root);
     const team = await exported(root);
@@ -164,7 +164,7 @@ describe("what a Team Cloud's export leaves out (the private sentence: not the O
     expect(table(join(team.data, "runtime.db"), "SELECT id FROM assignments").map((row) => row.id)).toEqual(["as-team"]);
     expect(textOf(join(team.data, "messages.db")).toLowerCase()).not.toContain("secret");
 
-    process.env.OMB_CLOUD_ROLE = "home";
+    process.env.ODB_CLOUD_ROLE = "home";
     const own = directory();
     teamData(own);
     const home = await exported(own);

@@ -14,7 +14,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
-import { launchVerificationServer, runControlOmb } from "./control-omb.ts";
+import { launchVerificationServer, runControlOdb } from "./control-odb.ts";
 import { openHeadlessChrome, type HeadlessPage } from "./testing/headless-chrome.ts";
 import { zoomedCrop } from "./testing/png.ts";
 import { mountPreview, parkUntilSignal, type MountedPreview } from "./testing/preview-fixture.ts";
@@ -152,14 +152,14 @@ const FRAME_COLOURS: Array<[string, string]> = [["today's frame grey", "&frameco
 const fixture = await launchVerificationServer();
 let ui: MountedPreview | undefined;
 try {
-  for (const name of ["Chief of Staff", "Research", "Inbox"]) await runControlOmb(["new-bot", "--name", name, "--url", fixture.info.url]);
+  for (const name of ["Chief of Staff", "Research", "Inbox"]) await runControlOdb(["new-bot", "--name", name, "--url", fixture.info.url]);
   ui = await mountPreview(fixture, { entry: "/scripts/testing/rail-preview.tsx", route: "/__window-frame.html", title: "Isolated window frame", logLevel: "warn" });
   if (!shots) {
     console.log(JSON.stringify({ ...fixture.info, previewUrl: ui.previewUrl }, null, 2));
     await parkUntilSignal();
   } else {
     mkdirSync(shots, { recursive: true });
-    const profile = mkdtempSync(join(tmpdir(), "omb-frame-chrome-"));
+    const profile = mkdtempSync(join(tmpdir(), "odb-frame-chrome-"));
     const page = await openHeadlessChrome(profile);
     const wanted = (name: string) => !only || only.has(name);
     try {

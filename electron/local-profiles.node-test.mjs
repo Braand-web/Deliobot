@@ -10,11 +10,11 @@ import { createLocalProfiles, createProfileRegistry, MAX_PROFILES, PROFILES_FILE
 /** This computer's data folder on disk, with the one server the app runs at a time (`running`), the real profile swap
  * (clean-workspace.mjs) over it, the registry beside it and the home window's side of a profile on screen. */
 function computer(t, { home = "cloud", frozen = home === "cloud" } = {}) {
-  const parent = mkdtempSync(join(tmpdir(), "omb-profiles-"));
+  const parent = mkdtempSync(join(tmpdir(), "odb-profiles-"));
   t.after(() => rmSync(parent, { recursive: true, force: true }));
-  const dataDir = join(parent, ".openmausbot");
+  const dataDir = join(parent, ".opendeliobot");
   mkdirSync(dataDir, { recursive: true });
-  if (frozen) writeFileSync(join(dataDir, "moved.json"), JSON.stringify({ v: 1, at: 1, cloud: "https://omb-t-1.fly.dev" }));
+  if (frozen) writeFileSync(join(dataDir, "moved.json"), JSON.stringify({ v: 1, at: 1, cloud: "https://odb-t-1.fly.dev" }));
   let clock = 1_000;
   const w = { dataDir, running: dataDir, swaps: [], home, shown: null, onScreen: "cloud", busy: [], trashed: [], trashFails: false, changes: 0, logs: [], waits: 0, remembered: [] };
   w.now = () => clock;
@@ -88,7 +88,7 @@ test("create, rename, colour and remove: names stay unique (This Mac's own name 
 test("a registry someone edited by hand: anything not a folder name is dropped, nothing reaches outside the profiles' folder", (t) => {
   const w = computer(t);
   mkdirSync(profilesDir(w.dataDir), { recursive: true });
-  writeFileSync(w.file(), JSON.stringify({ v: 1, profiles: [{ id: "../.openmausbot", name: "Evil" }, { id: "work", name: "Work" }, { id: "work", name: "Again" }, { id: "Work2" }, null] }));
+  writeFileSync(w.file(), JSON.stringify({ v: 1, profiles: [{ id: "../.opendeliobot", name: "Evil" }, { id: "work", name: "Work" }, { id: "work", name: "Again" }, { id: "Work2" }, null] }));
   assert.deepEqual(w.registry.list().map((entry) => entry.id), ["work"]);
   writeFileSync(w.file(), "not json");
   assert.deepEqual(w.registry.list().map((entry) => entry.id), ["default"]);
@@ -130,7 +130,7 @@ test("switching once My Cloud is home: one runs at a time, the next one starts o
   assert.equal(existsSync(join(profileDir(w.dataDir, "work"), "bots.json")), false, "Work starts fresh");
   assert.equal(await w.profiles.open(DEFAULT_PROFILE), true);
   assert.equal(readFileSync(join(profileDir(w.dataDir, DEFAULT_PROFILE), "bots.json"), "utf8"), "[\"Scout\"]");
-  assert.equal(JSON.parse(readFileSync(join(w.dataDir, "moved.json"), "utf8")).cloud, "https://omb-t-1.fly.dev", "the frozen copy stays frozen and never runs");
+  assert.equal(JSON.parse(readFileSync(join(w.dataDir, "moved.json"), "utf8")).cloud, "https://odb-t-1.fly.dev", "the frozen copy stays frozen and never runs");
   assert.equal(w.swaps.includes(w.dataDir), false);
   assert.equal(await w.profiles.open("nope"), false, "only a workspace the registry has");
 });

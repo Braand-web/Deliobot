@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { expect, it } from "vitest";
-import { launchVerificationServer, runControlOmb } from "../scripts/control-omb.ts";
+import { launchVerificationServer, runControlOdb } from "../scripts/control-odb.ts";
 import { resolveCli } from "./procs.ts";
 
 function installedPython(): string | null {
@@ -79,7 +79,7 @@ for line in sys.stdin:
     const hermes = catalog.instances.find((instance: any) => instance.instanceId === "hermes");
     expect(hermes.cli).toBe(shim);
     expect(hermes.snapshot).toMatchObject({ state: "available", version: "Hermes 1.4.17" });
-    const models = await runControlOmb(["models", "--url", url]);
+    const models = await runControlOdb(["models", "--url", url]);
     expect(JSON.stringify(models)).toContain("fixture/model");
     const launches = readFileSync(join(home, "launches.jsonl"), "utf8").trim().split("\n").map((line) => JSON.parse(line));
     expect(launches.some((launch) => launch.args[0] === "--version")).toBe(true);

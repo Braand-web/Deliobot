@@ -38,7 +38,7 @@ describe.skipIf(process.platform === "win32")("Cursor's CLI path", () => {
   const instances: ProviderInstance[] = [];
   beforeEach(() => {
     chmodSync(FAKE_CURSOR, 0o755);
-    home = mkdtempSync(join(tmpdir(), "omb-cursor-path-"));
+    home = mkdtempSync(join(tmpdir(), "odb-cursor-path-"));
   });
   afterEach(async () => {
     await Promise.all(instances.splice(0).map((instance) => instance.dispose()));
@@ -47,7 +47,7 @@ describe.skipIf(process.platform === "win32")("Cursor's CLI path", () => {
   const cursor = async (cli: string, mode = "approve") => {
     const instance = await CursorAgentDriver.create({
       instanceId: "cursor", displayName: "Cursor", enabled: true, config: CursorAgentDriver.decodeConfig({ cli }),
-      environment: { HOME: home, USERPROFILE: home, OMB_DEVICE_AUTH_FIXTURE: "1", FAKE_CURSOR_MODE: mode },
+      environment: { HOME: home, USERPROFILE: home, ODB_DEVICE_AUTH_FIXTURE: "1", FAKE_CURSOR_MODE: mode },
     });
     instances.push(instance);
     return instance;
@@ -139,10 +139,10 @@ describe.skipIf(process.platform === "win32")("Cursor sign-in from the app, wher
   const alive = (target: number) => { try { process.kill(target, 0); return true; } catch { return false; } };
   beforeEach(async () => {
     chmodSync(FAKE_CURSOR, 0o755);
-    home = mkdtempSync(join(tmpdir(), "omb-cursor-sign-in-"));
+    home = mkdtempSync(join(tmpdir(), "odb-cursor-sign-in-"));
     instance = await CursorAgentDriver.create({
       instanceId: "cursor", displayName: "Cursor", enabled: true, config: CursorAgentDriver.decodeConfig({ cli: FAKE_CURSOR }),
-      environment: { HOME: home, USERPROFILE: home, OMB_DEVICE_AUTH_FIXTURE: "1", FAKE_CURSOR_MODE: "approve" },
+      environment: { HOME: home, USERPROFILE: home, ODB_DEVICE_AUTH_FIXTURE: "1", FAKE_CURSOR_MODE: "approve" },
     });
   });
   afterEach(async () => {
@@ -163,7 +163,7 @@ describe.skipIf(process.platform === "win32")("Cursor sign-in from the app, wher
     // The login never tries to open a browser on the server.
     expect(calls().find((call) => call.args[0] === "login")).toEqual({ args: ["login"], noOpenBrowser: "1" });
     expect(await instance.getAuthentication!(start.flowId!)).toMatchObject({ phase: "waiting", authorizationUrl: LINK });
-    writeFileSync(join(home, ".omb-fake-cursor-approved"), "");
+    writeFileSync(join(home, ".odb-fake-cursor-approved"), "");
     await expect.poll(async () => (await instance.getAuthentication!(start.flowId!)).phase, { timeout: 5_000 }).toBe("succeeded");
     expect(existsSync(join(home, ".config", "cursor", "auth.json"))).toBe(true);
     expect((await instance.snapshot()).authenticated).toBe(true);
@@ -180,7 +180,7 @@ describe.skipIf(process.platform === "win32")("Cursor sign-in from the app, wher
   it.each([["evil"], ["extra"]])("shows no link from a %s address, and gives up waiting for one", async (mode) => {
     const controller = new DeviceAuthController(CURSOR_SIGN_IN, {
       cli: FAKE_CURSOR, startupTimeoutMs: 1_000, terminateTimeoutMs: 50,
-      environment: () => ({ ...process.env, HOME: home, OMB_DEVICE_AUTH_FIXTURE: "1", FAKE_CURSOR_MODE: mode }),
+      environment: () => ({ ...process.env, HOME: home, ODB_DEVICE_AUTH_FIXTURE: "1", FAKE_CURSOR_MODE: mode }),
     });
     try {
       await expect(controller.start()).rejects.toThrow("Cursor did not provide a sign-in code in time");
@@ -192,7 +192,7 @@ describe.skipIf(process.platform === "win32")("Cursor sign-in from the app, wher
   it("never repeats the CLI's own words when the login fails", async () => {
     const controller = new DeviceAuthController(CURSOR_SIGN_IN, {
       cli: FAKE_CURSOR, startupTimeoutMs: 2_000, terminateTimeoutMs: 50,
-      environment: () => ({ ...process.env, HOME: home, OMB_DEVICE_AUTH_FIXTURE: "1", FAKE_CURSOR_MODE: "crash" }),
+      environment: () => ({ ...process.env, HOME: home, ODB_DEVICE_AUTH_FIXTURE: "1", FAKE_CURSOR_MODE: "crash" }),
     });
     try {
       const start = await controller.start();

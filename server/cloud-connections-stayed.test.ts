@@ -20,11 +20,11 @@ const dirs: string[] = [];
 afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }); });
 
 function fixture(bots: Array<{ id: string; name: string; threadId: string; chiefOfStaff?: boolean; mcpServers?: string[]; toolScope?: unknown }>, servers: Record<string, unknown> = SERVERS, file?: string, mailConnected?: () => boolean, lent?: (runsOn: { environmentId: string; label: string }) => boolean) {
-  const dir = mkdtempSync(join(tmpdir(), "omb-stayed-")); dirs.push(dir);
+  const dir = mkdtempSync(join(tmpdir(), "odb-stayed-")); dirs.push(dir);
   const said: Array<{ threadId: string; text: string; kind: string }> = [];
   const notified: Array<{ text: string; bot: string; threadId: string }> = [];
   const notices = createStayedNotices({
-    file: file ?? join(dir, "told.json"), origin: "https://omb-u-1.fly.dev", servers: () => servers, programs: () => ["npx", "node", "python3"], bots: () => bots, language: () => undefined,
+    file: file ?? join(dir, "told.json"), origin: "https://odb-u-1.fly.dev", servers: () => servers, programs: () => ["npx", "node", "python3"], bots: () => bots, language: () => undefined,
     ...(mailConnected ? { mailConnected } : {}),
     ...(lent ? { lent } : {}),
     say: (threadId, text, kind) => { said.push({ threadId, text, kind }); },
@@ -66,7 +66,7 @@ describe("what stayed on the person's computer", () => {
     notices.moved();
     expect(said).toHaveLength(1);
     expect(said[0]).toMatchObject({ threadId: "t-c", kind: "line" });
-    expect(said[0]!.text.split("\n\n").map((line) => line.split(" ")[0])).toEqual(["easy", "fetch", "notes", "https://omb-u-1.fly.dev/?connect=email"]);
+    expect(said[0]!.text.split("\n\n").map((line) => line.split(" ")[0])).toEqual(["easy", "fetch", "notes", "https://odb-u-1.fly.dev/?connect=email"]);
     expect(notified).toEqual([{ text: said[0]!.text, bot: "c", threadId: "t-c" }]);
     notices.moved();
     expect(said, "a move resumed after a crash says nothing twice").toHaveLength(1);

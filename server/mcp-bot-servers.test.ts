@@ -10,7 +10,7 @@ const dirs: string[] = [];
 afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }); });
 
 function dataDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "omb-mcp-bot-servers-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-mcp-bot-servers-"));
   dirs.push(dir);
   return dir;
 }
@@ -165,7 +165,7 @@ describe("a bot adding a server that names the server's own files, where bots ar
     }
   });
 
-  it("still takes its own files, an engine OpenMausBot installed, and paths outside the data folder", () => {
+  it("still takes its own files, an engine OpenDeliobot installed, and paths outside the data folder", () => {
     const data = dataDir();
     const own = addBotMcpServer({}, { name: "own", ...python(file(join(data, "workspaces", "iris", "tools", "s.py"))) }, "iris", data, true);
     expect(own.ok).toBe(true);

@@ -52,7 +52,7 @@ let SIDECAR_PORT = 0;
 let HARNESS = "";
 let SIDECAR = "";
 
-const TOKEN = "omb_test_token";
+const TOKEN = "odb_test_token";
 let harness: ChildProcess;
 let sidecar: Server;
 let home: string;
@@ -85,7 +85,7 @@ const device = async (
 
 /** fetch will not set a Host header */
 const CONTROL_TOKEN = "fixture-control-token";
-const controlHeaders = { "x-openmausbot-control-token": CONTROL_TOKEN };
+const controlHeaders = { "x-opendeliobot-control-token": CONTROL_TOKEN };
 
 const withHost = (port: number, host: string, path = "/api/health", headers: Record<string, string> = {}) =>
   new Promise<number>((resolve, reject) => {
@@ -107,9 +107,9 @@ beforeAll(async () => {
   SIDECAR = `http://127.0.0.1:${SIDECAR_PORT}`;
 
   home = mkdtempSync(join(tmpdir(), "companion-test-"));
-  mkdirSync(join(home, ".openmausbot"), { recursive: true });
+  mkdirSync(join(home, ".opendeliobot"), { recursive: true });
   writeFileSync(
-    join(home, ".openmausbot", "config.json"),
+    join(home, ".opendeliobot", "config.json"),
     JSON.stringify({ instances: { ghost: { driver: "not-a-real-driver", displayName: "Ghost" } } }),
   );
 
@@ -120,7 +120,7 @@ beforeAll(async () => {
       ...(process.env.SystemRoot ? { SystemRoot: process.env.SystemRoot } : {}),
       HOME: home,
       USERPROFILE: home,
-      OMB_PORT: String(HARNESS_PORT),
+      ODB_PORT: String(HARNESS_PORT),
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -233,14 +233,14 @@ describe("the sidecar in front of an unmodified harness", () => {
     expect(unauthenticated.status).toBe(401);
     expect(unauthenticated.headers.get("cache-control")).toContain("no-store");
     expect(unauthenticated.headers.get("cloudflare-cdn-cache-control")).toBe("no-store");
-    expect((await device("GET", "/api/bots", { token: "omb_wrong" })).status).toBe(401);
+    expect((await device("GET", "/api/bots", { token: "odb_wrong" })).status).toBe(401);
     expect((await device("GET", "/api/bots")).status).toBe(200);
   });
 
   it("serves a minimal, non-cacheable companion health identity", async () => {
     const health = await device("GET", "/api/health", { token: null });
     expect(health.status).toBe(200);
-    expect(health.body).toEqual({ app: "openmausbot" });
+    expect(health.body).toEqual({ app: "opendeliobot" });
     expect(health.headers.get("cache-control")).toBe("private, no-store");
     expect(health.headers.get("cdn-cache-control")).toBe("no-store");
     expect(JSON.stringify(health.body)).not.toContain("pid");
@@ -300,7 +300,7 @@ describe("the sidecar in front of an unmodified harness", () => {
     const bot = body.bots[0];
     const path = `/api/bots/${bot.id}`;
     const appearance = { color: "coral", mascotBody: "diamond", mascotExpression: "sleeping" };
-    for (const token of [null, "omb_wrong"]) {
+    for (const token of [null, "odb_wrong"]) {
       expect((await device("PATCH", path, { token, body: appearance })).status).toBe(401);
     }
     for (const protectedPatch of [
@@ -391,7 +391,7 @@ describe("the sidecar in front of an unmodified harness", () => {
     const { body } = await device("GET", "/api/bots");
     const bot = body.bots[0];
     const refused = await device("PATCH", `/api/bots/${bot.id}`, {
-      headers: { "x-openmausbot-companion": "0" },
+      headers: { "x-opendeliobot-companion": "0" },
       body: { color: "coral", autoApprove: true },
     });
     expect(refused.status).toBe(403);
@@ -711,7 +711,7 @@ describe("live companion endpoint refresh", () => {
       expect(direct.headers.get("cache-control")).toBe("private, no-store");
 
       endpoints = [
-        { kind: "hosted", priority: 0, url: "https://c-opaque.openmausbot.test" },
+        { kind: "hosted", priority: 0, url: "https://c-opaque.opendeliobot.test" },
         { kind: "lan", priority: 200, url: "http://192.168.1.42:8810" },
       ];
       expect(await (await load(TOKEN)).json()).toEqual({
@@ -761,7 +761,7 @@ describe("pairing, end to end", () => {
         authenticate: (t) => registry.authenticate(t ?? undefined),
         redeem: (code, deviceName, pairRequestId) => registry.redeem(code, deviceName, pairRequestId),
         serverName: () => "Ada's computer",
-        hosts: () => ["macbook.tail1234.ts.net", "192.168.1.42", "openmausbot-abcd1234.local"],
+        hosts: () => ["macbook.tail1234.ts.net", "192.168.1.42", "opendeliobot-abcd1234.local"],
         endpoints: () => [
           { url: "https://device-123.companion.example", kind: "hosted", priority: 0 },
           { url: "http://192.168.1.42:8810", kind: "lan", priority: 200 },
@@ -775,7 +775,7 @@ describe("pairing, end to end", () => {
       devices: registry,
       controlToken: () => CONTROL_TOKEN,
       companionPort: port,
-      discovery: () => ({ advertising: false, name: "OpenMausBot" }),
+      discovery: () => ({ advertising: false, name: "OpenDeliobot" }),
       connectedDeviceIds: connections.ids,
       disconnectDevice: connections.disconnect,
     });
@@ -792,7 +792,7 @@ describe("pairing, end to end", () => {
         token: string;
       };
       expect(opened.code).toMatch(/^\d{6}$/);
-      expect(opened.token).toMatch(/^omb_pair_[A-Za-z0-9_-]{43}$/);
+      expect(opened.token).toMatch(/^odb_pair_[A-Za-z0-9_-]{43}$/);
 
       const wrong = await fetch(`${base}/api/pair`, {
         method: "POST",
@@ -820,8 +820,8 @@ describe("pairing, end to end", () => {
         endpoints: Array<{ url: string; kind: string; priority: number }>;
       };
       expect(body.serverName).toBe("Ada's computer");
-      expect(body.token).toMatch(/^omb_/);
-      expect(body.hosts).toEqual(["macbook.tail1234.ts.net", "192.168.1.42", "openmausbot-abcd1234.local"]);
+      expect(body.token).toMatch(/^odb_/);
+      expect(body.hosts).toEqual(["macbook.tail1234.ts.net", "192.168.1.42", "opendeliobot-abcd1234.local"]);
       expect(body.endpoints).toEqual([
         { url: "https://device-123.companion.example", kind: "hosted", priority: 0 },
         { url: "http://192.168.1.42:8810", kind: "lan", priority: 200 },
@@ -880,7 +880,7 @@ describe("pairing, end to end", () => {
       devices: new DeviceRegistry(),
       controlToken: () => CONTROL_TOKEN,
       companionPort: 8800,
-      discovery: () => ({ advertising: false, name: "OpenMausBot" }),
+      discovery: () => ({ advertising: false, name: "OpenDeliobot" }),
     });
     await new Promise<void>((r) => control.listen(0, "127.0.0.1", r));
     const port = (control.address() as { port: number }).port;
@@ -905,7 +905,7 @@ describe("pairing, end to end", () => {
       devices: new DeviceRegistry(),
       controlToken: () => CONTROL_TOKEN,
       companionPort: 8800,
-      discovery: () => ({ advertising: false, name: "OpenMausBot" }),
+      discovery: () => ({ advertising: false, name: "OpenDeliobot" }),
     });
     await new Promise<void>((r) => control.listen(0, "127.0.0.1", r));
     const port = (control.address() as { port: number }).port;
@@ -929,7 +929,7 @@ describe("pairing, end to end", () => {
       devices: registry,
       controlToken: () => CONTROL_TOKEN,
       companionPort: 8800,
-      discovery: () => ({ advertising: false, name: "OpenMausBot" }),
+      discovery: () => ({ advertising: false, name: "OpenDeliobot" }),
     });
     await new Promise<void>((r) => control.listen(0, "127.0.0.1", r));
     const port = (control.address() as { port: number }).port;
@@ -973,7 +973,7 @@ describe("pairing, end to end", () => {
       devices: registry,
       controlToken: () => CONTROL_TOKEN,
       companionPort: 8800,
-      discovery: () => ({ advertising: false, name: "OpenMausBot" }),
+      discovery: () => ({ advertising: false, name: "OpenDeliobot" }),
     });
     await new Promise<void>((r) => control.listen(0, "127.0.0.1", r));
     const port = (control.address() as { port: number }).port;

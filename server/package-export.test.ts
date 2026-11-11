@@ -14,7 +14,7 @@ describe("package export", () => {
       name: "Monthly team", authorName: "Tester", groups: [],
       bots: [{ id: "b1", threadId: "t1", name: "Lead", color: "green", createdAt: 1 } as BotRecord],
       routines: [{ id: "r1", name: "Close the month", prompt: "Prepare a report", target: "bot", botId: "b1",
-        runOn: "maus", enabled: true, schedule, durationMinutes: 30, nextRunAt: 1, createdAt: 1, updatedAt: 1,
+        runOn: "delio", enabled: true, schedule, durationMinutes: 30, nextRunAt: 1, createdAt: 1, updatedAt: 1,
         overlap: "queue", skippedRuns: 4, lastSkippedAt: 1, failureStreak: 2 }],
     });
     expect(exported.package.routines?.[0]).toMatchObject({ schedule, enabledAfterInstall: false });
@@ -77,7 +77,7 @@ describe("package export", () => {
           prompt: "Verify release readiness.",
           target: "bot",
           botId: "private-id",
-          runOn: "maus",
+          runOn: "delio",
           enabled: true,
           schedule: { type: "daily", time: "09:00", weekdays: [1] },
           durationMinutes: 30,
@@ -99,7 +99,7 @@ describe("package export", () => {
           target: "room-goal",
           groupId: "private-room-id",
           botId: "private-id",
-          runOn: "maus",
+          runOn: "delio",
           enabled: true,
           schedule: { type: "daily", time: "10:00", weekdays: [1] },
           durationMinutes: 30,
@@ -113,7 +113,7 @@ describe("package export", () => {
           prompt: "Watch release readiness.",
           target: "bot",
           botId: "private-id",
-          runOn: "maus",
+          runOn: "delio",
           enabled: true,
           schedule: {
             type: "interval",
@@ -153,7 +153,7 @@ describe("package export", () => {
     expect(exported.package.routines?.[1]?.timeoutMinutes).toBe(20);
 
     expect(exported).toMatchObject({
-      format: "openmaus.package",
+      format: "opendelio.package",
       package: {
         chiefOfStaff: "lead",
         requirements: { apps: [{ slug: "github" }] },
@@ -251,7 +251,7 @@ describe("whole-team export (package v2)", () => {
     unread: false, createdAt: 1, section: "Sales desk", ...extra,
   });
   const routine = (id: string, name: string, botId: string, extra: Partial<Routine> = {}): Routine => ({
-    id, name, prompt: `${name} prompt`, target: "bot", botId, runOn: "maus", enabled: true,
+    id, name, prompt: `${name} prompt`, target: "bot", botId, runOn: "delio", enabled: true,
     schedule: { type: "daily", time: "09:00", weekdays: [1] }, durationMinutes: 30, nextRunAt: 5, createdAt: 1, updatedAt: 1, ...extra,
   });
   const skill = (name: string) => ({
@@ -292,7 +292,7 @@ describe("whole-team export (package v2)", () => {
   it("exports only the chosen team, whole, without chat history or authority", () => {
     const result = createTeamPackageExport(fixture());
     const pkg = result.document.package;
-    expect(result.document).toMatchObject({ format: "openmaus.package", version: 2 });
+    expect(result.document).toMatchObject({ format: "opendelio.package", version: 2 });
     expect(pkg.agents.map((agent) => agent.key)).toEqual(["morgan", "scout"]);
     expect(pkg.team).toEqual({ name: "Sales desk", brief: "Quote list prices only.", leader: "morgan" });
     expect(pkg.agents[0]).toMatchObject({
@@ -303,7 +303,7 @@ describe("whole-team export (package v2)", () => {
       defaultResponder: { kind: "agent", agent: "morgan" } }]);
     expect(pkg.routines).toEqual([
       expect.objectContaining({ key: "daily-digest", agent: "scout", continuity: true, runOnStartup: true, enabledAfterInstall: true }),
-      expect.objectContaining({ key: "weekly-review", agent: "morgan", room: "deal-desk", runOn: "maus", enabledAfterInstall: false }),
+      expect.objectContaining({ key: "weekly-review", agent: "morgan", room: "deal-desk", runOn: "delio", enabledAfterInstall: false }),
     ]);
     expect(pkg.connections).toEqual([{ key: "crm", label: "crm", reason: "Used by Morgan, Scout",
       mcp: { transport: "http", url: "https://mcp.example.com/crm", valueNames: ["Authorization"] } }]);
@@ -315,7 +315,7 @@ describe("whole-team export (package v2)", () => {
       { part: "connections[plain-http]", reason: "insecure_address" },
       { part: "routines[daily-digest].attachments", reason: "files_not_shared" },
     ]);
-    expect(result.filename).toBe("sales-desk-1.0.0.openmaus.json");
+    expect(result.filename).toBe("sales-desk-1.0.0.opendelio.json");
   });
 
   it("carries Record browser steps for the bots that have it on, and nothing for the rest", () => {
@@ -372,7 +372,7 @@ describe("whole-team export (package v2)", () => {
     expect(second.document.package.agents.map((agent) => agent.key)).toEqual(["morgan", "scout"]);
     expect(second.document.package.rooms?.map((room) => room.key)).toEqual(["deal-desk"]);
     expect(second.document.package.routines?.map((routine) => routine.key)).toEqual(["daily-digest", "weekly-review"]);
-    expect(second.filename).toBe("sales-desk-1.0.1.openmaus.json");
+    expect(second.filename).toBe("sales-desk-1.0.1.opendelio.json");
   });
 
   it("never gives a new bot a key recorded for one that left", () => {

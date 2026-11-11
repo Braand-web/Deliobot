@@ -21,7 +21,7 @@ describe("ChatGPT run token bridge", () => {
   });
   it("rejects other capabilities and revokes access after a run ends", async () => {
     const bridge = await start(async () => "synthetic-token");
-    await expect(request({ ...bridge.env, OMB_CODEX_AUTH_SECRET: "wrong" })).rejects.toThrow();
+    await expect(request({ ...bridge.env, ODB_CODEX_AUTH_SECRET: "wrong" })).rejects.toThrow();
     bridge.close();
     await expect(request(bridge.env)).rejects.toThrow();
   });

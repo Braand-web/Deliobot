@@ -1,15 +1,15 @@
 // This computer working for each Cloud of the person's own, with nothing to set: the menu-bar item's states and its
-// activity window drawn from the real modules, and Settings → MausBot Cloud on this computer's page and on My Cloud's
+// activity window drawn from the real modules, and Settings → Delio Cloud on this computer's page and on My Cloud's
 // own page in the real app, against a disposable fake-engine server.
 // Run: node --experimental-strip-types scripts/verify-lend-automatically.ts --shots <dir>
-// It photographs each view in a light and a dark look with a headless Chrome in a throwaway profile (OMB_CDP_CHROME,
+// It photographs each view in a light and a dark look with a headless Chrome in a throwaway profile (ODB_CDP_CHROME,
 // else the installed Google Chrome), then exits. Nothing here touches this computer's own lending or the person's app.
 import { spawn } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
-import { launchVerificationServer, runControlOmb } from "./control-omb.ts";
+import { launchVerificationServer, runControlOdb } from "./control-odb.ts";
 import { mountPreview, type MountedPreview } from "./testing/preview-fixture.ts";
 import { activityPage } from "../electron/lending-activity-window.mjs";
 import { createLendingIndicator } from "../electron/lending-indicator.mjs";
@@ -17,7 +17,7 @@ import { createLendingIndicator } from "../electron/lending-indicator.mjs";
 const at = process.argv.indexOf("--shots");
 const shots = resolve(at === -1 ? "" : process.argv[at + 1] ?? "");
 if (at === -1) throw new Error("--shots <dir> is required");
-const CHROME = process.env.OMB_CDP_CHROME ?? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const CHROME = process.env.ODB_CDP_CHROME ?? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const ICON = `data:image/png;base64,${readFileSync(new URL("../electron/resources/app-icon.png", import.meta.url)).toString("base64")}`;
 
 /** One page of a headless Chrome over the DevTools protocol: navigate, wait for a selector, photograph. */
@@ -96,12 +96,12 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 5px 8px; }
 }
 
 const ENTRIES = [
-  { at: Date.UTC(2026, 9, 29, 9, 41), server: "Client A", origin: "https://omb-c-client-a.fly.dev", action: "write_file", detail: "me/Documents/Proposal.md", ok: true },
-  { at: Date.UTC(2026, 9, 29, 9, 40), server: "Client A", origin: "https://omb-c-client-a.fly.dev", action: "read_file", detail: "me/Documents/Brief.md", ok: true },
-  { at: Date.UTC(2026, 9, 29, 9, 31), server: "My Cloud", origin: "https://omb-u-fixture.fly.dev", action: "internet", detail: "www.instagram.com", ok: true },
-  { at: Date.UTC(2026, 9, 29, 9, 30), server: "My Cloud", origin: "https://omb-u-fixture.fly.dev", action: "read_file", detail: "me/.ssh/id_ed25519", ok: false, error: "Desktop credentials and sharing settings cannot be accessed through a shared folder" },
-  { at: Date.UTC(2026, 9, 29, 9, 12), server: "My Cloud", origin: "https://omb-u-fixture.fly.dev", action: "computer_call", detail: "click", ok: true },
-  { at: Date.UTC(2026, 9, 29, 9, 11), server: "My Cloud", origin: "https://omb-u-fixture.fly.dev", action: "chrome", detail: "", ok: true },
+  { at: Date.UTC(2026, 9, 29, 9, 41), server: "Client A", origin: "https://odb-c-client-a.fly.dev", action: "write_file", detail: "me/Documents/Proposal.md", ok: true },
+  { at: Date.UTC(2026, 9, 29, 9, 40), server: "Client A", origin: "https://odb-c-client-a.fly.dev", action: "read_file", detail: "me/Documents/Brief.md", ok: true },
+  { at: Date.UTC(2026, 9, 29, 9, 31), server: "My Cloud", origin: "https://odb-u-fixture.fly.dev", action: "internet", detail: "www.instagram.com", ok: true },
+  { at: Date.UTC(2026, 9, 29, 9, 30), server: "My Cloud", origin: "https://odb-u-fixture.fly.dev", action: "read_file", detail: "me/.ssh/id_ed25519", ok: false, error: "Desktop credentials and sharing settings cannot be accessed through a shared folder" },
+  { at: Date.UTC(2026, 9, 29, 9, 12), server: "My Cloud", origin: "https://odb-u-fixture.fly.dev", action: "computer_call", detail: "click", ok: true },
+  { at: Date.UTC(2026, 9, 29, 9, 11), server: "My Cloud", origin: "https://odb-u-fixture.fly.dev", action: "chrome", detail: "", ok: true },
 ];
 const data = (html: string) => `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
 const MENU_BAR = [
@@ -116,7 +116,7 @@ const SETTINGS = [
 const SKINS = [{ id: "daylight", look: "light", dark: false }, { id: "midnight", look: "dark", dark: true }];
 
 mkdirSync(shots, { recursive: true });
-const profile = mkdtempSync(join(tmpdir(), "omb-lend-auto-chrome-"));
+const profile = mkdtempSync(join(tmpdir(), "odb-lend-auto-chrome-"));
 const chrome = await openChrome(profile);
 const fixture = await launchVerificationServer();
 let ui: MountedPreview | undefined;
@@ -131,7 +131,7 @@ try {
     await chrome.shoot(data(activityPage(ENTRIES, "en")), "ul", file, { width: 560, height: 520, dark: skin.dark });
     console.log(file);
   }
-  for (const name of ["Chief of Staff", "Research"]) await runControlOmb(["new-bot", "--name", name, "--url", fixture.info.url]);
+  for (const name of ["Chief of Staff", "Research"]) await runControlOdb(["new-bot", "--name", name, "--url", fixture.info.url]);
   ui = await mountPreview(fixture, { entry: "/scripts/testing/lend-automatically-preview.tsx", route: "/__lend-automatically.html", title: "Isolated lending settings", logLevel: "warn" });
   for (const view of SETTINGS) for (const skin of SKINS) {
     const file = join(shots, `${view.name}-${skin.look}.png`);

@@ -5,7 +5,7 @@
 // small manifest, and every engine can use that name as is.
 import { totalmem } from "node:os";
 
-const SUFFIX = /-omb-(\d+)k$/;
+const SUFFIX = /-odb-(\d+)k$/;
 const MIN_WINDOW = 16_384;
 const MAX_WINDOW = 65_536;
 /** An estimate, generous on purpose: what a token of window costs in memory varies with the architecture. */
@@ -13,7 +13,7 @@ const WINDOW_BYTES_PER_TOKEN = 64 * 1024;
 /** What macOS lets the GPU wire by default, and a fair share of a PC's memory. */
 const MEMORY_SHARE = 0.75;
 
-const nameFor = (model: string, window: number) => `${model.includes(":") ? model : `${model}:latest`}-omb-${window / 1024}k`;
+const nameFor = (model: string, window: number) => `${model.includes(":") ? model : `${model}:latest`}-odb-${window / 1024}k`;
 
 export const isContextName = (model: string) => SUFFIX.test(model);
 

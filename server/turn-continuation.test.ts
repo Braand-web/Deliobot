@@ -8,13 +8,13 @@ import { classifyContinuable, writeTurnHandoff } from "./turn-continuation.ts";
 let temp: string | undefined;
 afterEach(() => {
   if (temp) { rmSync(temp, { recursive: true, force: true }); temp = undefined; }
-  delete process.env.OMB_DATA_DIR;
+  delete process.env.ODB_DATA_DIR;
   vi.restoreAllMocks();
 });
 
 function withTempDataDir(): string {
-  temp = mkdtempSync(join(tmpdir(), "omb-handoff-"));
-  process.env.OMB_DATA_DIR = temp;
+  temp = mkdtempSync(join(tmpdir(), "odb-handoff-"));
+  process.env.ODB_DATA_DIR = temp;
   return temp;
 }
 
@@ -47,9 +47,9 @@ describe("writeTurnHandoff", () => {
     expect(text).toContain("Tokens this turn: 10 in / 20 out");
   });
 
-  it("returns an absolute handoff when OMB_DATA_DIR is relative", () => {
+  it("returns an absolute handoff when ODB_DATA_DIR is relative", () => {
     const dir = withTempDataDir();
-    process.env.OMB_DATA_DIR = relative(process.cwd(), dir);
+    process.env.ODB_DATA_DIR = relative(process.cwd(), dir);
     const path = writeTurnHandoff({ threadId: "relative", turnId: "turn", toolCalls: 0, messages: [] });
     expect(path).not.toBeNull();
     expect(isAbsolute(path!)).toBe(true);
@@ -58,9 +58,9 @@ describe("writeTurnHandoff", () => {
   });
 
   it("returns null when the handoff cannot be written", () => {
-    process.env.OMB_DATA_DIR = join(tmpdir(), "omb-handoff-", "does-not-exist", "nested");
+    process.env.ODB_DATA_DIR = join(tmpdir(), "odb-handoff-", "does-not-exist", "nested");
     expect(writeTurnHandoff({ threadId: "t", turnId: "u", toolCalls: 0, messages: [] })).not.toBeNull();
-    rmSync(join(tmpdir(), "omb-handoff-"), { recursive: true, force: true });
+    rmSync(join(tmpdir(), "odb-handoff-"), { recursive: true, force: true });
   });
 });
 

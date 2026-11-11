@@ -1,5 +1,5 @@
 // Clicking a team bot opens the person's own conversation with it (src/state/team-chats.ts), checked against a real
-// Team Cloud (T2: OMB_CLOUD_ROLE=team, members paired with the Admin's signed claims, per-conversation audiences). Runs
+// Team Cloud (T2: ODB_CLOUD_ROLE=team, members paired with the Admin's signed claims, per-conversation audiences). Runs
 // once the cloud fixture can start a Team Cloud (T2); until then it is skipped.
 import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -12,7 +12,7 @@ import { REPO_ROOT } from "./preview-fixture.ts";
 
 type Member = { email: string; role: "owner" | "admin" | "member" };
 type TeamFixture = { pair(member: Member): Promise<{ token: string | null }>; as(token: string, method: string, path: string, body?: unknown): Promise<{ status: number; body: any }> };
-const teamFixture = readFileSync(join(REPO_ROOT, "scripts", "testing", "cloud-send-fixture.ts"), "utf8").includes('OMB_CLOUD_ROLE: "team"');
+const teamFixture = readFileSync(join(REPO_ROOT, "scripts", "testing", "cloud-send-fixture.ts"), "utf8").includes('ODB_CLOUD_ROLE: "team"');
 if (!teamFixture) console.info("skipping the team own-chat e2e: the cloud fixture has no Team Cloud yet (T2)");
 
 (teamFixture ? describe : describe.skip)("a team bot opens the person's own conversation", () => {
@@ -76,11 +76,11 @@ if (!teamFixture) console.info("skipping the team own-chat e2e: the cloud fixtur
 
   it("an Admin on a second device reopens their own chat: the server names the conversations they opened", async () => {
     const opened = (await team.as(tokens.ben!, "GET", "/api/auth/session")).body.openedThreads as string[];
-    // His own MausBot's main chat is his as well (server/host/mausbot-own-chat.ts); besides it, he opened one with Scout.
+    // His own Delio's main chat is his as well (server/host/delio-own-chat.ts); besides it, he opened one with Scout.
     const bots = (await team.as(tokens.ben!, "GET", "/api/bots")).body.bots as Array<{ threadId: string; defaultBot?: { person?: string } }>;
-    const hisMausBot = bots.find((bot) => bot.defaultBot?.person === "ben@acme.test")!.threadId;
-    expect([...opened].sort(), "his MausBot's main chat and the one he opened with Scout").toEqual([hisMausBot, ownChatOf(await scoutAs("ben"), await chatsOf("ben"))].sort());
-    const mine = opened.filter((threadId) => threadId !== hisMausBot);
+    const hisDelio = bots.find((bot) => bot.defaultBot?.person === "ben@acme.test")!.threadId;
+    expect([...opened].sort(), "his Delio's main chat and the one he opened with Scout").toEqual([hisDelio, ownChatOf(await scoutAs("ben"), await chatsOf("ben"))].sort());
+    const mine = opened.filter((threadId) => threadId !== hisDelio);
     const second = (await team.pair({ email: "ben@acme.test", role: "admin" })).token!;
     // Another device: a page of its own that never made a conversation, signed in as Ben.
     const session = (await team.as(second, "GET", "/api/auth/session")).body as { scopes: string[]; openedThreads: string[] };

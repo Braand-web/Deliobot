@@ -3,7 +3,7 @@ export type FontId = (typeof FONT_IDS)[number];
 
 export const DEFAULT_FONT: FontId = "skin";
 
-export const FONT_KEY = "omb-font";
+export const FONT_KEY = "odb-font";
 
 function isFontId(value: unknown): value is FontId {
   return FONT_IDS.includes(value as FontId);

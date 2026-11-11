@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// A stand-in for the `docker` CLI that deploy/update.sh drives: one Compose project (omb and caddy) whose state is a
+// A stand-in for the `docker` CLI that deploy/update.sh drives: one Compose project (odb and caddy) whose state is a
 // JSON file, and whose volumes are real folders, so a copy or a restore moves real files. FAKE_DOCKER_DIR holds it all.
 import { spawnSync } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -23,7 +23,7 @@ const volume = (name) => join(dir, "volumes", name.replaceAll("/", "_"));
 /** An image by any name it has: its id, a tag, or a digest reference. */
 const image = (ref) => state.images.find((candidate) => candidate.local && (candidate.id === ref || candidate.refs.includes(ref)));
 const envFile = () => (existsSync(join(process.cwd(), ".env")) ? readFileSync(join(process.cwd(), ".env"), "utf8") : "");
-const pinned = () => process.env.OMB_IMAGE ?? /^OMB_IMAGE=(.*)$/m.exec(envFile())?.[1] ?? null;
+const pinned = () => process.env.ODB_IMAGE ?? /^ODB_IMAGE=(.*)$/m.exec(envFile())?.[1] ?? null;
 const composeImage = () => (state.composeReadsPin && pinned()) || state.defaultImage;
 
 /** `{step: "compose up", signal: "SIGKILL"}`: the update script is signalled as this call starts, once. `match`, a
@@ -41,7 +41,7 @@ function composeUp() {
   if (!wanted) fail(`pull access denied for ${composeImage()}`);
   if (state.failUp === wanted.id) fail("Error response from daemon: driver failed programming external connectivity");
   const crashes = wanted.behaviour === "crashes";
-  state.containers.omb = { id: `omb-${++state.serial}`, image: wanted.id, status: crashes ? "restarting" : "running", restarts: crashes ? 5 : 0 };
+  state.containers.odb = { id: `odb-${++state.serial}`, image: wanted.id, status: crashes ? "restarting" : "running", restarts: crashes ? 5 : 0 };
   state.containers.caddy = { id: `caddy-${state.serial}`, status: wanted.behaviour === "no-caddy" ? "exited" : "running" };
   // A server that starts writes to its data, as a new version's migrations do.
   if (!crashes) appendFileSync(join(volume(state.dataVolume), "started-by.txt"), `${wanted.version}\n`);
@@ -49,10 +49,10 @@ function composeUp() {
 
 function compose(rest) {
   const [verb, ...more] = rest;
-  const omb = state.containers.omb;
+  const odb = state.containers.odb;
   if (verb === "version") return out("Docker Compose version v2.40.0");
-  if (verb === "config") return out(`services:\n  omb:\n    image: ${composeImage()}`);
-  if (verb === "ps" && more.includes("-aq")) return omb ? out(omb.id) : undefined;
+  if (verb === "config") return out(`services:\n  odb:\n    image: ${composeImage()}`);
+  if (verb === "ps" && more.includes("-aq")) return odb ? out(odb.id) : undefined;
   if (verb === "ps") return Object.entries(state.containers).filter(([, container]) => container?.status === "running").forEach(([name]) => out(name));
   if (verb === "stop") {
     if (state.failStop) fail("Error response from daemon: cannot stop container: permission denied");
@@ -60,30 +60,30 @@ function compose(rest) {
     return;
   }
   if (verb === "up") return composeUp();
-  if (verb === "logs") return out(image(omb?.image)?.lastWords ?? "");
+  if (verb === "logs") return out(image(odb?.image)?.lastWords ?? "");
   if (verb === "exec") {
     // As the real one does: `docker compose exec` forwards its standard input to the container, so it takes whatever is
     // waiting there, an answer meant for update.sh's question included.
     try { readFileSync(0); } catch { /* no standard input */ }
-    const serving = image(omb?.image);
-    if (omb?.status !== "running" || !serving) fail("service omb is not running");
+    const serving = image(odb?.image);
+    if (odb?.status !== "running" || !serving) fail("service odb is not running");
     // `doctor: false`: a hardened version, where doctor without a session is refused whatever its engines.
-    if (more.includes("openmausbot")) return serving.engine && serving.doctor !== false ? out("ready") : fail("no engine is available", 5);
+    if (more.includes("opendeliobot")) return serving.engine && serving.doctor !== false ? out("ready") : fail("no engine is available", 5);
     if (serving.behaviour === "silent") fail("", 7);
     // A version with the count (`counts`) answers how many engines can start a bot; an older one has no such route.
-    if (line.includes("/api/health/engines")) return serving.counts ? out(JSON.stringify({ app: "openmausbot", engines: serving.engine ? 1 : 0 })) : fail("", 22);
-    if (line.includes("/api/health")) return out('{"app":"openmausbot"}');
+    if (line.includes("/api/health/engines")) return serving.counts ? out(JSON.stringify({ app: "opendeliobot", engines: serving.engine ? 1 : 0 })) : fail("", 22);
+    if (line.includes("/api/health")) return out('{"app":"opendeliobot"}');
     if (line.includes("/environment")) return out(JSON.stringify({ environmentId: "e", version: serving.serves ?? serving.version }));
   }
   fail(`fake docker: unknown compose command: ${line}`, 64);
 }
 
 function inspect(format, target) {
-  const omb = state.containers.omb;
-  if (!omb || omb.id !== target) fail(`No such object: ${target}`);
-  if (format === "{{.Image}}") return out(omb.image);
-  if (format === "{{.State.Running}}") return out(String(omb.status === "running"));
-  if (format === "{{.State.Status}} {{.RestartCount}} {{.Image}}") return out(`${omb.status} ${omb.restarts} ${omb.image}`);
+  const odb = state.containers.odb;
+  if (!odb || odb.id !== target) fail(`No such object: ${target}`);
+  if (format === "{{.Image}}") return out(odb.image);
+  if (format === "{{.State.Running}}") return out(String(odb.status === "running"));
+  if (format === "{{.State.Status}} {{.RestartCount}} {{.Image}}") return out(`${odb.status} ${odb.restarts} ${odb.image}`);
   if (format.includes(".Mounts")) return out(state.dataVolume);
   if (format.includes("com.docker.compose.project")) return out("deploy");
   fail(`fake docker: unknown inspect format: ${format}`, 64);
@@ -112,7 +112,7 @@ function run(rest) {
   const script = entry === "sh" ? tail[1] : "";
   if (state.failCopy && entry === "cp") fail("cp: error writing '/to/messages.db': No space left on device");
   // A restore that fails while it copies into its own folder, before the data is touched (a full disk, a killed helper).
-  if (state.failRestore && script.includes(".omb-restore")) fail("cp: cannot create regular file '/to/.omb-restore/messages.db': No space left on device");
+  if (state.failRestore && script.includes(".odb-restore")) fail("cp: cannot create regular file '/to/.odb-restore/messages.db': No space left on device");
   if (Object.values(mounts).some((folder) => !folder.startsWith(join(dir, "volumes")))) fail("fake docker: a mount outside the fixture", 64);
   const inFolders = (text) => text.replace(/\/(from|to)(?=[/\s.]|$)/g, (_, name) => mounts[`/${name}`] ?? join(dir, "volumes", "unmounted"));
   // Every /from and /to must become a fixture folder: a script that names one any other way would reach the real disk.

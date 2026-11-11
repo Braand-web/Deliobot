@@ -5,7 +5,7 @@ import { existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const MARK = "__OMB_PATH__";
+const MARK = "__ODB_PATH__";
 
 /** -l -i: Homebrew, nvm and friends live in rc files that only an interactive login shell reads; the mark isolates
  * $PATH from what those files print. */

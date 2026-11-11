@@ -6,7 +6,7 @@ import { afterAll, describe, expect, it } from "vitest";
 
 import { botSettingsFor, withBotSettings } from "./claude-bot-settings.ts";
 
-const root = mkdtempSync(join(tmpdir(), "omb-bot-settings-"));
+const root = mkdtempSync(join(tmpdir(), "odb-bot-settings-"));
 afterAll(() => rmSync(root, { recursive: true, force: true }));
 
 let count = 0;
@@ -35,7 +35,7 @@ describe("botSettingsFor", () => {
     expect(botSettingsFor(file, thread, {})).toEqual(settings);
   });
 
-  it("leaves behind every other field, and each entry Claude Code would refuse, so OpenMausBot's own settings still load", () => {
+  it("leaves behind every other field, and each entry Claude Code would refuse, so OpenDeliobot's own settings still load", () => {
     const { file, thread } = folders({
       model: 123, statusLine: "x", outputStyle: 5, apiKeyHelper: "echo key", cleanupPeriodDays: "30", disableAllHooks: true,
       hooks: { PreToolUse: [guard, { matcher: 5, hooks: "x" }, { hooks: [{ command: "no type" }] }], Stop: "nope" },
@@ -88,14 +88,14 @@ describe("botSettingsFor", () => {
 });
 
 describe("withBotSettings", () => {
-  it("merges as Claude Code merges a project's settings under --settings: lists join, OpenMausBot's own values win", () => {
-    const ombStop = { matcher: "", hooks: [{ type: "command", command: "omb-hook", timeout: 5 }] };
+  it("merges as Claude Code merges a project's settings under --settings: lists join, OpenDeliobot's own values win", () => {
+    const odbStop = { matcher: "", hooks: [{ type: "command", command: "odb-hook", timeout: 5 }] };
     const botStop = { hooks: [{ type: "command", command: "/opt/notify.sh" }] };
     expect(withBotSettings(
       { hooks: { PreToolUse: [guard], Stop: [botStop] }, env: { GUARD_LEVEL: "strict", ENABLE_TOOL_SEARCH: "false" }, enabledPlugins: { "guard@team": true } },
-      { hooks: { Stop: [ombStop], PostToolUse: [ombStop] }, env: { ENABLE_TOOL_SEARCH: "true" }, claudeMdExcludes: ["/home/ada/.claude/CLAUDE.md"] },
+      { hooks: { Stop: [odbStop], PostToolUse: [odbStop] }, env: { ENABLE_TOOL_SEARCH: "true" }, claudeMdExcludes: ["/home/ada/.claude/CLAUDE.md"] },
     )).toEqual({
-      hooks: { PreToolUse: [guard], Stop: [botStop, ombStop], PostToolUse: [ombStop] },
+      hooks: { PreToolUse: [guard], Stop: [botStop, odbStop], PostToolUse: [odbStop] },
       env: { GUARD_LEVEL: "strict", ENABLE_TOOL_SEARCH: "true" },
       enabledPlugins: { "guard@team": true },
       claudeMdExcludes: ["/home/ada/.claude/CLAUDE.md"],

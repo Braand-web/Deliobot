@@ -1,4 +1,4 @@
-// Sending one @devs report to the MausBot team's endpoint and reading its answer: 201 {id}; 400 or 413 {error}; 429
+// Sending one @devs report to the Delio team's endpoint and reading its answer: 201 {id}; 400 or 413 {error}; 429
 // {error, retryAfter} (seconds, also Retry-After). And asking that endpoint's origin what became of the reports this app
 // sent (POST /api/bug-reports/status): the same way on the desktop and on a Cloud, which also signs its question with the
 // bootstrap secret it shares with the Admin, so the Admin can tell whether its plan still runs.
@@ -8,8 +8,8 @@ import { z } from "zod";
 import { DEVS_REPORT_LIMITS, withoutContact, type DevsReportPayload } from "./devs-report.ts";
 
 export const BUG_REPORT_PATH = "/api/bug-reports";
-export const PRODUCTION_CLOUD_ORIGIN = "https://cloud.openmausbot.com";
-export const STAGING_CLOUD_ORIGIN = "https://omb-cloud-staging.fly.dev";
+export const PRODUCTION_CLOUD_ORIGIN = "https://cloud.openopendeliobot.com";
+export const STAGING_CLOUD_ORIGIN = "https://odb-cloud-staging.fly.dev";
 const SEND_TIMEOUT_MS = 20_000;
 const ANSWER_MAX_BYTES = 16 * 1024;
 
@@ -20,10 +20,10 @@ export type SendOutcome =
   /** The endpoint refused this report; sending it again would be refused again. */
   | { ok: false; retry: false; why: "refused"; detail: string };
 
-/** OMB_BUG_REPORT_URL (an https address, or http on this machine's loopback, for fixtures), else a Cloud home's own
+/** ODB_BUG_REPORT_URL (an https address, or http on this machine's loopback, for fixtures), else a Cloud home's own
  * Admin origin, else the staging or production Cloud. */
 export function bugReportEndpoint(env: NodeJS.ProcessEnv, cloudOrigin?: string | null): string {
-  const explicit = env.OMB_BUG_REPORT_URL?.trim();
+  const explicit = env.ODB_BUG_REPORT_URL?.trim();
   if (explicit) {
     try {
       const url = new URL(explicit);
@@ -31,7 +31,7 @@ export function bugReportEndpoint(env: NodeJS.ProcessEnv, cloudOrigin?: string |
       if ((url.protocol === "https:" || loopback) && !url.username && !url.password) return url.href;
     } catch { /* not an address: the default below */ }
   }
-  const origin = cloudOrigin ?? (env.OMB_CLOUD_STAGING === "1" ? STAGING_CLOUD_ORIGIN : PRODUCTION_CLOUD_ORIGIN);
+  const origin = cloudOrigin ?? (env.ODB_CLOUD_STAGING === "1" ? STAGING_CLOUD_ORIGIN : PRODUCTION_CLOUD_ORIGIN);
   return `${origin.replace(/\/+$/, "")}${BUG_REPORT_PATH}`;
 }
 
@@ -94,7 +94,7 @@ export async function sendDevsReport(endpoint: string, payload: DevsReportPayloa
   return { ok: false, retry: true, why: "server" };
 }
 
-/** What the app asks about the reports it sent (openmaus-cloud server/bug-report-contract.ts BugReportStatusRequest). */
+/** What the app asks about the reports it sent (opendelio-cloud server/bug-report-contract.ts BugReportStatusRequest). */
 export const BUG_REPORT_STATUS_PATH = "/api/bug-reports/status";
 export const BUG_REPORT_STATUS_MAX_IDS = 50;
 export interface ReportStatusQuestion { installId: string; ids: string[] }
@@ -109,11 +109,11 @@ const statusAnswerSchema = z.object({
 /** A Cloud home's credential for its question: its machine and the bootstrap secret it shares with the Admin. */
 export interface ReportStatusHome { machineId: string; bootstrapSecret: string }
 
-/** Must match openmaus-cloud server/bug-reports.ts `bugReportsHomeSignature`: its own signing string, so no other signed
+/** Must match opendelio-cloud server/bug-reports.ts `bugReportsHomeSignature`: its own signing string, so no other signed
  * request can be replayed here or the other way. */
 export function bugReportsHomeSignature(secret: string, machineId: string, timestamp: string, nonce: string, body: string): string {
   const bodyHash = createHash("sha256").update(body).digest("base64url");
-  return createHmac("sha256", secret).update(`omb-bug-reports-v1\n${machineId}\n${timestamp}\n${nonce}\n${bodyHash}`).digest("base64url");
+  return createHmac("sha256", secret).update(`odb-bug-reports-v1\n${machineId}\n${timestamp}\n${nonce}\n${bodyHash}`).digest("base64url");
 }
 
 /** The question's address: the report endpoint's origin, at BUG_REPORT_STATUS_PATH. */
@@ -124,8 +124,8 @@ export async function askReportStatus(endpoint: string, question: ReportStatusQu
   now = Date.now): Promise<ReportStatusAnswer | null> {
   const body = JSON.stringify({ installId: question.installId, ids: question.ids.slice(0, BUG_REPORT_STATUS_MAX_IDS) });
   const timestamp = String(Math.floor(now() / 1000)), nonce = randomBytes(18).toString("base64url");
-  const signed: Record<string, string> = home ? { "x-omb-cloud-machine": home.machineId, "x-omb-cloud-timestamp": timestamp, "x-omb-cloud-nonce": nonce,
-    "x-omb-cloud-signature": `v1=${bugReportsHomeSignature(home.bootstrapSecret, home.machineId, timestamp, nonce, body)}` } : {};
+  const signed: Record<string, string> = home ? { "x-odb-cloud-machine": home.machineId, "x-odb-cloud-timestamp": timestamp, "x-odb-cloud-nonce": nonce,
+    "x-odb-cloud-signature": `v1=${bugReportsHomeSignature(home.bootstrapSecret, home.machineId, timestamp, nonce, body)}` } : {};
   try {
     const response = await fetcher(endpoint, { method: "POST", redirect: "error", cache: "no-store", body, signal: AbortSignal.timeout(SEND_TIMEOUT_MS),
       headers: { accept: "application/json", "content-type": "application/json", ...signed } });

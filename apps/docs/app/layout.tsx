@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     default: appName,
     template: `%s · ${appName}`,
   },
-  description: 'MausBot docs: install, configure and extend your local-first team of AI agents. MausBot is free and open source (Apache 2.0).',
+  description: 'Delio docs: install, configure and extend your local-first team of AI agents. Delio is free and open source (Apache 2.0).',
   openGraph: {
     title: appName,
     siteName: appName,

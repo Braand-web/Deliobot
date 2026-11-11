@@ -14,7 +14,7 @@ import localOriginModule from "./local-origin.cjs";
 const LOCAL = "http://127.0.0.1:8799";
 const CLOUD = "https://home-7f3k2.fly.dev";
 const OTHER = "https://bots.example.test";
-const OWN = "https://omb-c-a.fly.dev";
+const OWN = "https://odb-c-a.fly.dev";
 
 const fixture = vi.hoisted(() => ({ autoUpdater: null, handlers: new Map(), home: "" }));
 
@@ -120,7 +120,7 @@ const settle = async () => {
 };
 
 beforeEach(() => {
-  fixture.home = mkdtempSync(join(tmpdir(), "omb-updater-home-"));
+  fixture.home = mkdtempSync(join(tmpdir(), "odb-updater-home-"));
   localOriginModule.setLocalOrigin(LOCAL);
   vi.useFakeTimers();
 });
@@ -137,7 +137,7 @@ function bridgeFor(origin, { clicked = false, rule = null } = {}) {
   const loading = page(origin);
   if (rule) rule.window.webContents = loading.webContents;
   vm.runInNewContext(readFileSync(new URL("./preload.cjs", import.meta.url), "utf8"), {
-    process: { platform: "darwin", argv: [`--omb-local-origin=${LOCAL}`] },
+    process: { platform: "darwin", argv: [`--odb-local-origin=${LOCAL}`] },
     location: { origin }, navigator: { userActivation: { isActive: clicked } },
     TextEncoder, localStorage: { getItem: () => null },
     require: () => ({
@@ -221,12 +221,12 @@ it("a downloaded update installs when the app quits, except a system package, wh
   const platform = Object.getOwnPropertyDescriptor(process, "platform");
   const resourcesPath = process.resourcesPath;
   const appImage = process.env.APPIMAGE;
-  const resources = mkdtempSync(join(tmpdir(), "omb-updater-package-"));
+  const resources = mkdtempSync(join(tmpdir(), "odb-updater-package-"));
   try {
     for (const [os, marker, image, installsOnQuit] of [
       ["darwin", null, null, true],
       ["win32", null, null, true],
-      ["linux", null, "/home/a/OpenMausBot.AppImage", true],
+      ["linux", null, "/home/a/OpenDeliobot.AppImage", true],
       ["linux", "deb", null, false],
       ["linux", "rpm", null, false],
     ]) {
@@ -254,13 +254,13 @@ it("a downloaded update installs by itself at a quiet moment on macOS and Window
   const platform = Object.getOwnPropertyDescriptor(process, "platform");
   const resourcesPath = process.resourcesPath;
   const appImage = process.env.APPIMAGE;
-  const resources = mkdtempSync(join(tmpdir(), "omb-updater-quiet-"));
+  const resources = mkdtempSync(join(tmpdir(), "odb-updater-quiet-"));
   const quiet = { locked: () => true, idleMs: () => 0, typedAt: () => 0, shown: () => true, busy: () => null, work: async () => null, watch: () => {} };
   try {
     for (const [os, marker, image, installs] of [
       ["darwin", null, null, true],
       ["win32", null, null, true],
-      ["linux", null, "/home/a/OpenMausBot.AppImage", false],
+      ["linux", null, "/home/a/OpenDeliobot.AppImage", false],
       ["linux", "deb", null, false],
       ["linux", "rpm", null, false],
     ]) {

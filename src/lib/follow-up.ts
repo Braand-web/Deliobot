@@ -5,7 +5,7 @@ import { isMacPlatform } from "./keyboard-shortcuts";
 import type { SendKey } from "./send-key";
 
 /** What Enter does while a bot works: steer the message into the running turn, or queue it. On this device only. */
-export const FOLLOW_UP_KEY = "omb-follow-up";
+export const FOLLOW_UP_KEY = "odb-follow-up";
 
 export function parseFollowUpDefault(value: string | null | undefined): FollowUpDefault {
   return value === "queue" || value === "steer" ? value : DEFAULT_FOLLOW_UP;

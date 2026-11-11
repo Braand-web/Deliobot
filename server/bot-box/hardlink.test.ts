@@ -10,7 +10,7 @@ afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: 
 const plan = (mounts: Mount[]): BoxPlan => ({ mounts, options: [], net: "shared", writable: [], botId: null });
 
 function fixture() {
-  const root = mkdtempSync(join(tmpdir(), "omb-hardlink-"));
+  const root = mkdtempSync(join(tmpdir(), "odb-hardlink-"));
   roots.push(root);
   const home = join(root, "home"), dataDir = join(home, "data");
   mkdirSync(dataDir, { recursive: true });

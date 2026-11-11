@@ -33,7 +33,7 @@ export const SKINS: readonly Skin[] = [
   { id: "linen", name: "Linen", tagline: "Clean daylight with a restrained navy accent." },
   { id: "dusk", name: "Dusk", tagline: "Muted plum after dark, calm and low-key." },
   { id: "daylight", name: "Daylight", tagline: "Midnight in reverse. Near-white, ink-black bubbles." },
-  { id: "meadow", name: "Meadow", tagline: "Fresh white with a calm green. The MausBot look." },
+  { id: "meadow", name: "Meadow", tagline: "Fresh white with a calm green. The Delio look." },
   { id: "pop", name: "Pop", tagline: "Cream paper, thick ink outlines, hard shadows. Chunky and cheerful." },
   { id: "halloween", name: "Halloween", tagline: "Plum after dark, lit in pumpkin orange. Bats optional." },
   { id: "diwali", name: "Diwali", tagline: "Indigo night, lit in marigold and diya gold. Fireworks optional." },
@@ -47,7 +47,7 @@ export const THEME_SKINS = { light: "daylight", dark: "midnight" } as const sati
 export const DEFAULT_SKIN_CHOICE: SkinChoice = "system";
 export const PRIOR_INSTALL_SKIN: SkinId = "midnight";
 
-const KEY = "omb-skin";
+const KEY = "odb-skin";
 const DARK_QUERY = "(prefers-color-scheme: dark)";
 
 function isSkinId(value: unknown): value is SkinId {

@@ -3,7 +3,7 @@ import { closeSync, openSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { expect, it } from "vitest";
-import { launchVerificationServer, runControlOmb, verificationServerEnvironment } from "../scripts/control-omb.ts";
+import { launchVerificationServer, runControlOdb, verificationServerEnvironment } from "../scripts/control-odb.ts";
 import { handleToolCall, request } from "../scripts/mcp-server.ts";
 import { PEER_ACCESS_HELP } from "./peer-roster.ts";
 import { ENVELOPE_MARK } from "./runtime/envelope.ts";
@@ -12,8 +12,8 @@ import { readHandoffs } from "./testing/handoff-rows.ts";
 
 async function withRooms(test: (f: any) => Promise<void>) {
   const session = await launchVerificationServer(process.env, undefined, undefined, undefined, undefined, { scripted: true });
-  const env = { OPENMAUSBOT_URL: session.info.url };
-  const cli = (...args: string[]) => runControlOmb(args, { env }) as Promise<any>;
+  const env = { OPENDELIOBOT_URL: session.info.url };
+  const cli = (...args: string[]) => runControlOdb(args, { env }) as Promise<any>;
   const api = (path: string, body?: unknown, method = "POST") => request(path, body === undefined ? {} : { method, body: JSON.stringify(body) }, session.info.url) as Promise<any>;
   const tool = (name: string, args: Record<string, unknown>) => handleToolCall(name, args, (path, options) => request(path, options, session.info.url)) as Promise<any>;
   let restarted: ChildProcess | undefined;

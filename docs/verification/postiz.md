@@ -3,7 +3,7 @@
 The Postiz card in Apps (the Social category) connects the social media
 scheduler [Postiz](https://postiz.com) as one MCP server named `postiz`, so the
 MCP gate, each bot's server selection and a Team Cloud's scopes treat it like
-any other server. OpenMausBot only calls Postiz's public
+any other server. OpenDeliobot only calls Postiz's public
 MCP and OAuth endpoints; Postiz is AGPL-3.0 and none of its code is copied.
 
 - **Sign in with Postiz** (the default) uses Postiz Cloud's
@@ -44,13 +44,13 @@ person's own Postiz) and proves, for both ways of connecting:
 ## Screenshots
 
 ```sh
-OMB_VERIFY_PLAYWRIGHT=/path/to/playwright/index.mjs OMB_VERIFY_BROWSER_CHROME=/path/to/chrome node --experimental-strip-types scripts/verify-postiz.ts
+ODB_VERIFY_PLAYWRIGHT=/path/to/playwright/index.mjs ODB_VERIFY_BROWSER_CHROME=/path/to/chrome node --experimental-strip-types scripts/verify-postiz.ts
 ```
 
 This drives the real Apps modal in headless Chromium against the same stand-ins:
 the Social category, the sign-in waiting and connected states, a refused key,
 the key form and the key connection. Screenshots default to
-`/tmp/omb-postiz-evidence`; override with `OMB_UI_EVIDENCE_DIR`.
+`/tmp/odb-postiz-evidence`; override with `ODB_UI_EVIDENCE_DIR`.
 
 ## Live acceptance (a Postiz account owner)
 

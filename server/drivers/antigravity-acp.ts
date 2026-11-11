@@ -67,7 +67,7 @@ const REMOVED_ENVIRONMENT_KEYS = new Set([
   "ELECTRON_RUN_AS_NODE",
 ]);
 
-const BROWSER_MARKER = "__OPENMAUS_ANTIGRAVITY_AUTH_URL__";
+const BROWSER_MARKER = "__OPENDELIO_ANTIGRAVITY_AUTH_URL__";
 const browserHelperSource =
   `process.stderr.on("error",()=>process.exit(0)).write(` +
   `"${BROWSER_MARKER}"+JSON.stringify(process.argv[1])+"\\n",` +
@@ -158,7 +158,7 @@ export async function prepareAntigravityProfile(input: {
 
   const executable = process.platform === "win32" ? process.execPath.replaceAll("\\", "/") : process.execPath;
   if (/\r|\n|\0|%s/u.test(executable) || executable.includes(delimiter)) {
-    throw new Error("The OpenMausBot runtime path cannot safely suppress Antigravity browser launches.");
+    throw new Error("The OpenDeliobot runtime path cannot safely suppress Antigravity browser launches.");
   }
   const browserCommand = [executable, "-e", browserHelperSource, "--", "%s"]
     .map(quoteBrowserArgument)
@@ -176,7 +176,7 @@ export async function prepareAntigravityProfile(input: {
     PYTHONUNBUFFERED: "1",
     ELECTRON_RUN_AS_NODE: "1",
   });
-  // On Windows the runtime unpacks 0.34-1.26 GB into TEMP per launch: one OMB folder per instance,
+  // On Windows the runtime unpacks 0.34-1.26 GB into TEMP per launch: one ODB folder per instance,
   // stable so the pooled spawn contract (which hashes this env) holds.
   let tempDirectory: string | undefined;
   if ((input.platform ?? process.platform) === "win32") {
@@ -387,12 +387,12 @@ export class AntigravityAcpClient {
         (this.nativeStartupHint ? `${this.nativeStartupHint} ` : "") +
         `Startup output: ${this.startupOutputBytes} bytes; diagnostic output: ${this.startupDiagnosticBytes} bytes. ` +
         (this.tempDirectory ? `Unpacked into temp: ${Math.round(Math.max(0, now - before) / 1_000_000)} MB. ` : "") +
-        "Retry setup. If it still fails, share this error and your OpenMausBot version; do not paste Google sign-in links or tokens.",
+        "Retry setup. If it still fails, share this error and your OpenDeliobot version; do not paste Google sign-in links or tokens.",
       );
     };
     const initialized = await this.request("initialize", {
       protocolVersion: 1,
-      clientInfo: { name: "openmausbot", version: "0.0.0" },
+      clientInfo: { name: "opendeliobot", version: "0.0.0" },
       clientCapabilities: { fs: { readTextFile: false, writeTextFile: false }, terminal: false },
     }, Math.min(windowMs, Math.max(0, deadline - Date.now())), expired);
     this.initializationComplete = true;
@@ -625,7 +625,7 @@ export function isValidAntigravityInitializeResult(
 }
 
 export async function validateAntigravityRuntime(runtime: AntigravityRuntime, expectedVersion: string): Promise<void> {
-  const profileDirectory = await mkdtemp(join(tmpdir(), "openmaus-antigravity-verify-"));
+  const profileDirectory = await mkdtemp(join(tmpdir(), "opendelio-antigravity-verify-"));
   let client: AntigravityAcpClient | undefined;
   let tempDirectory: string | undefined;
   let failed = false;

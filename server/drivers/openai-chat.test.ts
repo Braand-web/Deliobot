@@ -118,7 +118,7 @@ describe("createOpenAIChatRuntime tool approvals", () => {
   afterEach(() => { for (const d of mcpDir.splice(0)) rmSync(d, { recursive: true, force: true }); });
 
   const toolServer = (receipt?: string): { command: string; args: string[]; env: Record<string, string> } => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-chat-approval-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-chat-approval-"));
     mcpDir.push(dir);
     const script = join(dir, "fake-mcp.mjs");
     writeFileSync(script, `#!/usr/bin/env node
@@ -146,7 +146,7 @@ describe("createOpenAIChatRuntime tool approvals", () => {
   };
 
   it.each(["openai", "grok", "mistral", "minimax"] as const)("scopes %s schemas and blocks a remembered native question even under Full access", async (driver) => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-api-scope-")); mcpDir.push(dir);
+    const dir = mkdtempSync(join(tmpdir(), "odb-api-scope-")); mcpDir.push(dir);
     const receipt = join(dir, "calls.txt");
     const calls = [
       { index: 0, id: "selected", type: "function", function: { name: "fx_write", arguments: "{}" } },
@@ -272,7 +272,7 @@ describe("createOpenAIChatRuntime tool approvals", () => {
   }, 20_000);
 
   it("ends the turn on a failed tool call, never asks the model to run it again, and does not continue it by itself", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-chat-toolerr-")); mcpDir.push(dir);
+    const dir = mkdtempSync(join(tmpdir(), "odb-chat-toolerr-")); mcpDir.push(dir);
     const script = join(dir, "fake-fail-mcp.mjs");
     writeFileSync(script, `#!/usr/bin/env node
       const send = (m) => process.stdout.write(JSON.stringify(m) + "\\n");
@@ -479,7 +479,7 @@ describe("createOpenAIChatRuntime mid-turn steer", () => {
   afterEach(() => { for (const d of mcpDir.splice(0)) rmSync(d, { recursive: true, force: true }); });
 
   const toolServer = () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-chat-steer-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-chat-steer-"));
     mcpDir.push(dir);
     const script = join(dir, "fake-mcp.mjs");
     writeFileSync(script, `#!/usr/bin/env node

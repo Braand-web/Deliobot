@@ -1,11 +1,11 @@
 // Which tool does a real model pick, from a tool list as it is shipped? Real requests that went wrong, one thread each on one
 // bot, so a change to the list (the agents tool bridge, a shorter description, a removed built-in) is judged on evidence.
 //
-//   OMB_EVAL_LIVE=1 OMB_EVAL_LIVE_INSTANCE='{"instanceId":"claude","driver":"claudeAgent","model":"claude-sonnet-5","config":{"cli":"/path/to/claude"},"environmentFrom":["HOME","USER"]}' \
+//   ODB_EVAL_LIVE=1 ODB_EVAL_LIVE_INSTANCE='{"instanceId":"claude","driver":"claudeAgent","model":"claude-sonnet-5","config":{"cli":"/path/to/claude"},"environmentFrom":["HOME","USER"]}' \
 //     node --experimental-strip-types evals/tool-choice/run-tool-choice.ts --only trigger-on-new-mail,what-did-we-decide
 //
-// Each case is one real model turn on your account: never in CI, closed unless OMB_EVAL_LIVE=1. For the bridge, add
-// OMB_AGENTS_TOOL_BRIDGE=1 OMB_EVAL_LIVE_PASS_ENV=OMB_AGENTS_TOOL_BRIDGE. Everything else is a temporary data folder.
+// Each case is one real model turn on your account: never in CI, closed unless ODB_EVAL_LIVE=1. For the bridge, add
+// ODB_AGENTS_TOOL_BRIDGE=1 ODB_EVAL_LIVE_PASS_ENV=ODB_AGENTS_TOOL_BRIDGE. Everything else is a temporary data folder.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,15 +18,15 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 interface Row { id: string; score: CaseScore; calls: string[]; reply: string; costUsd?: number; inputTokens?: number; done: boolean }
 
 async function main(): Promise<void> {
-  if (process.env.OMB_EVAL_LIVE !== "1") {
-    console.log("tool-choice eval: skipped (set OMB_EVAL_LIVE=1; each case is one real model turn)");
+  if (process.env.ODB_EVAL_LIVE !== "1") {
+    console.log("tool-choice eval: skipped (set ODB_EVAL_LIVE=1; each case is one real model turn)");
     return;
   }
   const argument = (name: string) => { const at = process.argv.indexOf(name); return at === -1 ? undefined : process.argv[at + 1]; };
   const only = argument("--only")?.split(",");
   const cases = (JSON.parse(readFileSync(join(HERE, "cases.json"), "utf8")) as ToolChoiceCase[]).filter((item) => !only || only.includes(item.id));
   const instance = loadLiveInstance(process.env);
-  const pass = (process.env.OMB_EVAL_LIVE_PASS_ENV ?? "").split(/[:,]/).map((name) => name.trim()).filter(Boolean);
+  const pass = (process.env.ODB_EVAL_LIVE_PASS_ENV ?? "").split(/[:,]/).map((name) => name.trim()).filter(Boolean);
   const session = await spawnLiveServer(process.env, instance, pass);
   const call = async (method: string, path: string, body?: unknown) => {
     const response = await fetch(session.url + path, { method, ...(body === undefined ? {} : { headers: { "content-type": "application/json" }, body: JSON.stringify(body) }) });
@@ -65,7 +65,7 @@ async function main(): Promise<void> {
   } finally {
     await session.close();
   }
-  const report = { summary: summarize(rows), bridge: process.env.OMB_AGENTS_TOOL_BRIDGE ?? "off", rows };
+  const report = { summary: summarize(rows), bridge: process.env.ODB_AGENTS_TOOL_BRIDGE ?? "off", rows };
   console.log(JSON.stringify(report.summary));
   const out = argument("--out");
   if (out) {

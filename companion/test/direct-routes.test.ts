@@ -13,8 +13,8 @@ afterEach(() => {
 describe("direct ways in", () => {
   it("serves Same Wi-Fi alone when standing alone, and exactly what the desktop app lists otherwise", () => {
     expect(directRoutesFromEnv({})).toEqual({ wifi: true, tailscale: false, tailnetName: null });
-    expect(directRoutesFromEnv({ OMB_COMPANION_ROUTES: "" })).toEqual({ wifi: false, tailscale: false, tailnetName: null });
-    expect(directRoutesFromEnv({ OMB_COMPANION_ROUTES: "tailscale", OMB_COMPANION_TAILNET_NAME: "Mac.tail1.ts.net" }))
+    expect(directRoutesFromEnv({ ODB_COMPANION_ROUTES: "" })).toEqual({ wifi: false, tailscale: false, tailnetName: null });
+    expect(directRoutesFromEnv({ ODB_COMPANION_ROUTES: "tailscale", ODB_COMPANION_TAILNET_NAME: "Mac.tail1.ts.net" }))
       .toEqual({ wifi: false, tailscale: true, tailnetName: "mac.tail1.ts.net" });
     expect(tailnetName()).toBe("mac.tail1.ts.net");
   });

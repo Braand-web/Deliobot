@@ -42,8 +42,8 @@ export { intervalHasRestrictions } from "./routine-intervals.ts";
 export { nextOccurrence, RoutineScheduleError } from "./routine-schedules.ts";
 export type { RoutineIntervalSchedule, RoutineIntervalScheduleInput, RoutineSchedule, RoutineScheduleInput } from "./routine-schedules.ts";
 
-/** `cloud` runs the agent inside the bot's Boat VM; `maus` runs the bot's own provider and borrows only its computer tools. */
-export type RoutineRunOn = "maus" | "cloud";
+/** `cloud` runs the agent inside the bot's Boat VM; `delio` runs the bot's own provider and borrows only its computer tools. */
+export type RoutineRunOn = "delio" | "cloud";
 export type RoutineTarget = "bot" | "room-goal";
 export type RoutineGoalStatus = Exclude<GroupGoalRunStatus, "working">;
 
@@ -280,7 +280,7 @@ export interface RoutineManagerOptions {
 const CATCH_UP_MS = 12 * 60 * 60_000;
 const WAKE_HORIZON_MS = 60 * 60_000;
 
-export const ROUTINE_RESTARTED = "OpenMausBot restarted while this routine was running";
+export const ROUTINE_RESTARTED = "OpenDeliobot restarted while this routine was running";
 const MAX_RUNS = 2_000;
 function cloneRoutine(routine: Routine): Routine {
   return {
@@ -760,7 +760,7 @@ export class RoutineManager {
     const existing = this.webhookRunReceipt(input.webhookId, input.deliveryId);
     if (existing) return existing;
     if (this.options.botState(input.botId) === "missing") {
-      throw Object.assign(new Error("The assigned MAUS no longer exists"), { status: 410 });
+      throw Object.assign(new Error("The assigned DELIO no longer exists"), { status: 410 });
     }
     const run: RoutineRun = {
       id: randomUUID(), routineId: input.webhookId, routineName: input.webhookName, prompt: input.prompt, target: "bot",
@@ -1170,8 +1170,8 @@ export class RoutineManager {
             await this.options.startTurn(
               run.botId,
               task.threadId,
-              composeExecutionPrompt({ id: run.routineId, name: run.routineName, trigger: triggerSource, runOn: run.runOn ?? "maus" }, prompt, run.attachments, continuityCarry(run, this.routines, this.runs), run.retried),
-              run.runOn ?? "maus",
+              composeExecutionPrompt({ id: run.routineId, name: run.routineName, trigger: triggerSource, runOn: run.runOn ?? "delio" }, prompt, run.attachments, continuityCarry(run, this.routines, this.runs), run.retried),
+              run.runOn ?? "delio",
               triggerSource,
               (message) => this.failThread(task.threadId, message, { cause: "refused" }),
             );

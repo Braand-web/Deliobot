@@ -1,11 +1,11 @@
-# Edge for one OMB Cloud home machine (docs/cloud-pro.md). Fly's proxy
+# Edge for one ODB Cloud home machine (docs/cloud-pro.md). Fly's proxy
 # terminates TLS for <app>.fly.dev and reaches this machine on :8080 (on an own
-# server, the connector does, or a proxy of the owner's). The OpenMausBot
+# server, the connector does, or a proxy of the owner's). The OpenDeliobot
 # server listens only on 127.0.0.1, and every request forwarded to it carries
 # X-Forwarded-*, so it is never the loopback owner (server/request-auth.ts): a
 # remote client needs a paired session.
 #
-# OMB_CLOUD_EDGE_HOLD (a duration, unset: 0s, as before): how long a request
+# ODB_CLOUD_EDGE_HOLD (a duration, unset: 0s, as before): how long a request
 # waits for the server while it starts, instead of a 502. The Admin sets it
 # only for a plan whose home sleeps, so the first request after a cold wake
 # is answered (docs/cloud-pro.md, "Sleeping homes"). Caddy retries the dial
@@ -22,9 +22,9 @@
 		# server/cloud-home-start.ts). Any other peer's header is ignored, and
 		# with none named, no peer may name one. The address feeds the pairing
 		# lockout, never authorization.
-		trusted_proxies static {$OMB_CLOUD_EDGE_TRUSTED_PROXIES}
+		trusted_proxies static {$ODB_CLOUD_EDGE_TRUSTED_PROXIES}
 		trusted_proxies_strict
-		client_ip_headers {$OMB_CLOUD_EDGE_CLIENT_IP_HEADER}
+		client_ip_headers {$ODB_CLOUD_EDGE_CLIENT_IP_HEADER}
 	}
 }
 

@@ -1,22 +1,10 @@
 # Deliobot
 
-Deliobot is a chat app for running a team of AI agents: every bot in the
+Deliobot is a chat app for running a team of AI agents. Every bot in the
 sidebar is a real agent with its own model, its own computer and its own
-connected apps.
+connected apps; Delio, the team's helper, keeps the work moving.
 
-## Origin and license
-
-Deliobot is built on [OpenMausBot](https://github.com/milind-soni/OpenMausBot),
-used under the [Apache License 2.0](LICENSE). The upstream copyright and
-third-party notices are kept in [NOTICE](NOTICE) and [`third_party/`](third_party/).
-
-This repository contains the open-source edition only: the upstream
-`enterprise/` folder is under a separate, non-redistributable license and is
-not included. The OpenMausBot and MausBot names and mascot are trademarks of
-their owner; Deliobot is replacing them with its own brand.
-
-The upstream README is kept for reference in
-[`docs/UPSTREAM-README.md`](docs/UPSTREAM-README.md).
+The app's open-source edition is called OpenDeliobot.
 
 ## Development
 
@@ -33,3 +21,8 @@ pnpm dev:server
 ```bash
 pnpm dev
 ```
+
+## License
+
+Apache License 2.0, see [LICENSING.md](LICENSING.md). The mascot, the icon and
+the 3D model they are rendered from are in [`brand/delio/`](brand/delio/).

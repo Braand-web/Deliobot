@@ -55,7 +55,7 @@ posixOnly("usage attribution e2e", () => {
     }
   };
   const ledger = (botId: string) => {
-    const file = join(home, ".openmausbot", "usage", `${new Date().toISOString().slice(0, 7)}.jsonl`);
+    const file = join(home, ".opendeliobot", "usage", `${new Date().toISOString().slice(0, 7)}.jsonl`);
     if (!existsSync(file)) return [];
     // The server may be appending a line as this reads: only complete lines count, and the caller's wait reads again.
     const text = readFileSync(file, "utf8");
@@ -71,14 +71,14 @@ posixOnly("usage attribution e2e", () => {
 
   beforeAll(async () => {
     for (const fake of [FAKE_CLAUDE, FAKE_ACP, FAKE_CODEX]) chmodSync(fake, 0o755);
-    home = mkdtempSync(join(tmpdir(), "omb-attribution-"));
-    mkdirSync(join(home, ".openmausbot"), { recursive: true });
+    home = mkdtempSync(join(tmpdir(), "odb-attribution-"));
+    mkdirSync(join(home, ".opendeliobot"), { recursive: true });
     finishGate = join(home, "finish-steered-turn.gate");
     codexSteerGate = join(home, "codex-steer-refused.gate");
     costState = join(home, "claude-cost-state");
     mkdirSync(costState);
     writeFileSync(
-      join(home, ".openmausbot", "config.json"),
+      join(home, ".opendeliobot", "config.json"),
       JSON.stringify({
         instances: {
           claude: { driver: "claudeAgent", config: { cli: FAKE_CLAUDE, permissionMode: "bypassPermissions" } },
@@ -106,7 +106,7 @@ posixOnly("usage attribution e2e", () => {
     );
     child = spawn(process.execPath, [join(SERVER_DIR, "index.ts")], {
       cwd: join(SERVER_DIR, ".."),
-      env: { ...(process.env.PATH ? { PATH: process.env.PATH } : {}), HOME: home, USERPROFILE: home, OMB_PORT: String(PORT) },
+      env: { ...(process.env.PATH ? { PATH: process.env.PATH } : {}), HOME: home, USERPROFILE: home, ODB_PORT: String(PORT) },
       stdio: ["ignore", "pipe", "pipe"],
     });
     child.stderr!.on("data", (c) => (stderr += c));

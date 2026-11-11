@@ -27,7 +27,7 @@ describe("Cerebras provider", () => {
   });
 
   it("keeps the desktop store's workspace key away from an instance with its own URL", async () => {
-    vi.stubEnv("OMB_DESKTOP_PARENT", "1");
+    vi.stubEnv("ODB_DESKTOP_PARENT", "1");
     vi.stubEnv("CEREBRAS_API_KEY", "fixture-workspace-key");
     const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher);
     const instance = await CerebrasDriver.create({ instanceId: "own-url", displayName: "Mine", enabled: true,

@@ -73,7 +73,7 @@ vi.mock("node:child_process", async (original) => {
 let cua;
 let localOriginModule;
 beforeEach(async () => {
-  fixture.home = mkdtempSync(join(tmpdir(), "omb-cua-async-"));
+  fixture.home = mkdtempSync(join(tmpdir(), "odb-cua-async-"));
   fixture.script = "setTimeout(() => process.exit(0), 120)";
   fixture.socketReady = false;
   fixture.children = [];
@@ -82,7 +82,7 @@ beforeEach(async () => {
   fixture.hosts = [];
   fixture.hostOptions = [];
   fixture.handlers.clear();
-  vi.stubEnv("OPENMAUSBOT_CUA_EMBEDDED", "1");
+  vi.stubEnv("OPENDELIOBOT_CUA_EMBEDDED", "1");
   vi.stubEnv("CUA_DRIVER_PATH", "/fixture/cua-driver");
   vi.resetModules();
   cua = await import("./cua.mjs");
@@ -226,7 +226,7 @@ describe.skipIf(process.platform !== "darwin")("async standalone CUA launch (iso
     await expect.poll(() => fixture.hosts.length, { timeout: 5_000 }).toBe(2);
     await expect.poll(() => JSON.parse(readFileSync(join(fixture.home, "cua-connection.json"), "utf8")).mode, { timeout: 5_000 }).toBe("embedded");
     expect(fixture.hostOptions[1].socketPath).toBe(fixture.hostOptions[0].socketPath);
-    expect(fixture.hostOptions[0].socketPath).toContain("cua-omb-");
+    expect(fixture.hostOptions[0].socketPath).toContain("cua-odb-");
   });
 
   it("does not restart a helper the app stopped", async () => {

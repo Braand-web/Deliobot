@@ -11,7 +11,7 @@ import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { expect, it } from "vitest";
 
-import { launchVerificationServer, runControlOmb } from "../scripts/control-omb.ts";
+import { launchVerificationServer, runControlOdb } from "../scripts/control-odb.ts";
 import { hostTimeout } from "./testing/host-timeout.ts";
 import { ownTurnText } from "./testing/room-handoff-agent.ts";
 
@@ -46,7 +46,7 @@ async function scenario(test: (f: any) => Promise<void>) {
       try { parsed = JSON.parse(raw); } catch {}
       return { status: response.status, body: parsed };
     };
-    const bot = async (name: string, section: string) => ((await runControlOmb(["new-bot", "--name", name, "--section", section, "--url", url])) as any).bot;
+    const bot = async (name: string, section: string) => ((await runControlOdb(["new-bot", "--name", name, "--section", section, "--url", url])) as any).bot;
     const clive = await bot("Clive", "Leadership");
     const mira = await bot("Mira", "Engineering");
     expect((await api("PATCH", `/api/bots/${clive.id}`, { chiefOfStaff: true, managedSections: ["Engineering"], acknowledgePeerScope: true })).status).toBe(200);
@@ -318,7 +318,7 @@ it("P4 keeps Mira's question from a Clive turn a webhook started: it is not list
   await f.say(f.mira.id, chat, "P4: redo the pricing page.");
   await expect.poll(async () => (await asking(f, chat)) !== undefined, { timeout: 30_000 }).toBe(true);
 
-  const hook = await f.api("POST", "/api/webhooks", { name: "P4", prompt: "P4-HOOK: tell Mira to keep it.", botId: f.clive.id, runOn: "maus" });
+  const hook = await f.api("POST", "/api/webhooks", { name: "P4", prompt: "P4-HOOK: tell Mira to keep it.", botId: f.clive.id, runOn: "delio" });
   expect(hook.status, JSON.stringify(hook.body)).toBe(201);
   const delivered = await fetch(hook.body.credential.url, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
   expect(delivered.status).toBe(202);

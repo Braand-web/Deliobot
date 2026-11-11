@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import en from "../src/locales/en.json";
 import { formatPairingCode, PAIRING_INPUT_PROBLEM_KEY, PAIRING_INPUT_PROBLEM_TEXT, readPairingInput } from "./pairing-code";
 
-const credential = `omb_pair_${"Q".repeat(43)}`;
+const credential = `odb_pair_${"Q".repeat(43)}`;
 
 describe("readPairingInput", () => {
   it("takes a code however it is typed", () => {
@@ -12,18 +12,18 @@ describe("readPairingInput", () => {
   });
 
   it("reads the code or credential out of every link that carries one", () => {
-    expect(readPairingInput("https://maus.example.com/pair#code=7KQ2-M9XD-H4TP")).toEqual({ kind: "code", code: "7KQ2M9XDH4TP" });
+    expect(readPairingInput("https://delio.example.com/pair#code=7KQ2-M9XD-H4TP")).toEqual({ kind: "code", code: "7KQ2M9XDH4TP" });
     expect(readPairingInput("http://192.168.1.20:8799/pair?code=7KQ2-M9XD-H4TP")).toEqual({ kind: "code", code: "7KQ2M9XDH4TP" });
-    expect(readPairingInput(`openmausbot://pair?address=192.168.1.20%3A8810&token=${credential}`)).toEqual({ kind: "credential", credential });
-    expect(readPairingInput("openmausbot://pair?address=https%3A%2F%2Fmaus.example.com&code=7KQ2-M9XD-H4TP")).toEqual({ kind: "code", code: "7KQ2M9XDH4TP" });
+    expect(readPairingInput(`opendeliobot://pair?address=192.168.1.20%3A8810&token=${credential}`)).toEqual({ kind: "credential", credential });
+    expect(readPairingInput("opendeliobot://pair?address=https%3A%2F%2Fdelio.example.com&code=7KQ2-M9XD-H4TP")).toEqual({ kind: "code", code: "7KQ2M9XDH4TP" });
     expect(readPairingInput(credential)).toEqual({ kind: "credential", credential });
   });
 
   it("names the wrong kind of code instead of calling it wrong", () => {
     expect(readPairingInput("1234 5678")).toEqual({ kind: "wrong", problem: "emailCode" });
     expect(readPairingInput("123456")).toEqual({ kind: "wrong", problem: "oldCode" });
-    expect(readPairingInput(`omb_sess_${"a".repeat(43)}`)).toEqual({ kind: "wrong", problem: "scriptKey" });
-    expect(readPairingInput("https://maus.example.com/")).toEqual({ kind: "wrong", problem: "notACode" });
+    expect(readPairingInput(`odb_sess_${"a".repeat(43)}`)).toEqual({ kind: "wrong", problem: "scriptKey" });
+    expect(readPairingInput("https://delio.example.com/")).toEqual({ kind: "wrong", problem: "notACode" });
     expect(readPairingInput("hello")).toEqual({ kind: "wrong", problem: "notACode" });
     expect(readPairingInput("  ")).toEqual({ kind: "empty" });
   });

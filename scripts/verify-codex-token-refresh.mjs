@@ -13,7 +13,7 @@ const helper = process.env.PROBE_HELPER || fileURLToPath(new URL("../server/driv
 const runtime = process.env.PROBE_RUNTIME || process.execPath;
 const event = (type, data) => `event: ${type}\ndata: ${JSON.stringify(data)}\n\n`;
 async function scenario(dynamic) {
-  const dir = mkdtempSync(join(tmpdir(), "omb-codex-refresh-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-codex-refresh-"));
   const marker = join(dir, "tool-count");
   let expired = false, requests = [];
   const bridge = dynamic ? await startChatGptTokenBridge(async () => expired ? "fake-B" : "fake-A") : null;
@@ -31,7 +31,7 @@ async function scenario(dynamic) {
       }
       const item = requests.length === 1 ? {
         id: "fc_fixture", type: "function_call", status: "completed", name: "exec_command", call_id: "call_fixture",
-        arguments: JSON.stringify({ cmd: `if [ -n "$OMB_CODEX_AUTH_SECRET" ]; then printf leak >> '${marker}'; else printf x >> '${marker}'; fi` }),
+        arguments: JSON.stringify({ cmd: `if [ -n "$ODB_CODEX_AUTH_SECRET" ]; then printf leak >> '${marker}'; else printf x >> '${marker}'; fi` }),
       } : { id: "msg_fixture", type: "message", status: "completed", role: "assistant", content: [{ type: "output_text", text: "fixture ok", annotations: [] }] };
       const id = `resp_fixture${requests.length}`;
       res.writeHead(200, { "content-type": "text/event-stream" });
@@ -49,7 +49,7 @@ async function scenario(dynamic) {
       "-c", 'model_providers.fixture.wire_api="responses"', "-c", "model_providers.fixture.requires_openai_auth=false",
       "-c", "model_providers.fixture.supports_websockets=false", "-c", "model_providers.fixture.stream_max_retries=0",
       "-c", "model_providers.fixture.request_max_retries=0", "-c", "features.shell_snapshot=false",
-      "-c", 'shell_environment_policy.exclude=["OMB_CODEX_AUTH_SECRET","OMB_CODEX_AUTH_SOCKET","ELECTRON_RUN_AS_NODE"]',
+      "-c", 'shell_environment_policy.exclude=["ODB_CODEX_AUTH_SECRET","ODB_CODEX_AUTH_SOCKET","ELECTRON_RUN_AS_NODE"]',
       ...(dynamic ? ["-c", `model_providers.fixture.auth.command=${JSON.stringify(runtime)}`,
         "-c", `model_providers.fixture.auth.args=[${JSON.stringify(helper)}]`, "-c", "model_providers.fixture.auth.refresh_interval_ms=30000",
         "-c", "model_providers.fixture.auth.timeout_ms=60000"] : ["-c", 'model_providers.fixture.env_key="FIXTURE_TOKEN"']), "Run fixture tool"];

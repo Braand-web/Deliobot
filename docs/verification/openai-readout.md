@@ -48,7 +48,7 @@ changes and a provider broadcast arriving before its save response.
 
 Launch the disposable fixture as described in [the verification guide](README.md)
 before checking the interface. Point a separate Vite instance at its printed
-port with `OMB_PORT=<fixture-port> OMB_UI_PORT=5208 pnpm exec vite`. In the fixture,
+port with `ODB_PORT=<fixture-port> ODB_UI_PORT=5208 pnpm exec vite`. In the fixture,
 open a bot's Voice & alerts settings in Advanced mode. Check OpenAI, its missing
 key link and billing disclosure, all ten voices, Marin's initial selection,
 unchanged readout toggle, and Chinese/English layouts. A fake key may be saved

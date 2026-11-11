@@ -92,7 +92,7 @@ describe("Codex server-owned device authentication", () => {
   const alive = (pid: number) => { try { process.kill(pid, 0); return true; } catch { return false; } };
 
   beforeEach(() => {
-    home = mkdtempSync(join(tmpdir(), "omb-device-auth-"));
+    home = mkdtempSync(join(tmpdir(), "odb-device-auth-"));
     cli = join(home, "fake-codex.mjs");
     writeFileSync(cli, FAKE, { mode: 0o700 });
     chmodSync(cli, 0o700);
@@ -120,14 +120,14 @@ describe("Codex server-owned device authentication", () => {
   it("drives the reusable browser fixture only when its local approval marker is created", async () => {
     const controller = create("waiting", {
       cli: fileURLToPath(new URL("../testing/fake-codex-login-cli.ts", import.meta.url)),
-      environment: () => ({ ...process.env, HOME: home, CODEX_HOME: join(home, ".codex"), OMB_DEVICE_AUTH_FIXTURE: "1" }),
+      environment: () => ({ ...process.env, HOME: home, CODEX_HOME: join(home, ".codex"), ODB_DEVICE_AUTH_FIXTURE: "1" }),
     });
     const start = await controller.start();
     expect(start.userCode).toBe("TEST-12345");
-    expect(existsSync(join(home, ".omb-fake-codex-authenticated"))).toBe(false);
-    writeFileSync(join(home, ".omb-fake-codex-login-approved"), "approve fixture only\n");
+    expect(existsSync(join(home, ".odb-fake-codex-authenticated"))).toBe(false);
+    writeFileSync(join(home, ".odb-fake-codex-login-approved"), "approve fixture only\n");
     await expect.poll(async () => (await controller.get(start.flowId!)).phase).toBe("succeeded");
-    expect(readFileSync(join(home, ".omb-fake-codex-authenticated"), "utf8")).toContain("not a credential");
+    expect(readFileSync(join(home, ".odb-fake-codex-authenticated"), "utf8")).toContain("not a credential");
   });
 
   describe("sign-out", () => {

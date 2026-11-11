@@ -4,12 +4,12 @@ import { b64u } from "./credentials.ts";
 import { E2ESession, SEND_BUFFER_HIGH, SessionClosed, type RecordTransport } from "./session.ts";
 import { HANDSHAKE_DEADLINE_MS, TRANSPORT_RELAY, type KeyPair, type TransportByte } from "./noise.ts";
 
-export const DIRECT_PROTOCOL = "omb-e2e.v1";
-export const RELAY_PROTOCOL = "omb-relay.v1";
+export const DIRECT_PROTOCOL = "odb-e2e.v1";
+export const RELAY_PROTOCOL = "odb-relay.v1";
 const DRAIN_POLL_MS = 5;
 
 export interface DialOptions {
-  /** `ws://host:port/v1/e2e` for Wi-Fi and Tailscale, `wss://relayN.openmausbot.com/v1/phone` for the relay. */
+  /** `ws://host:port/v1/e2e` for Wi-Fi and Tailscale, `wss://relayN.openopendeliobot.com/v1/phone` for the relay. */
   url: string;
   transportByte: TransportByte;
   remoteStatic: Uint8Array;

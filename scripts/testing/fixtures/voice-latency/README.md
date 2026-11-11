@@ -37,8 +37,8 @@ Totals: 116 blocks, mean ~66 chars.
 Synthesis comes from the record stub, not the live engine:
 `voice-latency-stub.ts` serves the ElevenLabs wire shape
 (`server/tts/elevenlabs.ts`) on loopback, and the harness points the fixture
-server at it through `OMB_ELEVENLABS_API`. No live engine call, no engine key:
-record runs need no `OMB_TTS_KEY` and never reach api.elevenlabs.io; the stub
+server at it through `ODB_ELEVENLABS_API`. No live engine call, no engine key:
+record runs need no `ODB_TTS_KEY` and never reach api.elevenlabs.io; the stub
 key in the fixture config is a literal that only ever reaches loopback.
 
 Modeled timing, identical on both sides and pinned in `manifest.json`
@@ -66,11 +66,11 @@ Delta replay cadence, identical on both sides: `FAKE_CLAUDE_STREAM_CADENCE`
 Injection point: the fake claude CLI's turn output — the real driver
 (server/drivers/claude.ts stream_event → content.delta) forwards it, the
 server broadcasts {kind:"runtime"} frames, and the renderer store records
-arrival (src/lib/voice-latency-probe.ts, enabled only by `?ombVoiceProbe=1`
+arrival (src/lib/voice-latency-probe.ts, enabled only by `?odbVoiceProbe=1`
 on the preview page).
 
 Reply routing is by prompt marker, not ordered slots: the harness POSTs
-`omb voice probe <id>` as the user text and the fake CLI answers with that
+`odb voice probe <id>` as the user text and the fake CLI answers with that
 marker's corpus reply (`FAKE_CLAUDE_MARKER_REPLIES`). The driver legitimately
 replays a user message over several CLI launches; marker routing makes every
 replay answer the same reply, so rows align regardless of replay count. A
@@ -96,7 +96,7 @@ node --experimental-strip-types scripts/testing/voice-latency-harness.ts --label
 
 No environment setup: the run is keyless and self-contained (it launches the
 stub, the disposable fixture server and the browser itself, and never reads
-the live `~/.openmausbot/config.json`). One warmup reply is spoken and
+the live `~/.opendeliobot/config.json`). One warmup reply is spoken and
 discarded, then every corpus reply in order. Each log row: reply id, shape,
 t0-to-first-audio ms, gap count, total gap ms, longest gap ms (plus
 t0→message-frame and message-frame→first-audio splits). The summary carries

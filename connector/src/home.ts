@@ -47,9 +47,9 @@ export function launcherOf(version: readonly number[] | null): Launcher {
  * environment.
  */
 export function homeSpec(image: string, env: Record<string, string>, seccomp: string, options: { secretsDir?: string | null; dropsCapabilities?: boolean } = {}): ContainerSpec {
-  const environment = { ...env, OMB_CLOUD_IMAGE: image };
+  const environment = { ...env, ODB_CLOUD_IMAGE: image };
   const secret = new Set<string>(options.secretsDir ? HOME_SECRET_ENV : []);
-  const tls = env.OMB_CLOUD_EDGE_TLS === "1";
+  const tls = env.ODB_CLOUD_EDGE_TLS === "1";
   return {
     Image: image,
     Env: Object.entries(environment).filter(([name]) => !secret.has(name)).map(([name, value]) => `${name}=${value}`),
@@ -128,7 +128,7 @@ export interface HomeOptions {
   state: StateStore;
   log: Log;
   readHealth: HealthRead;
-  /** The seccomp profile install.sh put in /etc/mausbot, as JSON text. */
+  /** The seccomp profile install.sh put in /etc/delio, as JSON text. */
   seccomp: () => string;
   /** Free bytes where Docker keeps its volumes. */
   diskFree: () => number;
@@ -211,7 +211,7 @@ export class Home {
     const env = this.state.homeEnv();
     const info = await this.docker.containerInspect(NAMES.home);
     if (!env || !info?.State.Running) return this.lastHealth;
-    const { status, report } = await this.options.readHealth({ port: HOME_PORT, publicHost: publicHost(env), secret: env.OMB_CLOUD_BOOTSTRAP_SECRET });
+    const { status, report } = await this.options.readHealth({ port: HOME_PORT, publicHost: publicHost(env), secret: env.ODB_CLOUD_BOOTSTRAP_SECRET });
     this.lastHealth = summarizeHealth(status, report, info.Config.Image, this.now());
     return this.lastHealth;
   }
@@ -391,7 +391,7 @@ export class Home {
         const sent = await this.options.transfer.upload(`${admin.origin}${EXPORT_PATH}/${jobId}`, { authorization: admin.authorization(jobId) }, this.state.path(archive));
         return { bytes: sent.bytes, sha256: sent.sha256 };
       } catch (error) {
-        throw new JobFailure("transfer_failed", `The data could not be sent to MausBot (${errorText(error)}).`);
+        throw new JobFailure("transfer_failed", `The data could not be sent to Delio (${errorText(error)}).`);
       } finally {
         rmSync(this.state.path(archive), { force: true });
         this.finish({});
@@ -561,7 +561,7 @@ export class Home {
   /** Keeps a container made from the same image and environment; anything else is made again. */
   private async ensureContainer(image: string, env: Record<string, string>): Promise<void> {
     const info = await this.docker.containerInspect(NAMES.home);
-    const wanted = envDigest({ ...env, OMB_CLOUD_IMAGE: image });
+    const wanted = envDigest({ ...env, ODB_CLOUD_IMAGE: image });
     if (info && info.Config.Image === image && info.Config.Labels?.[LABELS.env] === wanted) return;
     await this.createContainer(image, env);
   }
@@ -589,7 +589,7 @@ export class Home {
       const message = errorText(error);
       if (/port is already allocated|address already in use/i.test(message)) {
         const port = /:(\d+) failed/.exec(message)?.[1] ?? String(HOME_PORT);
-        throw new JobFailure("port_in_use", `Port ${port} on this server is used by another program, and MausBot's home needs it.`);
+        throw new JobFailure("port_in_use", `Port ${port} on this server is used by another program, and Delio's home needs it.`);
       }
       if (error instanceof DockerError && /apparmor|seccomp/i.test(message)) {
         throw new JobFailure("box_unavailable", "The bot box's security profiles are not installed on this server. Run the install command again to repair it.");
@@ -610,7 +610,7 @@ export class Home {
     if ((await this.docker.containersUsing(NAMES.dataVolume)).some((container) => container.State === "running" || container.State === "paused")) return;
     const cleared = await this.helper(image, [DATA], [
       "find", "/data", "-maxdepth", "3", "(",
-      "-path", "/data/.openmausbot/openmausbot-server.lease*", "-o", "-path", "/data/.openmausbot/.openmausbot-server-child/openmausbot-server.lease",
+      "-path", "/data/.opendeliobot/opendeliobot-server.lease*", "-o", "-path", "/data/.opendeliobot/.opendeliobot-server-child/opendeliobot-server.lease",
       ")", "-print", "-delete",
     ], DELETE_CAPS);
     const paths = cleared.output.split("\n").map((line) => line.trim()).filter((line) => line.startsWith("/data/"));
@@ -629,7 +629,7 @@ export class Home {
         const why = info ? await this.startupFailure(info.State.ExitCode) : "its container is gone";
         return { ok: false, reason: `the home stopped: ${why}` };
       }
-      const { status, report } = await this.options.readHealth({ port: HOME_PORT, publicHost: publicHost(env), secret: env.OMB_CLOUD_BOOTSTRAP_SECRET });
+      const { status, report } = await this.options.readHealth({ port: HOME_PORT, publicHost: publicHost(env), secret: env.ODB_CLOUD_BOOTSTRAP_SECRET });
       this.lastHealth = summarizeHealth(status, report, image, this.now());
       if (this.lastHealth.ok) {
         if (!box) return { ok: true };
@@ -660,7 +660,7 @@ export class Home {
   }
 
   private async helper(image: string, mounts: Mount[], command: string[], caps: string[]): Promise<{ code: number; output: string }> {
-    const name = `mausbot-helper-${randomBytes(4).toString("hex")}`;
+    const name = `delio-helper-${randomBytes(4).toString("hex")}`;
     await this.docker.createContainer(name, helperSpec(image, mounts, command, caps));
     try {
       await this.docker.startContainer(name);

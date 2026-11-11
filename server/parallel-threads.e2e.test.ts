@@ -15,13 +15,13 @@ import { removeTempDir, waitForExit } from "./testing/cleanup.ts";
 import { freePortBlock } from "./testing/ports.ts";
 
 const SERVER_DIR = dirname(fileURLToPath(import.meta.url));
-const HOST = "omb-t-0123456789ab.fly.dev";
+const HOST = "odb-t-0123456789ab.fly.dev";
 type Role = "desktop" | "home" | "team";
 const TEAM = { id: "team-7f3a", name: "Acme" };
 
 class Fixture {
-  home = mkdtempSync(join(tmpdir(), "omb-parallel-"));
-  dataDir = join(this.home, ".openmausbot");
+  home = mkdtempSync(join(tmpdir(), "odb-parallel-"));
+  dataDir = join(this.home, ".opendeliobot");
   gates = join(this.home, "gates");
   base = "";
   log = "";
@@ -103,13 +103,13 @@ await import(${JSON.stringify(pathToFileURL(join(SERVER_DIR, "testing", "fake-ac
     this.base = `http://127.0.0.1:${port}`;
     const prelude = `data:text/javascript,${encodeURIComponent('const real = globalThis.fetch; globalThis.fetch = async (url, init) => String(url).startsWith("http://127.0.0.1:") ? real(url, init) : new Response("offline fixture", { status: 503 });')}`;
     const roleEnv = this.role === "desktop" ? {} : {
-      OMB_CLOUD_ROLE: this.role, OMB_CLOUD_MACHINE_ID: "3f9c2a4e-8b1d-4c6e-9a7f-2d5e8c1b0a93", OMB_CLOUD_ADMIN_URL: "https://cloud.example.test",
-      OMB_CLOUD_BOOTSTRAP_SECRET: this.secret, OMB_PUBLIC_URL: `https://${HOST}`,
-      ...(this.role === "team" ? { OMB_CLOUD_TEAM_ID: TEAM.id, OMB_CLOUD_TEAM_NAME: TEAM.name } : {}),
+      ODB_CLOUD_ROLE: this.role, ODB_CLOUD_MACHINE_ID: "3f9c2a4e-8b1d-4c6e-9a7f-2d5e8c1b0a93", ODB_CLOUD_ADMIN_URL: "https://cloud.example.test",
+      ODB_CLOUD_BOOTSTRAP_SECRET: this.secret, ODB_PUBLIC_URL: `https://${HOST}`,
+      ...(this.role === "team" ? { ODB_CLOUD_TEAM_ID: TEAM.id, ODB_CLOUD_TEAM_NAME: TEAM.name } : {}),
     };
     this.child = spawn(process.execPath, ["--import", prelude, join(SERVER_DIR, "index.ts")], {
       cwd: join(SERVER_DIR, ".."),
-      env: { PATH: process.env.PATH, HOME: this.home, USERPROFILE: this.home, OMB_DATA_DIR: this.dataDir, OMB_PORT: String(port), OMB_WEBHOOK_PORT: String(port + 1), ...roleEnv, ...this.extraEnv },
+      env: { PATH: process.env.PATH, HOME: this.home, USERPROFILE: this.home, ODB_DATA_DIR: this.dataDir, ODB_PORT: String(port), ODB_WEBHOOK_PORT: String(port + 1), ...roleEnv, ...this.extraEnv },
       stdio: ["ignore", "pipe", "pipe"],
     });
     this.child.stdout?.on("data", (chunk) => { this.log += chunk; });
@@ -121,11 +121,11 @@ await import(${JSON.stringify(pathToFileURL(join(SERVER_DIR, "testing", "fake-ac
     if (this.cloud()) this.token = await this.pair();
   }
   async pair() {
-    const body = JSON.stringify({ label: "OpenMausBot app (Cloud)", ttlSeconds: 300, ...(this.role === "team" ? { team: TEAM, member: { email: "owner@acme.test", role: "admin" } } : {}) });
+    const body = JSON.stringify({ label: "OpenDeliobot app (Cloud)", ttlSeconds: 300, ...(this.role === "team" ? { team: TEAM, member: { email: "owner@acme.test", role: "admin" } } : {}) });
     const timestamp = String(Math.floor(Date.now() / 1000)), nonce = randomBytes(16).toString("base64url");
     const response = await fetch(`${this.base}/api/cloud/pairing`, { method: "POST", headers: {
       host: HOST, "x-forwarded-for": "203.0.113.9", "x-forwarded-proto": "https", "content-type": "application/json",
-      "x-omb-cloud-timestamp": timestamp, "x-omb-cloud-nonce": nonce, "x-omb-cloud-signature": `v1=${cloudPairingSignature(this.secret, timestamp, nonce, body)}`,
+      "x-odb-cloud-timestamp": timestamp, "x-odb-cloud-nonce": nonce, "x-odb-cloud-signature": `v1=${cloudPairingSignature(this.secret, timestamp, nonce, body)}`,
     }, body });
     const granted = await response.json() as { code: string };
     return (await this.api("POST", "/api/auth/pair", { code: granted.code })).body.token as string;
@@ -247,7 +247,7 @@ function inertBrowser(dir: string) {
   ].join("\n"), { mode: 0o755 });
   return browser;
 }
-const browse = (f: Fixture, threadId: string) => internal(f, "/api/internal/browser/mcp", f.servers(threadId).browser.env.OMB_MCP_TOKEN_BROWSER, {
+const browse = (f: Fixture, threadId: string) => internal(f, "/api/internal/browser/mcp", f.servers(threadId).browser.env.ODB_MCP_TOKEN_BROWSER, {
   method: "tools/call", params: { name: "agent_browser_snapshot", arguments: {} },
 });
 
@@ -257,7 +257,7 @@ describe.skipIf(process.platform === "win32").each(["desktop", "home"] as const)
   afterEach(async () => { await f?.stop(); });
   const running = async (env: Record<string, string>) => {
     f = new Fixture(role);
-    f.extraEnv = { OMB_AGENT_BROWSER_PATH: inertBrowser(f.home), OMB_COMPUTER_CALL_WAIT_MS: "500", ...env };
+    f.extraEnv = { ODB_AGENT_BROWSER_PATH: inertBrowser(f.home), ODB_COMPUTER_CALL_WAIT_MS: "500", ...env };
     await f.start();
     const { botId, threads } = await botWithThreads(f, CLAUDE, 2);
     await send(f, botId, threads[0]!, "First job");
@@ -282,7 +282,7 @@ describe.skipIf(process.platform === "win32").each(["desktop", "home"] as const)
   }, 90_000);
 
   it("hand the browser over once its holder has stopped using it, and the holder does not act on a page it did not open", async () => {
-    const { botId, threads } = await running({ OMB_BROWSER_IDLE_HANDOVER_MS: "200", OMB_COMPUTER_CALL_WAIT_MS: "5000" });
+    const { botId, threads } = await running({ ODB_BROWSER_IDLE_HANDOVER_MS: "200", ODB_COMPUTER_CALL_WAIT_MS: "5000" });
     expect((await browse(f, threads[0]!)).body.result.isError).toBeFalsy();
     expect((await browse(f, threads[1]!)).body.result.isError, "taken from a holder that went quiet, with both turns still running").toBeFalsy();
     expect((await busyThreads(f, botId)).sort()).toEqual([...threads].sort());
@@ -328,7 +328,7 @@ describe.each(["desktop", "team"] as const)("two threads of a bot on the team's 
     await new Promise<void>((resolve) => relay.listen(0, "127.0.0.1", resolve));
     const relayBase = `http://127.0.0.1:${(relay.address() as AddressInfo).port}`;
     f = new Fixture(role);
-    f.extraEnv = { OMB_BOAT_API: `${relayBase}/own-key-must-not-be-used`, OMB_CLOUD_BOAT_URL: `${relayBase}/relay/api/box/v1`, OMB_CLOUD_BOAT_TOKEN: "box_omb_fixture", OMB_COMPUTER_CALL_WAIT_MS: "500" };
+    f.extraEnv = { ODB_BOAT_API: `${relayBase}/own-key-must-not-be-used`, ODB_CLOUD_BOAT_URL: `${relayBase}/relay/api/box/v1`, ODB_CLOUD_BOAT_TOKEN: "box_odb_fixture", ODB_COMPUTER_CALL_WAIT_MS: "500" };
     await f.start();
     const requestId = randomUUID();
     const made = await f.api("POST", "/api/team-computers", { requestId, name: "Ops desktop", acknowledgeCost: true });
@@ -346,7 +346,7 @@ describe.each(["desktop", "team"] as const)("two threads of a bot on the team's 
 
     const screenshot = (threadId: string) => {
       const env = f.servers(threadId).computer.env;
-      return internal(f, "/api/internal/computer/mcp", env.OMB_MCP_TOKEN_COMPUTER, { method: "tools/call", params: { name: "screenshot", arguments: {} } });
+      return internal(f, "/api/internal/computer/mcp", env.ODB_MCP_TOKEN_COMPUTER, { method: "tools/call", params: { name: "screenshot", arguments: {} } });
     };
     let first = await screenshot(threads[0]!);
     for (let attempt = 0; attempt < 40 && first.body.result?.isError; attempt++) first = await screenshot(threads[0]!);
@@ -370,8 +370,8 @@ describe("a Starter Cloud", () => {
   /** What the bot's own turn calls as start_thread, on the turn's own capability. */
   const startThread = async (fromThread: string, title: string, toBotId?: string) => {
     const agents = f.servers(fromThread).agents;
-    const env = agents.env.OMB_GATE_UPSTREAM ? JSON.parse(agents.env.OMB_GATE_UPSTREAM).env : agents.env;
-    return internal(f, "/api/internal/threads", env.OMB_COMMS_TOKEN, { title, message: `Work on ${title}`, ...(toBotId ? { toBotId } : {}) });
+    const env = agents.env.ODB_GATE_UPSTREAM ? JSON.parse(agents.env.ODB_GATE_UPSTREAM).env : agents.env;
+    return internal(f, "/api/internal/threads", env.ODB_COMMS_TOKEN, { title, message: `Work on ${title}`, ...(toBotId ? { toBotId } : {}) });
   };
   const ownThread = async (botId: string, title: string) => {
     await expect.poll(async () => (await botRow(f, botId)).tasks.find((task: any) => task.title === title)?.threadId, { timeout: 20_000, interval: 50 }).toBeTruthy();
@@ -381,7 +381,7 @@ describe("a Starter Cloud", () => {
   const tellPlan = async (tier: string) => {
     const body = JSON.stringify({ v: 1, tier }), timestamp = String(Math.floor(Date.now() / 1000)), nonce = randomBytes(16).toString("base64url");
     const response = await fetch(`${f.base}/api/cloud/plan`, { method: "POST", body, headers: { host: HOST, "x-forwarded-for": "203.0.113.9", "x-forwarded-proto": "https", "content-type": "application/json",
-      "x-omb-cloud-timestamp": timestamp, "x-omb-cloud-nonce": nonce, "x-omb-cloud-signature": `v1=${cloudRequestSignature(f.secret, timestamp, nonce, "POST", "/api/cloud/plan", body)}` } });
+      "x-odb-cloud-timestamp": timestamp, "x-odb-cloud-nonce": nonce, "x-odb-cloud-signature": `v1=${cloudRequestSignature(f.secret, timestamp, nonce, "POST", "/api/cloud/plan", body)}` } });
     expect(response.status).toBe(200);
   };
   const starter = async () => {
@@ -418,7 +418,7 @@ describe("a Starter Cloud", () => {
     await whenStarted(main!);
     f.finish(main!);
     await expect.poll(() => busyThreads(f, botId), { timeout: 20_000, interval: 100 }).toEqual([]);
-    const created = await f.api("POST", "/api/routines", { name: "Slot holder", prompt: "Write the digest.", target: "bot", botId, runOn: "maus", enabled: true, schedule: { type: "daily", time: "23:00" } });
+    const created = await f.api("POST", "/api/routines", { name: "Slot holder", prompt: "Write the digest.", target: "bot", botId, runOn: "delio", enabled: true, schedule: { type: "daily", time: "23:00" } });
     expect(created.status, JSON.stringify(created.body)).toBe(201);
     const run = (await f.api("POST", `/api/routines/${created.body.routine.id}/run`)).body.run;
     await expect.poll(async () => (await f.api("GET", "/api/routines")).body.runs.find((candidate: any) => candidate.id === run.id)?.status, { timeout: 20_000, interval: 100 }).toBe("running");
@@ -511,7 +511,7 @@ describe("a Starter Cloud", () => {
     await whenStarted(threads[1]!);
     const refused = await f.api("POST", `/api/bots/${botId}/messages/guarded`, { threadId: threads[0], sendId: randomUUID(), text: "From a script", expectedActiveLeafId: null, expectedApprovalMode: "ask" });
     expect(refused.status, JSON.stringify(refused.body)).toBe(409);
-    const created = await f.api("POST", "/api/routines", { name: "Digest", prompt: "Write the digest.", target: "bot", botId, runOn: "maus", enabled: true, schedule: { type: "daily", time: "23:00" } });
+    const created = await f.api("POST", "/api/routines", { name: "Digest", prompt: "Write the digest.", target: "bot", botId, runOn: "delio", enabled: true, schedule: { type: "daily", time: "23:00" } });
     expect(created.status, JSON.stringify(created.body)).toBe(201);
     const run = (await f.api("POST", `/api/routines/${created.body.routine.id}/run`)).body.run;
     const state = async () => (await f.api("GET", "/api/routines")).body.runs.find((candidate: any) => candidate.id === run.id);

@@ -46,12 +46,12 @@ describe("the LAN listener", () => {
     expect(privateConnection(undefined, "10.0.0.9")).toBe(false);
   });
 
-  it("listens on loopback unless OMB_LAN=1, then drops every connection with a public end", () => {
+  it("listens on loopback unless ODB_LAN=1, then drops every connection with a public end", () => {
     const loopback = new EventEmitter() as unknown as Server;
     expect(listenHost(loopback, {})).toBe("127.0.0.1");
     expect((loopback as unknown as EventEmitter).listenerCount("connection")).toBe(0);
     const lan = new EventEmitter();
-    expect(listenHost(lan as unknown as Server, { OMB_LAN: "1" })).toBe("0.0.0.0");
+    expect(listenHost(lan as unknown as Server, { ODB_LAN: "1" })).toBe("0.0.0.0");
     const socket = (localAddress: string, remoteAddress: string) => ({ localAddress, remoteAddress, destroyed: false, destroy() { this.destroyed = true; } });
     const stranger = socket("192.168.1.20", "203.0.113.9");
     const neighbour = socket("192.168.1.20", "192.168.1.50");
@@ -60,10 +60,10 @@ describe("the LAN listener", () => {
     expect([stranger.destroyed, neighbour.destroyed]).toEqual([true, false]);
   });
 
-  it("links to this network's address with OMB_LAN=1 only", () => {
+  it("links to this network's address with ODB_LAN=1 only", () => {
     const addresses = () => ({ lan: ["192.168.1.20", "100.70.0.1"], tailscale: [] });
-    expect(lanUrl(8799, { OMB_LAN: "1" }, addresses)).toBe("http://192.168.1.20:8799");
+    expect(lanUrl(8799, { ODB_LAN: "1" }, addresses)).toBe("http://192.168.1.20:8799");
     expect(lanUrl(8799, {}, addresses)).toBeNull();
-    expect(lanUrl(8799, { OMB_LAN: "1" }, () => ({ lan: [], tailscale: [] }))).toBeNull();
+    expect(lanUrl(8799, { ODB_LAN: "1" }, () => ({ lan: [], tailscale: [] }))).toBeNull();
   });
 });

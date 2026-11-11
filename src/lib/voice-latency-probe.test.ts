@@ -21,7 +21,7 @@ describe("voice latency recorder", () => {
 
   it("attributes each thread's first delta to its own completed message", () => {
     const probe: VoiceProbeSample[] = [];
-    vi.stubGlobal("window", { __ombVoiceProbe: probe });
+    vi.stubGlobal("window", { __odbVoiceProbe: probe });
     const clock = vi.spyOn(performance, "now");
     clock.mockReturnValueOnce(100);
     recordRuntimeEvent(delta("interleave-a"));
@@ -38,7 +38,7 @@ describe("voice latency recorder", () => {
 
   it("clears only the pending delta of the thread whose turn started", () => {
     const probe: VoiceProbeSample[] = [];
-    vi.stubGlobal("window", { __ombVoiceProbe: probe });
+    vi.stubGlobal("window", { __odbVoiceProbe: probe });
     const clock = vi.spyOn(performance, "now");
     clock.mockReturnValueOnce(100);
     recordRuntimeEvent(delta("clear-a"));
@@ -56,7 +56,7 @@ describe("voice latency recorder", () => {
 
   it("records a fresh first delta after its own thread's turn restarts", () => {
     const probe: VoiceProbeSample[] = [];
-    vi.stubGlobal("window", { __ombVoiceProbe: probe });
+    vi.stubGlobal("window", { __odbVoiceProbe: probe });
     const clock = vi.spyOn(performance, "now");
     clock.mockReturnValueOnce(100);
     recordRuntimeEvent(delta("restart"));

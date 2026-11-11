@@ -9,7 +9,7 @@ let home: string;
 
 /** The real package path over a throwaway home: what a moved Bot actually becomes. */
 async function installation() {
-  home = mkdtempSync(join(tmpdir(), "omb-grok-move-"));
+  home = mkdtempSync(join(tmpdir(), "odb-grok-move-"));
   vi.resetModules();
   vi.stubEnv("HOME", home);
   vi.stubEnv("USERPROFILE", home);

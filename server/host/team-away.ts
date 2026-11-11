@@ -1,5 +1,5 @@
 // A Team Cloud tells people what happened while they were away: a teammate mentioned them, a bot waits on their answer,
-// work they asked for finished. The Admin owns their addresses and sends the email (openmaus-cloud docs/team-cloud.md
+// work they asked for finished. The Admin owns their addresses and sends the email (opendelio-cloud docs/team-cloud.md
 // "When you are away"); this machine decides what is worth one and asks for it with a signed call.
 // Security invariants: what leaves here is names and opaque hashes, never a message's words, a conversation's title or
 // an id; an item from someone's private chat names no bot and no place. The Admin checks every address against the
@@ -14,7 +14,7 @@ import type { RequestAuth } from "../request-auth.ts";
 import { PASS, type RouteHandler } from "../routes/table.ts";
 import type { SessionRecord } from "../sessions.ts";
 
-/** On the Admin; must match openmaus-cloud's TEAM_AWAY_MACHINE_PATH. */
+/** On the Admin; must match opendelio-cloud's TEAM_AWAY_MACHINE_PATH. */
 export const TEAM_AWAY_ADMIN_PATH = "/api/cloud/machines/team-away";
 /** The person's own switch: `GET` → `{ on }`, `PUT { on }` → `{ on }`. A Team Cloud session only. */
 export const AWAY_EMAILS_PATH = "/api/me/away-emails";
@@ -65,13 +65,13 @@ const answerSchema = z.object({
   off: z.array(z.string().max(320)).max(1_000).optional(),
 });
 
-/** Must match openmaus-cloud's teamAwaySignature. */
+/** Must match opendelio-cloud's teamAwaySignature. */
 export function teamAwaySignature(secret: string, machineId: string, timestamp: string, nonce: string, body: string): string {
   const bodyHash = createHash("sha256").update(body).digest("base64url");
-  return createHmac("sha256", secret).update(`omb-team-away-v1\n${machineId}\n${timestamp}\n${nonce}\n${bodyHash}`).digest("base64url");
+  return createHmac("sha256", secret).update(`odb-team-away-v1\n${machineId}\n${timestamp}\n${nonce}\n${bodyHash}`).digest("base64url");
 }
 
-export const awayKey = (about: string): string => createHash("sha256").update(`omb-team-away\n${about}`).digest("hex");
+export const awayKey = (about: string): string => createHash("sha256").update(`odb-team-away\n${about}`).digest("hex");
 
 /** Something that happened for one person. `about` is what makes it the same thing twice; only its hash leaves. */
 export interface AwayEvent {
@@ -211,8 +211,8 @@ export function createTeamAway(deps: TeamAwayDeps) {
     const body = JSON.stringify(request);
     const timestamp = String(Math.floor(now() / 1000)), nonce = randomBytes(18).toString("base64url");
     const response = await fetcher(`${deps.adminOrigin}${TEAM_AWAY_ADMIN_PATH}`, { method: "POST", redirect: "error", cache: "no-store", body, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS), headers: {
-      accept: "application/json", "content-type": "application/json", "x-omb-cloud-machine": deps.machineId, "x-omb-cloud-timestamp": timestamp, "x-omb-cloud-nonce": nonce,
-      "x-omb-cloud-signature": `v1=${teamAwaySignature(deps.secret, deps.machineId, timestamp, nonce, body)}`,
+      accept: "application/json", "content-type": "application/json", "x-odb-cloud-machine": deps.machineId, "x-odb-cloud-timestamp": timestamp, "x-odb-cloud-nonce": nonce,
+      "x-odb-cloud-signature": `v1=${teamAwaySignature(deps.secret, deps.machineId, timestamp, nonce, body)}`,
     } });
     const json = /^application\/json\b/i.test(response.headers.get("content-type") ?? "");
     if (response.status !== 200 || !json) { await response.body?.cancel().catch(() => {}); return { status: response.status, answer: null }; }

@@ -61,7 +61,7 @@ function fakeStore(rooms: string[] = []) {
 
 function setup(rooms: string[] = [], maxBytes?: number) {
   const fake = fakeStore(rooms);
-  const docs = new AppDocs(join(mkdtempSync(join(tmpdir(), "omb-chat-apps-")), "app-docs"), maxBytes ? { maxBytes } : {});
+  const docs = new AppDocs(join(mkdtempSync(join(tmpdir(), "odb-chat-apps-")), "app-docs"), maxBytes ? { maxBytes } : {});
   const call = (input: Record<string, unknown>, thread = THREAD, authored?: (id: string) => void) =>
     createAppCard({ store: fake.store, docs, bot: SCOUT, threadId: thread, input, ...(authored ? { authored } : {}) });
   const row = (id: string, thread = THREAD) => fake.rows(thread).find((message) => message.id === id)!;
@@ -224,7 +224,7 @@ describe("a jsx page", () => {
 
 describe("a folder page", () => {
   function folders() {
-    const base = mkdtempSync(join(tmpdir(), "omb-folder-pages-"));
+    const base = mkdtempSync(join(tmpdir(), "odb-folder-pages-"));
     const mine = join(base, "scout"), theirs = join(base, "other");
     for (const [dir, files] of [[join(mine, "dash"), { "index.html": "<h1>Dash</h1><script src=\"app.js\"></script>", "app.js": "draw()", "data.parquet": "PAR1 PAR1" }],
       [join(theirs, "secret"), { "index.html": "<h1>Theirs</h1>" }]] as const) {
@@ -339,10 +339,10 @@ describe("a folder page", () => {
 });
 
 describe("publish_page in the chat", () => {
-  const LIVE = { state: "live" as const, title: "Dash", pageId: "page000000000000000000001", url: "https://page000000000000000000001.mausbot.page/", usage: { pages: 1, limit: 5 } };
+  const LIVE = { state: "live" as const, title: "Dash", pageId: "page000000000000000000001", url: "https://page000000000000000000001.delio.page/", usage: { pages: 1, limit: 5 } };
 
   async function folder() {
-    const base = realpathSync(mkdtempSync(join(tmpdir(), "omb-published-")));
+    const base = realpathSync(mkdtempSync(join(tmpdir(), "odb-published-")));
     mkdirSync(join(base, "dash"));
     writeFileSync(join(base, "dash", "index.html"), "<h1>Dash</h1>");
     writeFileSync(join(base, "dash", "data.csv"), "a\n1");
@@ -436,7 +436,7 @@ describe("versions", () => {
 });
 
 describe("publishablePage", () => {
-  it("serves an HTML page with the theme colours and a quiet mausbot, and a jsx page as static HTML with its transpiled code", () => {
+  it("serves an HTML page with the theme colours and a quiet delio, and a jsx page as static HTML with its transpiled code", () => {
     const { call, store, docs } = setup();
     call({ tool: "show_html", html: PAGE, title: "Sales" });
     call({ tool: "show_html", jsx: JSX_PAGE, title: "Pricing" });
@@ -446,16 +446,16 @@ describe("publishablePage", () => {
     expect(html.files.map((file) => file.path)).toEqual(["index.html"]);
     const page = html.files[0]!.data.toString();
     expect(page).toMatch(/^<!DOCTYPE html><style>:root\{color-scheme:light dark;/);
-    expect(page).toContain("window.mausbot={theme:");
+    expect(page).toContain("window.delio={theme:");
     expect(page).not.toContain("Content-Security-Policy");
     expect(page.endsWith("<h1>Sales</h1><p>Up 12%</p><script>draw()</script></body></html>")).toBe(true);
     const jsx = publishablePage({ store, docs, threadId: THREAD, messageId: "m2" });
     if (!jsx.ok) throw new Error("not publishable");
     const shell = jsx.files[0]!.data.toString();
-    expect(shell).toContain("window.__mausbotPage=function(require,module,exports){");
+    expect(shell).toContain("window.__delioPage=function(require,module,exports){");
     expect(shell).toContain("_react.useState.call(void 0, \"Pro\")");
     expect(shell).not.toContain("useState(\"Pro\")");
-    expect(shell).toContain("page: window.__mausbotPage })");
+    expect(shell).toContain("page: window.__delioPage })");
     expect(shell).not.toContain(", source: ");
   });
 
@@ -539,7 +539,7 @@ describe("appDocument", () => {
     const doc = appDocument({ store, docs, threadId: THREAD, messageId: "m1" })!;
     expect(doc.csp).toContain("script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://esm.sh;");
     expect(doc.csp).toContain("connect-src 'none'");
-    expect(doc.srcdoc).not.toContain("mausbot");
+    expect(doc.srcdoc).not.toContain("delio");
     expect(doc).toMatchObject({ tool: { name: "get-time" }, toolResult: { content: [{ type: "text", text: "12:00" }] }, network: { connect: [], resources: ["https://esm.sh"] } });
     expect(doc.can).toMatchObject({ serverTools: false, serverResources: false });
     expect(doc.blocked).toEqual({ reason: "server-removed", text: "Basic is no longer connected" });
@@ -649,7 +649,7 @@ describe("createChatApps", () => {
     try {
       const fake = fakeStore();
       const refs = vi.fn((): string[] => []);
-      const apps = createChatApps({ store: fake.store, dataDir: mkdtempSync(join(tmpdir(), "omb-chat-apps-")), references: refs });
+      const apps = createChatApps({ store: fake.store, dataDir: mkdtempSync(join(tmpdir(), "odb-chat-apps-")), references: refs });
       opened.push(apps);
       expect(apps.createAppCard({ bot: SCOUT, threadId: THREAD, input: { tool: "show_html", html: PAGE, title: "Sales" } })).toEqual({ ok: true, messageId: "m1" });
       expect(apps.appDocument(THREAD, "m1")?.csp).toBe(BOT_HTML_CSP);
@@ -674,14 +674,14 @@ describe("createChatApps", () => {
 describe("a live folder page", () => {
   function liveSetup(maxBytes?: number, paused?: () => boolean, liveRoots?: (threadId: string, botId: string | undefined) => readonly string[] | null) {
     const fake = fakeStore();
-    const base = mkdtempSync(join(tmpdir(), "omb-live-pages-"));
+    const base = mkdtempSync(join(tmpdir(), "odb-live-pages-"));
     const dash = join(base, "dash");
     mkdirSync(dash, { recursive: true });
     writeFileSync(join(dash, "index.html"), "<h1>Dash</h1><script src=\"app.js\"></script>");
     writeFileSync(join(dash, "app.js"), "draw()");
     writeFileSync(join(dash, "data.csv"), "day,sales\n1,10\n");
     const live = vi.fn((): Array<{ threadId: string; messageId: string }> => []);
-    const apps = createChatApps({ store: fake.store, dataDir: mkdtempSync(join(tmpdir(), "omb-chat-apps-")), sweeps: false, liveRows: live, ...(maxBytes ? { maxBytes } : {}), ...(paused ? { paused } : {}), ...(liveRoots ? { liveRoots } : {}) });
+    const apps = createChatApps({ store: fake.store, dataDir: mkdtempSync(join(tmpdir(), "odb-chat-apps-")), sweeps: false, liveRows: live, ...(maxBytes ? { maxBytes } : {}), ...(paused ? { paused } : {}), ...(liveRoots ? { liveRoots } : {}) });
     opened.push(apps);
     const folders = async () => ({ roots: [base], vmWorkspace: null });
     const show = (input: Record<string, unknown>) => apps.createAppCard({ bot: SCOUT, threadId: THREAD, input: { tool: "show_html", title: "Dash", ...input }, folders });
@@ -726,7 +726,7 @@ describe("a live folder page", () => {
     writeFileSync(join(dash, "data.csv"), "day,sales\n1,12\n");
     expect(await apps.refreshLive()).toBe(1);
     // The conversation's working folder moved elsewhere: the card keeps the page it shows, and is no longer live.
-    roots = [mkdtempSync(join(tmpdir(), "omb-live-elsewhere-"))];
+    roots = [mkdtempSync(join(tmpdir(), "odb-live-elsewhere-"))];
     writeFileSync(join(dash, "data.csv"), "day,sales\n1,13\n");
     expect(await apps.refreshLive()).toBe(0);
     expect(row("m1").app).toMatchObject({ rev: 1 });

@@ -23,7 +23,7 @@ function scriptedEngine(batches: MeetingEvent[][]) {
 }
 
 function setup(engine: MeetingEngine, overrides: Partial<MeetingDeps> = {}) {
-  const dataDir = mkdtempSync(join(tmpdir(), "omb-meetings-"));
+  const dataDir = mkdtempSync(join(tmpdir(), "odb-meetings-"));
   const followUps: string[] = [];
   const said: string[] = [];
   const cards: string[] = [];
@@ -55,9 +55,9 @@ describe("meetings", () => {
       [{ ...at(6), type: "ended", reason: "meeting_ended" }],
     ]);
     const { meetings, followUps, cards, dataDir } = setup(engine);
-    const { record } = meetings.join({ botId: "b1", botName: "Ada", threadId: "t1", owner: "b1", link: MEET, person: "Milind" });
+    const { record } = meetings.join({ botId: "b1", botName: "Ada", threadId: "t1", owner: "b1", link: MEET, person: "Alex" });
     await until(() => record.notes === "asked");
-    expect(engine.join).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ name: "Ada (notes)", consent: expect.stringContaining("taking notes for Milind") }));
+    expect(engine.join).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ name: "Ada (notes)", consent: expect.stringContaining("taking notes for Alex") }));
     expect(engine.supplied).toEqual([{ kind: "eleven", token: "sutkn_fresh" }]);
     expect(followUps[0]).toContain("[Meeting question]");
     expect(followUps[0]).toContain("[Records from the meeting chat.");
@@ -108,7 +108,7 @@ describe("meetings", () => {
       expect(new Headers(init?.headers).get("xi-api-key")).toBe(key);
       return Response.json({ token: "sutkn_single_use" });
     }) as unknown as typeof fetch;
-    const engine = createBotEngine(() => ({ text: "console.log(1)", file: "$HOME/.mausbot-meet/meetbot-test.mjs" }));
+    const engine = createBotEngine(() => ({ text: "console.log(1)", file: "$HOME/.delio-meet/meetbot-test.mjs" }));
     const { meetings } = setup(engine, { computer: () => computer, speech: () => speechSource({ tts: { key } }, {}, fetchImpl, {}) });
     const { record } = meetings.join({ botId: "b1", botName: "Ada", threadId: "t1", owner: "b1", link: MEET });
     await until(() => record.phase === "ended");
@@ -170,7 +170,7 @@ describe("meetings", () => {
       start: async (command) => { commands.push(command); return { ok: true }; },
     };
     const fetchImpl = vi.fn(async () => Response.json({ words: [{ word: "Hi", start: 0, end: 0.2 }] })) as unknown as typeof fetch;
-    const engine = createBotEngine(() => ({ text: "console.log(1)", file: "$HOME/.mausbot-meet/meetbot-test.mjs" }));
+    const engine = createBotEngine(() => ({ text: "console.log(1)", file: "$HOME/.delio-meet/meetbot-test.mjs" }));
     const { meetings } = setup(engine, { computer: () => computer, speech: () => speechSource({ groq: { key } }, {}, fetchImpl, {}) });
     const { record } = meetings.join({ botId: "b1", botName: "Ada", threadId: "t1", owner: "b1", link: MEET });
     await until(() => commands.some((command) => command.includes(" put ")));

@@ -4,9 +4,9 @@
 # suite stay in CI. A checkout without dependencies, as an agent's worktree often is, checks nothing and lets the push go.
 #
 # Installed by `pnpm install` through scripts/install-git-hooks.mjs (sets core.hooksPath). Skip once with
-# `git push --no-verify`, or for a session with OMB_SKIP_HOOKS=1.
-if [ -n "$OMB_SKIP_HOOKS" ]; then
-  echo "pre-push: skipped (OMB_SKIP_HOOKS is set)"
+# `git push --no-verify`, or for a session with ODB_SKIP_HOOKS=1.
+if [ -n "$ODB_SKIP_HOOKS" ]; then
+  echo "pre-push: skipped (ODB_SKIP_HOOKS is set)"
   exit 0
 fi
 cd "$(git rev-parse --show-toplevel)" || exit 0

@@ -16,7 +16,7 @@ export function backgroundCallArgs(input: {
   model: string;
   outputFormat: "json" | "text";
   supports: (flag: BackgroundFlag) => boolean;
-  /** False while OMB_CLAUDE_INHERIT_USER_CONFIG asks for the person's own setup. */
+  /** False while ODB_CLAUDE_INHERIT_USER_CONFIG asks for the person's own setup. */
   isolated: boolean;
 }): string[] {
   const args = ["-p", "--model", input.model, "--output-format", input.outputFormat, "--settings", BACKGROUND_SETTINGS];
@@ -31,7 +31,7 @@ export function backgroundCallArgs(input: {
 
 /** Runs in an empty temp folder so no project settings or files leak in; the caller removes it once settled. */
 export function spawnBackgroundCall(cli: string, args: string[], env: NodeJS.ProcessEnv) {
-  const cwd = mkdtempSync(join(tmpdir(), "omb-claude-background-"));
+  const cwd = mkdtempSync(join(tmpdir(), "odb-claude-background-"));
   const removeCwd = () => { try { rmSync(cwd, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); } catch {} };
   try {
     return { child: spawnCli(cli, args, { cwd, stdio: ["pipe", "pipe", "pipe"], env, botWork: true }), removeCwd };

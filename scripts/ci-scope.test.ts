@@ -27,7 +27,7 @@ afterEach(() => {
 });
 
 function fixture(source = "src/page.ts") {
-  const directory = mkdtempSync(join(tmpdir(), "omb-ci-scope-"));
+  const directory = mkdtempSync(join(tmpdir(), "odb-ci-scope-"));
   temporaryDirectories.push(directory);
   const git = (...args: string[]) => execFileSync("git", args, { cwd: directory, encoding: "utf8" }).trim();
   git("init", "--quiet");
@@ -100,7 +100,7 @@ describe("CI path scope", () => {
   });
 
   it("runs a test under scripts/ wherever the suite runs, without the build", () => {
-    expect(selectCiScope(["scripts/generate-locale.test.mjs", "scripts/testing/control-omb-ui.e2e.test.ts"]))
+    expect(selectCiScope(["scripts/generate-locale.test.mjs", "scripts/testing/control-odb-ui.e2e.test.ts"]))
       .toEqual({ areas: ["script-tests"], checks: ["browser-identity", "host-tests", "linux-tests", "ui-smoke"] });
   });
 
@@ -223,7 +223,7 @@ describe("CI outputs", () => {
       "server/cloud-team-engine-homes.e2e.test.ts",
       "server/cloud-team-gateway-mcp.e2e.test.ts",
       "server/cloud-team-inbox.e2e.test.ts",
-      "server/cloud-team-mausbot-reach.e2e.test.ts",
+      "server/cloud-team-delio-reach.e2e.test.ts",
       "server/cloud-team-new-chat-private.e2e.test.ts",
       "server/cloud-team-open-reach.e2e.test.ts",
       "server/cloud-team-own-key-apps.e2e.test.ts",
@@ -288,7 +288,7 @@ describe("CI outputs", () => {
       "server/question-routing.e2e.test.ts",
       "server/team-protocol.e2e.test.ts",
       "server/team-small-fixes.e2e.test.ts",
-      "server/team-mausbot-followup.e2e.test.ts",
+      "server/team-delio-followup.e2e.test.ts",
       "server/team-no-ai.e2e.test.ts",
       "server/team-refused-handoff.e2e.test.ts",
       "server/two-places.e2e.test.ts",
@@ -298,7 +298,7 @@ describe("CI outputs", () => {
       "server/place-inbox.e2e.test.ts",
       "server/bot-api-team.e2e.test.ts",
       "server/cloud-team-first-look.e2e.test.ts",
-      "server/cloud-team-mausbot-own-chat.e2e.test.ts",
+      "server/cloud-team-delio-own-chat.e2e.test.ts",
       "server/connector-stayed.e2e.test.ts",
       "server/email/host.test.ts",
       "server/host/outside-lineage.test.ts",
@@ -410,7 +410,7 @@ describe("the Linux work in the static job, on a Boat VM", () => {
     writeFileSync(eventPath, JSON.stringify({ pull_request: { base: { sha: base }, head: { sha: git("rev-parse", "HEAD") } } }));
     const result = spawnSync(process.execPath, [script], {
       cwd: directory, encoding: "utf8", timeout: 5_000,
-      env: { ...process.env, GITHUB_EVENT_NAME: "pull_request", GITHUB_EVENT_PATH: eventPath, GITHUB_OUTPUT: outputPath, OMB_CI_LINUX_IN_STATIC: "true" },
+      env: { ...process.env, GITHUB_EVENT_NAME: "pull_request", GITHUB_EVENT_PATH: eventPath, GITHUB_OUTPUT: outputPath, ODB_CI_LINUX_IN_STATIC: "true" },
     });
     expect(result.status, result.stderr).toBe(0);
     expect(outputs(readFileSync(outputPath, "utf8"))).toEqual(moveLinuxIntoStatic(ciOutputs(selectCiScope(["src/App.tsx"]), LINUX)));
@@ -429,7 +429,7 @@ describe("Windows on a pull request", () => {
   });
 
   it.each([
-    "electron/main.mjs", "build/installer.nsh", "electron-builder.yml", "maus.ps1", "scripts/build-cua-win.mjs",
+    "electron/main.mjs", "build/installer.nsh", "electron-builder.yml", "delio.ps1", "scripts/build-cua-win.mjs",
     "scripts/smoke-cua-win-embedded.mjs", "server/win32-paths.ts", "server/shell/windows.ts", "server/foo.win32.test.ts",
     ".github/workflows/package-win.yml", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", ".gitattributes", "vite.config.ts",
     "third_party/browser/agent-browser-windows-stdio.patch", ".github/workflows/ci.yml", "scripts/ci-scope.mjs",
@@ -441,7 +441,7 @@ describe("Windows on a pull request", () => {
 
   it.each([
     "server/index.ts", "src/components/WindowFrame.tsx", "server/darwin.ts", "server/twin.ts", "scripts/verify-sidebar.ts",
-    "scripts/testing/rail-preview.tsx", "scripts/control-omb.ts", ".github/workflows/boat.yml", "tsconfig.json", "server/delta-context.e2e.test.ts",
+    "scripts/testing/rail-preview.tsx", "scripts/control-odb.ts", ".github/workflows/boat.yml", "tsconfig.json", "server/delta-context.e2e.test.ts",
   ])("waits for main for %s alone", (file) => {
     expect(reason([file])).toBeNull();
   });
@@ -666,7 +666,7 @@ describe("CI scope CLI", () => {
 });
 
 const pkg = (version: string, extra: Record<string, unknown> = {}) =>
-  `${JSON.stringify({ name: "openmausbot", private: true, version, scripts: { test: "vitest run" }, ...extra }, null, 2)}\n`;
+  `${JSON.stringify({ name: "opendeliobot", private: true, version, scripts: { test: "vitest run" }, ...extra }, null, 2)}\n`;
 
 describe("version-only package.json", () => {
   it("is only a changed top-level version", () => {
@@ -680,7 +680,7 @@ describe("version-only package.json", () => {
     ["a dependency added", pkg("0.1.100"), pkg("0.1.101", { dependencies: { zod: "4" } })],
     ["a script changed", pkg("0.1.100"), pkg("0.1.101").replace("vitest run", "vitest run --bail")],
     ["a nested version changed", pkg("0.1.100", { engines: { version: "1" } }), pkg("0.1.101", { engines: { version: "2" } })],
-    ["other keys reordered", pkg("0.1.100"), JSON.stringify({ private: true, name: "openmausbot", version: "0.1.101", scripts: { test: "vitest run" } })],
+    ["other keys reordered", pkg("0.1.100"), JSON.stringify({ private: true, name: "opendeliobot", version: "0.1.101", scripts: { test: "vitest run" } })],
     ["no version before", JSON.stringify({ name: "x" }), JSON.stringify({ name: "x", version: "1.0.0" })],
     ["not JSON", "{", pkg("0.1.101")],
     ["not an object", "[]", "[]"],

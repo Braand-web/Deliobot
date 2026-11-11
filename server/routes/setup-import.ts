@@ -7,7 +7,7 @@ import type { BusyFlag } from "./config.ts";
 import { PASS, type RouteHandler } from "./table.ts";
 
 export interface SetupImportRouteDeps {
-  /** True only on the desktop app's own server. Never on `openmausbot serve`, where any local process, a bot's shell
+  /** True only on the desktop app's own server. Never on `opendeliobot serve`, where any local process, a bot's shell
    * among them, is the owner's loopback; nor on a Cloud home or a hosted organization server, whose files are not the
    * person's own. */
   local: boolean;
@@ -22,7 +22,7 @@ export interface SetupImportRouteDeps {
 
 export const SETUP_IMPORT_PATH = "/api/setup-import";
 export const GROK_LOOK_PATH = "/api/setup-import/grok";
-const LOCAL_ONLY = "Only the desktop app on the computer running OpenMausBot can bring in that computer's skills and tools.";
+const LOCAL_ONLY = "Only the desktop app on the computer running OpenDeliobot can bring in that computer's skills and tools.";
 const requestSchema = z.object({ skills: z.boolean().optional(), tools: z.boolean().optional() }).strict();
 
 /** GET finds what is new here; POST brings in the chosen kinds. Only the owner's own loopback, never a paired device,

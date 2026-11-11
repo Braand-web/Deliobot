@@ -1,10 +1,10 @@
-// Voice notes on OpenMausBot's own chat runtime (an API-key provider): a loopback provider scripts the model, and a
+// Voice notes on OpenDeliobot's own chat runtime (an API-key provider): a loopback provider scripts the model, and a
 // loopback speech stub stands in for the voice provider, so no external service is reached.
 import { createServer, type Server } from "node:http";
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { expect, it } from "vitest";
-import { launchVerificationServer, runControlOmb } from "../scripts/control-omb.ts";
+import { launchVerificationServer, runControlOdb } from "../scripts/control-odb.ts";
 import { lastNonReceipt } from "../src/lib/receipts.ts";
 
 const MP3 = Buffer.from("ID3 fake mp3 for the chat voice note fixture");
@@ -90,7 +90,7 @@ async function withChatVoice(test: (f: {
     await close(speech);
     throw error;
   });
-  const control = (args: string[]) => runControlOmb([...args, "--url", fixture.info.url]) as Promise<any>;
+  const control = (args: string[]) => runControlOdb([...args, "--url", fixture.info.url]) as Promise<any>;
   const api = async (method: string, path: string, body?: unknown) => {
     const response = await fetch(`${fixture.info.url}${path}`, {
       method, headers: { "content-type": "application/json", origin: fixture.info.url },

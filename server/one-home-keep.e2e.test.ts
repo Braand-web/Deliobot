@@ -14,7 +14,7 @@ const TOKEN = `ops_fake-keep-${randomBytes(8).toString("hex")}`;
 let fx: CloudSendFixture, studio: CloudSendDesk;
 
 beforeAll(async () => {
-  fx = await launchCloudSendFixture({ onePasswordToken: TOKEN, env: { OMB_ENVIRONMENT_LABEL: "MacBook Air" } });
+  fx = await launchCloudSendFixture({ onePasswordToken: TOKEN, env: { ODB_ENVIRONMENT_LABEL: "MacBook Air" } });
   studio = await fx.addDesk({ label: "Studio iMac" });
 }, hostTimeout(120_000));
 afterAll(async () => { await fx?.close(); });
@@ -85,7 +85,7 @@ it("turned on after the move, this computer's bots come home with what they did 
   const cloudScout = (await rows(fx.onCloud, scout.threadId)).map((row) => row.id);
   const imacBefore = { journal: read(studio.journalFile), frozen: (await imac("GET", "/api/move/freeze")).body.frozen, routines: await switches(imac) };
 
-  // Settings → MausBot Cloud, Advanced, on My Cloud's page: the switch, and the person confirming it.
+  // Settings → Delio Cloud, Advanced, on My Cloud's page: the switch, and the person confirming it.
   expect(await fx.call("one-home:keep", "cloud")).toEqual({ shown: true, on: false, moved: true, coming: false });
   expect(await fx.call("one-home:keep-set", "cloud", true)).toMatchObject({ shown: true, on: true });
   await until(fx.oneHome, fx.journalFile, "back");

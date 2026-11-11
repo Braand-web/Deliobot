@@ -9,7 +9,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { expect, it } from "vitest";
 
-import { launchVerificationServer, runControlOmb, verificationServerEnvironment } from "../scripts/control-omb.ts";
+import { launchVerificationServer, runControlOdb, verificationServerEnvironment } from "../scripts/control-odb.ts";
 import { waitForExit } from "./testing/cleanup.ts";
 
 const codex = { instanceId: "codex", model: "gpt-fake-default" };
@@ -50,7 +50,7 @@ async function withLimitFixture(setup: { recovery?: unknown; secondClaude?: bool
     return result;
   };
   const control = async (...args: string[]) => {
-    const result = await runControlOmb([...args, "--url", url]) as any;
+    const result = await runControlOdb([...args, "--url", url]) as any;
     evidence.push({ command: args, result });
     return result;
   };
@@ -72,7 +72,7 @@ async function withLimitFixture(setup: { recovery?: unknown; secondClaude?: bool
         "--experimental-strip-types", "--import", new URL("./testing/limit-clock-hooks.mjs", import.meta.url).href, fileURLToPath(new URL("./index.ts", import.meta.url)),
       ], {
         cwd: fileURLToPath(new URL("..", import.meta.url)),
-        env: { ...verificationServerEnvironment({}, dataDir, Number(new URL(url).port)), OMB_TEST_LIMIT_CLOCK: "1", OMB_TEST_PLAN_USAGE_FILE: usageFile },
+        env: { ...verificationServerEnvironment({}, dataDir, Number(new URL(url).port)), ODB_TEST_LIMIT_CLOCK: "1", ODB_TEST_PLAN_USAGE_FILE: usageFile },
         stdio: ["ignore", log, log],
       });
       closeSync(log);

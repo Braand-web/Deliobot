@@ -13,7 +13,7 @@ const dirs: string[] = [];
 afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }); });
 
 function setup(linked: Parameters<typeof createMcpKeys>[0]["linked"] = { fresh: async () => {}, byId: () => null }) {
-  const dir = mkdtempSync(join(tmpdir(), "omb-mcp-keys-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-mcp-keys-"));
   dirs.push(dir);
   const store = new VaultStore({ dataDir: dir });
   const keys = createMcpKeys({ store, linked });
@@ -69,7 +69,7 @@ describe("a Vault key behind a vault: pointer in an MCP server", () => {
   });
 
   it("refuses a header value with a line break, as a saved header would be", () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-mcp-keys-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-mcp-keys-"));
     dirs.push(dir);
     const store = new VaultStore({ dataDir: dir });
     const keys = createMcpKeys({ store, linked: { fresh: async () => {}, byId: () => null } });

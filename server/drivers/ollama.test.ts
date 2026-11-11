@@ -93,7 +93,7 @@ const EMBED: FakeModel = { name: "nomic-embed-text:latest", size: 274_302_450, d
 
 describe("Ollama's model list", () => {
   it("keeps the chat models with their size, parameters and quantization", () => {
-    expect(ollamaTags({ models: [LLAMA, EMBED, { name: "llama3.2:latest-omb-32k", size: GB }, { name: "mxbai-embed-large" }, LLAMA] })).toEqual([
+    expect(ollamaTags({ models: [LLAMA, EMBED, { name: "llama3.2:latest-odb-32k", size: GB }, { name: "mxbai-embed-large" }, LLAMA] })).toEqual([
       { name: "llama3.2:latest", bytes: 2_019_393_189, parameters: "3.2B", quantization: "Q4_K_M" },
     ]);
   });
@@ -412,7 +412,7 @@ describe("the chat engine on Ollama", () => {
         await recorder.until((event) => event.type === "turn.completed" && event.threadId === threadId);
       }
       expect(chats.map((chat) => chat.reasoning_effort)).toEqual(["none", undefined, "high", undefined]);
-      expect(chats[0]!.model).toMatch(/-omb-\d+k$/);
+      expect(chats[0]!.model).toMatch(/-odb-\d+k$/);
     } finally {
       recorder.stop();
       await instance.dispose();

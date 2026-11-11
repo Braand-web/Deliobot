@@ -79,9 +79,9 @@ describe("Your MCP servers inside the Apps pop-up", () => {
 
   it("says which computer a server of another computer's runs on, and offers no sign-in to it here", () => {
     const oauth = { clientId: "c", scopes: [], clientSecretConfigured: false, redirectUri: "http://127.0.0.1:1/cb" };
-    fixture.servers = [{ name: "notes", type: "http", url: "http://127.0.0.1:9/mcp", headerKeys: [], enabled: true, oauth, runsOn: { environmentId: "env-1", label: "Milind's MacBook" } }];
+    fixture.servers = [{ name: "notes", type: "http", url: "http://127.0.0.1:9/mcp", headerKeys: [], enabled: true, oauth, runsOn: { environmentId: "env-1", label: "Alex's MacBook" } }];
     const html = render(true).replaceAll("&#x27;", "'");
-    expect(html).toContain("Runs on Milind's MacBook, so it isn't started here.");
+    expect(html).toContain("Runs on Alex's MacBook, so it isn't started here.");
     expect(html).not.toContain("Sign in");
     fixture.servers = [{ name: "docs", type: "http", url: "https://mcp.example.com/mcp", headerKeys: [], enabled: true, oauth }];
     expect(render(true)).toContain("Sign in");

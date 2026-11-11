@@ -33,7 +33,7 @@ const PKEXEC_DISMISSED = 126;
 const PKEXEC_NOT_AUTHORIZED = 127;
 const CHECKSUM_MISMATCH = 65;
 
-// `OMB_UPDATE_INSTALL=terminal` opts out.
+// `ODB_UPDATE_INSTALL=terminal` opts out.
 export function canInstallElevated({
   platform = process.platform,
   env = process.env,
@@ -41,7 +41,7 @@ export function canInstallElevated({
   access = accessSync,
 } = {}) {
   if (platform !== "linux") return false;
-  if (env.OMB_UPDATE_INSTALL === "terminal") return false;
+  if (env.ODB_UPDATE_INSTALL === "terminal") return false;
   if (!env.DISPLAY && !env.WAYLAND_DISPLAY) return false;
   try {
     access(pkexec, constants.X_OK);

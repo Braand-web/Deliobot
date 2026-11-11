@@ -8,8 +8,8 @@ const CHECK_EVERY_MS = 30_000;
 const DOCTYPE = /^\s*<!doctype[^>]*>/iu;
 
 const reloadCheck = (version: string) =>
-  `<meta name="omb-live" content="${version}"><script>(()=>{const v="${version}";setInterval(async()=>{try{` +
-  `const t=await(await fetch(location.href,{cache:"no-store"})).text();const m=/<meta name="omb-live" content="([0-9a-f]+)"/.exec(t);` +
+  `<meta name="odb-live" content="${version}"><script>(()=>{const v="${version}";setInterval(async()=>{try{` +
+  `const t=await(await fetch(location.href,{cache:"no-store"})).text();const m=/<meta name="odb-live" content="([0-9a-f]+)"/.exec(t);` +
   `if(m&&m[1]!==v)location.reload()}catch{}},${CHECK_EVERY_MS})})()</script>`;
 
 /** The files with the reload check put at the top of index.html (after its doctype, so the page keeps its mode). */

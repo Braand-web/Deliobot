@@ -3,14 +3,14 @@ import { closeSync, existsSync, mkdirSync, mkdtempSync, openSync, readFileSync, 
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, it } from "vitest";
-import { launchVerificationServer, verificationServerArgs, verificationServerEnvironment } from "../scripts/control-omb.ts";
+import { launchVerificationServer, verificationServerArgs, verificationServerEnvironment } from "../scripts/control-odb.ts";
 import { verifyWorkspaceBackup } from "../scripts/verify-workspace-backup.ts";
 import { waitForExit } from "./testing/cleanup.ts";
 import { commitPendingWorkspaceRestore, createWorkspaceBackup, stageWorkspaceBackup } from "./workspace-backup.ts";
 
 it("starts the server with the original workspace after an interrupted restore preparation", async () => {
   const fixture = await launchVerificationServer({});
-  const source = mkdtempSync(join(tmpdir(), "omb-restore-prepare-"));
+  const source = mkdtempSync(join(tmpdir(), "odb-restore-prepare-"));
   let restarted: ChildProcess | undefined;
   try {
     await waitForExit(fixture.child, { signal: "SIGTERM" });
@@ -23,7 +23,7 @@ it("starts the server with the original workspace after an interrupted restore p
     commitPendingWorkspaceRestore(target, staged.id);
     mkdirSync(join(target, ".backups", `safety-${staged.id}`, "data"), { recursive: true });
     const env = verificationServerEnvironment({}, join(source, "home"), Number(new URL(fixture.info.url).port));
-    env.OMB_DATA_DIR = target;
+    env.ODB_DATA_DIR = target;
     mkdirSync(env.TMPDIR!, { recursive: true });
     const log = openSync(fixture.info.logPath, "a", 0o600);
     try {
@@ -38,7 +38,7 @@ it("starts the server with the original workspace after an interrupted restore p
     }, { timeout: 20_000 }).toBe(true);
     const response = await fetch(`${fixture.info.url}/api/health`);
     expect(response.status).toBe(200);
-    expect(await response.json()).toMatchObject({ app: "openmausbot", pid: restarted.pid });
+    expect(await response.json()).toMatchObject({ app: "opendeliobot", pid: restarted.pid });
     expect(readFileSync(join(target, "note.txt"), "utf8")).toBe("original workspace");
     expect(existsSync(join(target, ".backups", "pending-restore.json"))).toBe(false);
   } finally {

@@ -4,7 +4,7 @@ import test from "node:test";
 import { createMoveLease } from "./move-lease.mjs";
 import { CHECK_RESUME_MS, createOneHome, FROZEN_RETRY_MS, QUEUE_POLL_MS, QUIET_MS } from "./one-home.mjs";
 
-const CLOUD = "https://omb-t-1.fly.dev";
+const CLOUD = "https://odb-t-1.fly.dev";
 const reply = (status, body = {}) => ({ ok: status < 400, status, body });
 const timeout = () => new DOMException("The operation was aborted due to timeout", "TimeoutError");
 

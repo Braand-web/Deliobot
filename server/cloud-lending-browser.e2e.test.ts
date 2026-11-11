@@ -10,7 +10,7 @@ import { dirname, join } from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterAll, beforeAll, expect, it } from "vitest";
-import { launchVerificationServer, type VerificationServer } from "../scripts/control-omb.ts";
+import { launchVerificationServer, type VerificationServer } from "../scripts/control-odb.ts";
 import { createComputerSharing } from "../electron/computer-sharing.mjs";
 import { helperMissing, SCREEN_LOCKED } from "../electron/lent-screen-failures.mjs";
 import { createHostScreenLease } from "../electron/host-screen-lease.mjs";
@@ -22,7 +22,7 @@ import { hostTimeout } from "./testing/host-timeout.ts";
 import { freePortBlock } from "./testing/ports.ts";
 
 const SERVER_DIR = dirname(fileURLToPath(import.meta.url));
-const HOST = "omb-t-0123456789ab.fly.dev";
+const HOST = "odb-t-0123456789ab.fly.dev";
 const secret = randomBytes(32).toString("base64url");
 const edge = { host: HOST, "x-forwarded-for": "203.0.113.9", "x-forwarded-proto": "https", origin: `https://${HOST}` };
 let home = "";
@@ -58,11 +58,11 @@ async function api(method: string, path: string, options: { body?: unknown; toke
 }
 
 async function adminPairing(): Promise<string> {
-  const body = JSON.stringify({ label: "OpenMausBot app (Cloud)", ttlSeconds: 300 });
+  const body = JSON.stringify({ label: "OpenDeliobot app (Cloud)", ttlSeconds: 300 });
   const timestamp = String(Math.floor(Date.now() / 1000)), nonce = randomBytes(16).toString("base64url");
   const response = await fetch(`${base}/api/cloud/pairing`, { method: "POST", headers: {
     ...edge, "content-type": "application/json",
-    "x-omb-cloud-timestamp": timestamp, "x-omb-cloud-nonce": nonce, "x-omb-cloud-signature": `v1=${cloudPairingSignature(secret, timestamp, nonce, body)}`,
+    "x-odb-cloud-timestamp": timestamp, "x-odb-cloud-nonce": nonce, "x-odb-cloud-signature": `v1=${cloudPairingSignature(secret, timestamp, nonce, body)}`,
   }, body });
   const granted = await response.json() as { code: string };
   return (await api("POST", "/api/auth/pair", { body: { code: granted.code } })).body.token;
@@ -130,8 +130,8 @@ readline.createInterface({ input: process.stdin }).on("line", async line => {
 }
 
 beforeAll(async () => {
-  home = mkdtempSync(join(tmpdir(), "omb-lent-browser-"));
-  const dataDir = join(home, ".openmausbot");
+  home = mkdtempSync(join(tmpdir(), "odb-lent-browser-"));
+  const dataDir = join(home, ".opendeliobot");
   mkdirSync(dataDir, { recursive: true });
   const cli = join(home, "fixture-claude.mjs");
   writeFileSync(cli, `#!/usr/bin/env node
@@ -152,9 +152,9 @@ await import(${JSON.stringify(pathToFileURL(join(SERVER_DIR, "testing", "fake-cl
     cwd: join(SERVER_DIR, ".."),
     env: {
       PATH: process.env.PATH, ...(process.env.SystemRoot ? { SystemRoot: process.env.SystemRoot } : {}),
-      HOME: home, USERPROFILE: home, OMB_DATA_DIR: dataDir, OMB_PORT: String(port), OMB_WEBHOOK_PORT: String(port + 1),
-      OMB_CLOUD_ROLE: "home", OMB_CLOUD_MACHINE_ID: "3f9c2a4e-8b1d-4c6e-9a7f-2d5e8c1b0a93", OMB_CLOUD_ADMIN_URL: "https://cloud.example.test",
-      OMB_CLOUD_BOOTSTRAP_SECRET: secret, OMB_PUBLIC_URL: `https://${HOST}`,
+      HOME: home, USERPROFILE: home, ODB_DATA_DIR: dataDir, ODB_PORT: String(port), ODB_WEBHOOK_PORT: String(port + 1),
+      ODB_CLOUD_ROLE: "home", ODB_CLOUD_MACHINE_ID: "3f9c2a4e-8b1d-4c6e-9a7f-2d5e8c1b0a93", ODB_CLOUD_ADMIN_URL: "https://cloud.example.test",
+      ODB_CLOUD_BOOTSTRAP_SECRET: secret, ODB_PUBLIC_URL: `https://${HOST}`,
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -260,7 +260,7 @@ it("a screen the PC's own server cannot check says so in one sentence, never tha
   const refused = await screenCall("get_desktop_state");
   leaseUrl = right;
   expect(refused.isError).toBe(true);
-  expect(said(refused)).toMatch(/^OpenMausBot on this computer could not check whether its screen is free \(its server answered 404.*\), so this call was not performed\. This is not a person using the computer\./);
+  expect(said(refused)).toMatch(/^OpenDeliobot on this computer could not check whether its screen is free \(its server answered 404.*\), so this call was not performed\. This is not a person using the computer\./);
   expect((await screenCall("get_desktop_state")).isError).toBeFalsy();
 }, hostTimeout(30_000));
 
@@ -291,9 +291,9 @@ it("a locked screen says to unlock it, and works once unlocked", async () => {
 it("a quarantined driver says how to restore it; restored, the next action works without a restart", async () => {
   screen.set("exit");
   const stopped = await screenCall("get_desktop_state");
-  expect(said(stopped)).toMatch(/^Computer control stopped on this computer because its helper exited and OpenMausBot is restarting it by itself, so try the action once more\b.*Protection history/);
+  expect(said(stopped)).toMatch(/^Computer control stopped on this computer because its helper exited and OpenDeliobot is restarting it by itself, so try the action once more\b.*Protection history/);
   const working = driver;
-  driver = { mcpCommand: join(home, "Program Files", "OpenMausBot", "resources", "cua-driver.exe"), mcpArgs: ["mcp"], mcpEnv: {} };
+  driver = { mcpCommand: join(home, "Program Files", "OpenDeliobot", "resources", "cua-driver.exe"), mcpArgs: ["mcp"], mcpEnv: {} };
   const missing = await screenCall("get_desktop_state");
   expect(said(missing)).toBe(helperMissing());
   expect(said(missing)).not.toContain(home);

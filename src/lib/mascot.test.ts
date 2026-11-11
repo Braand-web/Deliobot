@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { t } from "./i18n";
-import { CHROME_GRADIENT, colorSwatch, MAUS_COLOR_LABEL, MAUS_COLOR_NAMES, MAUS_COLORS, stateForBot } from "./mascot";
+import { CHROME_GRADIENT, colorSwatch, DELIO_COLOR_LABEL, DELIO_COLOR_NAMES, DELIO_COLORS, stateForBot } from "./mascot";
 
 describe("stateForBot", () => {
   it("still alerts on a failed tool call when a digest receipt follows it", () => {
@@ -43,20 +43,20 @@ describe("stateForBot", () => {
 
 describe("silver", () => {
   it("is a colour every picker offers, drawn at #A8ADB4 and named Silver", () => {
-    expect(MAUS_COLOR_NAMES).toContain("silver");
-    expect(MAUS_COLORS.silver).toBe("#A8ADB4");
-    expect(t(MAUS_COLOR_LABEL.silver)).toBe("Silver");
+    expect(DELIO_COLOR_NAMES).toContain("silver");
+    expect(DELIO_COLORS.silver).toBe("#A8ADB4");
+    expect(t(DELIO_COLOR_LABEL.silver)).toBe("Silver");
   });
 });
 
 describe("chrome", () => {
   it("is a colour every picker offers, named Chrome, whose swatch is smooth polished steel", () => {
-    expect(MAUS_COLOR_NAMES).toContain("chrome");
-    expect(t(MAUS_COLOR_LABEL.chrome)).toBe("Chrome");
+    expect(DELIO_COLOR_NAMES).toContain("chrome");
+    expect(t(DELIO_COLOR_LABEL.chrome)).toBe("Chrome");
     const swatch = colorSwatch("chrome");
     expect(swatch.startsWith("radial-gradient(")).toBe(true);
     expect(swatch).not.toContain("repeating");
     for (const tone of CHROME_GRADIENT) expect(swatch).toContain(tone);
-    expect(colorSwatch("blue")).toBe(MAUS_COLORS.blue);
+    expect(colorSwatch("blue")).toBe(DELIO_COLORS.blue);
   });
 });

@@ -35,7 +35,7 @@ describe("the star on a model", () => {
     expect(star.getAttribute("aria-pressed")).toBe("true");
     expect(star.getAttribute("aria-label")).toBe("Remove qwen3:4b from favorites");
     expect(favoriteModels().has(favoriteKey("openaiCompat", "qwen3:4b"))).toBe(true);
-    expect(JSON.parse(localStorage.getItem("omb-favorite-models")!)).toEqual([favoriteKey("openaiCompat", "qwen3:4b")]);
+    expect(JSON.parse(localStorage.getItem("odb-favorite-models")!)).toEqual([favoriteKey("openaiCompat", "qwen3:4b")]);
     flushSync(() => star.click());
     expect(star.getAttribute("aria-pressed")).toBe("false");
   });

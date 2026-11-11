@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Built from relay/ alone: docker build -t omb-relay relay/
+# Built from relay/ alone: docker build -t odb-relay relay/
 FROM node:24-bookworm-slim@sha256:01d566e8d94d8c619591d78652babfccd3c6992a3dffa9ed5ab39e11cf6c70e9 AS deps
 WORKDIR /app
 RUN npm install --global pnpm@10.33.0

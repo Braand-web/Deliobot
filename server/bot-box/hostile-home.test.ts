@@ -16,7 +16,7 @@ describe.skipIf(!posix)("the server's own npm and git, with a HOME a bot wrote",
   let dir: string, home: string, data: string, marker: string;
 
   beforeEach(() => {
-    dir = realpathSync(mkdtempSync(join(tmpdir(), "omb-hostile-")));
+    dir = realpathSync(mkdtempSync(join(tmpdir(), "odb-hostile-")));
     home = join(dir, "home");
     data = join(dir, "data");
     marker = join(dir, "escaped");
@@ -38,17 +38,17 @@ describe.skipIf(!posix)("the server's own npm and git, with a HOME a bot wrote",
     writeFileSync(join(home, ".npmrc"), `script-shell=${hostileScript()}\n`);
     const pkg = join(dir, "pkg");
     mkdirSync(join(pkg, "bin"), { recursive: true });
-    writeFileSync(join(pkg, "bin", "omb-hostile-check"), "#!/usr/bin/env node\nconsole.log('1.0.0');\n", { mode: 0o755 });
+    writeFileSync(join(pkg, "bin", "odb-hostile-check"), "#!/usr/bin/env node\nconsole.log('1.0.0');\n", { mode: 0o755 });
     writeFileSync(join(pkg, "package.json"), JSON.stringify({
-      name: "omb-hostile-check", version: "1.0.0", bin: { "omb-hostile-check": "bin/omb-hostile-check" },
-      scripts: { postinstall: "node -e \"require('fs').writeFileSync(process.env.OMB_TEST_POSTINSTALL, 'ran')\"" },
+      name: "odb-hostile-check", version: "1.0.0", bin: { "odb-hostile-check": "bin/odb-hostile-check" },
+      scripts: { postinstall: "node -e \"require('fs').writeFileSync(process.env.ODB_TEST_POSTINSTALL, 'ran')\"" },
     }));
     const env = { PATH: [dirname(process.execPath), "/usr/bin", "/bin"].join(delimiter), HOME: home };
     const tarball = join(dir, execFileSync("npm", ["pack", "--silent", "--pack-destination", dir, pkg], { cwd: dir, env: { ...env, npm_config_cache: join(dir, "pack-cache") }, encoding: "utf8" }).trim().split("\n").at(-1)!);
     const install = async (boxed: boolean, prefix: string) => {
       mkdirSync(prefix, { recursive: true });
-      const npmEnv = { ...npmEnvironment(env, env.PATH, boxed, data), OMB_TEST_POSTINSTALL: join(prefix, "postinstall-ran"), npm_config_offline: "true" };
-      return runNpm(["install", "-g", "--prefix", prefix, "--loglevel=error", "--allow-scripts=omb-hostile-check", tarball], npmEnv, prefix, 120_000);
+      const npmEnv = { ...npmEnvironment(env, env.PATH, boxed, data), ODB_TEST_POSTINSTALL: join(prefix, "postinstall-ran"), npm_config_offline: "true" };
+      return runNpm(["install", "-g", "--prefix", prefix, "--loglevel=error", "--allow-scripts=odb-hostile-check", tarball], npmEnv, prefix, 120_000);
     };
 
     // The same install with the box off reads HOME's .npmrc: the stand-in for a bot's script runs the install script.

@@ -20,7 +20,7 @@ let events: EventRecorder;
 beforeEach(async () => {
   ensureDirs();
   chmodSync(CLI, 0o755);
-  dir = mkdtempSync(join(tmpdir(), "omb-pi-lifecycle-"));
+  dir = mkdtempSync(join(tmpdir(), "odb-pi-lifecycle-"));
   instance = await PiDriver.create({
     instanceId: "pi-lifecycle",
     displayName: "Pi lifecycle fixture",

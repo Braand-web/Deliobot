@@ -14,7 +14,7 @@ const room = { id: "4f1d6c2e-room", cause: { kind: "memory", waits: 3, waitMinut
 
 /** A fake Admin: the session's `cloud` is `f.cloud`; POST room answers `f.room`, POST resize-now `f.resizeNow`. */
 async function admin(t) {
-  const f = { requests: [], cloud: { state: "ready", origin: "https://omb-u-1a2b3c4d5e6f.fly.dev", pairingAvailable: true, usage, room: { ...room, extra: "dropped" } },
+  const f = { requests: [], cloud: { state: "ready", origin: "https://odb-u-1a2b3c4d5e6f.fly.dev", pairingAvailable: true, usage, room: { ...room, extra: "dropped" } },
     room: [404, { error: "not_found" }], resizeNow: [404, { error: "not_found" }] };
   const server = createServer(async (req, res) => {
     let body = ""; for await (const chunk of req) body += chunk;

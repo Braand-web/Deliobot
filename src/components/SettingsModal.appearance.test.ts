@@ -296,7 +296,7 @@ describe("Settings → Appearance", () => {
     ["wide", "Wide"],
     ["full", "Full width"],
   ])("shows the saved chat width (%s) alongside message colors", (width, label) => {
-    vi.stubGlobal("localStorage", { getItem: (key: string) => key === "omb-chat-width" ? width : null });
+    vi.stubGlobal("localStorage", { getItem: (key: string) => key === "odb-chat-width" ? width : null });
     const html = render();
     expect(html).toContain('aria-label="Chat width"');
     expect(html).toContain(`<option value="${width}" selected="">${label}</option>`);
@@ -450,7 +450,7 @@ describe("Settings → Appearance", () => {
   it("offers personal Cloud separately and only through the local desktop bridge", () => {
     fixture.section = "cloudAccount";
     vi.stubGlobal("window", { ogb: { cloudAccount: {} } });
-    expect(render()).toContain('<option value="cloudAccount" selected="">MausBot Cloud</option>');
+    expect(render()).toContain('<option value="cloudAccount" selected="">Delio Cloud</option>');
     expect(render()).toContain("Free local use");
     fixture.section = "appearance";
     vi.stubGlobal("window", {}); expect(render()).not.toContain('<option value="cloudAccount"');

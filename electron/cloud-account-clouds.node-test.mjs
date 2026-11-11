@@ -6,7 +6,7 @@ import { createCloudAccountClient } from "./cloud-account.mjs";
 
 const accessToken = `omc_${"T".repeat(43)}`;
 const NOW = 1_800_000_000_000;
-const HOME = "https://omb-u-1a2b3c4d5e6f.fly.dev", CLIENT_A = "https://omb-c-a.fly.dev", TEAM = "https://omb-t-acme.fly.dev";
+const HOME = "https://odb-u-1a2b3c4d5e6f.fly.dev", CLIENT_A = "https://odb-c-a.fly.dev", TEAM = "https://odb-t-acme.fly.dev";
 const CHECKOUT = "https://test.checkout.dodopayments.com/session/cks_new";
 const entry = (over = {}) => ({ id: "c-a", name: "Client A", color: "green", role: "owner", tier: "pro", runsOn: "cloud", status: "ready", origin: CLIENT_A,
   teamId: null, seats: null, renewsAt: null, cancelAtPeriodEnd: false, primary: false, ...over });
@@ -94,11 +94,11 @@ test("the session's Clouds: each other own Cloud pairs with its id, and only a g
 test("the Admin's word on each of the person's Clouds by its address: My Cloud's `cloud.power`, another's from the Clouds list", async t => {
   const f = await admin(t);
   f.session = { cloud: { state: "ready", origin: HOME, pairingAvailable: true, power: { state: "awake", since: 5, sleeps: true } },
-    clouds: [PRIMARY, entry({ power: { state: "asleep", since: 7, sleeps: true } }), entry({ id: "c-b", name: "Client B", origin: "https://omb-c-b.fly.dev" })] };
+    clouds: [PRIMARY, entry({ power: { state: "asleep", since: 7, sleeps: true } }), entry({ id: "c-b", name: "Client B", origin: "https://odb-c-b.fly.dev" })] };
   await f.client.start();
   assert.deepEqual(f.client.powerOf(HOME), { state: "awake", since: 5, sleeps: true });
   assert.deepEqual(f.client.powerOf(CLIENT_A), { state: "asleep", since: 7, sleeps: true });
-  assert.equal(f.client.powerOf("https://omb-c-b.fly.dev"), null, "a Cloud whose plan never sleeps");
+  assert.equal(f.client.powerOf("https://odb-c-b.fly.dev"), null, "a Cloud whose plan never sleeps");
   assert.equal(f.client.powerOf(TEAM), null, "nothing the session lists");
   assert.equal(f.client.powerOf(""), null);
 });
@@ -228,7 +228,7 @@ test("a Cloud's colour is the Admin's: PATCH with the swatch, then the session r
 
 test("Remove from list: only a Cloud the session says is removable is asked about, by its id, then the session is read again; the Admin's no, a Cloud gone and an older Admin are said plainly", async t => {
   const f = await admin(t);
-  const ENDED = entry({ id: "c-old", name: "Old Cloud", status: "ended", origin: "https://omb-c-old.fly.dev", deleteAfter: NOW + 2 * 86400_000, removable: true });
+  const ENDED = entry({ id: "c-old", name: "Old Cloud", status: "ended", origin: "https://odb-c-old.fly.dev", deleteAfter: NOW + 2 * 86400_000, removable: true });
   f.session = { ...f.session, clouds: [PRIMARY, entry(), ENDED, entry({ id: "c-team", name: "Acme", teamId: "team-acme", role: "owner", origin: TEAM, status: "ended", removable: true })] };
   const state = await f.client.start();
   assert.deepEqual(state.clouds.map(cloud => [cloud.id, cloud.removable ?? false, cloud.deleteAfter ?? null]),
@@ -296,7 +296,7 @@ test("the Admin's word on a new organization: the name is taken, the plan has as
 });
 
 test("the Admin's word on a Cloud this computer moved to: only a word it knows, none signed out or from an Admin that can't say", async t => {
-  const f = await admin(t), gone = "https://omb-trial-1.fly.dev";
+  const f = await admin(t), gone = "https://odb-trial-1.fly.dev";
   assert.equal(await f.client.movedTo(gone), null, "not verified yet: nothing is asked");
   assert.equal(f.requests.some(row => row.route === "/api/cloud/desktop/moved-to"), false);
   await f.client.start();

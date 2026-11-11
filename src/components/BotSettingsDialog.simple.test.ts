@@ -230,7 +230,7 @@ const rowValue = (rendered: Rendered, page: string) => find(rendered, "data-pane
 const skill = (name: string, enabled: boolean, origin?: ManagedSkill["origin"]): ManagedSkill =>
   ({ name, description: `${name} helper`, enabled, source: "github:x/y", warnings: [], ...(origin ? { origin } : {}) });
 const routine = (extra: Partial<Routine> = {}): Routine => ({
-  id: "r1", name: "Morning brief", prompt: "Brief me", target: "bot", botId: "scout", runOn: "maus", enabled: true,
+  id: "r1", name: "Morning brief", prompt: "Brief me", target: "bot", botId: "scout", runOn: "delio", enabled: true,
   schedule: { type: "daily", time: "09:00", weekdays: [1, 2, 3, 4, 5] }, durationMinutes: 15,
   nextRunAt: Date.UTC(2099, 0, 5, 9), createdAt: 1, updatedAt: 1, ...extra,
 });
@@ -966,7 +966,7 @@ describe("the Computer tab", () => {
     const setItem = vi.fn();
     vi.stubGlobal("localStorage", { getItem: () => null, setItem });
     click(find(rendered, "data-panel-action", "open-computer"));
-    expect(setItem).toHaveBeenLastCalledWith("omb-computer-panel-view:scout", "computer");
+    expect(setItem).toHaveBeenLastCalledWith("odb-computer-panel-view:scout", "computer");
     expect((fixture.dispatch as ReturnType<typeof vi.fn>).mock.calls.slice(-2)).toEqual([
       [{ type: "toggleSettings", open: false }],
       [{ type: "toggleComputer", open: true }],

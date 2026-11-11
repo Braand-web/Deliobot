@@ -14,7 +14,7 @@ afterEach(async () => {
 });
 
 async function sshFixture() {
-  const bin = mkdtempSync(join(tmpdir(), "omb-ssh-burst-"));
+  const bin = mkdtempSync(join(tmpdir(), "odb-ssh-burst-"));
   const sockets = new Set<Socket>();
   const calls: string[][] = [];
   const held: Socket[] = [];
@@ -63,7 +63,7 @@ child.on('exit', code => { process.exitCode = code; });
   mkdirSync(home);
   vi.stubEnv("HOME", home);
   vi.stubEnv("USERPROFILE", home);
-  vi.stubEnv("OMB_EXTRA_PATH", bin);
+  vi.stubEnv("ODB_EXTRA_PATH", bin);
   resetPathCache();
   cleanups.push(async () => {
     for (const socket of sockets) socket.destroy();

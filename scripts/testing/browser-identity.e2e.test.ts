@@ -1,6 +1,6 @@
-// agent-browser drives the Chrome OMB resolves, through the generated launcher and the identity connection, as the server
-// does. Runs when agent-browser resolves (tools directory, OMB_AGENT_BROWSER_PATH or PATH) or OMB_UI_E2E=1 asks for the
-// download. The Chrome is OMB_CHROME_PATH, else the one OMB picks on this machine (an installed Google Chrome), else the
+// agent-browser drives the Chrome ODB resolves, through the generated launcher and the identity connection, as the server
+// does. Runs when agent-browser resolves (tools directory, ODB_AGENT_BROWSER_PATH or PATH) or ODB_UI_E2E=1 asks for the
+// download. The Chrome is ODB_CHROME_PATH, else the one ODB picks on this machine (an installed Google Chrome), else the
 // Chrome for Testing agent-browser installs into the tools directory, else an installed Google Chrome that policies manage
 // (agent-browser installs nothing where it finds one, as on GitHub's Windows runners).
 import { mkdtempSync } from "node:fs";
@@ -16,29 +16,29 @@ import { IdentitySidecars, startIdentitySidecar } from "../../server/browser/chr
 import { removeTempDir } from "../../server/testing/cleanup.ts";
 import { verifyBrowserIdentity } from "../verify-browser-identity.ts";
 import { expectedUserAgent } from "./browser-identity-probe.ts";
-import { ensureUiBrowser, UI_TOOLS_DIR } from "./control-omb-ui.ts";
+import { ensureUiBrowser, UI_TOOLS_DIR } from "./control-odb-ui.ts";
 
-const enabled = process.env.OMB_UI_E2E === "1" || Boolean(resolveAgentBrowserBinary({ dataDir: UI_TOOLS_DIR, env: process.env }));
-if (!enabled) console.log(`skipping browser identity e2e: no agent-browser binary resolves (looked in ${UI_TOOLS_DIR}, OMB_AGENT_BROWSER_PATH and PATH); set OMB_UI_E2E=1 to install the pinned release`);
-const out = mkdtempSync(join(tmpdir(), "omb-identity-e2e-"));
+const enabled = process.env.ODB_UI_E2E === "1" || Boolean(resolveAgentBrowserBinary({ dataDir: UI_TOOLS_DIR, env: process.env }));
+if (!enabled) console.log(`skipping browser identity e2e: no agent-browser binary resolves (looked in ${UI_TOOLS_DIR}, ODB_AGENT_BROWSER_PATH and PATH); set ODB_UI_E2E=1 to install the pinned release`);
+const out = mkdtempSync(join(tmpdir(), "odb-identity-e2e-"));
 afterAll(async () => { await removeTempDir(out); });
 
 const home = userInfo().homedir;
 const machineEnv = { ...process.env, HOME: home, USERPROFILE: home };
 
-/** What OMB would run here for its own engine, read without starting anything. */
-function chromeOmbPicks(): string | null {
+/** What ODB would run here for its own engine, read without starting anything. */
+function chromeOdbPicks(): string | null {
   const plan = new ChromeLauncher({ dataDir: out, env: machineEnv, engine: () => ({ managed: true }), log: () => {} }).plan();
   return plan.kind === "chrome" ? plan.chrome.path : null;
 }
 
 /** The agent-browser and the full Chrome this machine would use. */
 async function realBrowser(): Promise<{ engine: string; chrome: string }> {
-  const picked = process.env.OMB_CHROME_PATH?.trim() || chromeOmbPicks();
+  const picked = process.env.ODB_CHROME_PATH?.trim() || chromeOdbPicks();
   const engine = picked ? resolveAgentBrowserBinary({ dataDir: UI_TOOLS_DIR, env: process.env }) : null;
   const browser = engine ? { binary: engine, chrome: picked } : await ensureUiBrowser(process.env, () => {}, UI_TOOLS_DIR);
   const chrome = picked || browser.chrome || installedGoogleChrome(chromeHost({ dataDir: out, env: machineEnv }));
-  if (!chrome || isHeadlessShell(chrome)) throw new Error(`a full Chrome is needed, not ${chrome ?? "nothing"}: set OMB_CHROME_PATH`);
+  if (!chrome || isHeadlessShell(chrome)) throw new Error(`a full Chrome is needed, not ${chrome ?? "nothing"}: set ODB_CHROME_PATH`);
   console.log(`browser identity e2e: agent-browser ${browser.binary}, Chrome ${chrome}`);
   return { engine: browser.binary, chrome };
 }
@@ -65,7 +65,7 @@ const slowOverride = (lateMs: number): typeof connectCdp => async (url, timeoutM
 describe.skipIf(!enabled)("a bot's browser on a real Chrome", () => {
   it("opens a page 1280x720 inside whose user agent is Chrome's own, byte for byte, with the same complete client hints in the page, a worker, a service worker and a cross-site frame", async () => {
     const { engine, chrome } = await realBrowser();
-    const { readout } = await verifyBrowserIdentity({ engine, chrome, out, sessionPrefix: "omb-id-e2e" });
+    const { readout } = await verifyBrowserIdentity({ engine, chrome, out, sessionPrefix: "odb-id-e2e" });
     const failed = readout.checks.filter((check) => !check.pass).map((check) => `${check.check}: ${check.detail}`);
     expect(failed).toEqual([]);
     const page = readout.reports.page!;
@@ -84,7 +84,7 @@ describe.skipIf(!enabled)("a bot's browser on a real Chrome", () => {
   it("gives the first page the same complete client hints when the identity is slow to land", async () => {
     const { engine, chrome } = await realBrowser();
     const sidecars = new IdentitySidecars({ start: (url, identity, _connect, options) => startIdentitySidecar(url, identity, slowOverride(600), options) });
-    const { readout } = await verifyBrowserIdentity({ engine, chrome, out, sessionPrefix: "omb-id-slow", sidecars });
+    const { readout } = await verifyBrowserIdentity({ engine, chrome, out, sessionPrefix: "odb-id-slow", sidecars });
     expect(readout.checks.filter((check) => !check.pass).map((check) => `${check.check}: ${check.detail}`)).toEqual([]);
   }, 240_000);
 });

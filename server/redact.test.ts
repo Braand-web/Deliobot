@@ -9,10 +9,10 @@ const flat = (value: unknown) => JSON.stringify(value);
 describe("redactSecrets", () => {
   it("omits private MCP descriptors even when a credential uses an ordinary header name", () => {
     const descriptor = JSON.stringify({ url: "https://example.test/mcp", headers: { "x-tenant": "private-synthetic-value" } });
-    const record = `OMB_REMOTE_MCP_CONFIG_${"0".repeat(64)}`;
-    const logged = redactSecrets({ params: { mcpServers: [{ env: [{ name: "OMB_GATE_UPSTREAM", value: descriptor }] }] }, env: { OMB_REMOTE_MCP_SERVER: descriptor, [record]: JSON.stringify({ OMB_REMOTE_MCP_SERVER: descriptor }) } });
+    const record = `ODB_REMOTE_MCP_CONFIG_${"0".repeat(64)}`;
+    const logged = redactSecrets({ params: { mcpServers: [{ env: [{ name: "ODB_GATE_UPSTREAM", value: descriptor }] }] }, env: { ODB_REMOTE_MCP_SERVER: descriptor, [record]: JSON.stringify({ ODB_REMOTE_MCP_SERVER: descriptor }) } });
     expect(flat(logged)).not.toContain("private-synthetic-value");
-    expect(flat(logged)).toContain("OMB_GATE_UPSTREAM");
+    expect(flat(logged)).toContain("ODB_GATE_UPSTREAM");
     expect(flat(logged)).toContain(record);
   });
   it("masks the tokens in an ACP session/new, keeping the shape", () => {
@@ -28,8 +28,8 @@ describe("redactSecrets", () => {
             command: "/usr/bin/node",
             args: ["/app/agents-proxy.js"],
             env: [
-              { name: "OMB_BOT_ID", value: "bot-123" },
-              { name: "OMB_COMMS_TOKEN", value: "s3cret-comms-token-value" },
+              { name: "ODB_BOT_ID", value: "bot-123" },
+              { name: "ODB_COMMS_TOKEN", value: "s3cret-comms-token-value" },
             ],
           },
           {
@@ -50,7 +50,7 @@ describe("redactSecrets", () => {
     expect(out).not.toContain("s3cret-comms-token-value");
     expect(out).not.toContain("box_live_abcdefghijklmnop");
     expect(out).toContain("session/new");
-    expect(out).toContain("OMB_COMMS_TOKEN");
+    expect(out).toContain("ODB_COMMS_TOKEN");
     expect(out).toContain("OGB_BOX_TOKEN");
     expect(out).toContain("bot-123");
     expect(out).toContain("boat-9");
@@ -243,12 +243,12 @@ describe("redactSecretsInText", () => {
 
   it("masks an assignment to any name ending in KEY, whatever the value looks like", () => {
     expect(redactSecretsInText(`OPENAI_API_KEY=sk-${"a".repeat(20)} pnpm test`)).toBe("OPENAI_API_KEY=«redacted 23 chars» pnpm test");
-    expect(redactSecretsInText("X_KEY=value pnpm control:omb doctor")).toBe("X_KEY=«redacted 5 chars» pnpm control:omb doctor");
+    expect(redactSecretsInText("X_KEY=value pnpm control:odb doctor")).toBe("X_KEY=«redacted 5 chars» pnpm control:odb doctor");
     expect(redactSecretsInText("export xai-key='abc.def'")).toBe("export xai-key='«redacted 7 chars»'");
   });
 
   it("masks the password in a URL's userinfo, keeping the user and the host", () => {
-    expect(redactSecretsInText("psql postgres://maus:s3cret@db.internal:5432/app")).toBe("psql postgres://maus:«redacted 6 chars»@db.internal:5432/app");
+    expect(redactSecretsInText("psql postgres://delio:s3cret@db.internal:5432/app")).toBe("psql postgres://delio:«redacted 6 chars»@db.internal:5432/app");
     expect(redactSecretsInText("curl https://user:p%40ss@host/path")).toBe("curl https://user:«redacted 6 chars»@host/path");
   });
 
@@ -292,7 +292,7 @@ describe("redactSecretsInText", () => {
   it("is idempotent for structurally identified credentials", () => {
     const input = {
       apiKey: "abcdefgh12345678",
-      env: [{ name: "OMB_COMMS_TOKEN", value: "abcdefghijklmnop" }],
+      env: [{ name: "ODB_COMMS_TOKEN", value: "abcdefghijklmnop" }],
     };
     const once = redactSecrets(input);
 

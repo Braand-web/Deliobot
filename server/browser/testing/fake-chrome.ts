@@ -247,7 +247,7 @@ export class FakeChrome implements CdpTransport {
     if (expression === "document.title") return page.title;
     if (expression.startsWith("({ url: location.href")) return { url: page.url, title: page.title, text: page.text };
     if (expression.includes("document.body.innerText") && expression.includes(".slice(")) return page.text;
-    if (expression.includes("__ombTakeCopy")) return "";
+    if (expression.includes("__odbTakeCopy")) return "";
     if (expression.includes("requestAnimationFrame")) return 1;
     if (expression.startsWith("({ x: innerWidth / 2")) return { x: viewport.width / 2, y: viewport.height / 2 };
     if (expression.startsWith("[Math.round(scrollX)")) return [0, 600, 3000];

@@ -48,7 +48,7 @@ describe("one conversation's agents tools", () => {
     for (const bridged of [false, true]) {
       it(`lists ${name} the same tools on every kind of turn, byte for byte${bridged ? ", with the tool bridge on" : ""}`, async () => {
         const turns = await everyTurn(conversation, bridged ? { [TOOL_BRIDGE_ENV]: "1" } : {});
-        expect(new Set(turns.map(({ env }) => env.OMB_COMMS_TOKEN)).size).toBe(turns.length);
+        expect(new Set(turns.map(({ env }) => env.ODB_COMMS_TOKEN)).size).toBe(turns.length);
         for (const { kind, wire } of turns) expect(wire, kind).toBe(turns[0]!.wire);
       });
     }

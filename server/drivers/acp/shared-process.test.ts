@@ -55,7 +55,7 @@ beforeEach(() => {
 });
 
 async function fixture(support: Partial<AcpSupport> = {}, environment: Record<string, string> = {}): Promise<Fixture> {
-  const scratch = mkdtempSync(join(tmpdir(), "omb-acp-shared-"));
+  const scratch = mkdtempSync(join(tmpdir(), "odb-acp-shared-"));
   scratches.push(scratch);
   const spawned: ChildProcess[] = [];
   started.set(scratch, spawned);
@@ -145,7 +145,7 @@ describe("ACP threads sharing one agent process", () => {
 
   it("on a Team Cloud never shares a process between two audiences, whose engines have homes of their own", async () => {
     const f = await fixture();
-    const dataDir = mkdtempSync(join(tmpdir(), "omb-acp-homes-"));
+    const dataDir = mkdtempSync(join(tmpdir(), "odb-acp-homes-"));
     scratches.push(dataDir);
     engineHomes.start({ dataDir, serverHome: dataDir, audienceOf: (threadId) => (threadId === "thread-c" ? "member:p_cleo" : "member:p_ada"), threads: () => [], log: () => {} });
     try {
@@ -180,8 +180,8 @@ describe("ACP threads sharing one agent process", () => {
   });
 
   it("ends a shared process holding closed sessions once none has run a turn for a while; threads reload in a new one", async () => {
-    const previous = process.env.OMB_ACP_SHARED_RECYCLE_MS;
-    process.env.OMB_ACP_SHARED_RECYCLE_MS = "200";
+    const previous = process.env.ODB_ACP_SHARED_RECYCLE_MS;
+    process.env.ODB_ACP_SHARED_RECYCLE_MS = "200";
     try {
       const f = await fixture();
       await f.run("thread-a");
@@ -192,14 +192,14 @@ describe("ACP threads sharing one agent process", () => {
       expect((await f.run("thread-b")).done).toMatchObject({ ok: true });
       expect(f.spawned).toHaveLength(2);
     } finally {
-      if (previous === undefined) delete process.env.OMB_ACP_SHARED_RECYCLE_MS;
-      else process.env.OMB_ACP_SHARED_RECYCLE_MS = previous;
+      if (previous === undefined) delete process.env.ODB_ACP_SHARED_RECYCLE_MS;
+      else process.env.ODB_ACP_SHARED_RECYCLE_MS = previous;
     }
   });
 
   it("never recycles a shared process while one of its sessions runs a turn", async () => {
-    const previous = process.env.OMB_ACP_SHARED_RECYCLE_MS;
-    process.env.OMB_ACP_SHARED_RECYCLE_MS = "200";
+    const previous = process.env.ODB_ACP_SHARED_RECYCLE_MS;
+    process.env.ODB_ACP_SHARED_RECYCLE_MS = "200";
     try {
       const f = await fixture({}, { FAKE_ACP_HANG_ON: "HANG" });
       await f.run("thread-a");
@@ -212,8 +212,8 @@ describe("ACP threads sharing one agent process", () => {
       expect((await long).done).toMatchObject({ ok: true, stopReason: "cancelled" });
       await exited(f.spawned[0]!);
     } finally {
-      if (previous === undefined) delete process.env.OMB_ACP_SHARED_RECYCLE_MS;
-      else process.env.OMB_ACP_SHARED_RECYCLE_MS = previous;
+      if (previous === undefined) delete process.env.ODB_ACP_SHARED_RECYCLE_MS;
+      else process.env.ODB_ACP_SHARED_RECYCLE_MS = previous;
     }
   });
 
@@ -234,8 +234,8 @@ describe("ACP threads sharing one agent process", () => {
 
   it("retires a process whose session stalled: later threads start a new one", async () => {
     const f = await fixture({}, { FAKE_ACP_HANG_ON: "HANG" });
-    const previous = process.env.OPENMAUS_ACP_PROMPT_IDLE_TIMEOUT_MS;
-    process.env.OPENMAUS_ACP_PROMPT_IDLE_TIMEOUT_MS = "300";
+    const previous = process.env.OPENDELIO_ACP_PROMPT_IDLE_TIMEOUT_MS;
+    process.env.OPENDELIO_ACP_PROMPT_IDLE_TIMEOUT_MS = "300";
     try {
       expect((await f.run("thread-b")).done).toMatchObject({ ok: true });
       expect((await f.run("thread-a", { text: "HANG" })).done).toMatchObject({ ok: false, stopReason: "rpc_error" });
@@ -244,8 +244,8 @@ describe("ACP threads sharing one agent process", () => {
       expect(f.spawned).toHaveLength(2);
       expect((await f.run("thread-b")).done).toMatchObject({ ok: true });
     } finally {
-      if (previous === undefined) delete process.env.OPENMAUS_ACP_PROMPT_IDLE_TIMEOUT_MS;
-      else process.env.OPENMAUS_ACP_PROMPT_IDLE_TIMEOUT_MS = previous;
+      if (previous === undefined) delete process.env.OPENDELIO_ACP_PROMPT_IDLE_TIMEOUT_MS;
+      else process.env.OPENDELIO_ACP_PROMPT_IDLE_TIMEOUT_MS = previous;
     }
   });
 

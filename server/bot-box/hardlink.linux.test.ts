@@ -7,13 +7,13 @@ import { afterEach, describe, expect, it } from "vitest";
 import { detectBox } from "./detect.ts";
 import { bwrapArgs, planBox } from "./plan.ts";
 
-const detection = detectBox({ env: { ...process.env, OMB_BOT_BOX: "1" } });
+const detection = detectBox({ env: { ...process.env, ODB_BOT_BOX: "1" } });
 const roots: string[] = [];
 afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }); });
 
 describe.skipIf(detection.box !== "bwrap")("read-only file hardlinks in real bubblewrap", () => {
   it.each([false, true])("protects an explicit read-only file from a writable HOME alias (hardlink: %s)", (hardlink) => {
-    const root = mkdtempSync(join(tmpdir(), "omb-ro-hardlink-"));
+    const root = mkdtempSync(join(tmpdir(), "odb-ro-hardlink-"));
     roots.push(root);
     const home = join(root, "home"), dataDir = join(root, "data");
     mkdirSync(home);

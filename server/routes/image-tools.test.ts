@@ -19,7 +19,7 @@ function okFetch(): typeof fetch {
   return vi.fn<typeof fetch>(async () => new Response(JSON.stringify({ data: [{ b64_json: PNG.toString("base64") }] })));
 }
 
-const scratch = () => mkdtempSync(join(tmpdir(), "omb-image-tools-"));
+const scratch = () => mkdtempSync(join(tmpdir(), "odb-image-tools-"));
 
 function deps(overrides: { cfg?: Parameters<typeof generateImageForTurn>[1]["cfg"]; fetchImpl?: typeof fetch; parked?: number; live?: boolean; noTurn?: boolean; personTurn?: boolean; dailyCap?: number; dataDir?: string } = {}) {
   const attached: GeneratedImage[] = [];

@@ -8,7 +8,7 @@ import { accountHealth, createConnectionHealth, UNREACHABLE_AFTER } from "./conn
 import { appCallOutcome, probeOutcome } from "./connection-outcome.ts";
 
 const dirs: string[] = [];
-const temp = () => { const dir = mkdtempSync(join(tmpdir(), "omb-health-")); dirs.push(dir); return dir; };
+const temp = () => { const dir = mkdtempSync(join(tmpdir(), "odb-health-")); dirs.push(dir); return dir; };
 afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }); });
 
 describe("a connection's health", () => {

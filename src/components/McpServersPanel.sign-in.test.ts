@@ -14,7 +14,7 @@ vi.mock("@/state/store", () => ({
 import { McpServersPanel } from "./McpServersPanel";
 
 const FLOW = "00000000-0000-4000-8000-000000000000";
-const AUTHORIZE = "https://auth.example.test/authorize?client_id=omb";
+const AUTHORIZE = "https://auth.example.test/authorize?client_id=odb";
 const lusha = { name: "lusha", type: "http", url: "https://mcp.example.test", headerKeys: [], enabled: true, auth: "needs-sign-in" };
 
 let root: Root;

@@ -59,13 +59,13 @@ describe("connector MCP bridge", () => {
       });
     });
     const lines = start({
-      OMB_HARNESS_URL: harness,
-      OMB_CONNECTOR_TOKEN: "bridge-secret",
+      ODB_HARNESS_URL: harness,
+      ODB_CONNECTOR_TOKEN: "bridge-secret",
       // A simultaneously mounted agents proxy may define this different
       // value in Codex's flattened child environment.
-      OMB_COMMS_TOKEN: "agents-secret",
-      OMB_BOT_ID: "bot-1",
-      OMB_THREAD_ID: "thread-1",
+      ODB_COMMS_TOKEN: "agents-secret",
+      ODB_BOT_ID: "bot-1",
+      ODB_THREAD_ID: "thread-1",
     });
     child!.stdin.write(`${JSON.stringify({
       jsonrpc: "2.0",
@@ -93,10 +93,10 @@ describe("connector MCP bridge", () => {
       });
     });
     const lines = start({
-      OMB_HARNESS_URL: harness,
-      OMB_CONNECTOR_TOKEN: "bridge-secret",
-      OMB_BOT_ID: "bot-1",
-      OMB_THREAD_ID: "thread-1",
+      ODB_HARNESS_URL: harness,
+      ODB_CONNECTOR_TOKEN: "bridge-secret",
+      ODB_BOT_ID: "bot-1",
+      ODB_THREAD_ID: "thread-1",
     });
     child!.stdin.write(`${JSON.stringify({
       jsonrpc: "2.0",
@@ -140,7 +140,7 @@ describe("connector MCP bridge", () => {
         response.end("{}");
       });
     });
-    const lines = start({ OMB_HARNESS_URL: harness, OMB_CONNECTOR_TOKEN: "bridge-secret", OMB_BOT_ID: "bot-1", OMB_THREAD_ID: "thread-1" });
+    const lines = start({ ODB_HARNESS_URL: harness, ODB_CONNECTOR_TOKEN: "bridge-secret", ODB_BOT_ID: "bot-1", ODB_THREAD_ID: "thread-1" });
     const manage = async (id: number, args: Record<string, unknown>) => {
       child!.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id, method: "tools/call", params: { name: "COMPOSIO_MANAGE_CONNECTIONS", arguments: args } })}\n`);
       return nextJson(lines);
@@ -178,10 +178,10 @@ describe("connector MCP bridge", () => {
         }));
       });
     });
-    const lines = start({ OMB_HARNESS_URL: harness, OMB_CONNECTOR_TOKEN: "bridge-secret", OMB_BOT_ID: "bot-1", OMB_THREAD_ID: "thread-1" });
+    const lines = start({ ODB_HARNESS_URL: harness, ODB_CONNECTOR_TOKEN: "bridge-secret", ODB_BOT_ID: "bot-1", ODB_THREAD_ID: "thread-1" });
     child!.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "COMPOSIO_MANAGE_CONNECTIONS", arguments: { toolkits: ["xero"] } } })}\n`);
     expect((await nextJson(lines)).result.content[0].text).toBe(
-      "OpenMausBot showed the user a secure connection card for xero. xero connects with the person's own Composio auth config "
+      "OpenDeliobot showed the user a secure connection card for xero. xero connects with the person's own Composio auth config "
       + "ac_xero1234, the most recently created of their 2 enabled ones. End this turn now. The app will continue the task "
       + "automatically after the connection finishes.",
     );
@@ -197,7 +197,7 @@ describe("connector MCP bridge", () => {
       response.writeHead(200, { "content-type": "application/json" });
       response.end(JSON.stringify({ jsonrpc: "2.0", id: 5, result: { tools: [manage, { name: "COMPOSIO_SEARCH_TOOLS" }] } }));
     });
-    const lines = start({ OMB_CONNECTOR_UPSTREAM_URL: upstream });
+    const lines = start({ ODB_CONNECTOR_UPSTREAM_URL: upstream });
     child!.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 5, method: "tools/list", params: {} })}\n`);
     const [listed, search] = (await nextJson(lines)).result.tools;
     expect(listed.inputSchema.required).toBeUndefined();
@@ -220,7 +220,7 @@ describe("connector MCP bridge", () => {
         response.end(JSON.stringify({ text: "- googlesheets: Google Sheets (not connected)." }));
       });
     });
-    const lines = start({ OMB_HARNESS_URL: harness, OMB_CONNECTOR_TOKEN: "token", OMB_BOT_ID: "b1", OMB_THREAD_ID: "t1" });
+    const lines = start({ ODB_HARNESS_URL: harness, ODB_CONNECTOR_TOKEN: "token", ODB_BOT_ID: "b1", ODB_THREAD_ID: "t1" });
     child!.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 7, method: "tools/call", params: { name: "COMPOSIO_MANAGE_CONNECTIONS", arguments: { find: "something for spreadsheets" } } })}\n`);
     expect((await nextJson(lines)).result.content[0].text).toContain("googlesheets");
     expect(paths).toEqual(["/api/internal/connectors/find"]);
@@ -237,7 +237,7 @@ describe("connector MCP bridge", () => {
         response.end("{}");
       });
     });
-    const lines = start({ OMB_HARNESS_URL: harness, OMB_CONNECTOR_TOKEN: "token", OMB_BOT_ID: "b1", OMB_THREAD_ID: "t1" });
+    const lines = start({ ODB_HARNESS_URL: harness, ODB_CONNECTOR_TOKEN: "token", ODB_BOT_ID: "b1", ODB_THREAD_ID: "t1" });
     child!.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 8, method: "tools/call", params: { name: "COMPOSIO_MANAGE_CONNECTIONS", arguments: { toolkits: ["gmail"], find: "mail" } } })}\n`);
     expect((await nextJson(lines)).result.content[0].text).toContain("secure connection card for gmail");
     expect(paths).toEqual(["/api/internal/connectors/request"]);
@@ -258,7 +258,7 @@ describe("connector MCP bridge", () => {
       result: {
         protocolVersion: "2024-11-05",
         capabilities: { tools: {} },
-        serverInfo: { name: "openmausbot-connectors", version: "1" },
+        serverInfo: { name: "opendeliobot-connectors", version: "1" },
       },
     });
     expect(reply.result).not.toHaveProperty("isError");
@@ -274,7 +274,7 @@ describe("connector MCP bridge", () => {
       // Deliberately never respond. The proxy must abort this request and
       // return its local capability result instead of hanging OpenCode.
     });
-    const lines = start({ OMB_CONNECTOR_UPSTREAM_URL: upstream });
+    const lines = start({ ODB_CONNECTOR_UPSTREAM_URL: upstream });
     child!.stdin.write(`${JSON.stringify({
       jsonrpc: "2.0",
       id: 11,
@@ -316,13 +316,13 @@ describe("connector MCP bridge", () => {
       });
     });
     const lines = start({
-      OMB_CONNECTOR_UPSTREAM_URL: upstream,
-      OMB_CONNECTOR_UPSTREAM_HEADERS: JSON.stringify({ authorization: "Bearer upstream-secret" }),
+      ODB_CONNECTOR_UPSTREAM_URL: upstream,
+      ODB_CONNECTOR_UPSTREAM_HEADERS: JSON.stringify({ authorization: "Bearer upstream-secret" }),
     });
     child!.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 2, method: "initialize", params: { protocolVersion: "2024-11-05" } })}\n`);
     const reply = await nextJson(lines);
     expect(reply.result.protocolVersion).toBe("2024-11-05");
-    expect(reply.result.serverInfo).toEqual({ name: "openmausbot-connectors", version: "1" });
+    expect(reply.result.serverInfo).toEqual({ name: "opendeliobot-connectors", version: "1" });
     expect(upstreamAuthorization).toBe("Bearer upstream-secret");
     expect(upstreamBody).toMatchObject({ method: "initialize" });
     expect(JSON.stringify(reply)).not.toContain("upstream-secret");
@@ -345,8 +345,8 @@ describe("connector MCP bridge", () => {
       }));
     });
     const lines = start({
-      OMB_CONNECTOR_UPSTREAM_URL: upstream,
-      OMB_CONNECTOR_UPSTREAM_HEADERS: JSON.stringify({ authorization: "Bearer upstream-secret" }),
+      ODB_CONNECTOR_UPSTREAM_URL: upstream,
+      ODB_CONNECTOR_UPSTREAM_HEADERS: JSON.stringify({ authorization: "Bearer upstream-secret" }),
     });
     child!.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 4, method: "tools/list", params: {} })}\n`);
     const reply = await nextJson(lines);
@@ -366,12 +366,12 @@ describe("connector MCP bridge", () => {
       response.writeHead(200, { "content-type": "application/json" });
       response.end(JSON.stringify({ jsonrpc: "2.0", id: 4, result: { tools } }));
     });
-    const lines = start({ OMB_CONNECTOR_UPSTREAM_URL: upstream, [TOOL_SCHEMA_PROFILE_ENV]: "moonshot" });
+    const lines = start({ ODB_CONNECTOR_UPSTREAM_URL: upstream, [TOOL_SCHEMA_PROFILE_ENV]: "moonshot" });
     child!.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 4, method: "tools/list", params: {} })}\n`);
     const [search, page] = (await nextJson(lines)).result.tools;
     expect(search).toEqual(tools[0]);
     expect(schemaBytes(page.inputSchema)).toBeLessThanOrEqual(12_000);
-    expect(page.description).toContain("OpenMausBot shortened this tool's parameters to fit Kimi's size limit");
+    expect(page.description).toContain("OpenDeliobot shortened this tool's parameters to fit Kimi's size limit");
   });
 
   it("lists no more connected-app tools than its share of the model's tool limit", async () => {
@@ -380,7 +380,7 @@ describe("connector MCP bridge", () => {
       response.writeHead(200, { "content-type": "application/json" });
       response.end(JSON.stringify({ jsonrpc: "2.0", id: 4, result: { tools } }));
     });
-    const lines = start({ OMB_CONNECTOR_UPSTREAM_URL: upstream, [TOOL_LIMIT_ENV]: "2" });
+    const lines = start({ ODB_CONNECTOR_UPSTREAM_URL: upstream, [TOOL_LIMIT_ENV]: "2" });
     child!.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 4, method: "tools/list", params: {} })}\n`);
     expect((await nextJson(lines)).result.tools).toEqual(tools.slice(0, 2));
   });
@@ -405,7 +405,7 @@ describe("connector MCP bridge", () => {
         response.end(JSON.stringify({ jsonrpc: "2.0", id, result: answers.shift() }));
       });
     });
-    const lines = start({ OMB_CONNECTOR_UPSTREAM_URL: upstream });
+    const lines = start({ ODB_CONNECTOR_UPSTREAM_URL: upstream });
     const call = (id: number) => child!.stdin.write(`${JSON.stringify({
       jsonrpc: "2.0",
       id,
@@ -436,7 +436,7 @@ describe("connector MCP bridge", () => {
         response.end(JSON.stringify({ jsonrpc: "2.0", id: 41, result: { tools: [{ name: "COMPOSIO_MANAGE_CONNECTIONS" }] } }));
       });
     });
-    const lines = start({ OMB_CONNECTOR_UPSTREAM_URL: upstream, OMB_CONNECTOR_ALLOWED_TOOLS: "{}" });
+    const lines = start({ ODB_CONNECTOR_UPSTREAM_URL: upstream, ODB_CONNECTOR_ALLOWED_TOOLS: "{}" });
     child!.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 41, method: "tools/list", params: {} })}\n`);
     const reply = await nextJson(lines);
     expect(listings).toBe(2);
@@ -485,12 +485,12 @@ describe("connector MCP bridge", () => {
         response.end(JSON.stringify({ jsonrpc: "2.0", id: rpc.id, result: { tools: [{ name: "GMAIL_FETCH_EMAILS" }] } }));
       });
     });
-    const lines = start({ OMB_CONNECTOR_UPSTREAM_URL: upstream });
+    const lines = start({ ODB_CONNECTOR_UPSTREAM_URL: upstream });
     const ask = async (id: number, method: string, params = {}) => {
       child!.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id, method, params })}\n`);
       return nextJson(lines);
     };
-    expect((await ask(1, "initialize")).result.serverInfo.name).toBe("openmausbot-connectors");
+    expect((await ask(1, "initialize")).result.serverInfo.name).toBe("opendeliobot-connectors");
     expect(await ask(2, "tools/list")).toEqual({ jsonrpc: "2.0", id: 2, result: { tools: [] } });
     expect(listings).toBe(2);
     const failedCall = await ask(3, "tools/call", { name: "GMAIL_FETCH_EMAILS", arguments: {} });
@@ -506,14 +506,14 @@ describe("connector MCP bridge", () => {
       listings += 1;
       request.resume();
     });
-    const lines = start({ OMB_CONNECTOR_UPSTREAM_URL: upstream });
+    const lines = start({ ODB_CONNECTOR_UPSTREAM_URL: upstream });
     child!.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 5, method: "tools/list" })}\n`);
     expect(await nextJson(lines)).toEqual({ jsonrpc: "2.0", id: 5, result: { tools: [] } });
     expect(listings).toBe(2);
   });
 
   it("keeps locally defined app tools available during a discovery outage", async () => {
-    const lines = start({ OMB_CONNECTOR_UPSTREAM_URL: "", OMB_CONNECTOR_APP_TOOLS: JSON.stringify(["gmail.search_emails"]) });
+    const lines = start({ ODB_CONNECTOR_UPSTREAM_URL: "", ODB_CONNECTOR_APP_TOOLS: JSON.stringify(["gmail.search_emails"]) });
     child!.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 6, method: "tools/list" })}\n`);
     const reply = await nextJson(lines);
     expect(reply.result.tools.map((tool: { name: string }) => tool.name)).toEqual(["gmail_search_emails"]);
@@ -541,8 +541,8 @@ describe("connector MCP bridge", () => {
       }));
     });
     const lines = start({
-      OMB_CONNECTOR_UPSTREAM_URL: upstream,
-      OMB_CONNECTOR_ALLOWED_TOOLS: JSON.stringify({ gmail: { tools: ["GMAIL_SEND_EMAIL"] } }),
+      ODB_CONNECTOR_UPSTREAM_URL: upstream,
+      ODB_CONNECTOR_ALLOWED_TOOLS: JSON.stringify({ gmail: { tools: ["GMAIL_SEND_EMAIL"] } }),
     });
     child!.stdin.write(JSON.stringify({ jsonrpc: "2.0", id: 21, method: "tools/list", params: {} }) + "\n");
     const reply = await nextJson(lines);
@@ -574,8 +574,8 @@ describe("connector MCP bridge", () => {
       response.end("data: " + JSON.stringify(frame) + "\n\n");
     });
     const lines = start({
-      OMB_CONNECTOR_UPSTREAM_URL: upstream,
-      OMB_CONNECTOR_ALLOWED_TOOLS: JSON.stringify({ notion: { tools: ["NOTION_CREATE_PAGE"] } }),
+      ODB_CONNECTOR_UPSTREAM_URL: upstream,
+      ODB_CONNECTOR_ALLOWED_TOOLS: JSON.stringify({ notion: { tools: ["NOTION_CREATE_PAGE"] } }),
     });
     child!.stdin.write(JSON.stringify({ jsonrpc: "2.0", id: 22, method: "tools/list", params: {} }) + "\n");
     const reply = await nextJson(lines);
@@ -598,8 +598,8 @@ describe("connector MCP bridge", () => {
         }));
       });
       const lines = start({
-        OMB_CONNECTOR_UPSTREAM_URL: upstream,
-        ...(allowlist === undefined ? {} : { OMB_CONNECTOR_ALLOWED_TOOLS: allowlist }),
+        ODB_CONNECTOR_UPSTREAM_URL: upstream,
+        ...(allowlist === undefined ? {} : { ODB_CONNECTOR_ALLOWED_TOOLS: allowlist }),
       });
       child!.stdin.write(JSON.stringify({ jsonrpc: "2.0", id: 23, method: "tools/list", params: {} }) + "\n");
       const reply = await nextJson(lines);
@@ -632,7 +632,7 @@ describe("connected-app tools by name", () => {
   it("lists the app tools after the upstream's, under the spelling the engine asked for", async () => {
     for (const [style, names] of [["dotted", ["gmail.search_emails", "gmail.read_email_thread"]], ["", ["gmail_search_emails", "gmail_read_email_thread"]]] as const) {
       const upstream = await upstreamFor([]);
-      const lines = start({ OMB_CONNECTOR_UPSTREAM_URL: upstream, OMB_CONNECTOR_APP_TOOLS: JSON.stringify(["gmail.search_emails", "gmail.read_email_thread", "not.a_tool"]), ...(style ? { OMB_CONNECTOR_APP_TOOL_NAMES: style } : {}) });
+      const lines = start({ ODB_CONNECTOR_UPSTREAM_URL: upstream, ODB_CONNECTOR_APP_TOOLS: JSON.stringify(["gmail.search_emails", "gmail.read_email_thread", "not.a_tool"]), ...(style ? { ODB_CONNECTOR_APP_TOOL_NAMES: style } : {}) });
       child!.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" })}\n`);
       const listed = await nextJson(lines);
       expect(listed.result.tools.map((tool: { name: string }) => tool.name)).toEqual(["COMPOSIO_MULTI_EXECUTE_TOOL", ...names]);
@@ -646,7 +646,7 @@ describe("connected-app tools by name", () => {
   it("runs a call by either name as its Composio tool through the multi-execute tool, and answers with that tool's data", async () => {
     const calls: any[] = [];
     const upstream = await upstreamFor(calls);
-    const lines = start({ OMB_CONNECTOR_UPSTREAM_URL: upstream, OMB_CONNECTOR_APP_TOOLS: JSON.stringify(["gmail.search_emails"]) });
+    const lines = start({ ODB_CONNECTOR_UPSTREAM_URL: upstream, ODB_CONNECTOR_APP_TOOLS: JSON.stringify(["gmail.search_emails"]) });
     child!.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 4, method: "tools/call", params: { name: "gmail_search_emails", arguments: { query: "from:ada" } } })}\n`);
     const reply = await nextJson(lines);
     expect(calls.at(-1).params).toEqual({ name: "COMPOSIO_MULTI_EXECUTE_TOOL", arguments: { tools: [{ tool_slug: "GMAIL_FETCH_EMAILS", arguments: { user_id: "me", query: "from:ada", max_results: 10, include_payload: false, verbose: false } }] } });
@@ -675,7 +675,7 @@ describe("connected-app tools by name", () => {
         response.end(JSON.stringify({ jsonrpc: "2.0", id: rpc.id, result: { content: [{ type: "text", text: JSON.stringify(refusal, null, 2) }], isError: true } }));
       });
     });
-    const lines = start({ OMB_CONNECTOR_UPSTREAM_URL: upstream, OMB_CONNECTOR_SERVICE_SLUGS: JSON.stringify(["gemini", "gmail"]) });
+    const lines = start({ ODB_CONNECTOR_UPSTREAM_URL: upstream, ODB_CONNECTOR_SERVICE_SLUGS: JSON.stringify(["gemini", "gmail"]) });
     child!.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list", params: {} })}\n`);
     await nextJson(lines);
 
@@ -683,7 +683,7 @@ describe("connected-app tools by name", () => {
     const searched = await nextJson(lines);
     expect(calls.at(-1).params.arguments).toEqual({ queries: [{ use_case: "generate an image" }] });
     expect(searched.result.content[0].text).toContain("GEMINI_GENERATE_IMAGE");
-    expect(searched.result.content[1].text).toBe('OpenMausBot note: COMPOSIO_SEARCH_TOOLS\'s arguments were read with job as queries, queries as [{"use_case": …}]. Send them in that shape next time.');
+    expect(searched.result.content[1].text).toBe('OpenDeliobot note: COMPOSIO_SEARCH_TOOLS\'s arguments were read with job as queries, queries as [{"use_case": …}]. Send them in that shape next time.');
 
     child!.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "COMPOSIO_REMOTE_WORKBENCH", arguments: { script: "print(1)", note: "x" } } })}\n`);
     const refused = await nextJson(lines);

@@ -231,7 +231,7 @@ export class DeviceRegistry {
   private newWindow(): PairingWindow {
     return {
       code: String(randomInt(0, 1_000_000)).padStart(6, "0"),
-      token: `omb_pair_${randomBytes(32).toString("base64url")}`,
+      token: `odb_pair_${randomBytes(32).toString("base64url")}`,
       expiresAt: Date.now() + PAIRING_TTL_MS,
       attemptsLeft: MAX_PAIRING_ATTEMPTS,
     };
@@ -313,7 +313,7 @@ export class DeviceRegistry {
     this.window = null;
     this.previousWindow = null;
 
-    const token = `omb_${randomBytes(32).toString("base64url")}`;
+    const token = `odb_${randomBytes(32).toString("base64url")}`;
     const device: DeviceRecord = {
       id: randomUUID(),
       name: cleanDeviceName(name),

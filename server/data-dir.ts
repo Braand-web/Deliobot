@@ -9,6 +9,6 @@ let home: string | undefined;
 export function dataHome(): string {
   if (home !== undefined) return home;
   const real = homedir();
-  home = process.env.VITEST !== undefined && real === userInfo().homedir ? mkdtempSync(join(tmpdir(), "omb-test-home-")) : real;
+  home = process.env.VITEST !== undefined && real === userInfo().homedir ? mkdtempSync(join(tmpdir(), "odb-test-home-")) : real;
   return home;
 }

@@ -43,7 +43,7 @@ export const SERVICE_ALLOW: ReadonlyArray<{ methods: readonly string[]; path: Re
   { methods: ["GET"], path: /^\/api\/auth\/session$/ },
   { methods: ["GET"], path: /^\/api\/edition$/ },
   { methods: ["GET"], path: /^\/api\/brand$/ },
-  { methods: ["GET"], path: /^\/api\/seats$/ }, // a number: the MausBot connector on the same server reads it
+  { methods: ["GET"], path: /^\/api\/seats$/ }, // a number: the Delio connector on the same server reads it
   { methods: ["GET"], path: /^\/api\/bots$/ },
   { methods: ["GET"], path: /^\/api\/threads\/[\w-]+\/messages$/ },
   { methods: ["GET"], path: /^\/api\/attachments\/[\w.-]+$/ },
@@ -68,7 +68,7 @@ export function ownerOrAdmin(auth: RequestAuth): boolean {
   return auth.kind === "loopback" ? auth.trust !== "service" : auth.scopes.includes("admin");
 }
 
-/** Packaged desktop: `owner`. Else OMB_LOOPBACK_TRUST=owner|service; unset, a hosted workspace (any OMB_ADMIN_*)
+/** Packaged desktop: `owner`. Else ODB_LOOPBACK_TRUST=owner|service; unset, a hosted workspace (any ODB_ADMIN_*)
  * gets `service` and a headless server `owner`. Any other value fails closed. `localBrowsers`: see localBrowserTrust. */
 export function resolveLoopbackTrust(input: {
   env?: NodeJS.ProcessEnv;
@@ -86,25 +86,25 @@ export function resolveLoopbackTrust(input: {
 }
 
 function loopbackTrust(input: Parameters<typeof resolveLoopbackTrust>[0]): { trust: LoopbackTrust; reason: string; warning?: string } {
-  const raw = (input.env ?? process.env).OMB_LOOPBACK_TRUST;
+  const raw = (input.env ?? process.env).ODB_LOOPBACK_TRUST;
   const requested = raw?.trim().toLowerCase();
   if (input.cloudHome) {
-    return { trust: "service", reason: "MausBot Cloud home", ...(raw !== undefined && requested !== "service" ? { warning: "OMB_LOOPBACK_TRUST is ignored on a MausBot Cloud home: a local request is always a service" } : {}) };
+    return { trust: "service", reason: "Delio Cloud home", ...(raw !== undefined && requested !== "service" ? { warning: "ODB_LOOPBACK_TRUST is ignored on a Delio Cloud home: a local request is always a service" } : {}) };
   }
   if (input.desktopManaged) {
-    return { trust: "owner", reason: "desktop app", ...(raw !== undefined ? { warning: "OMB_LOOPBACK_TRUST is ignored in the desktop app" } : {}) };
+    return { trust: "owner", reason: "desktop app", ...(raw !== undefined ? { warning: "ODB_LOOPBACK_TRUST is ignored in the desktop app" } : {}) };
   }
   if (requested === "owner" || requested === "service") {
     return {
       trust: requested,
-      reason: "OMB_LOOPBACK_TRUST",
+      reason: "ODB_LOOPBACK_TRUST",
       ...(requested === "owner" && input.hostedWorkspace
-        ? { warning: "OMB_LOOPBACK_TRUST=owner on a shared workspace: every bot's shell can change settings and approve cards as the owner" }
+        ? { warning: "ODB_LOOPBACK_TRUST=owner on a shared workspace: every bot's shell can change settings and approve cards as the owner" }
         : {}),
     };
   }
   if (raw !== undefined && requested !== "") {
-    return { trust: "service", reason: "OMB_LOOPBACK_TRUST", warning: `OMB_LOOPBACK_TRUST="${raw.replace(/[^\w.-]/g, "").slice(0, 40)}" is not owner or service; using service` };
+    return { trust: "service", reason: "ODB_LOOPBACK_TRUST", warning: `ODB_LOOPBACK_TRUST="${raw.replace(/[^\w.-]/g, "").slice(0, 40)}" is not owner or service; using service` };
   }
   if (input.hostedWorkspace) return { trust: "service", reason: "hosted workspace" };
   return { trust: "owner", reason: "self-hosted default" };
@@ -143,7 +143,7 @@ export function fromBrowser(req: IncomingMessage): boolean {
   return headerValue(headers.upgrade)?.toLowerCase() === "websocket" && headers.origin !== undefined;
 }
 
-const LOCAL_BROWSER_TRUST = "OMB_DEV_TRUST_LOCAL_BROWSER";
+const LOCAL_BROWSER_TRUST = "ODB_DEV_TRUST_LOCAL_BROWSER";
 
 /** Development only: a server run from a source checkout (`pnpm dev:server`, test fixtures) lets this machine's browsers in
  * as before, because Vite's dev proxy forwards them; a packaged, bundled, hosted or service-trust server ignores it. */
@@ -155,7 +155,7 @@ function localBrowserTrust(env: NodeJS.ProcessEnv, fromSource: boolean, trust: L
   return { trusted: true, warning: `${LOCAL_BROWSER_TRUST}=1: browsers on this machine act as the owner (development only)` };
 }
 
-export const BROWSER_SIGN_IN = "unauthorized: this browser is not signed in. Open the sign-in link that openmausbot serve or openmausbot pair prints on this computer, or pair it with a code from Settings → Remote access";
+export const BROWSER_SIGN_IN = "unauthorized: this browser is not signed in. Open the sign-in link that opendeliobot serve or opendeliobot pair prints on this computer, or pair it with a code from Settings → Remote access";
 
 export function isAllowedOrigin(origin: string | undefined | null): boolean {
   if (!origin) return true; // non-browser clients (CLIs, curl, tests) send none
@@ -208,7 +208,7 @@ export function ipcPeer(req: IncomingMessage): boolean {
 
 let legacyOrigins: ReadonlySet<string> = new Set();
 
-/** A Cloud home that moved to another provider (OMB_CLOUD_LEGACY_ORIGINS): its old address forwards here with Host
+/** A Cloud home that moved to another provider (ODB_CLOUD_LEGACY_ORIGINS): its old address forwards here with Host
  * rewritten to this home's own name, so a page or client still on the old address sends that address as its Origin.
  * Security: only these exact origins count as this server's own besides its Host's; X-Forwarded-Host, which any client
  * writes, is never read. */
@@ -284,7 +284,7 @@ export function bearerToken(header: string | string[] | undefined): string | und
 
 /** Cookies are scoped by host, not port; the environment id stops a reinstalled server reading its predecessor's cookie. */
 export function sessionCookieName(port: number, environmentId: string): string {
-  return `omb_session_${port}_${environmentId.replace(/[^a-z0-9]/gi, "").slice(0, 12)}`;
+  return `odb_session_${port}_${environmentId.replace(/[^a-z0-9]/gi, "").slice(0, 12)}`;
 }
 
 export function serializeSessionCookie(
@@ -352,7 +352,7 @@ export const CLIENT_ALLOW: ReadonlyArray<{ methods: readonly string[]; path: Reg
   { methods: ["POST"], path: /^\/api\/bots\/[\w-]+\/active-branch$/ },
   { methods: ["POST"], path: /^\/api\/bots\/[\w-]+\/compact$/ },
   { methods: ["POST"], path: /^\/api\/bots\/[\w-]+\/start-fresh$/ },
-  { methods: ["POST"], path: /^\/api\/bots\/[\w-]+\/helper-followup$/ }, // MausBot's own person only: see mayFollowUp
+  { methods: ["POST"], path: /^\/api\/bots\/[\w-]+\/helper-followup$/ }, // Delio's own person only: see mayFollowUp
   { methods: ["POST"], path: /^\/api\/bots\/[\w-]+\/interrupt$/ },
   { methods: ["POST"], path: /^\/api\/bots\/[\w-]+\/read$/ },
   { methods: ["DELETE"], path: /^\/api\/bots\/[\w-]+\/queue\/[\w-]+$/ },
@@ -481,20 +481,20 @@ const CLIENT_BOT_PATCH_FIELDS = new Set([
 const SHARED_LOOK_FIELDS = new Set([
   "color", "mascotExpression", "mascotBody", "mascotFaceColor", "avatarUrl", "avatarCrop", "avatarZoom", "avatarFocusX", "avatarFocusY",
 ]);
-/** `ownMausBot`: the session's own MausBot on a Team Cloud, which its member may also rename. `teamMember`: a Team Cloud
+/** `ownDelio`: the session's own Delio on a Team Cloud, which its member may also rename. `teamMember`: a Team Cloud
  * member's session, which changes no other bot's look. */
-export function clientBotPatchViolation(body: unknown, ownMausBot = false, teamMember = false): string | null {
+export function clientBotPatchViolation(body: unknown, ownDelio = false, teamMember = false): string | null {
   if (!body || typeof body !== "object" || Array.isArray(body)) return "body";
   for (const key of Object.keys(body)) {
-    if (ownMausBot && key === "name") continue;
-    if (!CLIENT_BOT_PATCH_FIELDS.has(key) || (teamMember && !ownMausBot && SHARED_LOOK_FIELDS.has(key))) return key;
+    if (ownDelio && key === "name") continue;
+    if (!CLIENT_BOT_PATCH_FIELDS.has(key) || (teamMember && !ownDelio && SHARED_LOOK_FIELDS.has(key))) return key;
   }
   return null;
 }
 
 /** All a paired device or a Team Cloud move-in may give a bot it makes or brings in: who the bot is, how it looks, its
  * own playbooks, projects and library skills, and which of this place's models it runs on. Everything else (what it may
- * do and reach, where it runs, its department, whom it answers to or directs, whether it is the MausBot or a package's
+ * do and reach, where it runs, its department, whom it answers to or directs, whether it is the Delio or a package's
  * bot) only an admin on the host sets. */
 const BOT_PROFILE_SETTINGS: ReadonlySet<string> = new Set([
   ...CLIENT_BOT_PATCH_FIELDS, ...BOT_PROFILE_PATCH_FIELDS, "hidden",
@@ -519,8 +519,8 @@ const EDITOR_BOT_PATCH_FIELDS: ReadonlySet<string> = new Set([
 /** A member who can only view a bot marks it read, nothing else. */
 const VIEWER_BOT_PATCH_FIELDS: ReadonlySet<string> = new Set(["unread"]);
 
-export function memberBotPatchViolation(body: unknown, level: "view" | "chat" | "edit", ownMausBot = false, teamMember = false): string | null {
-  if (level === "chat") return clientBotPatchViolation(body, ownMausBot, teamMember);
+export function memberBotPatchViolation(body: unknown, level: "view" | "chat" | "edit", ownDelio = false, teamMember = false): string | null {
+  if (level === "chat") return clientBotPatchViolation(body, ownDelio, teamMember);
   if (!body || typeof body !== "object" || Array.isArray(body)) return "body";
   const allowed = level === "edit" ? EDITOR_BOT_PATCH_FIELDS : VIEWER_BOT_PATCH_FIELDS;
   return Object.keys(body).find((key) => !allowed.has(key)) ?? null;
@@ -545,7 +545,7 @@ export interface ResolveOptions {
   features?: { sharedComputers?: boolean };
   /** Absent is `owner`; ignored while loopbackMutationToken is in force. */
   loopbackTrust?: LoopbackTrust;
-  /** Under `service`: a per-launch secret from `openmausbot serve` over stdin (never env, which other children read); it opens only pairing codes. */
+  /** Under `service`: a per-launch secret from `opendeliobot serve` over stdin (never env, which other children read); it opens only pairing codes. */
   cliOwnerToken?: string;
   /** resolveLoopbackTrust's `localBrowsers`: a development server lets this machine's browsers use loopback trust. */
   trustLocalBrowser?: boolean;
@@ -555,10 +555,10 @@ export interface ResolveOptions {
   scopeRefusal?(method: string, path: string): string | null;
 }
 
-const CLI_OWNER_HEADER = "x-openmausbot-cli-owner";
+const CLI_OWNER_HEADER = "x-opendeliobot-cli-owner";
 const CLI_OWNER_ROUTE = /^\/api\/auth\/pairing$/;
 
-const DESKTOP_OWNER_HEADER = "x-openmausbot-desktop-owner";
+const DESKTOP_OWNER_HEADER = "x-opendeliobot-desktop-owner";
 
 function mutatingPublicRoute(method: string, path: string): boolean {
   const upper = method.toUpperCase();
@@ -601,7 +601,7 @@ export function resolveRequestAuth(req: IncomingMessage, options: ResolveOptions
   const ticket = path === options.streamPath ? options.url.searchParams.get("ticket") : null;
   let session: SessionRecord | null = null;
   let via: "bearer" | "cookie" | "ticket" | null = null;
-  if (bearer?.startsWith("omb_sess_")) {
+  if (bearer?.startsWith("odb_sess_")) {
     session = options.sessions.authenticate(bearer);
     via = "bearer";
   } else if (ticket) {
@@ -641,15 +641,15 @@ export function resolveRequestAuth(req: IncomingMessage, options: ResolveOptions
   const proxied = isProxied(req);
   const loopback = !proxied && isLoopbackHost(headerValue(req.headers.host)) && isAllowedOrigin(headerValue(req.headers.origin));
   if (loopback) {
-    const companionToken = headerValue(req.headers["x-openmausbot-companion-auth"]);
+    const companionToken = headerValue(req.headers["x-opendeliobot-companion-auth"]);
     if (companionToken && options.loopbackMutationToken !== undefined) {
       if (
         !secureTokenMatch(companionToken, options.companionMutationToken ?? "") ||
-        req.headers["x-openmausbot-companion"] !== "1" ||
-        !/^[\w-]{1,128}$/.test(headerValue(req.headers["x-openmausbot-companion-device"]) ?? "") ||
+        req.headers["x-opendeliobot-companion"] !== "1" ||
+        !/^[\w-]{1,128}$/.test(headerValue(req.headers["x-opendeliobot-companion-device"]) ?? "") ||
         (companionDenial({ path, method, authenticated: true }) && !isCompanionNotice(method, path))
       ) return deny(403, "forbidden: invalid companion request");
-      return { auth: { kind: "loopback", scopes: LOOPBACK_SCOPES, companionDevice: headerValue(req.headers["x-openmausbot-companion-device"]) }, status: 401, error: "" };
+      return { auth: { kind: "loopback", scopes: LOOPBACK_SCOPES, companionDevice: headerValue(req.headers["x-opendeliobot-companion-device"]) }, status: 401, error: "" };
     }
     const desktopOwner = options.loopbackMutationToken !== undefined &&
       secureTokenMatch(headerValue(req.headers[DESKTOP_OWNER_HEADER]), options.loopbackMutationToken) && fromOwnPage(req);

@@ -7,45 +7,45 @@ export const CREDENTIAL_ENV_NAMES = [
   "XAI_API_KEY",
   "MISTRAL_API_KEY",
   "CEREBRAS_API_KEY",
-  "OMB_GROQ_API_KEY",
-  "OMB_GREENFERENCE_API_KEY",
-  "OMB_MODELGO_API_KEY",
-  "OMB_META_API_KEY",
-  "OMB_DEEPSEEK_API_KEY",
-  "OMB_ANTHROPIC_API_KEY",
-  "OMB_ANTHROPIC_API_URL",
-  "OMB_HOSTED_MODEL_TOKEN",
-  "OMB_HOSTED_MODELS",
+  "ODB_GROQ_API_KEY",
+  "ODB_GREENFERENCE_API_KEY",
+  "ODB_MODELGO_API_KEY",
+  "ODB_META_API_KEY",
+  "ODB_DEEPSEEK_API_KEY",
+  "ODB_ANTHROPIC_API_KEY",
+  "ODB_ANTHROPIC_API_URL",
+  "ODB_HOSTED_MODEL_TOKEN",
+  "ODB_HOSTED_MODELS",
   "OPENAI_COMPAT_API_KEY",
   "OPENAI_COMPAT_URL",
-  "OMB_OPENAI_API_KEY",
-  "OMB_OPENROUTER_API_KEY",
+  "ODB_OPENAI_API_KEY",
+  "ODB_OPENROUTER_API_KEY",
   "BOX_TOKEN",
   "OPENCODE_API_KEY",
-  "OMB_TTS_KEY",
-  "OMB_FISH_AUDIO_API_KEY",
-  "OMB_GEMINI_API_KEY",
-  "OMB_JEV_API_KEY",
-  "OMB_OPENROUTER_DECIDER_KEY",
-  "OMB_WORKERS_AI_TOKEN",
-  "OMB_OPENAI_IMAGE_KEY",
-  "OMB_CUSTOM_IMAGE_KEY",
-  "OMB_GEMINI_IMAGE_KEY",
-  "OMB_OPENAI_LIVE_KEY",
-  "OMB_TREG_KEY",
-  "OMB_POSTIZ_API_KEY",
+  "ODB_TTS_KEY",
+  "ODB_FISH_AUDIO_API_KEY",
+  "ODB_GEMINI_API_KEY",
+  "ODB_JEV_API_KEY",
+  "ODB_OPENROUTER_DECIDER_KEY",
+  "ODB_WORKERS_AI_TOKEN",
+  "ODB_OPENAI_IMAGE_KEY",
+  "ODB_CUSTOM_IMAGE_KEY",
+  "ODB_GEMINI_IMAGE_KEY",
+  "ODB_OPENAI_LIVE_KEY",
+  "ODB_TREG_KEY",
+  "ODB_POSTIZ_API_KEY",
   "COMPOSIO_API_KEY",
-  "OMB_COMPOSIO_BROKER_TOKEN",
-  "OMB_CLOUD_BOAT_TOKEN",
-  "OMB_CLOUD_VOICE_TOKEN",
-  "OMB_CLOUD_DECIDER_TOKEN",
-  "OMB_CLOUD_AI_TOKEN",
-  "OMB_CLOUD_X_TOKEN",
-  "OMB_CLOUD_CONNECTED_APPS_GRANT",
+  "ODB_COMPOSIO_BROKER_TOKEN",
+  "ODB_CLOUD_BOAT_TOKEN",
+  "ODB_CLOUD_VOICE_TOKEN",
+  "ODB_CLOUD_DECIDER_TOKEN",
+  "ODB_CLOUD_AI_TOKEN",
+  "ODB_CLOUD_X_TOKEN",
+  "ODB_CLOUD_CONNECTED_APPS_GRANT",
   // Private even though they are not traditional API credentials.
-  "OMB_BROWSER_CONNECTION",
-  "OMB_USER_DATA",
-  "OMB_BOAT_API",
+  "ODB_BROWSER_CONNECTION",
+  "ODB_USER_DATA",
+  "ODB_BOAT_API",
 ];
 
 // Kept in parity with server/redact.ts: unmistakable token formats are masked wherever they appear, keyed or not.
@@ -278,7 +278,7 @@ export function buildDiagnosticsReport({
   now = new Date().toISOString(),
 } = {}) {
   const lines = [];
-  lines.push("OpenMausBot diagnostics");
+  lines.push("OpenDeliobot diagnostics");
   lines.push(`Generated: ${now}`);
   lines.push("");
   lines.push("## App");
@@ -325,7 +325,7 @@ export function buildDiagnosticsReport({
 export function diagnosticsFileName(date = new Date()) {
   const pad = (n) => String(n).padStart(2, "0");
   return (
-    `openmausbot-diagnostics-${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}` +
+    `opendeliobot-diagnostics-${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}` +
     `-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}.txt`
   );
 }

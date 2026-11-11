@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 
 /** The relay's WebSocket subprotocol. Every path requires it. */
-export const SUBPROTOCOL = "omb-relay.v1";
+export const SUBPROTOCOL = "odb-relay.v1";
 
 /** Close codes the relay sends (wire spec §3.9). */
 export const Close = {

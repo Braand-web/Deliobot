@@ -98,19 +98,19 @@ function nonCanonicalPoint(): Buffer {
 }
 
 export const INPUTS = {
-  transportPrivate: scalar("omb-e2e vector T"),
-  phoneEphemeral: scalar("omb-e2e vector e phone"),
-  computerEphemeral: scalar("omb-e2e vector e computer"),
-  deviceToken: `omb_${b64u(label("omb-e2e vector device token"))}`,
-  pairingToken: `omb_pair_${b64u(label("omb-e2e vector pairing token"))}`,
-  hostId: label("omb-e2e vector host").subarray(0, 16),
-  conn: label("omb-e2e vector conn").subarray(0, 16),
-  tokenKeySeed: label("omb-e2e vector token key"),
+  transportPrivate: scalar("odb-e2e vector T"),
+  phoneEphemeral: scalar("odb-e2e vector e phone"),
+  computerEphemeral: scalar("odb-e2e vector e computer"),
+  deviceToken: `odb_${b64u(label("odb-e2e vector device token"))}`,
+  pairingToken: `odb_pair_${b64u(label("odb-e2e vector pairing token"))}`,
+  hostId: label("odb-e2e vector host").subarray(0, 16),
+  conn: label("odb-e2e vector conn").subarray(0, 16),
+  tokenKeySeed: label("odb-e2e vector token key"),
   /** Must-fail inputs only. */
-  otherTransportPrivate: scalar("omb-e2e vector T other"),
-  otherDeviceToken: `omb_${b64u(label("omb-e2e vector other device token"))}`,
-  otherConn: label("omb-e2e vector other conn").subarray(0, 16),
-  otherTokenKeySeed: label("omb-e2e vector other token key"),
+  otherTransportPrivate: scalar("odb-e2e vector T other"),
+  otherDeviceToken: `odb_${b64u(label("odb-e2e vector other device token"))}`,
+  otherConn: label("odb-e2e vector other conn").subarray(0, 16),
+  otherTokenKeySeed: label("odb-e2e vector other token key"),
 };
 
 const T = keyPairFromPrivate(INPUTS.transportPrivate);
@@ -511,14 +511,14 @@ function nonCanonicalTail(text: string): string {
 function v7() {
   const k = b64u(T.publicKey);
   const h = b64u(INPUTS.hostId);
-  const r = ["relay1.openmausbot.com", "relay2.openmausbot.com"];
+  const r = ["relay1.openopendeliobot.com", "relay2.openopendeliobot.com"];
   const raw = (value: unknown) => b64u(Buffer.from(JSON.stringify(value), "utf8"));
   // 768 JSON bytes encode to exactly 1,024 characters; 769 to 1,026.
   const padded = (jsonBytes: number) => raw({ v: 1, k, h, r, x: "a".repeat(jsonBytes - JSON.stringify({ v: 1, k, h, r, x: "" }).length) });
   const valid = [
     { name: "relay", value: encodeDescriptor({ v: 1, k, h, r }) },
     { name: "direct_only", value: encodeDescriptor({ v: 1, k }) },
-    { name: "four_relays", value: raw({ v: 1, k, h, r: ["relay1.openmausbot.com", "relay2.openmausbot.com", "relay3.openmausbot.com", "relay99.openmausbot.com"] }) },
+    { name: "four_relays", value: raw({ v: 1, k, h, r: ["relay1.openopendeliobot.com", "relay2.openopendeliobot.com", "relay3.openopendeliobot.com", "relay99.openopendeliobot.com"] }) },
     { name: "key_order_and_unknown_field", value: raw({ r, x: 1, h, k, v: 1 }) },
     { name: "at_1024_chars", value: padded(768) },
     { name: "routes_local", value: encodeDescriptor({ v: 1, k, routes: "local" }) },
@@ -532,14 +532,14 @@ function v7() {
     { name: "bad_point", value: raw({ v: 1, k: offCurve }) },
     { name: "compressed_key", value: raw({ v: 1, k: b64u(T.publicKey.subarray(0, 33)) }) },
     { name: "missing_key", value: raw({ v: 1 }) },
-    { name: "relay_host_suffix", value: raw({ v: 1, k, h, r: ["relay1.openmausbot.com.example.net"] }) },
-    { name: "relay_host_zero", value: raw({ v: 1, k, h, r: ["relay0.openmausbot.com"] }) },
-    { name: "relay_host_upper", value: raw({ v: 1, k, h, r: ["Relay1.openmausbot.com"] }) },
-    { name: "relay_host_other_domain", value: raw({ v: 1, k, h, r: ["relay1.openmausbot.org"] }) },
+    { name: "relay_host_suffix", value: raw({ v: 1, k, h, r: ["relay1.openopendeliobot.com.example.net"] }) },
+    { name: "relay_host_zero", value: raw({ v: 1, k, h, r: ["relay0.openopendeliobot.com"] }) },
+    { name: "relay_host_upper", value: raw({ v: 1, k, h, r: ["Relay1.openopendeliobot.com"] }) },
+    { name: "relay_host_other_domain", value: raw({ v: 1, k, h, r: ["relay1.opendeliobot.org"] }) },
     { name: "h_without_r", value: raw({ v: 1, k, h }) },
     { name: "r_without_h", value: raw({ v: 1, k, r }) },
     { name: "no_relays", value: raw({ v: 1, k, h, r: [] }) },
-    { name: "five_relays", value: raw({ v: 1, k, h, r: [...r, "relay3.openmausbot.com", "relay4.openmausbot.com", "relay5.openmausbot.com"] }) },
+    { name: "five_relays", value: raw({ v: 1, k, h, r: [...r, "relay3.openopendeliobot.com", "relay4.openopendeliobot.com", "relay5.openopendeliobot.com"] }) },
     { name: "host_id_15_bytes", value: raw({ v: 1, k, h: b64u(INPUTS.hostId.subarray(0, 15)), r }) },
     { name: "v0", value: raw({ v: 0, k }) },
     { name: "v_string", value: raw({ v: "1", k }) },
@@ -588,7 +588,7 @@ function v8() {
     { name: "bad_signature", token: `${body}.${b64u(flip(Buffer.from(signature, "base64url"), 0))}`, keys: { k1: publicKey }, now: iat + 60 },
     { name: "other_key", token, keys: { k1: otherPublic }, now: iat + 60 },
     { name: "payload_changed", token: `${tamperedBody}.${signature}`, keys: { k1: publicKey }, now: iat + 60 },
-    { name: "wrong_hid_on_refresh", token, keys: { k1: publicKey }, now: iat + 60, expectHid: b64u(label("omb-e2e vector other host").subarray(0, 16)) },
+    { name: "wrong_hid_on_refresh", token, keys: { k1: publicKey }, now: iat + 60, expectHid: b64u(label("odb-e2e vector other host").subarray(0, 16)) },
     { name: "three_parts", token: `${token}.x`, keys: { k1: publicKey }, now: iat + 60 },
     { name: "longer_than_12_h", token: mintRelayToken({ ...claims, exp: claims.exp + 1 }, signingKey), keys: { k1: publicKey }, now: iat + 60 },
   ];
@@ -617,7 +617,7 @@ function v8() {
 function v9() {
   const device = credentialVector("device", INPUTS.deviceToken);
   const pairing = credentialVector("pairing", INPUTS.pairingToken);
-  const sid = b64u(label("omb-e2e vector sid").subarray(0, 16));
+  const sid = b64u(label("odb-e2e vector sid").subarray(0, 16));
   return {
     about: "Relay messages for the vector host. JSON key order and whitespace are not significant on the wire.",
     host: [
@@ -638,7 +638,7 @@ function v9() {
 export function buildVectors() {
   return {
     about:
-      "OpenMausBot E2E wire spec v1 test vectors (companion/src/e2e/README.md). All binary values are hex unless a field ends in B64u. " +
+      "OpenDeliobot E2E wire spec v1 test vectors (companion/src/e2e/README.md). All binary values are hex unless a field ends in B64u. " +
       "Generated by companion/src/e2e/gen-vectors.ts; never edit by hand.",
     version: 1,
     inputs: {

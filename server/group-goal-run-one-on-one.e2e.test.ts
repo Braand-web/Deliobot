@@ -14,7 +14,7 @@ import { freePortBlock } from "./testing/ports.ts";
 const SERVER_DIR = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(SERVER_DIR, "..");
 const FAKE_CLAUDE = join(SERVER_DIR, "testing", "fake-claude-cli.ts");
-const envelope = (decision: Record<string, string>) => `<openmaus-goal>${JSON.stringify(decision)}</openmaus-goal>`;
+const envelope = (decision: Record<string, string>) => `<opendelio-goal>${JSON.stringify(decision)}</opendelio-goal>`;
 
 let child: ChildProcess;
 let home = "";
@@ -55,10 +55,10 @@ const sendGoal = (bot: { id: string; threadId: string }, text: string, extra: Re
   api("POST", `/api/bots/${bot.id}/messages`, { text, mode: "goal", threadId: bot.threadId, ...extra });
 
 beforeAll(async () => {
-  home = mkdtempSync(join(tmpdir(), "omb-one-on-one-goal-"));
+  home = mkdtempSync(join(tmpdir(), "odb-one-on-one-goal-"));
   slowGate = join(home, "slow-finish");
   patientGate = join(home, "patient-finish");
-  const data = join(home, ".openmausbot");
+  const data = join(home, ".opendeliobot");
   mkdirSync(data, { recursive: true });
   const fixture = (name: string, environment: Record<string, string>) => ({
     driver: "claudeAgent",
@@ -113,8 +113,8 @@ ${envelope({ status: "completed", detail: "Done." })}`]),
       ...(process.env.SystemRoot ? { SystemRoot: process.env.SystemRoot } : {}),
       HOME: home,
       USERPROFILE: home,
-      OMB_PORT: String(port),
-      OMB_WEBHOOK_PORT: String(port + 1),
+      ODB_PORT: String(port),
+      ODB_WEBHOOK_PORT: String(port + 1),
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -160,7 +160,7 @@ describe("one-on-one goal runs (a room of one)", () => {
 
     const messages = await messagesIn(bot.threadId);
     const afterGoal = messages.slice(messages.findIndex((message) => message.id === sent.body.message.id) + 1);
-    expect(JSON.stringify(messages)).not.toContain("openmaus-goal");
+    expect(JSON.stringify(messages)).not.toContain("opendelio-goal");
     expect(afterGoal.filter((message) => message.kind === "text" && message.role === "bot").map((message) => message.text))
       .toEqual(["I fixed the parser test.", "Every test passes now."]);
     expect(messages.filter((message) => message.role === "user").map((message) => message.text)).toEqual(["Get every test passing"]);
@@ -178,7 +178,7 @@ describe("one-on-one goal runs (a room of one)", () => {
     const replies = async () => (await messagesIn(bot.threadId))
       .filter((message) => message.kind === "text" && message.role === "bot" && message.requestMessageId === sent.body.message.id).map((message) => message.text);
     await expect.poll(replies, { timeout: hostTimeout(15_000) }).toEqual(["Coder finished it."]);
-    expect(JSON.stringify(await messagesIn(bot.threadId))).not.toContain("openmaus-goal");
+    expect(JSON.stringify(await messagesIn(bot.threadId))).not.toContain("opendelio-goal");
   });
 
   it("Stop ends the goal on its card and no turn starts after the interrupted one", async () => {
@@ -239,7 +239,7 @@ describe("one-on-one goal runs (a room of one)", () => {
       prompt: "Review the release",
       target: "room-goal",
       botId: bot.id,
-      runOn: "maus",
+      runOn: "delio",
       schedule: { type: "once", at: Date.now() + 60_000 },
       durationMinutes: 30,
     });

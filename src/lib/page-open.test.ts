@@ -5,21 +5,21 @@ import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { isPublishedPageUrl, pagePanelBot, requestPanelPage, usePanelPage, withPageOpen, type PageOpenFacts, type PanelPage } from "./page-open";
 
-const PAGE = "https://abcdefghijklmnopqrstuvwxyz.mausbot.page/";
+const PAGE = "https://abcdefghijklmnopqrstuvwxyz.delio.page/";
 const facts = (over: Partial<PageOpenFacts> = {}): PageOpenFacts => ({
   selectedId: "pepper", bots: [{ id: "pepper" }], groups: [{ id: "room" }],
   config: { features: { browser: true }, browserEngine: { kind: "engine" } }, desktop: {}, ...over,
 });
 
 describe("a published page's link", () => {
-  it("is only https://<page id>.mausbot.page, never an app, chat or look-alike link", () => {
+  it("is only https://<page id>.delio.page, never an app, chat or look-alike link", () => {
     expect(isPublishedPageUrl(PAGE)).toBe(true);
     expect(isPublishedPageUrl(`${PAGE}charts/index.html?region=EU#top`)).toBe(true);
     for (const other of [
-      "openmausbot://thread/t1?bot=pepper", "openmausbot://bot/pepper", "http://abcdefghijklmnopqrstuvwxyz.mausbot.page/",
-      "https://mausbot.page/", "https://www.mausbot.page/", "https://upload.mausbot.page/", "https://a.b.abcdefghijklmnopqrstuvwxyz.mausbot.page/",
-      "https://abcdefghijklmnopqrstuvwxyz.mausbot.page.evil.test/", "https://abcdefghijklmnopqrstuvwxyz.mausbot.pages/",
-      "https://user:pw@abcdefghijklmnopqrstuvwxyz.mausbot.page/", "https://abcdefghijklmnopqrstuvwxyz.mausbot.page:8443/",
+      "opendeliobot://thread/t1?bot=pepper", "opendeliobot://bot/pepper", "http://abcdefghijklmnopqrstuvwxyz.delio.page/",
+      "https://delio.page/", "https://www.delio.page/", "https://upload.delio.page/", "https://a.b.abcdefghijklmnopqrstuvwxyz.delio.page/",
+      "https://abcdefghijklmnopqrstuvwxyz.delio.page.evil.test/", "https://abcdefghijklmnopqrstuvwxyz.delio.pages/",
+      "https://user:pw@abcdefghijklmnopqrstuvwxyz.delio.page/", "https://abcdefghijklmnopqrstuvwxyz.delio.page:8443/",
       "javascript:alert(1)", "not a url", "", undefined, null,
     ]) expect(isPublishedPageUrl(other), String(other)).toBe(false);
   });
@@ -46,7 +46,7 @@ describe("where a published page opens", () => {
   });
 
   it("never sends any other link to the panel", () => {
-    for (const link of ["https://example.com/", "openmausbot://thread/t1?bot=pepper", "https://mausbot.page/"]) expect(pagePanelBot(link, facts())).toBeNull();
+    for (const link of ["https://example.com/", "opendeliobot://thread/t1?bot=pepper", "https://delio.page/"]) expect(pagePanelBot(link, facts())).toBeNull();
   });
 });
 

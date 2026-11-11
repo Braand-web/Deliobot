@@ -33,7 +33,7 @@ function servedOrigin(name: string, value: unknown): string | null {
 
 /** Fails closed: anything malformed is no share at all, and an address must be Tailscale's. `standIn` is a test rig's own
  * address playing a tailnet one, where CI has no Tailscale. */
-export function readTailnetShare(input: unknown, standIn = process.env.OMB_TEST_TAILNET_STAND_IN): TailnetShareConfig | null {
+export function readTailnetShare(input: unknown, standIn = process.env.ODB_TEST_TAILNET_STAND_IN): TailnetShareConfig | null {
   if (!input || typeof input !== "object") return null;
   const raw = input as Record<string, unknown>;
   const name = typeof raw.name === "string" ? raw.name.trim().toLowerCase().replace(/\.$/, "") : "";
@@ -48,12 +48,12 @@ export function readTailnetShare(input: unknown, standIn = process.env.OMB_TEST_
   return addresses.every((address) => isIP(address) !== 0 && (inTailscaleRange(address) || address === standIn)) ? { name, addresses: [...new Set(addresses)] } : null;
 }
 
-/** `OMB_TAILNET_NAME`, set by `openmausbot serve --tailscale`, follows Tailscale's interface. With `OMB_TAILNET_SERVED`
- * (the HTTPS origin `tailscale serve` gives it) nothing is bound; `OMB_TAILNET_ADDRESSES` (a comma list) pins the addresses. */
+/** `ODB_TAILNET_NAME`, set by `opendeliobot serve --tailscale`, follows Tailscale's interface. With `ODB_TAILNET_SERVED`
+ * (the HTTPS origin `tailscale serve` gives it) nothing is bound; `ODB_TAILNET_ADDRESSES` (a comma list) pins the addresses. */
 export function tailnetShareFromEnv(env: NodeJS.ProcessEnv): TailnetShareConfig | null {
-  if (!env.OMB_TAILNET_NAME) return null;
-  const addresses = env.OMB_TAILNET_ADDRESSES?.split(",").map((part) => part.trim()).filter(Boolean);
-  return readTailnetShare({ name: env.OMB_TAILNET_NAME, ...(env.OMB_TAILNET_SERVED ? { served: env.OMB_TAILNET_SERVED } : {}), ...(addresses?.length ? { addresses } : {}) });
+  if (!env.ODB_TAILNET_NAME) return null;
+  const addresses = env.ODB_TAILNET_ADDRESSES?.split(",").map((part) => part.trim()).filter(Boolean);
+  return readTailnetShare({ name: env.ODB_TAILNET_NAME, ...(env.ODB_TAILNET_SERVED ? { served: env.ODB_TAILNET_SERVED } : {}), ...(addresses?.length ? { addresses } : {}) });
 }
 
 /**
@@ -100,7 +100,7 @@ export function createTailnetShare(options: TailnetShareOptions) {
     const answer = JSON.stringify(share.state());
     if (!tellParent || answer === toldParent) return;
     toldParent = answer;
-    tellParent({ type: "openmausbot:tailnet-share-state", ...share.state() });
+    tellParent({ type: "opendeliobot:tailnet-share-state", ...share.state() });
   }
 
   const guarded: Handle = async (req, res) => {
@@ -203,12 +203,12 @@ export function createTailnetShare(options: TailnetShareOptions) {
     },
     /** The desktop app's private message; anything else is not ours. Replies with the state once it is applied. */
     receive(message: unknown, reply: (answer: object) => void): boolean {
-      if (!message || typeof message !== "object" || (message as { type?: unknown }).type !== "openmausbot:tailnet-share") return false;
+      if (!message || typeof message !== "object" || (message as { type?: unknown }).type !== "opendeliobot:tailnet-share") return false;
       tellParent = reply;
       const config = readTailnetShare((message as { share?: unknown }).share);
       void share.apply(config).then(() => {
         toldParent = JSON.stringify(share.state());
-        reply({ type: "openmausbot:tailnet-share-state", ...share.state() });
+        reply({ type: "opendeliobot:tailnet-share-state", ...share.state() });
       });
       return true;
     },

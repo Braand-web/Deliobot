@@ -18,13 +18,13 @@ function hasFfmpeg(): boolean {
   }
 }
 
-// These exercise the real ffmpeg/ffprobe on PATH (the same local build OpenMausBot would find), not a fake: this
+// These exercise the real ffmpeg/ffprobe on PATH (the same local build OpenDeliobot would find), not a fake: this
 // module has nothing to fake ffmpeg's behaviour against. Skipped wherever neither is installed.
 describe.skipIf(!hasFfmpeg())("video frame sampling", () => {
   const temporary: string[] = [];
 
   const store = () => {
-    const root = mkdtempSync(join(tmpdir(), "omb-turn-video-"));
+    const root = mkdtempSync(join(tmpdir(), "odb-turn-video-"));
     temporary.push(root);
     return root;
   };

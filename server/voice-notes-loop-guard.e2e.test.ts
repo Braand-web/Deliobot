@@ -8,11 +8,11 @@ import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSy
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, it } from "vitest";
-import { launchVerificationServer, runControlOmb } from "../scripts/control-omb.ts";
+import { launchVerificationServer, runControlOdb } from "../scripts/control-odb.ts";
 import { failedTurnCause } from "../shared/failed-turn.ts";
 import { lastNonReceipt } from "../src/lib/receipts.ts";
 import { waitForExit } from "./testing/cleanup.ts";
-import { childEnv } from "./testing/omb-env.ts";
+import { childEnv } from "./testing/odb-env.ts";
 
 type McpServer = { command: string; args: string[]; env: Record<string, string> };
 const STOPPED = "the same call failed the same way 10 times in a row: “Bash: git status” — the turn was stopped";
@@ -50,7 +50,7 @@ const inOrder = (messages: any[]) => {
 const audioOf = (messages: any[]) => messages.flatMap((message) => (message.attachments ?? []).filter((file: any) => file.kind === "audio").map((file: any) => ({ message, file })));
 
 it("keeps a recorded note when the loop guard stops the turn, and with every reply on, says why it stopped", async () => {
-  const scratch = mkdtempSync(join(tmpdir(), "omb-voice-loop-"));
+  const scratch = mkdtempSync(join(tmpdir(), "odb-voice-loop-"));
   const release = join(scratch, "release");
   const spoken: string[] = [];
   const speech: Server = createServer(async (req, res) => {
@@ -76,7 +76,7 @@ it("keeps a recorded note when the loop guard stops the turn, and with every rep
     rmSync(scratch, { recursive: true, force: true });
     throw error;
   });
-  const control = (args: string[]) => runControlOmb([...args, "--url", fixture.info.url]) as Promise<any>;
+  const control = (args: string[]) => runControlOdb([...args, "--url", fixture.info.url]) as Promise<any>;
   const api = async (method: string, path: string, body?: unknown) => {
     const response = await fetch(`${fixture.info.url}${path}`, {
       method, headers: { "content-type": "application/json", origin: fixture.info.url },

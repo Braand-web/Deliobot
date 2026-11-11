@@ -20,7 +20,7 @@ describe.skipIf(!posix)("the server's own engine reads ask for the bot box", () 
   let asked: BoxRequest[];
 
   beforeEach(() => {
-    dir = mkdtempSync(join(tmpdir(), "omb-probe-box-"));
+    dir = mkdtempSync(join(tmpdir(), "odb-probe-box-"));
     asked = [];
     // The box is off on this machine: wrap answers null and the spawn runs as is, but every request is seen.
     vi.spyOn(botBox, "wrap").mockImplementation((request) => { asked.push(request); return null; });

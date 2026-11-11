@@ -1,8 +1,8 @@
 import { createConnection } from "node:net";
 
 // Invoked by Codex. stdout must contain only the token; failures disclose no credentials.
-const path = process.env.OMB_CODEX_AUTH_SOCKET;
-const secret = process.env.OMB_CODEX_AUTH_SECRET;
+const path = process.env.ODB_CODEX_AUTH_SOCKET;
+const secret = process.env.ODB_CODEX_AUTH_SECRET;
 if (!path || !secret) process.exit(1);
 const socket = createConnection(path);
 socket.setTimeout(55_000, () => socket.destroy());

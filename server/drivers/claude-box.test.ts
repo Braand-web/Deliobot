@@ -28,15 +28,15 @@ const HIDING_BWRAP = `#!/bin/sh
 shown=1
 while [ "$1" != "--" ]; do
   case "$1" in
-    --bind|--bind-try|--ro-bind|--ro-bind-try) case "$OMB_HOOK_TOKEN_FILE" in "$3"|"$3"/*) shown=1;; esac; shift 3;;
-    --tmpfs|--dir|--proc|--dev) case "$OMB_HOOK_TOKEN_FILE" in "$2"|"$2"/*) shown=0;; esac; shift 2;;
+    --bind|--bind-try|--ro-bind|--ro-bind-try) case "$ODB_HOOK_TOKEN_FILE" in "$3"|"$3"/*) shown=1;; esac; shift 3;;
+    --tmpfs|--dir|--proc|--dev) case "$ODB_HOOK_TOKEN_FILE" in "$2"|"$2"/*) shown=0;; esac; shift 2;;
     --symlink) shift 3;;
     --chdir|--hostname|--seccomp) shift 2;;
     *) shift;;
   esac
 done
 shift
-if [ "$shown" = 0 ] && [ -n "$OMB_HOOK_TOKEN_FILE" ]; then OMB_HOOK_TOKEN_FILE="$OMB_HOOK_TOKEN_FILE.not-in-the-box"; export OMB_HOOK_TOKEN_FILE; fi
+if [ "$shown" = 0 ] && [ -n "$ODB_HOOK_TOKEN_FILE" ]; then ODB_HOOK_TOKEN_FILE="$ODB_HOOK_TOKEN_FILE.not-in-the-box"; export ODB_HOOK_TOKEN_FILE; fi
 exec "$@"
 `;
 /** Like bubblewrap, it stops before the command when a required (not -try) bind's source is missing. */
@@ -71,7 +71,7 @@ describe("a Claude turn in the bot box", () => {
   it.skipIf(process.platform === "win32")("puts the turn's permission socket in the box, so the bot's question reaches the person", async () => {
     ensureDirs();
     chmodSync(FAKE_CLI, 0o755);
-    const scratch = mkdtempSync(join(tmpdir(), "omb-claude-box-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-claude-box-"));
     dirs.push(scratch);
     // A stand-in for bubblewrap: no namespaces, it runs what follows `--`; the plan it was given is what the test reads.
     const fakeBwrap = join(scratch, "fake-bwrap.sh");
@@ -109,7 +109,7 @@ describe("a Claude turn in the bot box", () => {
   it.skipIf(process.platform === "win32")("puts only the conversation's hook token in the box, read-only, so its hooks fire from inside", async () => {
     ensureDirs();
     chmodSync(FAKE_CLI, 0o755);
-    const scratch = mkdtempSync(join(tmpdir(), "omb-claude-box-hooks-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-claude-box-hooks-"));
     dirs.push(scratch);
     const fakeBwrap = join(scratch, "fake-bwrap.sh");
     writeFileSync(fakeBwrap, HIDING_BWRAP);
@@ -163,7 +163,7 @@ describe("a Claude turn in the bot box", () => {
   it.skipIf(process.platform === "win32" || process.cwd().startsWith(tmpdir()))("makes a custom endpoint's own Claude folder before the box binds it", async () => {
     ensureDirs();
     chmodSync(FAKE_CLI, 0o755);
-    const scratch = mkdtempSync(join(tmpdir(), "omb-claude-box-endpoint-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-claude-box-endpoint-"));
     dirs.push(scratch);
     const fakeBwrap = join(scratch, "fake-bwrap.sh");
     writeFileSync(fakeBwrap, STRICT_BWRAP);
@@ -175,7 +175,7 @@ describe("a Claude turn in the bot box", () => {
     const wrap = vi.spyOn(botBox, "wrap");
     delete process.env.TMPDIR;
     // Outside /tmp and HOME, like a server's data folder: the box binds it on its own line, as it does on a Cloud.
-    const dataOutsideTmp = mkdtempSync(join(process.cwd(), ".omb-test-endpoint-"));
+    const dataOutsideTmp = mkdtempSync(join(process.cwd(), ".odb-test-endpoint-"));
     dirs.push(dataOutsideTmp);
     const configDir = join(dataOutsideTmp, "providers", "claude-endpoint");
     expect(existsSync(configDir)).toBe(false);

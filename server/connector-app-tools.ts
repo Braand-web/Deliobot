@@ -6,11 +6,11 @@ import type { ConnectorToolGrant } from "../shared/wire.ts";
 import { toolData } from "./connected-reads.ts";
 
 /** JSON list of the app tools a bridge offers, by their dotted names. */
-export const APP_TOOLS_ENV = "OMB_CONNECTOR_APP_TOOLS";
+export const APP_TOOLS_ENV = "ODB_CONNECTOR_APP_TOOLS";
 /** "dotted": offer `gmail.search_emails` itself. Claude Code's tool search finds an MCP tool by its own name, and Claude
  * Code turns the dot into `_` in the name it sends; other engines get `gmail_search_emails`, since some providers refuse a
  * dot in a tool name, and they show the same name either way. */
-export const APP_TOOL_NAMES_ENV = "OMB_CONNECTOR_APP_TOOL_NAMES";
+export const APP_TOOL_NAMES_ENV = "ODB_CONNECTOR_APP_TOOL_NAMES";
 const MULTI_EXECUTE = "COMPOSIO_MULTI_EXECUTE_TOOL";
 
 type Input = Record<string, unknown>;

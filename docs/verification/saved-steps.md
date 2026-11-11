@@ -44,7 +44,7 @@ live element while `FAKE_CUA_FAIL` exists fails and removes it, and actions
 wait while `FAKE_CUA_HOLD` exists.
 
 The server reads this computer's driver record only from the desktop app,
-over its parent port. `OMB_TEST_DESKTOP_CUA_CONNECTION` makes the launcher
+over its parent port. `ODB_TEST_DESKTOP_CUA_CONNECTION` makes the launcher
 start the server with `server/testing/desktop-parent.mjs`, which hands it the
 record the way the app does.
 
@@ -63,11 +63,11 @@ cp "$SCRATCH/calls.json" "$SCRATCH/calls.saved.json"
  "mcpEnv":{"FAKE_CUA_STATE":"$SCRATCH/cua-state.json","FAKE_CUA_LOG":"$SCRATCH/cua-calls.jsonl","FAKE_CUA_FAIL":"$SCRATCH/fail","FAKE_CUA_HOLD":"$SCRATCH/hold"}}
 EOF
 )
-OMB_TEST_DESKTOP_CUA_CONNECTION="$SCRATCH/cua-connection.json" \
+ODB_TEST_DESKTOP_CUA_CONNECTION="$SCRATCH/cua-connection.json" \
 FAKE_CLAUDE_TOOL_CALLS_FILE="$SCRATCH/calls.json" FAKE_CLAUDE_PROMPTS="$SCRATCH/prompts.jsonl" \
 FAKE_CLAUDE_REPLY_STATE="$SCRATCH/replies" \
 FAKE_CLAUDE_REPLIES='["Typed hello world into TextEdit. Nothing else changed.","Typed hello world into TextEdit again.","Typed it in the Auto thread.","Typed it with the switch off.","Typed it after the saved run failed."]' \
-  node --experimental-strip-types scripts/control-omb.ts launch
+  node --experimental-strip-types scripts/control-odb.ts launch
 ```
 
 In a second terminal set `SCRATCH` to the same folder, `URL` to the printed
@@ -76,13 +76,13 @@ In a second terminal set `SCRATCH` to the same folder, `URL` to the printed
 PATCH picks this computer as T1's place, as the composer's place chip does:
 
 ```sh
-pnpm control:omb new-bot --name Typist --url $URL
+pnpm control:odb new-bot --name Typist --url $URL
 curl -s -X PATCH $URL/api/bots/$BOT_ID/tasks/$T1 -H 'content-type: application/json' -H "origin: $URL" -d '{"surface":"local"}'
 ```
 
 Each round below sends with
-`pnpm control:omb send --bot $BOT_ID --task $T1 --text "…" --url $URL`, waits
-with `pnpm control:omb wait --bot $BOT_ID --task $T1 --timeout 300 --url $URL`
+`pnpm control:odb send --bot $BOT_ID --task $T1 --text "…" --url $URL`, waits
+with `pnpm control:odb wait --bot $BOT_ID --task $T1 --timeout 300 --url $URL`
 (`settled`), then reads `curl -s "$URL/api/threads/$T1/messages?limit=100"`.
 "Round 1's words" are `Open TextEdit and type hello world`.
 
@@ -112,7 +112,7 @@ with `pnpm control:omb wait --bot $BOT_ID --task $T1 --timeout 300 --url $URL`
    with `savedSteps: {recipeId: R, replayed: true}`.
 3. **Stop a live replay.** `touch "$SCRATCH/hold"`, send round 1's words, and
    once `cua-calls.jsonl` logs the new `click`, run
-   `pnpm control:omb interrupt --bot $BOT_ID --task $T1 --url $URL`; wait, then
+   `pnpm control:odb interrupt --bot $BOT_ID --task $T1 --url $URL`; wait, then
    `rm "$SCRATCH/hold"`. The `mcp__computer__click` row is not `ok`, a
    "stopped: You stopped this." row follows, and there is no reply.
    `prompts.jsonl` still has 1 line, no `fake-cua-driver.ts mcp` process is
@@ -135,7 +135,7 @@ with `pnpm control:omb wait --bot $BOT_ID --task $T1 --timeout 300 --url $URL`
    not place on this computer first asks them Allow once or Deny. Send round
    1's words to T2. `prompts.jsonl` has 3 lines and the reply
    "Typed it in the Auto thread." has no `savedSteps`. `$DATA/fake-claude-dump.json`
-   shows that turn's `mcpConfig.mcpServers.computer` with `OMB_CUA_COMMAND` set
+   shows that turn's `mcpConfig.mcpServers.computer` with `ODB_CUA_COMMAND` set
    to the fake driver and `--permission-mode bypassPermissions` in its `argv`:
    this computer was mounted at Full access, and the AI ran because the person
    did not pick the place. Copy `calls.saved.json` back to `calls.json`.
@@ -169,7 +169,7 @@ Interrupt `launch` with Ctrl-C, then remove `$SCRATCH`.
 Keep each round's `send`, `wait` and `messages` JSON, the recipe file after
 each round, `prompts.jsonl`, `cua-calls.jsonl`, the Auto round's
 `fake-claude-dump.json`, and the printed server log path under
-`.omb-scratch/verify-evidence/saved-steps/`.
+`.odb-scratch/verify-evidence/saved-steps/`.
 
 ### Last exercised
 

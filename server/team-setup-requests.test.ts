@@ -152,7 +152,7 @@ describe("reviewed Chief team setup", () => {
   it("accepts a working folder on create only, with the profile path's exact validation copy", () => {
     const h = harness();
     const mira = specialist("Mira", "Work");
-    const folder = mkdtempSync(join(tmpdir(), "omb-team-cwd-"));
+    const folder = mkdtempSync(join(tmpdir(), "odb-team-cwd-"));
     const withFolder = h.propose([{ ...mira, fields: { ...mira.fields, cwd: folder } }]);
     expect(withFolder.detail).toContain(`Working folder: "${folder}"`);
     expect(() => h.propose([{ ...mira, fields: { ...mira.fields, cwd: "relative/path" } }]))
@@ -581,39 +581,39 @@ describe("team setup below Full access", () => {
   });
 });
 
-describe("MausBot's Chief-level team setup", () => {
+describe("Delio's Chief-level team setup", () => {
   const plan = (operations: unknown[]) => ({ reason: "Requested specialist setup", operations, newTeams: [] });
 
-  it("lets the person's MausBot add a specialist like a Chief, without making it the Chief", () => {
+  it("lets the person's Delio add a specialist like a Chief, without making it the Chief", () => {
     const h = harness();
-    const maus = h.bot("Maus", { defaultBot: {} });
-    const request = h.service.propose({ botId: maus.id, threadId: maus.threadId, plan: plan([specialist("Scout", "Work")]) });
+    const delio = h.bot("Delio", { defaultBot: {} });
+    const request = h.service.propose({ botId: delio.id, threadId: delio.threadId, plan: plan([specialist("Scout", "Work")]) });
     expect(request.detail).toContain("Scout");
-    expect(maus.chiefOfStaff).toBeUndefined();
+    expect(delio.chiefOfStaff).toBeUndefined();
     expect(h.chief.chiefOfStaff).toBe(true);
   });
 
-  it("never lets MausBot change who the Chief is", () => {
+  it("never lets Delio change who the Chief is", () => {
     const h = harness();
-    const maus = h.bot("Maus", { defaultBot: {} });
-    for (const target of [maus.id, h.peer.id, h.chief.id]) {
-      expect(() => h.service.propose({ botId: maus.id, threadId: maus.threadId,
+    const delio = h.bot("Delio", { defaultBot: {} });
+    for (const target of [delio.id, h.peer.id, h.chief.id]) {
+      expect(() => h.service.propose({ botId: delio.id, threadId: delio.threadId,
         plan: plan([{ action: "update", botId: target, fields: { chiefOfStaff: target !== h.chief.id } }]) })).toThrow(/Only the Chief of Staff changes who the Chief is/);
     }
   });
 
-  it("refuses a Team Cloud User's MausBot, which holds no more than its member", () => {
+  it("refuses a Team Cloud User's Delio, which holds no more than its member", () => {
     const h = harness();
-    const maus = h.bot("Maus", { defaultBot: { person: "user@example.com" } });
-    expect(() => h.service.propose({ botId: maus.id, threadId: maus.threadId, plan: plan([specialist("Scout", "Work")]) }))
+    const delio = h.bot("Delio", { defaultBot: { person: "user@example.com" } });
+    expect(() => h.service.propose({ botId: delio.id, threadId: delio.threadId, plan: plan([specialist("Scout", "Work")]) }))
       .toThrow(/Only an active Chief of Staff can propose team setup/);
   });
 
-  it("never lets a Chief delete MausBot", () => {
+  it("never lets a Chief delete Delio", () => {
     const h = harness();
-    const maus = h.bot("Maus", { defaultBot: {} });
-    expect(() => h.service.proposeDeletion({ botId: h.chief.id, threadId: h.chief.threadId, targetBotId: maus.id, reason: "remove" }))
-      .toThrow(/Maus can't be deleted or archived/);
+    const delio = h.bot("Delio", { defaultBot: {} });
+    expect(() => h.service.proposeDeletion({ botId: h.chief.id, threadId: h.chief.threadId, targetBotId: delio.id, reason: "remove" }))
+      .toThrow(/Delio can't be deleted or archived/);
   });
 });
 

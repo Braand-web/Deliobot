@@ -6,9 +6,9 @@ const { createInterface } = require("node:readline");
 const { join, resolve } = require("node:path");
 const { pathToFileURL } = require("node:url");
 
-const code = process.env.OMB_SMOKE_CODE || resolve(__dirname, "..", "electron");
-app.setPath("userData", process.env.OMB_SMOKE_USER_DATA);
-const report = { code: process.env.OMB_SMOKE_LABEL ?? "this branch", packaged: app.isPackaged, resourcesPath: process.resourcesPath };
+const code = process.env.ODB_SMOKE_CODE || resolve(__dirname, "..", "electron");
+app.setPath("userData", process.env.ODB_SMOKE_USER_DATA);
+const report = { code: process.env.ODB_SMOKE_LABEL ?? "this branch", packaged: app.isPackaged, resourcesPath: process.resourcesPath };
 const say = (line) => console.log(`[lend smoke, ${report.code}] ${line}`);
 const load = (file) => import(pathToFileURL(join(code, file)).href);
 const firstText = (result) => String(result?.content?.find?.((part) => part?.type === "text")?.text ?? "");
@@ -36,7 +36,7 @@ async function driverTools(mcp) {
     child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id, method, params })}\n`);
   });
   try {
-    await request(1, "initialize", { protocolVersion: "2024-11-05", capabilities: {}, clientInfo: { name: "omb-lend-smoke", version: "1" } });
+    await request(1, "initialize", { protocolVersion: "2024-11-05", capabilities: {}, clientInfo: { name: "odb-lend-smoke", version: "1" } });
     child.stdin.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n');
     return (await request(2, "tools/list", {}))?.tools ?? [];
   } finally {
@@ -118,7 +118,7 @@ app.whenReady().then(async () => {
     say(`failed: ${report.error}`);
   }
   report.ok = ok;
-  writeFileSync(process.env.OMB_SMOKE_REPORT, JSON.stringify(report, null, 2));
+  writeFileSync(process.env.ODB_SMOKE_REPORT, JSON.stringify(report, null, 2));
   say(ok ? "smoke:cua-win-lend OK" : "smoke:cua-win-lend FAILED");
   app.exit(ok ? 0 : 1);
 });

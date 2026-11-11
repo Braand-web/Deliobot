@@ -16,8 +16,8 @@ try {
 }
 
 // The driving pair rides in env, not argv: argv is world-readable through `ps`.
-const controlUrl = process.env.OMB_CONTROL_URL ?? "";
-const controlToken = process.env.OMB_CONTROL_TOKEN ?? "";
+const controlUrl = process.env.ODB_CONTROL_URL ?? "";
+const controlToken = process.env.ODB_CONTROL_TOKEN ?? "";
 const ssh = prepareVpsSsh(DATA_DIR, augmentedPath());
 
 try { await ensureVpsSshMaster(ssh, sshAlias); }

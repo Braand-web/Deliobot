@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { Audio, Voice, VerifyResult } from "./elevenlabs.ts";
 
 export const DEFAULT_GEMINI_MODEL = "gemini-3.8-flash-lite-tts";
-const API = (process.env.OMB_GEMINI_TTS_API || "https://generativelanguage.googleapis.com/v1beta").replace(/\/+$/, "");
+const API = (process.env.ODB_GEMINI_TTS_API || "https://generativelanguage.googleapis.com/v1beta").replace(/\/+$/, "");
 const VOICES = ["Zephyr", "Puck", "Charon", "Kore", "Fenrir", "Leda", "Orus", "Aoede", "Callirrhoe", "Autonoe", "Enceladus", "Iapetus", "Umbriel", "Algieba", "Despina", "Erinome", "Algenib", "Rasalgethi", "Laomedeia", "Achernar", "Alnilam", "Schedar", "Gacrux", "Pulcherrima", "Achird", "Zubenelgenubi", "Vindemiatrix", "Sadachbia", "Sadaltager", "Sulafat"];
 const outputSchema = z.object({ steps: z.array(z.object({
   type: z.string(),

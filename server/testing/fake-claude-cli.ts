@@ -424,7 +424,7 @@ if (["text", "json"].includes(argAfter("--output-format") ?? "")) {
       writeDumpAtomic(process.env.FAKE_CLAUDE_COMPACT_DUMP, JSON.stringify({
         pid: process.pid, argv, env: process.env, prompt, cwd: process.cwd(), mcpConfig: JSON.parse(file("--mcp-config") ?? "null"),
         settings: JSON.parse(file("--settings") ?? "null"), systemPrompt: file("--append-system-prompt-file"),
-        hookEnv: Object.keys(process.env).filter((key) => key.startsWith("OMB_HOOK_")),
+        hookEnv: Object.keys(process.env).filter((key) => key.startsWith("ODB_HOOK_")),
       }, null, 2));
     }
     compactionPause();

@@ -63,7 +63,7 @@ describe("device sign-out without a status command", () => {
   };
 
   beforeEach(() => {
-    home = mkdtempSync(join(tmpdir(), "omb-device-signout-"));
+    home = mkdtempSync(join(tmpdir(), "odb-device-signout-"));
     cli = join(home, "fake-provider.mjs");
     writeFileSync(cli, FAKE, { mode: 0o700 });
     chmodSync(cli, 0o700);

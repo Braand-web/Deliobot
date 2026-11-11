@@ -12,7 +12,7 @@ const SECRET = "s".repeat(43);
 
 let dir: string, clock: number, registry: SessionRegistry;
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), "omb-team-roster-"));
+  dir = mkdtempSync(join(tmpdir(), "odb-team-roster-"));
   clock = Date.UTC(2026, 10, 10, 9);
   registry = new SessionRegistry({ file: join(dir, "sessions.json"), now: () => clock });
 });
@@ -41,7 +41,7 @@ function admin(roster: Record<string, string | null>, options: { status?: number
     if (options.down) throw new TypeError("fetch failed");
     expect(url).toBe(`${ADMIN}${TEAM_ROSTER_ADMIN_PATH}`);
     const headers = init.headers as Record<string, string>, body = String(init.body);
-    expect(headers["x-omb-cloud-signature"]).toBe(`v1=${teamRosterSignature(SECRET, "cm-home", headers["x-omb-cloud-timestamp"]!, headers["x-omb-cloud-nonce"]!, body)}`);
+    expect(headers["x-odb-cloud-signature"]).toBe(`v1=${teamRosterSignature(SECRET, "cm-home", headers["x-odb-cloud-timestamp"]!, headers["x-odb-cloud-nonce"]!, body)}`);
     const emails = (JSON.parse(body) as { emails: string[] }).emails;
     asked.push(emails);
     if (options.status) return Response.json({ error: "no" }, { status: options.status });
@@ -53,8 +53,8 @@ function admin(roster: Record<string, string | null>, options: { status?: number
 }
 
 describe("a Team Cloud's roster check", () => {
-  it("signs as openmaus-cloud's server/cloud-team-roster.ts does", () => {
-    // The same vector is pinned in openmaus-cloud tests/cloud-team-join.test.ts.
+  it("signs as opendelio-cloud's server/cloud-team-roster.ts does", () => {
+    // The same vector is pinned in opendelio-cloud tests/cloud-team-join.test.ts.
     expect(teamRosterSignature(SECRET, "cm-test-home", "1792670400", "nonce-nonce-nonce-1", '{"v":1,"emails":["ada@acme.test"]}')).toBe("WvlpjOna5b6fkOkqkNZgLdv0c913uLp8ufS_2gFEI3Y");
   });
 
@@ -159,7 +159,7 @@ describe("why a session ended", () => {
     registry.revokeMember("ben@acme.test", "member");
     expect(registry.leftTeam(ada)).toBe(true);
     expect(registry.leftTeam(ben)).toBe(false);
-    expect(registry.leftTeam("omb_sess_" + "y".repeat(43))).toBe(false);
+    expect(registry.leftTeam("odb_sess_" + "y".repeat(43))).toBe(false);
     clock += 25 * HOUR;
     expect(registry.leftTeam(ada), "said for a day").toBe(false);
   });

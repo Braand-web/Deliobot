@@ -29,7 +29,7 @@ export interface TeamPresenceHostDeps {
   store(): Pick<Store, "botByThread" | "groupByThread" | "bot">;
   visibleTo(viewer: Viewer): Pick<VisibleSet, "thread">;
   clock?: PresenceClock;
-  /** OMB_TEAM_PRESENCE_GRACE_MS when not given (tests shorten it). */
+  /** ODB_TEAM_PRESENCE_GRACE_MS when not given (tests shorten it). */
   graceMs?: number;
 }
 
@@ -85,7 +85,7 @@ export function createTeamPresenceHost<Stream extends PresenceStream>(deps: Team
   }
 
   const clock = deps.clock ?? realClock;
-  const presence = people ? createTeamPresence({ reads, emit, clock, graceMs: deps.graceMs ?? (Number(process.env.OMB_TEAM_PRESENCE_GRACE_MS) || undefined) }) : null;
+  const presence = people ? createTeamPresence({ reads, emit, clock, graceMs: deps.graceMs ?? (Number(process.env.ODB_TEAM_PRESENCE_GRACE_MS) || undefined) }) : null;
   let peopleTimer: { cancel(): void } | undefined;
   people?.onChange((email, change) => {
     if (change === "left") presence?.forget(email);

@@ -17,7 +17,7 @@ let owner = "", ada = "";
 let bot: { id: string; mainThreadId: string; color: string };
 
 beforeAll(async () => {
-  fx = await launchCloudSendFixture({ onePasswordToken: `ops_fake-team-${randomBytes(8).toString("hex")}`, team: { id: "team-acme-1", name: "Acme", env: { OMB_WEBHOOK_PUBLIC_URL: `https://${CLOUD_HOST}` } } });
+  fx = await launchCloudSendFixture({ onePasswordToken: `ops_fake-team-${randomBytes(8).toString("hex")}`, team: { id: "team-acme-1", name: "Acme", env: { ODB_WEBHOOK_PUBLIC_URL: `https://${CLOUD_HOST}` } } });
   team = fx.team!;
   owner = (await team.pair(OWNER)).token!;
   ada = (await team.pair(ADA)).token!;
@@ -68,7 +68,7 @@ it("records a team bot's rename, colour and instructions in the admin activity",
 it("lets a member read the webhook list, which carries no credential, and keeps creating one an admin's", async () => {
   const list = await team.as(ada, "GET", "/api/webhooks");
   expect(list.status).toBe(200);
-  expect(JSON.stringify(list.body)).not.toMatch(/omb_wh_|secret/i);
+  expect(JSON.stringify(list.body)).not.toMatch(/odb_wh_|secret/i);
   // As cloud-home-start runs it, the address it shows is the Cloud's public one, never the loopback listener.
   expect(list.body.ingress.baseUrl).toBe(`https://${CLOUD_HOST}`);
   expect(JSON.stringify(list.body)).not.toContain("127.0.0.1");

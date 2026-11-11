@@ -1,12 +1,12 @@
 import type { CSSProperties } from "react";
 import { cn } from "@/lib/cn";
-import type { MausMotion, MausState } from "@/lib/mascot";
+import type { DelioMotion, DelioState } from "@/lib/mascot";
 
 export interface BeatProps {
   onNext: () => void;
   onSkip: () => void;
-  setMascot: (state: MausState) => void;
-  bump: (motion: Exclude<MausMotion, "none">) => void;
+  setMascot: (state: DelioState) => void;
+  bump: (motion: Exclude<DelioMotion, "none">) => void;
 }
 
 export const inputClass =

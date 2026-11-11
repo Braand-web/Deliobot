@@ -28,7 +28,7 @@ function world() {
   mkdirSync(ATTACHMENTS_DIR, { recursive: true });
   writeFileSync(join(ATTACHMENTS_DIR, "ada-1.png"), PNG);
   writeFileSync(join(ATTACHMENTS_DIR, "ada-2.png"), Buffer.concat([PNG, Buffer.from([0])]));
-  const people = createTeamPeople(mkdtempSync(join(tmpdir(), "omb-team-pictures-")));
+  const people = createTeamPeople(mkdtempSync(join(tmpdir(), "odb-team-pictures-")));
   people.seen(ADA, "owner");
   people.seen(BOB, "member");
   const profiles: Record<string, { name?: string; avatarUrl?: string; aboutMe?: string }> = {
@@ -116,7 +116,7 @@ describe("teammates' pictures on a Team Cloud", () => {
 
 describe("who a bot reports to, in Settings → Activity", () => {
   it("records each owner change with who made it, before and after, and nothing when it stays the same", async () => {
-    const people = createTeamPeople(mkdtempSync(join(tmpdir(), "omb-team-owner-audit-")));
+    const people = createTeamPeople(mkdtempSync(join(tmpdir(), "odb-team-owner-audit-")));
     people.seen(ADA, "owner");
     people.seen(BOB, "member");
     const bots = [{ id: "ledger", name: "Ledger", reportsTo: ADA }, { id: "payroll", name: "Payroll", reportsTo: ADA }] as unknown as BotRecord[];

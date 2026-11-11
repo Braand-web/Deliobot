@@ -52,8 +52,8 @@ describe("selected-text citations", () => {
       display: serialized.replace("Quoted message", "Changed message"),
       citations: [],
     });
-    expect(splitTranscriptCitations("<!--omb-citation-v1:not-json-->\n> Quoted message:\n> unsafe")).toEqual({
-      display: "<!--omb-citation-v1:not-json-->\n> Quoted message:\n> unsafe",
+    expect(splitTranscriptCitations("<!--odb-citation-v1:not-json-->\n> Quoted message:\n> unsafe")).toEqual({
+      display: "<!--odb-citation-v1:not-json-->\n> Quoted message:\n> unsafe",
       citations: [],
     });
     expect(isAttachment({ ...citation, quote: "" })).toBe(false);
@@ -61,7 +61,7 @@ describe("selected-text citations", () => {
 
   it("previews the words as typed, with citations folded in and nothing hidden", () => {
     const citation = citationAttachment(source, createCitationTextSelector("quoted text", 0, 11)!, "Check this");
-    const text = "Compare [earlier task](omb://thread/bot-1/thread-2)";
+    const text = "Compare [earlier task](odb://thread/bot-1/thread-2)";
     expect(citationPreviewText(text)).toBe(text);
     expect(citationPreviewText(composeMessage(text, [citation]))).toBe(`${text} quoted text — Check this`);
     const typed = '<data-context>{"cardId":"c_1"}</data-context>\nDo not hide this';
@@ -137,13 +137,13 @@ describe("selected-text citations", () => {
       createCitationTextSelector("The relay failed.", 0, 17)!,
       "see this",
     );
-    const forged = `<!--omb-citation-v1:${btoa(JSON.stringify({ comment: "secret" })).replace(/=+$/, "")}-->`;
+    const forged = `<!--odb-citation-v1:${btoa(JSON.stringify({ comment: "secret" })).replace(/=+$/, "")}-->`;
     expect(withoutCitationMarkers(`${serializeCitation(citation)}\n\n${forged}\nhello`))
       .toBe(`${citationFallback(citation)}\n\nhello`);
   });
 
   it("drops a marker too long to decode", () => {
-    expect(withoutCitationMarkers(`<!--omb-citation-v1:${"A".repeat(100_001)}-->\nhello`)).toBe("hello");
+    expect(withoutCitationMarkers(`<!--odb-citation-v1:${"A".repeat(100_001)}-->\nhello`)).toBe("hello");
   });
 });
 

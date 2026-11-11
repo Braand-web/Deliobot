@@ -10,7 +10,7 @@ import { collisionFreeDownloadPath, defaultSaveName, htmlCopyName, openFolder, o
 
 // Creating a symlink on Windows needs elevation or developer mode.
 const canSymlink = (() => {
-  const probe = fs.mkdtempSync(path.join(os.tmpdir(), "omb-symlink-probe-"));
+  const probe = fs.mkdtempSync(path.join(os.tmpdir(), "odb-symlink-probe-"));
   try {
     fs.symlinkSync(probe, path.join(probe, "link"));
     return true;
@@ -25,8 +25,8 @@ let home;
 let botHome;
 
 before(() => {
-  home = fs.mkdtempSync(path.join(os.tmpdir(), "omb-save-file-"));
-  botHome = path.join(home, ".openmausbot");
+  home = fs.mkdtempSync(path.join(os.tmpdir(), "odb-save-file-"));
+  botHome = path.join(home, ".opendeliobot");
   fs.mkdirSync(path.join(botHome, "workspaces", "bot"), { recursive: true });
   fs.writeFileSync(path.join(botHome, "workspaces", "bot", "report.docx"), "docx");
   fs.writeFileSync(path.join(home, "secret.txt"), "private");
@@ -46,14 +46,14 @@ describe("save-file path validation", () => {
   });
 
   it("accepts a file under a symlinked bot home", { skip: !canSymlink }, async () => {
-    const realHome = fs.mkdtempSync(path.join(os.tmpdir(), "omb-real-home-"));
-    const linkedHome = fs.mkdtempSync(path.join(os.tmpdir(), "omb-linked-home-"));
+    const realHome = fs.mkdtempSync(path.join(os.tmpdir(), "odb-real-home-"));
+    const linkedHome = fs.mkdtempSync(path.join(os.tmpdir(), "odb-linked-home-"));
     const realBotHome = path.join(realHome, "bot-data");
     fs.mkdirSync(realBotHome, { recursive: true });
     fs.writeFileSync(path.join(realBotHome, "report.docx"), "docx");
-    fs.symlinkSync(realBotHome, path.join(linkedHome, ".openmausbot"));
+    fs.symlinkSync(realBotHome, path.join(linkedHome, ".opendeliobot"));
 
-    const viaLink = path.join(linkedHome, ".openmausbot", "report.docx");
+    const viaLink = path.join(linkedHome, ".opendeliobot", "report.docx");
     assert.equal(await resolveSavablePath(viaLink, { home: linkedHome }), await fs.promises.realpath(viaLink));
 
     fs.rmSync(realHome, { recursive: true, force: true });
@@ -85,7 +85,7 @@ describe("save-file path validation", () => {
 
 describe("save-file dialog default name", () => {
   it("suggests a name that does not overwrite an existing file", async () => {
-    const downloads = fs.mkdtempSync(path.join(os.tmpdir(), "omb-downloads-"));
+    const downloads = fs.mkdtempSync(path.join(os.tmpdir(), "odb-downloads-"));
     const source = path.join(botHome, "workspaces", "bot", "report.docx");
 
     assert.equal(await defaultSaveName(downloads, source), path.join(downloads, "report.docx"));
@@ -98,7 +98,7 @@ describe("save-file dialog default name", () => {
   });
 
   it("keeps the extension on the suggestion", async () => {
-    const downloads = fs.mkdtempSync(path.join(os.tmpdir(), "omb-downloads-ext-"));
+    const downloads = fs.mkdtempSync(path.join(os.tmpdir(), "odb-downloads-ext-"));
     const source = path.join(botHome, "workspaces", "bot", "report.docx");
     fs.writeFileSync(path.join(downloads, "report.docx"), "");
 
@@ -110,7 +110,7 @@ describe("save-file dialog default name", () => {
 
 describe("attachment download destination", () => {
   it("uses Chromium-style suffixes without replacing an existing download", () => {
-    const downloads = fs.mkdtempSync(path.join(os.tmpdir(), "omb-attachment-downloads-"));
+    const downloads = fs.mkdtempSync(path.join(os.tmpdir(), "odb-attachment-downloads-"));
     try {
       assert.equal(
         collisionFreeDownloadPath(downloads, "report.tar.gz"),
@@ -132,7 +132,7 @@ describe("attachment download destination", () => {
   });
 
   it("keeps renderer-supplied directories outside the destination", () => {
-    const downloads = fs.mkdtempSync(path.join(os.tmpdir(), "omb-attachment-basename-"));
+    const downloads = fs.mkdtempSync(path.join(os.tmpdir(), "odb-attachment-basename-"));
     try {
       assert.equal(
         collisionFreeDownloadPath(downloads, "../../outside.txt"),
@@ -261,9 +261,9 @@ describe("Show in folder for a file outside the workspace", () => {
   it("accepts a Windows drive path like the one in the report", async () => {
     const { shown, reveal } = shell();
     const fsp = { stat: async () => ({ isFile: () => true, isDirectory: () => false }) };
-    const rawPath = "C:\\Users\\Maus\\_draft\\..\\_draft\\ollama-gen.js";
+    const rawPath = "C:\\Users\\Delio\\_draft\\..\\_draft\\ollama-gen.js";
     assert.equal(await revealInFolder(rawPath, { reveal, fsp, pathApi: path.win32 }), "shown");
-    assert.deepEqual(shown, ["C:\\Users\\Maus\\_draft\\ollama-gen.js"]);
+    assert.deepEqual(shown, ["C:\\Users\\Delio\\_draft\\ollama-gen.js"]);
   });
 });
 
@@ -326,8 +326,8 @@ describe("openFolder for a folder a chat links to", () => {
         return { isFile: () => false, isDirectory: () => true };
       },
     };
-    assert.equal(await openFolder("C:\\Users\\Maus\\Reports\\..\\Reports", { open, fsp, pathApi: path.win32 }), "opened");
-    assert.deepEqual(opened, ["C:\\Users\\Maus\\Reports"]);
+    assert.equal(await openFolder("C:\\Users\\Delio\\Reports\\..\\Reports", { open, fsp, pathApi: path.win32 }), "opened");
+    assert.deepEqual(opened, ["C:\\Users\\Delio\\Reports"]);
   });
 
   it("gives up on a check that never answers (dead mount) and opens nothing when it answers late", async () => {
@@ -367,7 +367,7 @@ describe("openFolder for a folder a chat links to", () => {
       realpath: async () => "\\\\server\\share\\Reports",
       stat: () => assert.fail("a network share must not be looked up"),
     };
-    assert.equal(await openFolder("C:\\Users\\Maus\\Reports", { open, fsp, pathApi: path.win32 }), "not-folder");
+    assert.equal(await openFolder("C:\\Users\\Delio\\Reports", { open, fsp, pathApi: path.win32 }), "not-folder");
     assert.deepEqual(opened, []);
   });
 
@@ -380,7 +380,7 @@ describe("openFolder for a folder a chat links to", () => {
         return { isFile: () => false, isDirectory: () => true };
       },
     };
-    assert.equal(await openFolder("/Users/maus/Locked", { open, fsp }), "not-folder");
+    assert.equal(await openFolder("/Users/delio/Locked", { open, fsp }), "not-folder");
     assert.deepEqual(opened, []);
   });
 
@@ -392,15 +392,15 @@ describe("openFolder for a folder a chat links to", () => {
         return { isFile: () => false, isDirectory: () => true };
       },
     };
-    assert.equal(await openFolder("/home/maus/Reports", { open: () => new Promise(() => {}), fsp, openMs: 20 }), "opened");
+    assert.equal(await openFolder("/home/delio/Reports", { open: () => new Promise(() => {}), fsp, openMs: 20 }), "opened");
   });
 });
 
 describe("openLogsFolder", () => {
   it("opens exactly main's own logs folder, making it first, and says where it is when the system cannot open it", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "omb-logs-folder-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "odb-logs-folder-"));
     try {
-      const folder = path.join(root, "OpenMausBot", "logs");
+      const folder = path.join(root, "OpenDeliobot", "logs");
       const opened = [];
       assert.deepEqual(await openLogsFolder(folder, { open: async (target) => { opened.push(target); return ""; } }), { folder, opened: true });
       assert.deepEqual(opened, [folder]);
@@ -422,7 +422,7 @@ describe("openLogsFolder", () => {
 
 describe("openHtmlCopy (#4406)", () => {
   it("opens a fresh private copy inside our own folder, never a path from the page", async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omb-open-html-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "odb-open-html-"));
     try {
       const opened = [];
       assert.equal(await openHtmlCopy("<h1>hi</h1>", "../../evil/report.html", { dir, open: async (file) => { opened.push(file); return ""; } }), true);
@@ -437,7 +437,7 @@ describe("openHtmlCopy (#4406)", () => {
   });
 
   it("refuses what is not a page or is too large, and passes on why the system could not open it", async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omb-open-html-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "odb-open-html-"));
     try {
       const open = async () => "";
       await assert.rejects(openHtmlCopy(42, "a.html", { dir, open }), /Nothing to open/);
@@ -449,7 +449,7 @@ describe("openHtmlCopy (#4406)", () => {
   });
 
   it("clears copies older than a day", async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omb-open-html-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "odb-open-html-"));
     try {
       const old = path.join(dir, "p-old");
       fs.mkdirSync(old);

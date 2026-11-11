@@ -16,7 +16,7 @@ const KEY = "tsk_unit_secret_key_0123456789abcdef";
 const ON: AppConfig = { decider: { enabled: true, key: KEY, jobs: { roomRouting: true } } };
 const OPTIONS = { maya: "Maya, Product Designer bot.", theo: "Theo, Frontend Engineer bot." };
 const QUESTION = { instructions: "Which bot should answer `new_message`?", options: OPTIONS };
-const STATE = { new_message: { from: "Milind", text: "PRIVATE-MESSAGE-TEXT the navbar overlaps on Safari" } };
+const STATE = { new_message: { from: "Alex", text: "PRIVATE-MESSAGE-TEXT the navbar overlaps on Safari" } };
 
 type FetchMock = ReturnType<typeof vi.fn<typeof fetch>>;
 
@@ -224,7 +224,7 @@ describe("failures come back as reasons", () => {
 
 describe("the decision log", () => {
   it("writes one 0600 row per call with no message text and no key", async () => {
-    const dataDir = mkdtempSync(join(tmpdir(), "omb-decider-log-"));
+    const dataDir = mkdtempSync(join(tmpdir(), "odb-decider-log-"));
     const logs: string[] = [];
     for (const method of ["log", "warn", "error", "info", "debug"] as const) {
       vi.spyOn(console, method).mockImplementation((...args: unknown[]) => { logs.push(args.map(String).join(" ")); });
@@ -306,19 +306,19 @@ describe("settings rules", () => {
 });
 
 describe("Cloud Pro's included decisions", () => {
-  // A Jev base URL whose one relay route is <OMB_CLOUD_DECIDER_URL>/v1/systemone.
+  // A Jev base URL whose one relay route is <ODB_CLOUD_DECIDER_URL>/v1/systemone.
   const RELAY = "https://cloud.example.test/api/cloud/services/decider";
-  const INCLUDED = "omb_decide_unit_included_token_0123456789";
+  const INCLUDED = "odb_decide_unit_included_token_0123456789";
   const cloudPro = () => {
-    vi.stubEnv("OMB_CLOUD_DECIDER_URL", RELAY);
-    vi.stubEnv("OMB_CLOUD_DECIDER_TOKEN", INCLUDED);
+    vi.stubEnv("ODB_CLOUD_DECIDER_URL", RELAY);
+    vi.stubEnv("ODB_CLOUD_DECIDER_TOKEN", INCLUDED);
   };
   // The app's real room request: the only one the relay takes besides the key check.
   const ROOM = roomRoutingRequest({
-    room: "Launch", humans: ["Milind"],
+    room: "Launch", humans: ["Alex"],
     members: [{ id: "maya", name: "Maya", title: "Product Designer" }, { id: "theo", name: "Theo", title: "Frontend Engineer" }],
-    recent: [{ from: "Milind", text: "PRIVATE-MESSAGE-TEXT we ship Friday" }],
-    message: { from: "Milind", text: "PRIVATE-MESSAGE-TEXT the navbar overlaps on Safari" },
+    recent: [{ from: "Alex", text: "PRIVATE-MESSAGE-TEXT we ship Friday" }],
+    message: { from: "Alex", text: "PRIVATE-MESSAGE-TEXT the navbar overlaps on Safari" },
   });
   const route = (d: ReturnType<typeof decider>) => d.choose("roomRouting", ROOM.state, ROOM.question);
   const yes = () => vi.fn<typeof fetch>(async () => jsonResponse({ answers: { answer: { type: "noul", noul: 0.97 } } }));
@@ -329,7 +329,7 @@ describe("Cloud Pro's included decisions", () => {
   };
   afterEach(() => vi.unstubAllEnvs());
 
-  it("with no own key, decides through exactly <OMB_CLOUD_DECIDER_URL>/v1/systemone, on by default", async () => {
+  it("with no own key, decides through exactly <ODB_CLOUD_DECIDER_URL>/v1/systemone, on by default", async () => {
     cloudPro();
     const fetchImpl = theo();
     for (const config of [{}, { decider: { baseUrl: "http://127.0.0.1:9" } }] as AppConfig[]) {
@@ -376,7 +376,7 @@ describe("Cloud Pro's included decisions", () => {
 
   it("is on by default only while included: without the relay's URL and token nothing changes", async () => {
     const fetchImpl = theo();
-    for (const env of [{}, { OMB_CLOUD_DECIDER_TOKEN: INCLUDED }, { OMB_CLOUD_DECIDER_URL: RELAY }]) {
+    for (const env of [{}, { ODB_CLOUD_DECIDER_TOKEN: INCLUDED }, { ODB_CLOUD_DECIDER_URL: RELAY }]) {
       vi.unstubAllEnvs();
       for (const [name, value] of Object.entries(env)) vi.stubEnv(name, value);
       expect(describeDecider({})).toEqual({ provider: "jev", configured: false, enabled: false, jobs: { roomRouting: true } });
@@ -419,7 +419,7 @@ describe("Cloud Pro's included decisions", () => {
       ["an extra state key", { ...ROOM.state, files: ["~/.ssh/id_ed25519"] }, { answer: { type: "choice", ...ROOM.question } }],
       ["a missing state key", { room: "Launch", new_message: ROOM.state.new_message }, { answer: { type: "choice", ...ROOM.question } }],
       ["text as state", "the navbar overlaps", { answer: { type: "choice", ...ROOM.question } }],
-      ["a state over 24,000 bytes", { ...ROOM.state, new_message: { from: "Milind", text: huge } }, { answer: { type: "choice", ...ROOM.question } }],
+      ["a state over 24,000 bytes", { ...ROOM.state, new_message: { from: "Alex", text: huge } }, { answer: { type: "choice", ...ROOM.question } }],
       ["a body over 64 KiB", ROOM.state, { answer: { type: "choice", instructions: ROOM.question.instructions, options: Object.fromEntries(Array.from({ length: 200 }, (_, i) => [`bot${i}`, "y".repeat(400)])) } }],
     ];
     for (const [name, state, questions] of refused) {
@@ -450,7 +450,7 @@ describe("Cloud Pro's included decisions", () => {
       room: "r".repeat(200), humans: Array.from({ length: 12 }, (_, i) => `Person ${i} ${"p".repeat(90)}`),
       members: Array.from({ length: 24 }, (_, i) => ({ id: `bot-${i}`, name: `Bot ${i}`, title: "t".repeat(200), description: "d".repeat(900) })),
       recent: Array.from({ length: 40 }, (_, i) => ({ from: `Person ${i}`, text: "m".repeat(700) })),
-      message: { from: "Milind", text: "n".repeat(7_000) },
+      message: { from: "Alex", text: "n".repeat(7_000) },
     });
     expect(Object.keys(busy.state).every((key) => (ROOM_ROUTING_STATE_KEYS as readonly string[]).includes(key))).toBe(true);
     expect(relayAccepts("roomRouting", busy.state, { answer: { type: "choice", ...busy.question } })).toBe(true);
@@ -476,7 +476,7 @@ describe("Cloud Pro's included decisions", () => {
 
   it("the decision log never holds the token", async () => {
     cloudPro();
-    const dataDir = mkdtempSync(join(tmpdir(), "omb-decider-included-log-"));
+    const dataDir = mkdtempSync(join(tmpdir(), "odb-decider-included-log-"));
     await route(decider({}, theo(), dataDir));
     await flushDeciderLog(dataDir);
     const dir = join(dataDir, DECIDER_LOG_DIR);
@@ -538,7 +538,7 @@ describe("OpenRouter as the provider", () => {
   });
 
   it("logs the provider and model, with no message text and no key", async () => {
-    const dataDir = mkdtempSync(join(tmpdir(), "omb-decider-or-log-"));
+    const dataDir = mkdtempSync(join(tmpdir(), "odb-decider-or-log-"));
     const fetchImpl = vi.fn<typeof fetch>()
       .mockResolvedValueOnce(answer("theo", { theo: 0.9, maya: 0.1 }))
       .mockResolvedValueOnce(new Response(`echo ${OR_KEY}`, { status: 402 }));
@@ -555,7 +555,7 @@ describe("OpenRouter as the provider", () => {
   });
 
   it("a Jev log row stays without a model", async () => {
-    const dataDir = mkdtempSync(join(tmpdir(), "omb-decider-jev-log-"));
+    const dataDir = mkdtempSync(join(tmpdir(), "odb-decider-jev-log-"));
     await decider(ON, vi.fn<typeof fetch>(async () => jsonResponse(choiceBody("theo", { theo: 0.94, maya: 0.06 }))), dataDir).choose("roomRouting", STATE, QUESTION);
     await flushDeciderLog(dataDir);
     const dir = join(dataDir, DECIDER_LOG_DIR);
@@ -566,8 +566,8 @@ describe("OpenRouter as the provider", () => {
 
   it("Cloud's included relay comes before OpenRouter, and its token never goes to OpenRouter", async () => {
     const relay = "https://cloud.example.test/api/cloud/services/decider";
-    vi.stubEnv("OMB_CLOUD_DECIDER_URL", relay);
-    vi.stubEnv("OMB_CLOUD_DECIDER_TOKEN", "omb_decide_unit_included_token_0123456789");
+    vi.stubEnv("ODB_CLOUD_DECIDER_URL", relay);
+    vi.stubEnv("ODB_CLOUD_DECIDER_TOKEN", "odb_decide_unit_included_token_0123456789");
     const fetchImpl = yes();
     const chose: AppConfig = { decider: { ...OR.decider } };
     expect(describeDecider(chose)).toEqual({ provider: "jev", configured: true, included: true, enabled: true, jobs: { roomRouting: true } });

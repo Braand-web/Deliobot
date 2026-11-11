@@ -10,39 +10,39 @@ import type { PhoneRelayStatus } from "./phone-relay.ts";
 import { removeTempDir } from "./testing/cleanup.ts";
 import { startControlPlaneStub } from "./testing/control-plane-stub.ts";
 
-const status = (over: Partial<PhoneRelayStatus> = {}): PhoneRelayStatus => ({ relay: "connected", node: "relay1.openmausbot.com", grant: "ok", phones: 1, maxPhones: 20, ...over });
-const invite = "openmausbot://pair?address=relay-only.invalid%3A443&token=omb_pair_x&e2e=eyJ2IjoxfQ";
+const status = (over: Partial<PhoneRelayStatus> = {}): PhoneRelayStatus => ({ relay: "connected", node: "relay1.openopendeliobot.com", grant: "ok", phones: 1, maxPhones: 20, ...over });
+const invite = "opendeliobot://pair?address=relay-only.invalid%3A443&token=odb_pair_x&e2e=eyJ2IjoxfQ";
 
-describe("openmausbot serve --relay", () => {
+describe("opendeliobot serve --relay", () => {
   it("is off unless asked for, joins any way in but --tunnel, and never a local start", () => {
     expect(parseArgs(["serve"], {})).not.toHaveProperty("relay");
     expect(parseArgs(["serve", "--relay"], {})).toMatchObject({ command: "serve", relay: true, tunnel: false });
-    expect(parseArgs(["serve", "--relay", "--domain", "maus.example.com"], {})).toMatchObject({ relay: true, domain: "maus.example.com" });
+    expect(parseArgs(["serve", "--relay", "--domain", "delio.example.com"], {})).toMatchObject({ relay: true, domain: "delio.example.com" });
     expect(parseArgs(["serve", "--tailscale", "--relay"], {})).toMatchObject({ relay: true, tailscale: true });
     expect(parseArgs(["service", "install", "--relay"], {})).toMatchObject({ command: "service", relay: true });
-    expect(parseArgs(["serve", "--relay", "--tunnel"], {})).toEqual({ error: "choose one of --relay (phones through MausBot Relay) and --tunnel (a public address)" });
+    expect(parseArgs(["serve", "--relay", "--tunnel"], {})).toEqual({ error: "choose one of --relay (phones through Delio Relay) and --tunnel (a public address)" });
     expect(parseArgs(["serve", "--tailscale", "--tunnel"], {})).toEqual({ error: "choose one of --tailscale (your tailnet) and --tunnel (a public address)" });
     expect(parseArgs(["--local", "--relay"], {})).toEqual({ error: "--local cannot be combined with a remote-access option" });
   });
 
   it("prints the relay QR for a phone code, and the usual block for everything else", () => {
     const body = { inviteUrl: invite, expiresAt: Date.now() + 600_000, relay: status() };
-    const block = relayPairingBlock(body, true, "openmausbot")!;
-    expect(block).toContain("Scan with the MausBot app. It connects through MausBot Relay, end-to-end encrypted");
-    expect(block).toContain("Paired phones: 1 of 20. Remove one: openmausbot devices revoke ID");
-    expect(relayPairingBlock(body, false, "openmausbot")).toBeNull();
-    expect(relayPairingBlock({ ...body, relay: undefined }, true, "openmausbot")).toBeNull();
-    expect(relayPairingBlock({ ...body, inviteUrl: "openmausbot://pair?address=https%3A%2F%2Fmaus.example.com&token=omb_pair_x" }, true, "openmausbot")).toBeNull();
+    const block = relayPairingBlock(body, true, "opendeliobot")!;
+    expect(block).toContain("Scan with the Delio app. It connects through Delio Relay, end-to-end encrypted");
+    expect(block).toContain("Paired phones: 1 of 20. Remove one: opendeliobot devices revoke ID");
+    expect(relayPairingBlock(body, false, "opendeliobot")).toBeNull();
+    expect(relayPairingBlock({ ...body, relay: undefined }, true, "opendeliobot")).toBeNull();
+    expect(relayPairingBlock({ ...body, inviteUrl: "opendeliobot://pair?address=https%3A%2F%2Fdelio.example.com&token=odb_pair_x" }, true, "opendeliobot")).toBeNull();
   });
 
   it("says why a phone cannot pair yet, in the person's terms", () => {
-    expect(relayProblemLines(null, "openmausbot")).toEqual(["MausBot Relay is off on this server. Start it with: openmausbot serve --relay"]);
-    expect(relayProblemLines(status({ grant: "signed-out", relay: "off" }), "openmausbot")[0]).toMatch(/^MausBot Relay needs this machine signed in to a MausBot account: openmausbot login --relay/);
-    expect(relayProblemLines(status({ grant: "unavailable", relay: "off" }), "npx openmausbot")[0]).toMatch(/not available for this machine right now\. The server keeps working here/);
-    expect(relayProblemLines(status({ relay: "connecting", node: null }), "openmausbot")[0]).toMatch(/^Can't reach MausBot Relay yet\. The server keeps working here/);
-    expect(relayProblemLines(status(), "openmausbot")).toEqual([]);
-    expect(relayProblemLines(status({ grant: "tunnel", relay: "off", reason: "this server runs with --tunnel" }), "openmausbot")).toEqual([
-      "MausBot Relay stays off here: this server runs with --tunnel. A relay token would make that tunnel go for good; use the relay on a machine signed in with openmausbot login --relay.",
+    expect(relayProblemLines(null, "opendeliobot")).toEqual(["Delio Relay is off on this server. Start it with: opendeliobot serve --relay"]);
+    expect(relayProblemLines(status({ grant: "signed-out", relay: "off" }), "opendeliobot")[0]).toMatch(/^Delio Relay needs this machine signed in to a Delio account: opendeliobot login --relay/);
+    expect(relayProblemLines(status({ grant: "unavailable", relay: "off" }), "npx opendeliobot")[0]).toMatch(/not available for this machine right now\. The server keeps working here/);
+    expect(relayProblemLines(status({ relay: "connecting", node: null }), "opendeliobot")[0]).toMatch(/^Can't reach Delio Relay yet\. The server keeps working here/);
+    expect(relayProblemLines(status(), "opendeliobot")).toEqual([]);
+    expect(relayProblemLines(status({ grant: "tunnel", relay: "off", reason: "this server runs with --tunnel" }), "opendeliobot")).toEqual([
+      "Delio Relay stays off here: this server runs with --tunnel. A relay token would make that tunnel go for good; use the relay on a machine signed in with opendeliobot login --relay.",
     ]);
   });
 
@@ -51,31 +51,31 @@ describe("openmausbot serve --relay", () => {
     const lines: string[] = [];
     let minted = 0;
     const mint = async () => `code ${++minted}`;
-    expect(await showRelayPairing({ tty: true, status: async () => reads.shift() ?? status(), mint, log: (line) => lines.push(line), prefix: "openmausbot", waitMs: 5_000 })).toBe(true);
+    expect(await showRelayPairing({ tty: true, status: async () => reads.shift() ?? status(), mint, log: (line) => lines.push(line), prefix: "opendeliobot", waitMs: 5_000 })).toBe(true);
     expect(lines).toEqual(["code 1"]);
 
     lines.length = 0;
-    expect(await showRelayPairing({ tty: true, status: async () => status({ grant: "signed-out", relay: "off" }), mint, log: (line) => lines.push(line), prefix: "openmausbot", waitMs: 0 })).toBe(false);
+    expect(await showRelayPairing({ tty: true, status: async () => status({ grant: "signed-out", relay: "off" }), mint, log: (line) => lines.push(line), prefix: "opendeliobot", waitMs: 0 })).toBe(false);
     expect(minted).toBe(1);
-    expect(lines[1]).toBe("Then: openmausbot pair --phone");
+    expect(lines[1]).toBe("Then: opendeliobot pair --phone");
   });
 
   it("signs a machine in for the relay without reserving one of the scarce tunnel addresses", async () => {
     const stub = await startControlPlaneStub();
-    const dataDir = mkdtempSync(join(tmpdir(), "omb-login-relay-"));
-    vi.stubEnv("OMB_CONTROL_PLANE_URL", stub.url);
+    const dataDir = mkdtempSync(join(tmpdir(), "odb-login-relay-"));
+    vi.stubEnv("ODB_CONTROL_PLANE_URL", stub.url);
     try {
       const lines: string[] = [];
       const io = { log: (line: string) => lines.push(line), error: (line: string) => lines.push(`error: ${line}`), ask: async () => stub.otp };
       const options = parseArgs(["login", "--relay", "--email", "vps@example.test", "--data-dir", dataDir], {});
       if ("error" in options) throw new Error(options.error);
       expect(await runLogin(options, io)).toBe(0);
-      expect(lines).toEqual(["Signed in as vps@example.test.", "No public address reserved: phones reach this machine through MausBot Relay.", expect.stringMatching(/^Serve there with: {2}.*serve --relay$/)]);
+      expect(lines).toEqual(["Signed in as vps@example.test.", "No public address reserved: phones reach this machine through Delio Relay.", expect.stringMatching(/^Serve there with: {2}.*serve --relay$/)]);
       expect(stub.calls).toContain("POST /v1/installations");
       expect([...stub.installations.values()].map((installation) => installation.kind)).toEqual(["server"]);
       expect(stub.calls.filter((call) => call.includes("/endpoint"))).toEqual([]);
       const file = join(dataDir, "tunnel-account.json");
-      expect(JSON.parse(readFileSync(file, "utf8")).companionInstallationCredential).toMatch(/^omb_install_/);
+      expect(JSON.parse(readFileSync(file, "utf8")).companionInstallationCredential).toMatch(/^odb_install_/);
       if (process.platform !== "win32") expect(statSync(file).mode & 0o777).toBe(0o600);
     } finally {
       vi.unstubAllEnvs();
@@ -87,9 +87,9 @@ describe("openmausbot serve --relay", () => {
   it("never prints the one-time credential into a service's log", async () => {
     const lines: string[] = [];
     let minted = 0;
-    expect(await showRelayPairing({ tty: false, status: async () => status(), mint: async () => `code ${++minted}`, log: (line) => lines.push(line), prefix: "openmausbot" })).toBe(false);
+    expect(await showRelayPairing({ tty: false, status: async () => status(), mint: async () => `code ${++minted}`, log: (line) => lines.push(line), prefix: "opendeliobot" })).toBe(false);
     expect(minted).toBe(0);
-    expect(lines).toEqual(["Pair a phone: openmausbot pair --phone"]);
+    expect(lines).toEqual(["Pair a phone: opendeliobot pair --phone"]);
   });
 
   it("keeps a saved tunnel choice and the relay apart, and passes --relay to a service", () => {
@@ -103,7 +103,7 @@ describe("openmausbot serve --relay", () => {
     expect(applyStartupPreferences(start(["start", "--relay"]), undefined)).toMatchObject({ relay: true });
     expect(applyStartupPreferences(start(["start"]), { access: "tunnel" })).toMatchObject({ tunnel: true });
     expect(serviceServeArgs({ port: 8799, dataDir: "/d", relay: true })).toEqual(["--port", "8799", "--data-dir", "/d", "--relay"]);
-    expect(serviceServeArgs({ port: 8799, dataDir: "/d", domain: "maus.example.com", relay: true })).toEqual(["--port", "8799", "--data-dir", "/d", "--domain", "maus.example.com", "--relay"]);
+    expect(serviceServeArgs({ port: 8799, dataDir: "/d", domain: "delio.example.com", relay: true })).toEqual(["--port", "8799", "--data-dir", "/d", "--domain", "delio.example.com", "--relay"]);
     expect(serviceServeArgs({ port: 8799, dataDir: "/d" })).toEqual(["--port", "8799", "--data-dir", "/d"]);
   });
 });

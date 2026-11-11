@@ -7,7 +7,7 @@ import { accountRows, ACCOUNT_PLACE, withAccounts } from "./rail-accounts.mjs";
 
 const { LOCAL_ID } = environments;
 // The owner's list of cases for the rail with several accounts: each is a test here, by its number.
-const A = "alice@omb-test.example", B = "bob@omb-test.example", C = "carol@omb-test.example";
+const A = "alice@odb-test.example", B = "bob@odb-test.example", C = "carol@odb-test.example";
 const myCloud = (origin, id = origin) => ({ id, kind: "remote", origin, name: "My Cloud", home: true });
 const ownCloud = (origin, name, id = origin) => ({ id, kind: "remote", origin, name, cloud: { id: `c-${id}`, role: "owner" } });
 const teamCloud = (origin, name, id = origin) => ({ id, kind: "remote", origin, name, team: { id: `t-${origin}`, role: "member" } });

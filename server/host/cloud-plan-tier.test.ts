@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { CLOUD_PLAN_TIER_FILE, createCloudPlanTier } from "./cloud-plan-tier.ts";
 
 const dirs: string[] = [];
-const dir = () => { const made = mkdtempSync(join(tmpdir(), "omb-plan-tier-")); dirs.push(made); return made; };
+const dir = () => { const made = mkdtempSync(join(tmpdir(), "odb-plan-tier-")); dirs.push(made); return made; };
 afterEach(() => { for (const made of dirs.splice(0)) rmSync(made, { recursive: true, force: true }); });
 
 describe("which plan this Cloud is on", () => {

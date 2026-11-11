@@ -38,7 +38,7 @@ const api = async (method: string, path: string, body?: unknown, headers: Record
 const internal = async (method: string, path: string, body?: unknown): Promise<ApiResult> => {
   const minted = await fetch(`${BASE}/api/testing/internal-capability`, {
     method: "POST",
-    headers: { "content-type": "application/json", "x-openmausbot-test-capability": TEST_CAPABILITY_KEY },
+    headers: { "content-type": "application/json", "x-opendeliobot-test-capability": TEST_CAPABILITY_KEY },
     body: JSON.stringify({ botId, threadId: botId, kind: "agents" }),
   });
   const { token } = await minted.json() as { token: string };
@@ -52,7 +52,7 @@ const internal = async (method: string, path: string, body?: unknown): Promise<A
 };
 
 const descriptorCapabilities = async (): Promise<Record<string, unknown>> =>
-  ((await api("GET", "/.well-known/openmausbot/environment")).body.capabilities ?? {}) as Record<string, unknown>;
+  ((await api("GET", "/.well-known/opendeliobot/environment")).body.capabilities ?? {}) as Record<string, unknown>;
 
 const PUBLIC_ROUTES = [
   "/api/shared-computers/connect",
@@ -68,10 +68,10 @@ beforeAll(async () => {
   PORT = base;
   WEBHOOK_PORT = base + 1;
   BASE = `http://127.0.0.1:${PORT}`;
-  home = mkdtempSync(join(tmpdir(), "omb-shared-computer-gate-"));
-  mkdirSync(join(home, ".openmausbot"), { recursive: true });
+  home = mkdtempSync(join(tmpdir(), "odb-shared-computer-gate-"));
+  mkdirSync(join(home, ".opendeliobot"), { recursive: true });
   // No `features` block at all: the shipped default.
-  writeFileSync(join(home, ".openmausbot", "config.json"), JSON.stringify({
+  writeFileSync(join(home, ".opendeliobot", "config.json"), JSON.stringify({
     instances: { claude: { driver: "claudeAgent", displayName: "Gate fixture", config: { cli: FAKE_CLAUDE_CLI } } },
   }));
   child = spawn(process.execPath, [join(SERVER_DIR, "index.ts")], {
@@ -81,9 +81,9 @@ beforeAll(async () => {
       ...(process.env.SystemRoot ? { SystemRoot: process.env.SystemRoot } : {}),
       HOME: home,
       USERPROFILE: home,
-      OMB_PORT: String(PORT),
-      OMB_WEBHOOK_PORT: String(WEBHOOK_PORT),
-      OMB_TEST_INTERNAL_CAPABILITY_KEY: TEST_CAPABILITY_KEY,
+      ODB_PORT: String(PORT),
+      ODB_WEBHOOK_PORT: String(WEBHOOK_PORT),
+      ODB_TEST_INTERNAL_CAPABILITY_KEY: TEST_CAPABILITY_KEY,
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -107,12 +107,12 @@ async function paired(scopes: string[]): Promise<{ token: string; id: string }> 
   const opened = await api("POST", "/api/auth/pairing", { label: `Desktop ${scopes.join("+")}`, scopes });
   expect(opened.status).toBe(200);
   const pair = (await api("POST", "/api/auth/pair", { code: opened.body.code })).body as { token: string; session: { id: string } };
-  expect(pair.token).toMatch(/^omb_sess_/);
+  expect(pair.token).toMatch(/^odb_sess_/);
   return { token: pair.token, id: pair.session.id };
 }
 const bearer = (token: string) => ({ authorization: `Bearer ${token}` });
-const registration = async () => ({ id: randomUUID(), name: "Fixture Mac", environmentId: (await api("GET", "/.well-known/openmausbot/environment")).body.environmentId, folders: [], terminal: false, computer: true });
-const connectAs = async (token: string) => api("POST", "/api/shared-computers/connect", await registration(), { ...bearer(token), "x-omb-computer-secret": "a".repeat(64) });
+const registration = async () => ({ id: randomUUID(), name: "Fixture Mac", environmentId: (await api("GET", "/.well-known/opendeliobot/environment")).body.environmentId, folders: [], terminal: false, computer: true });
+const connectAs = async (token: string) => api("POST", "/api/shared-computers/connect", await registration(), { ...bearer(token), "x-odb-computer-secret": "a".repeat(64) });
 
 /** The desktop's own lending, signed in to this server with `token` as its pairing. */
 function desktop(token: string) {

@@ -14,17 +14,17 @@ const turn = (extra: Partial<SendTurnInput> = {}): SendTurnInput => ({
   text: "x",
   integrations: {
     agents: { command: "/usr/local/bin/node", args: ["/app/dist-server/drivers/agents-proxy.js"],
-      env: { OMB_HARNESS_URL: HARNESS, OMB_COMMS_TOKEN: "agents-capability", OMB_BOT_ID: "chief", OMB_THREAD_ID: "t1", OMB_CHIEF_OF_STAFF: "1", NODE_OPTIONS: "--x" } },
+      env: { ODB_HARNESS_URL: HARNESS, ODB_COMMS_TOKEN: "agents-capability", ODB_BOT_ID: "chief", ODB_THREAD_ID: "t1", ODB_CHIEF_OF_STAFF: "1", NODE_OPTIONS: "--x" } },
     browser: { command: "/usr/local/bin/node", args: ["/app/dist-server/harness-mcp-proxy.js", "browser"],
-      env: { OMB_HARNESS_URL: HARNESS, OMB_MCP_TOKEN_BROWSER: "browser-capability" } },
+      env: { ODB_HARNESS_URL: HARNESS, ODB_MCP_TOKEN_BROWSER: "browser-capability" } },
     data: { command: "node", args: ["--experimental-strip-types", "/src/server/harness-mcp-proxy.ts", "data"],
-      env: { OMB_HARNESS_URL: HARNESS, OMB_MCP_TOKEN_DATA: "data-capability" } },
+      env: { ODB_HARNESS_URL: HARNESS, ODB_MCP_TOKEN_DATA: "data-capability" } },
     custom: { notes: { command: "npx", args: ["-y", "notes-mcp"], env: { NOTES_KEY: "k" } } },
   },
   ...extra,
 } as SendTurnInput);
 
-describe("OpenMausBot's own MCP servers for an engine that reaches servers by URL", () => {
+describe("OpenDeliobot's own MCP servers for an engine that reaches servers by URL", () => {
   it("turns each own proxy into this server's endpoint with the same capability, and leaves the person's servers as they are", () => {
     const servers = acpMcpServers(turn(), { http: true });
     expect(servers.map((server) => [server.name, "url" in server ? server.url : server.command])).toEqual([
@@ -38,7 +38,7 @@ describe("OpenMausBot's own MCP servers for an engine that reaches servers by UR
     const header = (name: string) => agents.headers.find((entry) => entry.name === name)?.value;
     expect(header("authorization")).toBe("Bearer agents-capability");
     expect(JSON.parse(Buffer.from(header(AGENTS_ENV_HEADER)!, "base64url").toString("utf8")))
-      .toEqual({ OMB_BOT_ID: "chief", OMB_THREAD_ID: "t1", OMB_CHIEF_OF_STAFF: "1" });
+      .toEqual({ ODB_BOT_ID: "chief", ODB_THREAD_ID: "t1", ODB_CHIEF_OF_STAFF: "1" });
     expect((servers[1] as { headers: unknown }).headers).toEqual([{ name: "authorization", value: "Bearer browser-capability" }]);
   });
 
@@ -49,11 +49,11 @@ describe("OpenMausBot's own MCP servers for an engine that reaches servers by UR
   });
 
   it("recognises only a proxy that reaches this server on loopback and carries its capability", () => {
-    const browser = { name: "browser", command: "node", args: ["/app/dist-server/harness-mcp-proxy.js", "browser"], env: { OMB_HARNESS_URL: HARNESS } };
+    const browser = { name: "browser", command: "node", args: ["/app/dist-server/harness-mcp-proxy.js", "browser"], env: { ODB_HARNESS_URL: HARNESS } };
     expect(ownMcpOverHttp(browser)).toBeNull();
-    expect(ownMcpOverHttp({ ...browser, env: { OMB_HARNESS_URL: "http://203.0.113.9:8799", OMB_MCP_TOKEN_BROWSER: "c" } })).toBeNull();
-    expect(ownMcpOverHttp({ ...browser, args: ["/app/dist-server/harness-mcp-proxy.js", "shell"], env: { OMB_HARNESS_URL: HARNESS, OMB_MCP_TOKEN_BROWSER: "c" } })).toBeNull();
-    expect(ownMcpOverHttp({ name: "x", command: "node", args: ["/tmp/my-agents-proxy.js.bak"], env: { OMB_HARNESS_URL: HARNESS, OMB_COMMS_TOKEN: "c" } })).toBeNull();
+    expect(ownMcpOverHttp({ ...browser, env: { ODB_HARNESS_URL: "http://203.0.113.9:8799", ODB_MCP_TOKEN_BROWSER: "c" } })).toBeNull();
+    expect(ownMcpOverHttp({ ...browser, args: ["/app/dist-server/harness-mcp-proxy.js", "shell"], env: { ODB_HARNESS_URL: HARNESS, ODB_MCP_TOKEN_BROWSER: "c" } })).toBeNull();
+    expect(ownMcpOverHttp({ name: "x", command: "node", args: ["/tmp/my-agents-proxy.js.bak"], env: { ODB_HARNESS_URL: HARNESS, ODB_COMMS_TOKEN: "c" } })).toBeNull();
   });
 });
 
@@ -71,7 +71,7 @@ describe("the MCP servers a Kimi Code turn gets", () => {
     for (const server of servers) expect([server.name, env(server)[TOOL_SCHEMA_PROFILE_ENV]]).toEqual([server.name, "moonshot"]);
     const notes = servers.find((server) => server.name === "notes") as { command: string; args: string[] };
     expect(notes.args).toEqual([SPAWNED_PROXIES.mcpGate]);
-    expect(JSON.parse(env(servers[3]!).OMB_GATE_UPSTREAM!)).toEqual({ command: "npx", args: ["-y", "notes-mcp"], env: { NOTES_KEY: "k" } });
+    expect(JSON.parse(env(servers[3]!).ODB_GATE_UPSTREAM!)).toEqual({ command: "npx", args: ["-y", "notes-mcp"], env: { NOTES_KEY: "k" } });
     expect((servers[4] as { args: string[] }).args).toEqual([SPAWNED_PROXIES.mcpRemote]);
   });
 
@@ -108,7 +108,7 @@ describe("the MCP servers of a turn whose model takes a limited number of tools"
     const notes = servers[3] as { args: string[] };
     expect(notes.args).toEqual([SPAWNED_PROXIES.mcpGate]);
     expect(env(servers[3]!)[TOOL_LIMIT_ENV]).toBe("3");
-    expect(JSON.parse(env(servers[3]!).OMB_GATE_UPSTREAM!)).toEqual({ command: "npx", args: ["-y", "notes-mcp"], env: { NOTES_KEY: "k" } });
+    expect(JSON.parse(env(servers[3]!).ODB_GATE_UPSTREAM!)).toEqual({ command: "npx", args: ["-y", "notes-mcp"], env: { NOTES_KEY: "k" } });
   });
 
   it("trims the agents server too when the budget is smaller than its list", () => {

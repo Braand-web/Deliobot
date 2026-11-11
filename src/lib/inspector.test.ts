@@ -69,11 +69,11 @@ describe("summarizeRuntime", () => {
         ...base,
         type: "request.opened",
         requestType: "question",
-        tool: "omb-ask",
+        tool: "odb-ask",
         summary: "Ship the release?",
         origin: "output",
       }).summary,
-    ).toBe("question (agent-composed): omb-ask — Ship the release?");
+    ).toBe("question (agent-composed): odb-ask — Ship the release?");
     expect(
       summarizeRuntime({ ...base, type: "request.opened", requestType: "question", tool: "ask_user", summary: "Ship?" }).summary,
     ).toBe("question: ask_user — Ship?");

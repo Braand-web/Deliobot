@@ -57,13 +57,13 @@ describe("wait tools", () => {
     expect(properties.label!.description).toBe('A noun phrase in the person\'s words, e.g. "the build".');
     expect(list!.description).toMatch(/^Your waits in this chat that have not ended/);
     // The advertised bytes ride every turn that lists it: the catalog wire test budgets them, this keeps them small.
-    const [advertised] = availableTools(catalogProfileFromEnv({ OMB_BOT_ID: "scout" })).filter((tool) => tool.name === "wait_until");
+    const [advertised] = availableTools(catalogProfileFromEnv({ ODB_BOT_ID: "scout" })).filter((tool) => tool.name === "wait_until");
     expect(JSON.stringify(advertised).length).toBeLessThan(1_100);
   });
 });
 
 const waitNames = (env: Record<string, string>) =>
-  availableTools(catalogProfileFromEnv({ OMB_BOT_ID: "scout", OMB_CHIEF_OF_STAFF: "1", ...env })).map((tool) => tool.name).filter((name) => WAIT_TOOL_NAMES.has(name));
+  availableTools(catalogProfileFromEnv({ ODB_BOT_ID: "scout", ODB_CHIEF_OF_STAFF: "1", ...env })).map((tool) => tool.name).filter((name) => WAIT_TOOL_NAMES.has(name));
 
 describe("which wait tools a conversation is listed", () => {
   // The list is the same on every turn of a chat, so the provider's cached prompt carries over whether a wait is open or not.
@@ -72,13 +72,13 @@ describe("which wait tools a conversation is listed", () => {
   });
 
   it("marks list_waits read-only, and nothing else of the three", () => {
-    const tools = availableTools(catalogProfileFromEnv({ OMB_BOT_ID: "scout" })).filter((tool) => WAIT_TOOL_NAMES.has(tool.name));
+    const tools = availableTools(catalogProfileFromEnv({ ODB_BOT_ID: "scout" })).filter((tool) => WAIT_TOOL_NAMES.has(tool.name));
     expect(tools.map((tool) => [tool.name, Boolean((tool as { annotations?: { readOnlyHint?: boolean } }).annotations?.readOnlyHint)]))
       .toEqual([["wait_until", false], ["list_waits", true], ["cancel_wait", false]]);
   });
 
   it("lists a room none of them: a room holds no wait", () => {
-    expect(waitNames({ OMB_ROOM: "1" })).toEqual([]);
+    expect(waitNames({ ODB_ROOM: "1" })).toEqual([]);
   });
 });
 
@@ -102,7 +102,7 @@ describe("the wait tools in a chat with no wait", () => {
   afterAll(() => new Promise<void>((resolve) => server.close(() => resolve())));
 
   const send = (env: Record<string, string>, method: string, params?: Json) =>
-    agentsMcp({ OMB_BOT_ID: "scout", OMB_THREAD_ID: "t1", OMB_COMMS_TOKEN: "token", OMB_HARNESS_URL: url, ...env })(
+    agentsMcp({ ODB_BOT_ID: "scout", ODB_THREAD_ID: "t1", ODB_COMMS_TOKEN: "token", ODB_HARNESS_URL: url, ...env })(
       { jsonrpc: "2.0", id: 1, method, ...(params ? { params } : {}) } as Json,
     ) as Promise<{ result?: { tools?: Array<{ name: string }>; content?: Array<{ text: string }>; isError?: boolean }; error?: { message: string } }>;
   const answer = async (env: Record<string, string>, name: string, args: Json = {}) => {
@@ -120,7 +120,7 @@ describe("the wait tools in a chat with no wait", () => {
   });
 
   it("runs through use_tool on a bridged turn, whose find_tool offers them with or without a wait", async () => {
-    const bridged = { OMB_AGENTS_TOOL_BRIDGE: "1" };
+    const bridged = { ODB_AGENTS_TOOL_BRIDGE: "1" };
     const found = (JSON.parse((await answer(bridged, "find_tool", { query: "cancel_wait" })).text!) as { matches: Array<{ name: string }> })
       .matches.map((match) => match.name);
     expect(found).toContain("cancel_wait");
@@ -131,8 +131,8 @@ describe("the wait tools in a chat with no wait", () => {
 
   it("refuses the wait tools in a room as tools the room is not given", async () => {
     reached.length = 0;
-    expect(await answer({ OMB_ROOM: "1" }, "cancel_wait", { id: "w1" })).toEqual({ error: "Unknown tool: cancel_wait" });
-    expect(await answer({ OMB_ROOM: "1" }, "list_waits")).toEqual({ error: "Unknown tool: list_waits" });
+    expect(await answer({ ODB_ROOM: "1" }, "cancel_wait", { id: "w1" })).toEqual({ error: "Unknown tool: cancel_wait" });
+    expect(await answer({ ODB_ROOM: "1" }, "list_waits")).toEqual({ error: "Unknown tool: list_waits" });
     expect(reached).toEqual([]);
   });
 });

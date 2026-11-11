@@ -8,7 +8,7 @@ import { setImmediate } from "node:timers/promises";
 import { createComputerSharing } from "./computer-sharing.mjs";
 
 async function fixture(t) {
-  const dir = await mkdtemp(path.join(tmpdir(), "omb-sharing-races-"));
+  const dir = await mkdtemp(path.join(tmpdir(), "odb-sharing-races-"));
   const file = path.join(dir, "computer-sharing.json");
   const env = { id: "cloud", origin: "https://cloud.fixture.test", name: "Cloud" };
   const info = { sessionId: randomUUID(), environmentId: randomUUID() };
@@ -26,7 +26,7 @@ async function fixture(t) {
         if (held) { held.entered.resolve(); await held.released.promise; }
         return Response.json({ kind: "session", id: info.sessionId, cloudHome: true, scopes: ["admin"] });
       }
-      if (route === "/.well-known/openmausbot/environment") return Response.json({ environmentId: info.environmentId, capabilities: { sharedComputers: true } });
+      if (route === "/.well-known/opendeliobot/environment") return Response.json({ environmentId: info.environmentId, capabilities: { sharedComputers: true } });
       if (route === "/api/shared-computers/connect") connects.push(JSON.parse(body));
       if (route.endsWith("/poll")) await new Promise((resolve, reject) => {
         polled.resolve();

@@ -5,7 +5,7 @@ import { expect, it } from "vitest";
 
 import { createImageDailyCap, IMAGE_DAILY_CAP, IMAGE_DAY_FILE } from "./image-daily-cap.ts";
 
-const scratch = () => mkdtempSync(join(tmpdir(), "omb-image-cap-"));
+const scratch = () => mkdtempSync(join(tmpdir(), "odb-image-cap-"));
 const at = (day: number, hour = 12) => () => new Date(2026, 10, day, hour, 0, 0);
 
 it("allows 50 images a day by default", () => {

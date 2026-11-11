@@ -76,7 +76,7 @@ describe("waking from a sleep", () => {
     vi.useFakeTimers();
     const start = Date.UTC(2026, 10, 7, 9);
     vi.setSystemTime(start);
-    const scratch = mkdtempSync(join(tmpdir(), "omb-engine-updates-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-engine-updates-"));
     let passes = 0;
     const updater = createEngineUpdater({
       plans: [], baseDir: scratch, statePath: join(scratch, "state.json"), turnRunning: () => false,
@@ -111,7 +111,7 @@ describe.skipIf(process.platform === "win32")("updating the app's engine copies"
   let live: string[][] = [];
 
   beforeEach(() => {
-    scratch = mkdtempSync(join(tmpdir(), "omb-engine-updates-"));
+    scratch = mkdtempSync(join(tmpdir(), "odb-engine-updates-"));
     base = join(scratch, "data");
     const fakePath = join(scratch, "fake-path");
     mkdirSync(fakePath);
@@ -326,7 +326,7 @@ describe.skipIf(process.platform === "win32")("updating the app's engine copies"
 
 describe("a runtime the app manages itself", () => {
   it("installs the pinned runtime beside an older one, and leaves one it never installed alone", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-engine-updates-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-engine-updates-"));
     try {
       const install = vi.fn(async () => {});
       const lines: string[] = [];
@@ -351,7 +351,7 @@ describe("a runtime the app manages itself", () => {
 
 describe.skipIf(process.platform === "win32")("the ACP handshake", () => {
   let scratch = "";
-  beforeEach(() => { scratch = mkdtempSync(join(tmpdir(), "omb-handshake-")); });
+  beforeEach(() => { scratch = mkdtempSync(join(tmpdir(), "odb-handshake-")); });
   afterEach(async () => { await removeTempDir(scratch); });
   const agent = (body: string) => {
     const path = join(scratch, `agent-${Math.random().toString(36).slice(2)}`);

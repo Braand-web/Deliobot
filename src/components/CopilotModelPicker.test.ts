@@ -41,7 +41,7 @@ const { SimpleModelMenu } = await import("./SimpleModelMenu");
 let home: string;
 let discovered: InstanceInfo["models"];
 beforeAll(async () => {
-  home = await mkdtemp(join(tmpdir(), "omb-copilot-picker-ui-"));
+  home = await mkdtemp(join(tmpdir(), "odb-copilot-picker-ui-"));
   discovered = await resolveCopilotModels({ HOME: home, USERPROFILE: home, PATH: dirname(process.execPath),
     FAKE_ACP_MODELS: "auto,claude-haiku-4.5,gpt-5.6-luna",
     FAKE_ACP_VARIANTS: JSON.stringify({ "gpt-5.6-luna": { id: "reasoning_effort", currentValue: "medium",

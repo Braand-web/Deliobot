@@ -25,18 +25,18 @@ const yamlEsmPlugin = {
 // only through a require of its own (esbuild otherwise throws "Dynamic require
 // of "events" is not supported" when it loads).
 const NODE_REQUIRE = {
-  js: 'import { createRequire as __ombCreateRequire } from "node:module";\nconst require = __ombCreateRequire(import.meta.url);',
+  js: 'import { createRequire as __odbCreateRequire } from "node:module";\nconst require = __odbCreateRequire(import.meta.url);',
 };
 
 // Every file run as its own process.
 const ENTRY_POINTS = [
   "index.ts",
   "message-search.worker.ts",
-  // the `openmausbot` command
-  "openmausbot.ts",
+  // the `opendeliobot` command
+  "opendeliobot.ts",
   "pair-cli.ts",
   "workspace-backup.worker.ts",
-  // the OMB Cloud Pro home image's entry point
+  // the ODB Cloud Pro home image's entry point
   "cloud-home-start.ts",
   // the container image's entry point
   "server-launcher.ts",
@@ -46,7 +46,7 @@ const ENTRY_POINTS = [
   "local-computer.ts",
   "local-computer-proxy.ts",
   // the hook helper Claude Code runs at PostToolUse/PreCompact/SessionStart/Stop
-  "hooks/omb-hook.ts",
+  "hooks/odb-hook.ts",
   "container-mcp.ts",
   "vps-container-mcp.ts",
   "permission-proxy.ts",
@@ -99,7 +99,7 @@ await build({
   plugins: [serverLocalePlugin],
 });
 
-// `openmausbot serve --tunnel` spawns the connector guardian as its own
+// `opendeliobot serve --tunnel` spawns the connector guardian as its own
 // process, so it must exist as a file beside the server.
 await build({
   entryPoints: [join(root, "electron", "managed-companion-guardian-main.mjs")],

@@ -15,16 +15,16 @@ import { waitForExit } from "../procs.ts";
 const bridge = { socat: "/usr/bin/socat", bridgeScript: "/app/dist-server/bot-box/box-bridge.js", node: "/usr/local/bin/node" };
 
 describe("BoxRunner.wrap", () => {
-  const setup = { dataDir: "/data/.openmausbot", home: "/data", codeRoots: ["/app"], engineRoots: engineInstallRoots("/data/.openmausbot"), bridges: [{ name: "egress", port: BOX_EGRESS_PORT, socket: "/data/.openmausbot/box/egress.sock" }, { name: "harness", port: 8799, socket: "/data/.openmausbot/box/harness.sock" }] };
+  const setup = { dataDir: "/data/.opendeliobot", home: "/data", codeRoots: ["/app"], engineRoots: engineInstallRoots("/data/.opendeliobot"), bridges: [{ name: "egress", port: BOX_EGRESS_PORT, socket: "/data/.opendeliobot/box/egress.sock" }, { name: "harness", port: 8799, socket: "/data/.opendeliobot/box/harness.sock" }] };
 
   // An engine installed in the app's npm prefix: the absolute path the driver resolved, or the bare name looked up on the
   // PATH it was handed (the prefix's bin first), both read through the bin link's relative target.
-  it.skipIf(process.platform === "win32")("an engine OpenMausBot installed runs inside: its path, the bin folder on PATH and the package the link points at are there, read-only", () => {
+  it.skipIf(process.platform === "win32")("an engine OpenDeliobot installed runs inside: its path, the bin folder on PATH and the package the link points at are there, read-only", () => {
     const runner = new BoxRunner({ bwrap: "/usr/bin/bwrap", bridge, setup, denyEnv: new Set() });
     const bin = join(npmEnginesPrefix(setup.dataDir), "bin");
     const target = join(bin, "..", "lib", "node_modules", "opencode-ai", "bin", "opencode.exe");
     for (const command of [join(bin, "opencode"), "opencode"]) {
-      const wrapped = runner.wrap({ command, args: ["acp"], cwd: "/data/.openmausbot/task-workspaces/b1/t1", env: { PATH: `${bin}:/usr/local/bin:/usr/bin`, HOME: "/data" } });
+      const wrapped = runner.wrap({ command, args: ["acp"], cwd: "/data/.opendeliobot/task-workspaces/b1/t1", env: { PATH: `${bin}:/usr/local/bin:/usr/bin`, HOME: "/data" } });
       const inner = wrapped.args.slice(wrapped.args.indexOf("--") + 1);
       expect(inner.slice(-2)).toEqual([command, "acp"]);
       expect(wrapped.env.PATH!.split(":")[0]).toBe(bin);
@@ -38,8 +38,8 @@ describe("BoxRunner.wrap", () => {
   it("runs the engine under bwrap with the plan, the allow-listed environment and the proxy pointed at the gate", () => {
     const runner = new BoxRunner({ bwrap: "/usr/bin/bwrap", bridge, setup, denyEnv: new Set(["COMPOSIO_API_KEY"]) });
     const wrapped = runner.wrap({
-      command: "/usr/local/bin/claude", args: ["-p", "--output-format", "stream-json"], cwd: "/data/.openmausbot/task-workspaces/b1/t1",
-      env: { PATH: "/usr/bin", HOME: "/data", ANTHROPIC_API_KEY: "k", COMPOSIO_API_KEY: "c", OMB_CLOUD_BOOTSTRAP_SECRET: "s", RANDOM_SECRET: "r" },
+      command: "/usr/local/bin/claude", args: ["-p", "--output-format", "stream-json"], cwd: "/data/.opendeliobot/task-workspaces/b1/t1",
+      env: { PATH: "/usr/bin", HOME: "/data", ANTHROPIC_API_KEY: "k", COMPOSIO_API_KEY: "c", ODB_CLOUD_BOOTSTRAP_SECRET: "s", RANDOM_SECRET: "r" },
     });
     expect(wrapped.command).toBe("/usr/bin/bwrap");
     expect(wrapped.args.slice(0, 3)).toEqual(["--ro-bind", "/usr", "/usr"]);
@@ -64,11 +64,11 @@ describe("BoxRunner.wrap", () => {
   // The box's paths are POSIX paths inside it, which Windows' path module would write with drive letters and backslashes.
   it.skipIf(process.platform === "win32")("a relay is bound in and dialed by the Node bridge, even where socat bridges the gates; a shared-network box has none", () => {
     const runner = new BoxRunner({ bwrap: "/usr/bin/bwrap", bridge, setup, denyEnv: new Set() });
-    const relay = "/data/.openmausbot/box/relay-ab12.sock";
-    const wrapped = runner.wrap({ command: "/data/.openmausbot/tools/agy", args: ["--uid="], env: { PATH: "/usr/bin" }, relay });
-    expect(wrapped.args.join(" ")).toContain(`--bind ${relay} /run/omb/relay.sock`);
+    const relay = "/data/.opendeliobot/box/relay-ab12.sock";
+    const wrapped = runner.wrap({ command: "/data/.opendeliobot/tools/agy", args: ["--uid="], env: { PATH: "/usr/bin" }, relay });
+    expect(wrapped.args.join(" ")).toContain(`--bind ${relay} /run/odb/relay.sock`);
     const inner = wrapped.args.slice(wrapped.args.indexOf("--") + 1);
-    expect(inner).toEqual([bridge.node, bridge.bridgeScript, "--bridge=3128=/run/omb/egress.sock", "--bridge=8799=/run/omb/harness.sock", "--relay=/run/omb/relay.sock", "--", "/data/.openmausbot/tools/agy", "--uid="]);
+    expect(inner).toEqual([bridge.node, bridge.bridgeScript, "--bridge=3128=/run/odb/egress.sock", "--bridge=8799=/run/odb/harness.sock", "--relay=/run/odb/relay.sock", "--", "/data/.opendeliobot/tools/agy", "--uid="]);
     const shared = runner.wrap({ command: "/opt/chrome", args: [], env: {}, net: "shared", relay });
     expect(shared.args).not.toContain(relay);
     expect(shared.args.slice(shared.args.indexOf("--") + 1)).toEqual(["/opt/chrome"]);
@@ -76,16 +76,16 @@ describe("BoxRunner.wrap", () => {
 
   it("the env-all mutation hands over the whole environment (so the self-check can prove the allow-list)", () => {
     const runner = new BoxRunner({ bwrap: "/usr/bin/bwrap", bridge, setup: { ...setup, mutate: new Set(["env-all" as const]) }, denyEnv: new Set() });
-    expect(runner.wrap({ command: "x", args: [], env: { OMB_CLOUD_BOOTSTRAP_SECRET: "s", EMPTY: undefined } }).env).toMatchObject({ OMB_CLOUD_BOOTSTRAP_SECRET: "s" });
+    expect(runner.wrap({ command: "x", args: [], env: { ODB_CLOUD_BOOTSTRAP_SECRET: "s", EMPTY: undefined } }).env).toMatchObject({ ODB_CLOUD_BOOTSTRAP_SECRET: "s" });
   });
 });
 
 describe("the box's hardening (T0c)", () => {
   it("hands each box the seccomp filter on descriptor 3, and the no-seccomp mutation leaves it out", () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-seccomp-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-seccomp-"));
     const file = join(dir, "seccomp.bpf");
     writeFileSync(file, seccompBytes());
-    const setup = { dataDir: "/data/.openmausbot", home: "/data", codeRoots: ["/app"], engineRoots: [], bridges: [] };
+    const setup = { dataDir: "/data/.opendeliobot", home: "/data", codeRoots: ["/app"], engineRoots: [], bridges: [] };
     const runner = new BoxRunner({ bwrap: "/usr/bin/bwrap", bridge, setup, denyEnv: new Set(), seccompFile: file });
     const wrapped = runner.wrap({ command: "/usr/bin/x", args: [], env: {} });
     expect(wrapped.args).toContain("--seccomp");
@@ -122,7 +122,7 @@ describe("BotBox", () => {
     for (const box of boxes.splice(0)) await box.stop();
     for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
   });
-  const temp = () => { const dir = mkdtempSync(join(tmpdir(), "omb-box-")); dirs.push(dir); return dir; };
+  const temp = () => { const dir = mkdtempSync(join(tmpdir(), "odb-box-")); dirs.push(dir); return dir; };
 
   it("off: wraps nothing and reports why", async () => {
     const box = new BotBox();
@@ -154,12 +154,12 @@ describe("BotBox", () => {
     const wrapped = box.wrap({ command: "/usr/bin/codex", args: ["app-server"], env: { PATH: "/usr/bin" } })!;
     expect(wrapped.command).toBe("/usr/bin/bwrap");
     expect(wrapped.args).toContain(join(dataDir, "box", "harness.sock"));
-    expect(wrapped.args).toContain("/run/omb/harness.sock");
-    expect(wrapped.args).toContain("/run/omb/broker.sock");
+    expect(wrapped.args).toContain("/run/odb/harness.sock");
+    expect(wrapped.args).toContain("/run/odb/broker.sock");
     expect(box.report()).toMatchObject({ box: "bwrap", bridge: "node", boxed: 1, checks: null, broker: { on: true, tokens: 0 } });
     // A key becomes a token bound to this process; releasing it (the process exit) revokes it.
     const keyed = box.wrap({ command: "/usr/local/bin/claude", args: [], cwd: join(dataDir, "task-workspaces", "b1", "t1"), env: { PATH: "/usr/bin", ANTHROPIC_API_KEY: "sk-ant-real", XAI_API_KEY: "xai-real" } })!;
-    expect(keyed.token).toMatch(/^omb_t0_[a-f0-9]{48}$/);
+    expect(keyed.token).toMatch(/^odb_t0_[a-f0-9]{48}$/);
     expect(keyed.env.ANTHROPIC_API_KEY).toBe(keyed.token);
     expect(keyed.env.ANTHROPIC_BASE_URL).toBe(`http://127.0.0.1:18080/b/${keyed.token}/anthropic`);
     expect(JSON.stringify(keyed.env)).not.toContain("sk-ant-real");
@@ -193,7 +193,7 @@ describe("the box a bot's Chrome runs in", () => {
     for (const box of boxes.splice(0)) await box.stop();
     for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
   });
-  const temp = () => { const dir = mkdtempSync(join(tmpdir(), "omb-box-")); dirs.push(dir); return dir; };
+  const temp = () => { const dir = mkdtempSync(join(tmpdir(), "odb-box-")); dirs.push(dir); return dir; };
 
   it("is no box off a Cloud home, which is what Windows gets", () => {
     expect(new BotBox().browserBox(9, []), "no box off a Cloud home").toBeNull();
@@ -204,7 +204,7 @@ describe("the box a bot's Chrome runs in", () => {
   it.skipIf(process.platform === "win32")("has the host's network and the read-only paths asked for, and none of HOME or the data folder", async () => {
     const box = new BotBox();
     boxes.push(box);
-    const dataDir = join(temp(), "home", ".openmausbot"), home = dirname(dataDir);
+    const dataDir = join(temp(), "home", ".opendeliobot"), home = dirname(dataDir);
     mkdirSync(dataDir, { recursive: true });
     await box.start({ dataDir, home, port: 8799, denyEnv: new Set(), env: {}, log: () => {}, detect: () => ({ box: "bwrap", reason: null, tools: { bwrap: "/usr/bin/bwrap", socat: null } }) });
     const uploads = join(dataDir, "browser-uploads");
@@ -232,7 +232,7 @@ describe("spawnCli goes through the box", () => {
 
   it.skipIf(process.platform === "win32")("a bot spawn runs under the box's command; other spawns and box: false do not", async () => {
     const { botBox } = await import("./box.ts");
-    const dir = mkdtempSync(join(tmpdir(), "omb-spawn-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-spawn-"));
     dirs.push(dir);
     // A stand-in for bwrap: records its argv, then runs what follows `--`.
     const fakeBwrap = join(dir, "fake-bwrap.sh"), record = join(dir, "argv.txt");
@@ -243,7 +243,7 @@ describe("spawnCli goes through the box", () => {
       // /usr/bin/true stands in for socat: the shell init starts it, waits once, and execs the engine.
       detect: () => ({ box: "bwrap", reason: null, tools: { bwrap: fakeBwrap, socat: "/usr/bin/true" } }),
     });
-    const run = async (owner: "bot" | "openmausbot", box?: false) => {
+    const run = async (owner: "bot" | "opendeliobot", box?: false) => {
       rmSync(record, { force: true });
       const child = spawnCli("/bin/sh", ["-c", "echo ran"], { stdio: ["pipe", "pipe", "pipe"], env: { PATH: "/usr/bin:/bin", HOME: dir, SECRET_THING: "x" }, box }, owner);
       let out = "";
@@ -255,10 +255,10 @@ describe("spawnCli goes through the box", () => {
     expect(boxed.boxed).toBe(true);
     expect(boxed.out).toBe("ran");
     expect(boxed.argv).toContain("--unshare-net");
-    expect(boxed.argv).toContain("/run/omb/egress.sock");
+    expect(boxed.argv).toContain("/run/odb/egress.sock");
     const engines = npmEnginesPrefix(join(dir, "data"));
-    expect(boxed.argv, "the engines OpenMausBot installed, read-only").toContain(`--ro-bind-try\n${engines}\n${engines}\n`);
-    expect((await run("openmausbot")).boxed).toBe(false);
+    expect(boxed.argv, "the engines OpenDeliobot installed, read-only").toContain(`--ro-bind-try\n${engines}\n${engines}\n`);
+    expect((await run("opendeliobot")).boxed).toBe(false);
     expect((await run("bot", false)).boxed).toBe(false);
     expect(botBox.report().boxed).toBe(1);
   });
@@ -267,7 +267,7 @@ describe("spawnCli goes through the box", () => {
 describe("BoxRunner.lend", () => {
   // A plan over the Linux box's POSIX paths, which Windows' path module would join with backslashes.
   it.skipIf(process.platform === "win32")("puts a conversation's lent folders (a memory layer) back read-write in its boxes only, until they are taken back", () => {
-    const dataDir = "/data/.openmausbot";
+    const dataDir = "/data/.opendeliobot";
     const setup = { dataDir, home: "/data", codeRoots: ["/app"], engineRoots: [], bridges: [{ name: "egress", port: BOX_EGRESS_PORT, socket: `${dataDir}/box/egress.sock` }, { name: "harness", port: 8799, socket: `${dataDir}/box/harness.sock` }] };
     const runner = new BoxRunner({ bwrap: "/usr/bin/bwrap", bridge, setup, denyEnv: new Set() });
     const layer = join(dataDir, "workspaces", "bot-a--member-p_ada");

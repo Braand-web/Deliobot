@@ -38,7 +38,7 @@ function isRecord(value: unknown): value is Json {
 }
 
 /** How many times a command server was restarted, in the spec a turn mounts (host/mcp-servers-host.ts). */
-export const MCP_RESTART_ENV = "OMB_MCP_RESTART";
+export const MCP_RESTART_ENV = "ODB_MCP_RESTART";
 
 /** Headers are left out, so a refreshed sign-in token is the same server, and so is the restart count, so a restarted
  * server keeps its apps; hashed, so no credential is stored. */

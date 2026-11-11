@@ -15,7 +15,7 @@ const C = "c".repeat(32);
 const D = "d".repeat(32);
 
 function profile(extensions: Record<string, Record<string, Record<string, unknown>>>): string {
-  const dir = mkdtempSync(join(tmpdir(), "omb-extensions-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-extensions-"));
   folders.push(dir);
   for (const [id, versions] of Object.entries(extensions)) {
     for (const [version, manifest] of Object.entries(versions)) {
@@ -48,7 +48,7 @@ describe("installed extensions", () => {
   });
 
   it("is empty for a profile with no extensions", () => {
-    expect(installedExtensions(join(tmpdir(), "omb-no-such-profile"))).toEqual([]);
+    expect(installedExtensions(join(tmpdir(), "odb-no-such-profile"))).toEqual([]);
   });
 
   it("accepts only a chrome-extension:// page of a well-formed id", () => {

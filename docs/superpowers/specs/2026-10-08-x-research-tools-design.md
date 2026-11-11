@@ -4,7 +4,7 @@
 
 Grok Bot can search, read, and monitor X. Squad does the same through
 third-party scrapers, routed to the best one per job, so its users never
-connect an X account. MausBot today reaches X only through the built-in browser
+connect an X account. Delio today reaches X only through the built-in browser
 (slow, token-heavy, needs an X login) or the Composio `twitter` toolkit (off on
 the managed service; needs the user's own X Developer app).
 
@@ -16,7 +16,7 @@ tools only when the token is saved **and** the user has turned X research on
 for that bot. With a routine, the same tools cover monitoring.
 
 This is step 1. Step 2 (later, separate spec) runs the same tools on
-MausBot's own treg token, tagged per customer with `X-Treg-Meta` and billed
+Delio's own treg token, tagged per customer with `X-Treg-Meta` and billed
 from `usage/by-tag`, so users need no token at all. treg's licence allows using
 the hosted treg.to API inside our product this way.
 
@@ -56,7 +56,7 @@ Published catalog prices, checked 2026-10-08:
 - Posting, liking, replying, following, or DMs. The tools only read.
 - The managed (no-token) service. That is step 2.
 - treg's other catalogs (YouTube, Reddit, SEO). Later, on the same token.
-- A spend cap in MausBot beyond a per-call ceiling. treg is prepaid, so the
+- A spend cap in Delio beyond a per-call ceiling. treg is prepaid, so the
   balance is the ceiling.
 - Phone UI. Phones cannot change bot settings or keys; they show the bot's
   replies and tool activity as they already do.
@@ -71,7 +71,7 @@ Published catalog prices, checked 2026-10-08:
 2. **Bot settings → Access** has a new **X research** card with one switch,
    off by default. With no token saved, the switch is disabled and the card says
    "Add a treg token in Settings → API keys" with a link there.
-3. With both set, the user asks the bot "what are people saying about MausBot
+3. With both set, the user asks the bot "what are people saying about Delio
    on X this week?" and the bot answers from real posts with links.
 4. The Activity log lists the calls under **X** ("Searched X", "Read X posts",
    "Read an X post", "Looked up an X profile").
@@ -174,7 +174,7 @@ bot ──tools/call──▶ agents-proxy (stdio)
   | profile | `treg.x.user.profile` `{username}` (routed; normalized output) | (routing is the fallback) |
   | Test | `GET /auth/me` → `org_id`, then `GET /orgs/{org_id}/balance` → `balance_micro` | none |
 
-- `OMB_TREG_URL` (environment only) points the client at a self-hosted treg
+- `ODB_TREG_URL` (environment only) points the client at a self-hosted treg
   registry or a test's loopback stub instead of treg.to. The verification
   launcher lets it cross into a fixture only as `http://127.0.0.1:<port>`.
 - Every request carries `X-Treg-Token`; every `/call/` also carries
@@ -217,7 +217,7 @@ as the tool's error text unchanged.
 ### Gating in the catalog
 
 - `server/index.ts` `agentsIntegration()` sets
-  `OMB_X_RESEARCH: cfg.treg?.token && store.bot(botId)?.xResearch === true ? "1" : "0"`.
+  `ODB_X_RESEARCH: cfg.treg?.token && store.bot(botId)?.xResearch === true ? "1" : "0"`.
 - `catalogProfileFromEnv` reads it into `profile.xResearch`; `catalogTools()`
   hides `X_TOOL_NAMES` unless it is true, the same way `VOICE_TOOL_NAMES` works.
 - The tools are not in `EXTERNAL_TOOL_NAMES`.
@@ -240,7 +240,7 @@ as the tool's error text unchanged.
 ## Token storage
 
 The token follows the xAI key everywhere it goes. Config section `treg`, field
-`token`, env `OMB_TREG_TOKEN` (the `OMB_` prefix every non-model key uses),
+`token`, env `ODB_TREG_TOKEN` (the `ODB_` prefix every non-model key uses),
 Electron credential name `tregToken`.
 
 - `server/config.ts`: schema, `AppConfig`, env override, `syncCredentialEnv`,
@@ -312,13 +312,13 @@ the Composio connector is only needed for posting.
   regenerated, `BUDGET_BASELINE` raised by hand for those profiles only; the
   existing profiles stay byte-identical.
 - `server/activity.test.ts`: the four labels.
-- `electron/diagnostics.test.mjs`: the mirror list includes `OMB_TREG_TOKEN`.
+- `electron/diagnostics.test.mjs`: the mirror list includes `ODB_TREG_TOKEN`.
 - Config tests: the token is stripped from engine environments and follows a
   save.
 - Request-auth test: a phone token's `PATCH /api/bots/:id` with `xResearch` is
   refused.
-- Manual: an OMB2 build. Omkar pastes a real treg token, Test shows the
-  balance, he turns X on for one bot, asks for this week's MausBot mentions,
+- Manual: an ODB2 build. Omkar pastes a real treg token, Test shows the
+  balance, he turns X on for one bot, asks for this week's Delio mentions,
   then sets an hourly routine and checks that the second run reports only new
   posts.
 

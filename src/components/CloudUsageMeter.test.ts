@@ -71,7 +71,7 @@ describe("Settings → General", () => {
   };
   it("lists every allowance with its meter and the plan, and offers each bigger plan", () => {
     const { html, tree, onUpgrade } = section(usage({ tier: "starter", upgrades: [{ tier: "max", amount: 9900 }, { tier: "pro", amount: 4900 }] }));
-    for (const text of ["MausBot Cloud usage", "What your Starter plan includes this month", "285 of 300 hours", "12,000 of 60,000 characters", "41.2 of 100 GB",
+    for (const text of ["Delio Cloud usage", "What your Starter plan includes this month", "285 of 300 hours", "12,000 of 60,000 characters", "41.2 of 100 GB",
       "Resets on Nov 1.", "Upgrade to Pro · $49/month", "Upgrade to Max · $99/month"]) expect(html).toContain(text);
     expect(html.match(/role="progressbar"/g)).toHaveLength(3);
     button(tree, "Upgrade to Max")!.props.onClick();
@@ -108,7 +108,7 @@ describe("Upgrade", () => {
     const after = render();
     expect([after.confirming, after.note]).toEqual([false, { tone: "good", text: "You're on Max now. Your new allowances are ready." }]);
     // Every meter on the page reads the plan again at once.
-    expect(dispatchEvent.mock.calls.map(([event]) => (event as Event).type)).toEqual(["omb:cloud-plan-changed"]);
+    expect(dispatchEvent.mock.calls.map(([event]) => (event as Event).type)).toEqual(["odb:cloud-plan-changed"]);
   });
   it("reads the trial's end from the plan when the preview has no date, so a longer trial still hears nothing is charged today", async () => {
     const DAY = 86_400_000;

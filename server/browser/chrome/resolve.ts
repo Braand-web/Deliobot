@@ -36,7 +36,7 @@ export interface ChromeHost {
 }
 
 export interface ChromeEngine {
-  /** The agent-browser OMB installed and manages; an engine someone named picks its own browser unless a Chrome is named too. */
+  /** The agent-browser ODB installed and manages; an engine someone named picks its own browser unless a Chrome is named too. */
   managed: boolean;
 }
 
@@ -80,7 +80,7 @@ export function installedGoogleChrome(host: ChromeHost): string | null {
   return candidates.find((candidate) => host.exists(candidate)) ?? null;
 }
 
-/** Machine policies only: a managed machine runs Chrome for Testing in profiles of OMB's own instead. */
+/** Machine policies only: a managed machine runs Chrome for Testing in profiles of ODB's own instead. */
 export function chromePolicyManaged(host: ChromeHost): boolean {
   const { basename, join } = paths(host.platform);
   if (host.platform === "darwin") {
@@ -122,8 +122,8 @@ export function engineFindsLinuxBrowser(host: ChromeHost): boolean {
 /** `downloading`: a Chrome for Testing download is under way, so a browser agent-browser finds later does not replace it. */
 export function resolveChromePlan(host: ChromeHost, engine: ChromeEngine | null, options: { downloading?: boolean } = {}): ChromePlan {
   const { env, platform } = host;
-  if (env.OMB_BROWSER_LEGACY_SHELL?.trim() === "1") return { kind: "legacy", reason: "OMB_BROWSER_LEGACY_SHELL=1" };
-  const named = env.OMB_CHROME_PATH?.trim() || env.AGENT_BROWSER_EXECUTABLE_PATH?.trim();
+  if (env.ODB_BROWSER_LEGACY_SHELL?.trim() === "1") return { kind: "legacy", reason: "ODB_BROWSER_LEGACY_SHELL=1" };
+  const named = env.ODB_CHROME_PATH?.trim() || env.AGENT_BROWSER_EXECUTABLE_PATH?.trim();
   if (named) {
     if (isHeadlessShell(named)) return { kind: "legacy", reason: "the named browser is a headless shell" };
     if (!host.exists(named)) return { kind: "legacy", reason: `${named} does not exist` };
@@ -131,10 +131,10 @@ export function resolveChromePlan(host: ChromeHost, engine: ChromeEngine | null,
   }
   if (!engine?.managed) return { kind: "legacy", reason: "agent-browser was named, so it picks its own browser" };
   // The Linux desktop app keeps its bundled browser; a Linux server downloads Chrome for Testing like a Mac.
-  const pin = platform === "linux" && env.OMB_RESOURCES_PATH ? null : chromeForTestingPin(platform, host.arch);
+  const pin = platform === "linux" && env.ODB_RESOURCES_PATH ? null : chromeForTestingPin(platform, host.arch);
   const installed = installedGoogleChrome(host);
   if (installed && !chromePolicyManaged(host)) return { kind: "chrome", chrome: { path: installed, source: "installed" }, fallback: pin };
-  if (platform === "linux" && env.OMB_RESOURCES_PATH) return { kind: "legacy", reason: installed ? "Google Chrome here is managed by an organization" : "Google Chrome is not installed" };
+  if (platform === "linux" && env.ODB_RESOURCES_PATH) return { kind: "legacy", reason: installed ? "Google Chrome here is managed by an organization" : "Google Chrome is not installed" };
   const own = agentBrowserChrome(host);
   if (own) return { kind: "chrome", chrome: { path: own, source: "agent-browser" }, fallback: null };
   if (pin) {

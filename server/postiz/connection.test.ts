@@ -40,9 +40,9 @@ describe("postizAddress", () => {
 describe("postizCloud", () => {
   it("is api.postiz.com unless a test server names a loopback or https stand-in", () => {
     expect(postizCloud({})).toBe("https://api.postiz.com");
-    expect(postizCloud({ OMB_POSTIZ_CLOUD_URL: "http://127.0.0.1:4100" })).toBe("http://127.0.0.1:4100");
-    expect(postizCloud({ OMB_POSTIZ_CLOUD_URL: "http://evil.example" })).toBe("https://api.postiz.com");
-    expect(postizCloud({ OMB_POSTIZ_CLOUD_URL: "https://u:p@evil.example" })).toBe("https://api.postiz.com");
+    expect(postizCloud({ ODB_POSTIZ_CLOUD_URL: "http://127.0.0.1:4100" })).toBe("http://127.0.0.1:4100");
+    expect(postizCloud({ ODB_POSTIZ_CLOUD_URL: "http://evil.example" })).toBe("https://api.postiz.com");
+    expect(postizCloud({ ODB_POSTIZ_CLOUD_URL: "https://u:p@evil.example" })).toBe("https://api.postiz.com");
   });
 });
 

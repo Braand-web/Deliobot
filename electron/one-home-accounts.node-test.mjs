@@ -3,7 +3,7 @@ import test from "node:test";
 import { createOneHome } from "./one-home.mjs";
 import { installOneHome } from "./one-home-main.mjs";
 
-const CLOUD_A = "https://omb-a.fly.dev", CLOUD_B = "https://omb-b.fly.dev";
+const CLOUD_A = "https://odb-a.fly.dev", CLOUD_B = "https://odb-b.fly.dev";
 const cloudOf = (account, origin) => ({ origin, account, machine: origin, ready: true, moves: true, ended: false, paid: true, verified: true, signIn: `device-${account}` });
 const movedToA = (phase = "done") => ({ v: 1, phase, cloud: { origin: CLOUD_A, account: "a", machine: CLOUD_A }, doneAt: 1, version: "1", lent: true, phoneStopped: true, reported: "device-a", told: false });
 

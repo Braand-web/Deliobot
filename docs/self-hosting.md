@@ -1,13 +1,13 @@
-# Self-hosting the MausBot server
+# Self-hosting the Delio server
 
-To keep MausBot and its agents on your current computer and use a VPS only as a
+To keep Delio and its agents on your current computer and use a VPS only as a
 bot’s remote desktop, see [Bring Your Own VPS](byo-vps.md) and the
-[published setup guide](https://docs.openmausbot.com/docs/computers/byo-vps).
+[published setup guide](https://docs.openopendeliobot.com/docs/computers/byo-vps).
 
 Run the server on a machine you control (a VPS, a home server, a Mac mini in a
 closet). Then connect the desktop app, browsers and phones to it. Every path
 below ends the same way: the server prints **one link**, and you paste it into
-MausBot under **＋ → Connect to a server**.
+Delio under **＋ → Connect to a server**.
 
 > **Security first:** the server listens on `127.0.0.1:8799`, and a program on
 > that machine counts as its owner. Never forward that port yourself. Let one
@@ -23,12 +23,12 @@ For server feature switches, defaults and configuration-file instructions, see
 
 | You have | Run | Link it prints |
 |---|---|---|
-| HTTPS in front already (cloudflared, Caddy, nginx) | `npx openmausbot serve --public-url https://maus.example.com` | `https://maus.example.com/pair#code=…` |
-| A domain name, and ports 80 and 443 open | `npx openmausbot serve --domain maus.example.com` | `https://maus.example.com/pair#code=…` |
-| Tailscale on the server and your devices | `npx openmausbot serve --tailscale` | `https://<machine>.<tailnet>.ts.net/pair#code=…` |
-| Only this network (home or office) | `npx openmausbot serve --lan` | `http://192.168.1.20:8799/pair#code=…` |
-| Nothing at all | `npx openmausbot login`, then `npx openmausbot serve --tunnel` | `https://c-….openmausbot.com/pair#code=…` |
-| Only the phone app, from anywhere (a machine with no tunnel address, for now) | `npx openmausbot login --relay`, then `npx openmausbot serve --relay` | a QR for the MausBot app ([MausBot Relay](phone-relay-server.md)) |
+| HTTPS in front already (cloudflared, Caddy, nginx) | `npx opendeliobot serve --public-url https://delio.example.com` | `https://delio.example.com/pair#code=…` |
+| A domain name, and ports 80 and 443 open | `npx opendeliobot serve --domain delio.example.com` | `https://delio.example.com/pair#code=…` |
+| Tailscale on the server and your devices | `npx opendeliobot serve --tailscale` | `https://<machine>.<tailnet>.ts.net/pair#code=…` |
+| Only this network (home or office) | `npx opendeliobot serve --lan` | `http://192.168.1.20:8799/pair#code=…` |
+| Nothing at all | `npx opendeliobot login`, then `npx opendeliobot serve --tunnel` | `https://c-….openopendeliobot.com/pair#code=…` |
+| Only the phone app, from anywhere (a machine with no tunnel address, for now) | `npx opendeliobot login --relay`, then `npx opendeliobot serve --relay` | a QR for the Delio app ([Delio Relay](phone-relay-server.md)) |
 
 `--lan` can be added to any of the others. Plain `http://` is only for a
 private network: the desktop app accepts it on LAN addresses, Tailscale
@@ -42,26 +42,26 @@ refuses plain http on the open internet.
 On any machine with Node 24 or newer:
 
 ```sh
-npx openmausbot setup                                        # once: AI access and a default model
-npx openmausbot serve --public-url https://maus.example.com  # or --domain, --tailscale, --lan, --tunnel
+npx opendeliobot setup                                        # once: AI access and a default model
+npx opendeliobot serve --public-url https://delio.example.com  # or --domain, --tailscale, --lan, --tunnel
 ```
 
 In a terminal, `serve` checks the address and prints one pairing block:
 
 ```
-MausBot 0.1.147 · server "hetzner-1"
-data: /home/maus/.openmausbot
-Reach    https://maus.example.com   ✓ answers as this server (11:04)
+Delio 0.1.147 · server "hetzner-1"
+data: /home/delio/.opendeliobot
+Reach    https://delio.example.com   ✓ answers as this server (11:04)
 
 Pairing code   7KQ2-M9XD-H4TP   works once, until 11:14 · everything
-Link           https://maus.example.com/pair#code=7KQ2-M9XD-H4TP
+Link           https://delio.example.com/pair#code=7KQ2-M9XD-H4TP
 
   Desktop app   ＋ → Connect to a server, paste the link
-  Phone         scan with your camera or the MausBot app
+  Phone         scan with your camera or the Delio app
 
   ▄▄▄▄▄▄▄ ▄ ▄▄ ▄▄▄▄▄▄▄   (QR of the link)
-For a phone (chat and approvals only)   npx openmausbot pair --phone
-New code later   npx openmausbot pair
+For a phone (chat and approvals only)   npx opendeliobot pair --phone
+New code later   npx opendeliobot pair
 Stop with Ctrl+C
 ```
 
@@ -69,16 +69,16 @@ Each way in has its own Reach line:
 
 - `--lan`: `http://192.168.1.20:8799   this network only, not encrypted`
 - `--tailscale`: `… · your tailnet`
-- `--tunnel`: `… · MausBot web address`
+- `--tunnel`: `… · Delio web address`
 
-Paste the link into MausBot: **＋ → Connect to a server**. The sheet names the
-server it found ("✓ hetzner-1 · MausBot 0.1.147 · HTTPS"), and **Connect to
-hetzner-1** finishes. You can also type the address (`maus.example.com`,
+Paste the link into Delio: **＋ → Connect to a server**. The sheet names the
+server it found ("✓ hetzner-1 · Delio 0.1.147 · HTTPS"), and **Connect to
+hetzner-1** finishes. You can also type the address (`delio.example.com`,
 `192.168.1.20:8799`) and the pairing code in their own fields.
 
 `serve` with no way in mints no code. It lists the ways in instead. Every
-command the CLI prints starts the way you started it (`npx openmausbot`,
-`openmausbot`, `pnpm omb`, or `docker compose exec omb openmausbot`), so you
+command the CLI prints starts the way you started it (`npx opendeliobot`,
+`opendeliobot`, `pnpm odb`, or `docker compose exec odb opendeliobot`), so you
 can paste it as is.
 
 ### Already have cloudflared, Caddy or nginx in front
@@ -89,13 +89,13 @@ and don't buffer the event stream ([details](#putting-a-proxy-in-front)).
 Then:
 
 ```sh
-npx openmausbot serve --public-url https://maus.example.com
+npx opendeliobot serve --public-url https://delio.example.com
 ```
 
-Setting `OMB_PUBLIC_URL=https://maus.example.com` in the environment works the
+Setting `ODB_PUBLIC_URL=https://delio.example.com` in the environment works the
 same way. If the Reach line says
-`✗ https://maus.example.com doesn't reach this server`, the tunnel points
-somewhere else. Fix that, then run `npx openmausbot status` to check again.
+`✗ https://delio.example.com doesn't reach this server`, the tunnel points
+somewhere else. Fix that, then run `npx opendeliobot status` to check again.
 
 ### Docker on your computer or home network
 
@@ -103,15 +103,15 @@ From a checkout of the repository:
 
 ```sh
 docker compose up -d --build                  # http://localhost:8080 on this machine
-docker compose exec omb openmausbot pair      # a code, and a sign-in link for this machine's browser
+docker compose exec odb opendeliobot pair      # a code, and a sign-in link for this machine's browser
 ```
 
 To pair from other devices on the same network, publish the port there and
 name the address they use:
 
 ```sh
-OMB_BIND_ADDRESS=0.0.0.0 OMB_PUBLIC_URL=http://192.168.1.20:8080 docker compose up -d
-docker compose exec omb openmausbot pair      # Link http://192.168.1.20:8080/pair#code=…
+ODB_BIND_ADDRESS=0.0.0.0 ODB_PUBLIC_URL=http://192.168.1.20:8080 docker compose up -d
+docker compose exec odb opendeliobot pair      # Link http://192.168.1.20:8080/pair#code=…
 ```
 
 Do this only on a machine behind your router. A machine with a public address
@@ -121,16 +121,16 @@ would answer the whole internet over plain http. More options are in
 ### Docker with your own domain
 
 On a fresh Ubuntu 22.04 or 24.04 server (x86-64), one command checks the
-server, installs MausBot under `/opt/openmausbot` and ends with HTTPS on your
+server, installs Delio under `/opt/opendeliobot` and ends with HTTPS on your
 domain:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/milind-soni/OpenMausBot/main/deploy/install.sh | sudo sh -s -- --domain maus.example.com
-cd /opt/openmausbot && sudo docker compose exec omb openmausbot pair   # Link https://<DOMAIN>/pair#code=…
+curl -fsSL https://raw.githubusercontent.com/Braand-web/Deliobot/main/deploy/install.sh | sudo sh -s -- --domain delio.example.com
+cd /opt/opendeliobot && sudo docker compose exec odb opendeliobot pair   # Link https://<DOMAIN>/pair#code=…
 ```
 
 Add `--check` to only check the server. Running it again repairs;
-`sudo /opt/openmausbot/update.sh` updates, with a copy of the data first;
+`sudo /opt/opendeliobot/update.sh` updates, with a copy of the data first;
 `--uninstall` stops the server and keeps your data. The checks, the files it
 writes and what it contacts are in
 [Deploy on a VPS](deploy-vps.md#quick-start-one-command-on-your-own-domain).
@@ -138,10 +138,10 @@ writes and what it contacts are in
 By hand, on any system with Docker:
 
 ```sh
-git clone https://github.com/milind-soni/OpenMausBot && cd OpenMausBot/deploy
+git clone https://github.com/Braand-web/Deliobot && cd OpenDeliobot/deploy
 cp .env.example .env                          # set DOMAIN (and ENGINES)
-docker compose pull omb && docker compose up -d
-docker compose exec omb openmausbot pair      # Link https://<DOMAIN>/pair#code=…
+docker compose pull odb && docker compose up -d
+docker compose exec odb opendeliobot pair      # Link https://<DOMAIN>/pair#code=…
 ```
 
 Caddy gets the certificate. See [Docker (with HTTPS on your own domain)](#docker-with-https-on-your-own-domain).
@@ -149,7 +149,7 @@ Caddy gets the certificate. See [Docker (with HTTPS on your own domain)](#docker
 ### Keep it running (a service)
 
 ```sh
-npx openmausbot service install --public-url https://maus.example.com   # the same way-in options as serve
+npx opendeliobot service install --public-url https://delio.example.com   # the same way-in options as serve
 ```
 
 This writes a systemd unit (Linux) or a launchd agent (macOS) with the same
@@ -158,7 +158,7 @@ installs a copy of this exact version beside your data, because npm prunes
 its npx cache. The service log never shows a code. Get one with:
 
 ```sh
-npx openmausbot pair
+npx opendeliobot pair
 ```
 
 ## Troubleshooting
@@ -167,20 +167,20 @@ npx openmausbot pair
 |---|---|---|
 | "That's a pairing code. Also enter the server's address, like http://192.168.1.20:8799." | A code went into the address field. | Type the server's address in the first field; the code moves to its own field. |
 | "http://… is on the open internet and isn't encrypted…" | A plain http link to a public address. | Use its https address, or put HTTPS in front: `--public-url` behind cloudflared or Caddy, `--domain`, or `--tailscale`. |
-| "This points at this computer (127.0.0.1), not at the server." | A link to `127.0.0.1` or `localhost`, which is the computer you're on. | Use the address other devices reach the server at: run `openmausbot pair` on the server, or choose a way in. |
+| "This points at this computer (127.0.0.1), not at the server." | A link to `127.0.0.1` or `localhost`, which is the computer you're on. | Use the address other devices reach the server at: run `opendeliobot pair` on the server, or choose a way in. |
 | "Can't reach 192.168.1.20:8799. Check the server is running and reachable from this computer." | Nothing answers there. | Start it with a way in (`serve --lan` for this network), and check a firewall allows the port. |
-| "maus.example.com doesn't exist yet." / "…certificate isn't valid yet." | DNS or the certificate isn't ready. | Wait for the DNS record, or give a new server a minute. |
-| "That address answers, but it isn't a MausBot server." | Something else answers there, often a proxy pointing at the wrong port. | Point it at `http://127.0.0.1:8799`. |
-| "That's a sign-in code from an email…" / "That's a code from an older MausBot…" / "That's a script key…" | The wrong kind of code. | On the server, run `openmausbot pair` for a 12-character pairing code. |
+| "delio.example.com doesn't exist yet." / "…certificate isn't valid yet." | DNS or the certificate isn't ready. | Wait for the DNS record, or give a new server a minute. |
+| "That address answers, but it isn't a Delio server." | Something else answers there, often a proxy pointing at the wrong port. | Point it at `http://127.0.0.1:8799`. |
+| "That's a sign-in code from an email…" / "That's a code from an older Delio…" / "That's a script key…" | The wrong kind of code. | On the server, run `opendeliobot pair` for a 12-character pairing code. |
 | "Too many wrong codes. Try again at 11:19." | Five wrong codes in five minutes from one address. | Wait until then, or make a new code. |
-| `Reach    ✗ https://… doesn't reach this server (connection refused).` | Your tunnel or proxy doesn't reach port 8799. | Point it at `http://127.0.0.1:8799`, then run `openmausbot status`. |
-| `Reach    ✗ https://… answers as a different server.` | The address leads to another MausBot server. | Point the tunnel at this machine's port. |
+| `Reach    ✗ https://… doesn't reach this server (connection refused).` | Your tunnel or proxy doesn't reach port 8799. | Point it at `http://127.0.0.1:8799`, then run `opendeliobot status`. |
+| `Reach    ✗ https://… answers as a different server.` | The address leads to another Delio server. | Point the tunnel at this machine's port. |
 | `Reach    … https://… doesn't answer yet` (`--domain`) | DNS isn't pointing here yet, or ports 80 and 443 are closed. | Fix the A record and open the ports; the certificate follows. |
 | `--lan: this machine has no private network address…` | A VPS with only a public address. | Use `--public-url`, `--domain` or `--tailscale`. |
 | `tailscale: HTTPS certificates are off for this tailnet, so this server listens on http://…` | Tailscale can't serve HTTPS yet, so the server listens on its own tailnet address. It works, and only your tailnet reaches it. | For an `https://` address, turn on HTTPS certificates at https://login.tailscale.com/admin/dns, then run `serve --tailscale` again. |
-| `No MausBot server is running here. Start it: … serve` | `pair` found no server on this port. | Start it, or pass the server's `--port` and `--data-dir`. |
-| `Get a pairing code: openmausbot pair` and no code | The server runs as a service or under `docker compose logs`, where codes stay out of logs. | Run that command in a terminal. |
-| "This shared server takes no pairing commands from this machine." | The server runs with `OMB_LOOPBACK_TRUST=service`. | Let people sign in with their email (`openmausbot access add you@example.com`), or pair from a signed-in admin's Settings. |
+| `No Delio server is running here. Start it: … serve` | `pair` found no server on this port. | Start it, or pass the server's `--port` and `--data-dir`. |
+| `Get a pairing code: opendeliobot pair` and no code | The server runs as a service or under `docker compose logs`, where codes stay out of logs. | Run that command in a terminal. |
+| "This shared server takes no pairing commands from this machine." | The server runs with `ODB_LOOPBACK_TRUST=service`. | Let people sign in with their email (`opendeliobot access add you@example.com`), or pair from a signed-in admin's Settings. |
 
 ## Reference
 
@@ -200,7 +200,7 @@ Runs fully on a server:
 - text-to-speech (with a key), the web UI (the server serves it itself)
 
 - a browser for bots, once the engine is installed on the server
-  (`npx openmausbot browser install`, or nothing to do in the Docker image,
+  (`npx opendeliobot browser install`, or nothing to do in the Docker image,
   which ships it): each bot gets its own isolated, persistent session.
   Watching it live from the app is the next step (docs/plans/browser-engine.md).
   It reaches the public internet and the dev servers a bot starts itself,
@@ -213,7 +213,7 @@ Desktop-only for now (needs the Mac/Linux app):
 
 ## Ways in, in detail
 
-`npx openmausbot start` (or plain `npx openmausbot`) is the guided start. It
+`npx opendeliobot start` (or plain `npx opendeliobot`) is the guided start. It
 asks for AI access, an account or API key, and the default model, then opens
 the workspace in this machine's browser. `setup` only configures, and `serve`
 starts without questions from the saved configuration and the flags you give
@@ -221,15 +221,15 @@ it (for services and scripts). The [setup guide](cli-onboarding.md) explains
 the choices. The npm package does not include engine CLIs (`claude`,
 `codex`, …); setup can install and sign in the supported ones. Run setup,
 engine sign-ins and the server as the same unprivileged user: engine
-credentials live in that user's home, not all under `.openmausbot`. For a
+credentials live in that user's home, not all under `.opendeliobot`. For a
 Linux service, the [VPS guide](deploy-vps.md#before-you-start) covers the
 account, engines and browser libraries. After installing browser libraries
-as administrator, run `npx openmausbot browser install` as the service user
+as administrator, run `npx opendeliobot browser install` as the service user
 too.
 
 - **`--public-url URL`**: you already have HTTPS in front. The address must
   be https, or http on a private network. After start, `serve` fetches
-  `URL/.well-known/openmausbot/environment` and prints whether it answers
+  `URL/.well-known/opendeliobot/environment` and prints whether it answers
   with this server's own id. The pairing link uses that address either way.
 - **`--domain NAME`**: point the domain's A record at this machine and open
   ports 80 and 443. The server downloads a pinned Caddy once into its data
@@ -243,7 +243,7 @@ too.
   this user, the server listens on this machine's own tailnet addresses at
   `http://<name>:<port>` and answers only tailnet peers that use that exact
   name. Otherwise `serve` checks that
-  no other MausBot server already answers on this machine's name. Then it
+  no other Delio server already answers on this machine's name. Then it
   runs `tailscale serve --https=443 http://127.0.0.1:8799` in the foreground,
   so the share ends when `serve` stops. A marker file in the data dir lets the
   next start turn off a share that a crashed run left behind. It never
@@ -256,8 +256,8 @@ too.
   networks and VPN tunnels are skipped. A machine with no private address
   says so and stays on loopback. Plain http travels in clear, so use it only
   on a network you trust.
-- **`--tunnel`**: `npx openmausbot login` reserves an address like
-  `https://c-….openmausbot.com` for this machine (an emailed code signs it
+- **`--tunnel`**: `npx opendeliobot login` reserves an address like
+  `https://c-….openopendeliobot.com` for this machine (an emailed code signs it
   in). `serve --tunnel` connects it through a Cloudflare tunnel, the same one
   the desktop app uses for its companion. The first run downloads
   `cloudflared` (pinned version and digest) into the data dir. Only traffic
@@ -265,17 +265,17 @@ too.
   lands on a separate listener that the server treats as "through a proxy",
   never as the owner. That listener gzips JSON replies of 1 KB or more when
   the client accepts gzip; the loopback port never compresses.
-  `npx openmausbot logout` releases the address. The account credentials
-  live in `~/.openmausbot/tunnel-account.json` (mode 0600). Started from a
+  `npx opendeliobot logout` releases the address. The account credentials
+  live in `~/.opendeliobot/tunnel-account.json` (mode 0600). Started from a
   fleet or a container, where nobody can type an emailed code? Set
-  `OMB_INSTALLATION_CREDENTIAL` to the installation credential the fleet
+  `ODB_INSTALLATION_CREDENTIAL` to the installation credential the fleet
   issued and skip `login`. The address and connector token are fetched at
   every start, and nothing is written to disk. A rejected credential stops
   the start with a clear message rather than serving locally.
 
-Later: `npx openmausbot pair --label "Kitchen iPad"` for another device
+Later: `npx opendeliobot pair --label "Kitchen iPad"` for another device
 (`--phone` for one that may chat but not change settings), and
-`npx openmausbot devices` to see or sign them out. `openmausbot serve` is a
+`npx opendeliobot devices` to see or sign them out. `opendeliobot serve` is a
 plain foreground process. For unattended use, run `service install` (above)
 or follow the [systemd example](deploy-vps.md#keep-it-running). Restarting a
 service never downloads a new release on its own.
@@ -283,14 +283,14 @@ service never downloads a new release on its own.
 ## Connect ChatGPT from the browser
 
 A browser paired with Full access can connect an installed Codex CLI without opening a
-terminal: **Settings → Engines → Codex → Connect ChatGPT**. OMB starts
+terminal: **Settings → Engines → Codex → Connect ChatGPT**. ODB starts
 `codex login --device-auth` on the server and shows a one-time code. Choose
 **Open ChatGPT sign-in**, enter the code on OpenAI's page, and complete sign-in
-with your own account. OMB checks for completion and refreshes the model list.
+with your own account. ODB checks for completion and refreshes the model list.
 You can cancel or request a fresh code after it expires.
 
 The server still needs Codex installed and runs it as the same operating-system
-user as OMB. Your password never goes through OMB; Codex stores its credentials
+user as ODB. Your password never goes through ODB; Codex stores its credentials
 on the server. Treat server access and backups as sensitive. Device-code login
 may need enabling in ChatGPT security settings or by your workspace admin; see
 [OpenAI's headless authentication guide](https://learn.chatgpt.com/docs/auth#login-on-headless-devices).
@@ -299,7 +299,7 @@ other providers retain their existing sign-in methods.
 
 Once connected, Settings shows the account email when Codex can report it.
 To switch accounts, open **Manage account and sign-in** under that line
-and choose **Sign out of ChatGPT**: OMB runs `codex logout` on the server as
+and choose **Sign out of ChatGPT**: ODB runs `codex logout` on the server as
 the same user and confirms with `codex login status`. New ChatGPT tasks need
 a connected account. Stop running Codex tasks before switching: sign-out does
 not cancel work already in progress. API-key logins are not removed by this
@@ -319,7 +319,7 @@ relative name (or `@` at the zone root). Server/proxy instructions are under
 The IP comes from this server's network interfaces, never the browser, tunnel
 hostname or an IP-echo service. Only a single unambiguous public IPv4 is shown.
 For containers/NAT or hosts with multiple public addresses, an administrator can
-set `OMB_PUBLIC_IPV4` to the public IPv4 of the HTTPS proxy and restart OMB.
+set `ODB_PUBLIC_IPV4` to the public IPv4 of the HTTPS proxy and restart ODB.
 This is a display hint, not proof of reachability; verification still checks
 HTTPS and the workspace identity. If the IP is missing or invalid, the UI asks
 for administrator help instead of inventing a DNS value.
@@ -330,12 +330,12 @@ To configure the connection:
    Add **AAAA** only when IPv6 routes to the same server.
 2. Configure HTTPS with a reverse proxy such as Caddy. The Settings example uses
    your actual app and webhook ports; the [supplied Caddyfile](../deploy/Caddyfile)
-   is the reference. Keep OMB listening on loopback, forward the original Host
+   is the reference. Keep ODB listening on loopback, forward the original Host
    and proxy headers, and keep event streams unbuffered. Caddy needs incoming
    ports 80/443 for its usual certificate setup. For containers, follow the
    Docker recipe below so Caddy can reach the loopback listener.
 3. Enter `bots.yourcompany.com` (or its bare `https://` origin) and choose
-   **Connect domain**. OMB checks HTTPS and the workspace identity at that
+   **Connect domain**. ODB checks HTTPS and the workspace identity at that
    domain before saving it. An incorrect domain leaves the existing address
    unchanged.
 
@@ -344,7 +344,7 @@ address for **new server pairing links**. Removing it restores that fallback
 address, if any; neither action changes DNS, the proxy, bots, conversations, or
 existing sessions. A different browser origin needs its own pairing, so keep
 your original tab open until the new one works. The setting does not change
-`OMB_WEBHOOK_PUBLIC_URL`, existing webhook URLs, or the desktop companion's
+`ODB_WEBHOOK_PUBLIC_URL`, existing webhook URLs, or the desktop companion's
 managed connection. This feature is for self-hosted servers, not the desktop
 app's managed phone endpoint.
 
@@ -359,7 +359,7 @@ use the [local Compose setup](../deploy/local/README.md). It defaults to
 `http://localhost:8080` and supports optional `.env` overrides.
 
 On Ubuntu, the [installer](deploy-vps.md#quick-start-one-command-on-your-own-domain)
-sets this up with one command, keeping the data in `/opt/openmausbot/data`.
+sets this up with one command, keeping the data in `/opt/opendeliobot/data`.
 The rest of this section is the same setup by hand.
 
 One tenant = one container for the server plus Caddy for HTTPS.
@@ -367,13 +367,13 @@ Requirements: Docker with Compose, a DNS name pointing at the machine, and
 ports 80/443 open.
 
 ```sh
-git clone https://github.com/milind-soni/OpenMausBot && cd OpenMausBot/deploy
+git clone https://github.com/Braand-web/Deliobot && cd OpenDeliobot/deploy
 cp .env.example .env            # set DOMAIN
-docker compose pull omb && docker compose up -d
+docker compose pull odb && docker compose up -d
 ```
 
 That starts the image CI publishes on every `main` push
-(`ghcr.io/milind-soni/openmausbot:latest`; each release is also tagged `v…`,
+(`ghcr.io/braand-web/opendeliobot:latest`; each release is also tagged `v…`,
 and the one our own Clouds have run for 48 hours is `stable`). Move to the
 stable version right away with `./update.sh`, which pins it by digest in
 `.env`. To build from your checkout instead: `docker compose up -d --build`. The
@@ -385,15 +385,15 @@ the `data` volume, so they survive restarts and image upgrades) and mint a
 pairing code for your first device:
 
 ```sh
-docker compose exec omb claude                       # each CLI you listed in ENGINES
-docker compose exec omb openmausbot pair             # prints a code, a link and a QR
+docker compose exec odb claude                       # each CLI you listed in ENGINES
+docker compose exec odb opendeliobot pair             # prints a code, a link and a QR
 ```
 
-Paste the link (`https://<DOMAIN>/pair#code=…`) into MausBot under **＋ →
+Paste the link (`https://<DOMAIN>/pair#code=…`) into Delio under **＋ →
 Connect to a server**, or open it in a browser, and it is paired; see "Using it from your computer" for what a session is. Webhook
 URLs (`https://<DOMAIN>/hooks/wh_…`) work without a session, and that is the
 base the app prints on new hooks because the stack sets
-`OMB_WEBHOOK_PUBLIC_URL`.
+`ODB_WEBHOOK_PUBLIC_URL`.
 
 What the stack does, so you can adapt it:
 
@@ -403,11 +403,11 @@ What the stack does, so you can adapt it:
   into the image.
 - [`deploy/docker-compose.yml`](../deploy/docker-compose.yml) runs Caddy
   in its own container. It reaches the server over two Unix sockets in a
-  shared in-memory volume (`OMB_TUNNEL_SOCKET`, `OMB_WEBHOOK_SOCKET`), so the
+  shared in-memory volume (`ODB_TUNNEL_SOCKET`, `ODB_WEBHOOK_SOCKET`), so the
   server never binds anything but loopback, and a request that comes through
   Caddy is a remote one, as one through any proxy is. Caddy used to share the
   server's network instead; then a server container restarted on its own (a
-  crash, `docker compose restart`, `stop omb`) came back in a new network and
+  crash, `docker compose restart`, `stop odb`) came back in a new network and
   left Caddy refusing HTTPS in the old one while both showed healthy.
 - [`deploy/Caddyfile`](../deploy/Caddyfile) terminates TLS and forwards
   the real `Host` plus `X-Forwarded-For`/`X-Forwarded-Proto`; the server's
@@ -427,7 +427,7 @@ installed first, because those layers sit beneath the app and stay cached
 across code changes. To pick up the current ones, rebuild with a new tag:
 
 ```sh
-docker compose build --build-arg CHROME_CACHE_TAG=$(date +%F) omb && docker compose up -d
+docker compose build --build-arg CHROME_CACHE_TAG=$(date +%F) odb && docker compose up -d
 ```
 
 ## From source
@@ -436,30 +436,30 @@ Requirements: Node 24+, pnpm, and at least one agent CLI installed and
 signed in on the server.
 
 ```sh
-git clone https://github.com/milind-soni/OpenMausBot && cd OpenMausBot
+git clone https://github.com/Braand-web/Deliobot && cd OpenDeliobot
 pnpm install
 
 # choose where data lives and start the server
-OMB_DATA_DIR="$HOME/.openmausbot" OMB_PORT=8799 \
+ODB_DATA_DIR="$HOME/.opendeliobot" ODB_PORT=8799 \
   node --experimental-strip-types server/index.ts
 ```
 
 For something durable, let the CLI write the service for you:
 
 ```sh
-npx openmausbot service install --domain maus.example.com   # or --public-url, --tunnel, --tailscale, --lan
+npx opendeliobot service install --domain delio.example.com   # or --public-url, --tunnel, --tailscale, --lan
 ```
 
 It renders a systemd unit (Linux) or a launchd agent (macOS) that runs the
-same `openmausbot serve …` with your options, restarts it if it stops, and,
+same `opendeliobot serve …` with your options, restarts it if it stops, and,
 for `--domain`, grants the unit the capability to bind ports 80 and 443
 without root. The file is written next to your data and the two commands
 that install and start it are printed (they need `sudo` on Linux).
-`openmausbot service uninstall` prints the reverse. Run from `npx`, it
+`opendeliobot service uninstall` prints the reverse. Run from `npx`, it
 first installs a copy of the same version into `<data dir>/app/<version>`,
 because npm may prune its npx cache. The unit points at that copy. Not being
 a terminal, the service writes no pairing code into its log: run
-`npx openmausbot pair` when you need one.
+`npx opendeliobot pair` when you need one.
 
 Engine CLIs read their logins from the service user's home: sign them in
 from Settings → Engines (below), or as that user in a terminal, before you
@@ -469,10 +469,10 @@ rely on routines running unattended.
 
 Engines whose installer is an npm package (Claude Code, Codex, OpenCode,
 MiniMax, pi) can be installed and updated from **Settings → Engines** when
-npm is on the server's PATH. OMB runs `npm install -g` as its own user into
+npm is on the server's PATH. ODB runs `npm install -g` as its own user into
 `<data dir>/tools/npm`, so nothing needs sudo and nothing touches a global
 prefix; that folder goes ahead of everything else on the engines' PATH, so
-the copy OMB installed is the one bots run. The package name comes from the
+the copy ODB installed is the one bots run. The package name comes from the
 engine's own install descriptor, never from the browser. Engines installed
 by a `curl | bash` script still need the command on the server.
 
@@ -488,7 +488,7 @@ that makes one read-only request to the provider from the server.
   to sign in, and Settings → Engines shows "workspace API key" instead of a
   person. Remove the key to go back to personal logins. The server's own
   `ANTHROPIC_API_KEY` environment variable is deliberately ignored; use the
-  page, `config.json`, or `OMB_ANTHROPIC_API_KEY`.
+  page, `config.json`, or `ODB_ANTHROPIC_API_KEY`.
 - **OpenAI-compatible API key and base URL**: OpenRouter by default, or Groq,
   Together, a gateway, or `https://api.openai.com/v1` for OpenAI itself. This
   powers the OpenAI-compatible engine. Codex has no key path by design and
@@ -504,15 +504,15 @@ Like `opencode` in a terminal, it reads provider keys from its environment
 (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `GOOGLE_API_KEY`,
 `KIMI_API_KEY`, `MOONSHOT_API_KEY`, `MINIMAX_API_KEY`) and offers those
 providers' models, billed to that key. It does so only where the server's
-environment is one person's own: never on MausBot Cloud, a hosted team
+environment is one person's own: never on Delio Cloud, a hosted team
 workspace, an organisation-managed desktop, or a server whose sign-in list
 lets other people in (users, more than one admin, or a whole domain).
 Providers added with `opencode auth login` work everywhere.
 
 ## Many client workspaces on one server
 
-`openmausbot fleet` runs one workspace per client on a single Linux server,
-each as its own OS user, its own `openmausbot@<name>` service on its own
+`opendeliobot fleet` runs one workspace per client on a single Linux server,
+each as its own OS user, its own `opendeliobot@<name>` service on its own
 loopback ports, its own data folder, brand, sign-in list and provider key,
 reached at `<name>.<your domain>` through the system Caddy. Bots of one
 workspace cannot read another's files or reach its API: the data lives in a
@@ -524,22 +524,22 @@ Once, as root, with the package installed permanently and a wildcard DNS
 record (`*.example.com`) pointing at the server:
 
 ```sh
-openmausbot fleet init --domain example.com
+opendeliobot fleet init --domain example.com
 ```
 
 That writes the template unit, the fence and its unit, the workspace folders,
-and adds `import /etc/caddy/omb.d/*.caddy` to `/etc/caddy/Caddyfile`. Then per
+and adds `import /etc/caddy/odb.d/*.caddy` to `/etc/caddy/Caddyfile`. Then per
 client:
 
 ```sh
-openmausbot fleet create acme --admin owner@acme.test --member @acme.test \
+opendeliobot fleet create acme --admin owner@acme.test --member @acme.test \
   --brand /root/acme-brand.json --anthropic-key-file /root/acme-anthropic.key \
   --cap 50 --memory 1G
-openmausbot fleet users acme add bob@acme.test --chat-only
-openmausbot fleet list
-openmausbot fleet suspend acme      # 503 page, service stopped; resume undoes it
-openmausbot fleet upgrade           # new release, then every running workspace restarted in turn
-openmausbot fleet delete acme --yes # add --keep-data to keep the home folder
+opendeliobot fleet users acme add bob@acme.test --chat-only
+opendeliobot fleet list
+opendeliobot fleet suspend acme      # 503 page, service stopped; resume undoes it
+opendeliobot fleet upgrade           # new release, then every running workspace restarted in turn
+opendeliobot fleet delete acme --yes # add --keep-data to keep the home folder
 ```
 
 Give `init` `--operator USER` (the Unix user your own workspace runs as; the
@@ -548,10 +548,10 @@ root service on a Unix socket only that user may open. Your workspace then
 shows **Settings → Installations** (with the enterprise `admin` feature): create
 an installation, add or remove who may sign in, suspend, resume, delete, upgrade
 all, and see each one's spend this month. Every action goes through the
-agent's audit log at `/var/log/openmausbot/fleet.jsonl`.
+agent's audit log at `/var/log/opendeliobot/fleet.jsonl`.
 
 `https://acme.example.com` is up when `create` returns; the first admin signs
-in with an emailed code. `OMB_LICENSE_KEY` in the environment (or
+in with an emailed code. `ODB_LICENSE_KEY` in the environment (or
 `--license-key`) is carried into every workspace so a partner's white-label
 key covers them all. Not root? Every command prints the exact steps to run as
 root instead, and `--dry-run` always prints.
@@ -581,29 +581,29 @@ Pair once, then use the server from any browser on any machine that can
 reach it. On the server:
 
 ```sh
-npx openmausbot pair                         # npm install
-pnpm omb pair                                # from a checkout
-docker compose exec omb openmausbot pair     # Docker
+npx opendeliobot pair                         # npm install
+pnpm odb pair                                # from a checkout
+docker compose exec odb opendeliobot pair     # Docker
 ```
 
 It prints a 12-character pairing code (it works once, for 10 minutes, or up
 to a day with `--ttl 24h`) and the link with the code in it, built from the
 address the server is reached at (`--public-url`, `--domain`, `--tunnel`,
-`--tailscale`, `--lan`, or `OMB_PUBLIC_URL`). Open the link, or open `/pair`
+`--tailscale`, `--lan`, or `ODB_PUBLIC_URL`). Open the link, or open `/pair`
 on that address and type the code. The browser gets a session cookie (30
 days, renewed on use up to 180 days from pairing, revocable) and the app
-loads. `npx openmausbot devices` lists the paired devices and
+loads. `npx opendeliobot devices` lists the paired devices and
 `devices revoke ID` signs one out.
 
 From the **desktop app**, choose **＋ → Connect to a server** and paste the
-link. You can also type the address (`maus.example.com`,
+link. You can also type the address (`delio.example.com`,
 `192.168.1.20:8799`, a `*.ts.net` name) and the pairing code in its own
 field. The sheet looks the address up and names what it found, for example
-"✓ hetzner-1 · MausBot 0.1.147 · HTTPS". A bare address tries https first,
+"✓ hetzner-1 · Delio 0.1.147 · HTTPS". A bare address tries https first,
 then plain http when the address is private. Plain http works only on a
 private network (LAN addresses, Tailscale's 100.64/10 and `*.ts.net`,
 `*.local`); a public http address is refused with what to do instead.
-Generate a fresh code for each device: `npx openmausbot pair --label "My
+Generate a fresh code for each device: `npx opendeliobot pair --label "My
 desktop"` gives full access, and `--phone` gives chat and approvals only. A
 code already used by your phone cannot also pair your desktop.
 
@@ -621,7 +621,7 @@ use the apps on this computer's screen, and run the MCP servers you keep for
 it, while the app is open. Folders and the terminal are added in **Settings →
 Servers**, where each server of yours has a **Share this computer** switch and
 **Choose what it can use**; the switch turns it off at once, and the menu bar's
-OpenMausBot item pauses it with your Clouds. The server needs nothing turned on:
+OpenDeliobot item pauses it with your Clouds. The server needs nothing turned on:
 it takes a computer from its owner's pairings only, and a phone code or another
 person's pairing is never asked. Set `features.sharedComputers` to `false` in the
 server's config to turn this off, or to `true` to let every paired session lend
@@ -663,7 +663,7 @@ To move by hand instead, export a backup from this computer in **Settings →
 Backups → Export backup**, then import it on the server in **Settings → Backups
 → Import backup**. API keys, engine sign-ins and paired devices stay where they
 are on both sides; routines arrive paused. An older desktop app's **Copy this
-computer here** is answered with "Update OpenMausBot to bring your bots here by
+computer here** is answered with "Update OpenDeliobot to bring your bots here by
 itself."
 
 Only conversations you start yourself on that server can use what you share;
@@ -701,7 +701,7 @@ and take a 5-minute ticket from `POST /api/auth/stream-ticket` for the
 event stream, because `EventSource` cannot set headers:
 `GET /api/events?ticket=…`.
 
-`GET /.well-known/openmausbot/environment` is public and tells a client what
+`GET /.well-known/opendeliobot/environment` is public and tells a client what
 it is talking to: a stable `environmentId`, the label, the version and
 capabilities. Saved connections check the id so a reused address that now
 points at a different server is refused loudly.
@@ -711,7 +711,7 @@ address of its own:
 
 ```sh
 ssh -L 8799:localhost:8799 you@your-server
-# then run `openmausbot pair` on the server and open the "Browser on this machine" link it prints
+# then run `opendeliobot pair` on the server and open the "Browser on this machine" link it prints
 ```
 
 The browser signs in once through the tunnel, like any browser on the server
@@ -727,7 +727,7 @@ server, even when it runs on the same machine. Programs are unaffected: the
 CLI, scripts, `curl` and the companion send neither header.
 
 So the first time you open the web UI in a browser on the server's own
-machine, it shows the sign-in page. With no way in, `openmausbot pair` prints
+machine, it shows the sign-in page. With no way in, `opendeliobot pair` prints
 a link for it:
 
 ```
@@ -735,17 +735,17 @@ a link for it:
 ```
 
 Open it and choose **Connect** (or type the code on the sign-in page); the browser
-keeps its session cookie from then on. `openmausbot` (the guided start) prints
+keeps its session cookie from then on. `opendeliobot` (the guided start) prints
 the same link when it opens the browser. The desktop app is unaffected:
 its window adds the app's own per-launch owner header to every request and
 WebSocket it sends to its server, and no other Electron session may reach the
 server at all.
 
-For development, `pnpm dev:server` sets `OMB_DEV_TRUST_LOCAL_BROWSER=1`, so a
+For development, `pnpm dev:server` sets `ODB_DEV_TRUST_LOCAL_BROWSER=1`, so a
 browser on Vite's dev page (`pnpm dev`) is the owner as before. The server
 honours it only when it runs from source with owner trust, logs a warning, and
-ignores it in a build, the desktop app, a hosted workspace and MausBot Cloud.
-Run `OMB_DEV_TRUST_LOCAL_BROWSER=0 pnpm dev:server` to try the sign-in.
+ignores it in a build, the desktop app, a hosted workspace and Delio Cloud.
+Run `ODB_DEV_TRUST_LOCAL_BROWSER=0 pnpm dev:server` to try the sign-in.
 
 ### Loopback trust: owner or service
 
@@ -764,7 +764,7 @@ local requests: service trust (hosted workspace); without a session, loopback ma
 | Trust | Default for | A session-less loopback request may |
 |---|---|---|
 | `owner` | a self-hosted server, the desktop app | do everything, as today |
-| `service` | a hosted workspace: any of `OMB_ADMIN_URL`, `OMB_ADMIN_WORKSPACE` or `OMB_ADMIN_MEMBERSHIP` set (shared-workspace Full access only works there, so it is covered too) | read health, who-am-I, the bot list, a thread's messages and a bot's picture; open a thread; send through the guarded route; watch and stop its exact request; withdraw a queued line; **decline** a card; use the bots' own capability routes (`/api/internal/*`, which check their own per-turn token) |
+| `service` | a hosted workspace: any of `ODB_ADMIN_URL`, `ODB_ADMIN_WORKSPACE` or `ODB_ADMIN_MEMBERSHIP` set (shared-workspace Full access only works there, so it is covered too) | read health, who-am-I, the bot list, a thread's messages and a bot's picture; open a thread; send through the guarded route; watch and stop its exact request; withdraw a queued line; **decline** a card; use the bots' own capability routes (`/api/internal/*`, which check their own per-turn token) |
 
 Under `service`, everything else from loopback needs a real session and
 answers 403: settings and keys (`/api/config`), instances, MCP servers,
@@ -775,28 +775,28 @@ local caller a hosted workspace has) needs nothing more and keeps working
 unchanged. Sessions — a portal sign-in, an email sign-in or a pairing — work
 exactly as before, with their own scopes.
 
-Set `OMB_LOOPBACK_TRUST=service` on a self-hosted server people share (with
-an email sign-in list, say), or `OMB_LOOPBACK_TRUST=owner` to opt a hosted
+Set `ODB_LOOPBACK_TRUST=service` on a self-hosted server people share (with
+an email sign-in list, say), or `ODB_LOOPBACK_TRUST=owner` to opt a hosted
 workspace back into the old behaviour (the log then warns). Any other value
 means `service`. The desktop app ignores the setting: its local changes
-already need the app's own per-launch capability. MausBot Cloud ignores
+already need the app's own per-launch capability. Delio Cloud ignores
 it too and is always `service` (docs/cloud-pro.md).
 
 With `service` on a self-hosted server:
 
-- `openmausbot serve` in a terminal still prints the first pairing code. It
+- `opendeliobot serve` in a terminal still prints the first pairing code. It
   hands the server it starts a one-off secret over the server's stdin (never
   its environment, which every engine inherits), and that secret opens the
   pairing route for that CLI alone. Pass `--no-pair` to skip the code; if
   the server refuses one anyway, `serve` says why and keeps running. Not in
   a terminal (a service), it prints no code and points at email sign-in.
-- `openmausbot pair` and `openmausbot devices`, run later from another
+- `opendeliobot pair` and `opendeliobot devices`, run later from another
   terminal, are refused like any other admin change and say so. Pair from
   the server's Settings while signed in as an admin, or let people sign
-  in with their email (`openmausbot access add you@example.com`, which edits
+  in with their email (`opendeliobot access add you@example.com`, which edits
   the sign-in list on disk).
 - A browser on an SSH tunnel gets the sign-in page instead of the app.
-- The MCP server script works with `OPENMAUSBOT_TOKEN` set to a paired session.
+- The MCP server script works with `OPENDELIOBOT_TOKEN` set to a paired session.
 
 **What `service` does not close yet.** Any bot's shell can still do
 everything the Slack worker does, and on a shared workspace that is a real
@@ -820,8 +820,8 @@ people use every day, let them sign in with an emailed code instead: set an
 allow-list, and `/pair` on your server offers "Sign in with your email" first.
 
 ```sh
-OMB_SIGNIN_EMAILS="her@yourcompany.com, @yourcompany.com"   # full access
-OMB_SIGNIN_MEMBER_EMAILS="freelancer@example.com"          # chat and approvals only
+ODB_SIGNIN_EMAILS="her@yourcompany.com, @yourcompany.com"   # full access
+ODB_SIGNIN_MEMBER_EMAILS="freelancer@example.com"          # chat and approvals only
 ```
 
 Signed in as an admin? Settings → Remote access → **Who can sign in with an
@@ -830,14 +830,14 @@ npm package, the same thing from the command line, with the server running
 or not, no restart needed:
 
 ```sh
-npx openmausbot access add her@yourcompany.com
-npx openmausbot access add freelancer@example.com --chat-only
-npx openmausbot access list
+npx opendeliobot access add her@yourcompany.com
+npx opendeliobot access add freelancer@example.com --chat-only
+npx opendeliobot access list
 ```
 
 An entry is an address or `@domain` (everyone at that domain). Admins get
-the same access as a pairing code from `openmausbot serve`; users get the
-chat-only scope, the same as `openmausbot pair --phone`. The same lists live
+the same access as a pairing code from `opendeliobot serve`; users get the
+chat-only scope, the same as `opendeliobot pair --phone`. The same lists live
 in `config.json` under `signIn.admins` and `signIn.members` and can be changed
 through the settings API without a restart. An environment variable that
 names someone wins over its list, which is how a container or a service unit
@@ -845,21 +845,21 @@ is bootstrapped; while it does, Settings refuses to change that list and says
 which variable to change instead. One that is empty, as `.env.example` and the
 Compose files leave them, leaves the list to Settings.
 
-The code itself comes from `accounts.openmausbot.com`, the OpenMausBot
+The code itself comes from `accounts.openopendeliobot.com`, the OpenDeliobot
 account service, so your server needs no email credentials. Your server asks
 it to send the code, checks the answer, and then issues its own session
 cookie: the browser only ever talks to your server, and who is welcome is
 decided only by your allow-list. Wrong codes count against a lockout of
 their own: ten in a minute from one address pause sign-in there for a minute. Sessions from a sign-in show the email in
-`openmausbot devices` and can be revoked the same way.
+`opendeliobot devices` and can be revoked the same way.
 
 To send the codes through your own mail server instead, so nobody signs in
-through the account service and no MausBot account is made, give the server
+through the account service and no Delio account is made, give the server
 an SMTP address:
 
 ```sh
-OMB_SIGNIN_SMTP_URL="smtps://signin%40yourcompany.com:PASSWORD@smtp.yourcompany.com:465"
-OMB_SIGNIN_SMTP_FROM="OpenMausBot <signin@yourcompany.com>"   # else the user name, if it is an address
+ODB_SIGNIN_SMTP_URL="smtps://signin%40yourcompany.com:PASSWORD@smtp.yourcompany.com:465"
+ODB_SIGNIN_SMTP_FROM="OpenDeliobot <signin@yourcompany.com>"   # else the user name, if it is an address
 ```
 
 `smtps://` uses TLS from the start (port 465); `smtp://` upgrades with
@@ -881,7 +881,7 @@ with the address filled in, and the one-time code still goes to that address.
 Roles change with one click; removing someone stops new sign-ins.
 
 On a hosted workspace whose members your organization's Admin manages
-(`OMB_ADMIN_MEMBERSHIP=portal`), this list decides nothing, so Settings →
+(`ODB_ADMIN_MEMBERSHIP=portal`), this list decides nothing, so Settings →
 People shows, read-only, who has signed in and what they spent, with a
 **Manage people in Admin** link to that workspace in Admin → People. Remote
 access there lists signed-in devices and offers no pairing codes, since a
@@ -889,7 +889,7 @@ hosted workspace refuses them.
 
 ### Who may answer a card
 
-Approval cards are the provider's own (see the approval modes); OpenMausBot
+Approval cards are the provider's own (see the approval modes); OpenDeliobot
 adds none. On a workspace several people share — portal membership, or an
 email sign-in list that names users — it narrows only whose answer counts,
 and only when the card can be traced to a person:
@@ -990,8 +990,8 @@ Files people attach, and pictures a bot shows inline, live in the
 `attachments` folder of the data directory. Nothing there is deleted, since
 old messages still point at it, so the server stops taking new files once the
 folder holds 512 MB. A team fills that sooner: set
-`OMB_ATTACHMENTS_MAX_BYTES` in the server's environment and restart, for
-example `OMB_ATTACHMENTS_MAX_BYTES=4294967296` for 4 GB.
+`ODB_ATTACHMENTS_MAX_BYTES` in the server's environment and restart, for
+example `ODB_ATTACHMENTS_MAX_BYTES=4294967296` for 4 GB.
 
 One file can be up to 100 MB, whether a person sends it or a bot attaches it;
 that setting does not change it. It matches Cloudflare's upload ceiling, so a
@@ -1015,8 +1015,8 @@ Any reverse proxy works, given three things:
    `proxy_buffering off` in nginx); the UI streams events over SSE.
 
 Then start with `serve --public-url https://your.domain` (or set
-`OMB_PUBLIC_URL=https://your.domain`) so pairing links, and
-`OMB_WEBHOOK_PUBLIC_URL=https://your.domain` so hook URLs, are printed with
+`ODB_PUBLIC_URL=https://your.domain`) so pairing links, and
+`ODB_WEBHOOK_PUBLIC_URL=https://your.domain` so hook URLs, are printed with
 the public address. `serve` checks the address answers as this server and
 says so on its Reach line. [`deploy/Caddyfile`](../deploy/Caddyfile)
 is the reference implementation.
@@ -1025,7 +1025,7 @@ is the reference implementation.
 
 In a paired admin browser, as in the desktop app, **Take control** turns the
 Computer panel's picture into the live desktop for Local VMs and your own VPS,
-through the same address as OpenMausBot; **Full screen** fills the window with
+through the same address as OpenDeliobot; **Full screen** fills the window with
 the same session. Shared, per-bot and pool Local VMs connect through their
 managed container's loopback port. VPS desktops connect
 through an SSH tunnel opened by the server. Neither needs an additional public
@@ -1061,21 +1061,21 @@ creates a one-time code with a QR right in the browser, and lists every
 paired device with a sign-out button. Nobody needs the command line.
 
 The iOS app pairs with a server the same way a laptop does: scan the QR
-code that `openmausbot serve` (or `openmausbot pair`) prints, paste the
+code that `opendeliobot serve` (or `opendeliobot pair`) prints, paste the
 whole `https://host/pair#code=…` link into the address field on the pairing
 screen, or type the address and then the code. The phone gets a session of
-its own, listed and revocable with `openmausbot devices`. What it may do is
-the code's scope: a code from `openmausbot pair` carries `admin` and the app
-shows everything; a code from `openmausbot pair --phone` (also what the
+its own, listed and revocable with `opendeliobot devices`. What it may do is
+the code's scope: a code from `opendeliobot pair` carries `admin` and the app
+shows everything; a code from `opendeliobot pair --phone` (also what the
 guided phone setup mints) can chat, approve and read, and the app hides
 creating bots and sections, changing models, generating avatars, connecting
 apps and cloud desktops — those stay with the owner. A server reinstalled at
 the same address has a new identity; the app then asks to pair again rather
 than present the old session to it.
 
-Both native apps pair this way. `openmausbot pair --phone android` prints the
+Both native apps pair this way. `opendeliobot pair --phone android` prints the
 app-scheme QR that Android's scanner needs, and the iOS app accepts either
-that QR or the web link, for example `docker compose exec omb openmausbot
+that QR or the web link, for example `docker compose exec odb opendeliobot
 pair --phone android --public-url https://your-domain`. `pair` never asks
 questions, so it works the same from a script. Nothing extra to install, and
 the phone becomes a session like any other.
@@ -1083,7 +1083,7 @@ the phone becomes a session like any other.
 Older way, still supported, and only useful on a LAN or a tailnet: run the
 companion sidecar next to the harness and pair by its own QR. It advertises
 on your private networks (Tailscale-aware) and issues its own per-device
-credentials, which are **not** `openmausbot devices` and are revoked from
+credentials, which are **not** `opendeliobot devices` and are revoked from
 its own page at the `127.0.0.1:8811/#token=…` link it prints. It also serves phones over cleartext HTTP
 on port 8810, so do not expose it from a public server. It ships only in a
 git checkout: neither the npm package nor the Docker image contains it.
@@ -1105,9 +1105,9 @@ Owners can read the same over the API:
 
 ```sh
 curl -H "Authorization: Bearer $TOKEN" \
-  "https://maus.example.com/api/usage?from=2026-09-01&to=2026-09-30&groupBy=user"
+  "https://delio.example.com/api/usage?from=2026-09-01&to=2026-09-30&groupBy=user"
 curl -H "Authorization: Bearer $TOKEN" -o usage.csv \
-  "https://maus.example.com/api/usage.csv?from=2026-09-01&to=2026-09-30"
+  "https://delio.example.com/api/usage.csv?from=2026-09-01&to=2026-09-30"
 ```
 
 Dates are inclusive, UTC, at most a year apart; without them you get the
@@ -1152,7 +1152,7 @@ it in plain words. It is a usage limit when its words say so, or when it is a
 a shorter wait is a rate limit to try again after. A reply that only quotes
 such an error among other words stays a reply.
 
-This is on by default. Start the server with `OMB_QUOTA_SWITCH=0` to switch it
+This is on by default. Start the server with `ODB_QUOTA_SWITCH=0` to switch it
 off: then only the backups Automatic recovery names take over, and the
 notification says the bot waits. Any other value, or none, leaves it on. It
 has no setting in `config.json` yet.
@@ -1179,7 +1179,7 @@ unless its status still says signed out.
 
 ### Which engine a new bot uses
 
-A saved default model (Settings, `openmausbot setup`, or the New Bot
+A saved default model (Settings, `opendeliobot setup`, or the New Bot
 defaults) always wins. Without one, new bots get the first engine that can
 run, in this order: a Claude account, a ChatGPT plan, Gemini, Grok, then the
 rest in the order of `instances`; OpenCode running only Zen's free no-login
@@ -1204,7 +1204,7 @@ or picks a model for it or one of its conversations: it moves only after a
 test result, only to an engine that answered, and only away from one whose
 latest test missed or that is signed out or turned off, or up to a better
 one. A status read that timed out moves nothing. No other bot ever moves. To stop the
-background test messages, start the server with `OMB_AI_CHECKS=0`.
+background test messages, start the server with `ODB_AI_CHECKS=0`.
 
 ### The decision log
 
@@ -1214,15 +1214,15 @@ device label, `loopback` for the owner, `worker` for a session-less local
 service) — is appended to `<data dir>/decisions/YYYY-MM.ndjson` (0600,
 credentials redacted). Month files are kept for at least 180 days; set
 `decisions.retentionDays` in `config.json` (or through `PUT /api/config`),
-or `OMB_DECISION_RETENTION_DAYS`, to keep them longer or shorter (1–3650
+or `ODB_DECISION_RETENTION_DAYS`, to keep them longer or shorter (1–3650
 days; the environment wins). A month is deleted only once all of it is older
 than the window. An older server's `decisions.ndjson` and `.1` are still read
 and age out the same way. Admins can read it back:
 
 ```sh
-curl -H "Authorization: Bearer $TOKEN" "https://maus.example.com/api/decisions?limit=200"
+curl -H "Authorization: Bearer $TOKEN" "https://delio.example.com/api/decisions?limit=200"
 curl -H "Authorization: Bearer $TOKEN" -o decisions.csv \
-  "https://maus.example.com/api/decisions.csv?from=2026-09-01&to=2026-09-30"
+  "https://delio.example.com/api/decisions.csv?from=2026-09-01&to=2026-09-30"
 ```
 
 The CSV has one line per decision (time, decision, source, bot, tool,
@@ -1241,7 +1241,7 @@ a filesystem in an image file or on a loop device is not on it.
 
 It is off unless you switch it on: set `safetyFloor.enabled` to `true` in
 `config.json` (or through `PUT /api/config`), or start the server with
-`OMB_SAFETY_FLOOR=1`, which turns it on whatever the file says.
+`ODB_SAFETY_FLOOR=1`, which turns it on whatever the file says.
 `GET /api/config` reports whether it is in force as `safetyFloor.enabled`.
 
 **It is not applied on a Windows server yet.** There the setting is accepted
@@ -1291,15 +1291,15 @@ list that names more than one person or a whole `@domain`, or a device paired
 (or a pairing code open) with chat-only access, whether before or after the
 change — every admin change is recorded beside the decision
 log, in `<data dir>/admin-activity/YYYY-MM.ndjson` (0600), and kept for the
-same window (`decisions.retentionDays` / `OMB_DECISION_RETENTION_DAYS`; a
+same window (`decisions.retentionDays` / `ODB_DECISION_RETENTION_DAYS`; a
 quiet server prunes on a timer, and pending rows are written out at
 shutdown): settings
 (which keys changed), sign-in lists and people, pairing codes and revoked
 sessions, webhooks, MCP servers, engines and keys, bots created, deleted or
 given different permissions, spend limits and prices, and who can see a bot.
 Each row names who acted — the session's email or device label, `This
-computer` for the owner, `Command line` for `openmausbot` commands such as
-`openmausbot access add` — and the values before and after. Values are
+computer` for the owner, `Command line` for `opendeliobot` commands such as
+`opendeliobot access add` — and the values before and after. Values are
 redacted: anything under a key that names a credential, every value in a
 headers or environment map, the value after a flag such as `--api-key` or
 `-k`, URL parameters such as `?key=`, a token before a URL's host
@@ -1316,9 +1316,9 @@ them as CSV. The same over the API:
 
 ```sh
 curl -H "Authorization: Bearer $TOKEN" \
-  "https://maus.example.com/api/admin-activity?from=2026-09-01&to=2026-09-30&what=visibility"
+  "https://delio.example.com/api/admin-activity?from=2026-09-01&to=2026-09-30&what=visibility"
 curl -H "Authorization: Bearer $TOKEN" -o activity.csv \
-  "https://maus.example.com/api/admin-activity.csv?who=ada@company.com"
+  "https://delio.example.com/api/admin-activity.csv?who=ada@company.com"
 ```
 
 `what` is `all` (admin changes and answered cards, the default), `approvals`,
@@ -1378,8 +1378,8 @@ umask 077
 BOT_ID=your-bot-id
 THREAD_ID=your-existing-thread-id
 TOKEN=$(openssl rand -hex 32)
-printf '{ "%s": {"token":"%s","threadId":"%s"} }\n' "$BOT_ID" "$TOKEN" "$THREAD_ID" > ~/.openmausbot/external-runtimes.json
-chmod 600 ~/.openmausbot/external-runtimes.json
+printf '{ "%s": {"token":"%s","threadId":"%s"} }\n' "$BOT_ID" "$TOKEN" "$THREAD_ID" > ~/.opendeliobot/external-runtimes.json
+chmod 600 ~/.opendeliobot/external-runtimes.json
 ```
 
 Keep the file private (`600` on Unix; restrict its Windows file permissions).
@@ -1394,8 +1394,8 @@ The runtime runs the bundled MCP bridge from the source checkout with the same
 bot, thread and token (replace the port with your server's actual address):
 
 ```sh
-OMB_HARNESS_URL=http://127.0.0.1:8799 OMB_BOT_ID=$BOT_ID OMB_THREAD_ID=$THREAD_ID \
-  OMB_COMMS_TOKEN=$TOKEN OMB_EXTERNAL_RUNTIME=1 \
+ODB_HARNESS_URL=http://127.0.0.1:8799 ODB_BOT_ID=$BOT_ID ODB_THREAD_ID=$THREAD_ID \
+  ODB_COMMS_TOKEN=$TOKEN ODB_EXTERNAL_RUNTIME=1 \
   node --experimental-strip-types server/drivers/agents-proxy.ts
 ```
 
@@ -1433,14 +1433,14 @@ and 20 times in one turn. That notice only tells you. The loop guard, which is
 off by default, also tells the bot:
 
 - Set `loopGuard.enabled` to `true` in `config.json` (or through
-  `PUT /api/config`), or start the server with `OMB_LOOP_GUARD=1`. When the
+  `PUT /api/config`), or start the server with `ODB_LOOP_GUARD=1`. When the
   same whole shell command fails the same way five times in a row
   (`loopGuard.steerAt`, 2-1000), the server puts one short note into the
   running turn saying so. A command that succeeds, or that fails differently,
   ends the count, so a turn that re-runs its tests after each edit or polls a
   build is left alone.
 - Stopping the turn is a separate choice. Set `loopGuard.stopAt` (2-1000), or
-  `OMB_LOOP_GUARD_STOP_AT`, and the turn is stopped at that many identical
+  `ODB_LOOP_GUARD_STOP_AT`, and the turn is stopped at that many identical
   failures in a row, with a line in the chat that names the command and offers
   Retry. Leave it unset and the guard never stops a turn. A wait that fails
   until something is ready (`curl -f` against a server that is still starting)
@@ -1461,15 +1461,15 @@ that succeed. A tool call that was denied is never sent back.
 ## A turn that goes silent
 
 The server stops a turn that has sent it nothing for 20 minutes
-(`OMB_TURN_STALL_MS`) and says why in the chat. Engines report a tool only
+(`ODB_TURN_STALL_MS`) and says why in the chat. Engines report a tool only
 when it starts and when it ends, so while one of the turn's tools is still
-running the turn may stay silent for up to `OMB_TOOL_STALL_MS` (default 2
+running the turn may stay silent for up to `ODB_TOOL_STALL_MS` (default 2
 hours). Any event from the turn starts the silence over, and time spent waiting
 on a person or a computer never counts. Either way the turn stops with "no
 activity for N minutes".
 
-Both take whole milliseconds. `OMB_TURN_STALL_MS` is never below 60000 (one
-minute) and `OMB_TOOL_STALL_MS` never below `OMB_TURN_STALL_MS`. A value that
+Both take whole milliseconds. `ODB_TURN_STALL_MS` is never below 60000 (one
+minute) and `ODB_TOOL_STALL_MS` never below `ODB_TURN_STALL_MS`. A value that
 is not a positive finite number (empty, `65m`, `0`, a negative number,
 `Infinity`, `1e309`) leaves the default. Set them in the server's environment
 and restart it; the restart stops every running turn.
@@ -1485,18 +1485,18 @@ settings do not change it.
 
 Self-hosted servers follow the **stable** channel: a released version that our
 own Clouds have run for 48 hours, named by the image tag `stable` and by
-[`stable.json`](https://raw.githubusercontent.com/milind-soni/OpenMausBot/channels/stable.json).
+[`stable.json`](https://raw.githubusercontent.com/Braand-web/Deliobot/channels/stable.json).
 `latest` follows `main` and is not for a server you rely on. The update check
 (`GET /api/updates/check`, **Check for updates** in the app) compares the
-server with the stable version; `OMB_UPDATE_CHANNEL=newest` makes it follow
+server with the stable version; `ODB_UPDATE_CHANNEL=newest` makes it follow
 every release instead.
 
 A server installed with the [installer](deploy-vps.md#quick-start-one-command-on-your-own-domain)
-updates with `sudo /opt/openmausbot/update.sh`, which the installer puts there.
+updates with `sudo /opt/opendeliobot/update.sh`, which the installer puts there.
 
 ```sh
 cd deploy && git pull && ./update.sh                                    # Docker: copy the data, update, roll back on failure
-git pull && pnpm install && sudo systemctl restart openmausbot          # from source
+git pull && pnpm install && sudo systemctl restart opendeliobot          # from source
 ```
 
 `deploy/update.sh` is the whole routine for a Docker Compose install: the
@@ -1512,7 +1512,7 @@ update an earlier run left unfinished.
 For the npm service there is no one-command updater yet:
 [do the same steps by hand](deploy-vps.md#paths-a-and-c-npm-with-the-service-above-the-same-steps-by-hand),
 as the service user while the server is stopped. For a foreground invocation,
-`npx --yes openmausbot@X.Y.Z serve --tunnel` selects a particular published
+`npx --yes opendeliobot@X.Y.Z serve --tunnel` selects a particular published
 release; replace `X.Y.Z` with that version.
 
 The desktop and phone apps work with any server version that was the stable

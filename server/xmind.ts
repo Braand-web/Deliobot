@@ -205,7 +205,7 @@ export async function saveXmindUpload(
 ): Promise<SavedFile> {
   const name = `${originalName}.md`;
   sanitizeSharedFileName(name, "text/markdown");
-  const scratch = await mkdtemp(join(tmpdir(), "omb-xmind-"));
+  const scratch = await mkdtemp(join(tmpdir(), "odb-xmind-"));
   try {
     const archive = join(scratch, "map.xmind");
     let bytes = 0;

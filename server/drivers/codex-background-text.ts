@@ -141,7 +141,7 @@ export interface CodexOneShotInput {
 export async function runCodexOneShot(input: CodexOneShotInput): Promise<string> {
   const { signal, onUsage } = input.options ?? {};
   if (signal?.aborted) throw new Error("Codex background call aborted");
-  const cwd = mkdtempSync(join(tmpdir(), "omb-codex-background-"));
+  const cwd = mkdtempSync(join(tmpdir(), "odb-codex-background-"));
   try {
     return await new Promise<string>((resolve, reject) => {
       const argv = codexBackgroundArgs({ model: input.model, modelProvider: input.modelProvider, providerArgs: input.providerArgs, cwd });

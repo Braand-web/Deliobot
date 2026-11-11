@@ -1,4 +1,4 @@
-// Real Claude CLI through the OMB driver, synthetic account and loopback API.
+// Real Claude CLI through the ODB driver, synthetic account and loopback API.
 import assert from "node:assert/strict";
 import { existsSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
@@ -8,7 +8,7 @@ import { join, resolve } from "node:path";
 const cli = resolve(process.argv[2] ?? "");
 const apiKey = process.argv.includes("--api-key");
 assert.ok(process.argv[2], "Pass the absolute Claude CLI path");
-const home = mkdtempSync(join(tmpdir(), "omb-claude-auth-fixture-"));
+const home = mkdtempSync(join(tmpdir(), "odb-claude-auth-fixture-"));
 const account = join(home, ".claude");
 const workspace = join(home, "workspace");
 const botSettings = join(home, "bot", ".claude", "settings.json");
@@ -17,7 +17,7 @@ mkdirSync(workspace);
 mkdirSync(join(home, "bot", ".claude"), { recursive: true });
 process.env = {
   HOME: home, USERPROFILE: home, XDG_CONFIG_HOME: join(home, ".config"),
-  PATH: process.env.PATH, OMB_DATA_DIR: join(home, "omb"),
+  PATH: process.env.PATH, ODB_DATA_DIR: join(home, "odb"),
   CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
   DISABLE_TELEMETRY: "1", DISABLE_ERROR_REPORTING: "1",
   ...(process.env.SystemRoot ? { SystemRoot: process.env.SystemRoot } : {}),
@@ -53,7 +53,7 @@ writeFileSync(join(account, "settings.json"), JSON.stringify({
   env: { ANTHROPIC_BASE_URL: `http://127.0.0.1:${port}`, ...(apiKey ? { ANTHROPIC_API_KEY: "fixture-only-key" } : {}) },
   hooks: { SessionStart: [{ hooks: [{ type: "command", command: `${JSON.stringify(process.execPath)} -e "require('fs').writeFileSync('hook-ran', 'unexpected')"` }] }] },
 }), { mode: 0o600 });
-// The bot's own settings, with a field Claude Code would refuse: it must not take OMB's own settings down with it.
+// The bot's own settings, with a field Claude Code would refuse: it must not take ODB's own settings down with it.
 writeFileSync(botSettings, JSON.stringify({
   model: 123,
   hooks: { Stop: [{ hooks: [{ type: "command", command: `${JSON.stringify(process.execPath)} -e "require('fs').writeFileSync('bot-hook-ran', 'ran')"` }] }] },

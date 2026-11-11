@@ -44,7 +44,7 @@ part people feel.
 
 The bridge already sees every `tools/call` and its response. It also runs the
 Local VM and VPS proxies with the same control variables, so recording is
-switched on by a separate `OMB_COMPUTER_JOURNAL=1` that only the host mount
+switched on by a separate `ODB_COMPUTER_JOURNAL=1` that only the host mount
 (`gatedLocalComputer`) sets (builder's call), and only for a direct request
 that began with the person's own line while saved steps are on: room turns,
 routine runs, work a peer hands on (though it keeps the person's origin) and

@@ -8,7 +8,7 @@ import { createComputerSharing } from "./computer-sharing.mjs";
 import { createLendingIndicator } from "./lending-indicator.mjs";
 
 function fixture(t) {
-  const dir = fs.mkdtempSync(path.join(tmpdir(), "omb-sharing-persistence-"));
+  const dir = fs.mkdtempSync(path.join(tmpdir(), "odb-sharing-persistence-"));
   const file = path.join(dir, "computer-sharing.json");
   const env = { id: "fixture-cloud", origin: "https://cloud.fixture.test", name: "Fixture" };
   const grant = { id: randomUUID(), secret: "a".repeat(64), sessionId: randomUUID(), environmentId: randomUUID(), enabled: true,
@@ -24,7 +24,7 @@ function fixture(t) {
     async fetch(url, { signal }) {
       const route = new URL(url).pathname;
       if (route === "/api/auth/session") return Response.json({ kind: "session", id: grant.sessionId, cloudHome: true, scopes: ["admin"] });
-      if (route === "/.well-known/openmausbot/environment") return Response.json({ environmentId: grant.environmentId, capabilities: { sharedComputers: true } });
+      if (route === "/.well-known/opendeliobot/environment") return Response.json({ environmentId: grant.environmentId, capabilities: { sharedComputers: true } });
       if (route === "/api/shared-computers/connect") connects.push(url);
       if (route.endsWith("/poll")) await new Promise((resolve, reject) => {
         polls.push(signal);

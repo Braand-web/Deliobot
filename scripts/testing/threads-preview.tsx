@@ -8,10 +8,10 @@ import { applySkinChoice, readSkinChoice } from "../../src/lib/skins";
 import "../../src/styles.css";
 
 // This entry point is served only by the disposable verification launcher.
-// The voice-latency harness opts in with ?ombVoiceProbe=1; the recorder in
+// The voice-latency harness opts in with ?odbVoiceProbe=1; the recorder in
 // src/lib/voice-latency-probe stays inert without this sink.
-if (new URLSearchParams(location.search).has("ombVoiceProbe")) {
-  (window as typeof window & { __ombVoiceProbe?: unknown[] }).__ombVoiceProbe = [];
+if (new URLSearchParams(location.search).has("odbVoiceProbe")) {
+  (window as typeof window & { __odbVoiceProbe?: unknown[] }).__odbVoiceProbe = [];
 }
 setAnalyticsEnabled(false);
 // Every launch is a new browser, so it opens in Simple mode as a new install does, unless a test chose a mode first.

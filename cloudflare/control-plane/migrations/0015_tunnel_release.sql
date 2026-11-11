@@ -7,7 +7,7 @@ ALTER TABLE relay_adoption ADD COLUMN legacy_clear_at INTEGER;
 
 UPDATE relay_adoption SET legacy_clear_at = updated_at WHERE legacy_devices = 0;
 
--- What one full pass of the idle scan would reclaim at OMB_TUNNEL_RECLAIM_PREVIEW_DAYS, per account. Counts and
+-- What one full pass of the idle scan would reclaim at ODB_TUNNEL_RECLAIM_PREVIEW_DAYS, per account. Counts and
 -- timestamps only. `running` is the pass under way (NULL between passes, and for a pass joined part-way);
 -- `eligible` the last finished pass (NULL until one finishes at these `days`).
 CREATE TABLE managed_endpoint_reclaim_preview (

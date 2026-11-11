@@ -27,7 +27,7 @@ afterEach(async () => {
 });
 
 async function serve(onePasswordToken: string | null = null) {
-  const dir = mkdtempSync(join(tmpdir(), "omb-vault-routes-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-vault-routes-"));
   dirs.push(dir);
   const store = new VaultStore({ dataDir: dir });
   const { sdk } = fakeOnePasswordSdk({ token: "ops_fake-route-token", vaults: { v1: { title: "Shared", items: [

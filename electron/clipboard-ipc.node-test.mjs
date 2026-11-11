@@ -17,7 +17,7 @@ function loadPreload(origin) {
   let bridge;
   const invoked = [];
   vm.runInNewContext(preloadSource, {
-    process: { platform: "darwin", argv: [`--omb-local-origin=${LOCAL}`] },
+    process: { platform: "darwin", argv: [`--odb-local-origin=${LOCAL}`] },
     location: { origin },
     navigator: {},
     TextEncoder,

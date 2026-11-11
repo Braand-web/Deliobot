@@ -17,7 +17,7 @@ function controlDirectory(sshDir: string): string {
   const uid = process.getuid!();
   const id = createHash("sha256").update(resolve(sshDir)).digest("hex").slice(0, 12);
   // /tmp, not tmpdir(): macOS TMPDIR is often too long for a control socket. Validated first so a symlink or another user's dir cannot redirect it.
-  const dir = `/tmp/omb-ssh-${uid}-${id}`;
+  const dir = `/tmp/odb-ssh-${uid}-${id}`;
   try { mkdirSync(dir, { mode: 0o700 }); }
   catch (error) { if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error; }
   const stat = lstatSync(dir);
@@ -48,7 +48,7 @@ function writeIfChanged(path: string, content: string, mode: number): void {
 /** ssh keeps the first value it sees, so the person's file goes first; -F skips the system file, so it goes last. */
 export function vpsSshConfigText(sshDir: string, userConfig = join(homedir(), ".ssh", "config"), systemConfig = "/etc/ssh/ssh_config"): string {
   return [
-    "# Written by OpenMausBot for its VPS computer connections. Do not edit;",
+    "# Written by OpenDeliobot for its VPS computer connections. Do not edit;",
     "# it is regenerated. Your own ~/.ssh/config is included first and wins.",
     ...(existsSync(userConfig) ? [`Include ${JSON.stringify(userConfig)}`] : []),
     "Host *",
@@ -81,7 +81,7 @@ export function prepareVpsSsh(dataDir: string, pathValue: string, platform: Node
   if (!realSsh) return { configPath, path: pathValue };
   const shim = [
     "#!/bin/sh",
-    "# Written by OpenMausBot. docker's SSH transport finds this ssh first, so",
+    "# Written by OpenDeliobot. docker's SSH transport finds this ssh first, so",
     "# docker commands share one connection unless the alias turns that off.",
     `exec ${shellQuote(realSsh)} -F ${shellQuote(configPath)} "$@"`,
     "",

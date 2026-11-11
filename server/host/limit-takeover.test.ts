@@ -34,7 +34,7 @@ const on = (instanceId: string, model: string): ModelSelection => ({ instanceId,
 const KAI = { id: "kai", name: "Kai" };
 
 const freshDir = () => {
-  const dir = mkdtempSync(join(tmpdir(), "omb-limit-takeover-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-limit-takeover-"));
   dirs.push(dir);
   return dir;
 };

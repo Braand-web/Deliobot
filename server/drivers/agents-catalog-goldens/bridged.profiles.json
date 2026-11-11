@@ -496,7 +496,7 @@
       "use_tool"
     ]
   },
-  "default+mausbot": {
+  "default+delio": {
     "bytes": 17843,
     "sha256": "3cd4ee58c184aae844987b40b4c7838d10a519be7b128105625a72121e6756ca",
     "tools": [
@@ -518,7 +518,7 @@
       "use_tool"
     ]
   },
-  "skills+shared+voice+mausbot": {
+  "skills+shared+voice+delio": {
     "bytes": 18691,
     "sha256": "24197af5f8ffea7d5cb567d4b081aed48d5b184da176ceb0f9df5769e5f993cd",
     "tools": [

@@ -1,4 +1,4 @@
-// Served without auth at /.well-known/openmausbot/environment, so a saved connection can check it still reaches the same server.
+// Served without auth at /.well-known/opendeliobot/environment, so a saved connection can check it still reaches the same server.
 import { randomUUID } from "node:crypto";
 import {
   closeSync,
@@ -43,7 +43,7 @@ export interface EnvironmentDescriptor {
     fileEdits?: true;
     /** A lent computer may say it runs the MCP servers saved here that run on it (mcp_tools, mcp_call). Never a team Cloud. */
     lentMcp?: true;
-    /** A person's own OMB Cloud home. */
+    /** A person's own ODB Cloud home. */
     cloudHome?: true;
     /** A team's Cloud home: `label` is the team's name. */
     cloudTeam?: true;
@@ -128,13 +128,13 @@ export function loadEnvironmentId(dataDir: string): string {
 let stamp: string | undefined;
 /** This server's release and, on a Cloud, its image: what it runs changes with either, the engines' CLIs included. */
 export function buildStamp(): string {
-  stamp ??= [serverVersion(), process.env.OMB_CLOUD_IMAGE?.trim()].filter(Boolean).join(" ");
+  stamp ??= [serverVersion(), process.env.ODB_CLOUD_IMAGE?.trim()].filter(Boolean).join(" ");
   return stamp;
 }
 
 /** The desktop's own version, else the bundle's package.json (scripts/bundle-server.mjs), else the checkout's. */
 export function serverVersion(root = SERVER_ROOT): string {
-  const fromEnv = process.env.OMB_APP_VERSION?.trim();
+  const fromEnv = process.env.ODB_APP_VERSION?.trim();
   if (fromEnv) return fromEnv;
   for (const file of [join(root, "package.json"), join(root, "..", "package.json")]) {
     try {
@@ -148,13 +148,13 @@ export function serverVersion(root = SERVER_ROOT): string {
 
 export type ServerInstall = "npx" | "global" | "docker" | "source";
 
-/** How this server was started: the Docker image (OMB_CLI_PREFIX, or Docker's own /.dockerenv), a checkout, npx, or a
+/** How this server was started: the Docker image (ODB_CLI_PREFIX, or Docker's own /.dockerenv), a checkout, npx, or a
  * global install. */
 export function serverInstall(env: NodeJS.ProcessEnv = process.env, script = process.argv[1] ?? "", docker = () => existsSync("/.dockerenv")): ServerInstall {
   const prefix = cliPrefix(env, script);
   if (prefix.includes("docker") || docker()) return "docker";
-  if (prefix === "pnpm omb" || script.endsWith(".ts")) return "source";
-  return prefix === "npx openmausbot" ? "npx" : "global";
+  if (prefix === "pnpm odb" || script.endsWith(".ts")) return "source";
+  return prefix === "npx opendeliobot" ? "npx" : "global";
 }
 
 /** What a server only its one owner signs in to takes from that owner's own desktop by default: told in the owner's own
@@ -164,7 +164,7 @@ export const OWNER_LENDING = Object.freeze({ sharedComputers: true, lendingDetai
 export function environmentDescriptor(input: { environmentId: string; desktopManaged: boolean; emailSignIn?: boolean; sharedComputers?: boolean; cloudHome?: boolean; cloudTeam?: boolean; ownHome?: boolean; label?: string }): EnvironmentDescriptor {
   return {
     environmentId: input.environmentId,
-    label: input.label?.trim() || process.env.OMB_ENVIRONMENT_LABEL?.trim() || process.env.OMB_SERVER_NAME?.trim() || hostname(),
+    label: input.label?.trim() || process.env.ODB_ENVIRONMENT_LABEL?.trim() || process.env.ODB_SERVER_NAME?.trim() || hostname(),
     platform: process.platform,
     version: serverVersion(),
     capabilities: {

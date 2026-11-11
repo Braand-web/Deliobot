@@ -77,10 +77,10 @@ describe("a starred model", () => {
     toggleFavoriteModel("claude", "haiku-5");
     forgetFavoriteModelsForTest();
     expect(favoriteModels().has(favoriteKey("claude", "haiku-5"))).toBe(true);
-    stored.set("omb-favorite-models", "{not json");
+    stored.set("odb-favorite-models", "{not json");
     forgetFavoriteModelsForTest();
     expect(favoriteModels().size).toBe(0);
-    stored.set("omb-favorite-models", JSON.stringify({ a: 1 }));
+    stored.set("odb-favorite-models", JSON.stringify({ a: 1 }));
     forgetFavoriteModelsForTest();
     expect(favoriteModels().size).toBe(0);
   });

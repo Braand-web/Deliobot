@@ -24,7 +24,7 @@ import { callBurstTool } from "./agents-burst-tool.ts";
 import { callComputerAskTool, COMPUTER_ASK_TOOL_NAMES } from "./agents-computer-ask-tool.ts";
 import { callImageTool, IMAGE_TOOL_NAMES } from "./agents-image-tools.ts";
 import { callMeetingTool, MEETING_TOOL_NAMES } from "./agents-meeting-tools.ts";
-import { callMausBotTool, MAUSBOT_TOOL_NAMES } from "./agents-mausbot-tools.ts";
+import { callDelioTool, DELIO_TOOL_NAMES } from "./agents-delio-tools.ts";
 import { callPageTool, PAGE_TOOL_NAMES } from "./agents-pages-tools.ts";
 import { callPersonTool, PERSON_TOOL_NAMES } from "./agents-person-tools.ts";
 import { callDevsTool, DEVS_TOOL_NAMES } from "./agents-devs-tools.ts";
@@ -50,9 +50,9 @@ export function toolCallContextFromEnv(env: NodeJS.ProcessEnv): ToolCallContext 
   const profile = catalogProfileFromEnv(env);
   return {
     botId: profile.botId,
-    threadId: env.OMB_THREAD_ID ?? "",
-    depth: Number(env.OMB_TURN_DEPTH ?? "0") || 0,
-    externalRuntime: env.OMB_EXTERNAL_RUNTIME === "1",
+    threadId: env.ODB_THREAD_ID ?? "",
+    depth: Number(env.ODB_TURN_DEPTH ?? "0") || 0,
+    externalRuntime: env.ODB_EXTERNAL_RUNTIME === "1",
     sharedComputers: profile.sharedComputers,
     client: harnessClientFromEnv(env),
   };
@@ -246,7 +246,7 @@ export async function callTool(called: string, input: Json, context: ToolCallCon
   if (HELPER_TOOL_NAMES.has(name)) return callHelperTool(name, args, context);
   if (IMAGE_TOOL_NAMES.has(name)) return callImageTool(name, args, context);
   if (MEETING_TOOL_NAMES.has(name)) return callMeetingTool(name, args, context);
-  if (MAUSBOT_TOOL_NAMES.has(name)) return callMausBotTool(name, args, context);
+  if (DELIO_TOOL_NAMES.has(name)) return callDelioTool(name, args, context);
   if (PAGE_TOOL_NAMES.has(name)) return callPageTool(name, args, context);
   if (PERSON_TOOL_NAMES.has(name)) return callPersonTool(name, args, context);
   if (DEVS_TOOL_NAMES.has(name)) return callDevsTool(name, args, context);
@@ -612,10 +612,10 @@ export async function callTool(called: string, input: Json, context: ToolCallCon
       return { text: `${r.label ?? CREDENTIAL_TARGETS[credentialId].label} is already configured. Continue the task.` };
     }
     if (credentialId === "onePasswordToken") {
-      return { text: `A secure ${r.label ?? CREDENTIAL_TARGETS[credentialId].label} request is ready: the person pastes it into its card in OpenMausBot, on their computer or in My Cloud, and OpenMausBot checks it with 1Password before keeping it. End this turn; OpenMausBot will resume the task after they save or decline. Never ask them to paste the token into chat, and never pass it to a command line.` };
+      return { text: `A secure ${r.label ?? CREDENTIAL_TARGETS[credentialId].label} request is ready: the person pastes it into its card in OpenDeliobot, on their computer or in My Cloud, and OpenDeliobot checks it with 1Password before keeping it. End this turn; OpenDeliobot will resume the task after they save or decline. Never ask them to paste the token into chat, and never pass it to a command line.` };
     }
     return {
-      text: `A secure ${r.label ?? CREDENTIAL_TARGETS[credentialId].label} request is now in this conversation, and the person was notified. The desktop app and a freshly QR-paired mobile app show its secure entry card; older mobile pairings explain how to pair again or finish on the computer. End this turn; OpenMausBot will resume the task after the user saves or declines. Never ask them to paste the key into chat.`,
+      text: `A secure ${r.label ?? CREDENTIAL_TARGETS[credentialId].label} request is now in this conversation, and the person was notified. The desktop app and a freshly QR-paired mobile app show its secure entry card; older mobile pairings explain how to pair again or finish on the computer. End this turn; OpenDeliobot will resume the task after the user saves or declines. Never ask them to paste the key into chat.`,
     };
   }
   if (name === "request_sign_in") {
@@ -627,7 +627,7 @@ export async function callTool(called: string, input: Json, context: ToolCallCon
       body: JSON.stringify({ fromBotId: BOT_ID, fromThreadId: THREAD_ID, site, ...(reason ? { reason } : {}) }),
     });
     return {
-      text: `The person was asked to sign in to ${r.site ?? site} on ${SIGN_IN_PLACES[String(r.place)] ?? "the place you work"}. Your turn ends now: say in one short line that you are waiting for them, then stop. OpenMausBot resumes you when they finish or decline. Never ask for the password or a code in chat.`,
+      text: `The person was asked to sign in to ${r.site ?? site} on ${SIGN_IN_PLACES[String(r.place)] ?? "the place you work"}. Your turn ends now: say in one short line that you are waiting for them, then stop. OpenDeliobot resumes you when they finish or decline. Never ask for the password or a code in chat.`,
     };
   }
   if (name === "fill_login") {
@@ -653,7 +653,7 @@ export async function callTool(called: string, input: Json, context: ToolCallCon
         body: JSON.stringify({ fromBotId: BOT_ID, fromThreadId: THREAD_ID, text }),
       });
       if (r.attached !== true || typeof r.file !== "string" || !r.file) {
-        return { text: "Voice note not sent: OpenMausBot did not confirm the audio was saved. Tell the person the note did not go through; do not say it is attached.", isError: true };
+        return { text: "Voice note not sent: OpenDeliobot did not confirm the audio was saved. Tell the person the note did not go through; do not say it is attached.", isError: true };
       }
       return { text: "Voice note recorded. It will be attached to this turn's reply when the turn ends; the note text is also the visible caption." };
     } catch (error) {
@@ -956,8 +956,8 @@ async function requestEmailCard(args: Json, context: ToolCallContext): Promise<T
   });
   if (!r.ok) return { text: String(r.body.error ?? `request_credential failed (HTTP ${r.status}).`), isError: true };
   if (r.body.alreadyConfigured === true) return { text: typeof r.body.text === "string" ? r.body.text : `${String(r.body.label)} is already connected. Use the email tools.` };
-  if (r.body.outgoing === true) return { text: "A secure card for the mailbox's outgoing server is ready in OpenMausBot, on the computer and on a freshly QR-paired phone. End this turn now and say in one line that you are waiting for it; OpenMausBot resumes you when the person saves it or declines, and says whether sending works." };
-  return { text: "A secure card for the mailbox is ready in OpenMausBot, on the computer and on a freshly QR-paired phone. End this turn now and say in one line that you are waiting for it; OpenMausBot resumes you when the person connects it or declines." };
+  if (r.body.outgoing === true) return { text: "A secure card for the mailbox's outgoing server is ready in OpenDeliobot, on the computer and on a freshly QR-paired phone. End this turn now and say in one line that you are waiting for it; OpenDeliobot resumes you when the person saves it or declines, and says whether sending works." };
+  return { text: "A secure card for the mailbox is ready in OpenDeliobot, on the computer and on a freshly QR-paired phone. End this turn now and say in one line that you are waiting for it; OpenDeliobot resumes you when the person connects it or declines." };
 }
 
 /** Any other secret: from the Vault at once, or from a card the person answers; the bot gets a secretRef or a file path back. */
@@ -969,8 +969,8 @@ async function requestCustomSecret(args: Json, context: ToolCallContext): Promis
   const label = typeof r.body.label === "string" ? r.body.label : "the secret";
   if (!r.ok) return { text: String(r.body.error ?? `request_credential failed (HTTP ${r.status}).`), isError: true };
   if (typeof r.body.text === "string") return { text: `${r.body.text} Continue the task.` };
-  const asked = r.body.savedAs === "ref" ? ` ${label} was saved earlier for OpenMausBot's tools only, not as a file for your commands (not a file request), so this card asks for it again.` : "";
+  const asked = r.body.savedAs === "ref" ? ` ${label} was saved earlier for OpenDeliobot's tools only, not as a file for your commands (not a file request), so this card asks for it again.` : "";
   return {
-    text: `A secure card for ${label} is now in this conversation, in the app and on a QR-paired phone, and the person was notified. If they can't find it, tell them it is in this conversation, and the notification opens it.${asked} End this turn now and say in one line that you are waiting for it; OpenMausBot resumes you when the person saves or declines, and tells you how to use it. Never ask for it in chat.`,
+    text: `A secure card for ${label} is now in this conversation, in the app and on a QR-paired phone, and the person was notified. If they can't find it, tell them it is in this conversation, and the notification opens it.${asked} End this turn now and say in one line that you are waiting for it; OpenDeliobot resumes you when the person saves or declines, and tells you how to use it. Never ask for it in chat.`,
   };
 }

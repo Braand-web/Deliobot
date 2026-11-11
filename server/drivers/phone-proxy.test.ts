@@ -107,7 +107,7 @@ describe("phone MCP text input", () => {
 });
 
 describe("phone MCP lazy claim gate", () => {
-  const harnessEnv = { OMB_HARNESS_URL: "http://127.0.0.1:8799", OMB_PHONE_TOKEN: "tok" };
+  const harnessEnv = { ODB_HARNESS_URL: "http://127.0.0.1:8799", ODB_PHONE_TOKEN: "tok" };
   const stub = (handler: (request: Request) => Promise<{ ok: boolean; status: number }>) => {
     const calls: Request[] = [];
     const fetchImpl = (async (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {

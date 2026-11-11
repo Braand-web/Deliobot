@@ -266,7 +266,7 @@ export function createSharedCua(connection, { platform = process.platform, t } =
     child.stdin.write(JSON.stringify({ jsonrpc: "2.0", id, method, params }) + "\n");
   });
   let driver;
-  const ready = request("initialize", { protocolVersion: "2024-11-05", capabilities: {}, clientInfo: { name: "omb-shared-desktop", version: "1" } }).then(answer => {
+  const ready = request("initialize", { protocolVersion: "2024-11-05", capabilities: {}, clientInfo: { name: "odb-shared-desktop", version: "1" } }).then(answer => {
     driver = answer?.serverInfo;
     child.stdin.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n');
   });

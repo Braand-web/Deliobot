@@ -29,7 +29,7 @@ it.each([
 });
 
 it("detects a newly installed and then signed-in fake Kimi without recreating the driver", async () => {
-  const home = mkdtempSync(join(tmpdir(), "omb-kimi-detection-"));
+  const home = mkdtempSync(join(tmpdir(), "odb-kimi-detection-"));
   const cli = join(home, "fake-kimi.cjs");
   const kimiHome = join(home, ".kimi-code");
   const instance = await KimiAgentDriver.create({

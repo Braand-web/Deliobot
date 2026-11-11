@@ -1,9 +1,9 @@
-// Who may sign in with an emailed code can come from the environment (OMB_SIGNIN_EMAILS for admins,
-// OMB_SIGNIN_MEMBER_EMAILS for members) instead of Settings. A list the environment names wins while the server runs.
-// A variable that is set but names nobody leaves Settings in charge: Compose files pass `${OMB_SIGNIN_EMAILS:-}`, which
+// Who may sign in with an emailed code can come from the environment (ODB_SIGNIN_EMAILS for admins,
+// ODB_SIGNIN_MEMBER_EMAILS for members) instead of Settings. A list the environment names wins while the server runs.
+// A variable that is set but names nobody leaves Settings in charge: Compose files pass `${ODB_SIGNIN_EMAILS:-}`, which
 // is an empty string, not an absent variable, whenever .env does not set it.
 
-export const SIGN_IN_ENV = { admins: "OMB_SIGNIN_EMAILS", members: "OMB_SIGNIN_MEMBER_EMAILS" } as const;
+export const SIGN_IN_ENV = { admins: "ODB_SIGNIN_EMAILS", members: "ODB_SIGNIN_MEMBER_EMAILS" } as const;
 
 export type SignInList = keyof typeof SIGN_IN_ENV;
 

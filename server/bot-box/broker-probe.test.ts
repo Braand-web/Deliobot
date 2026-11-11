@@ -21,7 +21,7 @@ describe.skipIf(process.platform === "win32")("testing a URL server the way a bo
     if (dir) rmSync(dir, { recursive: true, force: true });
   });
   async function broker(): Promise<BrokerPath> {
-    dir = mkdtempSync(join(tmpdir(), "omb-broker-probe-"));
+    dir = mkdtempSync(join(tmpdir(), "odb-broker-probe-"));
     credentials = await openCredentialBroker({ socketPath: join(dir, "b.sock") });
     return { broker: { port: 18080, mintForThread: credentials.mintForThread, revokeThread: credentials.revokeThread }, socketPath: credentials.socketPath };
   }
@@ -31,7 +31,7 @@ describe.skipIf(process.platform === "win32")("testing a URL server the way a bo
     server = await startFakeHttpMcp({ exactPath: true, tools: [{ name: "lookup_order" }], requireHeaders: HEADERS });
     const path = await broker();
     const brokered = brokeredServer(path, "orders", spec(server.url));
-    expect(brokered.url, "the test's address names no header").toMatch(/^http:\/\/127\.0\.0\.1:18080\/b\/omb_t0_[a-f0-9]{48}\/mcp-orders$/);
+    expect(brokered.url, "the test's address names no header").toMatch(/^http:\/\/127\.0\.0\.1:18080\/b\/odb_t0_[a-f0-9]{48}\/mcp-orders$/);
     try {
       expect(await probeMcpServer(spec(server.url), undefined, undefined, { via: { url: brokered.url, fetch: brokered.fetch } })).toMatchObject({ ok: true, tools: [{ name: "lookup_order" }] });
     } finally {

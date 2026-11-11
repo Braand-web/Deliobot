@@ -32,7 +32,7 @@ let registry: SessionRegistry;
 const file = () => join(dir, "sessions.json");
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), "omb-sessions-"));
+  dir = mkdtempSync(join(tmpdir(), "odb-sessions-"));
   clock = 1_700_000_000_000;
   registry = new SessionRegistry({ file: file(), now: () => clock });
 });
@@ -42,9 +42,9 @@ describe("the native-app encoding of a pairing window", () => {
   it("redeems the same window as the typed code, and consumes it", () => {
     const { code, credential } = registry.openPairing({ label: "Pixel" });
     // The Android companion's parser demands the 9-character prefix plus exactly 43 base64url characters (Connection.kt).
-    expect(credential.startsWith("omb_pair_")).toBe(true);
+    expect(credential.startsWith("odb_pair_")).toBe(true);
     expect(credential.length).toBe(52);
-    expect(credential.slice("omb_pair_".length)).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    expect(credential.slice("odb_pair_".length)).toMatch(/^[A-Za-z0-9_-]{43}$/);
 
     const paired = registry.exchange({ code: credential, label: "Pixel", source: "10.0.0.9" });
     expect(paired.ok).toBe(true);
@@ -54,7 +54,7 @@ describe("the native-app encoding of a pairing window", () => {
 
   it("never normalizes a credential", () => {
     // A credential containing every symbol normalizePairingCode folds (0, 1, _ and -): it must be hashed exactly as presented.
-    const trap = "omb_pair_0123456789-_abcdefghijklmnopqrstuvwxyzABCDE";
+    const trap = "odb_pair_0123456789-_abcdefghijklmnopqrstuvwxyzABCDE";
     expect(trap.length).toBe(52);
     expect(normalizePairingCode(trap)).not.toBe(trap);
     expect(isPairingCredential(trap)).toBe(true);
@@ -93,7 +93,7 @@ describe("the native-app encoding of a pairing window", () => {
   });
 });
 
-describe("a browser sign-in window (an OMB Cloud page's \"Use in your browser\")", () => {
+describe("a browser sign-in window (an ODB Cloud page's \"Use in your browser\")", () => {
   it("is redeemed only by a browser sign-in, only by its credential, and only once", () => {
     const { code, credential } = registry.openPairing({ scopes: ["admin", "client"], label: "Web browser", browser: true });
     expect(registry.exchange({ code: credential, label: "", source: "10.0.0.5" }).ok).toBe(false);
@@ -199,7 +199,7 @@ describe("pairing codes", () => {
     expect(pairingRequest({ tokenTtlMs: SESSION_MAX_AGE_MS })).toEqual({ tokenTtlMs: SESSION_MAX_AGE_MS });
     expect(pairingRequest(null)).toEqual({});
     for (const ttlMs of [86_400_001, 59_999, 1.5e6 + 0.5, "24h"]) expect(pairingRequest({ ttlMs }), String(ttlMs)).toMatchObject({ error: expect.stringContaining("24 hours") });
-    expect(pairingRequest({ tokenTtlMs: SESSION_MAX_AGE_MS + 1 })).toMatchObject({ error: expect.stringContaining("OMB_SESSION_MAX_DAYS") });
+    expect(pairingRequest({ tokenTtlMs: SESSION_MAX_AGE_MS + 1 })).toMatchObject({ error: expect.stringContaining("ODB_SESSION_MAX_DAYS") });
   });
 
   it("locks a source out after repeated failures, and forgets on success", () => {
@@ -255,7 +255,7 @@ describe("pairing codes", () => {
   });
 
   it("explains a code of the wrong kind and does not count it as a guess", () => {
-    for (const [input, key] of [["1234 5678", "serverError.pair.emailCode"], ["123456", "serverError.pair.oldCode"], [`omb_sess_${"a".repeat(43)}`, "serverError.pair.scriptKey"]] as const) {
+    for (const [input, key] of [["1234 5678", "serverError.pair.emailCode"], ["123456", "serverError.pair.oldCode"], [`odb_sess_${"a".repeat(43)}`, "serverError.pair.scriptKey"]] as const) {
       for (let i = 0; i < PAIRING_LOCKOUT.failures + 1; i++) {
         const refused = registry.exchange({ code: input, label: "", source: "mixed-up" });
         expect(refused).toMatchObject({ ok: false, status: 400, errorKey: key });
@@ -266,9 +266,9 @@ describe("pairing codes", () => {
 
   it("takes the code or the credential out of a pasted link", () => {
     const a = registry.openPairing();
-    expect(registry.exchange({ code: `https://maus.example.com/pair#code=${formatPairingCode(a.code)}`, label: "", source: "s" }).ok).toBe(true);
+    expect(registry.exchange({ code: `https://delio.example.com/pair#code=${formatPairingCode(a.code)}`, label: "", source: "s" }).ok).toBe(true);
     const b = registry.openPairing();
-    expect(registry.exchange({ code: `openmausbot://pair?address=https%3A%2F%2Fmaus.example.com&token=${b.credential}`, label: "", source: "s" }).ok).toBe(true);
+    expect(registry.exchange({ code: `opendeliobot://pair?address=https%3A%2F%2Fdelio.example.com&token=${b.credential}`, label: "", source: "s" }).ok).toBe(true);
   });
 
   it("answers a lost-response retry with the same session for a minute, keyed on the client's attempt id", () => {
@@ -295,10 +295,10 @@ describe("pairing codes", () => {
   });
 
   it("names the device from the client, else the code's label, else the user agent", () => {
-    const a = registry.openPairing({ label: "Milind's MacBook" });
+    const a = registry.openPairing({ label: "Alex's MacBook" });
     const named = registry.exchange({ code: a.code, label: "", source: "s1", fallbackLabel: "Safari on Mac" });
     if (!named.ok) throw new Error(named.error);
-    expect(named.session.label).toBe("Milind's MacBook");
+    expect(named.session.label).toBe("Alex's MacBook");
     const b = registry.openPairing();
     const ua = registry.exchange({ code: b.code, label: "  ", source: "s2", fallbackLabel: "Safari on Mac" });
     if (!ua.ok) throw new Error(ua.error);
@@ -568,7 +568,7 @@ describe("sessions", () => {
     if (process.platform !== "win32") expect(statSync(file()).mode & 0o777).toBe(0o600); // Windows has no POSIX modes
     const reloaded = new SessionRegistry({ file: file(), now: () => clock });
     expect(reloaded.authenticate(token)?.id).toBe(session.id);
-    expect(reloaded.authenticate("omb_sess_nope")).toBeNull();
+    expect(reloaded.authenticate("odb_sess_nope")).toBeNull();
   });
 
   it("expires after 30 days and can be revoked", () => {
@@ -704,7 +704,7 @@ describe("stream tickets", () => {
   });
 });
 
-describe("admin scope only (an OMB Cloud home is personal: server/cloud-owner.ts)", () => {
+describe("admin scope only (an ODB Cloud home is personal: server/cloud-owner.ts)", () => {
   const PERSONAL = "My Cloud is personal: only your own devices can connect.";
   it("opens, redeems, issues and accepts nothing without admin scope; the owner's devices are unaffected", () => {
     // Made before the rule applies (as a stored session is at boot).

@@ -40,7 +40,7 @@ export interface TeamAwayHost {
 export function createTeamAwayHost(deps: TeamAwayHostDeps): TeamAwayHost {
   const home = deps.cloudHome;
   if (!home?.team) return { delivered: () => {}, notified: () => {}, routes: (async () => PASS) as RouteHandler };
-  const windowMs = Number(process.env.OMB_TEAM_AWAY_WINDOW_MS);
+  const windowMs = Number(process.env.ODB_TEAM_AWAY_WINDOW_MS);
   const away = createTeamAway({
     here: deps.here, language: deps.language, dataDir: deps.dataDir, adminOrigin: home.adminOrigin, machineId: home.machineId, secret: home.bootstrapSecret,
     member: (person) => deps.people().find((one) => one.leftAt === undefined && personKey({ id: "", email: one.email }) === person),

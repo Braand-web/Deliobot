@@ -1,5 +1,5 @@
-// Read before main.tsx's first-paint writes: applySkin stamps omb-skin on every boot.
-const PRIOR_RUN_KEYS = ["omb-skin", "omb-installed", "omb-email-gate", "omb-drafts", "omb-show-threads"];
+// Read before main.tsx's first-paint writes: applySkin stamps odb-skin on every boot.
+const PRIOR_RUN_KEYS = ["odb-skin", "odb-installed", "odb-email-gate", "odb-drafts", "odb-show-threads"];
 
 export function hasPriorRun(store: Pick<Storage, "getItem"> | undefined): boolean {
   try {

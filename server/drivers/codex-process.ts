@@ -6,7 +6,7 @@ import { splitCliString } from "../env-path.ts";
 /** Every Codex app-server starts its MCP servers with its thread; many starting at once on a small host
  * push those calls past their timeouts. Launches past this many wait until one has its turn running. */
 export function codexLaunchLimit(): number {
-  const configured = Number(process.env.OMB_CODEX_LAUNCH_SLOTS);
+  const configured = Number(process.env.ODB_CODEX_LAUNCH_SLOTS);
   return Number.isInteger(configured) && configured > 0 ? configured : Math.max(2, cpus().length);
 }
 

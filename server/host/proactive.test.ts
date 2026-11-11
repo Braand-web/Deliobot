@@ -17,7 +17,7 @@ afterEach(() => {
 type Services = Record<string, { connected: boolean; accounts?: Array<{ id: string; status: string }> }>;
 
 function setup(options: { team?: boolean; driver?: string; configured?: () => boolean; cloud?: boolean; services?: Services } = {}) {
-  const dir = mkdtempSync(join(tmpdir(), "omb-proactive-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-proactive-"));
   dirs.push(dir);
   const store = new Store(() => ({ instanceId: "claude", model: "claude-sonnet-5" }));
   const chief = store.createBot({ name: "Chief" });

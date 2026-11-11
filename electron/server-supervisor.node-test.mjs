@@ -228,7 +228,7 @@ test("repeated quit requests join the exact same child cleanup", async (t) => {
   assert.equal(f.children.length, 1);
 });
 
-const LOCAL_FIXTURE = { id: "l1", kind: "local", name: "Work", dataDir: "/Users/me/.openmausbot-work", missing: false };
+const LOCAL_FIXTURE = { id: "l1", kind: "local", name: "Work", dataDir: "/Users/me/.opendeliobot-work", missing: false };
 
 function runForget(state) {
   const start = MAIN_SOURCE.indexOf("async function forgetEnvironment(");
@@ -253,7 +253,7 @@ function runForget(state) {
     path,
     AbortSignal,
     remoteMicrophoneRefused: new Set(),
-    desktopDataDir: () => "/Users/me/.openmausbot",
+    desktopDataDir: () => "/Users/me/.opendeliobot",
     slog: () => {},
     session: { defaultSession: { fetch: async () => ({ ok: true }), clearStorageData: async () => {} } },
     nativeT: englishText.t,
@@ -327,7 +327,7 @@ test("a purge of a missing folder still removes the entry (rm runs with force)",
 });
 
 function switchFixture(t, { startResults = [], releaseLeaseThrows = false, stopUtilityServer = async () => true, acquireThrowsOn = [] } = {}) {
-  const targetDir = mkdtempSync(join(tmpdir(), "omb-switch-fixture-"));
+  const targetDir = mkdtempSync(join(tmpdir(), "odb-switch-fixture-"));
   t.after(() => rmSync(targetDir, { recursive: true, force: true }));
   const forks = [];
   let forkIndex = 0;
@@ -361,7 +361,7 @@ function switchFixture(t, { startResults = [], releaseLeaseThrows = false, stopU
       return outcome === undefined ? { proc: { pid: 4000 + forkIndex } } : outcome;
     },
     environmentsState: { environments: [{ id: "l1", kind: "local", name: "Work", dataDir: targetDir }], activeId: "local" },
-    desktopDataDir: () => "/Users/me/.openmausbot",
+    desktopDataDir: () => "/Users/me/.opendeliobot",
     startupEnvironmentDir: env.startupEnvironmentDir,
     withActive: env.withActive,
     persistEnvironments: (next) => { context.environmentsState = next; },
@@ -384,7 +384,7 @@ test("a failed switch with no live child reforks the active environment once and
   const { context, forks, targetDir } = switchFixture(t, { releaseLeaseThrows: true });
   const result = await context.switchLocalEnvironmentTo(targetDir, "l1");
   assert.deepEqual(plain(result), { ok: false, error: "switch-failed" });
-  assert.deepEqual(plain(forks), [[8799, "/Users/me/.openmausbot"]], "exactly one safety-net re-fork, on the active port and folder");
+  assert.deepEqual(plain(forks), [[8799, "/Users/me/.opendeliobot"]], "exactly one safety-net re-fork, on the active port and folder");
   assert.equal(context.serverProc?.pid, 4001, "the re-forked child is adopted as ready");
 });
 
@@ -394,8 +394,8 @@ test("a rollback that could not take the previous folder's lease back is revived
   const result = await context.switchLocalEnvironmentTo(targetDir, "l1");
   assert.deepEqual(plain(result), { ok: false, error: "switch-failed" });
   assert.ok(context.desktopDataDirLease, "the previous folder's lease is held again");
-  assert.equal(context.runningDataDir, "/Users/me/.openmausbot");
-  assert.deepEqual(plain(forks.at(-1)), [8799, "/Users/me/.openmausbot"]);
+  assert.equal(context.runningDataDir, "/Users/me/.opendeliobot");
+  assert.deepEqual(plain(forks.at(-1)), [8799, "/Users/me/.opendeliobot"]);
   assert.equal(context.serverProc?.pid, 4002, "the revived child is adopted as ready");
   assert.equal(context.localSwitchInFlight, false);
 });

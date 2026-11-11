@@ -85,8 +85,8 @@ async function sandbox(req: IncomingMessage, res: ServerResponse, url: URL) {
 }
 
 beforeAll(async () => {
-  dataDir = mkdtempSync(join(tmpdir(), "omb-computer-files-data-"));
-  vi.stubEnv("OMB_DATA_DIR", dataDir);
+  dataDir = mkdtempSync(join(tmpdir(), "odb-computer-files-data-"));
+  vi.stubEnv("ODB_DATA_DIR", dataDir);
   server = createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", base);
     if (url.pathname.startsWith("/sandbox/")) {
@@ -122,15 +122,15 @@ beforeAll(async () => {
   journal = await import("./boat-delete-journal.ts");
 });
 beforeEach(() => {
-  vi.stubEnv("OMB_BOAT_API", `${base}/boat/api/v1`);
-  vi.stubEnv("OMB_CLOUD_BOAT_URL", `${base}/relay/api/box/v1`);
-  vi.stubEnv("OMB_CLOUD_BOAT_TOKEN", INCLUDED);
+  vi.stubEnv("ODB_BOAT_API", `${base}/boat/api/v1`);
+  vi.stubEnv("ODB_CLOUD_BOAT_URL", `${base}/relay/api/box/v1`);
+  vi.stubEnv("ODB_CLOUD_BOAT_TOKEN", INCLUDED);
   calls.length = 0;
   disk.clear();
   uploads.clear();
   expireLinks = false;
   mintAnswer = duringDownload = midDownload = onFirstUploadChunk = stall = undefined;
-  root = mkdtempSync(join(tmpdir(), "omb-computer-files-"));
+  root = mkdtempSync(join(tmpdir(), "odb-computer-files-"));
   folder = join(root, "folder");
   outside = join(root, "outside");
   mkdirSync(folder);
@@ -199,7 +199,7 @@ describe("copy_from_computer", () => {
     ["an absolute path", "/etc/escaped.json", /relative to your working folder/],
     ["a Windows absolute path", "C:\\escaped.json", /relative to your working folder/],
     ["the folder itself", ".", /not the folder itself/],
-    ["the secret folder", ".openmausbot-secrets/token.txt", /holds a secret/],
+    ["the secret folder", ".opendeliobot-secrets/token.txt", /holds a secret/],
   ])("refuses %s before asking the Boat", async (_label, place, message) => {
     disk.set("/tmp/x", { bytes: Buffer.from("x") });
     expect(await from("/tmp/x", place)).toEqual({ error: expect.stringMatching(message) });
@@ -334,15 +334,15 @@ describe("copy_to_computer", () => {
     writeFileSync(join(outside, "secret.txt"), "private");
     symlinkSync(join(outside, "secret.txt"), join(folder, "linked.txt"));
     symlinkSync(outside, join(folder, "linked"));
-    mkdirSync(join(folder, ".openmausbot-secrets"));
-    writeFileSync(join(folder, ".openmausbot-secrets", "token"), "secret");
+    mkdirSync(join(folder, ".opendeliobot-secrets"));
+    writeFileSync(join(folder, ".opendeliobot-secrets", "token"), "secret");
     mkdirSync(join(folder, "dir"));
     for (const [source, message] of [
       ["../outside/secret.txt", /without "\.\."/],
       [join(outside, "secret.txt"), /relative to your working folder/],
       ["linked.txt", /leads outside/],
       ["linked/secret.txt", /leads outside/],
-      [".openmausbot-secrets/token", /holds a secret/],
+      [".opendeliobot-secrets/token", /holds a secret/],
       ["dir", /is not a file/],
       ["missing.txt", /is not in your working folder/],
     ] as const) {

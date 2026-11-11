@@ -5,7 +5,7 @@ import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 import { expect, it } from "vitest";
 
-import { launchVerificationServer, runControlOmb, verificationServerArgs, verificationServerEnvironment } from "../scripts/control-omb.ts";
+import { launchVerificationServer, runControlOdb, verificationServerArgs, verificationServerEnvironment } from "../scripts/control-odb.ts";
 import { waitForExit } from "./testing/cleanup.ts";
 
 it("keeps an ACP partial reply in the transcript across graceful shutdown and restart", async () => {
@@ -35,7 +35,7 @@ it("keeps an ACP partial reply in the transcript across graceful shutdown and re
       await waitForExit(server, { signal: "SIGTERM" });
     }
   };
-  const cli = (...args: string[]) => runControlOmb([...args, "--url", url]) as Promise<any>;
+  const cli = (...args: string[]) => runControlOdb([...args, "--url", url]) as Promise<any>;
   try {
     await stop();
     const configPath = join(dataDir, "config.json");

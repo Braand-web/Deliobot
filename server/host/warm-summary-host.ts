@@ -3,13 +3,13 @@
 //
 // - Claude Code (`cacheKeepWarm.compact`): its own /compact on a fork of the session, launched like the live process so
 //   it reads the warm cache and the conversation keeps its tool list. The conversation then moves to the fork, and its
-//   last two exchanges count as not yet seen by it, so the next turn carries them word for word on OpenMausBot's existing
+//   last two exchanges count as not yet seen by it, so the next turn carries them word for word on OpenDeliobot's existing
 //   "not seen yet" path, which is saved with the conversation and survives a restart.
-// - Every other engine: OpenMausBot's own fold (the last two exchanges kept, the rest summarized), run now rather than at
+// - Every other engine: OpenDeliobot's own fold (the last two exchanges kept, the rest summarized), run now rather than at
 //   the next turn's start, once the conversation is close to where that turn would fold it.
 //
 // The person sees it the way they see compaction today: one activity line for Claude Code's summary, the summary note for
-// OpenMausBot's fold.
+// OpenDeliobot's fold.
 import type { IdleCompactResult } from "../contracts.ts";
 import { isContextMessage, type HandedState } from "../delta-context.ts";
 import { sinceFreshStart } from "../fresh-start.ts";
@@ -25,7 +25,7 @@ import { createWarmSummary, WARM_SUMMARY_MIN_TOKENS, WARM_SUMMARY_RETRY_MS, type
 export const NATIVE_SOON_FRACTION = 0.8;
 /** Kept word for word after a summary: the person's last two messages and everything since. */
 export const KEPT_EXCHANGES = 2;
-/** OpenMausBot's fold runs while idle once a conversation is this close to where the next turn would fold it. */
+/** OpenDeliobot's fold runs while idle once a conversation is this close to where the next turn would fold it. */
 export const HARNESS_IDLE_FRACTION = 0.85;
 /** While the person has a conversation in front of them, its engine process is kept this long past their last activity. */
 export const PRESENCE_HOLD_MS = 10 * 60_000;
@@ -35,9 +35,9 @@ type CompactFn = (threadId: string, options: { instructions: string; session?: s
 export interface WarmSummaryHostDeps {
   store: Pick<Store, "taskByThread" | "botByThread" | "groupByThread" | "activePath" | "appendMessage" | "setResumeCursor" | "setHandedMessages">;
   instance(instanceId: string): { adapter: { cacheKeepWarm?: { compact?: CompactFn; hold(threadId: string, until: number | null): boolean } } } | null | undefined;
-  /** Off with `context.autoCompact: false` or OMB_WARM_SUMMARY=0. */
+  /** Off with `context.autoCompact: false` or ODB_WARM_SUMMARY=0. */
   enabled(): boolean;
-  /** Where the engine summarizes by itself, in tokens (Claude Code's --autocompact); undefined when OpenMausBot set none. */
+  /** Where the engine summarizes by itself, in tokens (Claude Code's --autocompact); undefined when OpenDeliobot set none. */
   nativeCompactAt(instanceId: string): number | undefined;
   /** A turn is running or being set up in this conversation, or the bot is busy elsewhere. */
   busy(botId: string, threadId: string): boolean;
@@ -47,7 +47,7 @@ export interface WarmSummaryHostDeps {
   coordinator: { activeDirect(threadId: string): boolean; awaitingTeammateThreads(): Set<string> };
   waits(): { all(): WaitRecord[] } | null;
   routines(): { listRoutines(): Routine[]; listRuns(): RoutineRun[] } | null;
-  /** OpenMausBot's fold, now: true when it wrote a summary, false when the conversation does not need one yet. */
+  /** OpenDeliobot's fold, now: true when it wrote a summary, false when the conversation does not need one yet. */
   fold(target: WarmSummaryTarget, signal: AbortSignal): Promise<boolean>;
   /** The summary call's usage, booked like a keep-warm ping. */
   book(target: WarmSummaryTarget, result: Extract<IdleCompactResult, { ok: true }>): void;
@@ -117,7 +117,7 @@ export function createWarmSummaryHost(deps: WarmSummaryHostDeps) {
 
   const warm = createWarmSummary({
     now,
-    timeScale: Number(process.env.OMB_WARM_SUMMARY_TIME_SCALE) || 1,
+    timeScale: Number(process.env.ODB_WARM_SUMMARY_TIME_SCALE) || 1,
     after: deps.after ?? ((ms, fn) => { const timer = setTimeout(fn, ms); timer.unref?.(); return { cancel: () => clearTimeout(timer) }; }),
     plan: (target, contextTokens): WarmSummaryPlan | null => {
       if (!deps.enabled() || store.groupByThread(target.threadId) || !store.taskByThread(target.botId, target.threadId)) return null;

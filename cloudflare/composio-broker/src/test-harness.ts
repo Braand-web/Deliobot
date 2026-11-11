@@ -246,7 +246,7 @@ export function composioSignature(secret: string, id: string, timestamp: string 
 }
 
 export function cloudGrant(machineId: string, secret = CLOUD_GRANT_SECRET) {
-  return `v1.${machineId}.${createHmac("sha256", secret).update(`omb-connected-apps-cloud:v1\n${machineId}`).digest("base64url")}`;
+  return `v1.${machineId}.${createHmac("sha256", secret).update(`odb-connected-apps-cloud:v1\n${machineId}`).digest("base64url")}`;
 }
 
 /** A request body of `chunks` chunks of `chunkBytes` spaces, streamed without a Content-Length, that counts how much
@@ -304,7 +304,7 @@ export function brokerHarness(options: { migrations?: number } = {}) {
     async install(): Promise<Installation> {
       const response = await fetchBroker("/v1/installations", { method: "POST", body: "{}" });
       const body = await response.json() as { installationId: string; token: string };
-      return { id: body.installationId, token: body.token, userId: `omb_${body.installationId.replaceAll("-", "")}` };
+      return { id: body.installationId, token: body.token, userId: `odb_${body.installationId.replaceAll("-", "")}` };
     },
     account(owner: Installation, toolkit = "gmail", status = "ACTIVE") {
       const id = `ca_${toolkit}_${++accountCount}`;
@@ -322,7 +322,7 @@ export function brokerHarness(options: { migrations?: number } = {}) {
       return { response, body: await response.json() as { triggerId: string; error?: string } };
     },
     poll(owner: Installation, query = "", poller = "poller-main-0001") {
-      return harness.call(owner, `/v1/events${query ? `?${query}` : ""}`, { headers: { "x-omb-poller": poller } });
+      return harness.call(owner, `/v1/events${query ? `?${query}` : ""}`, { headers: { "x-odb-poller": poller } });
     },
     /** One Composio delivery. `id` is both the webhook-id header and the envelope id unless `envelopeId` says otherwise. */
     deliver(envelope: Record<string, unknown>, sign: {

@@ -17,7 +17,7 @@ const dirs: string[] = [];
 afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }); });
 
 function fixture(over: { team?: null; reachable?: () => boolean; dataDir?: string } = {}) {
-  const dataDir = over.dataDir ?? mkdtempSync(join(tmpdir(), "omb-no-ai-"));
+  const dataDir = over.dataDir ?? mkdtempSync(join(tmpdir(), "odb-no-ai-"));
   if (!over.dataDir) dirs.push(dataDir);
   const lines: Array<{ to: string; delivery: Delivery }> = [];
   const world = { people: [OLIVE, BEN, DANA, MARA] as Array<typeof OLIVE | typeof BEN | typeof DANA>, now: 1_000 };

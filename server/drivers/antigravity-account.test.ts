@@ -8,7 +8,7 @@ let home: string;
 let path: string;
 const credentials = { client_id: "synthetic-client", client_secret: "synthetic-secret", refresh_token: "synthetic-refresh", token_uri: "https://untrusted.invalid/token" };
 beforeEach(async () => {
-  home = await mkdtemp(join(tmpdir(), "omb-google-identity-"));
+  home = await mkdtemp(join(tmpdir(), "odb-google-identity-"));
   path = join(home, "acp_token.json");
   await writeFile(path, JSON.stringify(credentials));
 });

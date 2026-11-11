@@ -46,11 +46,11 @@ let scratch: string;
 
 beforeEach(() => {
   // A shell that already exports the switch must not turn the floor on here.
-  delete process.env.OMB_SAFETY_FLOOR;
+  delete process.env.ODB_SAFETY_FLOOR;
   ensureDirs();
   chmodSync(FAKE_CODEX, 0o755);
   chmodSync(FAKE_ACP, 0o755);
-  scratch = mkdtempSync(join(tmpdir(), "omb-floor-drivers-"));
+  scratch = mkdtempSync(join(tmpdir(), "odb-floor-drivers-"));
 });
 
 afterEach(async () => {

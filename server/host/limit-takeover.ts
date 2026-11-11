@@ -63,7 +63,7 @@ export interface LimitTakeoverDeps {
   tell(bot: Bot, text: string): void;
   /** A conversation moved off a limited or signed-out AI: it goes back once that ends. */
   record(failover: LimitFailover): void;
-  /** OMB_QUOTA_SWITCH: off, nothing carries on by itself. */
+  /** ODB_QUOTA_SWITCH: off, nothing carries on by itself. */
   enabled?(): boolean;
   /** Where the AIs run, for the sign-out notice: "on the Cloud", "on this computer". */
   where?: string;
@@ -175,7 +175,7 @@ export function createLimitTakeover(deps: LimitTakeoverDeps) {
   };
 
   /** The AIs that may carry on while `from` is limited or signed out, best first: for one model's limit the same AI's own
-   * default model, then the backups the person chose, then (for a limit) the AI MausBot would pick for a new bot among
+   * default model, then the backups the person chose, then (for a limit) the AI Delio would pick for a new bot among
    * the rest that draw on a plan. One that bills each use spends the person's money, so it carries on only as a backup
    * they chose; a signed-out AI's turns go only to a backup they chose. `approval`: the thread's level, when known. */
   function backups(botId: string, from: ModelSelection, scope: TakeoverScope = "engine", approval?: ApprovalMode): ModelSelection[] {

@@ -15,7 +15,7 @@ const MAX_OUTPUT_BYTES = 8 * 1024 * 1024;
 const MAX_LINE_BYTES = 1024 * 1024;
 const MAX_MODELS = 128;
 /** The `clientInfo.name` every discovery session is opened with. */
-export const DISCOVERY_CLIENT_NAME = "openmausbot-model-discovery";
+export const DISCOVERY_CLIENT_NAME = "opendeliobot-model-discovery";
 
 export interface AcpDiscoveryOptions {
   /** A saved id listed first that leaves the native session's model unchanged; it becomes the default. */
@@ -104,7 +104,7 @@ export async function discoverAcpModels(
   args: string[],
   discovery: AcpDiscoveryOptions = {},
 ): Promise<ModelCatalog> {
-  const cwd = await mkdtemp(join(tmpdir(), "omb-acp-models-"));
+  const cwd = await mkdtemp(join(tmpdir(), "odb-acp-models-"));
   let child: ReturnType<typeof spawnCli> | undefined;
   let globalTimer: ReturnType<typeof setTimeout> | undefined;
   const pending = new Map<number, { resolve(value: unknown): void; reject(error: Error): void; timer: ReturnType<typeof setTimeout> }>();

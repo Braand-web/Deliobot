@@ -7,7 +7,7 @@ import { createControlPlaneClient } from "./control-plane-client.mjs";
 const signedOut = () => Promise.reject(Object.assign(new Error("signed out"), { code: "signed_out" }));
 
 /** The desktop app's end-to-end connection, wired to its sidecar, its account and the power monitor. Dark in a
- * development build unless OMB_CONTROL_PLANE_URL names a control plane. */
+ * development build unless ODB_CONTROL_PLANE_URL names a control plane. */
 export function createDesktopCompanionE2E({ isPackaged, appVersion, readCredentials, updateCredentials, powerMonitor, log, onState }) {
   let client = null;
   try {

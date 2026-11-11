@@ -46,7 +46,7 @@ describe("the hook in a checkout without dependencies", () => {
   afterAll(async () => { for (const dir of dirs) await removeTempDir(dir); });
 
   function checkout() {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pre-push-hook-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pre-push-hook-"));
     dirs.push(dir);
     const repo = (...args: string[]) => execFileSync("git", args, { cwd: dir, stdio: "ignore" });
     repo("init", "-q");
@@ -68,7 +68,7 @@ describe("the hook in a checkout without dependencies", () => {
   it.skipIf(process.platform === "win32")("stays out of the way when skipped", () => {
     const { dir, hook } = checkout();
     writeFileSync(join(dir, "ignored"), "");
-    const run = spawnSync(hook, { cwd: dir, encoding: "utf8", input: "", timeout: 10_000, env: { ...process.env, OMB_SKIP_HOOKS: "1" } });
+    const run = spawnSync(hook, { cwd: dir, encoding: "utf8", input: "", timeout: 10_000, env: { ...process.env, ODB_SKIP_HOOKS: "1" } });
     expect(run.status).toBe(0);
     expect(run.stdout).toContain("skipped");
   });

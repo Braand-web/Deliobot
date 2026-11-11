@@ -31,7 +31,7 @@ describe("unsupportedCallsIn", () => {
 });
 
 describe("unsupportedCallsSince", () => {
-  const scratch = () => mkdtempSync(join(tmpdir(), "omb-rollout-"));
+  const scratch = () => mkdtempSync(join(tmpdir(), "odb-rollout-"));
 
   it("reads only what the turn appended", () => {
     const path = join(scratch(), "rollout.jsonl");

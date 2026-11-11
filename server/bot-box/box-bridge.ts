@@ -1,7 +1,7 @@
 // Runs inside a bot box when the image has no socat, or when the box has a relay: listens on loopback ports and forwards
 // each connection to a unix socket bound into the box, dials the relay socket, then runs the engine with the box's stdio
 // and exits with its status.
-//   node box-bridge.js --bridge=3128=/run/omb/egress.sock --bridge=8799=/run/omb/harness.sock [--relay=/run/omb/relay.sock] -- claude -p ...
+//   node box-bridge.js --bridge=3128=/run/odb/egress.sock --bridge=8799=/run/odb/harness.sock [--relay=/run/odb/relay.sock] -- claude -p ...
 import { spawn } from "node:child_process";
 import { connect, createServer, type Server } from "node:net";
 

@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { expect, it } from "vitest";
-import { runControlOmb, verificationServerArgs, verificationServerEnvironment } from "../scripts/control-omb.ts";
+import { runControlOdb, verificationServerArgs, verificationServerEnvironment } from "../scripts/control-odb.ts";
 import { removeTempDir, waitForExit } from "./testing/cleanup.ts";
 import { readHandoffs } from "./testing/handoff-rows.ts";
 import { freePortBlock } from "./testing/ports.ts";
@@ -29,9 +29,9 @@ async function withQuotaFixture(
 ) {
   const port = await freePortBlock([0, 1]);
   const url = `http://127.0.0.1:${port}`;
-  const dataDir = mkdtempSync(join(tmpdir(), "openmausbot-quota-switch-"));
+  const dataDir = mkdtempSync(join(tmpdir(), "opendeliobot-quota-switch-"));
   mkdirSync(join(dataDir, "tmp"), { recursive: true });
-  const evidenceDir = join(tmpdir(), "openmausbot-verification-evidence");
+  const evidenceDir = join(tmpdir(), "opendeliobot-verification-evidence");
   mkdirSync(evidenceDir, { recursive: true });
   const logPath = join(evidenceDir, `quota-switch-${Date.now()}-${process.pid}.log`);
   const backupFile = join(dataDir, "backup-prompts.jsonl");
@@ -57,7 +57,7 @@ async function withQuotaFixture(
     return result;
   };
   const control = async (...args: string[]) => {
-    const result = await runControlOmb([...args, "--url", url]) as any;
+    const result = await runControlOdb([...args, "--url", url]) as any;
     evidence.push({ command: args, result });
     return result;
   };
@@ -160,8 +160,8 @@ it("never moves to another sign-in of the same AI: it says once that the bot wai
   });
 }, 240_000);
 
-it("moves nothing when OMB_QUOTA_SWITCH=0 switches it off", async () => {
-  await withQuotaFixture({ env: { OMB_QUOTA_SWITCH: "0" } }, async ({ api, control, backupPrompts }) => {
+it("moves nothing when ODB_QUOTA_SWITCH=0 switches it off", async () => {
+  await withQuotaFixture({ env: { ODB_QUOTA_SWITCH: "0" } }, async ({ api, control, backupPrompts }) => {
     const { bot, threadId, messages, state } = await meetTheLimit(api, control, "NO_MOVE_WHEN_OFF_2B");
     const mine = async () => (await api("GET", "/api/notifications")).notifications.filter((entry: any) => entry.kind === "notice" && entry.botId === bot.id);
     await expect.poll(async () => (await mine()).length, { timeout: 20_000 }).toBe(1);

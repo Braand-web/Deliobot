@@ -7,7 +7,7 @@ node node_modules/vitest/vitest.mjs run server/tts/gemini.test.ts scripts/testin
 ```
 
 The server fixture uses `launchVerificationServer`, a temporary home and the
-fake engine. It restarts only that child with `OMB_GEMINI_TTS_API` pointing to
+fake engine. It restarts only that child with `ODB_GEMINI_TTS_API` pointing to
 a loopback stand-in. No Google account, real credential or microphone is used.
 
 The checks save and remove the Gemini key through `/api/config`, including

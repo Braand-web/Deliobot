@@ -17,8 +17,8 @@ const workspaces = { probe: vi.fn(async () => ({ outcome: "problem", problem: "u
 const saved = {
   localOrigin: "http://127.0.0.1:1", remote: false, packaged: true, activeId: "local",
   environments: [
-    { id: "cloud", name: "My Cloud", origin: "https://omb-u-1.fly.dev", home: true, kind: "remote" as const },
-    { id: "vps", name: "hetzner-1", origin: "https://maus.example.com", kind: "remote" as const },
+    { id: "cloud", name: "My Cloud", origin: "https://odb-u-1.fly.dev", home: true, kind: "remote" as const },
+    { id: "vps", name: "hetzner-1", origin: "https://delio.example.com", kind: "remote" as const },
     { id: "mini", name: "office-mini", origin: "http://192.168.1.50:8799", kind: "remote" as const },
     { id: "mac", name: "Mac at home", origin: "https://mac.tail1234.ts.net", kind: "remote" as const },
     { id: "open", name: "old box", origin: "http://203.0.113.9:8799", kind: "remote" as const },
@@ -51,9 +51,9 @@ async function mount() {
 
 it("each saved server says how it is reached and how it is doing, with one thing to do when it needs the person", async () => {
   await mount();
-  expect(row("cloud").querySelector("[data-server-where]")?.textContent).toBe("Managed by MausBot");
+  expect(row("cloud").querySelector("[data-server-where]")?.textContent).toBe("Managed by Delio");
   expect(buttonIn(row("cloud"), "Remove My Cloud"), "My Cloud has no Remove").toBeUndefined();
-  expect(row("vps").querySelector("[data-server-where]")?.textContent).toBe("maus.example.com · HTTPS");
+  expect(row("vps").querySelector("[data-server-where]")?.textContent).toBe("delio.example.com · HTTPS");
   expect(row("mini").querySelector("[data-server-where]")?.textContent).toBe("192.168.1.50:8799 · Private network, not encrypted");
   expect(row("mac").querySelector("[data-server-where]")?.textContent).toBe("mac.tail1234.ts.net · Tailscale");
   expect(row("vps").querySelector("[data-server-state]"), "a connected server needs no line").toBeNull();
@@ -68,14 +68,14 @@ it("the update note shows only for a server behind this app, with the command th
   await mount();
   const notes = [...host.querySelectorAll("[data-server-behind]")];
   expect(notes).toHaveLength(1);
-  expect(notes[0]!.textContent).toContain("hetzner-1 runs MausBot 0.1.140. This app is 0.1.147.");
+  expect(notes[0]!.textContent).toContain("hetzner-1 runs Delio 0.1.140. This app is 0.1.147.");
   expect(notes[0]!.textContent).toContain("Copy update command");
   await click(buttonIn(notes[0]!, "Hide this note"));
   expect(host.querySelector("[data-server-behind]")).toBeNull();
   expect(updateCommand("docker", "0.1.147")).toBe("git pull && ./update.sh");
-  expect(updateCommand("npx", "0.1.147")).toBe("npx openmausbot@0.1.147 serve");
-  expect(updateCommand(null, "0.1.147")).toBe("npx openmausbot@0.1.147 serve");
-  expect(updateCommand("global", "0.1.147")).toBe("npm install -g openmausbot@0.1.147");
+  expect(updateCommand("npx", "0.1.147")).toBe("npx opendeliobot@0.1.147 serve");
+  expect(updateCommand(null, "0.1.147")).toBe("npx opendeliobot@0.1.147 serve");
+  expect(updateCommand("global", "0.1.147")).toBe("npm install -g opendeliobot@0.1.147");
 });
 
 it("Pair again opens the Connect sheet with the address locked and the code field ready; Remove only asks main", async () => {

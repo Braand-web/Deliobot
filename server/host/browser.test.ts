@@ -122,8 +122,8 @@ describe("the bots' browser host with browserEngine.engine set to chrome", () =>
   it("gives a bot's turn the browser MCP server over its own profile on the new engine", async () => {
     const { host, minted } = setup("chrome");
     const browser = await host.browserIntegration("scout", undefined, turn);
-    expect(browser?.spec).toEqual({ command: "omb-cdp", args: ["bot:scout"], env: {} });
-    expect(browser?.integration).toMatchObject({ command: process.execPath, env: { OMB_HARNESS_URL: "http://127.0.0.1:4100" } });
+    expect(browser?.spec).toEqual({ command: "odb-cdp", args: ["bot:scout"], env: {} });
+    expect(browser?.integration).toMatchObject({ command: process.execPath, env: { ODB_HARNESS_URL: "http://127.0.0.1:4100" } });
     expect(minted).toEqual([expect.objectContaining({ botId: "scout", browserSession: browser?.session, kind: "browser", ...turn })]);
     expect(host.usedBrowserSessions.get(browser!.session)).toEqual(browser?.spec);
   });
@@ -443,7 +443,7 @@ describe("My Chrome on My Cloud, through the person's lent Chrome", () => {
       for (const folder of folders.splice(0)) rmSync(folder, { recursive: true, force: true });
     });
     function leftover(session: string | null) {
-      const folder = mkdtempSync(join(tmpdir(), "omb-host-leftover-"));
+      const folder = mkdtempSync(join(tmpdir(), "odb-host-leftover-"));
       folders.push(folder);
       mkdirSync(join(folder, "agent-browser"));
       if (session) writeFileSync(join(folder, "agent-browser", `${session}.pid`), "0");
@@ -510,13 +510,13 @@ describe("the bots' browser host by default", () => {
 
 describe("a deleted bot's browser", () => {
   const PATH_ENGINE = "/usr/local/bin/agent-browser";
-  const MANAGED_ENGINE = "/data/.openmausbot/tools/agent-browser";
+  const MANAGED_ENGINE = "/data/.opendeliobot/tools/agent-browser";
   const folders: string[] = [];
   afterEach(() => {
     vi.unstubAllEnvs();
     for (const folder of folders.splice(0)) rmSync(folder, { recursive: true, force: true });
   });
-  /** agent-browser on PATH, as the Cloud image installs it; with `managed`, also the one OpenMausBot installed. */
+  /** agent-browser on PATH, as the Cloud image installs it; with `managed`, also the one OpenDeliobot installed. */
   function engines({ managed = false }: { managed?: boolean } = {}) {
     vi.mocked(browserEngineStatus).mockImplementation((options) => (options?.managedOnly && !managed
       ? { kind: "unavailable", reason: "not installed", installable: true }
@@ -525,14 +525,14 @@ describe("a deleted bot's browser", () => {
     vi.mocked(closeBrowserSession).mockClear().mockResolvedValue(true);
   }
   function daemons(sessions: string[]) {
-    const folder = mkdtempSync(join(tmpdir(), "omb-host-sweep-"));
+    const folder = mkdtempSync(join(tmpdir(), "odb-host-sweep-"));
     folders.push(folder);
     mkdirSync(join(folder, "agent-browser"));
     for (const session of sessions) writeFileSync(join(folder, "agent-browser", `${session}.pid`), "0");
     vi.stubEnv("XDG_RUNTIME_DIR", folder);
     vi.mocked(runningBrowserSessionNames).mockResolvedValue(sessions);
   }
-  const deleted = { type: "openmausbot:browser-bot-deleted" as const, requestId: "00000000-0000-4000-8000-000000000000", botId: "gone" };
+  const deleted = { type: "opendeliobot:browser-bot-deleted" as const, requestId: "00000000-0000-4000-8000-000000000000", botId: "gone" };
   const closed = () => vi.mocked(closeBrowserSession).mock.calls.map(([binary, env]) => `${binary} ${env.AGENT_BROWSER_SESSION}`);
 
   it("on a Cloud home, is closed and its sign-ins erased with the image's agent-browser", async () => {
@@ -544,7 +544,7 @@ describe("a deleted bot's browser", () => {
     expect(await host.eraseDeletedBrowser(deleted)).toBe(false);
   });
 
-  it("elsewhere, is erased only with the agent-browser OpenMausBot installed, and otherwise just closed", async () => {
+  it("elsewhere, is erased only with the agent-browser OpenDeliobot installed, and otherwise just closed", async () => {
     engines();
     const { host } = setup(undefined);
     expect(await host.eraseDeletedBrowser(deleted)).toBe(true);
@@ -577,7 +577,7 @@ describe("a deleted bot's browser", () => {
     vi.mocked(clearBrowserSessionState).mockClear();
     // After a restart too: which audiences had browsers is kept on disk.
     const again = setup(undefined, { cloudHome: true, audienceOf: teamAudiences });
-    expect(await again.host.eraseDeletedBrowser({ ...deleted, type: "openmausbot:browser-profile-deleted", botId: undefined, partitionId: "p-work" })).toBe(true);
+    expect(await again.host.eraseDeletedBrowser({ ...deleted, type: "opendeliobot:browser-profile-deleted", botId: undefined, partitionId: "p-work" })).toBe(true);
     expect(vi.mocked(clearBrowserSessionState).mock.calls.map(([, session]) => session)).toEqual(["p-work", `p-work${ADA}`, `p-work${ROOM}`]);
   });
 
@@ -672,13 +672,13 @@ describe("a Team Cloud's boxed browsers and the files a turn uploads", () => {
   afterEach(() => chromeLauncher.boxWith(() => null));
 
   it.each([null, "report.txt", "Report.txt"])("gives Chrome on Windows a private copy of a workspace file (name: %s)", async (name) => {
-    const work = realpathSync(mkdtempSync(join(tmpdir(), "omb-host-upload-windows-")));
+    const work = realpathSync(mkdtempSync(join(tmpdir(), "odb-host-upload-windows-")));
     try {
       const file = join(work, "report.txt");
       writeFileSync(file, "report");
       const { host } = setup("chrome");
       vi.stubGlobal("process", { ...process, platform: "win32" });
-      const [staged] = await host.uploadPaths([{ file, name }], "bot-scout", { command: "omb-cdp", args: ["bot:scout"], env: {} });
+      const [staged] = await host.uploadPaths([{ file, name }], "bot-scout", { command: "odb-cdp", args: ["bot:scout"], env: {} });
       vi.unstubAllGlobals();
       expect(staged!.startsWith(join(DATA_DIR, "browser-uploads"))).toBe(true);
       expect(readFileSync(staged!, "utf8")).toBe("report");
@@ -689,7 +689,7 @@ describe("a Team Cloud's boxed browsers and the files a turn uploads", () => {
   });
 
   it.skipIf(process.platform === "win32").each([false, true])("keeps workspace bytes through a symlink swap while Chrome waits for a picker (boxed: %s)", async (boxed) => {
-    const work = realpathSync(mkdtempSync(join(tmpdir(), "omb-host-upload-")));
+    const work = realpathSync(mkdtempSync(join(tmpdir(), "odb-host-upload-")));
     try {
       const secret = join(work, "secret.txt");
       const workspace = join(work, "workspace");
@@ -701,7 +701,7 @@ describe("a Team Cloud's boxed browsers and the files a turn uploads", () => {
       if ("error" in checked) throw new Error(checked.error);
       const box = { bwrap: "/usr/bin/bwrap", options: ["--unshare-pid"], seccomp: null };
       const { host } = setup("chrome", { cloudHome: true, ...(boxed ? { browserBox: () => box } : {}) });
-      const paths = await host.uploadPaths(checked.files.map((file) => ({ file, name: null })), "bot-scout", { command: "omb-cdp", args: ["bot:scout"], env: {} });
+      const paths = await host.uploadPaths(checked.files.map((file) => ({ file, name: null })), "bot-scout", { command: "odb-cdp", args: ["bot:scout"], env: {} });
       const choosers = new FileChoosers();
       let opened!: (params: Params) => void;
       const uploaded: Array<{ method: string; files: unknown; bytes: string[] }> = [];
@@ -724,7 +724,7 @@ describe("a Team Cloud's boxed browsers and the files a turn uploads", () => {
   });
 
   it("are copied into that browser's own profile, the one folder of the disk its box shows Chrome", async () => {
-    const work = realpathSync(mkdtempSync(join(tmpdir(), "omb-host-upload-")));
+    const work = realpathSync(mkdtempSync(join(tmpdir(), "odb-host-upload-")));
     const file = join(work, "report.txt");
     writeFileSync(file, "report");
     const box = { bwrap: "/usr/bin/bwrap", options: ["--unshare-pid"], seccomp: null };

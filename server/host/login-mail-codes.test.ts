@@ -33,7 +33,7 @@ async function setup(over: Partial<LoginMailCodesDeps> = {}) {
   const relayed: string[] = [];
   const connectCard = vi.fn<LoginMailCodesDeps["connectCard"]>(async () => ({ status: 200, body: { messageIds: ["c1"] } }));
   const deps: LoginMailCodesDeps = {
-    dataDir: mkdtempSync(join(tmpdir(), "omb-mail-codes-")),
+    dataDir: mkdtempSync(join(tmpdir(), "odb-mail-codes-")),
     cfg: () => ({}) as AppConfig,
     composio: {
       configured: () => true,

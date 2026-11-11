@@ -142,7 +142,7 @@ describe("Computer panel tab", () => {
     fixture.browser = true;
     await open(makeBot());
     expect(selected()).toBe("Screen");
-    const PAGE = "https://abcdefghijklmnopqrstuvwxyz.mausbot.page/";
+    const PAGE = "https://abcdefghijklmnopqrstuvwxyz.delio.page/";
     flushSync(() => requestPanelPage("scout", PAGE));
     await settle();
     expect(selected()).toBe("Browser");

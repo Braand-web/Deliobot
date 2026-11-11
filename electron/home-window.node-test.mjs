@@ -34,7 +34,7 @@ test("home is My Cloud only once the move switched and the same account is signe
 test("a frozen copy with its journal lost counts as moved, to the Cloud it names or the account's own", () => {
   assert.deepEqual(homeOf({ frozenCloud: CLOUD, state: connected() }), { kind: "cloud", origin: CLOUD });
   assert.deepEqual(homeOf({ frozenCloud: true, state: connected() }), { kind: "cloud", origin: CLOUD });
-  assert.deepEqual(homeOf({ frozenCloud: "https://omb-t-2.fly.dev", state: connected() }), { kind: "signin", other: true });
+  assert.deepEqual(homeOf({ frozenCloud: "https://odb-t-2.fly.dev", state: connected() }), { kind: "signin", other: true });
   assert.deepEqual(homeOf({ frozenCloud: true, state: { status: "unavailable", account: ACCOUNT } }), { kind: "signin" }, "no Cloud to name: the sign-in screen, never the frozen copy");
   assert.deepEqual(homeOf({ frozenCloud: CLOUD, state: null }), { kind: "signin" });
   assert.deepEqual(homeOf({ journal: { ...done(), phase: "freeze" }, frozenCloud: CLOUD, state: connected() }), { kind: "computer" }, "a move under way is not a move done");
@@ -437,7 +437,7 @@ const PRELOAD = readFileSync(new URL("./preload.cjs", import.meta.url), "utf8");
 function preload(origin, { home = false, activation = false, pairedElsewhere = false } = {}) {
   let bridge; const invoked = [], synced = [], listeners = new Map();
   vm.runInNewContext(PRELOAD, {
-    process: { platform: "darwin", argv: [`--omb-local-origin=${LOCAL}`, ...(pairedElsewhere ? ["--openmausbot-remote-client"] : ["--omb-company-desktop=1"])] },
+    process: { platform: "darwin", argv: [`--odb-local-origin=${LOCAL}`, ...(pairedElsewhere ? ["--opendeliobot-remote-client"] : ["--odb-company-desktop=1"])] },
     location: { origin }, navigator: { userActivation: { isActive: activation } }, TextEncoder, localStorage: { getItem: () => null },
     queueMicrotask,
     require: () => ({ webUtils: {}, contextBridge: { exposeInMainWorld: (_name, value) => { bridge = value; } },
@@ -531,7 +531,7 @@ function pageIpc(overrides = {}) {
 }
 
 test("no page gets a control over lending this computer: not My Cloud's, another Cloud's or this computer's own, and main handles none", async () => {
-  for (const origin of [CLOUD, "https://omb-c-a.fly.dev", LOCAL]) {
+  for (const origin of [CLOUD, "https://odb-c-a.fly.dev", LOCAL]) {
     const page = preload(origin, { activation: true });
     assert.equal(page.bridge.cloudLending, undefined, origin);
     assert.equal(page.bridge.cloudAccount?.lending, undefined, origin);
@@ -740,7 +740,7 @@ test("a team on screen signs in again before its hour ends, without moving the p
   assert.deepEqual(w.teamPairs, ["team-acme"], "not before its time");
   await w.later(1);
   assert.deepEqual(w.teamPairs, ["team-acme", "team-acme"]);
-  assert.deepEqual(w.redeemed, [["team", { code: "TTTT-EEEE-AAAA", cookie: true, label: "OpenMausBot app" }]]);
+  assert.deepEqual(w.redeemed, [["team", { code: "TTTT-EEEE-AAAA", cookie: true, label: "OpenDeliobot app" }]]);
   assert.equal(w.went.length, went, "the page never moved");
   assert.equal(w.pairs, 0, "never My Cloud's pairing");
   await w.later(TEAM_RENEW_MS);
@@ -795,7 +795,7 @@ test("while the window is on the place's own sign-in page, its 401s start no sec
   const w = world({ state: { ...connected(), teams: [ACME] }, team: { signedIn: false } });
   await w.home.show({ place: { team: "team-acme" } });
   assert.deepEqual(w.teamPairs, ["team-acme"]);
-  assert.match(w.url, /^https:\/\/omb-u-acme\.fly\.dev\/pair#code=/);
+  assert.match(w.url, /^https:\/\/odb-u-acme\.fly\.dev\/pair#code=/);
   w.home.responded({ url: `${TEAM}/api/auth/session`, statusCode: 401, webContentsId: 7 });
   await w.later(0);
   assert.deepEqual(w.teamPairs, ["team-acme"], "the code on its way is not replaced");
@@ -917,7 +917,7 @@ test("another Cloud of the person's own that the Admin says is asleep is never a
   w.url = `${CLIENT}/`;
   w.home.navigated(w.url);
   await w.tick();
-  const versions = () => w.fetched.filter(([route]) => route === "client:/.well-known/openmausbot/environment");
+  const versions = () => w.fetched.filter(([route]) => route === "client:/.well-known/opendeliobot/environment");
   const read = versions().length;
   assert.ok(read > 0, "the shown Cloud's version is read while it is awake");
   // The Clouds list says it sleeps (`power`, contract v1): any request reaching it would wake it.
@@ -929,7 +929,7 @@ test("another Cloud of the person's own that the Admin says is asleep is never a
   w.state = { ...w.state, clouds: [{ ...CLIENT_A, power: { state: "awake", since: 6, sleeps: true } }] };
   await w.tick();
   assert.equal(versions().length, read + 1, "awake again, it is asked");
-  assert.deepEqual(versions().at(-1), ["client:/.well-known/openmausbot/environment", "1"], "as a background read");
+  assert.deepEqual(versions().at(-1), ["client:/.well-known/opendeliobot/environment", "1"], "as a background read");
 });
 
 test("another Cloud the Admin says is no longer theirs is dropped at once and My Cloud opens, with no line; one being set up shows its setup with its name", async () => {
@@ -956,7 +956,7 @@ test("an account leaving: nothing under way for it goes on, and the next show ta
   assert.deepEqual(here.local, [false], "already on this computer's page: nothing moves");
 });
 
-const B_CLOUD = "https://omb-b.fly.dev";
+const B_CLOUD = "https://odb-b.fly.dev";
 const accountB = (machine) => ({ status: "connected", account: { id: "acct-2", email: "b@example.test" }, ...(machine ? { machine } : {}) });
 
 test("moved to A's Cloud, B signed in with a Cloud of its own: B's Cloud opens, and A's frozen copy is never shown", () => {

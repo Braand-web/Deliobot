@@ -16,7 +16,7 @@ Only its structured synthetic `authentication_failed` API-error frame followed
 by an error result with no new cost qualifies. The driver waits for its process
 tree to stop before reporting that refusal. Recovery skips
 other models on the same engine instance, since they share the failed sign-in.
-OMB tries the backup in the same thread with the canonical conversation.
+ODB tries the backup in the same thread with the canonical conversation.
 The thread keeps the backup selection; bot defaults and sibling threads do not
 change. A visible activity line explains the switch.
 
@@ -74,7 +74,7 @@ to five). There is no switch; the card says when a backup is used.
 pnpm exec vitest run src/components/bot-panel/BackupAis.dom.test.ts src/components/BotSettingsDialog.simple.test.ts src/components/bot-settings/ModelSection.test.ts
 ```
 
-The pictures come from `control-omb ui launch --engine codex` (fake Claude and
+The pictures come from `control-odb ui launch --engine codex` (fake Claude and
 fake Codex in a disposable home): adding Codex in Simple saved
 `fallback: [{ instanceId: "codex", model: "gpt-fake-default" }]` on the bot and
 left `automaticRecovery` at `{ enabled: false }`.

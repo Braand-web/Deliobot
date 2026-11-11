@@ -1,4 +1,4 @@
-// The real CLI starts the real server in a disposable home with OMB_LOOPBACK_TRUST=service.
+// The real CLI starts the real server in a disposable home with ODB_LOOPBACK_TRUST=service.
 import { execFile, spawn, type ChildProcess } from "node:child_process";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -11,7 +11,7 @@ import { removeTempDir, waitForExit } from "./testing/cleanup.ts";
 import { freePortBlock } from "./testing/ports.ts";
 
 const SERVER_DIR = dirname(fileURLToPath(import.meta.url));
-const ENTRY = join(SERVER_DIR, "openmausbot.ts");
+const ENTRY = join(SERVER_DIR, "opendeliobot.ts");
 const run = promisify(execFile);
 
 let home: string;
@@ -22,7 +22,7 @@ let output = "";
 const environment = () => ({
   ...(process.env.PATH ? { PATH: process.env.PATH } : {}),
   ...(process.env.SystemRoot ? { SystemRoot: process.env.SystemRoot } : {}),
-  HOME: home, USERPROFILE: home, OMB_WEBHOOK_PORT: String(PORT + 1), OMB_LOOPBACK_TRUST: "service",
+  HOME: home, USERPROFILE: home, ODB_WEBHOOK_PORT: String(PORT + 1), ODB_LOOPBACK_TRUST: "service",
 });
 const cli = async (args: string[]) => {
   try {
@@ -34,9 +34,9 @@ const cli = async (args: string[]) => {
   }
 };
 
-describe.skipIf(process.platform === "win32")("openmausbot serve under service loopback trust", () => {
+describe.skipIf(process.platform === "win32")("opendeliobot serve under service loopback trust", () => {
   beforeAll(async () => {
-    home = mkdtempSync(join(tmpdir(), "omb-cli-service-"));
+    home = mkdtempSync(join(tmpdir(), "odb-cli-service-"));
     PORT = await freePortBlock([0, 1]);
     serve = spawn(process.execPath, ["--experimental-strip-types", ENTRY, "serve", "--port", String(PORT), "--data-dir", join(home, "data")], {
       env: environment(), stdio: ["ignore", "pipe", "pipe"],
@@ -57,15 +57,15 @@ describe.skipIf(process.platform === "win32")("openmausbot serve under service l
   });
 
   it("not in a terminal, prints no code into a log; points at email sign-in, and keeps running", async () => {
-    expect(output).toContain("local requests: service trust (OMB_LOOPBACK_TRUST)");
+    expect(output).toContain("local requests: service trust (ODB_LOOPBACK_TRUST)");
     expect(output).not.toMatch(/Pairing code {3}[A-Z0-9]{4}-/);
-    expect(output).toContain("Let people sign in with their email: openmausbot access add you@example.com");
+    expect(output).toContain("Let people sign in with their email: opendeliobot access add you@example.com");
     expect(serve.exitCode).toBeNull();
     expect((await fetch(`http://127.0.0.1:${PORT}/api/health`)).status).toBe(200);
   });
 
   it("refuses everyone else on this machine the pairing route", async () => {
-    for (const headers of [{}, { "x-openmausbot-cli-owner": "x".repeat(43) }]) {
+    for (const headers of [{}, { "x-opendeliobot-cli-owner": "x".repeat(43) }]) {
       const minted = await fetch(`http://127.0.0.1:${PORT}/api/auth/pairing`, { method: "POST", headers: { "content-type": "application/json", ...headers }, body: "{}" });
       expect(minted.status).toBe(403);
     }

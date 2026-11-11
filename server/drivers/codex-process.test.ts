@@ -9,12 +9,12 @@ afterEach(() => {
 describe("Codex launch slots", () => {
   it("sizes the host's slots from its CPUs unless configured", () => {
     expect(codexLaunchLimit()).toBeGreaterThanOrEqual(2);
-    vi.stubEnv("OMB_CODEX_LAUNCH_SLOTS", "3");
+    vi.stubEnv("ODB_CODEX_LAUNCH_SLOTS", "3");
     expect(codexLaunchLimit()).toBe(3);
   });
 
   it("hands a freed slot to the first waiter, skips one that stopped waiting, and releases each slot once", async () => {
-    vi.stubEnv("OMB_CODEX_LAUNCH_SLOTS", "1");
+    vi.stubEnv("ODB_CODEX_LAUNCH_SLOTS", "1");
     const held = tryCodexLaunchSlot()!;
     expect(tryCodexLaunchSlot()).toBeNull();
     const stopped = new AbortController();

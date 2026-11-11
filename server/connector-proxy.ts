@@ -1,4 +1,4 @@
-// Connection requests become OpenMausBot chat cards: the agent never authors an auth URL and credentials never pass
+// Connection requests become OpenDeliobot chat cards: the agent never authors an auth URL and credentials never pass
 // through its transcript. stdout is the MCP transport: never log there.
 import readline from "node:readline";
 import { randomUUID } from "node:crypto";
@@ -22,11 +22,11 @@ import { capToolListResult, toolLimitFromEnv } from "./tool-count-limit.ts";
 
 type Json = Record<string, unknown>;
 
-const UPSTREAM = process.env.OMB_CONNECTOR_UPSTREAM_URL ?? "";
-const HARNESS = process.env.OMB_HARNESS_URL ?? "http://127.0.0.1:8799";
-const BOT_ID = process.env.OMB_BOT_ID ?? "";
-const THREAD_ID = process.env.OMB_THREAD_ID ?? "";
-const TOKEN = process.env.OMB_CONNECTOR_TOKEN ?? process.env.OMB_COMMS_TOKEN ?? "";
+const UPSTREAM = process.env.ODB_CONNECTOR_UPSTREAM_URL ?? "";
+const HARNESS = process.env.ODB_HARNESS_URL ?? "http://127.0.0.1:8799";
+const BOT_ID = process.env.ODB_BOT_ID ?? "";
+const THREAD_ID = process.env.ODB_THREAD_ID ?? "";
+const TOKEN = process.env.ODB_CONNECTOR_TOKEN ?? process.env.ODB_COMMS_TOKEN ?? "";
 const ALLOWED_TOOLS = parseConnectorAllowedToolsEnv(process.env[CONNECTOR_ALLOWED_TOOLS_ENV]);
 const SERVICE_SLUGS = parseConnectorServiceSlugsEnv(process.env[CONNECTOR_SERVICE_SLUGS_ENV]);
 const SCHEMA_PROFILE = toolSchemaProfileFromEnv(process.env);
@@ -41,7 +41,7 @@ const TOOLS_LIST_RELAY_TIMEOUT_MS = 5_000;
 
 function parsedHeaders(): Record<string, string> {
   try {
-    const value: unknown = JSON.parse(process.env.OMB_CONNECTOR_UPSTREAM_HEADERS ?? "{}");
+    const value: unknown = JSON.parse(process.env.ODB_CONNECTOR_UPSTREAM_HEADERS ?? "{}");
     if (!value || typeof value !== "object" || Array.isArray(value)) return {};
     return Object.fromEntries(
       Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
@@ -74,7 +74,7 @@ function initializeResult(id: unknown, protocolVersion: unknown): Json {
     result: {
       protocolVersion: typeof protocolVersion === "string" && protocolVersion ? protocolVersion : "2024-11-05",
       capabilities: { tools: {} },
-      serverInfo: { name: "openmausbot-connectors", version: "1" },
+      serverInfo: { name: "opendeliobot-connectors", version: "1" },
     },
   };
 }
@@ -144,7 +144,7 @@ interface ConnectorRequest {
   authConfigId?: string;
 }
 
-const BAD_AUTH_CONFIG_ID = "OpenMausBot showed no card: auth_config_id must be a Composio auth config id (ac_ and then letters "
+const BAD_AUTH_CONFIG_ID = "OpenDeliobot showed no card: auth_config_id must be a Composio auth config id (ac_ and then letters "
   + "or digits), copied from Auth Configs in the person's Composio project. Leave it out to use their newest enabled config.";
 
 /** Composio's own error names `auth_config_override`, so either spelling is read: on a toolkit entry, or at the top level
@@ -325,7 +325,7 @@ async function handle(received: Json): Promise<void> {
       const labels = requests.map((r) => (r.alias ? `${r.slug} (${r.alias})` : r.slug)).join(", ");
       send(textResult(
         id,
-        `OpenMausBot showed the user a secure connection card for ${labels}.${authConfigNote} End this turn now. The app will continue the task automatically after the connection finishes.`,
+        `OpenDeliobot showed the user a secure connection card for ${labels}.${authConfigNote} End this turn now. The app will continue the task automatically after the connection finishes.`,
       ));
       return;
     }
@@ -335,7 +335,7 @@ async function handle(received: Json): Promise<void> {
       return;
     }
     if (/WAIT_FOR_CONNECTIONS$/i.test(name)) {
-      send(textResult(id, "OpenMausBot is handling connection completion and will continue the task automatically."));
+      send(textResult(id, "OpenDeliobot is handling connection completion and will continue the task automatically."));
       return;
     }
     const app = appToolCall(name, params.arguments);

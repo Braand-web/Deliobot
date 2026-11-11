@@ -28,7 +28,7 @@ function hello(token: string, transport: TransportByte = TRANSPORT_RELAY, conn =
 
 describe("the handshake with random keys", () => {
   it("finds the one device among 21 candidates and agrees on keys both ways", () => {
-    const tokens = Array.from({ length: 21 }, (_, index) => `omb_${index}_${randomBytes(8).toString("hex")}`);
+    const tokens = Array.from({ length: 21 }, (_, index) => `odb_${index}_${randomBytes(8).toString("hex")}`);
     const { hello: phone } = hello(tokens[17]);
     const accepted = computerAccept(
       { staticKey: T, transport: TRANSPORT_RELAY, candidates: tokens.map((token, id) => ({ id, psk: tokenPsk(token) })) },
@@ -43,19 +43,19 @@ describe("the handshake with random keys", () => {
   });
 
   it("uses fresh ephemerals, so two dials never share keys", () => {
-    const first = hello("omb_same", TRANSPORT_DIRECT, Buffer.alloc(16));
-    const second = hello("omb_same", TRANSPORT_DIRECT, Buffer.alloc(16));
+    const first = hello("odb_same", TRANSPORT_DIRECT, Buffer.alloc(16));
+    const second = hello("odb_same", TRANSPORT_DIRECT, Buffer.alloc(16));
     expect(first.hello.message1.equals(second.hello.message1)).toBe(false);
   });
 
   it("refuses a device on a transport its psk was not offered for", () => {
-    const { hello: phone } = hello("omb_local_only", TRANSPORT_RELAY);
+    const { hello: phone } = hello("odb_local_only", TRANSPORT_RELAY);
     expect(computerAccept({ staticKey: T, transport: TRANSPORT_RELAY, candidates: [] }, phone.message1)).toBeNull();
   });
 
   it("refuses a replayed message 1 cleanly, and the replayer learns nothing usable", () => {
-    const { hello: phone } = hello("omb_replay");
-    const options = { staticKey: T, transport: TRANSPORT_RELAY as TransportByte, candidates: [{ id: "a", psk: tokenPsk("omb_replay") }] };
+    const { hello: phone } = hello("odb_replay");
+    const options = { staticKey: T, transport: TRANSPORT_RELAY as TransportByte, candidates: [{ id: "a", psk: tokenPsk("odb_replay") }] };
     const first = computerAccept(options, phone.message1)!;
     const replay = computerAccept(options, phone.message1)!;
     // The computer answers again, but with a fresh e: keys differ and only the phone's live state can finish one.
@@ -64,23 +64,23 @@ describe("the handshake with random keys", () => {
   });
 
   it("is a hard stop when message 2 is finished twice", () => {
-    const { hello: phone } = hello("omb_twice");
-    const accepted = computerAccept({ staticKey: T, transport: TRANSPORT_RELAY, candidates: [{ id: 1, psk: tokenPsk("omb_twice") }] }, phone.message1)!;
+    const { hello: phone } = hello("odb_twice");
+    const accepted = computerAccept({ staticKey: T, transport: TRANSPORT_RELAY, candidates: [{ id: 1, psk: tokenPsk("odb_twice") }] }, phone.message1)!;
     phone.finish(accepted.message2);
     expect(() => phone.finish(accepted.message2)).toThrow(NoiseError);
   });
 
   it("caps payload1 before anything else", () => {
     expect(() =>
-      phoneHello({ remoteStatic: T.publicKey, psk: tokenPsk("omb_x"), transport: TRANSPORT_RELAY }, Buffer.alloc(MAX_HANDSHAKE_PAYLOAD + 1), "x"),
+      phoneHello({ remoteStatic: T.publicKey, psk: tokenPsk("odb_x"), transport: TRANSPORT_RELAY }, Buffer.alloc(MAX_HANDSHAKE_PAYLOAD + 1), "x"),
     ).toThrow(NoiseError);
   });
 
   it("refuses an app string over 40 characters", () => {
     const conn = randomBytes(16);
     const payload = Buffer.from(JSON.stringify({ v: 1, conn: conn.toString("base64url"), app: "x".repeat(41) }));
-    const phone = phoneHello({ remoteStatic: T.publicKey, psk: tokenPsk("omb_app"), transport: TRANSPORT_RELAY }, payload, conn.toString("base64url"));
-    expect(computerAccept({ staticKey: T, transport: TRANSPORT_RELAY, candidates: [{ id: 1, psk: tokenPsk("omb_app") }] }, phone.message1)).toBeNull();
+    const phone = phoneHello({ remoteStatic: T.publicKey, psk: tokenPsk("odb_app"), transport: TRANSPORT_RELAY }, payload, conn.toString("base64url"));
+    expect(computerAccept({ staticKey: T, transport: TRANSPORT_RELAY, candidates: [{ id: 1, psk: tokenPsk("odb_app") }] }, phone.message1)).toBeNull();
   });
 });
 

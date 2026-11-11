@@ -24,9 +24,9 @@ export default defineConfig({
           // tests add accounts themselves.
           CLOUDFLARE_ENDPOINT_ACCOUNTS: "",
           TEST_PRODUCTION_ENDPOINT_ACCOUNTS: JSON.stringify(productionAccounts),
-          ALLOWED_ORIGINS: "https://app.openmausbot.test",
+          ALLOWED_ORIGINS: "https://app.opendeliobot.test",
           // Production starts in observe (wrangler.jsonc); the suite exercises reclaiming.
-          OMB_TUNNEL_RECLAIM: "on",
+          ODB_TUNNEL_RECLAIM: "on",
           // The tunnel release switches as the code defaults them (off), whatever wrangler.jsonc has live; the
           // release and cutoff tests turn each one on themselves.
           RELAY_TUNNEL_RELEASE_PERCENT: "0",

@@ -20,10 +20,10 @@ function input(overrides: Partial<DevsReportInput> = {}): DevsReportInput {
 
 describe("a @devs report's redaction", () => {
   it("drops a quote's encoded copy, which it cannot read, from every field, and keeps the readable quote", () => {
-    const marker = `<!--omb-citation-v1:${Buffer.from(JSON.stringify({ comment: GITHUB })).toString("base64url")}-->`;
+    const marker = `<!--odb-citation-v1:${Buffer.from(JSON.stringify({ comment: GITHUB })).toString("base64url")}-->`;
     expect(redactReportText(`${marker}\n> Quoted message:\n> hi\n\nthe bot said ${marker} here`)).toBe("> Quoted message:\n> hi\n\nthe bot said  here");
     const sent = JSON.stringify(buildDevsReport(input({ message: `${marker}\n@devs it broke`, summary: { by: "Scout", text: { wentWrong: `see ${marker}` } } })));
-    expect(sent).not.toContain("omb-citation");
+    expect(sent).not.toContain("odb-citation");
   });
 
   it("masks key shapes, bearer and basic authorization, cookies, URL credentials and parameters, and private keys", () => {
@@ -48,7 +48,7 @@ describe("a @devs report's redaction", () => {
   });
 
   it("masks the server's own secret values wherever they appear, whatever their shape", () => {
-    const secrets = environmentSecrets({ OMB_OPENAI_API_KEY: HELD, COMPOSIO_API_KEY: "short", OMB_DATA_DIR: "/Users/ada/OpenMausBot" });
+    const secrets = environmentSecrets({ ODB_OPENAI_API_KEY: HELD, COMPOSIO_API_KEY: "short", ODB_DATA_DIR: "/Users/ada/OpenDeliobot" });
     expect(secrets).toEqual([HELD]);
     expect(redactReportText(`upstream said ${HELD}!`, secrets)).toBe(`upstream said «redacted ${HELD.length} chars»!`);
   });

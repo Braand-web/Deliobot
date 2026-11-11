@@ -61,19 +61,19 @@ jobs:
         id: image
         run: |
           set -euo pipefail
-          if ! grep -q 'OMB_IMAGE=server' Dockerfile; then
+          if ! grep -q 'ODB_IMAGE=server' Dockerfile; then
             echo "this checkout's image has no hardened profile; installing the published release"
             exit 0
           fi
           docker run -d --name installer-registry -p 127.0.0.1:5000:5000 registry:2 >/dev/null
-          docker build -q -t localhost:5000/openmausbot:e2e .
-          docker push -q localhost:5000/openmausbot:e2e
-          docker image rm localhost:5000/openmausbot:e2e >/dev/null
-          echo "image=localhost:5000/openmausbot:e2e" >> "$GITHUB_OUTPUT"
+          docker build -q -t localhost:5000/opendeliobot:e2e .
+          docker push -q localhost:5000/opendeliobot:e2e
+          docker image rm localhost:5000/opendeliobot:e2e >/dev/null
+          echo "image=localhost:5000/opendeliobot:e2e" >> "$GITHUB_OUTPUT"
       - name: Check, install, run again and uninstall
         env:
           OUT: ${{ runner.temp }}/server-installer
-          OMB_INSTALL_IMAGE: ${{ steps.image.outputs.image }}
+          ODB_INSTALL_IMAGE: ${{ steps.image.outputs.image }}
         run: bash deploy/e2e/run.sh
       - name: Keep the evidence
         if: always()

@@ -41,7 +41,7 @@ file, credentials stay out of argv, changed tools or credentials restart the
 process, and disposal removes the files without changing the person's Copilot
 configuration. On Linux bot boxes, the `@FILE` path is mounted read-only into
 the box so the launcher can load it without exposing other temporary files.
-ACP permissions still go through OpenMausBot's approval broker.
+ACP permissions still go through OpenDeliobot's approval broker.
 The fake Copilot rejects client-supplied stdio servers too: the driver tests
 require the real agents proxy's routine tools and a synthetic browser's tools
 to be discoverable, and check narrowed selections, credential refresh,
@@ -83,7 +83,7 @@ the longer Windows stop timeout.
 
 These checks do not establish acceptance by GitHub. A manual check against an
 installed, signed-in Copilot CLI 1.0.103 on Windows 11, through the driver with
-a throwaway `OMB_DATA_DIR`, reported `authenticated: true`. It listed 14 models,
+a throwaway `ODB_DATA_DIR`, reported `authenticated: true`. It listed 14 models,
 each with its multiplier and effort levels. It then ran one prompt on
 `claude-haiku-4.5`, which completed with the reasoning streamed apart from the
 reply. Copilot CLI 1.0.103 keeps every ACP session under

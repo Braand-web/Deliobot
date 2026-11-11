@@ -12,7 +12,7 @@ const dirs: string[] = [];
 afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }); });
 
 function setup(options: { fenced?: boolean; may?: (app: ReadApp) => boolean } = {}) {
-  const dir = mkdtempSync(join(tmpdir(), "omb-routine-checks-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-routine-checks-"));
   dirs.push(dir);
   let now = Date.parse("2026-10-22T08:00:00Z");
   const inbox: EmailHeader[] = [];
@@ -44,7 +44,7 @@ function setup(options: { fenced?: boolean; may?: (app: ReadApp) => boolean } = 
     sorted: (routineId, count) => sorted.push([routineId, count]),
   });
   const routine = (extra: Partial<Routine> = {}): Routine => ({
-    id: "watch", name: "Keep an eye on my day", prompt: "Check my day.", target: "bot", botId: "chief", runOn: "maus", enabled: true,
+    id: "watch", name: "Keep an eye on my day", prompt: "Check my day.", target: "bot", botId: "chief", runOn: "delio", enabled: true,
     schedule: { type: "interval", everyMinutes: 15, anchorAt: 0 }, durationMinutes: 30, nextRunAt: null, createdAt: now - 60 * MINUTE, updatedAt: 0,
     checks: ["calendar", "mail", "runs"], access: "read-and-draft", deliver: "brief", ...extra,
   });
@@ -63,7 +63,7 @@ function setup(options: { fenced?: boolean; may?: (app: ReadApp) => boolean } = 
 }
 
 const run = (key: string, status: RoutineRun["status"], deliver?: "brief"): RoutineRun => ({
-  id: `run-${key}`, routineId: "watch", routineName: "Keep an eye on my day", target: "bot", botId: "chief", runOn: "maus", scheduledFor: 0,
+  id: `run-${key}`, routineId: "watch", routineName: "Keep an eye on my day", target: "bot", botId: "chief", runOn: "delio", scheduledFor: 0,
   status, manual: false, checkKey: key, createdAt: 0, ...(deliver ? { deliver } : {}),
 });
 

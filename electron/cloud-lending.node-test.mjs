@@ -9,7 +9,7 @@ import { cloudLendingVerdict, createComputerSharing } from "./computer-sharing.m
 import nativeText from "./native-text.cjs";
 import { PERSON_AWAY_SECONDS, personActiveText } from "./lent-screen-presence.mjs";
 
-const ORIGIN = "https://omb-u-fixture.fly.dev";
+const ORIGIN = "https://odb-u-fixture.fly.dev";
 const binding = { accountId: "acct_1", origin: ORIGIN };
 const env = { id: "my-cloud", name: "My Cloud", origin: ORIGIN };
 
@@ -30,7 +30,7 @@ test("the Cloud verdict: same account and machine run, anything else ends or pau
   assert.deepEqual(cloudLendingVerdict(binding, null, env), { pause: "unverified" });
   assert.deepEqual(cloudLendingVerdict(binding, { status: "unavailable", accountId: null, origin: null }, env), { pause: "unverified" });
   assert.deepEqual(cloudLendingVerdict(binding, { ...connected, accountId: "acct_2" }, env), { stop: "account-changed" });
-  assert.deepEqual(cloudLendingVerdict(binding, { ...connected, origin: "https://omb-u-other.fly.dev" }, env), { stop: "machine-changed" });
+  assert.deepEqual(cloudLendingVerdict(binding, { ...connected, origin: "https://odb-u-other.fly.dev" }, env), { stop: "machine-changed" });
   assert.deepEqual(cloudLendingVerdict(binding, connected, { origin: "https://evil.example" }), { stop: "machine-changed" });
   assert.deepEqual(cloudLendingVerdict(binding, { status: "reauth-required", accountId: "acct_1", origin: null }, env), { pause: "reauth-required" });
   assert.deepEqual(cloudLendingVerdict(undefined, connected, env), { stop: "signed-out" });
@@ -39,7 +39,7 @@ test("the Cloud verdict: same account and machine run, anything else ends or pau
 });
 
 async function scratch(t) {
-  const dir = await realpath(await mkdtemp(path.join(tmpdir(), "omb-cloud-lending-")));
+  const dir = await realpath(await mkdtemp(path.join(tmpdir(), "odb-cloud-lending-")));
   // Windows keeps a just-ended shell's working folder busy for a moment after the command's result.
   t.after(() => rm(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }));
   return dir;
@@ -56,7 +56,7 @@ function cloudHome({ cloudHome = true, scopes = ["admin", "client"], details = f
   state.fetch = async (url, init) => {
     const route = new URL(url).pathname;
     if (route === "/api/auth/session") return state.paired ? json({ kind: "session", id: state.sessionId, scopes, ...(cloudHome ? { cloudHome: true } : {}) }) : json({ error: "unauthorized" }, 401);
-    if (route === "/.well-known/openmausbot/environment") return json({ environmentId: state.environmentId, capabilities: { sharedComputers: true, ...(details ? { lendingDetails: true } : {}), ...(timeouts ? { commandTimeouts: true } : {}), ...(long ? { longCommands: true } : {}) } });
+    if (route === "/.well-known/opendeliobot/environment") return json({ environmentId: state.environmentId, capabilities: { sharedComputers: true, ...(details ? { lendingDetails: true } : {}), ...(timeouts ? { commandTimeouts: true } : {}), ...(long ? { longCommands: true } : {}) } });
     const body = init?.body ? JSON.parse(init.body) : {};
     if (route === "/api/shared-computers/connect") { state.connects.push(body); return json({ ok: true }); }
     if (route.endsWith("/poll")) {
@@ -175,7 +175,7 @@ test("Your Chrome does not outlive the switch: after an Off nothing reports it a
 
 test("refuses to lend unless the Cloud sign-in is verified for this exact machine, and never to a server that is not a Cloud home", async t => {
   const folder = async dir => [{ id: randomUUID(), path: dir, write: false }];
-  for (const cloud of [null, { status: "signed-out", accountId: null, origin: null }, { status: "unavailable", accountId: "acct_1", origin: null }, { status: "connected", accountId: "acct_1", origin: "https://omb-u-other.fly.dev" }]) {
+  for (const cloud of [null, { status: "signed-out", accountId: null, origin: null }, { status: "unavailable", accountId: "acct_1", origin: null }, { status: "connected", accountId: "acct_1", origin: "https://odb-u-other.fly.dev" }]) {
     const { folderPath, sharing, home } = await lendingFixture(t, { cloud });
     await assert.rejects(sharing.saveCloud(env, { folders: await folder(folderPath), screen: false }), /Open My Cloud first/);
     assert.equal(home.connects.length, 0);
@@ -226,7 +226,7 @@ test("another server behind the Cloud's address (a replaced machine) ends lendin
   assert.equal(home.connects.length, 1);
 });
 
-test("signing out of OMB Cloud ends lending at once and cancels an action already running", async t => {
+test("signing out of ODB Cloud ends lending at once and cancels an action already running", async t => {
   const { home, sharing, driver, leases, setCloud } = await lendingFixture(t);
   await sharing.saveCloud(env, { folders: [], screen: true });
   await connected(sharing, 1, home);
@@ -325,7 +325,7 @@ test("another Cloud account or another machine ends lending; a sign-in that need
     const { folderPath, home, sharing, setCloud } = await lendingFixture(t);
     await sharing.saveCloud(env, { folders: [{ id: randomUUID(), path: folderPath, write: false }], screen: false });
     await connected(sharing, 1, home);
-    setCloud({ status: "connected", accountId: "acct_1", origin: "https://omb-u-new.fly.dev" });
+    setCloud({ status: "connected", accountId: "acct_1", origin: "https://odb-u-new.fly.dev" });
     sharing.cloudChanged();
     assert.deepEqual([sharing.cloudState(env).enabled, sharing.cloudState(env).problem], [false, "machine-changed"]);
   }
@@ -450,7 +450,7 @@ test("signs back in to My Cloud by itself when its session there ended, and trie
 });
 
 test("another Cloud of the person's own is lent at its own address, apart from My Cloud, and lending to it ends once the session no longer lists it", async t => {
-  const other = { id: "client-a", name: "Client A", origin: "https://omb-c-a.fly.dev", cloud: { id: "c-a", role: "owner" } };
+  const other = { id: "client-a", name: "Client A", origin: "https://odb-c-a.fly.dev", cloud: { id: "c-a", role: "owner" } };
   let listed = true;
   const asked = [];
   const { folderPath, home, sharing } = await lendingFixture(t, { env: other, cloud: place => {

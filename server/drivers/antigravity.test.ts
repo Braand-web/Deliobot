@@ -48,7 +48,7 @@ const FAKE_SIGNIN = join(dirname(fileURLToPath(import.meta.url)), "..", "testing
 const scratch: string[] = [];
 
 function fakeRuntime(startupDelayMs = 0): { directory: string; executable: string; harness: string } {
-  const directory = mkdtempSync(join(tmpdir(), "omb-antigravity-acp-"));
+  const directory = mkdtempSync(join(tmpdir(), "odb-antigravity-acp-"));
   scratch.push(directory);
   const executable = join(directory, "fake-antigravity.ts");
   const harness = join(directory, process.platform === "win32" ? "localharness_external.exe" : "localharness_external");
@@ -619,7 +619,7 @@ describe("official Antigravity runtime", () => {
   }, 20_000);
 
   it("rejects a download redirected to insecure HTTP", async () => {
-    const baseDir = mkdtempSync(join(tmpdir(), "omb-antigravity-insecure-"));
+    const baseDir = mkdtempSync(join(tmpdir(), "odb-antigravity-insecure-"));
     scratch.push(baseDir);
     const asset: AntigravityReleaseAsset = {
       version: "insecure-test",
@@ -639,7 +639,7 @@ describe("official Antigravity runtime", () => {
   });
 
   it("coalesces, verifies, extracts, and reuses a pinned download without touching another install", async () => {
-    const baseDir = mkdtempSync(join(tmpdir(), "omb-antigravity-install-"));
+    const baseDir = mkdtempSync(join(tmpdir(), "odb-antigravity-install-"));
     scratch.push(baseDir);
     const versions = join(baseDir, "tools", "antigravity-acp", `${process.platform}-${process.arch}`, "versions");
     const otherStaging = join(versions, ".install-other-active", "runtime");
@@ -799,7 +799,7 @@ describe("Antigravity OAuth validation", () => {
   });
 
   it("reads the sign-in link from either announcement Google makes", () => {
-    expect(authorizationUrlFromLine(`__OPENMAUS_ANTIGRAVITY_AUTH_URL__${JSON.stringify(authorizationUrl)}`))
+    expect(authorizationUrlFromLine(`__OPENDELIO_ANTIGRAVITY_AUTH_URL__${JSON.stringify(authorizationUrl)}`))
       .toBe(authorizationUrl);
     expect(authorizationUrlFromLine(`${ANTIGRAVITY_AUTH_PREFIX}${authorizationUrl}`)).toBe(authorizationUrl);
   });
@@ -807,7 +807,7 @@ describe("Antigravity OAuth validation", () => {
   it("ignores ordinary server logs, including ones quoting a link", () => {
     expect(authorizationUrlFromLine("I0905 11:02:06.473720 8283299200 main.py:80] Starting AGY ACP Server...")).toBeNull();
     expect(authorizationUrlFromLine(`I0905 credential_manager.py:553] ${ANTIGRAVITY_AUTH_PREFIX}${authorizationUrl}`)).toBeNull();
-    expect(authorizationUrlFromLine("__OPENMAUS_ANTIGRAVITY_AUTH_URL__not-json")).toBeNull();
+    expect(authorizationUrlFromLine("__OPENDELIO_ANTIGRAVITY_AUTH_URL__not-json")).toBeNull();
     expect(authorizationUrlFromLine("")).toBeNull();
   });
 
@@ -992,7 +992,7 @@ describe("Antigravity driver over shared ACP", () => {
     expect(normalizeAntigravityTurn({ ...turn, model: "gemini-4-argon-high" }, ["gemini-3.8-flash"])).toEqual({ ...turn, model: "gemini-4-argon-high" });
   });
 
-  it("keeps one process across approval and model changes, starting on OMB's model", async () => {
+  it("keeps one process across approval and model changes, starting on ODB's model", async () => {
     ensureDirs();
     const fake = fakeRuntime();
     const dump = join(fake.directory, "dump.json");
@@ -1066,7 +1066,7 @@ describe("Antigravity driver over shared ACP", () => {
       return { done, events: recorder!.events.filter((event) => event.turnId === turnId) };
     };
     expect((await run("thread-known", "gemini-3.8-flash-low")).done).toMatchObject({ ok: true });
-    // a tier-locked model, and OMB's static default the account lacks
+    // a tier-locked model, and ODB's static default the account lacks
     for (const [index, model] of ["gemini-3.8-pro-high", STATIC_ANTIGRAVITY_MODELS.default].entries()) {
       const { done, events } = await run(`thread-unavailable-${index}`, model);
       expect(done).toMatchObject({ ok: false });

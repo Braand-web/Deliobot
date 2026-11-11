@@ -5,7 +5,7 @@ import { afterAll, describe, expect, it } from "vitest";
 
 import { folderToFollow, inMyFolderCwd, sharedProjectFolder, validateBotCwd } from "./bot-cwd.ts";
 
-const dir = mkdtempSync(join(tmpdir(), "omb-cwd-"));
+const dir = mkdtempSync(join(tmpdir(), "odb-cwd-"));
 afterAll(() => rmSync(dir, { recursive: true, force: true }));
 
 describe("validateBotCwd", () => {
@@ -36,15 +36,15 @@ describe("validateBotCwd", () => {
 });
 
 describe("sharedProjectFolder", () => {
-  const data = join(dir, "omb-data");
-  const project = join(dir, "omb-data-site");
+  const data = join(dir, "odb-data");
+  const project = join(dir, "odb-data-site");
   const privateWorkspace = join(data, "task-workspaces", "bot", "thread");
   mkdirSync(join(data, "task-workspaces", "bot", "thread"), { recursive: true });
   mkdirSync(project);
   const linkKind = process.platform === "win32" ? "junction" : "dir";
   const intoData = join(dir, "site-link-into-data");
-  const outside = join(dir, "omb-outside-site");
-  const anotherOutside = join(dir, "omb-another-outside");
+  const outside = join(dir, "odb-outside-site");
+  const anotherOutside = join(dir, "odb-another-outside");
   mkdirSync(outside);
   mkdirSync(anotherOutside);
   try { symlinkSync(privateWorkspace, intoData, linkKind); } catch {}
@@ -72,13 +72,13 @@ describe("sharedProjectFolder", () => {
   it.runIf(linked)("returns the folder a link resolved to at check time, so retargeting it cannot move a shared task", () => {
     expect(sharedProjectFolder(outLink, data)).toBe(realpathSync(outside));
     rmSync(outLink);
-    symlinkSync(join(dir, "omb-another-outside"), outLink, linkKind);
+    symlinkSync(join(dir, "odb-another-outside"), outLink, linkKind);
     expect(realpathSync(outLink)).not.toBe(realpathSync(outside));
-    expect(sharedProjectFolder(outLink, data)).toBe(realpathSync(join(dir, "omb-another-outside")));
+    expect(sharedProjectFolder(outLink, data)).toBe(realpathSync(join(dir, "odb-another-outside")));
   });
 
   it.runIf(linked)("checks the data root as it really resolves, so a linked data folder is still a boundary", () => {
-    const linkedData = join(dir, "omb-data-link");
+    const linkedData = join(dir, "odb-data-link");
     try { symlinkSync(data, linkedData, linkKind); } catch {}
     if (!existsSync(linkedData)) return;
     expect(sharedProjectFolder(privateWorkspace, linkedData)).toBeUndefined();
@@ -91,8 +91,8 @@ describe("sharedProjectFolder", () => {
 });
 
 describe("inMyFolderCwd", () => {
-  const data = join(dir, "omb-data");
-  const project = join(dir, "omb-data-site");
+  const data = join(dir, "odb-data");
+  const project = join(dir, "odb-data-site");
   const privateFolder = join(data, "task-workspaces", "bot", "thread");
 
   it("shares the sender's project folder outside a room unless asked not to", () => {
@@ -110,8 +110,8 @@ describe("inMyFolderCwd", () => {
 });
 
 describe("folderToFollow", () => {
-  const own = join(dir, "omb-data", "task-workspaces", "bot", "thread");
-  const bot = { id: "bot", cwd: join(dir, "omb-data-site") };
+  const own = join(dir, "odb-data", "task-workspaces", "bot", "thread");
+  const bot = { id: "bot", cwd: join(dir, "odb-data-site") };
   const folders = { worksInFolders: true, keepsPrivateFolder: false };
 
   it("moves a thread from its own folder to the working folder its bot has been given", () => {
@@ -122,7 +122,7 @@ describe("folderToFollow", () => {
     expect(folderToFollow({ id: "bot" }, "thread", own, folders)).toBeUndefined();
     expect(folderToFollow(bot, "thread", join(dir, "chosen"), folders)).toBeUndefined();
     expect(folderToFollow(bot, "thread", bot.cwd, folders)).toBeUndefined();
-    expect(folderToFollow(bot, "thread", join(dir, "omb-data", "task-workspaces", "bot", "other-thread"), folders)).toBeUndefined();
+    expect(folderToFollow(bot, "thread", join(dir, "odb-data", "task-workspaces", "bot", "other-thread"), folders)).toBeUndefined();
     expect(folderToFollow(bot, "thread", null, folders)).toBeUndefined();
     expect(folderToFollow(bot, "thread", undefined, folders)).toBeUndefined();
   });

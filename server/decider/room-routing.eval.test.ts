@@ -1,6 +1,6 @@
 // Live eval against the real decision model; spends real money, so it runs only when asked:
-//   OMB_JEV_LIVE_EVAL=1 OMB_JEV_API_KEY=… npx vitest run server/decider/room-routing.eval.test.ts --reporter=default
-//   OMB_OPENROUTER_LIVE_EVAL=1 OMB_OPENROUTER_DECIDER_KEY=… [OMB_OPENROUTER_EVAL_MODEL=vendor/model] (same command)
+//   ODB_JEV_LIVE_EVAL=1 ODB_JEV_API_KEY=… npx vitest run server/decider/room-routing.eval.test.ts --reporter=default
+//   ODB_OPENROUTER_LIVE_EVAL=1 ODB_OPENROUTER_DECIDER_KEY=… [ODB_OPENROUTER_EVAL_MODEL=vendor/model] (same command)
 // Messages labelled "nobody" are reported, not scored: an Auto room has no silent answer.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -19,23 +19,23 @@ interface Fixture {
 const RUNS = [
   {
     provider: "jev",
-    live: process.env.OMB_JEV_LIVE_EVAL === "1",
-    keyHint: "OMB_JEV_API_KEY (or TYPESAFE_API_KEY)",
-    key: process.env.OMB_JEV_API_KEY || process.env.TYPESAFE_API_KEY || "",
+    live: process.env.ODB_JEV_LIVE_EVAL === "1",
+    keyHint: "ODB_JEV_API_KEY (or TYPESAFE_API_KEY)",
+    key: process.env.ODB_JEV_API_KEY || process.env.TYPESAFE_API_KEY || "",
     pricePerMInput: 0.042 as number | undefined,
     decider: (key: string) => ({ enabled: true, key, jobs: { roomRouting: true } }),
   },
   {
     provider: "openrouter",
-    live: process.env.OMB_OPENROUTER_LIVE_EVAL === "1",
-    keyHint: "OMB_OPENROUTER_DECIDER_KEY",
-    key: process.env.OMB_OPENROUTER_DECIDER_KEY || "",
+    live: process.env.ODB_OPENROUTER_LIVE_EVAL === "1",
+    keyHint: "ODB_OPENROUTER_DECIDER_KEY",
+    key: process.env.ODB_OPENROUTER_DECIDER_KEY || "",
     pricePerMInput: undefined,
     decider: (key: string) => ({
       enabled: true,
       provider: "openrouter" as const,
       openrouterKey: key,
-      ...(process.env.OMB_OPENROUTER_EVAL_MODEL ? { openrouterModel: process.env.OMB_OPENROUTER_EVAL_MODEL } : {}),
+      ...(process.env.ODB_OPENROUTER_EVAL_MODEL ? { openrouterModel: process.env.ODB_OPENROUTER_EVAL_MODEL } : {}),
       jobs: { roomRouting: true },
     }),
   },
@@ -56,7 +56,7 @@ for (const run of RUNS) describe.skipIf(!run.live)(`room routing, live (${run.pr
       };
       const input: RoomRoutingInput = {
         room: room.name, humans: room.humans, members: room.members, recent: item.recent ?? [],
-        message: { from: item.from ?? "Milind", text: item.message },
+        message: { from: item.from ?? "Alex", text: item.message },
       };
       // The production budget is 1.5 s; this measures the answer rather than cutting it.
       const route = await decideRoomResponder(recorded, input, { timeoutMs: 10_000 });

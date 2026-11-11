@@ -15,7 +15,7 @@ import { ClaudeDriver } from "./claude.ts";
 const FAKE_CLI = join(dirname(fileURLToPath(import.meta.url)), "..", "testing", "fake-claude-cli.ts");
 const scratch: string[] = [];
 const tempDir = () => {
-  const dir = mkdtempSync(join(tmpdir(), "omb-model-access-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-model-access-"));
   scratch.push(dir);
   return dir;
 };

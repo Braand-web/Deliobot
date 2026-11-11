@@ -14,7 +14,7 @@ import { createComputerSharing } from "./computer-sharing.mjs";
 import { createLendingTarget } from "./lending-target.mjs";
 import { createAskPrompt } from "./ask-prompt.mjs";
 
-const HOME = "https://omb-u-fixture.fly.dev", TEAM = "https://omb-t-acme.fly.dev";
+const HOME = "https://odb-u-fixture.fly.dev", TEAM = "https://odb-t-acme.fly.dev";
 const myCloud = { id: "my-cloud", name: "My Cloud", origin: HOME, home: true };
 const acme = { id: "acme", name: "Acme team", origin: TEAM, team: { id: "t-acme", role: "owner" } };
 const READY = { ready: true, lent: true, reason: null, fix: null };
@@ -34,7 +34,7 @@ function cloudHome() {
   state.fetch = async (url, init) => {
     const route = new URL(url).pathname;
     if (route === "/api/auth/session") return json({ kind: "session", id: state.sessionId, scopes: ["admin", "client"], cloudHome: true });
-    if (route === "/.well-known/openmausbot/environment") {
+    if (route === "/.well-known/opendeliobot/environment") {
       return json({ environmentId: state.environmentId, capabilities: { sharedComputers: true, lendingDetails: true, deviceLink: true, myChromeLink: true, computerAsks: true } });
     }
     const body = init?.body ? JSON.parse(init.body) : {};
@@ -60,7 +60,7 @@ function session() {
 }
 
 async function computer(t, { homes, places = [myCloud], screen = () => READY, prompt = async () => null, startScreen = async () => READY, confirmTerminal = async () => false, file }) {
-  const dir = await realpath(await mkdtemp(path.join(tmpdir(), "omb-computer-asks-")));
+  const dir = await realpath(await mkdtemp(path.join(tmpdir(), "odb-computer-asks-")));
   t.after(() => rm(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }));
   const account = session();
   const target = createLendingTarget({ account: () => account, environments: () => places });
@@ -98,7 +98,7 @@ test("paused, this computer still tells its own Cloud so, and the card's Turn on
 
 test("a Resume save that fails answers the ask failed at once, still paused", async t => {
   const homes = { [HOME]: cloudHome() };
-  const dir = await realpath(await mkdtemp(path.join(tmpdir(), "omb-computer-asks-blocked-")));
+  const dir = await realpath(await mkdtemp(path.join(tmpdir(), "odb-computer-asks-blocked-")));
   t.after(() => rm(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }));
   const file = path.join(dir, "computer-sharing.json");
   const sharing = await computer(t, { homes, file });
@@ -183,10 +183,10 @@ test("a prompt closes when the ask was answered elsewhere, and doesn't come up w
   const focused = { isDestroyed: () => false, isFocused: () => true, isVisible: () => true, show: () => {}, webContents: { getURL: () => `${HOME}/chat` } };
   const prompt = createAskPrompt({ dialog, window: () => focused, platform: "win32" });
   assert.equal(await prompt({ id: "my-cloud", name: "My Cloud", origin: HOME }, ask(), new AbortController().signal), null, "the card is right there");
-  assert.equal(await prompt({ id: "client", name: "Client A", origin: "https://omb-c-a.fly.dev" }, ask(), new AbortController().signal), "turn-on");
+  assert.equal(await prompt({ id: "client", name: "Client A", origin: "https://odb-c-a.fly.dev" }, ask(), new AbortController().signal), "turn-on");
   assert.equal(shown.at(-1).length, 1, "a PC's prompt has no parent window, so it shows even with the app in the tray");
   const mac = createAskPrompt({ dialog, window: () => null, platform: "darwin" });
-  assert.equal(await mac({ id: "client", name: "Client A", origin: "https://omb-c-a.fly.dev" }, ask(), new AbortController().signal), null,
+  assert.equal(await mac({ id: "client", name: "Client A", origin: "https://odb-c-a.fly.dev" }, ask(), new AbortController().signal), null,
     "on a Mac only a window's sheet can be closed again, so no window, no prompt");
 });
 

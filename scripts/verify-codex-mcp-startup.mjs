@@ -7,9 +7,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const startupDelayMs = Number(process.env.PROBE_MCP_DELAY_MS) || 3000;
-const root = mkdtempSync(join(tmpdir(), "omb-native-mcp-startup-"));
-process.env.OMB_DATA_DIR = join(root, "omb");
-mkdirSync(join(root, "omb", "native"), { recursive: true });
+const root = mkdtempSync(join(tmpdir(), "odb-native-mcp-startup-"));
+process.env.ODB_DATA_DIR = join(root, "odb");
+mkdirSync(join(root, "odb", "native"), { recursive: true });
 console.log(`Evidence: ${root}`);
 const { CodexDriver } = await import("../server/drivers/codex.ts");
 const { recordEvents } = await import("../server/testing/events.ts");
@@ -95,7 +95,7 @@ requires_openai_auth=false
     assert.equal(done.ok, true, JSON.stringify(recorder.events.filter((event) => event.turnId === turnId)));
     cursor = recorder.events.find((event) => event.turnId === turnId && event.type === "session.started").sessionId;
     flushNativeLogs();
-    const log = readFileSync(join(root, "omb", "native", `${threadId}.ndjson`), "utf8").trim().split("\n").map(JSON.parse);
+    const log = readFileSync(join(root, "odb", "native", `${threadId}.ndjson`), "utf8").trim().split("\n").map(JSON.parse);
     const threadRow = log.findLast((row) => row.dir === "out" && ["thread/start", "thread/resume"].includes(row.msg.method));
     const launch = log.slice(log.indexOf(threadRow));
     const startRow = launch.find((row) => row.dir === "out" && row.msg.method === "turn/start");

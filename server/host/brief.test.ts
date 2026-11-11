@@ -27,7 +27,7 @@ const standup: CalendarEvent = {
 
 function setup(options: { hosted?: boolean; needsYou?: NeedsYouItem[]; language?: string; ideas?: string[] } = {}) {
   let watching = true;
-  const dir = mkdtempSync(join(tmpdir(), "omb-brief-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-brief-"));
   dirs.push(dir);
   let now = Date.parse("2026-10-22T08:00:00Z");
   const store = new Store(() => ({ instanceId: "claude", model: "claude-sonnet-5" }));
@@ -54,7 +54,7 @@ function setup(options: { hosted?: boolean; needsYou?: NeedsYouItem[]; language?
   const watchRun = (key: string, reply: string): RoutineRun => {
     const runThread = store.createTask(chief.id, "Keep an eye on my day", false)!.threadId;
     store.appendMessage(runThread, { role: "bot", kind: "text", text: reply, turnId: "turn-1" });
-    return { id: `run-${key}`, routineId: "watch", routineName: "Keep an eye on my day", target: "bot", botId: chief.id, runOn: "maus", scheduledFor: now, status: "completed",
+    return { id: `run-${key}`, routineId: "watch", routineName: "Keep an eye on my day", target: "bot", botId: chief.id, runOn: "delio", scheduledFor: now, status: "completed",
       manual: false, threadId: runThread, checkKey: key, deliver: "brief", access: "read-and-draft", createdAt: now };
   };
   return {
@@ -69,7 +69,7 @@ describe("the brief", () => {
     const s = setup({ needsYou: [{ kind: "signed-out", id: "sign-in", at: 0, instanceId: "claude", botIds: [] }] });
     s.advance(21_643);
     const run = (name: string, finishedAt: number): RoutineRun => ({
-      id: name, routineId: name, routineName: name, target: "bot", botId: s.chief.id, runOn: "maus",
+      id: name, routineId: name, routineName: name, target: "bot", botId: s.chief.id, runOn: "delio",
       scheduledFor: finishedAt, status, manual: false, createdAt: finishedAt, finishedAt,
     });
     s.runs.push(run("Before midnight", Date.parse("2026-10-22T03:59:59.999Z")), run("After midnight", Date.parse("2026-10-22T04:00:00.001Z")));
@@ -200,12 +200,12 @@ describe("the brief", () => {
 
   it("a routine run that published a page offers Open page, which opens the page itself, beside Open for its chat", async () => {
     const s = setup({ needsYou: [{ kind: "signed-out", id: "x", at: 0, instanceId: "claude", botIds: [] }] });
-    const PAGE = "https://abcdefghijklmnopqrstuvwxyz.mausbot.page/";
+    const PAGE = "https://abcdefghijklmnopqrstuvwxyz.delio.page/";
     const run = (id: string, name: string, card?: "live" | "unpublished"): RoutineRun => {
       const threadId = s.store.createTask(s.chief.id, name, false)!.threadId, startedAt = Date.now();
       if (card) s.store.appendMessage(threadId, { role: "bot", kind: "text", text: `Published “Sales”: ${PAGE}`, publishedPage: { state: card, title: "Sales", pageId: "abcdefghijklmnopqrstuvwxyz", url: PAGE } });
       s.store.appendMessage(threadId, { role: "bot", kind: "text", text: "Updated the dashboard." });
-      return { id, routineId: id, routineName: name, target: "bot", botId: s.chief.id, runOn: "maus", scheduledFor: s.now(), status: "completed", manual: false,
+      return { id, routineId: id, routineName: name, target: "bot", botId: s.chief.id, runOn: "delio", scheduledFor: s.now(), status: "completed", manual: false,
         threadId, createdAt: startedAt, startedAt, finishedAt: Date.now(), output: "Updated the dashboard." };
     };
     s.runs.push(run("dash", "Refresh the sales dashboard", "live"), run("gone", "Old dashboard", "unpublished"), run("plain", "Tidy my inbox"));

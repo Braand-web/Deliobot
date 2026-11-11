@@ -1,7 +1,7 @@
 // Injected into a bot's page after the CSP meta: theme variables with light and dark defaults, and
-// `window.mausbot`, a minimal MCP Apps View on the same bridge as @modelcontextprotocol/ext-apps `App`:
+// `window.delio`, a minimal MCP Apps View on the same bridge as @modelcontextprotocol/ext-apps `App`:
 //
-//   window.mausbot = {
+//   window.delio = {
 //     send(text): Promise<void>,        // ui/message
 //     open(url): Promise<void>,         // ui/open-link
 //     setContext(text): Promise<void>,  // ui/update-model-context
@@ -10,7 +10,7 @@
 //   }
 //
 // A page pasted from an SDK build runs its own App beside this one: the helper's request ids are strings
-// ("mausbot:1"), never the SDK's numeric ones, and it answers no host request but teardown, so it never
+// ("delio:1"), never the SDK's numeric ones, and it answers no host request but teardown, so it never
 // races the SDK's answer.
 import { APP_PROTOCOL_VERSION } from "../app.ts";
 
@@ -37,7 +37,7 @@ const helperSource = (room: boolean) => `(function () {
   var post = function (message) { parent.postMessage(message, "*"); };
   var request = function (method, params) {
     return new Promise(function (resolve, reject) {
-      var id = "mausbot:" + (++seq);
+      var id = "delio:" + (++seq);
       pending[id] = { resolve: resolve, reject: reject };
       post({ jsonrpc: "2.0", id: id, method: method, params: params });
     });
@@ -149,7 +149,7 @@ const helperSource = (room: boolean) => `(function () {
     report();
   };
   var ready = request("ui/initialize", {
-    appInfo: { name: "mausbot-page", version: "1.0.0" },
+    appInfo: { name: "delio-page", version: "1.0.0" },
     appCapabilities: {},
     protocolVersion: "${APP_PROTOCOL_VERSION}"
   }).then(function (result) {
@@ -175,7 +175,7 @@ const helperSource = (room: boolean) => `(function () {
       return request("ui/update-model-context", { content: [{ type: "text", text: String(text) }] });
     }).then(function () {});
   };
-  Object.defineProperty(window, "mausbot", { value: api, enumerable: true });
+  Object.defineProperty(window, "delio", { value: api, enumerable: true });
 })();`;
 
 export const APP_HELPER_SOURCE = helperSource(false);

@@ -109,7 +109,7 @@ describe("ClaudeDriver warm summary (fake CLI)", () => {
   beforeEach(async () => {
     ensureDirs();
     chmodSync(FAKE_CLI, 0o755);
-    scratch = mkdtempSync(join(tmpdir(), "omb-warm-summary-test-"));
+    scratch = mkdtempSync(join(tmpdir(), "odb-warm-summary-test-"));
     process.env.FAKE_CLAUDE_COMPACT_DUMP = join(scratch, "compact.json");
     process.env.FAKE_CLAUDE_DUMP = join(scratch, "turn.json");
     instance = await ClaudeDriver.create({

@@ -1,4 +1,4 @@
-// A fake `docker` on OMB_EXTRA_PATH stands in for the VPS (the server runs in its own process): argv in, canned inspect JSON out, every call logged.
+// A fake `docker` on ODB_EXTRA_PATH stands in for the VPS (the server runs in its own process): argv in, canned inspect JSON out, every call logged.
 import { spawn, type ChildProcess } from "node:child_process";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -188,8 +188,8 @@ posixOnly("VPS turn routing e2e (fake ACP fleet + fake docker over SSH)", () => 
 
   beforeAll(async () => {
     chmodSync(FAKE_CLI, 0o755);
-    home = mkdtempSync(join(tmpdir(), "omb-vps-routing-"));
-    mkdirSync(join(home, ".openmausbot"), { recursive: true });
+    home = mkdtempSync(join(tmpdir(), "odb-vps-routing-"));
+    mkdirSync(join(home, ".opendeliobot"), { recursive: true });
     const fakeBin = join(home, "fakebin");
     mkdirSync(fakeBin, { recursive: true });
     gateFile = join(home, "turn.gate");
@@ -220,7 +220,7 @@ createServer(socket => socket.end()).listen(port, '127.0.0.1');
     writeFileSync(dockerLog, "");
 
     writeFileSync(
-      join(home, ".openmausbot", "config.json"),
+      join(home, ".opendeliobot", "config.json"),
       JSON.stringify({
         instances: {
           vps: {
@@ -240,11 +240,11 @@ createServer(socket => socket.end()).listen(port, '127.0.0.1');
     const env: NodeJS.ProcessEnv = {
       HOME: home,
       USERPROFILE: home,
-      OMB_PORT: String(PORT),
-      OMB_EXTRA_PATH: fakeBin,
+      ODB_PORT: String(PORT),
+      ODB_EXTRA_PATH: fakeBin,
       FAKE_DOCKER_DIR: fakeBin,
       FAKE_DOCKER_LOG: dockerLog,
-      OMB_COMPUTER_CALL_WAIT_MS: String(CALL_WAIT_MS),
+      ODB_COMPUTER_CALL_WAIT_MS: String(CALL_WAIT_MS),
     };
     if (process.env.PATH) env.PATH = process.env.PATH;
     if (process.env.SystemRoot) env.SystemRoot = process.env.SystemRoot;
@@ -462,7 +462,7 @@ createServer(socket => socket.end()).listen(port, '127.0.0.1');
           writeFileSync(template, original.replace('"Running":true', '"Running":false'));
         } else expect(first.find((tool: { name: string }) => tool.name === "computer")).toBeUndefined();
         const agents = first.find((tool: { name: string }) => tool.name === "agents");
-        const token = agents.env.find((entry: { name: string }) => entry.name === "OMB_COMMS_TOKEN").value;
+        const token = agents.env.find((entry: { name: string }) => entry.name === "ODB_COMMS_TOKEN").value;
         const availability = await (await fetch(`${BASE}/api/internal/computer/select`, { headers: { authorization: `Bearer ${token}` } })).json() as any;
         expect(availability.options.find((option: any) => option.surface === "cloud")).toMatchObject({ available: true, ready: false,
           canStart: state !== "missing", canCreate: state === "missing" });
@@ -594,7 +594,7 @@ createServer(socket => socket.end()).listen(port, '127.0.0.1');
         schedule: { type: "interval", everyMinutes: 60, anchorAt: Date.now() + 3_600_000 },
       });
       expect(created.status, JSON.stringify(created.body)).toBe(201);
-      expect(created.body.routine.runOn).toBe("maus");
+      expect(created.body.routine.runOn).toBe("delio");
       rmSync(`${acpDump}.mcp.json`, { force: true });
       const started = await api("POST", `/api/routines/${created.body.routine.id}/run`);
       expect(started.status, JSON.stringify(started.body)).toBe(201);
@@ -651,7 +651,7 @@ createServer(socket => socket.end()).listen(port, '127.0.0.1');
         const computer = servers.find((server) => server.name === "computer");
         expect(computer, "no computer MCP server reached the agent").toBeTruthy();
         const env = (name: string) => computer!.env?.find((entry) => entry.name === name)?.value ?? "";
-        return { args: computer!.args ?? [], url: env("OMB_CONTROL_URL"), token: env("OMB_CONTROL_TOKEN") };
+        return { args: computer!.args ?? [], url: env("ODB_CONTROL_URL"), token: env("ODB_CONTROL_TOKEN") };
       };
       // A computer call's check, exactly as the mounted bridge makes it: the real control client, with its own timeout.
       const gate = (mount: { url: string; token: string }) => createControlClient({ url: mount.url, token: mount.token }).state(true);
@@ -724,7 +724,7 @@ createServer(socket => socket.end()).listen(port, '127.0.0.1');
       await until(async () => existsSync(`${askerDump}.mcp.json`), "the asker's turn");
       const agents = (JSON.parse(readFileSync(`${askerDump}.mcp.json`, "utf8")) as Array<{ name: string; env?: Array<{ name: string; value: string }> }>)
         .find((server) => server.name === "agents");
-      const token = agents?.env?.find((entry) => entry.name === "OMB_COMMS_TOKEN")?.value ?? "";
+      const token = agents?.env?.find((entry) => entry.name === "ODB_COMMS_TOKEN")?.value ?? "";
       const sent = await fetch(`${BASE}/api/internal/coordinate-bots`, {
         method: "POST",
         headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
@@ -739,7 +739,7 @@ createServer(socket => socket.end()).listen(port, '127.0.0.1');
       const thread = await replies();
       expect(thread.filter((message) => String(message.tool?.name ?? "").startsWith("error:"))).toEqual([]);
       const echo = thread.find((message) => message.text?.startsWith("echo: ")).text as string;
-      expect(echo).toContain("This bot's VPS computer is unavailable this turn (The OpenMausBot VPS container is stopped)");
+      expect(echo).toContain("This bot's VPS computer is unavailable this turn (The OpenDeliobot VPS container is stopped)");
       expect(echo).toContain("Open Computer and enable Start VPS automatically");
     } finally {
       writeFileSync(template, original);

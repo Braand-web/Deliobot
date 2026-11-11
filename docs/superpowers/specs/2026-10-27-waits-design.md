@@ -86,7 +86,7 @@ turn outside a room lists `wait_until`, with a short description (the kinds,
 no AI while waiting, `follow_up`, 1 to 168 hours) and compact schema; its
 result explains the rest. `list_waits` and `cancel_wait` act only on the
 chat's own waits, so they are listed only while the bot has a wait in this
-chat that has not ended (`OMB_ACTIVE_WAITS`, from
+chat that has not ended (`ODB_ACTIVE_WAITS`, from
 `WaitManager.count(botId, threadId)`): the next turn in that chat sees them,
 and a wait in another chat lists nothing here. Without one they still answer
 a call, directly or through `use_tool`. A room's turn is never listed

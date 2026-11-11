@@ -24,8 +24,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import { gzipSync } from "node:zlib";
 
-import { runControlOmb, verificationServerArgs, verificationServerEnvironment } from "./control-omb.ts";
-import { installedChrome } from "./testing/control-omb-ui.ts";
+import { runControlOdb, verificationServerArgs, verificationServerEnvironment } from "./control-odb.ts";
+import { installedChrome } from "./testing/control-odb-ui.ts";
 import { FRAMES_START, FRAMES_STOP, launchChrome, switchExpression, TRANSCRIPT_BOX, type Chrome, type Page } from "./testing/bench-desktop-page.ts";
 import { removeTempDir, waitForExit } from "../server/testing/cleanup.ts";
 import { freePortBlock } from "../server/testing/ports.ts";
@@ -49,14 +49,14 @@ const { values } = parseArgs({
 const only = new Set((values.only ?? PHASES.join(",")).split(",").map((phase) => phase.trim()).filter(Boolean));
 for (const phase of only) if (!(PHASES as readonly string[]).includes(phase)) throw new Error(`unknown phase ${phase}; phases: ${PHASES.join(", ")}`);
 const IDLE_MS = Number(values["idle-seconds"]) * 1000;
-const STORAGE = { "omb-analytics-opt-out": "1", "omb-email-gate": "skipped", "omb-simple-mode-prompt": "1", "grok-move-2026-11": "1", "modelgo-offer-2026-11": "1", "omb-advanced-mode": values.advanced ? "1" : "0" };
+const STORAGE = { "odb-analytics-opt-out": "1", "odb-email-gate": "skipped", "odb-simple-mode-prompt": "1", "grok-move-2026-11": "1", "modelgo-offer-2026-11": "1", "odb-advanced-mode": values.advanced ? "1" : "0" };
 const log = (line: string) => process.stderr.write(`bench-desktop: ${line}\n`);
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const round = (value: number, digits = 1) => Math.round(value * 10 ** digits) / 10 ** digits;
 const median = (samples: number[]) => { const sorted = [...samples].sort((a, b) => a - b); return sorted.length ? sorted[Math.floor(sorted.length / 2)]! : NaN; };
 const percentile = (samples: number[], p: number) => { const sorted = [...samples].sort((a, b) => a - b); return sorted[Math.min(sorted.length - 1, Math.max(0, Math.ceil((p / 100) * sorted.length) - 1))] ?? NaN; };
 const kb = (bytes: number) => round(bytes / 1024);
-const work = mkdtempSync(join(tmpdir(), "openmausbot-bench-work-"));
+const work = mkdtempSync(join(tmpdir(), "opendeliobot-bench-work-"));
 const cleanups: Array<() => Promise<void>> = [];
 
 // A long markdown answer the fake engine streams in small chunks, after a run of tool calls.
@@ -89,7 +89,7 @@ function platformEnv(extra: Record<string, string> = {}): NodeJS.ProcessEnv {
 }
 
 function newDataDir(): string {
-  const dir = mkdtempSync(join(process.platform === "win32" ? tmpdir() : "/tmp", "openmausbot-bench-"));
+  const dir = mkdtempSync(join(process.platform === "win32" ? tmpdir() : "/tmp", "opendeliobot-bench-"));
   mkdirSync(join(dir, "tmp"), { recursive: true });
   writeFileSync(join(dir, "config.json"), JSON.stringify({
     features: { smartSetupChoices: false },
@@ -105,9 +105,9 @@ async function startFixture(options: { dataDir?: string; staticDir?: string; fak
   const port = await freePortBlock([0, 1]);
   const env = verificationServerEnvironment(platformEnv(options.fake), dataDir, port);
   const tallyPath = join(dataDir, "bench-tally.json");
-  env.OMB_BENCH_TALLY = tallyPath;
-  if (options.staticDir) env.OMB_STATIC_DIR = options.staticDir;
-  if (options.bundle) env.OMB_SERVER_COMPILE_CACHE = options.bundle.cache;
+  env.ODB_BENCH_TALLY = tallyPath;
+  if (options.staticDir) env.ODB_STATIC_DIR = options.staticDir;
+  if (options.bundle) env.ODB_SERVER_COMPILE_CACHE = options.bundle.cache;
   const hook = ["--import", pathToFileURL(join(ROOT, "scripts", "testing", "bench-server-tally.mjs")).href];
   const args = options.bundle ? [...hook, options.bundle.entry] : [...hook, ...verificationServerArgs(env)];
   const logPath = join(work, `server-${port}.log`);
@@ -121,7 +121,7 @@ async function startFixture(options: { dataDir?: string; staticDir?: string; fak
     if (child.exitCode !== null) break;
     try {
       const response = await fetch(`${url}/api/health`, { signal: AbortSignal.timeout(1_000) });
-      if (response.ok && (await response.json() as { app?: string }).app === "openmausbot") { readyMs = performance.now() - started; break; }
+      if (response.ok && (await response.json() as { app?: string }).app === "opendeliobot") { readyMs = performance.now() - started; break; }
     } catch { /* not listening yet */ }
     await sleep(25);
   }
@@ -189,7 +189,7 @@ async function serveDist(dir: string, target: string): Promise<{ url: string; cl
   const upstream = new URL(target);
   const server: Server = createServer((req, res) => {
     const path = (req.url ?? "/").split("?")[0]!;
-    if (path.startsWith("/api") || path.startsWith("/.well-known/openmausbot")) {
+    if (path.startsWith("/api") || path.startsWith("/.well-known/opendeliobot")) {
       const forward = httpRequest({ host: upstream.hostname, port: upstream.port, path: req.url, method: req.method, headers: req.headers }, (answer) => {
         res.writeHead(answer.statusCode ?? 502, answer.headers);
         answer.pipe(res);
@@ -323,7 +323,7 @@ async function bundleServer(): Promise<string> {
   await build({
     entryPoints: [join(ROOT, "server", "index.ts")], bundle: true, platform: "node", target: "node20", format: "esm", outdir, logLevel: "warning", minifyWhitespace: true, minifySyntax: true, lineLimit: 500,
     plugins: [{ name: "yaml-esm", setup(builder) { builder.onResolve({ filter: /^yaml$/ }, () => ({ path: join(ROOT, "node_modules", "yaml", "browser", "index.js") })); } }, serverLocalePlugin],
-    banner: { js: 'import { createRequire as __ombCreateRequire } from "node:module";\nconst require = __ombCreateRequire(import.meta.url);' },
+    banner: { js: 'import { createRequire as __odbCreateRequire } from "node:module";\nconst require = __odbCreateRequire(import.meta.url);' },
   });
   copyFileSync(join(ROOT, "scripts", "desktop-server-entry.mjs"), join(outdir, "desktop-entry.mjs"));
   return join(outdir, "desktop-entry.mjs");
@@ -442,7 +442,7 @@ async function idleWindow(chrome: Chrome, pages: Record<string, Page>, fixture: 
 }
 
 async function waitTurn(fixture: Fixture, botId: string) {
-  return await runControlOmb(["wait", "--bot", botId, "--timeout", "180", "--for", "turn", "--url", fixture.url]) as { status?: string; messages?: Array<{ id?: string; kind?: string; role?: string }> };
+  return await runControlOdb(["wait", "--bot", botId, "--timeout", "180", "--for", "turn", "--url", fixture.url]) as { status?: string; messages?: Array<{ id?: string; kind?: string; role?: string }> };
 }
 
 /** One streamed reply with tool calls into `botId`'s open chat, measured in the page, Chrome and the server. */
@@ -452,7 +452,7 @@ async function streamTurn(chrome: Chrome, page: Page, fixture: Fixture, botId: s
   const cpu0 = await chrome.cpu();
   const tally0 = await fixture.tally();
   const started = performance.now();
-  await runControlOmb(["send", "--bot", botId, "--text", "Write the long report, please.", "--url", fixture.url]);
+  await runControlOdb(["send", "--bot", botId, "--text", "Write the long report, please.", "--url", fixture.url]);
   await sleep(4_000);
   const animationsMidTurn = await page.evaluate<Record<string, number>>(RUNNING_ANIMATIONS);
   const settled = await waitTurn(fixture, botId);
@@ -491,7 +491,7 @@ async function streamTurn(chrome: Chrome, page: Page, fixture: Fixture, botId: s
 }
 
 async function newBot(fixture: Fixture, name: string): Promise<string> {
-  const created = await runControlOmb(["new-bot", "--name", name, "--url", fixture.url]) as { bot: { id: string } };
+  const created = await runControlOdb(["new-bot", "--name", name, "--url", fixture.url]) as { bot: { id: string } };
   return created.bot.id;
 }
 
@@ -580,7 +580,7 @@ async function main() {
 
   let chrome: Chrome | undefined;
   if (needsUi) {
-    if (!chromePath) throw new Error("no Chrome: run `control-omb ui launch` once, or pass --chrome PATH");
+    if (!chromePath) throw new Error("no Chrome: run `control-odb ui launch` once, or pass --chrome PATH");
     chrome = await launchChrome(chromePath);
     cleanups.push(() => chrome!.close());
   }
@@ -661,7 +661,7 @@ async function main() {
     log("seeding the big workspace");
     const dataDir = newDataDir();
     const seedOut = execFileSync(process.execPath, ["--experimental-strip-types", join(ROOT, "scripts", "testing", "bench-desktop-seed.ts"), values.bots!, values.threads!, values.messages!], {
-      cwd: ROOT, encoding: "utf8", env: { ...platformEnv(), PATH: dirname(process.execPath), HOME: dataDir, OMB_DATA_DIR: dataDir, TMPDIR: join(dataDir, "tmp") }, maxBuffer: 16 * 1024 * 1024,
+      cwd: ROOT, encoding: "utf8", env: { ...platformEnv(), PATH: dirname(process.execPath), HOME: dataDir, ODB_DATA_DIR: dataDir, TMPDIR: join(dataDir, "tmp") }, maxBuffer: 16 * 1024 * 1024,
     });
     const seeded = JSON.parse(seedOut.trim().split("\n").at(-1)!) as { bigBotId: string; bigThreadId: string; bigLastMessageId: string; otherBotId: string; otherThreadId: string; otherSideThreadId: string; bots: number; threads: number; bigMessages: number };
     const fixture = await startFixture({ dataDir, staticDir: dist, fake: STREAM_ENV });

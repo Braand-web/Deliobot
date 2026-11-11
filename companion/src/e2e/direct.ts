@@ -9,7 +9,7 @@ import type { E2ERegistry, LiveRoute } from "./registry.ts";
 import { acceptWebSocket } from "./ws-server.ts";
 
 export const E2E_PATH = "/v1/e2e";
-export const E2E_PROTOCOL = "omb-e2e.v1";
+export const E2E_PROTOCOL = "odb-e2e.v1";
 
 /** Tailscale's CGNAT range 100.64.0.0/10 and its IPv6 prefix fd7a:115c:a1e0::/48. */
 export function routeFor(remoteAddress: string | undefined): LiveRoute {

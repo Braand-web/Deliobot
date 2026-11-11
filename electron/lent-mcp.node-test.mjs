@@ -30,7 +30,7 @@ readline.createInterface({ input: process.stdin }).on("line", line => {
 const step = (name, promise) => Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error(`${name} took over 20 s`)), 20_000).unref())]);
 
 async function stdioFixture(t) {
-  const dir = await realpath(await mkdtemp(path.join(tmpdir(), "omb-lent-mcp-")));
+  const dir = await realpath(await mkdtemp(path.join(tmpdir(), "odb-lent-mcp-")));
   const script = path.join(dir, "server.mjs");
   await writeFile(script, SERVER_SCRIPT);
   const home = path.join(dir, "home");
@@ -70,7 +70,7 @@ test("security: only the person's own Cloud, a command only with the terminal le
   assert.match(lentMcpRefusal(cloud, { ...http("http://127.0.0.1:1/sse"), type: "sse" }), /older SSE transport/);
 });
 
-const OWN_PORT = /^Only an MCP server on its own port \(1024 or higher\) at this computer's address can be reached, never this computer's own OpenMausBot or Chrome ports$/;
+const OWN_PORT = /^Only an MCP server on its own port \(1024 or higher\) at this computer's address can be reached, never this computer's own OpenDeliobot or Chrome ports$/;
 
 test("security: an address only on its own port, 1024 or higher, never one left to its default", () => {
   const cloud = { cloud: { accountId: "a", origin: "https://x" }, terminal: false };
@@ -80,8 +80,8 @@ test("security: an address only on its own port, 1024 or higher, never one left 
   for (const url of ["http://127.0.0.1:19501/mcp", "http://localhost:19501/mcp", "http://[::1]:19501/mcp", "https://127.0.0.1:1024/mcp"]) assert.equal(lentMcpRefusal(cloud, http(url)), null, url);
 });
 
-test("security: never this computer's own OpenMausBot ports or Chrome's DevTools port, and nothing is fetched", async t => {
-  const dir = await realpath(await mkdtemp(path.join(tmpdir(), "omb-lent-mcp-ports-")));
+test("security: never this computer's own OpenDeliobot ports or Chrome's DevTools port, and nothing is fetched", async t => {
+  const dir = await realpath(await mkdtemp(path.join(tmpdir(), "odb-lent-mcp-ports-")));
   t.after(() => rm(dir, { recursive: true, force: true }));
   const chrome = path.join(dir, "Google", "Chrome");
   await mkdir(chrome, { recursive: true });
@@ -142,9 +142,9 @@ test("a server that refuses to start is started again on the next call, not kept
 
 test("a command server that can't start says so by its program's name, never with its keys", async t => {
   const { lent } = await stdioFixture(t);
-  const missing = { name: "notes", command: path.join(tmpdir(), "omb-no-such-program"), args: [], env: { NOTES_TOKEN: "never-echoed" } };
+  const missing = { name: "notes", command: path.join(tmpdir(), "odb-no-such-program"), args: [], env: { NOTES_TOKEN: "never-echoed" } };
   await assert.rejects(step("a missing program", lent.call({ action: "mcp_tools", server: missing }, signal())), error => {
-    assert.match(error.message, /notes could not start: omb-no-such-program is not on this computer/);
+    assert.match(error.message, /notes could not start: odb-no-such-program is not on this computer/);
     assert.doesNotMatch(error.message, /never-echoed/);
     return true;
   });
@@ -211,7 +211,7 @@ test("on Windows a program starts directly, a .cmd shim through cmd.exe with eac
 });
 
 test("this computer's own installs, by the environment id each keeps", async t => {
-  const dir = await realpath(await mkdtemp(path.join(tmpdir(), "omb-lent-mcp-ids-")));
+  const dir = await realpath(await mkdtemp(path.join(tmpdir(), "odb-lent-mcp-ids-")));
   t.after(() => rm(dir, { recursive: true, force: true }));
   const id = randomUUID();
   await mkdir(path.join(dir, "a")); await writeFile(path.join(dir, "a", "environment-id"), `${id}\n`);

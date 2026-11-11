@@ -23,7 +23,7 @@ const until = async (check, what, ms = 5000) => {
 };
 
 async function scratch(t) {
-  const dir = await realpath(await mkdtemp(path.join(tmpdir(), "omb-lend-own-server-")));
+  const dir = await realpath(await mkdtemp(path.join(tmpdir(), "odb-lend-own-server-")));
   t.after(() => rm(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }));
   return dir;
 }
@@ -38,7 +38,7 @@ function selfHosted({ scopes = ["admin", "client"], own = true, extra = {}, mcp 
     const route = new URL(url).pathname;
     const owner = state.own && state.scopes.includes("admin");
     if (route === "/api/auth/session") return json({ kind: "session", id: state.sessionId, scopes: state.scopes, ...(owner ? { own: true, lending: { sharedComputers: true, lendingDetails: true, fileEdits: true, ...(mcp ? { lentMcp: true } : {}) } } : {}), ...state.extra });
-    if (route === "/.well-known/openmausbot/environment") return json({ environmentId: state.environmentId, capabilities: { remoteSessions: true } });
+    if (route === "/.well-known/opendeliobot/environment") return json({ environmentId: state.environmentId, capabilities: { remoteSessions: true } });
     const body = init?.body ? JSON.parse(init.body) : {};
     if (route === "/api/shared-computers/connect") { state.connects.push(body); return json({ ok: true }); }
     if (route.endsWith("/poll")) {
@@ -214,7 +214,7 @@ function mainLending({ response = 1, own = true, flag = false, offer } = {}) {
   const lending = installServerLending({ ipcMain: { handle: (channel, handler) => handlers.set(channel, handler) }, guard: (_channel, handler) => handler, sharing: () => controller,
     dialogs: { chooseFolder: async () => null, confirmServerAccess: async () => true }, validate: async folders => folders ?? [], dialog, window: () => win,
     saved: id => { if (id !== garage.id) throw new Error("unknown"); return garage; }, candidate: env => !env.cloud && !env.team && !env.home, flag: async () => flag,
-    environments: () => [garage, { id: "acme", name: "Acme", origin: "https://omb-t-acme.fly.dev", team: { id: "t" } }], active: () => garage });
+    environments: () => [garage, { id: "acme", name: "Acme", origin: "https://odb-t-acme.fly.dev", team: { id: "t" } }], active: () => garage });
   return { handlers, calls, lending, win, info };
 }
 

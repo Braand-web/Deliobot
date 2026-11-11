@@ -1,4 +1,4 @@
-# OpenMausBot control plane
+# OpenDeliobot control plane
 
 This directory is an isolated Cloudflare Worker for cloud account identity,
 installation ownership, and per-installation managed companion endpoints. It
@@ -13,7 +13,7 @@ tool output.
   messages. Authentication responses remain generic even when delivery fails;
   email addresses, OTPs, secrets, and provider errors are never logged.
 - Owner-scoped desktop installations and independently revocable
-  `omb_install_…` credentials. Account bearer tokens are never accepted as
+  `odb_install_…` credentials. Account bearer tokens are never accepted as
   installation credentials, or vice versa.
 - Exact-origin CORS, bounded JSON bodies, redacted errors, and `no-store` on
   every response.
@@ -92,7 +92,7 @@ requests cannot both return credentials while one invalidates the other.
 
 ### Managed endpoint contract
 
-All three endpoint methods require `Authorization: Bearer <omb_install_…>`.
+All three endpoint methods require `Authorization: Bearer <odb_install_…>`.
 Account bearer tokens are rejected.
 
 - `GET` returns `{ "endpoint": null }` before allocation or after deletion.
@@ -113,7 +113,7 @@ Account bearer tokens are rejected.
   recoverable from GET or D1. After an idle reclaim the same call allocates a
   new tunnel behind the **same hostname**, so a paired phone keeps its
   address; it may also take back an endpoint whose reclaim is still pending.
-  The desktop app (Remote access on) and `openmausbot serve --tunnel` ask
+  The desktop app (Remote access on) and `opendeliobot serve --tunnel` ask
   `GET` every 15 minutes, even while their connector reports ready, and make
   this call when the endpoint is gone or in `error`; a `401` from `GET` (the
   90-day installation credential expired) sends them through account
@@ -167,7 +167,7 @@ Revoking an installation first revokes its local installation credentials, then
 schedules best-effort endpoint cleanup. Cloud cleanup failure cannot restore or
 delay credential revocation. Repeating the owner-scoped installation DELETE is
 safe and retries retained cleanup state. A five-minute cron also processes at
-most `OMB_CLEANUP_SWEEP_LIMIT` (code default 20, which `wrangler.jsonc` ships;
+most `ODB_CLEANUP_SWEEP_LIMIT` (code default 20, which `wrangler.jsonc` ships;
 it needs Workers Paid, whose per-invocation subrequest and D1 limits the
 default relies on) expired-lease rows per run when
 they are already deleting, belong to a revoked installation, or outlive a
@@ -222,7 +222,7 @@ alert`, `apns-priority: 10`, a 24-hour `apns-expiration`, `apns-topic` set to
 the bundle id, and an `apns-collapse-id` derived from the kind and thread, so
 a repeat replaces the older alert. The payload is
 `{ "aps": { "alert": { "title" }, "sound": "default", "thread-id",
-"interruption-level" }, "omb": { "v": 1, "kind", "botId", "botName",
+"interruption-level" }, "odb": { "v": 1, "kind", "botId", "botName",
 "threadId", "roomId"?, "roomName"?, "pairing"? } }`; `interruption-level` is
 `time-sensitive` for `approval`, `question`, `sign-in` and `mention`, else
 `active`.
@@ -281,7 +281,7 @@ A failure in one account is logged and never stops the others:
    - `inactive` (never ran), with no activation time, created at least two
      days ago; or
    - `down` with its last connection ended at least
-     `OMB_TUNNEL_OFFLINE_RECLAIM_DAYS` (default 21, minimum 1) days ago and no
+     `ODB_TUNNEL_OFFLINE_RECLAIM_DAYS` (default 21, minimum 1) days ago and no
      later activation.
 
    `healthy` and `degraded` tunnels, any reported connection, an unknown
@@ -315,11 +315,11 @@ A failure in one account is logged and never stops the others:
    emits `"alert": "managed_endpoint_pool_capacity"`: once an account fills it
    reports `full` for good, so page on the pool alert instead.
 
-`OMB_TUNNEL_RECLAIM` is `observe` unless set to `on` (an unset or invalid value
+`ODB_TUNNEL_RECLAIM` is `observe` unless set to `on` (an unset or invalid value
 observes): it logs `idle`/`eligible` counts without marking anything. Deploy in
 `observe`, check one full scan cycle of real counts, then set it to `on`.
 
-`OMB_TUNNEL_LIMIT` and `OMB_DNS_RECORD_LIMIT` (default 1000 each) are the
+`ODB_TUNNEL_LIMIT` and `ODB_DNS_RECORD_LIMIT` (default 1000 each) are the
 primary account's tunnel quota and its zone's DNS record quota; extra accounts
 carry their own. The limits drive the alerts and `/healthz`, rank accounts for
 new endpoints, and decide whether a tunnel-creation `429` is the quota. They
@@ -328,8 +328,8 @@ to Cloudflare's real quotas and raise them when Cloudflare raises a quota (a
 limit below the real quota turns a genuine rate limit at that count into a
 ten-minute capacity gate for that account and, with several accounts, makes
 the account look full, so new endpoints go elsewhere while it still has
-room). `wrangler.jsonc` sets `OMB_DNS_RECORD_LIMIT` to 3500 because the
-`openmausbot.com` zone is on Pro.
+room). `wrangler.jsonc` sets `ODB_DNS_RECORD_LIMIT` to 3500 because the
+`openopendeliobot.com` zone is on Pro.
 
 `GET /healthz` keeps `ok` and `service` unchanged (desktops gate hosted sign-in
 on them; a full quota must not hide sign-in or recovery) and adds a
@@ -364,7 +364,7 @@ ID):
   "reclaim": { "mode": "on", "pending": 12 },
   "accounts": [
     {
-      "hostSuffix": "openmausbot.com",
+      "hostSuffix": "openopendeliobot.com",
       "newEndpoints": true,
       "status": "full",
       "checkedAt": 1790000060000,
@@ -374,7 +374,7 @@ ID):
       "reclaimPending": 12
     },
     {
-      "hostSuffix": "mausbot.si",
+      "hostSuffix": "opendeliobot.com",
       "newEndpoints": true,
       "status": "ok",
       "checkedAt": 1790000000000,
@@ -404,8 +404,8 @@ trail D1 by that long; allocation gating always reads D1.
 ### Several Cloudflare accounts
 
 The account configured by `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_ZONE_ID`,
-`COMPANION_HOST_SUFFIX`, the `CLOUDFLARE_API_TOKEN` secret, `OMB_TUNNEL_LIMIT`,
-and `OMB_DNS_RECORD_LIMIT` is the primary. Without `CLOUDFLARE_ENDPOINT_ACCOUNTS`
+`COMPANION_HOST_SUFFIX`, the `CLOUDFLARE_API_TOKEN` secret, `ODB_TUNNEL_LIMIT`,
+and `ODB_DNS_RECORD_LIMIT` is the primary. Without `CLOUDFLARE_ENDPOINT_ACCOUNTS`
 it is the only account, and endpoints behave exactly as described above.
 
 `CLOUDFLARE_ENDPOINT_ACCOUNTS` adds up to three more accounts. It is a JSON
@@ -418,9 +418,9 @@ repository:
 [
   {
     "accountId": "<32-hex Cloudflare account ID>",
-    "zoneId": "<32-hex zone ID of mausbot.si in that account>",
-    "companionHostSuffix": "mausbot.si",
-    "apiTokenSecret": "CLOUDFLARE_API_TOKEN_MAUSBOT_SI",
+    "zoneId": "<32-hex zone ID of opendeliobot.com in that account>",
+    "companionHostSuffix": "opendeliobot.com",
+    "apiTokenSecret": "CLOUDFLARE_API_TOKEN_DELIO_SI",
     "tunnelLimit": 1000,
     "dnsRecordLimit": 200,
     "minAppVersion": "0.1.104"
@@ -521,9 +521,9 @@ Cloudflare. Every such refusal, with one account too, logs
 and `errorCode`; only an operator can fix the token.
 
 **Why `minAppVersion`.** Desktop releases up to 0.1.103 accept only
-`openmausbot.com` names for **Remote computer → Desktop companion** pairing
+`openopendeliobot.com` names for **Remote computer → Desktop companion** pairing
 (phones, pairing links, and Tailscale have no domain rule). The desktop app
-accepts `mausbot.si` from the release that ships this change, and from the
+accepts `opendeliobot.com` from the release that ships this change, and from the
 same release it reports its version with every endpoint request; older apps
 are judged by the version they registered with. Set `minAppVersion` to that
 release so a computer on an older release keeps an address every desktop can
@@ -552,9 +552,9 @@ Tailscale still work).
    Cloudflare Tunnel → Edit and Zone → DNS → Edit. Before relying on it, you
    can prove it may write: with the token, create a tunnel
    (`POST accounts/<account id>/cfd_tunnel` with
-   `{"name": "omb-token-check", "config_src": "cloudflare"}`) and a TXT record
+   `{"name": "odb-token-check", "config_src": "cloudflare"}`) and a TXT record
    in the zone, then delete both.
-5. `wrangler secret put CLOUDFLARE_API_TOKEN_MAUSBOT_SI` (or the name you
+5. `wrangler secret put CLOUDFLARE_API_TOKEN_DELIO_SI` (or the name you
    chose). Never put a token in `vars`, `.dev.vars.example`, logs, or CI output.
 6. Set `CLOUDFLARE_ENDPOINT_ACCOUNTS` with `dnsRecordLimit` equal to the
    zone's real quota and `minAppVersion` as above. Add the token's secret name
@@ -578,7 +578,7 @@ Tailscale still work).
 **Raising a zone's record quota.** After moving a zone to a plan with more
 DNS records (Free zones added since September 2024 allow 200, Pro 3,500),
 confirm the new quota with `GET zones/<zone id>/dns_records/usage`
-(`record_quota`), set the account's limit to it (`OMB_DNS_RECORD_LIMIT` for
+(`record_quota`), set the account's limit to it (`ODB_DNS_RECORD_LIMIT` for
 the primary, the entry's `dnsRecordLimit` in `CLOUDFLARE_ENDPOINT_ACCOUNTS`
 otherwise; with 3,500 records the account's 1,000 tunnels bind first), and
 deploy. Until that deploy the account looks full at its old limit and gets
@@ -587,12 +587,12 @@ no new endpoint while another account has room.
 Each account adds two Cloudflare reads to every cron run (a tunnel page and a
 DNS count), and each move two lookups in the old account. Tokens created by
 the same Cloudflare user share its 1,200 requests per five minutes. On
-Workers Free, three accounts with `OMB_CLEANUP_SWEEP_LIMIT` 3 use the whole
+Workers Free, three accounts with `ODB_CLEANUP_SWEEP_LIMIT` 3 use the whole
 50-subrequest budget; a fourth needs the limit at 2.
 
-### MausBot Relay
+### Delio Relay
 
-Phones reach a desktop through MausBot Relay, end-to-end encrypted: the relay passes sealed bytes and can't open them
+Phones reach a desktop through Delio Relay, end-to-end encrypted: the relay passes sealed bytes and can't open them
 (`companion/src/e2e/README.md`). This Worker only lets a computer onto the relay. It mints a 12-hour host token signed
 with Ed25519; the relay holds only the public key and checks tokens offline, so it can't mint one itself.
 
@@ -622,7 +622,7 @@ old one; no identifiers) answers:
 - **Usage per day** (`migrations/0014`). `relay_daily` counts installations once per UTC day and kind: `seen` (asked
   for a token), `token` (got one), `e2e` (reported end-to-end phones), `new` (asked for the first time). It holds only
   the day, the kind and a count; `relay_adoption.first_seen_at`, `token_at` and `e2e_at` tell a request whether its
-  installation was already counted today. The stats dashboard (stats.openmausbot.com) charts it. A Worker without the
+  installation was already counted today. The stats dashboard (stats.openopendeliobot.com) charts it. A Worker without the
   migration keeps minting tokens and writing `relay_adoption`, and logs `relay_daily_schema` once per isolate.
 - **Tunnels.** From `RELAY_CAPABLE_MIN_VERSION`, a desktop at that version or later that the relay can carry (it is
   on, the computer is inside the rollout and not blocked) and that reports `legacyDevices: 0` gets `409 relay_capable`
@@ -643,7 +643,7 @@ hostname stay, so a later provisioning call returns the same address.
 | `TUNNEL_LEGACY_PHONE_CUTOFF_PERCENT` | `0` | Share of relay-served computers that give up their tunnel whatever phones are paired. Old phone apps stop connecting from outside the home network |
 | `TUNNEL_MIN_APP_VERSION` | empty | A desktop below it gets `426 update_required` and its tunnel is removed. A missing version counts as below |
 | `TUNNEL_REASON_MIN_VERSION` | empty | First desktop release that reads `tunnel` on `409 relay_capable` and keeps asking afterwards. Only from it is a full account answered with `relay_capable` |
-| `OMB_TUNNEL_RECLAIM_PREVIEW_DAYS` | empty | Dry run of idle reclaim at another offline period; counted, never acted on |
+| `ODB_TUNNEL_RECLAIM_PREVIEW_DAYS` | empty | Dry run of idle reclaim at another offline period; counted, never acted on |
 
 - **Proven on the relay** means: a relay token in the last two days, a phone report in the last two days with at
   least one phone on the encrypted connection and no old phone, and no old phone reported for the whole wait
@@ -667,12 +667,12 @@ hostname stay, so a later provisioning call returns the same address.
   deletes again at once, for at most two rounds, the last with `?cascade=true` (what `cloudflared tunnel delete
   --force` sends; not in the public API reference); a deleted tunnel's connector token no longer connects. Idle reclaim never does this: a tunnel that answers
   "still connected" is left, and its next attempt finds it connected and cancels.
-- **Backpressure.** A run marks at most what one cleanup sweep removes (`OMB_CLEANUP_SWEEP_LIMIT`, at most 20) minus
+- **Backpressure.** A run marks at most what one cleanup sweep removes (`ODB_CLEANUP_SWEEP_LIMIT`, at most 20) minus
   the rows already waiting for cleanup. While the sweep is failing or rate-limited nothing more is marked. A forced
   removal still refused as connected after its rounds does not count as waiting: it backs off (5 minutes up to 24
   hours) and retries while the sweep and the marking go on. A marked row is a final delete: its owner is answered
   `409 endpoint_busy` until the sweep has removed it.
-- **Self-hosted servers.** A server (`openmausbot serve --tunnel`, a fleet container with `OMB_INSTALLATION_CREDENTIAL`)
+- **Self-hosted servers.** A server (`opendeliobot serve --tunnel`, a fleet container with `ODB_INSTALLATION_CREDENTIAL`)
   has no phone relay of its own: its tunnel is its public address (web UI, the desktop app's connection to it,
   webhooks). Provisioning never answers a server `relay_capable` (no `retired`, no `full`; at the limit it gets
   `503 endpoint_capacity`), and the cron never marks a server's tunnel for `relay_proven` or `legacy_cutoff`. The
@@ -743,8 +743,8 @@ non-production scoped `CLOUDFLARE_API_TOKEN`, apply the migrations locally, and
 start Wrangler:
 
 ```sh
-pnpm --filter @openmausbot/control-plane exec wrangler d1 migrations apply DB --local --config wrangler.jsonc
-pnpm --filter @openmausbot/control-plane exec wrangler dev --config wrangler.jsonc
+pnpm --filter @opendeliobot/control-plane exec wrangler d1 migrations apply DB --local --config wrangler.jsonc
+pnpm --filter @opendeliobot/control-plane exec wrangler dev --config wrangler.jsonc
 ```
 
 Do not commit `.dev.vars`. Because `wrangler.jsonc` declares
@@ -782,7 +782,7 @@ companion on port `8810` also does not prove managed HTTPS is ready.
 2. Check the scope of failures without exporting account or installation data:
 
    ```sh
-   pnpm --filter @openmausbot/control-plane exec wrangler d1 execute DB --remote --command "SELECT provider_account, status, last_error_code, COUNT(*) AS endpoints FROM installation_endpoints GROUP BY provider_account, status, last_error_code"
+   pnpm --filter @opendeliobot/control-plane exec wrangler d1 execute DB --remote --command "SELECT provider_account, status, last_error_code, COUNT(*) AS endpoints FROM installation_endpoints GROUP BY provider_account, status, last_error_code"
    ```
 
 3. Check **account-wide** undeleted tunnel usage in the endpoint's Cloudflare
@@ -858,7 +858,7 @@ Before a production deployment, an operator must:
    the APNs secrets listed under **Phone push relay**. Without them the push
    routes answer `503 push_unavailable` and nothing else changes.
 9. Deploy the Worker and verify that `GET <BETTER_AUTH_URL>/healthz` returns
-   `"ok": true` and `"service": "openmausbot-control-plane"` over HTTPS
+   `"ok": true` and `"service": "opendeliobot-control-plane"` over HTTPS
    before shipping the desktop build. Electron probes this endpoint and
    keeps new hosted onboarding hidden until it is healthy; an already signed-in
    user remains visible so cleanup and recovery are not stranded.

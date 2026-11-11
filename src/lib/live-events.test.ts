@@ -148,7 +148,7 @@ describe("live events supervisor", () => {
       stop();
       retryLiveEvents();
       expect(test.sources).toHaveLength(2);
-      expect(test.windowTarget.count("omb:retry-live-events")).toBe(0);
+      expect(test.windowTarget.count("odb:retry-live-events")).toBe(0);
     } finally {
       stop();
       vi.unstubAllGlobals();

@@ -50,9 +50,9 @@ const controlReady = controlToken ? Promise.resolve() : new Promise<void>((resol
 parentPort?.on("message", ({ data }) => {
   if (!data || typeof data !== "object") return;
   const message = data as Record<string, unknown>;
-  if (message.type === "openmausbot:companion-e2e") return void configureE2E(message);
-  if (message.type === "openmausbot:companion-e2e-redial") return void relay?.redial();
-  if (message.type !== "openmausbot:companion-mutation-token") return;
+  if (message.type === "opendeliobot:companion-e2e") return void configureE2E(message);
+  if (message.type === "opendeliobot:companion-e2e-redial") return void relay?.redial();
+  if (message.type !== "opendeliobot:companion-mutation-token") return;
   if (typeof message.token === "string" && /^[A-Za-z0-9_-]{43}$/.test(message.token)) {
     mutationToken = message.token;
   }
@@ -68,16 +68,16 @@ const num = (value: string | undefined, fallback: number): number => {
   return Number.isInteger(parsed) && parsed > 0 && parsed < 65536 ? parsed : fallback;
 };
 
-const HARNESS_PORT = num(process.env.OMB_PORT, 8799);
-const WEBHOOK_PORT = num(process.env.OMB_WEBHOOK_PORT, HARNESS_PORT + 1);
-const COMPANION_PORT = num(process.env.OMB_COMPANION_PORT, 8810);
-const CONTROL_PORT = num(process.env.OMB_CONTROL_PORT, 8811);
-const SERVICE_TYPE = "_openmausbot._tcp";
-let hostedUrl = hostedCompanionUrl(process.env.OMB_COMPANION_HOSTED_URL);
+const HARNESS_PORT = num(process.env.ODB_PORT, 8799);
+const WEBHOOK_PORT = num(process.env.ODB_WEBHOOK_PORT, HARNESS_PORT + 1);
+const COMPANION_PORT = num(process.env.ODB_COMPANION_PORT, 8810);
+const CONTROL_PORT = num(process.env.ODB_CONTROL_PORT, 8811);
+const SERVICE_TYPE = "_opendeliobot._tcp";
+let hostedUrl = hostedCompanionUrl(process.env.ODB_COMPANION_HOSTED_URL);
 directRoutesFromEnv(process.env);
-const PRIVATE_ORIGIN = companionOriginSocket(process.env.OMB_COMPANION_INTERNAL_ORIGIN);
+const PRIVATE_ORIGIN = companionOriginSocket(process.env.ODB_COMPANION_INTERNAL_ORIGIN);
 const SECRET_PUBLIC_KEY = normalizedPhoneSecretPublicKey(
-  process.env.OMB_PHONE_SECRET_PUBLIC_KEY ?? "",
+  process.env.ODB_PHONE_SECRET_PUBLIC_KEY ?? "",
 );
 
 /** Checked up front: the collision is a race, and the loser's error surfaces
@@ -92,12 +92,12 @@ const conflict = (name: string, port: number): string | null => {
   return owner ? `${name} is set to port ${port}, which is ${owner}` : null;
 };
 
-/** OMB_COMPANION_NAME wins; otherwise the name set in Settings or the owner's profile name, re-read every 30
+/** ODB_COMPANION_NAME wins; otherwise the name set in Settings or the owner's profile name, re-read every 30
  * seconds so a rename, or a harness that answered late, reaches the phone. Failures keep the last name. */
-const fixedName = process.env.OMB_COMPANION_NAME?.trim() || "";
+const fixedName = process.env.ODB_COMPANION_NAME?.trim() || "";
 let cachedName = fixedName;
 
-const machineName = (): string => cachedName || "OpenMausBot";
+const machineName = (): string => cachedName || "OpenDeliobot";
 
 /** True when the name changed. */
 async function refreshMachineName(): Promise<boolean> {
@@ -123,7 +123,7 @@ const devices = new DeviceRegistry();
 const mdns = new MdnsResponder();
 const e2e = new E2ERegistry(devices);
 let relay: RelayClient | null = null;
-const relayBaseUrl = relayBaseUrlOverride(process.env.OMB_COMPANION_RELAY_URL);
+const relayBaseUrl = relayBaseUrlOverride(process.env.ODB_COMPANION_RELAY_URL);
 
 /** Advertise when a network appears, re-advertise when DHCP moves us, withdraw
  * when it goes. */
@@ -207,7 +207,7 @@ function applyRelay(config: RelayConfig | null): void {
       const session = e2e.accept(transport, TRANSPORT_RELAY, "relay", (context) => e2eOrigin.connect(context));
       return session && { receive: (data, binary) => session.receive(data, binary), transportClosed: (code) => session.transportClosed(code) };
     },
-    tokenRejected: () => parentPort?.postMessage({ type: "openmausbot:companion-e2e-token-rejected" }),
+    tokenRejected: () => parentPort?.postMessage({ type: "opendeliobot:companion-e2e-token-rejected" }),
     statusChanged: (status, node) => console.log(`e2e: relay ${status}${node ? ` via ${node}` : ""}`),
     baseUrl: relayBaseUrl,
   });
@@ -289,7 +289,7 @@ const listen = (server: ReturnType<typeof createServer>, port: number, host: str
     const onError = (error: NodeJS.ErrnoException) => {
       server.removeListener("listening", onListening);
       const hint = ` — another copy of the companion may already be running; ${
-        port === COMPANION_PORT ? "OMB_COMPANION_PORT" : "OMB_CONTROL_PORT"
+        port === COMPANION_PORT ? "ODB_COMPANION_PORT" : "ODB_CONTROL_PORT"
       } chooses a different one`;
       reject(
         error.code === "EADDRINUSE"
@@ -313,20 +313,20 @@ const listen = (server: ReturnType<typeof createServer>, port: number, host: str
 
 async function main(): Promise<void> {
   const clash =
-    conflict("OMB_COMPANION_PORT", COMPANION_PORT) ?? conflict("OMB_CONTROL_PORT", CONTROL_PORT);
+    conflict("ODB_COMPANION_PORT", COMPANION_PORT) ?? conflict("ODB_CONTROL_PORT", CONTROL_PORT);
   if (clash) throw new Error(`${clash}. Pick another port.`);
 
   // 127.0.0.1 and 0.0.0.0 on one port collide; name it rather than EADDRINUSE.
   if (COMPANION_PORT === CONTROL_PORT) {
     throw new Error(
-      `OMB_COMPANION_PORT and OMB_CONTROL_PORT are both port ${COMPANION_PORT}, and they cannot share one: ` +
+      `ODB_COMPANION_PORT and ODB_CONTROL_PORT are both port ${COMPANION_PORT}, and they cannot share one: ` +
         `the first is open to your network and the second must never be. Pick another port.`,
     );
   }
 
   await controlReady;
   // Standing alone, end-to-end is opt-in and keeps its own key; the desktop app sends its key over its port.
-  if (!parentPort && process.env.OMB_COMPANION_E2E === "1") {
+  if (!parentPort && process.env.ODB_COMPANION_E2E === "1") {
     const key = standaloneTransportKey();
     e2e.setKey(key);
     console.log(`e2e: on, transport key ${b64u(key.publicKey).slice(0, 8)}…`);
@@ -342,7 +342,7 @@ async function main(): Promise<void> {
 
   // Through the watcher: a laptop may have no addresses yet, and they change
   // under a running sidecar. Discovery failing is never fatal.
-  if (process.env.OMB_COMPANION_BONJOUR !== "0") {
+  if (process.env.ODB_COMPANION_BONJOUR !== "0") {
     await watcher.check();
     watcher.start();
   }

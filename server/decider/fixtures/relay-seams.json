@@ -1,12 +1,12 @@
 {
   "about": [
-    "Shared contract between OpenMausBot (server/decider/relay.ts) and the openmaus-cloud Admin's decision relay.",
-    "OMB sends POST <OMB_CLOUD_DECIDER_URL>/v1/systemone with Authorization: Bearer <OMB_CLOUD_DECIDER_TOKEN>, the header below naming the seam, and `body` as the JSON body (Jev's System One shape).",
-    "The relay accepts a request only when the named seam's shape check passes; `accepts` is that verdict. OMB never sends one it would refuse (tests check both sides agree).",
-    "An oversize request is answered 413; OMB reads that as too large, says so plainly and never retries it.",
+    "Shared contract between OpenDeliobot (server/decider/relay.ts) and the opendelio-cloud Admin's decision relay.",
+    "ODB sends POST <ODB_CLOUD_DECIDER_URL>/v1/systemone with Authorization: Bearer <ODB_CLOUD_DECIDER_TOKEN>, the header below naming the seam, and `body` as the JSON body (Jev's System One shape).",
+    "The relay accepts a request only when the named seam's shape check passes; `accepts` is that verdict. ODB never sends one it would refuse (tests check both sides agree).",
+    "An oversize request is answered 413; ODB reads that as too large, says so plainly and never retries it.",
     "Regenerate from the real request builders when a seam changes, and copy this file to the Admin."
   ],
-  "header": "x-omb-seam",
+  "header": "x-odb-seam",
   "endpoint": "/v1/systemone",
   "limits": {
     "maxBodyBytes": 65536,
@@ -23,7 +23,7 @@
   "seams": {
     "keyCheck": {
       "state": {
-        "purpose": "OpenMausBot is checking that a decision-model key works."
+        "purpose": "OpenDeliobot is checking that a decision-model key works."
       },
       "question": "Is this a connection check?"
     },
@@ -74,7 +74,7 @@
       "accepts": true,
       "body": {
         "state": {
-          "purpose": "OpenMausBot is checking that a decision-model key works."
+          "purpose": "OpenDeliobot is checking that a decision-model key works."
         },
         "model": "jev-latest",
         "questions": {
@@ -110,7 +110,7 @@
         "state": {
           "room": "Launch",
           "humans_in_room": [
-            "Milind"
+            "Alex"
           ],
           "bots_in_room": [
             "Maya",
@@ -118,12 +118,12 @@
           ],
           "recent_messages": [
             {
-              "from": "Milind",
+              "from": "Alex",
               "text": "we ship Friday"
             }
           ],
           "new_message": {
-            "from": "Milind",
+            "from": "Alex",
             "text": "the navbar overlaps on Safari"
           }
         },

@@ -11,7 +11,7 @@ const settledYet = async (promise) => { let done = false; void promise.then(() =
 
 /** One Cloud of the person's own, lent to, whose answer to a disconnect is held (`hold`) until the test lets it go, or fails (`fail`). */
 async function fixture(t, { screen = () => false } = {}) {
-  const dir = await mkdtemp(path.join(tmpdir(), "omb-lending-goodbyes-"));
+  const dir = await mkdtemp(path.join(tmpdir(), "odb-lending-goodbyes-"));
   const env = { id: "cloud-a", origin: "https://a.fixture.test", name: "A's Cloud", cloud: { id: "c" } };
   const identity = { sessionId: randomUUID(), environmentId: randomUUID() };
   const f = { env, status: "connected", polls: 0, disconnects: 0, hold: false, fail: false, answer: Promise.withResolvers() };
@@ -22,7 +22,7 @@ async function fixture(t, { screen = () => false } = {}) {
     async fetch(url, { signal }) {
       const route = new URL(url).pathname;
       if (route === "/api/auth/session") return Response.json({ kind: "session", id: identity.sessionId, cloudHome: true, scopes: ["admin"] });
-      if (route === "/.well-known/openmausbot/environment") return Response.json({ environmentId: identity.environmentId, capabilities: { sharedComputers: true } });
+      if (route === "/.well-known/opendeliobot/environment") return Response.json({ environmentId: identity.environmentId, capabilities: { sharedComputers: true } });
       if (route.endsWith("/disconnect")) { f.disconnects++; if (f.fail) throw new Error("no answer"); if (f.hold) await f.answer.promise; return Response.json({ ok: true }); }
       if (route.endsWith("/poll")) { f.polls++; await new Promise((_resolve, reject) => { signal.throwIfAborted(); signal.addEventListener("abort", () => reject(signal.reason), { once: true }); }); }
       return Response.json({ ok: true });

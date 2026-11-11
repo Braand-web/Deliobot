@@ -12,12 +12,12 @@
 
 ## Global Constraints
 
-- Work only in `/Users/omkar/Desktop/openmaus/OpenGrokBot-learn-watch-talk` on `feat/learned-replay`. Never push. Every commit message ends with a blank line and `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
+- Work only in `/Users/omkar/Desktop/opendelio/OpenGrokBot-learn-watch-talk` on `feat/learned-replay`. Never push. Every commit message ends with a blank line and `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 - Comments follow `AGENTS.md`: only what code cannot say (vendor facts with version, wire doc comments in `shared/`, security invariants, known open risks). No narration.
 - The server runs on type stripping: type-only imports are `import type` (or inline `type`).
 - `server/index.ts` is at 16170 lines against a file-size ratchet of 16173 (`scripts/testing/file-size-ratchet.test.ts`). This plan adds exactly three lines there and removes one. `server/config.ts` (1365/1365), `src/components/ChatView.tsx` (1348/1348) and `src/state/store.tsx` (3456/3456) may not grow at all: their edits extend existing lines.
 - `server/index.ts` may not gain a `path === "/` comparison (`scripts/testing/index-route-ratchet.test.ts`, at 92/92). New routes live in `server/routes/` modules; the journal path is compared through the constant `COMPUTER_JOURNAL_PATH`.
-- Journalling runs only when `OMB_COMPUTER_JOURNAL=1`, which only `gatedLocalComputer` (`server/local-computer.ts:29-47`) sets. Local VM, VPS, Cloud Boat, team computers and the browser never journal or replay.
+- Journalling runs only when `ODB_COMPUTER_JOURNAL=1`, which only `gatedLocalComputer` (`server/local-computer.ts:29-47`) sets. Local VM, VPS, Cloud Boat, team computers and the browser never journal or replay.
 - Journal POST: `POST /api/internal/computer/journal`, body `{tool, arguments, result}`, awaited before the response is forwarded, 1 000 ms timeout, then forward anyway.
 - cua-driver's MCP wire uses snake_case (`element_index`, `element_token`, `parent_index`, `window_id`, `window_title`, `app_name`, `bundle_id`); `node_modules/@trycua/cua-driver/dist/native/cua_driver_contract.d.ts` (`WindowElement` ~1379, `WindowStateOutput` ~1404, `AppInfo` ~90, `WindowInfo` ~935) gives the same fields in camelCase. The contract types no `launch_app` output: read its `pid`, `bundle_id`, `name` defensively.
 - Element values (`value`, `valueDescription`), frames, screenshots and all `content` never leave the bridge.
@@ -29,7 +29,7 @@
 - Never address a replayed step by `x`/`y`. A recipe never holds `element_token`, `element_index`, `pid`, `window_id` or `session`; targets are resolved fresh.
 - Wire field: `WireMessage.savedSteps?: { recipeId: string; learned?: true; replayed?: true }`. Setting: `config.json` `features.savedSteps`, on unless `false`.
 - Copy (English, `src/locales/en.json`): chips "Saved these steps · next time no AI" / "Repeated saved steps · no AI" with a "Forget" button; setting title "Repeat computer tasks without AI".
-- Phones are untouched (no `mausbot-mobile` work); the forget route is not added to `CLIENT_ALLOW`.
+- Phones are untouched (no `delio-mobile` work); the forget route is not added to `CLIENT_ALLOW`.
 - Test commands: `pnpm exec vitest run <file>`; `pnpm typecheck`; `pnpm lint`; `pnpm i18n:check`.
 - Line numbers are those of commit `8a82b4a79`. A line an earlier task inserts shifts every later one, so find each edit by the code quoted beside it.
 
@@ -179,15 +179,15 @@ it("derives the journal URL from the control URL", () =>
 `local-computer-proxy.test.ts`, new case beside the existing `describe`, reusing its `FAKE_DRIVER` child and `rpc` helper pattern with a loopback server that answers `GET /control` with `{held:false, helpOpen:false}` and records `POST /api/internal/computer/journal`:
 ```ts
 it("journals each tools/call before the engine sees its reply, and forwards anyway when the journal is slow", async () => {
-  // connection = gatedLocalComputer(original, control); spawn with { ...connection.env, OMB_COMPUTER_JOURNAL: "1" }
+  // connection = gatedLocalComputer(original, control); spawn with { ...connection.env, ODB_COMPUTER_JOURNAL: "1" }
   // 1. journal route answers after 300 ms: the reply line arrives after the POST was received (record both timestamps).
   // 2. POST body: { tool: "anything", arguments: {...}, result: { isError: false, ... } } and carries Authorization: Bearer <control token>.
   // 3. journal route never answers: the reply still arrives within 1 500 ms.
-  // 4. without OMB_COMPUTER_JOURNAL the route is never called.
+  // 4. without ODB_COMPUTER_JOURNAL the route is never called.
 });
 ```
 
-`local-computer.test.ts:99`: add `OMB_COMPUTER_JOURNAL: "1"` to the expected `gated.env`.
+`local-computer.test.ts:99`: add `ODB_COMPUTER_JOURNAL: "1"` to the expected `gated.env`.
 
 - [ ] **Step 2: Run them and see them fail**
 
@@ -200,9 +200,9 @@ Expected: FAIL (missing modules; proxy case never sees a POST; env mismatch).
 
 `runMcpBridge`: when `options.journal` is set, build one tap, call `tap.request(line)` in the inbound splitter before `intercept(line)`, and send both `answer` lines and the child's rewritten lines through one serialized writer, `reply(raw, written)`, that awaits `tap.response(raw)` before `process.stdout.write(written + "\n")`. The tap reads the child's raw line (before `toolLists.rewriteResponse`, `localComputerResultLine`, `textOnlyErrorResultLine`), so it sees `structuredContent` intact. Without `journal` the writes stay synchronous and unchanged.
 
-`local-computer-proxy.ts`: destructure `OMB_COMPUTER_JOURNAL` out of `process.env` with the other `OMB_*` variables (the driver never receives it) and pass `journal: { url: journalUrl(url), token }` when it equals `"1"`.
+`local-computer-proxy.ts`: destructure `ODB_COMPUTER_JOURNAL` out of `process.env` with the other `ODB_*` variables (the driver never receives it) and pass `journal: { url: journalUrl(url), token }` when it equals `"1"`.
 
-`gatedLocalComputer`: add `OMB_COMPUTER_JOURNAL: "1"` to `env`.
+`gatedLocalComputer`: add `ODB_COMPUTER_JOURNAL: "1"` to `env`.
 
 - [ ] **Step 4: Run them and see them pass**
 
@@ -955,9 +955,9 @@ Expected: FAIL, file missing.
   FAKE_CLAUDE_TOOL_CALLS_FILE="$SCRATCH/calls.json" FAKE_CLAUDE_PROMPTS="$SCRATCH/prompts.jsonl" \
   FAKE_CLAUDE_REPLY_STATE="$SCRATCH/replies" \
   FAKE_CLAUDE_REPLIES='["Typed hello world into TextEdit. Nothing else changed.","Typed hello world into TextEdit again.","Typed it once more.","Typed it with the switch off."]' \
-    node --experimental-strip-types scripts/control-omb.ts launch
+    node --experimental-strip-types scripts/control-odb.ts launch
   ```
-  In a second terminal, with the printed `DATA` and `PORT`: write `$DATA/Library/Application Support/OpenMausBot/cua-connection.json` under `umask 077` as `{"mode":"embedded","status":"ready","socketPath":"$DATA/cua.sock","mcpCommand":"$PWD/server/testing/fake-cua-driver.ts","mcpArgs":["mcp"],"mcpEnv":{"FAKE_CUA_STATE":"$SCRATCH/cua-state.json","FAKE_CUA_LOG":"$SCRATCH/cua-calls.jsonl","FAKE_CUA_FAIL":"$SCRATCH/fail"}}`; `pnpm control:omb new-bot --name Typist --url http://127.0.0.1:$PORT` (BOT_ID; a new bot runs at Full access); `pnpm control:omb messages --bot BOT_ID --url …` gives `taskId` as THREAD_ID.
+  In a second terminal, with the printed `DATA` and `PORT`: write `$DATA/Library/Application Support/OpenDeliobot/cua-connection.json` under `umask 077` as `{"mode":"embedded","status":"ready","socketPath":"$DATA/cua.sock","mcpCommand":"$PWD/server/testing/fake-cua-driver.ts","mcpArgs":["mcp"],"mcpEnv":{"FAKE_CUA_STATE":"$SCRATCH/cua-state.json","FAKE_CUA_LOG":"$SCRATCH/cua-calls.jsonl","FAKE_CUA_FAIL":"$SCRATCH/fail"}}`; `pnpm control:odb new-bot --name Typist --url http://127.0.0.1:$PORT` (BOT_ID; a new bot runs at Full access); `pnpm control:odb messages --bot BOT_ID --url …` gives `taskId` as THREAD_ID.
 - Rounds, each `send` followed by `wait` (`settled`), then `curl -s "http://127.0.0.1:$PORT/api/threads/$THREAD_ID/messages?limit=40"`:
   1. Learn: `send --text "Open TextEdit and type hello world"` → last bot text has `savedSteps.learned: true` (keep its `recipeId`); `prompts.jsonl` has 1 line; `$DATA/bots/BOT_ID/saved-steps.json` holds one recipe and `stat -f %Lp` prints `600`.
   2. Replay: `send --text "Please open TextEdit and type hello world."` → `prompts.jsonl` still 1 line; `cua-calls.jsonl` gains `list_apps`, `list_windows`, `get_window_state`, `click {"element_token":"s2-e2"}`, then the same three lookups and `type_text {"text":"hello world", …"element_token":"s3-e2"}`; the reply is "Typed hello world into TextEdit." with `savedSteps.replayed: true`.
@@ -965,7 +965,7 @@ Expected: FAIL, file missing.
   4. Learn again: `rm "$SCRATCH/cua-state.json"`, send round 1's words → `prompts.jsonl` 2 lines, `learned: true` again.
   5. Fallback: `touch "$SCRATCH/fail"`, send round 1's words → `prompts.jsonl` 3 lines, the last containing "A saved run of this request did steps 1–1 of 2 and failed at step 2 (type_text on"; `recipes` is `[]`.
   6. Switch off: `rm "$SCRATCH/fail" "$SCRATCH/cua-state.json"`; `curl -s -X PATCH http://127.0.0.1:$PORT/api/config -H 'content-type: application/json' -d '{"features":{"savedSteps":false}}'`; send round 1's words → `prompts.jsonl` 4 lines, no `savedSteps` on the reply, `recipes` still `[]`.
-- Evidence: keep each `wait` and `curl` JSON, `prompts.jsonl`, `cua-calls.jsonl` and the server log path under `.omb-scratch/verify-evidence/saved-steps/`.
+- Evidence: keep each `wait` and `curl` JSON, `prompts.jsonl`, `cua-calls.jsonl` and the server log path under `.odb-scratch/verify-evidence/saved-steps/`.
 - Limits: the driver and engine are fakes; this proves the harness path (journal, save, resolve, approvals, fallback, Stop wiring), not real macOS accessibility trees or a real model. The chips and the switch are proven by their component tests, not by this fixture.
 
 README: add `- [Saved steps: repeating a computer task without AI](saved-steps.md)` after `- [Taking control of a bot's computer](take-control.md)`.

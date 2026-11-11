@@ -27,7 +27,7 @@ describe("base64url", () => {
 
 describe("the stored token hash", () => {
   it("is the hex the desktop already keeps, and nothing else parses", () => {
-    const hash = credentialHash("omb_example");
+    const hash = credentialHash("odb_example");
     expect(credentialHashFromHex(hash.toString("hex"))).toEqual(hash);
     expect(credentialHashFromHex(hash.toString("hex").toUpperCase())).toBeNull();
     expect(credentialHashFromHex("abc")).toBeNull();
@@ -68,7 +68,7 @@ describe("relay tokens", () => {
 describe("descriptors", () => {
   it("round-trip, with and without the relay", () => {
     const T = generateKeyPair();
-    const withRelay = descriptorFor(T.publicKey, { hostId: Buffer.alloc(16, 1), nodes: ["relay1.openmausbot.com"] });
+    const withRelay = descriptorFor(T.publicKey, { hostId: Buffer.alloc(16, 1), nodes: ["relay1.openopendeliobot.com"] });
     const parsed = parseDescriptor(encodeDescriptor(withRelay));
     expect(parsed.outcome === "ok" && parsed.descriptor).toEqual(withRelay);
     const direct = descriptorFor(T.publicKey);

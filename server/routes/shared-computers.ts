@@ -43,7 +43,7 @@ export function createSharedComputerRoutes(deps: {
       if (!pending) return json(res, 426, { error: "WebSocket upgrade required" });
       if (auth.kind !== "session") return json(res, 403, { error: "Pair this desktop first" });
       if (!deps.sessionLive(auth.session.id)) return json(res, 401, { error: "Session ended" });
-      const computer = deps.computers.linkable(link[1]!, auth.session.id, String(req.headers["x-omb-computer-secret"] ?? ""));
+      const computer = deps.computers.linkable(link[1]!, auth.session.id, String(req.headers["x-odb-computer-secret"] ?? ""));
       if (pending.socket.destroyed) return;
       pending.release();
       deps.links.accept({ req, socket: pending.socket, head: pending.head }, { ...computer, seenAs: requestSource(req) }, deps.power());
@@ -56,13 +56,13 @@ export function createSharedComputerRoutes(deps: {
     const body = await readBody(req, 4_000_000);
     if (!deps.enabled(auth)) return json(res, 404, { error: `no route: ${method} ${path}` });
     if (!deps.sessionLive(auth.session.id)) return json(res, 401, { error: "Session ended" });
-    const secret = String(req.headers["x-omb-computer-secret"] ?? "");
+    const secret = String(req.headers["x-odb-computer-secret"] ?? "");
     if (path === "/api/shared-computers/connect") {
       const parsed = sharedComputerRegistration.safeParse(body);
       if (!parsed.success) return json(res, 400, { error: "Invalid computer registration" });
       const registration = parsed.data;
       if (registration.environmentId !== deps.environmentId) return json(res, 409, { error: "Workspace identity changed. Pair again before sharing this computer." });
-      if (deps.cloudHomeLender && !auth.scopes.includes("admin")) return json(res, 403, { error: "Only your own computers can be shared with the Cloud. On this computer, choose Open the Cloud in Settings → MausBot Cloud first." });
+      if (deps.cloudHomeLender && !auth.scopes.includes("admin")) return json(res, 403, { error: "Only your own computers can be shared with the Cloud. On this computer, choose Open the Cloud in Settings → Delio Cloud first." });
       deps.computers.register(registration, { session: auth.session.id, person: deps.cloudHomeLender ?? deps.personKey(auth.session) }, secret);
       return json(res, 200, { ok: true });
     }

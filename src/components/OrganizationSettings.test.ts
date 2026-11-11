@@ -106,7 +106,7 @@ describe("optional desktop Organisation settings", () => {
   it("uses the default portal from one sign-in action and keeps custom setup advanced", async () => {
     await ready();
     let view = render();
-    expect(view.html).toContain("https://admin.openmausbot.com");
+    expect(view.html).toContain("https://admin.openopendeliobot.com");
     expect(view.html).toContain("Sign in with your organization");
     expect(view.html).toContain("<summary");
     expect(view.html).toContain("Advanced");
@@ -116,7 +116,7 @@ describe("optional desktop Organisation settings", () => {
     expect(bridge.begin).not.toHaveBeenCalled();
     const signIn = () => view.nodes.find(node => node.type === "button" && node.props.children === "Sign in with your organization")!.props.onClick!();
     signIn(); signIn(); await flush();
-    expect(bridge.begin).toHaveBeenCalledExactlyOnceWith({ portalOrigin: "https://admin.openmausbot.com" });
+    expect(bridge.begin).toHaveBeenCalledExactlyOnceWith({ portalOrigin: "https://admin.openopendeliobot.com" });
     expect(fetch).not.toHaveBeenCalled();
     const progress = render().html;
     expect(progress).toContain("Finish signing in through your browser");
@@ -196,7 +196,7 @@ describe("optional desktop Organisation settings", () => {
   it("explains a lapsed Admin licence without a sign-in loop and shows Company models unavailable", async () => {
     await ready({ ...connected, status: "license-expired" });
     const html = render().html;
-    expect(html).toContain("Your organization&#x27;s OpenMaus Admin license has expired. Contact your admin.");
+    expect(html).toContain("Your organization&#x27;s OpenDelio Admin license has expired. Contact your admin.");
     expect(html).not.toContain("Disconnect below, then sign in again");
     expect(html).not.toContain("Sign in with your organization");
     expect(html).toContain("Unavailable until the licence is renewed");

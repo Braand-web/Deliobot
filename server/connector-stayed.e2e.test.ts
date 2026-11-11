@@ -14,7 +14,7 @@ const phase = () => (existsSync(fx.journalFile) ? (JSON.parse(readFileSync(fx.jo
 
 beforeAll(async () => {
   // A PATH with no uvx: this Cloud lacks it, as the image did before it carried uv.
-  fx = await launchCloudSendFixture({ onePasswordToken: `ops_fake-stayed-${randomBytes(8).toString("hex")}`, env: { OMB_ENVIRONMENT_LABEL: "Mac mini", PATH: [dirname(process.execPath), "/usr/bin", "/bin"].join(delimiter) } });
+  fx = await launchCloudSendFixture({ onePasswordToken: `ops_fake-stayed-${randomBytes(8).toString("hex")}`, env: { ODB_ENVIRONMENT_LABEL: "Mac mini", PATH: [dirname(process.execPath), "/usr/bin", "/bin"].join(delimiter) } });
 }, hostTimeout(120_000));
 afterAll(async () => { await fx?.close(); });
 

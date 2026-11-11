@@ -6,7 +6,7 @@ import { withEndpointFolder } from "./claude-endpoint-folder.ts";
 
 describe("withEndpointFolder", () => {
   let scratch = "";
-  beforeEach(() => { scratch = mkdtempSync(join(tmpdir(), "omb-endpoint-folder-")); });
+  beforeEach(() => { scratch = mkdtempSync(join(tmpdir(), "odb-endpoint-folder-")); });
   afterEach(() => rmSync(scratch, { recursive: true, force: true }));
 
   it("makes a missing custom endpoint folder, wherever it lives", () => {

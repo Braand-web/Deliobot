@@ -9,7 +9,7 @@ import { launchCloudSendFixture, type CloudSendFixture } from "../scripts/testin
 import { hostTimeout } from "./testing/host-timeout.ts";
 
 let fx: CloudSendFixture;
-beforeAll(async () => { fx = await launchCloudSendFixture({ onePasswordToken: `ops_fake-chosen-${randomBytes(8).toString("hex")}`, env: { OMB_ENVIRONMENT_LABEL: "MacBook Air" } }); }, hostTimeout(90_000));
+beforeAll(async () => { fx = await launchCloudSendFixture({ onePasswordToken: `ops_fake-chosen-${randomBytes(8).toString("hex")}`, env: { ODB_ENVIRONMENT_LABEL: "MacBook Air" } }); }, hostTimeout(90_000));
 afterAll(async () => { await fx?.close(); });
 
 type Side = CloudSendFixture["local"];

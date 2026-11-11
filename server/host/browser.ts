@@ -109,7 +109,7 @@ export function createBrowserHost(deps: BrowserHostDeps) {
       throw error instanceof RelayTimeout ? new TransportError(error.message) : error;
     }),
     steps: browserSteps,
-    onTiming: process.env.OMB_BROWSER_TIMING === "1" ? (timing) => console.info(formatBrowserTiming(timing)) : undefined,
+    onTiming: process.env.ODB_BROWSER_TIMING === "1" ? (timing) => console.info(formatBrowserTiming(timing)) : undefined,
   });
   const browserBox = deps.browserBox;
   const boxed = Boolean(browserBox?.(LAUNCHER_SECCOMP_FD, []));
@@ -167,7 +167,7 @@ export function createBrowserHost(deps: BrowserHostDeps) {
     const url = doorUrls.get(session);
     return url !== undefined && spec.env.AGENT_BROWSER_CDP === url;
   }
-  // A tool call that would open Reddit from MausBot Cloud is refused before it reaches the browser. My Chrome is the
+  // A tool call that would open Reddit from Delio Cloud is refused before it reaches the browser. My Chrome is the
   // person's own, outside the egress gate too; on My Cloud a call that can't reach it now says why instead.
   const browserRuntime = new RuntimeRouter(agentBrowserRuntime, chromeEngine, {
     refusal: (_session, spec, params) => (attachesToChrome(spec.env) ? null : browserEgress.callRefusal(params)),
@@ -208,7 +208,7 @@ export function createBrowserHost(deps: BrowserHostDeps) {
   const device = deps.device && lentDevice(deps.device, (session) => turnResources.holder(`browser:${session}`), mayLend);
   const egressHost = DESKTOP_MANAGED ? "desktop" : CLOUD_HOME ? "cloud" : "server";
   // Self-hosted servers only: the owner's switch for this server's own sites and its local network. A shared company
-  // workspace's network is the operator's, so its stored switch and allow-list are ignored, like MausBot Cloud's.
+  // workspace's network is the operator's, so its stored switch and allow-list are ignored, like Delio Cloud's.
   const hostedServer = egressHost === "server" && Boolean(deps.HOSTED_WORKSPACE);
   const sitesSwitch = egressHost === "server" && !hostedServer;
   browserEgress.configure({ host: egressHost, config: () => (hostedServer ? undefined : cfg.browserEngine?.egress), ...(device ? { device } : {}) });
@@ -342,7 +342,7 @@ export function createBrowserHost(deps: BrowserHostDeps) {
       kind: "browser", depth: 0, skillAuthoring: false, createdBots: 0, openedThreads: 0 });
     return {
       command: process.execPath, args: [SPAWNED_PROXIES.harnessMcp, "browser"], env: {
-        ...AGENTS_NODE_FLAG, [harnessMcpTokenEnv("browser")]: token, OMB_HARNESS_URL: `http://127.0.0.1:${PORT}`,
+        ...AGENTS_NODE_FLAG, [harnessMcpTokenEnv("browser")]: token, ODB_HARNESS_URL: `http://127.0.0.1:${PORT}`,
       },
     };
   }
@@ -459,12 +459,12 @@ export function createBrowserHost(deps: BrowserHostDeps) {
   deps.engineMemory?.useBrowsers(engineBrowsers);
   /** A deleted bot's or profile's browser on the new engine, whatever the flag says now. */
   function eraseChromeBrowser(request: { type: string; botId?: string; partitionId?: string }): Promise<boolean> {
-    if (request.type === "openmausbot:browser-bot-deleted" && request.botId) return chromeEngine.erase({ kind: "bot", id: request.botId, partitionId: "" });
+    if (request.type === "opendeliobot:browser-bot-deleted" && request.botId) return chromeEngine.erase({ kind: "bot", id: request.botId, partitionId: "" });
     if (request.partitionId) return chromeEngine.erase({ kind: "profile", id: request.partitionId, partitionId: request.partitionId });
     return Promise.resolve(true);
   }
   /**
-   * The agent-browser whose saved sessions a deletion erases: the one OpenMausBot installed, or on a Cloud home the
+   * The agent-browser whose saved sessions a deletion erases: the one OpenDeliobot installed, or on a Cloud home the
    * image's own. Another one on PATH may be a wrapper whose failing close would hold the cleanup journal forever, so
    * it only closes the running browser.
    */
@@ -483,7 +483,7 @@ export function createBrowserHost(deps: BrowserHostDeps) {
     return results.every(Boolean);
   }
   async function eraseOneBrowser(request: BrowserCleanupWireRequest): Promise<boolean> {
-    const session = request.type === "openmausbot:browser-bot-deleted" && request.botId ? browserSessionId(request.botId, "")
+    const session = request.type === "opendeliobot:browser-bot-deleted" && request.botId ? browserSessionId(request.botId, "")
       : request.partitionId ? browserSessionId("", request.partitionId) : null;
     const engine = cleanupEngine();
     const erased = async (name: string) => {
@@ -493,7 +493,7 @@ export function createBrowserHost(deps: BrowserHostDeps) {
         return true;
       }
       const ok = await clearBrowserSessionState(engine.binaryPath, name, { encryptionKey: browserEngineEncryptionKey() });
-      if (!ok) console.warn(`browser cleanup: could not clear saved state for session ${name}; restart OpenMausBot to retry this profile's cleanup. Do not use state clear --all: it erases other profiles too.`);
+      if (!ok) console.warn(`browser cleanup: could not clear saved state for session ${name}; restart OpenDeliobot to retry this profile's cleanup. Do not use state clear --all: it erases other profiles too.`);
       return ok;
     };
     const results = await Promise.all([eraseChromeBrowser(request), ...session ? [erased(session)] : []]);
@@ -505,16 +505,16 @@ export function createBrowserHost(deps: BrowserHostDeps) {
     const suffix = audienceBrowserSuffix(audience);
     if (!suffix || !audiences.variants().includes(suffix)) return true;
     const requests: BrowserCleanupWireRequest[] = [
-      ...store.bots.map((bot) => ({ type: "openmausbot:browser-bot-deleted" as const, requestId: "team-member-left", botId: bot.id + suffix })),
+      ...store.bots.map((bot) => ({ type: "opendeliobot:browser-bot-deleted" as const, requestId: "team-member-left", botId: bot.id + suffix })),
       ...(cfg.browserProfiles ?? []).filter((profile) => !usesMyChrome(profile.id)).map((profile) => ({
-        type: "openmausbot:browser-profile-deleted" as const, requestId: "team-member-left", partitionId: browserProfilePartitionId(profile) + suffix })),
+        type: "opendeliobot:browser-profile-deleted" as const, requestId: "team-member-left", partitionId: browserProfilePartitionId(profile) + suffix })),
     ];
     return (await Promise.all(requests.map((request) => eraseOneBrowser(request)))).every(Boolean);
   }
   /** Chrome receives private copies; a boxed agent-browser reads them from its own profile's folder. */
   function uploadPaths(files: ReadonlyArray<{ file: string; name: string | null }>, session: string, spec: Spec): Promise<string[]> {
     const chrome = chromeTarget(session, spec);
-    const folder = boxed && !chrome ? join(browserProfileDirectory(session), "omb-uploads") : join(DATA_DIR, "browser-uploads");
+    const folder = boxed && !chrome ? join(browserProfileDirectory(session), "odb-uploads") : join(DATA_DIR, "browser-uploads");
     return namedUploadPaths(files, folder, Date.now(), { everyFile: boxed || Boolean(chrome) });
   }
   /** The saved sign-ins of a bot's or a shared profile's browser, for one audience. */

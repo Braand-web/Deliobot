@@ -8,7 +8,7 @@ import { Downloads } from "./downloads.ts";
 import type { CdpTransport } from "./transport.ts";
 
 let directory: string;
-beforeEach(() => { directory = mkdtempSync(join(tmpdir(), "omb-download-retention-")); });
+beforeEach(() => { directory = mkdtempSync(join(tmpdir(), "odb-download-retention-")); });
 afterEach(() => { rmSync(directory, { recursive: true, force: true }); });
 
 function setup() {

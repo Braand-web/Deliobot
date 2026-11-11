@@ -10,7 +10,7 @@ import { scanPc, sha256File } from "./cloud-sync-scan.mjs";
 import { SyncAuthError } from "./cloud-sync-client.mjs";
 import { CloudAsleepError } from "./cloud-power.mjs";
 
-const TEMP_TAG = ".omb-sync-";
+const TEMP_TAG = ".odb-sync-";
 const TEMP_STALE_MS = 24 * 60 * 60_000;
 const CONCURRENCY = 2;
 
@@ -103,7 +103,7 @@ async function send(ctx, action, again = true) {
 }
 
 /**
- * A bot's work: My Cloud's files to this computer, in `local` (Documents/MausBot/<bot>/<conversation>). Never deletes here,
+ * A bot's work: My Cloud's files to this computer, in `local` (Documents/Delio/<bot>/<conversation>). Never deletes here,
  * never writes a config an agent or tool would obey, and marks each file as downloaded (`markDownloaded`).
  */
 export async function fetchOutputs({ client, state, folder, local, platform = process.platform, now = Date.now, trashItem, markDownloaded = async () => {}, freeBytes = defaultFree, report }) {

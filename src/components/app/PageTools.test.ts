@@ -30,7 +30,7 @@ const json = (status: number, body: unknown) => new Response(JSON.stringify(body
 const fetchMock = vi.fn<(path: string, init?: RequestInit) => Promise<Response>>();
 const openExternal = vi.fn(async () => true);
 const store = { state: {}, dispatch: vi.fn(), flushBotPatches: vi.fn(async () => null) } as unknown as ReturnType<typeof useStore>;
-const LINK = "https://page000000000000000000001.mausbot.page/";
+const LINK = "https://page000000000000000000001.delio.page/";
 const LIVE: PublishedPageCard = { state: "live", title: "Pricing", pageId: "page000000000000000000001", url: LINK, usage: { pages: 1, limit: 5 } };
 
 let host: HTMLDivElement;
@@ -59,7 +59,7 @@ const button = (label: string, within: ParentNode = document) => Array.from(with
   .find((element) => element.textContent?.trim() === label || element.getAttribute("aria-label") === label)!;
 const click = (label: string, within?: ParentNode) => act(async () => { button(label, within).click(); await new Promise((resolve) => setTimeout(resolve, 0)); });
 const chips = () => JSON.parse(host.querySelector("[data-chips]")!.getAttribute("data-chips")!) as unknown[];
-const documents = () => fetchMock.mock.calls.map(([path]) => new URL(path, "http://omb.test")).filter((url) => url.pathname.endsWith("/app"));
+const documents = () => fetchMock.mock.calls.map(([path]) => new URL(path, "http://odb.test")).filter((url) => url.pathname.endsWith("/app"));
 const posts = (ending: string) => fetchMock.mock.calls.filter(([path, init]) => path.endsWith(ending) && init?.method === "POST").map(([, init]) => JSON.parse(String(init!.body)));
 const fromFrame = (data: unknown, source: unknown) => act(async () => {
   window.dispatchEvent(new MessageEvent("message", { data, source: source as MessageEventSource }));
@@ -70,7 +70,7 @@ const PICK = { jsonrpc: "2.0", method: POINTED_METHOD, params: { tag: "button", 
 beforeEach(() => {
   fetchMock.mockReset();
   fetchMock.mockImplementation(async (path) => {
-    const url = new URL(path, "http://omb.test");
+    const url = new URL(path, "http://odb.test");
     if (url.pathname.endsWith("/app/publish")) return json(200, { ok: true, card: LIVE });
     if (url.pathname.endsWith("/unpublish")) return json(200, { ok: true, card: { ...LIVE, state: "unpublished" } });
     const rev = url.searchParams.get("rev");
@@ -128,7 +128,7 @@ describe("a bot's page in the chat", () => {
     await fromFrame(PICK, inlineFrame().contentWindow);
     expect(chips()).toEqual([]);
     await click("Point", card());
-    expect(posted).toHaveBeenLastCalledWith({ jsonrpc: "2.0", method: "mausbot/point", params: { on: true } }, "*");
+    expect(posted).toHaveBeenLastCalledWith({ jsonrpc: "2.0", method: "delio/point", params: { on: true } }, "*");
     expect(card().textContent).toContain("Click the part of the page you want changed.");
     await fromFrame(PICK, window);
     expect(chips()).toEqual([]);
@@ -139,7 +139,7 @@ describe("a bot's page in the chat", () => {
     await click("Point", card());
     await act(async () => { window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })); });
     expect(button("Point", card()).getAttribute("aria-pressed")).toBe("false");
-    expect(posted).toHaveBeenLastCalledWith({ jsonrpc: "2.0", method: "mausbot/point", params: { on: false } }, "*");
+    expect(posted).toHaveBeenLastCalledWith({ jsonrpc: "2.0", method: "delio/point", params: { on: false } }, "*");
   });
 
   it("shares the version on screen; the card the server patches shows the link with Copy, opens it, and unpublishes it", async () => {
@@ -202,12 +202,12 @@ describe("a bot's page in the chat", () => {
 
     act(() => setAdvancedMode(true));
     await click("Pin to sidebar", card());
-    expect(JSON.parse(localStorage.getItem("omb-web-panels")!)).toEqual([
+    expect(JSON.parse(localStorage.getItem("odb-web-panels")!)).toEqual([
       { id: "panel-1", name: "Pricing", page: { botId: "pepper", threadId: "t1", messageId: "a1" } },
     ]);
     expect(button("Unpin", card()).getAttribute("aria-pressed")).toBe("true");
     await click("Unpin", card());
-    expect(JSON.parse(localStorage.getItem("omb-web-panels")!)).toEqual([]);
+    expect(JSON.parse(localStorage.getItem("odb-web-panels")!)).toEqual([]);
 
     act(() => setWebPanels(Array.from({ length: MAX_WEB_PANELS }, (_, i) => ({ id: `p${i}`, name: `P${i}`, url: `https://p${i}.example/` }))));
     expect(button("Pin to sidebar", card()).disabled).toBe(true);
@@ -220,13 +220,13 @@ describe("a bot's page in the chat", () => {
     setAdvancedMode(true);
     await render(row(payload()));
     // Another window's write whose storage event hasn't arrived yet.
-    localStorage.setItem("omb-web-panels", JSON.stringify([{ id: "panel-9", name: "Other", url: "https://other.example/" }]));
+    localStorage.setItem("odb-web-panels", JSON.stringify([{ id: "panel-9", name: "Other", url: "https://other.example/" }]));
     await click("Pin to sidebar", card());
-    expect(JSON.parse(localStorage.getItem("omb-web-panels")!).map((panel: { name: string }) => panel.name)).toEqual(["Other", "Pricing"]);
+    expect(JSON.parse(localStorage.getItem("odb-web-panels")!).map((panel: { name: string }) => panel.name)).toEqual(["Other", "Pricing"]);
     // The other window unpins everything; Unpin here must not pin the page again.
-    localStorage.setItem("omb-web-panels", "[]");
+    localStorage.setItem("odb-web-panels", "[]");
     await click("Unpin", card());
-    expect(localStorage.getItem("omb-web-panels")).toBe("[]");
+    expect(localStorage.getItem("odb-web-panels")).toBe("[]");
     act(() => { setWebPanels([]); setAdvancedMode(false); });
   });
 

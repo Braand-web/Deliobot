@@ -10,7 +10,7 @@ afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: tru
 
 /** A data folder with Iris's own folder, a conversation folder, her SOUL.md and another bot's folder. */
 function dataFolder() {
-  const data = mkdtempSync(join(tmpdir(), "omb-own-reads-"));
+  const data = mkdtempSync(join(tmpdir(), "odb-own-reads-"));
   dirs.push(data);
   const own = join(data, "workspaces", "iris"), conversation = join(data, "task-workspaces", "iris", "t1");
   const revision = join(own, "skills", ".revisions", "a".repeat(64));

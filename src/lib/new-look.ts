@@ -11,15 +11,15 @@ import { WEB_PANELS_KEY } from "./web-panel-preferences";
 
 /** What this browser's mode was when Simple became the only one: "due" (Advanced; the one-time notice is owed), "seen"
  * (Advanced; it was closed) or "none" (Simple, or a new install). Absent until a Simple-only app first booted here. */
-export const NEW_LOOK_KEY = "omb-new-look";
+export const NEW_LOOK_KEY = "odb-new-look";
 
 /** Device settings only Advanced mode could change: each goes back to its default once. The sidebar's are spelled out,
  * since importing its module would put zod in the first page's bundle. */
 export const ADVANCED_ONLY_PREFS = [FONT_KEY, CHAT_WIDTH_KEY, SHOW_THREADS_KEY, RUN_CARD_KEY, WEB_PANELS_KEY,
-  "openmausbot.sidebarToolsLayout", "openmausbot.pinnedCircles", "openmausbot.universalPins"];
+  "openopendeliobot.comdebarToolsLayout", "opendeliobot.pinnedCircles", "opendeliobot.universalPins"];
 
 /** "due" once a browser that was on Advanced is put back on it, until the word that Advanced is back is closed ("seen"). */
-export const ADVANCED_BACK_KEY = "omb-advanced-back";
+export const ADVANCED_BACK_KEY = "odb-advanced-back";
 
 /** Where this page cannot write its storage, its memory stands in, so a notice still closes for the session. */
 const seenHere = new Set<string>();

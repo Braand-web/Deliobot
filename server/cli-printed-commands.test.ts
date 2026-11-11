@@ -7,15 +7,15 @@ import { noRouteLines, reachLines } from "./cli-reach.ts";
 import { HEADLESS_VERB_NAMES, usage } from "./cli-usage.ts";
 
 const PLACEHOLDERS: Record<string, string> = {
-  "https://…": "https://maus.example.com", "<id>": "a1", ID: "a1", NAME: "kitchen", FILE: "team.yaml", EMAIL: "you@example.com",
-  HOST: "maus.example.com", DIR: "/tmp/omb", N: "8800", CODE: "ABCD-EFGH-JKLM", BOT: "Chief", URL: "https://maus.example.com", "…": "",
+  "https://…": "https://delio.example.com", "<id>": "a1", ID: "a1", NAME: "kitchen", FILE: "team.yaml", EMAIL: "you@example.com",
+  HOST: "delio.example.com", DIR: "/tmp/odb", N: "8800", CODE: "ABCD-EFGH-JKLM", BOT: "Chief", URL: "https://delio.example.com", "…": "",
 };
 
-/** Each `openmausbot …` a line prints, up to the end of the command (two spaces, a quote, a comma or the line's end). */
+/** Each `opendeliobot …` a line prints, up to the end of the command (two spaces, a quote, a comma or the line's end). */
 function printedCommands(text: string): string[][] {
   const found: string[][] = [];
   for (const line of text.split("\n")) {
-    for (const match of line.matchAll(/(?:npx )?openmausbot((?: (?!openmausbot)[^\s,;()`'"]+)*)/g)) {
+    for (const match of line.matchAll(/(?:npx )?opendeliobot((?: (?!opendeliobot)[^\s,;()`'"]+)*)/g)) {
       const words = match[1]!.trim().split(/\s+/).filter(Boolean).map((word) => PLACEHOLDERS[word] ?? word.replace(/[.:]$/, "")).filter(Boolean);
       if (words.length && !/[[\]|]/.test(words.join(" "))) found.push(words);
     }
@@ -32,10 +32,10 @@ function accepted(words: string[]): string | null {
 describe("printed commands", () => {
   const now = Date.parse("2026-11-07T10:00:00");
   const outputs = [
-    pairingBlock({ code: "ABCD-EFGH-JKLM", expiresAt: now + 600_000, chatOnly: false, link: "https://maus.example.com/pair#code=ABCD-EFGH-JKLM", prefix: "openmausbot", now }),
-    pairingBlock({ code: "ABCD-EFGH-JKLM", expiresAt: now + 600_000, chatOnly: false, link: null, localLink: "http://127.0.0.1:8799/pair#code=X", prefix: "openmausbot", now }),
-    noRouteLines(8799, "openmausbot").join("\n"),
-    reachLines("public-url", "https://maus.example.com", 8799, "openmausbot", { ok: false, kind: "unreachable", reason: "connection refused" }).join("\n"),
+    pairingBlock({ code: "ABCD-EFGH-JKLM", expiresAt: now + 600_000, chatOnly: false, link: "https://delio.example.com/pair#code=ABCD-EFGH-JKLM", prefix: "opendeliobot", now }),
+    pairingBlock({ code: "ABCD-EFGH-JKLM", expiresAt: now + 600_000, chatOnly: false, link: null, localLink: "http://127.0.0.1:8799/pair#code=X", prefix: "opendeliobot", now }),
+    noRouteLines(8799, "opendeliobot").join("\n"),
+    reachLines("public-url", "https://delio.example.com", 8799, "opendeliobot", { ok: false, kind: "unreachable", reason: "connection refused" }).join("\n"),
     browserSignInLines("http://127.0.0.1:8799/pair#code=X", "X", now),
     formatSessions([{ id: "a1", label: "phone", scopes: ["client"], lastSeenAt: now, expiresAt: now }], now),
   ];
@@ -50,13 +50,13 @@ describe("printed commands", () => {
     let command: string | null = null;
     const checked: string[] = [];
     for (const line of usage().split("\n")) {
-      const head = /^ {2}openmausbot ([a-z][a-z-]*)/.exec(line);
+      const head = /^ {2}opendeliobot ([a-z][a-z-]*)/.exec(line);
       if (head) command = head[1]!;
-      else if (!/^ {10,}/.test(line) || /^ {2}openmausbot -/.test(line)) command = null;
+      else if (!/^ {10,}/.test(line) || /^ {2}opendeliobot -/.test(line)) command = null;
       if (!command || HEADLESS_VERB_NAMES.has(command) || command === "fleet" || command === "sentinel") continue;
       for (const [flag] of line.matchAll(/--[a-z][a-z-]*/g)) {
         const bare = accepted([command, flag]);
-        const valued = accepted([command, flag, flag === "--public-url" ? "https://maus.example.com" : flag === "--port" ? "8800" : flag === "--ttl" ? "24h" : flag === "--phone" ? "ios" : "x"]);
+        const valued = accepted([command, flag, flag === "--public-url" ? "https://delio.example.com" : flag === "--port" ? "8800" : flag === "--ttl" ? "24h" : flag === "--phone" ? "ios" : "x"]);
         const unknown = (error: string | null) => error !== null && error.includes("unknown argument");
         expect([command, flag, unknown(bare) && unknown(valued)]).toEqual([command, flag, false]);
         checked.push(`${command} ${flag}`);
@@ -66,7 +66,7 @@ describe("printed commands", () => {
   });
 
   it("writes commands the way the CLI was started", () => {
-    expect(usage("npx openmausbot")).toContain("  npx openmausbot pair  [--label NAME]");
-    expect(noRouteLines(8799, "docker compose exec omb openmausbot").join("\n")).toContain("docker compose exec omb openmausbot serve --lan");
+    expect(usage("npx opendeliobot")).toContain("  npx opendeliobot pair  [--label NAME]");
+    expect(noRouteLines(8799, "docker compose exec odb opendeliobot").join("\n")).toContain("docker compose exec odb opendeliobot serve --lan");
   });
 });

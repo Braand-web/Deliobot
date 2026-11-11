@@ -21,7 +21,7 @@ afterEach(async () => {
 });
 
 function setup(key = "bot:fixture", options: Partial<BrowserServiceOptions> = {}) {
-  const dataDir = mkdtempSync(join(tmpdir(), "omb-browser-downloads-"));
+  const dataDir = mkdtempSync(join(tmpdir(), "odb-browser-downloads-"));
   const backend: Backend = {
     kind: "local",
     caps: new FakeBackend().caps,

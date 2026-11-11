@@ -167,9 +167,9 @@ describe("buildMcpServers", () => {
       custom: { motion: { ...url }, shop: { ...url } },
       customResultBudgets: { motion: 40_000 },
     } }) as Record<string, { args: string[]; env: Record<string, string> }>;
-    expect(servers.motion.env.OMB_GATE_BUDGET).toBe("40000");
+    expect(servers.motion.env.ODB_GATE_BUDGET).toBe("40000");
     expect(servers.motion.args[0]).toContain("mcp-gate");
-    expect(servers.shop.env).not.toHaveProperty("OMB_GATE_BUDGET");
+    expect(servers.shop.env).not.toHaveProperty("ODB_GATE_BUDGET");
     expect(servers.shop.args[0]).toContain("mcp-remote-proxy");
   });
 
@@ -211,15 +211,15 @@ describe("buildMcpServers", () => {
     const mounted = servers?.whop as { command: string; args: string[]; env: Record<string, string> };
     expect(mounted).toMatchObject({ command: process.execPath, scope: "custom", directory: true });
     expect(mounted.args[0]).toContain("mcp-remote-proxy");
-    expect(JSON.parse(mounted.env.OMB_REMOTE_MCP_DIRECTORY)).toEqual({ name: "whop" });
+    expect(JSON.parse(mounted.env.ODB_REMOTE_MCP_DIRECTORY)).toEqual({ name: "whop" });
     expect(JSON.stringify(mounted.args)).not.toContain("disposable-pi-token");
     expect(servers?.notes).not.toHaveProperty("directory");
     const toolScope = { allow: ["mcp:whop:*"], deny: ["mcp:whop:payments_create"] };
     const scoped = buildMcpServers({ threadId: "t", text: "hi", toolScope, integrations: { custom: { whop } } })?.whop as { args: string[]; env: Record<string, string> };
     expect(scoped).toMatchObject({ directory: true });
     expect(scoped.args[0]).toContain("mcp-gate");
-    expect(scoped.env.OMB_GATE_DIRECTORY).toBe("1");
-    expect(JSON.parse(JSON.parse(scoped.env.OMB_GATE_UPSTREAM).env.OMB_REMOTE_MCP_DIRECTORY)).toEqual({ name: "whop", toolScope });
+    expect(scoped.env.ODB_GATE_DIRECTORY).toBe("1");
+    expect(JSON.parse(JSON.parse(scoped.env.ODB_GATE_UPSTREAM).env.ODB_REMOTE_MCP_DIRECTORY)).toEqual({ name: "whop", toolScope });
   });
 
   it("marks a host computer with scope so the extension gates its tools", () => {
@@ -269,7 +269,7 @@ describe("PiDriver catalog (fake CLI)", () => {
   });
 
   it("probes the live catalog and flags every option custom", async () => {
-    const catalog = await fetchPiModels(FAKE_CLI, { PATH: process.env.PATH ?? "", HOME: join(tmpdir(), "omb-pi-no-settings") });
+    const catalog = await fetchPiModels(FAKE_CLI, { PATH: process.env.PATH ?? "", HOME: join(tmpdir(), "odb-pi-no-settings") });
     expect(catalog.options).toEqual([
       { id: "ollama-cloud/glm-5.2", label: "glm-5.2", custom: true, provider: "ollama-cloud" },
       { id: "openai/gpt-4o", label: "gpt-4o", custom: true, provider: "openai" },
@@ -281,7 +281,7 @@ describe("PiDriver catalog (fake CLI)", () => {
   it("keeps an empty catalog when the probe reports no models", async () => {
     const catalog = await fetchPiModels(FAKE_CLI, {
       PATH: process.env.PATH ?? "",
-      HOME: join(tmpdir(), "omb-pi-empty"),
+      HOME: join(tmpdir(), "odb-pi-empty"),
       FAKE_PI_MODE: "no-models",
     });
     expect(catalog.options).toEqual([]);
@@ -290,7 +290,7 @@ describe("PiDriver catalog (fake CLI)", () => {
   it("reassembles the chunked catalog from a protocol-v2 runtime", async () => {
     const catalog = await fetchPiModels(FAKE_CLI, {
       PATH: process.env.PATH ?? "",
-      HOME: join(tmpdir(), "omb-pi-omp-chunk"),
+      HOME: join(tmpdir(), "odb-pi-omp-chunk"),
       FAKE_PI_MODE: "omp-chunk",
     });
     // The runtime stubs the catalog unless protocol 2 was negotiated first, so a catalog pins the order.
@@ -302,7 +302,7 @@ describe("PiDriver catalog (fake CLI)", () => {
   });
 
   it("updates pi's catalog only on explicit refresh, then probes it again", async () => {
-    const home = mkdtempSync(join(tmpdir(), "omb-pi-update-"));
+    const home = mkdtempSync(join(tmpdir(), "odb-pi-update-"));
     const dump = join(home, "launches.jsonl");
     const instance = await PiDriver.create({
       instanceId: "pi-refresh",
@@ -334,7 +334,7 @@ describe("PiDriver catalog (fake CLI)", () => {
     })).toBe(false);
     const catalog = await fetchPiModels(FAKE_CLI, {
       PATH: process.env.PATH ?? "",
-      HOME: join(tmpdir(), "omb-pi-update-error"),
+      HOME: join(tmpdir(), "odb-pi-update-error"),
       FAKE_PI_MODE: "update-error",
     });
     expect(catalog.options).toHaveLength(2);
@@ -366,7 +366,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it("refuses a restricted turn when the loaded extension has not confirmed enforcement", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-missing-scope-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-missing-scope-"));
     const dump = join(dir, "rpc.jsonl");
     await create(undefined, { FAKE_PI_DUMP: dump });
     await expect(instance.adapter.sendTurn({ threadId: "missing-enforcement", text: "Must not reach a provider", toolScope: { allow: [] } })).rejects.toThrow(/tool selection.*enforcement/i);
@@ -427,7 +427,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it("sends images as native base64 prompt content without copying bytes into diagnostics", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-image-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-image-"));
     const dump = join(dir, "dump.jsonl");
     const imagePath = join(dir, "tiny.png");
     const bytes = Buffer.from("private-image-bytes");
@@ -478,7 +478,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it("delivers the full prompt once per session and rides volatile changes as notes", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-split-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-split-"));
     const dump = join(dir, "dump.jsonl");
     await create(undefined, { FAKE_PI_DUMP: dump });
     // Receipts are keyed by thread and session file, so a unique thread keeps the run hermetic.
@@ -507,11 +507,11 @@ describe("PiDriver turns (fake CLI)", () => {
     expect(second.message).toBe("second");
     const third = await send("third", "Memory: moved to Toronto.", first.cursor);
     expect(third.message)
-      .toBe("Context from OpenMausBot updated since this conversation started; it replaces any earlier copy:\n\nMemory: moved to Toronto.\n\nthird");
+      .toBe("Context from OpenDeliobot updated since this conversation started; it replaces any earlier copy:\n\nMemory: moved to Toronto.\n\nthird");
   });
 
   it("re-establishes the full prompt after pi compaction summarizes the session", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-compaction-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-compaction-"));
     const dump = join(dir, "dump.jsonl");
     await create("compaction", { FAKE_PI_DUMP: dump });
     // Receipts are keyed by thread and session file, so a unique thread keeps the run hermetic.
@@ -556,7 +556,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it("keeps pi alive through post-run compaction recovery and re-establishes the full prompt", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-compaction-recovery-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-compaction-recovery-"));
     const dump = join(dir, "dump.jsonl");
     await create("compaction-recovery", { FAKE_PI_DUMP: dump });
     const threadId = "t-pi-compaction-recovery-" + randomUUID();
@@ -585,7 +585,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it("honors upstream willRetry agent_end frames through post-run compaction recovery", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-compaction-recovery-upstream-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-compaction-recovery-upstream-"));
     const dump = join(dir, "dump.jsonl");
     await create("compaction-recovery-upstream", { FAKE_PI_DUMP: dump });
     const threadId = "t-pi-compaction-recovery-upstream-" + randomUUID();
@@ -614,7 +614,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it("re-anchors the full prompt after eight bare turns on one session", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-reanchor-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-reanchor-"));
     const dump = join(dir, "dump.jsonl");
     await create(undefined, { FAKE_PI_DUMP: dump });
     const threadId = "t-pi-reanchor-" + randomUUID();
@@ -644,7 +644,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it("fails the turn and writes no receipt when pi rejects the prompt", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-prompt-reject-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-prompt-reject-"));
     const dump = join(dir, "dump.jsonl");
     await create("prompt-reject", { FAKE_PI_DUMP: dump });
     const threadId = "t-pi-prompt-reject-" + randomUUID();
@@ -679,7 +679,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it("keeps the full prompt when no session could be established", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-split-error-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-split-error-"));
     const dump = join(dir, "dump.jsonl");
     await create("session-error", { FAKE_PI_DUMP: dump });
     const { turnId } = await instance.adapter.sendTurn({
@@ -697,7 +697,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it("waits for a slow new_session reply before it sends the prompt, and says so in the chat", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-session-slow-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-session-slow-"));
     const dump = join(dir, "dump.jsonl");
     await create("session-slow", { FAKE_PI_DUMP: dump });
     vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -719,7 +719,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it("stops waiting for the session reply when the turn is stopped, and sends nothing after", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-session-stop-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-session-stop-"));
     const dump = join(dir, "dump.jsonl");
     await create("session-slow", { FAKE_PI_DUMP: dump, FAKE_PI_SESSION_DELAY_MS: "60000" });
     const threadId = "t-pi-session-stop-" + randomUUID();
@@ -759,7 +759,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it("pins reasoning effort via set_thinking_level after the model", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-effort-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-effort-"));
     const dump = join(dir, "dump.jsonl");
     await create(undefined, { FAKE_PI_DUMP: dump });
     const { turnId } = await instance.adapter.sendTurn({
@@ -779,7 +779,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it("maps the none effort to pi's off and sends nothing without effort", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-effort-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-effort-"));
     const dump = join(dir, "dump.jsonl");
     await create(undefined, { FAKE_PI_DUMP: dump });
     const none = await instance.adapter.sendTurn({ threadId: "t-none", text: "hi", effort: "none" });
@@ -796,7 +796,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it("scrubs provider and workspace credentials from every pi child env", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-dump-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-dump-"));
     const dump = join(dir, "dump.jsonl");
     // The leak path is `...process.env`, not just input.environment.
     const savedBoat = process.env.BOX_TOKEN;
@@ -835,7 +835,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it("loads the extension's ask_user on a plain turn unless the tool selection excludes it", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-ask-user-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-ask-user-"));
     const dump = join(dir, "dump.jsonl");
     await create(undefined, { FAKE_PI_DUMP: dump });
     const { turnId } = await instance.adapter.sendTurn({ threadId: "t-ask-user", text: "hi" });
@@ -850,7 +850,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it("mounts integrations as stdio MCP servers and loads the pi-mcp-extension", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-mcp-dump-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-mcp-dump-"));
     const dump = join(dir, "dump.jsonl");
     await create(undefined, { FAKE_PI_DUMP: dump });
     const { turnId } = await instance.adapter.sendTurn({
@@ -1012,7 +1012,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it("renders a select ask as a question with choices and returns the picked value", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-question-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-question-"));
     const dump = join(dir, "dump.jsonl");
     await create("question-select", { FAKE_PI_DUMP: dump });
     await instance.adapter.sendTurn({ threadId: "t-pi-select", text: "go" });
@@ -1038,7 +1038,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it("returns typed text verbatim for a free-text input ask", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-input-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-input-"));
     const dump = join(dir, "dump.jsonl");
     await create("question-input", { FAKE_PI_DUMP: dump });
     await instance.adapter.sendTurn({ threadId: "t-pi-input", text: "go" });
@@ -1058,7 +1058,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it.each([false, true])("returns original capped options, refusing ambiguous display labels (%s)", async collision => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-capped-question-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-capped-question-"));
     const dump = join(dir, "dump.jsonl");
     const label = "  Green ".repeat(30);
     await create("question-select", { FAKE_PI_DUMP: dump,
@@ -1075,7 +1075,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it("denies an ask by cancelling the protocol request", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-deny-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-deny-"));
     const dump = join(dir, "dump.jsonl");
     await create("question-select", { FAKE_PI_DUMP: dump });
     await instance.adapter.sendTurn({ threadId: "t-pi-deny", text: "go" });
@@ -1095,7 +1095,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it("keeps an unanswered question open for days and still takes the person's answer", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-timeout-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-timeout-"));
     const dump = join(dir, "dump.jsonl");
     await create("question-select", { FAKE_PI_DUMP: dump });
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
@@ -1127,7 +1127,7 @@ describe("PiDriver turns (fake CLI)", () => {
   });
 
   it("writes models.json and set_model for a host::model inject pick", async () => {
-    const home = mkdtempSync(join(tmpdir(), "omb-pi-turn-inject-"));
+    const home = mkdtempSync(join(tmpdir(), "odb-pi-turn-inject-"));
     const dump = join(home, "dump.jsonl");
     await create(undefined, { HOME: home, FAKE_PI_DUMP: dump });
     const { turnId } = await instance.adapter.sendTurn({
@@ -1202,7 +1202,7 @@ describe("preferPiInjectRows", () => {
 
 describe("ensurePiInjectModel", () => {
   it("upserts a provider into ~/.pi/agent/models.json without dropping existing models", () => {
-    const home = mkdtempSync(join(tmpdir(), "omb-pi-inject-"));
+    const home = mkdtempSync(join(tmpdir(), "odb-pi-inject-"));
     mkdirSync(join(home, ".pi", "agent"), { recursive: true });
     writeFileSync(
       join(home, ".pi", "agent", "models.json"),
@@ -1238,7 +1238,7 @@ describe("ensurePiInjectModel", () => {
   });
 
   it("writes Unsloth's studio token, not the placeholder", () => {
-    const home = mkdtempSync(join(tmpdir(), "omb-pi-unsloth-"));
+    const home = mkdtempSync(join(tmpdir(), "odb-pi-unsloth-"));
     const split = ensurePiInjectModel("unsloth::Qwen3.8-27B", {
       HOME: home,
       UNSLOTH_STUDIO_AUTH_TOKEN: "unsloth-secret",
@@ -1252,13 +1252,13 @@ describe("ensurePiInjectModel", () => {
   });
 
   it("leaves official slugs and the models.json file untouched", () => {
-    const home = mkdtempSync(join(tmpdir(), "omb-pi-cloud-"));
+    const home = mkdtempSync(join(tmpdir(), "odb-pi-cloud-"));
     expect(ensurePiInjectModel("openai/gpt-4o", { HOME: home })).toEqual({ provider: "openai", modelId: "gpt-4o" });
     expect(() => readFileSync(join(home, ".pi", "agent", "models.json"))).toThrow();
   });
 
   it("does not destroy a malformed models.json", () => {
-    const home = mkdtempSync(join(tmpdir(), "omb-pi-badjson-"));
+    const home = mkdtempSync(join(tmpdir(), "odb-pi-badjson-"));
     mkdirSync(join(home, ".pi", "agent"), { recursive: true });
     const path = join(home, ".pi", "agent", "models.json");
     writeFileSync(path, "not json");
@@ -1280,7 +1280,7 @@ describe("applyPiLocalCatalog", () => {
           { id: "omlx/MiniMax-M3-4bit", label: "MiniMax-M3-4bit", custom: true },
         ],
       },
-      { VITEST: "true", OPENMAUSBOT_PROBE_LOCAL_INJECT: "1" },
+      { VITEST: "true", OPENDELIOBOT_PROBE_LOCAL_INJECT: "1" },
       async (url) => {
         if (String(url).includes(":8080")) {
           return new Response(JSON.stringify({ data: [{ id: "MiniMax-M3-4bit" }] }), { status: 200 });
@@ -1329,7 +1329,7 @@ describe("PiDriver mid-turn steer (fake CLI)", () => {
   });
 
   it("steers a running turn through the native steer frame and refuses once settled", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-steer-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-steer-"));
     const dump = join(dir, "dump.jsonl");
     await create({ FAKE_PI_DUMP: dump, FAKE_PI_MODE: "permission" });
     await instance.adapter.sendTurn({ threadId: "t-steer", text: "go" });
@@ -1358,7 +1358,7 @@ describe("PiDriver mid-turn steer (fake CLI)", () => {
   });
 
   it("correlates concurrent steers by frame id so a refusal lands only on its own caller", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-pi-steer-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-pi-steer-"));
     const dump = join(dir, "dump.jsonl");
     await create({ FAKE_PI_DUMP: dump, FAKE_PI_MODE: "permission", FAKE_PI_STEER_OUT_OF_ORDER: "1" });
     await instance.adapter.sendTurn({ threadId: "t-race", text: "go" });

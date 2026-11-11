@@ -21,14 +21,14 @@ const forgotten: string[] = [];
 
 beforeAll(async () => {
   fake = await startFakePostiz();
-  process.env.OMB_POSTIZ_CLOUD_URL = fake.url;
+  process.env.ODB_POSTIZ_CLOUD_URL = fake.url;
 });
 afterAll(async () => {
-  delete process.env.OMB_POSTIZ_CLOUD_URL;
+  delete process.env.ODB_POSTIZ_CLOUD_URL;
   await fake.close();
 });
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), "omb-postiz-"));
+  dir = mkdtempSync(join(tmpdir(), "odb-postiz-"));
   cfg = { mcpServers: {} };
   oauth = new McpOAuthManager({ file: join(dir, "mcp-oauth.json") });
   busy = false;
@@ -201,12 +201,12 @@ describe("Postiz Cloud's sign-in", () => {
   });
 
   it("is refused by the organization's policy", () => {
-    process.env.OMB_POSTIZ_CLOUD_URL = "https://blocked.example";
+    process.env.ODB_POSTIZ_CLOUD_URL = "https://blocked.example";
     try {
       expect(postiz().status()).toMatchObject({ state: "blocked", message: "Your organization allows only approved MCP servers." });
       expect(postiz().prepareSignIn()).toMatchObject({ ok: false, status: 403, code: "managed_policy" });
     } finally {
-      process.env.OMB_POSTIZ_CLOUD_URL = fake.url;
+      process.env.ODB_POSTIZ_CLOUD_URL = fake.url;
     }
   });
 });

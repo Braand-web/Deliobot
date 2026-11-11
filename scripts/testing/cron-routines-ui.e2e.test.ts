@@ -6,18 +6,18 @@ import { afterAll, expect, it } from "vitest";
 import { resolveAgentBrowserBinary } from "../../server/browser-engine.ts";
 import { waitForExit } from "../../server/testing/cleanup.ts";
 import type { Routine } from "../../src/lib/routines.ts";
-import { runControlOmb } from "../control-omb.ts";
-import { UI_TOOLS_DIR } from "./control-omb-ui.ts";
+import { runControlOdb } from "../control-odb.ts";
+import { UI_TOOLS_DIR } from "./control-odb-ui.ts";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
-const enabled = process.env.OMB_UI_E2E === "1" || Boolean(resolveAgentBrowserBinary({ dataDir: UI_TOOLS_DIR, env: process.env }));
+const enabled = process.env.ODB_UI_E2E === "1" || Boolean(resolveAgentBrowserBinary({ dataDir: UI_TOOLS_DIR, env: process.env }));
 let child: ChildProcess | undefined;
 afterAll(() => waitForExit(child, { signal: "SIGINT", graceMs: 30_000 }));
 
 (enabled ? it : it.skip)("creates monthly routines, validates cron, preserves arbitrary expressions and excludes calls", async () => {
   let output = "";
   let stderr = "";
-  child = spawn(process.execPath, ["--experimental-strip-types", join(ROOT, "scripts/control-omb.ts"), "ui", "launch"], { cwd: ROOT, env: process.env, stdio: ["ignore", "pipe", "pipe"] });
+  child = spawn(process.execPath, ["--experimental-strip-types", join(ROOT, "scripts/control-odb.ts"), "ui", "launch"], { cwd: ROOT, env: process.env, stdio: ["ignore", "pipe", "pipe"] });
   child.stdout!.on("data", chunk => { output += String(chunk); });
   child.stderr!.on("data", chunk => { stderr += String(chunk); });
   let fixture: { ui: string; url: string; botId: string; logPath: string };
@@ -25,7 +25,7 @@ afterAll(() => waitForExit(child, { signal: "SIGINT", graceMs: 30_000 }));
     if (child!.exitCode !== null) throw new Error(stderr);
     try { fixture = JSON.parse(output); return Boolean(fixture.ui); } catch { return false; }
   }, { timeout: 600_000 }).toBe(true);
-  const ui = (verb: string, ...args: string[]) => runControlOmb(["ui", verb, "--ui", fixture.ui, ...args]) as Promise<Record<string, any>>;
+  const ui = (verb: string, ...args: string[]) => runControlOdb(["ui", verb, "--ui", fixture.ui, ...args]) as Promise<Record<string, any>>;
   const evaluate = async (js: string) => (await ui("eval", "--js", js)).result;
   const click = async (name: string) => {
     await evaluate(`[...document.querySelectorAll('button')].find(button => button.textContent === ${JSON.stringify(name)})?.scrollIntoView({ block: 'center' })`);
@@ -45,7 +45,7 @@ afterAll(() => waitForExit(child, { signal: "SIGINT", graceMs: 30_000 }));
     return field.getBoundingClientRect().height > 0;
   })()`);
 
-  const startupBox = `document.querySelector('input[aria-label="Also run when MausBot starts"]')`;
+  const startupBox = `document.querySelector('input[aria-label="Also run when Delio starts"]')`;
 
   const title = 'input[placeholder="What should happen?"]';
   const newButton = "[...document.querySelectorAll('main header button')].find(button => button.textContent === 'New')";
@@ -108,7 +108,7 @@ afterAll(() => waitForExit(child, { signal: "SIGINT", graceMs: 30_000 }));
   // The API models a bot-created arbitrary schedule. Editing only its title
   // must not collapse its ranges, weekdays, or non-local timezone to a preset.
   const customSchedule = { type: "cron", expression: "15 9-17/2 * * 1-5", timeZone: "America/New_York" };
-  const response = await fetch(`${fixture.url}/api/routines`, { method: "POST", headers: { "content-type": "application/json", origin: fixture.url }, body: JSON.stringify({ name: "Business-hours report", prompt: "Use only the fixture.", botId: monthly.botId, enabled: false, runOn: "maus", schedule: customSchedule }) });
+  const response = await fetch(`${fixture.url}/api/routines`, { method: "POST", headers: { "content-type": "application/json", origin: fixture.url }, body: JSON.stringify({ name: "Business-hours report", prompt: "Use only the fixture.", botId: monthly.botId, enabled: false, runOn: "delio", schedule: customSchedule }) });
   expect(response.status).toBe(201);
   const custom = (await response.json()).routine;
   await expect.poll(() => evaluate(`document.querySelector('li[data-automation="${custom.id}"]')?.dataset.automationStatus`)).toBe("paused");

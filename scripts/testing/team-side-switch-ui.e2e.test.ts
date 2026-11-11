@@ -1,7 +1,7 @@
-// "Just me / Team" at the top of a team's sidebar and the audience label by the message box, in the real app on a real Team Cloud (OMB_CLOUD_ROLE=team, each person paired
+// "Just me / Team" at the top of a team's sidebar and the audience label by the message box, in the real app on a real Team Cloud (ODB_CLOUD_ROLE=team, each person paired
 // with the Admin's signed claim) in headless Chrome: what one member types under Just me reaches no other member and no
-// admin, on screen or through the API, and what they type under Team reaches both. Run with OMB_UI_E2E=1;
-// OMB_TEAM_SWITCH_SHOTS=DIR keeps the screenshots there.
+// admin, on screen or through the API, and what they type under Team reaches both. Run with ODB_UI_E2E=1;
+// ODB_TEAM_SWITCH_SHOTS=DIR keeps the screenshots there.
 import { randomBytes } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -13,18 +13,18 @@ import { SPOTLIGHTS } from "../../src/lib/first-conversation.ts";
 import { TOUR_STEPS } from "../../src/lib/guided-tour.ts";
 import { NOTICES } from "../../src/lib/notices.ts";
 import { launchCloudSendFixture, type CloudSendFixture, type CloudTeamFixture } from "./cloud-send-fixture.ts";
-import { agentBrowser, ensureUiBrowser, sessionEnv } from "./control-omb-ui.ts";
+import { agentBrowser, ensureUiBrowser, sessionEnv } from "./control-odb-ui.ts";
 import { mountPreview, REPO_ROOT } from "./preview-fixture.ts";
 
-const enabled = process.env.OMB_UI_E2E === "1";
-if (!enabled) console.info("skipping the Just me / Team UI e2e: set OMB_UI_E2E=1");
+const enabled = process.env.ODB_UI_E2E === "1";
+if (!enabled) console.info("skipping the Just me / Team UI e2e: set ODB_UI_E2E=1");
 
-const SHOTS = process.env.OMB_TEAM_SWITCH_SHOTS || join(REPO_ROOT, ".omb-scratch", "team-side-switch");
+const SHOTS = process.env.ODB_TEAM_SWITCH_SHOTS || join(REPO_ROOT, ".odb-scratch", "team-side-switch");
 const PRIVATE = "Kumquat salary plan for March";
 const SHARED = "Team lunch is on Friday";
 const DESKTOP = ["1280", "800"] as const, PHONE = ["390", "844"] as const;
 
-/** A new member is offered their own MausBot in a dialog over the app; this run leaves it for later. */
+/** A new member is offered their own Delio in a dialog over the app; this run leaves it for later. */
 const DISMISS = `(() => { [...document.querySelectorAll('[role="dialog"] button, dialog button')].find((button) => button.textContent.trim() === "Not now")?.click(); return true; })()`;
 
 type Task = { threadId: string; private?: true; sharedChat?: true; unread?: boolean };
@@ -99,7 +99,7 @@ async function openAs(who: keyof typeof tokens, size: readonly [string, string])
       await new Promise((resolve) => setTimeout(resolve, 600));
     },
     typed: () => evaluate<string>(`document.querySelector('textarea[placeholder^="Message"]')?.value ?? ""`),
-    saved: () => evaluate<string | null>(`localStorage.getItem("omb.team-side.team-acme-switch." + ${JSON.stringify(`${who}@acme.test`)})`),
+    saved: () => evaluate<string | null>(`localStorage.getItem("odb.team-side.team-acme-switch." + ${JSON.stringify(`${who}@acme.test`)})`),
     async reload() {
       await evaluate("location.reload(); true");
       await expect.poll(() => evaluate<boolean>(`Boolean(document.querySelector('[data-sidebar-bot-row="${scout}"]'))`), { timeout: 60_000, interval: 500 }).toBe(true);
@@ -125,7 +125,7 @@ async function openAs(who: keyof typeof tokens, size: readonly [string, string])
     const onboarding = { completedAt: new Date().toISOString(), version: WELCOME_VERSION, hintsSeen: [...TOUR_STEPS.map((step) => step.id), ...SPOTLIGHTS, "cloud-welcome-done", "cloud-setup-hidden"] };
     expect((await team.as(tokens.olive, "PATCH", "/api/config", { onboarding, language: "en" })).status).toBe(200);
     for (const who of ["ada", "ben"] as const) expect((await team.as(tokens[who], "PUT", "/api/me/welcome", { welcomed: true })).status).toBe(200);
-    // Each person said yes to "Add MausBot", as its card saves it: their own helper sits at the top of their sidebar.
+    // Each person said yes to "Add Delio", as its card saves it: their own helper sits at the top of their sidebar.
     for (const who of ["olive", "ada", "ben"] as const) {
       const own = ((await team.as(tokens[who], "GET", "/api/bots?messages=0")).body.bots as Array<{ id: string; defaultBot?: { person?: string } }>).find((bot) => bot.defaultBot?.person === `${who}@acme.test`)!;
       const added = await team.as(tokens[who], "PATCH", `/api/bots/${own.id}`, { welcomed: true, sidebarHidden: false, pinned: true });
@@ -154,7 +154,7 @@ async function openAs(who: keyof typeof tokens, size: readonly [string, string])
 
     const bots = (await team.as(tokens.ada, "GET", "/api/bots?messages=0")).body.bots as Array<Bot & { defaultBot?: { person?: string } }>;
     mine = bots.find((bot) => bot.defaultBot?.person === "ada@acme.test")!.id;
-    expect(await ada.listed(), "Just me lists her own MausBot and the bots she can chat with").toEqual(expect.arrayContaining([scout, mine]));
+    expect(await ada.listed(), "Just me lists her own Delio and the bots she can chat with").toEqual(expect.arrayContaining([scout, mine]));
     const own = (await scoutAs("ada")).tasks.filter((task) => task.private === true);
     expect(own.length, "one private conversation, made by the click").toBe(1);
     adaOwn = own[0]!.threadId;

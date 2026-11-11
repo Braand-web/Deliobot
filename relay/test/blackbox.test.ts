@@ -73,7 +73,7 @@ describe("a session end to end", () => {
 describe("Node's built-in WebSocket client", () => {
   /** The desktop dials the relay with Node's own WebSocket, which sends no Origin and cannot add headers. */
   function builtIn(path: string): Promise<{ socket: globalThis.WebSocket; messages: Array<string | ArrayBuffer>; next: () => Promise<string | ArrayBuffer> }> {
-    const socket = new globalThis.WebSocket(`${relay.url}${path}`, ["omb-relay.v1"]);
+    const socket = new globalThis.WebSocket(`${relay.url}${path}`, ["odb-relay.v1"]);
     socket.binaryType = "arraybuffer";
     const messages: Array<string | ArrayBuffer> = [];
     const waiting: Array<(message: string | ArrayBuffer) => void> = [];

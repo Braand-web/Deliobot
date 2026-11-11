@@ -33,7 +33,7 @@ import type { WebhookManager } from "./webhooks.ts";
 import { restorePaths, validRelative } from "./workspace-backup-paths.ts";
 
 /** Where both servers name their own data folder when they compare a definition, so one moved keeps its hash. */
-const SHARED_ROOT = "/omb-data";
+const SHARED_ROOT = "/odb-data";
 const FINISHED = new Set(["completed", "failed", "cancelled", "missed"]);
 const KIND_BODY_MAX = 8 * 1024 * 1024;
 const ROUTINE_FIELDS = ["name", "prompt", "target", "botId", "groupId", "runOn", "schedule", "durationMinutes", "timeoutMinutes", "attachments", "continuity", "modelSelection",
@@ -235,7 +235,7 @@ class Refused extends Error {
 const refuse = (status: number, message: string, final = false): never => { throw new Refused(status, message, final); };
 
 const routineSchema = z.object({ id: z.string().regex(/^[\w-]{1,128}$/u), name: z.string().max(200), prompt: z.string().max(100_000), target: z.enum(["bot", "room-goal"]),
-  botId: z.string().min(1).max(128), groupId: z.string().max(128).optional(), runOn: z.enum(["maus", "cloud"]), schedule: z.record(z.string(), z.unknown()),
+  botId: z.string().min(1).max(128), groupId: z.string().max(128).optional(), runOn: z.enum(["delio", "cloud"]), schedule: z.record(z.string(), z.unknown()),
   durationMinutes: z.number().finite(), createdAt: z.number().finite() }).passthrough();
 const runSchema = z.object({ id: z.string().min(1).max(200), routineId: z.string(), status: z.string(), botId: z.string(), scheduledFor: z.number().finite(),
   createdAt: z.number().finite() }).passthrough();
@@ -293,8 +293,8 @@ function applyBotFields(deps: MoveKindsDeps, id: string, raw: unknown, source: A
   if (Object.hasOwn(fields, "chiefOfStaff") && fields.chiefOfStaff !== true) patch.chiefOfStaff = fields.chiefOfStaff ?? undefined;
   if (fields.chiefOfStaff === true) delete patch.hidden;
   deps.store.patchBot(id, patch);
-  // A MausBot arriving where the person's own MausBot stays (takeArrivingDefaultBot) doesn't take the crown from this
-  // place's Chief, whichever bot that is, also when a later pass sends its Chief fields without its MausBot mark.
+  // A Delio arriving where the person's own Delio stays (takeArrivingDefaultBot) doesn't take the crown from this
+  // place's Chief, whichever bot that is, also when a later pass sends its Chief fields without its Delio mark.
   const keepsCrown = (fields.defaultBot || source.defaultBot) && keptDefaultBot(deps.store, id)
     && deps.store.bots.some((other) => other.id !== id && other.chiefOfStaff);
   if (fields.chiefOfStaff === true && !keepsCrown) {
@@ -386,9 +386,9 @@ const putSchema = z.object({ v: z.literal(1), key: z.string().max(200), dataDir:
 
 type ArrivingSource = { computer?: string; defaultBot?: boolean };
 
-/** This computer's name as a person knows it, which a MausBot that moves away is named for when the place it goes keeps its own. */
+/** This computer's name as a person knows it, which a Delio that moves away is named for when the place it goes keeps its own. */
 function thisComputerName(): string {
-  return (process.env.OMB_ENVIRONMENT_LABEL?.trim() || hostname()).replace(/\.local$/iu, "").slice(0, 120);
+  return (process.env.ODB_ENVIRONMENT_LABEL?.trim() || hostname()).replace(/\.local$/iu, "").slice(0, 120);
 }
 
 /** False when the path is not this route. */

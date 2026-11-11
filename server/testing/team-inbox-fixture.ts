@@ -24,7 +24,7 @@ type Task = { threadId: string; title: string; archivedAt?: number; activity?: s
 type Bot = Partial<Omit<BotRecord, "tasks">> & { id: string; name: string; threadId: string; tasks: Task[] };
 
 export function teamInbox(options: { team?: boolean; representative?: TeamMessagesDeps["inbox"]["representative"]; noChiefFor?: string[]; handed?: Record<string, string>; confined?: string[] } = {}) {
-  const dataDir = mkdtempSync(join(tmpdir(), "omb-team-inbox-"));
+  const dataDir = mkdtempSync(join(tmpdir(), "odb-team-inbox-"));
   const listeners = new Set<(change: StoreChange) => void>();
   const emit = (change: StoreChange) => { for (const listener of listeners) listener(change); };
   const threads = new Map<string, Message[]>();
@@ -118,7 +118,7 @@ export function teamInbox(options: { team?: boolean; representative?: TeamMessag
       continueTurn: (botId, threadId, text, from, relay) => { continued.push({ botId, threadId, text, from, relay }); },
       changed: (threadId) => { changed.push(threadId); },
       handedFrom: (threadId) => options.handed?.[threadId] ?? null,
-      notes: (botId) => ({ reporter: "The Q4 report draft is due on Nov 3.", scout: "Cleo's notes.", "bens-mausbot": "Notes only Ben sees." })[botId] ?? "",
+      notes: (botId) => ({ reporter: "The Q4 report draft is due on Nov 3.", scout: "Cleo's notes.", "bens-delio": "Notes only Ben sees." })[botId] ?? "",
       ...(options.representative ? { representative: options.representative } : {}),
     },
   });

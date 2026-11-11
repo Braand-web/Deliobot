@@ -92,7 +92,7 @@ describe.skipIf(!certificate)("an outgoing server, over the wire", () => {
 
 describe.skipIf(!certificate)("connecting, checking and sending through the fake", () => {
   function setup(smtp: FakeSmtp, socketType: "STARTTLS" | "SSL") {
-    const dataDir = mkdtempSync(join(tmpdir(), "omb-mail-sending-")); dirs.push(dataDir);
+    const dataDir = mkdtempSync(join(tmpdir(), "odb-mail-sending-")); dirs.push(dataDir);
     const autoconfig = `<clientConfig><emailProvider id="x">
       <incomingServer type="imap"><hostname>imap.small-shop.example</hostname><port>993</port><socketType>SSL</socketType><username>%EMAILADDRESS%</username></incomingServer>
       <outgoingServer type="smtp"><hostname>${HOST}</hostname><port>${smtp.port}</port><socketType>${socketType}</socketType><username>%EMAILADDRESS%</username></outgoingServer>

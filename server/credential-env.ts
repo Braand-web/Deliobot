@@ -6,44 +6,44 @@ export const WORKSPACE_CREDENTIAL_ENV = [
   "XAI_API_KEY",
   "MISTRAL_API_KEY",
   "CEREBRAS_API_KEY",
-  "OMB_GROQ_API_KEY",
-  "OMB_GREENFERENCE_API_KEY",
-  "OMB_MODELGO_API_KEY",
-  "OMB_META_API_KEY",
-  "OMB_DEEPSEEK_API_KEY",
-  "OMB_ANTHROPIC_API_KEY",
-  "OMB_ANTHROPIC_API_URL",
-  "OMB_HOSTED_MODEL_TOKEN",
-  "OMB_HOSTED_MODELS",
+  "ODB_GROQ_API_KEY",
+  "ODB_GREENFERENCE_API_KEY",
+  "ODB_MODELGO_API_KEY",
+  "ODB_META_API_KEY",
+  "ODB_DEEPSEEK_API_KEY",
+  "ODB_ANTHROPIC_API_KEY",
+  "ODB_ANTHROPIC_API_URL",
+  "ODB_HOSTED_MODEL_TOKEN",
+  "ODB_HOSTED_MODELS",
   "OPENAI_COMPAT_API_KEY",
   "OPENAI_COMPAT_URL",
-  "OMB_OPENAI_API_KEY",
-  "OMB_OPENROUTER_API_KEY",
+  "ODB_OPENAI_API_KEY",
+  "ODB_OPENROUTER_API_KEY",
   "BOX_TOKEN",
   "OPENCODE_API_KEY",
-  "OMB_TTS_KEY",
-  "OMB_FISH_AUDIO_API_KEY",
-  "OMB_GEMINI_API_KEY",
-  "OMB_JEV_API_KEY",
-  "OMB_OPENROUTER_DECIDER_KEY",
-  "OMB_WORKERS_AI_TOKEN",
-  "OMB_OPENAI_IMAGE_KEY",
-  "OMB_CUSTOM_IMAGE_KEY",
-  "OMB_GEMINI_IMAGE_KEY",
-  "OMB_OPENAI_LIVE_KEY", "OMB_TREG_KEY", "OMB_POSTIZ_API_KEY",
+  "ODB_TTS_KEY",
+  "ODB_FISH_AUDIO_API_KEY",
+  "ODB_GEMINI_API_KEY",
+  "ODB_JEV_API_KEY",
+  "ODB_OPENROUTER_DECIDER_KEY",
+  "ODB_WORKERS_AI_TOKEN",
+  "ODB_OPENAI_IMAGE_KEY",
+  "ODB_CUSTOM_IMAGE_KEY",
+  "ODB_GEMINI_IMAGE_KEY",
+  "ODB_OPENAI_LIVE_KEY", "ODB_TREG_KEY", "ODB_POSTIZ_API_KEY",
   "COMPOSIO_API_KEY",
-  "OMB_COMPOSIO_BROKER_TOKEN",
-  "OMB_CLOUD_BOAT_TOKEN",
-  "OMB_CLOUD_VOICE_TOKEN",
-  "OMB_CLOUD_DECIDER_TOKEN",
-  "OMB_CLOUD_AI_TOKEN", "OMB_CLOUD_X_TOKEN", "OMB_CLOUD_CONNECTED_APPS_GRANT",
+  "ODB_COMPOSIO_BROKER_TOKEN",
+  "ODB_CLOUD_BOAT_TOKEN",
+  "ODB_CLOUD_VOICE_TOKEN",
+  "ODB_CLOUD_DECIDER_TOKEN",
+  "ODB_CLOUD_AI_TOKEN", "ODB_CLOUD_X_TOKEN", "ODB_CLOUD_CONNECTED_APPS_GRANT",
   // Not credentials, but they point a shell-capable agent at app-owned state.
-  "OMB_BROWSER_CONNECTION", "OMB_USER_DATA", "OMB_BOAT_API",
+  "ODB_BROWSER_CONNECTION", "ODB_USER_DATA", "ODB_BOAT_API",
 ] as const;
 
-/** Operator secrets only this process reads, plus every `OMB_CLOUD_` var (the underscore leaves out OMB_CLOUDFLARED_PATH). */
-export const CONTROL_PLANE_ENV = ["OMB_LICENSE_KEY", "OMB_INSTALLATION_CREDENTIAL"] as const;
-export const CONTROL_PLANE_ENV_PREFIX = "OMB_CLOUD_";
+/** Operator secrets only this process reads, plus every `ODB_CLOUD_` var (the underscore leaves out ODB_CLOUDFLARED_PATH). */
+export const CONTROL_PLANE_ENV = ["ODB_LICENSE_KEY", "ODB_INSTALLATION_CREDENTIAL"] as const;
+export const CONTROL_PLANE_ENV_PREFIX = "ODB_CLOUD_";
 
 /** Names compare case-insensitively because Windows environments do. */
 export function stripControlPlaneEnv(env: Record<string, string | undefined>): void {
@@ -58,12 +58,12 @@ export function stripWorkspaceCredentialEnv(env: Record<string, string | undefin
   stripControlPlaneEnv(env);
 }
 
-const DESKTOP_STORE_KEY_ENV: ReadonlySet<string> = new Set(["MISTRAL_API_KEY", "CEREBRAS_API_KEY", "OPENAI_COMPAT_API_KEY", "OMB_OPENAI_API_KEY", "OMB_OPENROUTER_API_KEY"]);
+const DESKTOP_STORE_KEY_ENV: ReadonlySet<string> = new Set(["MISTRAL_API_KEY", "CEREBRAS_API_KEY", "OPENAI_COMPAT_API_KEY", "ODB_OPENAI_API_KEY", "ODB_OPENROUTER_API_KEY"]);
 
 /** A key an operator set on the server. Security: under the desktop app these variables hold workspace keys from its
  * encrypted store, which reach only the instances the workspace routes, never one with a URL of its own. */
 export function operatorEnvKey(name: string, env: NodeJS.ProcessEnv = process.env): string | undefined {
-  return env.OMB_DESKTOP_PARENT === "1" && DESKTOP_STORE_KEY_ENV.has(name) ? undefined : env[name];
+  return env.ODB_DESKTOP_PARENT === "1" && DESKTOP_STORE_KEY_ENV.has(name) ? undefined : env[name];
 }
 
 /** Env a provider CLI may read as its billing identity; a foreign key must never move a subscription CLI onto API billing. */

@@ -5,7 +5,7 @@
 // turn under way, two quick clicks), a workspace's menu (Rename, Colour, Remove asked first, the open one, the last one), an
 // app restart, the rail past eight, the cloud badge in both looks, and a person with no Cloud, whose rail appears with a second
 // place. Each picture is the window as the person sees it: the rail's own page over or beside the page the window shows.
-// Pictures go to OMB_ONE_WORKSPACE_SHOTS, else the fixture's folder.
+// Pictures go to ODB_ONE_WORKSPACE_SHOTS, else the fixture's folder.
 import { randomBytes } from "node:crypto";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -17,12 +17,12 @@ import { resolveAgentBrowserBinary } from "../../server/browser-engine.ts";
 import { hostTimeout } from "../../server/testing/host-timeout.ts";
 import { freePortBlock } from "../../server/testing/ports.ts";
 import { launchCloudSendFixture, type CloudSendFixture } from "./cloud-send-fixture.ts";
-import { ensureUiBrowser, UI_TOOLS_DIR } from "./control-omb-ui.ts";
+import { ensureUiBrowser, UI_TOOLS_DIR } from "./control-odb-ui.ts";
 import { launchHomeWorld, shotsDir, welcomed, type HomeWorld } from "./one-workspace-fixture.ts";
 import { decodePng, encodePng } from "./png.ts";
 
-const enabled = process.env.OMB_UI_E2E === "1" || Boolean(resolveAgentBrowserBinary({ dataDir: UI_TOOLS_DIR, env: process.env }));
-if (!enabled) console.info("skipping the rail workspaces UI e2e: set OMB_UI_E2E=1 to install the pinned browser");
+const enabled = process.env.ODB_UI_E2E === "1" || Boolean(resolveAgentBrowserBinary({ dataDir: UI_TOOLS_DIR, env: process.env }));
+if (!enabled) console.info("skipping the rail workspaces UI e2e: set ODB_UI_E2E=1 to install the pinned browser");
 
 const MAC = '[data-rail-place="profile:default"]';
 const WIDTH = 1280, HEIGHT = 800;
@@ -85,7 +85,7 @@ function harness(get: () => { world: HomeWorld; shots: string }) {
   let world: HomeWorld;
   let shots = "";
   let cloudEntry = "";
-  const gate = join(mkdtempSync(join(tmpdir(), "omb-rail-gate-")), "finish");
+  const gate = join(mkdtempSync(join(tmpdir(), "odb-rail-gate-")), "finish");
   writeFileSync(gate, "");
   const h = harness(() => ({ world, shots }));
   const { until, page, rail, tiles, onLocal, picture, click, menu, fill, key, bots } = h;
@@ -121,7 +121,7 @@ function harness(get: () => { world: HomeWorld; shots: string }) {
     // The session lists My Cloud as the person's own, as the Admin does: so its circle is a rail even alone, for ＋.
     // The Admin lists https addresses only; this one's is the fixture's own edge.
     world.account.state = { ...world.account.state, clouds: parseCloudList([{ id: "c-home", name: "My Cloud", color: null, role: "owner", tier: "pro", runsOn: "cloud",
-      status: "ready", origin: "https://omb-u-fixture.fly.dev", teamId: null, primary: true }])!.map((cloud) => ({ ...cloud, origin: world.cloudOrigin })) };
+      status: "ready", origin: "https://odb-u-fixture.fly.dev", teamId: null, primary: true }])!.map((cloud) => ({ ...cloud, origin: world.cloudOrigin })) };
     // Each page's dev server bundles what it imports on the first visit, then reloads it once: done before anything counts.
     for (const url of [`${world.localOrigin}/`, `${world.cloudOrigin}/`]) {
       await world.window.loadURL(url).catch(() => {});
@@ -256,7 +256,7 @@ function harness(get: () => { world: HomeWorld; shots: string }) {
     await page(`document.querySelector('${composer}').focus()`);
     await world.window.cdp.request("Input.insertText", { text: "Sort the quarterly notes" }, world.window.sessionId);
     for (const type of ["keyDown", "keyUp"]) await world.window.cdp.request("Input.dispatchKeyEvent", { type, key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 }, world.window.sessionId);
-    const busy = await until(async () => (await fetch(`${fx.desktopBase}/api/move/freeze`, { headers: { "x-openmausbot-desktop-owner": fx.ownerCapability } }).then((response) => response.json())).busy as string | undefined,
+    const busy = await until(async () => (await fetch(`${fx.desktopBase}/api/move/freeze`, { headers: { "x-opendeliobot-desktop-owner": fx.ownerCapability } }).then((response) => response.json())).busy as string | undefined,
       (name) => typeof name === "string" && name.length > 0, 30_000, "the turn under way");
     await click(MAC);
     await until(() => tiles(), (seen) => seen.find((tile) => tile.id === "profile:default")?.label === `This Mac opens once ${busy} finishes`, 15_000, "This Mac's circle saying it waits");

@@ -1,6 +1,6 @@
 import { createServer } from "node:http";
 import { expect, it } from "vitest";
-import { launchVerificationServer, runControlOmb } from "../scripts/control-omb.ts";
+import { launchVerificationServer, runControlOdb } from "../scripts/control-odb.ts";
 
 it("keeps the selected API model for direct, group and scheduled Boat turns and preserves human control", async () => {
   const rows: Array<{ id: string; name: string; state: string }> = [];
@@ -57,7 +57,7 @@ it("keeps the selected API model for direct, group and scheduled Boat turns and 
   const address = upstream.address();
   if (!address || typeof address === "string") throw new Error("fixture failed to bind");
   const origin = `http://127.0.0.1:${address.port}`;
-  const fixture = await launchVerificationServer({ ...process.env, OMB_AGENTS_TOOL_BRIDGE: "0" }, undefined, undefined, undefined, undefined, undefined, [], origin).catch(async error => {
+  const fixture = await launchVerificationServer({ ...process.env, ODB_AGENTS_TOOL_BRIDGE: "0" }, undefined, undefined, undefined, undefined, undefined, [], origin).catch(async error => {
     upstream.closeAllConnections(); await new Promise<void>(resolve => upstream.close(() => resolve())); throw error;
   });
   const api = async (method: string, path: string, body?: unknown) => {
@@ -66,7 +66,7 @@ it("keeps the selected API model for direct, group and scheduled Boat turns and 
     expect(response.ok, JSON.stringify(result)).toBe(true);
     return result;
   };
-  const control = (args: string[]) => runControlOmb([...args, "--url", fixture.info.url]) as Promise<any>;
+  const control = (args: string[]) => runControlOdb([...args, "--url", fixture.info.url]) as Promise<any>;
   try {
     await api("PATCH", "/api/config", { openaiCompat: { key: "synthetic-model-key", url: origin + "/v1", model: "other-default" } });
     const { bot } = await control(["new-bot", "--name", "Boat API fixture"]);

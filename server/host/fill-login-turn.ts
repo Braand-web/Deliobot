@@ -39,7 +39,7 @@ export interface FillLoginTurnDeps {
   turnActive?(turn: Turn): boolean;
 }
 
-const ONLY_IN_BROWSER = "fill_login types a password only into a page of your own browser, where OpenMausBot checks the page's site first";
+const ONLY_IN_BROWSER = "fill_login types a password only into a page of your own browser, where OpenDeliobot checks the page's site first";
 
 export function createFillLoginTurn(deps: FillLoginTurnDeps) {
   // Security: on a screen the server cannot prove which site a focused box belongs to, so a secret is never typed there.
@@ -62,12 +62,12 @@ export function createFillLoginTurn(deps: FillLoginTurnDeps) {
       return { ok: false, text: `${ONLY_IN_BROWSER}${notHere}, and this run cannot move to your browser. ${signIn} For runs like this to sign in by themselves, the person can choose Browser under where this bot works.` };
     }
     const chrome = deps.myChrome(current) ? ", which is the person's own Chrome (My Chrome), signed in as them" : "";
-    return { ok: false, text: `${ONLY_IN_BROWSER}${notHere}. OpenMausBot is moving this conversation to your own browser${chrome}. End this turn now without using the screen tools: the request continues there with your browser tools. Open the site's sign-in page in that browser, then call fill_login.` };
+    return { ok: false, text: `${ONLY_IN_BROWSER}${notHere}. OpenDeliobot is moving this conversation to your own browser${chrome}. End this turn now without using the screen tools: the request continues there with your browser tools. Open the site's sign-in page in that browser, then call fill_login.` };
   }
 
   async function connectMailbox(bot: BotRecord, turn: Turn, outcome: FillLoginOutcome): Promise<Answer> {
     const offer = await deps.mailCodes!.offerConnect(bot, turn).catch(() => ({ shown: false } as { shown: boolean; line?: string }));
-    if (offer.shown) return { ok: outcome.ok, text: `${outcome.text} OpenMausBot showed the person a secure Connect card for Gmail. End this turn now: you continue automatically once it is connected, then call fill_login again.` };
+    if (offer.shown) return { ok: outcome.ok, text: `${outcome.text} OpenDeliobot showed the person a secure Connect card for Gmail. End this turn now: you continue automatically once it is connected, then call fill_login again.` };
     return { ok: outcome.ok, text: `${outcome.text} ${offer.line ?? CODE_FROM_INBOX}` };
   }
 

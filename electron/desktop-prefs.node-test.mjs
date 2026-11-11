@@ -14,7 +14,7 @@ const localOrigin = require("./local-origin.cjs");
 
 const POPUP = "whats-new-2026-11", BOAT = "boat-credit-2026-11", GROK = "grok-move-2026-11", MODELGO = "modelgo-offer-2026-11";
 const NOON = new Date(2026, 9, 16, 12).getTime();
-const LOCAL = "http://127.0.0.1:18799", CLOUD = "https://omb-u-1.fly.dev", VPS = "https://bots.example.test";
+const LOCAL = "http://127.0.0.1:18799", CLOUD = "https://odb-u-1.fly.dev", VPS = "https://bots.example.test";
 
 test("a page on an older release keeps working with the longer list: its own ids record as before, and it never reads the new one", () => {
   let saved = { seen: [POPUP, GROK, "gone-notice"] };
@@ -186,7 +186,7 @@ test("the app language picked on any page of the window is the one every page re
 });
 
 test("main's own words read this desktop's record from its userData folder, and follow the system's language until a pick", () => {
-  const dir = mkdtempSync(path.join(tmpdir(), "omb-desktop-text-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "odb-desktop-text-"));
   try {
     const app = { getPath: name => (name === "userData" ? dir : "/elsewhere"), isReady: () => true, getLocale: () => "pt-BR" };
     const text = createDesktopText(app);
@@ -231,7 +231,7 @@ function preload(origin, { activation = false, saved = null, language = null } =
   let bridge;
   const invoked = [], synced = [], sent = [], heard = new Map();
   vm.runInNewContext(PRELOAD, {
-    process: { platform: "darwin", argv: [`--omb-local-origin=${LOCAL}`, "--omb-company-desktop=1"] },
+    process: { platform: "darwin", argv: [`--odb-local-origin=${LOCAL}`, "--odb-company-desktop=1"] },
     location: { origin }, navigator: { userActivation: { isActive: activation } }, TextEncoder, localStorage: { getItem: () => null },
     require: () => ({ webUtils: {}, contextBridge: { exposeInMainWorld: (_name, value) => { bridge = value; } },
       ipcRenderer: { on(channel, handler) { heard.set(channel, handler); }, removeListener() {}, send(...args) { sent.push(args); },
@@ -320,7 +320,7 @@ test("production wiring: main answers this computer's page, My Cloud's own page 
   const context = vm.createContext({
     registerDesktopPrefs: value => { options = value; }, jsonFile: file => ({ read: () => file, write: () => {} }), ipcMain: {}, updatesConsent: null, cloudAccount: "the client",
     nativeText: { prefs: { kept: true }, set: code => { calls.push(["language", code]); return code === "pt-br"; }, follow: code => { calls.push(["shown", code]); return code === "de"; } }, applyNativeLanguage: () => calls.push("relabel"), talk: { relabel: () => calls.push("talk relabel") },
-    path: { join: (...parts) => parts.join("/") }, app: { getPath: () => "/user-data" }, desktopDataDir: () => "/home/.openmausbot",
+    path: { join: (...parts) => parts.join("/") }, app: { getPath: () => "/user-data" }, desktopDataDir: () => "/home/.opendeliobot",
     navigateMainWindow: async url => { calls.push(["navigate", url]); return loads; },
     senderIsLocal: localOrigin.isLocalSender, workspaceSenderAllowed: environments.workspaceSenderAllowed,
     mainWindow: { webContents: contents }, environmentsState: { environments: [{ id: "vps", name: "VPS", origin: VPS }], activeId: "vps" },
@@ -335,7 +335,7 @@ test("production wiring: main answers this computer's page, My Cloud's own page 
   vm.runInContext(main.slice(start, end), context);
   assert.equal(options.prefs, context.nativeText.prefs, "the record main read before the tray and the startup screen");
   assert.match(main, /const nativeText = createDesktopText\(app\), nativeT = nativeText\.t;/);
-  assert.equal(options.localConfig(), "/home/.openmausbot/config.json", "This computer's own workspace, whichever server the window shows");
+  assert.equal(options.localConfig(), "/home/.opendeliobot/config.json", "This computer's own workspace, whichever server the window shows");
   assert.deepEqual([options.frame.made(), options.frame.restarts], [false, true], "Windows: the frame its window was made with, until a restart");
   options.frame.changed();
   assert.equal(broadcasts, 1, "the pages hear the frame change");
@@ -392,9 +392,9 @@ test("the talk shortcut is on with ⌃⌥Space until changed, and the choice sur
 test("each server keeps its own Quick asks chat; nothing malformed is read back", () => {
   let saved = null;
   const prefs = createDesktopPrefs({ read: () => saved, write: value => { saved = structuredClone(value); } });
-  prefs.setQuickAsksChat("/Users/a/.openmausbot", { botId: "bot-1", threadId: "t-1" });
-  assert.deepEqual(createDesktopPrefs({ read: () => saved, write: () => {} }).quickAsksChat("/Users/a/.openmausbot"), { botId: "bot-1", threadId: "t-1" });
-  assert.equal(prefs.quickAsksChat("/Users/a/.openmausbot-aprs"), null);
+  prefs.setQuickAsksChat("/Users/a/.opendeliobot", { botId: "bot-1", threadId: "t-1" });
+  assert.deepEqual(createDesktopPrefs({ read: () => saved, write: () => {} }).quickAsksChat("/Users/a/.opendeliobot"), { botId: "bot-1", threadId: "t-1" });
+  assert.equal(prefs.quickAsksChat("/Users/a/.opendeliobot-aprs"), null);
   const broken = createDesktopPrefs({ read: () => ({ quickAsks: { a: { botId: "../x", threadId: "t" }, b: "t-1", c: { botId: "b", threadId: "t", extra: 1 } } }), write: () => {} });
   assert.equal(broken.quickAsksChat("a"), null);
   assert.equal(broken.quickAsksChat("b"), null);

@@ -18,7 +18,7 @@ import { ShareTeamDialog } from "./ShareTeamDialog";
 import { OrgLibraryTab } from "./TeamLibraryPanelOrg";
 import { MAX_TEAM_BACKUP_BYTES } from "../../shared/team-backup";
 import { takeImportName } from "../../shared/import-name";
-const COMMUNITY_TEAMS_REPOSITORY = "https://github.com/milind-soni/openmausbot-teams";
+const COMMUNITY_TEAMS_REPOSITORY = "https://github.com/Braand-web/opendeliobot-teams";
 
 export { TeamImportDetails };
 
@@ -721,7 +721,7 @@ export function TeamLibraryPanel({
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept=".md,.json,.mausbackup.json,.mausteam.json,text/markdown,application/json"
+                    accept=".md,.json,.deliobackup.json,.delioteam.json,text/markdown,application/json"
                     className="hidden"
                     onChange={(event) => {
                       const file = event.currentTarget.files?.[0];

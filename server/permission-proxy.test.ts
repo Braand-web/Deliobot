@@ -73,7 +73,7 @@ describe("permission proxy", () => {
   };
 
   beforeEach(async () => {
-    scratch = mkdtempSync(join(tmpdir(), "omb-perm-proxy-"));
+    scratch = mkdtempSync(join(tmpdir(), "odb-perm-proxy-"));
     asks = [];
     conns = [];
     answerWith = () => null;
@@ -124,7 +124,7 @@ describe("permission proxy", () => {
 
   it("withholds an excluded question without losing the CLI permission callback", async () => {
     const exited = once(proxy, "exit"); proxy.kill(); await exited; results.clear();
-    startProxy(brokerSocketPath(scratch, "test"), { ...process.env, OMB_PERMISSION_TOOL_SCOPE: JSON.stringify({ allow: ["native:*"] }) });
+    startProxy(brokerSocketPath(scratch, "test"), { ...process.env, ODB_PERMISSION_TOOL_SCOPE: JSON.stringify({ allow: ["native:*"] }) });
     rpc({ jsonrpc: "2.0", id: 2, method: "tools/list" });
     expect((await waitFor(2)).result.tools.map((tool: { name: string }) => tool.name)).toEqual(["approve"]);
     rpc({ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "ask_user", arguments: { question: "Must not ask" } } });
@@ -225,7 +225,7 @@ describe("permission proxy", () => {
     // What the broker actually sends on a timeout: `answer`, source "timeout", and a full sentence.
     answerWith = () => ({
       behavior: "answer",
-      message: "OpenMausBot: nobody answered in time. Use your best judgment and continue.",
+      message: "OpenDeliobot: nobody answered in time. Use your best judgment and continue.",
       source: "timeout",
     });
     rpc({
@@ -240,7 +240,7 @@ describe("permission proxy", () => {
   it("treats the turn ending the same way — system words are not the user's answer", async () => {
     answerWith = () => ({
       behavior: "answer",
-      message: "OpenMausBot: the turn is ending — wrap up.",
+      message: "OpenDeliobot: the turn is ending — wrap up.",
       source: "system",
     });
     rpc({
@@ -253,7 +253,7 @@ describe("permission proxy", () => {
   });
 
   it("denies when the broker is gone, rather than reporting an empty answer", async () => {
-    answerWith = () => ({ behavior: "deny", message: "OpenMausBot: permission broker unavailable" });
+    answerWith = () => ({ behavior: "deny", message: "OpenDeliobot: permission broker unavailable" });
     rpc({
       jsonrpc: "2.0",
       id: 2,

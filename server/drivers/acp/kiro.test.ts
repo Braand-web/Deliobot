@@ -34,7 +34,7 @@ function writeStore(dir: string, rows: Array<[string, string]>): void {
 describe("Kiro sign-in", () => {
   let scratch: string;
   beforeEach(() => {
-    scratch = mkdtempSync(join(tmpdir(), "omb-kiro-sign-in-"));
+    scratch = mkdtempSync(join(tmpdir(), "odb-kiro-sign-in-"));
   });
   afterEach(async () => {
     await removeTempDir(scratch);
@@ -108,7 +108,7 @@ describe("Kiro ACP driver", () => {
 
   beforeEach(() => {
     ensureDirs();
-    scratch = mkdtempSync(join(tmpdir(), "omb-kiro-contract-"));
+    scratch = mkdtempSync(join(tmpdir(), "odb-kiro-contract-"));
   });
   afterEach(async () => {
     recorder?.stop();

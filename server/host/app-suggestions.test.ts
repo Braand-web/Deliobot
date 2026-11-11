@@ -31,7 +31,7 @@ const picked = (choice: string) => ({ ok: true, provider: "jev", latencyMs: 1, a
 const connectCard = (slug: string, status = "required", resumeKey = "resume-key") => listener!({ type: "message", threadId: "t", message: { connector: { slug, status, resumeKey, label: slug, description: "" } } });
 
 beforeEach(() => {
-  dataDir = mkdtempSync(join(tmpdir(), "omb-app-suggestions-"));
+  dataDir = mkdtempSync(join(tmpdir(), "odb-app-suggestions-"));
   services = { gmail: { connected: true } };
   bots = [{ id: "b1", name: "Sales", title: "Sales lead" }];
   offerable = () => true;

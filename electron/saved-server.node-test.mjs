@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { reopenSavedServer, serverAnswers, serverOpens } from "./saved-server.mjs";
 
-const office = { id: "vps", name: "pro cloud", origin: "https://omb-u-gone.fly.dev" };
+const office = { id: "vps", name: "pro cloud", origin: "https://odb-u-gone.fly.dev" };
 const answering = (status) => async () => new Response("{}", { status });
 const gone = async () => { throw new TypeError("fetch failed"); };
 const asked = (responses) => {
@@ -29,7 +29,7 @@ test("one that doesn't answer is the person's choice: Cancel stays put, Remove f
   const cancel = asked([2]);
   assert.equal(await serverOpens(office, { fetch: gone, dialog: cancel.dialog, forget: () => assert.fail("not asked to") }), false);
   assert.equal(cancel.shown[0].message, "pro cloud isn't answering");
-  assert.match(cancel.shown[0].detail, /omb-u-gone\.fly\.dev/);
+  assert.match(cancel.shown[0].detail, /odb-u-gone\.fly\.dev/);
   assert.deepEqual(cancel.shown[0].buttons, ["Try again", "Remove from list", "Cancel"]);
 
   const forgotten = [];

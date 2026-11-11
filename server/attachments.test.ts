@@ -37,8 +37,8 @@ afterEach(() => {
 
 // The module reads DATA_DIR at import time, so the env var must be set
 // before the import is evaluated.
-const DATA_ROOT = mkdtempSync(join(tmpdir(), "omb-attachments-"));
-process.env.OMB_DATA_DIR = join(DATA_ROOT, "data");
+const DATA_ROOT = mkdtempSync(join(tmpdir(), "odb-attachments-"));
+process.env.ODB_DATA_DIR = join(DATA_ROOT, "data");
 
 const {
   ATTACHMENTS_DIR,
@@ -235,12 +235,12 @@ describe("saveAudio", () => {
 });
 
 describe("attachmentsMaxBytes", () => {
-  it("keeps 512 MB unless OMB_ATTACHMENTS_MAX_BYTES is a positive whole number of bytes", () => {
+  it("keeps 512 MB unless ODB_ATTACHMENTS_MAX_BYTES is a positive whole number of bytes", () => {
     expect(ATTACHMENTS_MAX_BYTES).toBe(DEFAULT_ATTACHMENTS_MAX_BYTES);
     expect(attachmentsMaxBytes({})).toBe(512 * 1024 * 1024);
-    expect(attachmentsMaxBytes({ OMB_ATTACHMENTS_MAX_BYTES: " 4294967296 " })).toBe(4 * 1024 * 1024 * 1024);
+    expect(attachmentsMaxBytes({ ODB_ATTACHMENTS_MAX_BYTES: " 4294967296 " })).toBe(4 * 1024 * 1024 * 1024);
     for (const bad of ["", "0", "-1", "2GB", "1.5", "NaN"]) {
-      expect(attachmentsMaxBytes({ OMB_ATTACHMENTS_MAX_BYTES: bad })).toBe(DEFAULT_ATTACHMENTS_MAX_BYTES);
+      expect(attachmentsMaxBytes({ ODB_ATTACHMENTS_MAX_BYTES: bad })).toBe(DEFAULT_ATTACHMENTS_MAX_BYTES);
     }
   });
 });
@@ -308,8 +308,8 @@ describe("aggregate attachment storage", () => {
 
   it("cleans only stale upload partials, never committed or active-looking files", () => {
     saveImage(Buffer.from("kept"), "image/png", UPLOAD_A);
-    const stale = `${ATTACHMENTS_DIR}/.openmaus-upload-${UPLOAD_A}-${UPLOAD_B}.partial`;
-    const fresh = `${ATTACHMENTS_DIR}/.openmaus-upload-${UPLOAD_B}-${UPLOAD_A}.partial`;
+    const stale = `${ATTACHMENTS_DIR}/.opendelio-upload-${UPLOAD_A}-${UPLOAD_B}.partial`;
+    const fresh = `${ATTACHMENTS_DIR}/.opendelio-upload-${UPLOAD_B}-${UPLOAD_A}.partial`;
     const unrelated = `${ATTACHMENTS_DIR}/notes.partial`;
     writeFileSync(stale, "stale");
     writeFileSync(fresh, "fresh");
@@ -329,7 +329,7 @@ describe("aggregate attachment storage", () => {
     const existing = saveImage(Buffer.from("x"), "image/png");
     truncateSync(existing.path, ATTACHMENTS_MAX_BYTES - 2);
     __resetAttachmentAccountingForTests();
-    const orphan = `${ATTACHMENTS_DIR}/.openmaus-upload-${UPLOAD_A}-${UPLOAD_B}.partial`;
+    const orphan = `${ATTACHMENTS_DIR}/.opendelio-upload-${UPLOAD_A}-${UPLOAD_B}.partial`;
     writeFileSync(orphan, "xx");
 
     expect(() => saveImage(Buffer.from("y"), "image/png")).toThrow(/storage is full/);
@@ -344,7 +344,7 @@ describe("aggregate attachment storage", () => {
     const existing = saveImage(Buffer.from("x"), "image/png");
     truncateSync(existing.path, ATTACHMENTS_MAX_BYTES - 3);
     __resetAttachmentAccountingForTests();
-    const orphan = `${ATTACHMENTS_DIR}/.openmaus-upload-${UPLOAD_A}-${UPLOAD_B}.partial`;
+    const orphan = `${ATTACHMENTS_DIR}/.opendelio-upload-${UPLOAD_A}-${UPLOAD_B}.partial`;
     writeFileSync(orphan, "old");
 
     const saved = await saveFile((async function* () {
@@ -757,7 +757,7 @@ describe("clearing attachments from Settings", () => {
 
   it("leaves upload partials to their own cleanup", () => {
     mkdirSync(ATTACHMENTS_DIR, { recursive: true });
-    const partial = join(ATTACHMENTS_DIR, `.openmaus-upload-${UPLOAD_A}-${UPLOAD_B}.partial`);
+    const partial = join(ATTACHMENTS_DIR, `.opendelio-upload-${UPLOAD_A}-${UPLOAD_B}.partial`);
     writeFileSync(partial, "part");
     age(partial, ATTACHMENT_CLEAR_MIN_AGE_MS + 1_000);
 

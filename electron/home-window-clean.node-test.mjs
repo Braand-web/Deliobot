@@ -23,7 +23,7 @@ test("the clean workspace is for nobody signed in, or an account with no way to 
     ["a sign-in on its way", { journal: done(), state: { status: "connecting" } }, true],
     ["another account", { journal: done(), state: other() }, true],
     ["another account, with the Admin not answering", { journal: done(), state: { status: "unavailable", account: { id: "acct-2" } } }, true],
-    ["a freeze for another Cloud", { frozenCloud: "https://omb-t-2.fly.dev", state: connected() }, true],
+    ["a freeze for another Cloud", { frozenCloud: "https://odb-t-2.fly.dev", state: connected() }, true],
     ["signed in, with no Cloud a freeze can name", { frozenCloud: true, state: { status: "connected", account: ACCOUNT, machine: null } }, true],
     ["a sign-in still being read", { journal: done(), state: { status: "signed-out", message: "restoring" } }, false],
     ["the owner", { journal: done(), state: connected() }, false],
@@ -121,7 +121,7 @@ test("without a clean workspace (an app that can't sign in here), nothing change
 });
 
 test("signed out with a place remembered: the clean workspace opens, and the place is still there once they're back", async () => {
-  const remembered = { team: ACME.id, name: ACME.name, origin: "https://omb-u-acme.fly.dev" };
+  const remembered = { team: ACME.id, name: ACME.name, origin: "https://odb-u-acme.fly.dev" };
   const clean = cleanSide(), w = world({ clean, state: signedOut, remembered });
   await w.home.show();
   assert.equal(clean.enters, 1);

@@ -89,7 +89,7 @@ export async function videoFrameImages(videos: readonly TurnVideoInput[] | undef
     try {
       const duration = await videoDurationSeconds(video);
       const count = Math.min(VIDEO_SAMPLE_FRAME_COUNT, Math.max(1, Math.ceil(duration)), limit - frames.length);
-      dir = await mkdtemp(join(tmpdir(), "omb-video-frame-"));
+      dir = await mkdtemp(join(tmpdir(), "odb-video-frame-"));
       for (let index = 0; index < count; index += 1) {
         const atSeconds = (duration * (index + 0.5)) / count;
         const outPath = join(dir, `frame-${index}.jpg`);

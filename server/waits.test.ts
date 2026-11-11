@@ -16,7 +16,7 @@ afterEach(() => {
 });
 
 function harness(options: Partial<WaitManagerOptions> = {}) {
-  const dir = mkdtempSync(join(tmpdir(), "omb-waits-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-waits-"));
   dirs.push(dir);
   const file = join(dir, "waits.json");
   let clock = T0;

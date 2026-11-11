@@ -1,7 +1,7 @@
 // Writes the chat-app fixtures the phone apps test against, made by the server's own code, and copies the app
 // host page into both phone apps.
 //
-//   node --experimental-strip-types scripts/gen-app-fixtures.ts <mausbot-mobile checkout>
+//   node --experimental-strip-types scripts/gen-app-fixtures.ts <delio-mobile checkout>
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -28,7 +28,7 @@ const THREAD = "thread-apps";
 const BOT = { id: "bot-scout", name: "Scout" };
 
 export function buildAppFixtures(): AppFixtures {
-  const scratch = mkdtempSync(join(tmpdir(), "omb-app-fixtures-"));
+  const scratch = mkdtempSync(join(tmpdir(), "odb-app-fixtures-"));
   try {
     const docs = new AppDocs(join(scratch, "app-docs"));
     const messages: Message[] = [];
@@ -135,7 +135,7 @@ export function writeAppFixtures(root: string): string[] {
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const root = process.argv[2];
-  if (!root) throw new Error("usage: gen-app-fixtures.ts <mausbot-mobile checkout>");
+  if (!root) throw new Error("usage: gen-app-fixtures.ts <delio-mobile checkout>");
   const files = writeAppFixtures(root);
   console.log(`wrote ${files.length} files under ${root}:\n${files.map((file) => `  ${file}`).join("\n")}`);
 }

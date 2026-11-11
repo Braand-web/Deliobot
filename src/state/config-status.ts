@@ -23,7 +23,7 @@ export interface ConfigStatus {
   modelgo?: SavedKey;
   deepseek?: SavedKey;
   meta?: SavedKey;
-  /** X research comes with MausBot Cloud plans: `included` while this server holds the plan's relay credential;
+  /** X research comes with Delio Cloud plans: `included` while this server holds the plan's relay credential;
    * `unavailable` when the Admin said no to this desktop's paid sign-in. */
   xResearch?: { included: boolean; unavailable?: boolean };
   /** The person's own treg key for research: configured or not, never the key. */
@@ -59,7 +59,7 @@ export interface ConfigStatus {
   newBots?: { effort?: EffortLevel };
   /** This Cloud is on the Starter plan, as the Admin last said; absent or false otherwise. */
   cloudStarter?: boolean;
-  /** The most bots this Cloud's plan makes, its MausBot aside. Sent only by servers that capped Starter's bots; absent otherwise. */
+  /** The most bots this Cloud's plan makes, its Delio aside. Sent only by servers that capped Starter's bots; absent otherwise. */
   botLimit?: number;
   /** A task on this Cloud is waiting for memory right now. */
   waitingForRoom?: boolean;
@@ -159,10 +159,10 @@ export interface ConfigStatus {
   /** The enrolled organisation's read-only desktop policy; null when this
    * desktop is not enrolled or its Admin sends no policy. */
   managedPolicy?: ManagedPolicySummary | null;
-  /** This server is an OMB Cloud home: it offers no "this computer" and no
+  /** This server is an ODB Cloud home: it offers no "this computer" and no
    * Local VM (server/cloud-home.ts). Absent everywhere else. */
   cloudHome?: boolean;
-  /** A Team Cloud: the team this server is the home of, and the Plan page (MausBot Cloud) where its people and plan
+  /** A Team Cloud: the team this server is the home of, and the Plan page (Delio Cloud) where its people and plan
    * are managed. Absent everywhere else. */
   team?: { id: string; name: string; cloudPage?: string };
 }
@@ -198,10 +198,10 @@ export interface BrowserEngineSummary {
   myChromeOn?: { name: string; device: "PC" | "Mac" | "computer"; online: boolean };
   /** On My Cloud with no computer lending Chrome: it can be lent from the desktop app. */
   myChromeLendable?: true;
-  /** browserEngine.engine: "chrome" when the bots' browsers run on OpenMausBot's own Chrome driver. */
+  /** browserEngine.engine: "chrome" when the bots' browsers run on OpenDeliobot's own Chrome driver. */
   engine?: "agent-browser" | "chrome";
   /** Self-hosted servers only: whether bots' browsers may open this server's own sites and its local network
-   * (browserEngine.egress.localNetwork, off by default). Absent on the desktop and on MausBot Cloud. */
+   * (browserEngine.egress.localNetwork, off by default). Absent on the desktop and on Delio Cloud. */
   serverSites?: boolean;
 }
 

@@ -12,9 +12,9 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { listMailboxes, listMessages, readMessage, searchMessages, sendMessage, testSending, type EmailGuard } from "./client.ts";
 import { createEmailService } from "./service.ts";
 
-const ADDRESS = "tester@omb-test.example", EMPTY = "empty@omb-test.example", COPY = "copy@omb-test.example";
+const ADDRESS = "tester@odb-test.example", EMPTY = "empty@odb-test.example", COPY = "copy@odb-test.example";
 const PASSWORD = "fake pässword-with spaces 7";
-const HOST = "mail.omb-test.example";
+const HOST = "mail.odb-test.example";
 const IMAPS = 11993, IMAP = 11143, SMTPS = 11465, SUBMISSION = 11587;
 /** The made-up name is the real server on loopback; its certificate is for that name. */
 const guard: EmailGuard = async ({ host }) => ({ host: "127.0.0.1", servername: host });
@@ -22,7 +22,7 @@ const AUTOCONFIG = `<clientConfig><emailProvider id="x">
   <incomingServer type="imap"><hostname>${HOST}</hostname><port>${IMAPS}</port><socketType>SSL</socketType><username>%EMAILADDRESS%</username></incomingServer>
   <outgoingServer type="smtp"><hostname>${HOST}</hostname><port>${SUBMISSION}</port><socketType>STARTTLS</socketType><username>%EMAILADDRESS%</username></outgoingServer>
 </emailProvider></clientConfig>`;
-const discover = { fetchText: async (url: string) => (url.includes("autoconfig.omb-test.example") ? AUTOCONFIG : null), mx: async () => [], srv: async () => [], cname: async () => [], reverse: async () => [] };
+const discover = { fetchText: async (url: string) => (url.includes("autoconfig.odb-test.example") ? AUTOCONFIG : null), mx: async () => [], srv: async () => [], cname: async () => [], reverse: async () => [] };
 
 const PDF = Buffer.concat([Buffer.from("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n", "latin1"), randomBytes(2048), Buffer.from("\n%%EOF\n")]);
 const sha = (bytes: Buffer) => createHash("sha256").update(bytes).digest("hex");
@@ -32,21 +32,21 @@ const utf8 = (lines: string[]) => Buffer.from(lines.join("\r\n"), "utf8");
 /** A subject as a mail program encodes it. */
 const encoded = (text: string) => `=?UTF-8?B?${Buffer.from(text).toString("base64")}?=`;
 const MESSAGES: Record<string, Buffer> = {
-  utf8Subject: crlf(["From: =?UTF-8?Q?M=C3=BCller=2C_Hans?= <hans@example.net>", "To: tester@omb-test.example", `Subject: ${encoded("Rechnung für März – Überweisung ✓")}`, "Date: Mon, 2 Nov 2026 10:00:00 +0100", "Message-ID: <utf8@example.net>", "MIME-Version: 1.0", "Content-Type: text/plain; charset=utf-8", "Content-Transfer-Encoding: 8bit", "", Buffer.from("Grüße aus Österreich", "utf8").toString("latin1")]),
-  rawUtf8: utf8(["From: raw@example.net", "To: tester@omb-test.example", "Subject: Rohes Betreff ohne Kodierung: Größe", "Date: Mon, 2 Nov 2026 10:01:00 +0100", "", "body"]),
+  utf8Subject: crlf(["From: =?UTF-8?Q?M=C3=BCller=2C_Hans?= <hans@example.net>", "To: tester@odb-test.example", `Subject: ${encoded("Rechnung für März – Überweisung ✓")}`, "Date: Mon, 2 Nov 2026 10:00:00 +0100", "Message-ID: <utf8@example.net>", "MIME-Version: 1.0", "Content-Type: text/plain; charset=utf-8", "Content-Transfer-Encoding: 8bit", "", Buffer.from("Grüße aus Österreich", "utf8").toString("latin1")]),
+  rawUtf8: utf8(["From: raw@example.net", "To: tester@odb-test.example", "Subject: Rohes Betreff ohne Kodierung: Größe", "Date: Mon, 2 Nov 2026 10:01:00 +0100", "", "body"]),
   // The shape that broke a bot's own server: a subject that is a lone ")".
-  parenSubject: crlf(["From: paren@example.net", "To: tester@omb-test.example", "Subject: )", "Date: Mon, 2 Nov 2026 10:02:00 +0100", "", "the subject is a lone parenthesis"]),
-  folded: crlf(["From: folded@example.net", "To: tester@omb-test.example, \"Second, Person\" <second@example.net>,", "\tthird@example.net", "Subject: A subject", "  folded onto", "\ttwo more lines", "Date: Mon, 2 Nov 2026 10:03:00 +0100", "X-Odd: (((", "", "folded"]),
-  unknownCharset: crlf(["From: odd@example.net", "To: tester@omb-test.example", "Subject: =?x-unknown-charset?Q?caf=E9?= and =?UTF-8?B?not base64!?=", "Date: not a date at all", "", "odd"]),
+  parenSubject: crlf(["From: paren@example.net", "To: tester@odb-test.example", "Subject: )", "Date: Mon, 2 Nov 2026 10:02:00 +0100", "", "the subject is a lone parenthesis"]),
+  folded: crlf(["From: folded@example.net", "To: tester@odb-test.example, \"Second, Person\" <second@example.net>,", "\tthird@example.net", "Subject: A subject", "  folded onto", "\ttwo more lines", "Date: Mon, 2 Nov 2026 10:03:00 +0100", "X-Odd: (((", "", "folded"]),
+  unknownCharset: crlf(["From: odd@example.net", "To: tester@odb-test.example", "Subject: =?x-unknown-charset?Q?caf=E9?= and =?UTF-8?B?not base64!?=", "Date: not a date at all", "", "odd"]),
   noHeaders: crlf(["X-Only: this", "", "no from, no subject, no date"]),
   undisclosed: crlf(["From: <>", "To: undisclosed-recipients:;", "Subject: ", "Date: Mon, 2 Nov 2026 10:04:00 +0100", "", "empty from and group to"]),
-  latin1: crlf(["From: latin@example.net", "To: tester@omb-test.example", "Subject: =?ISO-8859-1?Q?Gr=FC=DFe?=", "Date: Mon, 2 Nov 2026 10:05:00 +0100", "MIME-Version: 1.0", "Content-Type: text/plain; charset=iso-8859-1", "Content-Transfer-Encoding: quoted-printable", "", "Gr=FC=DFe aus Wien"]),
-  htmlOnly: crlf(["From: html@example.net", "To: tester@omb-test.example", "Subject: Only HTML", "Date: Mon, 2 Nov 2026 10:06:00 +0100", "MIME-Version: 1.0", "Content-Type: text/html; charset=utf-8", "", "<html><body><h1>Heading</h1><p>Some <b>bold</b> words.</p><script>alert(1)</script></body></html>"]),
-  withPdf: crlf(["From: invoices@example.net", "To: tester@omb-test.example", `Subject: ${encoded("Rechnung März")}`, "Date: Mon, 2 Nov 2026 10:07:00 +0100", "MIME-Version: 1.0", 'Content-Type: multipart/mixed; boundary="b1"', "", "--b1", "Content-Type: text/plain; charset=utf-8", "", "See the attached invoice.", "--b1", 'Content-Type: application/pdf; name="x.pdf"', "Content-Transfer-Encoding: base64", "Content-Disposition: attachment; filename*=UTF-8''..%2F..%2FRechnung%20M%C3%A4rz.pdf", "", ...(PDF.toString("base64").match(/.{1,76}/gu) ?? []), "--b1--", ""]),
+  latin1: crlf(["From: latin@example.net", "To: tester@odb-test.example", "Subject: =?ISO-8859-1?Q?Gr=FC=DFe?=", "Date: Mon, 2 Nov 2026 10:05:00 +0100", "MIME-Version: 1.0", "Content-Type: text/plain; charset=iso-8859-1", "Content-Transfer-Encoding: quoted-printable", "", "Gr=FC=DFe aus Wien"]),
+  htmlOnly: crlf(["From: html@example.net", "To: tester@odb-test.example", "Subject: Only HTML", "Date: Mon, 2 Nov 2026 10:06:00 +0100", "MIME-Version: 1.0", "Content-Type: text/html; charset=utf-8", "", "<html><body><h1>Heading</h1><p>Some <b>bold</b> words.</p><script>alert(1)</script></body></html>"]),
+  withPdf: crlf(["From: invoices@example.net", "To: tester@odb-test.example", `Subject: ${encoded("Rechnung März")}`, "Date: Mon, 2 Nov 2026 10:07:00 +0100", "MIME-Version: 1.0", 'Content-Type: multipart/mixed; boundary="b1"', "", "--b1", "Content-Type: text/plain; charset=utf-8", "", "See the attached invoice.", "--b1", 'Content-Type: application/pdf; name="x.pdf"', "Content-Transfer-Encoding: base64", "Content-Disposition: attachment; filename*=UTF-8''..%2F..%2FRechnung%20M%C3%A4rz.pdf", "", ...(PDF.toString("base64").match(/.{1,76}/gu) ?? []), "--b1--", ""]),
 };
 
-describe.skipIf(!process.env.OMB_EMAIL_REAL_TEST)("Email against a real mail server", () => {
-  const root = mkdtempSync(join(tmpdir(), "omb-mail-real-"));
+describe.skipIf(!process.env.ODB_EMAIL_REAL_TEST)("Email against a real mail server", () => {
+  const root = mkdtempSync(join(tmpdir(), "odb-mail-real-"));
   const service = createEmailService({ dataDir: root, publicOnly: false, discover, guard });
   const uids: Record<string, number> = {};
   const admin = () => { const client = new ImapFlow({ host: "127.0.0.1", port: IMAPS, secure: true, servername: HOST, tls: { servername: HOST }, auth: { user: ADDRESS, pass: PASSWORD }, logger: false } as never); client.on("error", () => {}); return client; };

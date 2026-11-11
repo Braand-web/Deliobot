@@ -35,7 +35,7 @@ const ROSTER = [
 ];
 
 function setup(options: { team?: boolean; requester?: Record<string, string>; servers?: Record<string, unknown>; roster?: typeof ROSTER; fullAccess?: (botId: string, threadId: string) => boolean } = {}) {
-  const dataDir = mkdtempSync(join(tmpdir(), "omb-team-connections-"));
+  const dataDir = mkdtempSync(join(tmpdir(), "odb-team-connections-"));
   const requester = { "ada-chat": ADA, "cleo-chat": CLEO, "room-chat": ADA, "main-chat": ADA, "work-chat": ADA, "ada-work": ADA, "cleo-work": CLEO, ...options.requester };
   const cfg = { mcpServers: options.servers ?? {
     mail: { type: "http", url: "https://mail.example/mcp", headers: { Authorization: "Bearer team-mail-key" }, enabled: true },
@@ -225,7 +225,7 @@ describe("apps each person connects", () => {
     const scout = { id: "scout", name: "Scout", connectorTools: { gmail: { tools: "*" as const } } };
     await host.appsIntegrations(scout, "main-chat", "g1");
     await host.appsIntegrations(scout, "work-chat", "g2");
-    await host.appsIntegrations({ id: "mausbot", name: "MausBot" }, "work-chat", "g3");
+    await host.appsIntegrations({ id: "delio", name: "Delio" }, "work-chat", "g3");
     await host.appsIntegrations({ ...scout, connectorScopes: { apps: { gmail: "read" } } }, "work-chat", "g4");
     const offered = composio.mcpIntegration.mock.calls.map(([, context]) => context as typeof context & { connectorTools?: unknown })
       .filter((context) => !context.as).map((context) => context.connectorTools);

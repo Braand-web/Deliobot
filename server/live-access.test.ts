@@ -12,14 +12,14 @@ import { SessionRegistry, type Scope, type SessionRecord } from "./sessions.ts";
 import { moveInRefusal } from "./team-move-in.ts";
 
 const LIVE = "/api/live/session";
-const COOKIE = "omb_session_test";
+const COOKIE = "odb_session_test";
 const REMOTE = { host: "bots.example.com", "x-forwarded-for": "203.0.113.9", "x-forwarded-proto": "https" };
 const LOCAL = { host: "127.0.0.1:8799" };
 const DESKTOP = { loopbackMutationToken: "desktop-secret", companionMutationToken: "relay-secret" };
 
 let dir: string, sessions: SessionRegistry;
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), "omb-live-access-"));
+  dir = mkdtempSync(join(tmpdir(), "odb-live-access-"));
   sessions = new SessionRegistry({ file: join(dir, "sessions.json") });
 });
 afterEach(() => {
@@ -60,14 +60,14 @@ describe("an Azure Live call", () => {
   describe("in the desktop app", () => {
     const place = { resolve: DESKTOP };
     it("goes to the app's own window", () => {
-      expect(verdict({ ...LOCAL, "x-openmausbot-desktop-owner": "desktop-secret" }, place)).toBe(CALL);
+      expect(verdict({ ...LOCAL, "x-opendeliobot-desktop-owner": "desktop-secret" }, place)).toBe(CALL);
     });
     it("goes to the owner's phone, through the companion that authenticated it", () => {
-      expect(verdict({ ...LOCAL, "x-openmausbot-companion": "1", "x-openmausbot-companion-device": "phone-1", "x-openmausbot-companion-auth": "relay-secret" }, place)).toBe(CALL);
+      expect(verdict({ ...LOCAL, "x-opendeliobot-companion": "1", "x-opendeliobot-companion-device": "phone-1", "x-opendeliobot-companion-auth": "relay-secret" }, place)).toBe(CALL);
     });
     it("is refused to a bot's shell and to a forged companion", () => {
       expect(verdict(LOCAL, place)).toMatch(/^sign-in gate 403: forbidden: this change must come from the desktop app/);
-      expect(verdict({ ...LOCAL, "x-openmausbot-companion": "1", "x-openmausbot-companion-device": "phone-1", "x-openmausbot-companion-auth": "guessed" }, place)).toMatch(/^sign-in gate 403: forbidden: invalid companion/);
+      expect(verdict({ ...LOCAL, "x-opendeliobot-companion": "1", "x-opendeliobot-companion-device": "phone-1", "x-opendeliobot-companion-auth": "guessed" }, place)).toMatch(/^sign-in gate 403: forbidden: invalid companion/);
     });
     it("is refused to a remote device paired chat-only", () => {
       expect(verdict(device(["client"]), place)).toBe(AT_SIGN_IN);
@@ -146,9 +146,9 @@ describe("an Azure Live call", () => {
       expect(verdict(riding("null"))).toBe("sign-in gate 403: forbidden: cross-origin request");
     });
     it("is refused inside the desktop app's window too, where the app adds its owner header to every request", () => {
-      const sandboxed = { ...LOCAL, "x-openmausbot-desktop-owner": "desktop-secret", origin: "null", "sec-fetch-site": "cross-site", "sec-fetch-dest": "empty" };
+      const sandboxed = { ...LOCAL, "x-opendeliobot-desktop-owner": "desktop-secret", origin: "null", "sec-fetch-site": "cross-site", "sec-fetch-dest": "empty" };
       expect(verdict(sandboxed, { resolve: DESKTOP })).toBe("sign-in gate 403: forbidden: cross-origin request");
-      const sameHostPage = { ...LOCAL, "x-openmausbot-desktop-owner": "desktop-secret", origin: "http://127.0.0.1:9999", "sec-fetch-site": "same-site", "sec-fetch-dest": "empty" };
+      const sameHostPage = { ...LOCAL, "x-opendeliobot-desktop-owner": "desktop-secret", origin: "http://127.0.0.1:9999", "sec-fetch-site": "same-site", "sec-fetch-dest": "empty" };
       expect(verdict(sameHostPage, { resolve: DESKTOP })).toMatch(/^sign-in gate 401: unauthorized: this browser is not signed in/);
     });
     it("is refused with no credential at all", () => {

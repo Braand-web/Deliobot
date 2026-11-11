@@ -15,7 +15,7 @@ const state = { status: "connected", teams: [
   { id: "team-waiting", name: "Waiting", machine: { origin: OTHER, status: "provisioning" } },
 ] };
 const BOTS = [
-  { id: "maus-bot-1", name: "MausBot", defaultBot: {} },
+  { id: "delio-bot-1", name: "Delio", defaultBot: {} },
   { id: "atlas-bot-1", name: "Atlas" },
   { id: "chief-bot-1", name: "Luna", chiefOfStaff: true },
   { id: "old-bot-01", name: "Hidden", hidden: true },
@@ -23,7 +23,7 @@ const BOTS = [
 ];
 
 function fixture({ agrees = false, home = true, bots = BOTS, listedStatus = 200, t = nativeText.englishText.t } = {}) {
-  const dir = mkdtempSync(join(tmpdir(), "omb-team-bring-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-team-bring-"));
   const handlers = new Map(), asked = [], pairs = [], labels = [];
   const journal = { value: null, read() { return this.value; }, write(next) { this.value = next; } };
   const move = installTeamMove({
@@ -36,7 +36,7 @@ function fixture({ agrees = false, home = true, bots = BOTS, listedStatus = 200,
     account: () => ({ state: () => state, pairTeam: async () => { throw new Error("no team pairing in this test"); } }),
     file: () => join(dir, "send.json"), journalFile: () => join(dir, "moves.json"), journal,
     fetch: async (url, init) => {
-      if (String(url).endsWith("/api/auth/pair")) { labels.push(JSON.parse(init.body).label); return new Response(JSON.stringify({ token: "omb_sess_fixture" }), { status: 200 }); }
+      if (String(url).endsWith("/api/auth/pair")) { labels.push(JSON.parse(init.body).label); return new Response(JSON.stringify({ token: "odb_sess_fixture" }), { status: 200 }); }
       if (String(url).endsWith("/api/bots?messages=0")) return new Response(JSON.stringify({ bots }), { status: listedStatus });
       if (String(url).endsWith("/api/auth/logout")) return new Response("{}", { status: 200 });
       return new Response(JSON.stringify({ url, method: init?.method }), { status: 503 });
@@ -51,7 +51,7 @@ test("lists My Cloud's bots to that team's own page, each with why it can't go, 
   try {
     const list = handlers.get("cloud-send:team-bring");
     assert.deepEqual(await list(OWN), { team: { id: "team-acme", name: "Acme", ready: true }, bots: [
-      { id: "maus-bot-1", name: "MausBot", stays: "default" }, { id: "atlas-bot-1", name: "Atlas" }, { id: "chief-bot-1", name: "Luna", stays: "chief" },
+      { id: "delio-bot-1", name: "Delio", stays: "default" }, { id: "atlas-bot-1", name: "Atlas" }, { id: "chief-bot-1", name: "Luna", stays: "chief" },
     ] });
     assert.deepEqual(await list({ origin: "https://stranger.example.test" }), { bots: [] }, "a page that isn't one of the person's teams");
     assert.deepEqual(await list({}), { bots: [] }, "a sender that isn't the window's own page");
@@ -82,7 +82,7 @@ test("moves nothing until the person agrees in main's own confirm, which says th
     assert.equal(journal.value, null);
     assert.equal(asked[0].message, "Move Atlas to Acme?");
     assert.match(asked[0].detail, /no way back/);
-    assert.match(asked[0].detail, /what Atlas remembers, your connections, and MausBot/);
+    assert.match(asked[0].detail, /what Atlas remembers, your connections, and Delio/);
     assert.deepEqual(asked[0].buttons, ["Move to Acme", "Cancel"]);
   } finally { done(); }
 });
@@ -102,7 +102,7 @@ test("refuses what can't go, a bot My Cloud doesn't have, a team not ready and a
   const { handlers, asked, journal, done } = fixture({ agrees: true });
   try {
     const move = handlers.get("cloud-send:team-bring-move");
-    await assert.rejects(move(OWN, "maus-bot-1"), /Choose one of your bots/);
+    await assert.rejects(move(OWN, "delio-bot-1"), /Choose one of your bots/);
     await assert.rejects(move(OWN, "chief-bot-1"), /Choose one of your bots/);
     await assert.rejects(move(OWN, "elsewhere-1"), /Choose one of your bots/);
     await assert.rejects(move({ origin: OTHER }, "atlas-bot-1"), /Open the team/);
@@ -143,13 +143,13 @@ test("the native confirm and IPC refusals follow the app's current language", as
         "Todos em Acme podem usar Atlas. Só os administradores de Acme podem alterá-lo.",
         "Vão com Atlas: instruções, habilidades, arquivos, rotinas e suas conversas com Atlas",
         "Suas conversas continuam privadas lá: só você pode vê-las.",
-        "Ficam no My Cloud: o que Atlas lembra, suas conexões e o MausBot",
+        "Ficam no My Cloud: o que Atlas lembra, suas conexões e o Delio",
         "Não é possível desfazer: você não pode mover o bot de volta para o My Cloud.",
       ].join("\n\n"),
       buttons: ["Mover para Acme", "Cancelar"],
     });
     await assert.rejects(move({}, "atlas-bot-1"), { message: "Abra a equipe para a qual você quer mover o bot." });
-    await assert.rejects(move(OWN, "maus-bot-1"), { message: "Escolha um dos seus bots para mover." });
+    await assert.rejects(move(OWN, "delio-bot-1"), { message: "Escolha um dos seus bots para mover." });
   } finally { done(); }
 });
 

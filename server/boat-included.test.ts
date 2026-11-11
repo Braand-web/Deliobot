@@ -8,7 +8,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 
 import type { AppConfig } from "./config.ts";
 
-const INCLUDED = "box_omb_included-relay-token";
+const INCLUDED = "box_odb_included-relay-token";
 const LIMIT = "Your Pro plan's 200 cloud computer hours for September are used up. They reset on 1 October.";
 const botId = "included-boat-test";
 const boxId = "bx_23456789";
@@ -87,9 +87,9 @@ beforeEach(async () => {
   dropLists = 0;
   wakeOnResume = true;
   vi.stubEnv("BOX_TOKEN", undefined);
-  vi.stubEnv("OMB_BOAT_API", `${base}/boat/api/v1`);
-  vi.stubEnv("OMB_CLOUD_BOAT_URL", `${base}/relay/api/box/v1`);
-  vi.stubEnv("OMB_CLOUD_BOAT_TOKEN", INCLUDED);
+  vi.stubEnv("ODB_BOAT_API", `${base}/boat/api/v1`);
+  vi.stubEnv("ODB_CLOUD_BOAT_URL", `${base}/relay/api/box/v1`);
+  vi.stubEnv("ODB_CLOUD_BOAT_TOKEN", INCLUDED);
   boat ??= await import("./boat.ts");
   loadConfig ??= (await import("./config.ts")).loadConfig;
 });
@@ -157,13 +157,13 @@ describe("included Boat computers", () => {
   });
 
   it("speaks only v1 with an own key, whatever its base is called", async () => {
-    vi.stubEnv("OMB_BOAT_API", `${base}/boat/api/box/v1`);
+    vi.stubEnv("ODB_BOAT_API", `${base}/boat/api/box/v1`);
     await boat.runCommand({ box: { token: "box_own" } }, boxId, "true");
     expect(requests).toEqual([{ method: "POST", path: `/boat/api/box/v1/sandboxes/${boxId}/commands`, auth: "Bearer box_own" }]);
   });
 
   it("speaks v1 to a relay once the Admin wires a v1 base", async () => {
-    vi.stubEnv("OMB_CLOUD_BOAT_URL", `${base}/relay/api/v1`);
+    vi.stubEnv("ODB_CLOUD_BOAT_URL", `${base}/relay/api/v1`);
     await boat.runCommand({}, boxId, "true");
     expect(requests).toEqual([{ method: "POST", path: `/relay/api/v1/sandboxes/${boxId}/commands`, auth: `Bearer ${INCLUDED}` }]);
   });
@@ -192,14 +192,14 @@ describe("included Boat computers", () => {
     expect((await boat.listManagedBoats({ box: { token: "box_own" } }, [])).problem).toMatch(/update it in Settings/);
   });
 
-  it("lists again once after a dropped connection, and names MausBot Cloud's computer service when it stays unreachable", async () => {
+  it("lists again once after a dropped connection, and names Delio Cloud's computer service when it stays unreachable", async () => {
     const lists = () => requests.filter((request) => request.path === "/relay/api/box/v1/boxes");
     dropLists = 1;
     await expect(boat.findBoat({}, "unlisted-bot")).resolves.toBeNull();
     expect(lists()).toHaveLength(2);
     dropLists = 2;
     await expect(boat.findBoat({}, "unlisted-bot")).rejects.toMatchObject({
-      message: "Could not reach MausBot Cloud's computer service to list cloud computers — check your connection and refresh", status: 503, transient: true,
+      message: "Could not reach Delio Cloud's computer service to list cloud computers — check your connection and refresh", status: 503, transient: true,
     });
     expect(lists()).toHaveLength(4);
     dropLists = 2;
@@ -212,7 +212,7 @@ describe("included Boat computers", () => {
     expect(boat.describeBoatAccount({})).toEqual({ configured: true, included: true });
     expect(boat.describeBoatAccount({ box: { token: "box_own" } })).toEqual({ configured: true });
     expect(JSON.stringify(boat.describeBoatAccount({}))).not.toContain(INCLUDED);
-    vi.stubEnv("OMB_CLOUD_BOAT_TOKEN", undefined);
+    vi.stubEnv("ODB_CLOUD_BOAT_TOKEN", undefined);
     expect(boat.boatConfigured({})).toBe(false);
     expect(boat.describeBoatAccount({})).toEqual({ configured: false });
   });

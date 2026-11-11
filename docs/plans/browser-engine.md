@@ -12,7 +12,7 @@ Stagehand, browser-use, browserless, Lightpanda) is summarised at the end.
   sandbox, and Electron 43 exits before ready with it on Windows
   (electron/electron#51761). A browser that is its own Chrome process, driven
   over CDP, does not depend on that.
-- **Servers have no browser today.** `openmausbot serve` and the Docker stack
+- **Servers have no browser today.** `opendeliobot serve` and the Docker stack
   run without Electron, so `availableBrowserConnection()` is null and the
   toggle is greyed.
 - **One engine, one contract.** A skill written on a Mac runs on a VPS.
@@ -33,17 +33,17 @@ Stagehand, browser-use, browserless, Lightpanda) is summarised at the end.
 - An MCP stdio server (`agent-browser mcp --tools core`) whose verbs match our
   17 `browser_*` tools almost one to one.
 - A stream server: JPEG frames, the active URL, tabs, and viewport metadata.
-  Upstream does **not** enforce human priority. OMB owns that gate.
+  Upstream does **not** enforce human priority. ODB owns that gate.
 
 ## Shape
 
 ```
-bot turn → scoped OMB MCP proxy → profile control gate → agent-browser MCP → Chrome
-owner UI ← authenticated SSE ← OMB ← loopback WebSocket frames ← agent-browser
+bot turn → scoped ODB MCP proxy → profile control gate → agent-browser MCP → Chrome
+owner UI ← authenticated SSE ← ODB ← loopback WebSocket frames ← agent-browser
 owner UI → authenticated POST → control gate → acknowledged native input → Chrome
 ```
 
-`browserIntegration()` in `server/index.ts` mounts a turn-scoped OMB proxy,
+`browserIntegration()` in `server/index.ts` mounts a turn-scoped ODB proxy,
 guarded by the workspace flag, bot switch, and provider's `browserMcp`
 capability. Native session identity and encryption keys stay in the server.
 
@@ -52,7 +52,7 @@ capability. Native session identity and encryption keys stay in the server.
 ### 1. Headless engine (servers, and the fallback everywhere) — shipped
 
 - `server/browser-engine.ts`: resolve the pinned agent-browser binary
-  (`OMB_AGENT_BROWSER_PATH` → `$OMB_DATA_DIR/tools/agent-browser/<version>/` →
+  (`ODB_AGENT_BROWSER_PATH` → `$ODB_DATA_DIR/tools/agent-browser/<version>/` →
   PATH); download from the GitHub release with per-platform SHA-256 pinned in
   `server/browser-engine-release.ts` (same pattern as `antigravity-release.ts`
   and `prepare-cloudflared.mjs`); ensure Chrome with `agent-browser install`;
@@ -62,13 +62,13 @@ capability. Native session identity and encryption keys stay in the server.
   "--no-webmcp"], env: {AGENT_BROWSER_SESSION, AGENT_BROWSER_RESTORE: <stable-key>,
   AGENT_BROWSER_ENCRYPTION_KEY, AGENT_BROWSER_HEADLESS: "1"}}`. Session id =
   the bot's browser profile partition, or the bot id (own session).
-- Encryption key: generated once into `$OMB_DATA_DIR/browser-engine-key`
+- Encryption key: generated once into `$ODB_DATA_DIR/browser-engine-key`
   (0600), like the tunnel credentials.
 - Capability: the environment descriptor gains `capabilities.browser:
   "desktop" | "headless" | "unavailable"` (+ reason), and the Settings toggle
   and the per-bot switch key off it instead of `window.ogb.browser`.
 - Docker: `npm install -g agent-browser@<pinned>` and `agent-browser install
-  --with-deps` at build time, as root, before `USER maus`.
+  --with-deps` at build time, as root, before `USER delio`.
 - Tests: resolver and download pinning (stub server), the integration spec
   (mutation-check the guards), an e2e turn against a fake `agent-browser`
   binary that speaks MCP.
@@ -110,7 +110,7 @@ capability. Native session identity and encryption keys stay in the server.
   last for one server run, are not saved, and close on deletion/profile exit.
   Profile edits include a stale-list check; deletion removes only that exact
   profile's saved state. Do not use upstream `state clear --all` for this.
-- These controls gate OMB's browser tools, not arbitrary host shell access.
+- These controls gate ODB's browser tools, not arbitrary host shell access.
   Browser profiles are login separation, **not** OS security sandboxes.
 
 See [the native verification recipe](../verification/browser-live.md).
@@ -142,7 +142,7 @@ system prompt teaches them. No adapter.
   Chrome attaches agent-browser to the person's own running Chrome
   (`AGENT_BROWSER_AUTO_CONNECT`: Chrome's `DevToolsActivePort`, then ports
   9222/9229), so the bots act inside their real, signed-in browser. It never
-  restores OMB's saved state into that Chrome or saves its cookies out, never
+  restores ODB's saved state into that Chrome or saves its cookies out, never
   closes it at shutdown, and has no signed-in sites list: its sign-ins are
   Chrome's own. The person turns on remote debugging at
   `chrome://inspect/#remote-debugging` (Chrome 144+); Chrome asks before it
@@ -151,7 +151,7 @@ system prompt teaches them. No adapter.
 - **Where it applies.** The desktop app, where the bots run on the person's
   computer, and My Cloud (a personal Cloud home, never a Team Cloud) once a
   Mac or PC lends its Chrome. That computer lends Chrome only by its own
-  **Your Chrome** switch in Settings → MausBot Cloud, which is off by default,
+  **Your Chrome** switch in Settings → Delio Cloud, which is off by default,
   never part of the default grant, and dropped when lending is turned off.
   Chrome travels over the device link that carries the internet connection:
   agent-browser on My Cloud attaches through a loopback door per browser
@@ -170,7 +170,7 @@ system prompt teaches them. No adapter.
   is now where My Chrome is when it cannot be found by itself (another port or
   machine); setting it also makes My Chrome available on a server. It no
   longer attaches every bot. Details of the lent Chrome:
-  [MausBot Cloud](../cloud-pro.md#your-chrome).
+  [Delio Cloud](../cloud-pro.md#your-chrome).
 - **Why My Chrome and not a headed built-in browser.** Measured Oct 12 with
   agent-browser 0.37.0 and Chrome 154 on macOS, entering an account that
   does not exist at accounts.google.com: the headless built-in browser and a

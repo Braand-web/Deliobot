@@ -1,5 +1,5 @@
 // Named accounts reuse provider instances. Claude owns login and credentials;
-// removing an OpenMausBot entry never removes its directory or signs it out.
+// removing an OpenDeliobot entry never removes its directory or signs it out.
 import { randomUUID } from "node:crypto";
 import { realpathSync } from "node:fs";
 import { join } from "node:path";
@@ -90,7 +90,7 @@ export function claudeSignInCommand(cli: string, directory: string, platform: No
   if (platform === "win32") {
     const quote = (value: string) => `'${value.replaceAll("'", "''")}'`;
     const keys = [...CLAUDE_ACCOUNT_ENV_KEYS, "CLAUDE_CONFIG_DIR"];
-    return `& { $ombKeys = ${keys.map(quote).join(",")}; $ombSaved = @{}; foreach ($k in $ombKeys) { $ombSaved[$k] = [Environment]::GetEnvironmentVariable($k, 'Process'); [Environment]::SetEnvironmentVariable($k, $null, 'Process') }; try { ${directory ? `$env:CLAUDE_CONFIG_DIR = ${quote(directory)}; ` : ""}& ${[resolved.command, ...resolved.args].map(quote).join(" ")} } finally { foreach ($k in $ombKeys) { [Environment]::SetEnvironmentVariable($k, $ombSaved[$k], 'Process') } } }`;
+    return `& { $odbKeys = ${keys.map(quote).join(",")}; $odbSaved = @{}; foreach ($k in $odbKeys) { $odbSaved[$k] = [Environment]::GetEnvironmentVariable($k, 'Process'); [Environment]::SetEnvironmentVariable($k, $null, 'Process') }; try { ${directory ? `$env:CLAUDE_CONFIG_DIR = ${quote(directory)}; ` : ""}& ${[resolved.command, ...resolved.args].map(quote).join(" ")} } finally { foreach ($k in $odbKeys) { [Environment]::SetEnvironmentVariable($k, $odbSaved[$k], 'Process') } } }`;
   }
   const quote = (value: string) => `'${value.replaceAll("'", "'\"'\"'")}'`;
   return `(unset ${[...CLAUDE_ACCOUNT_ENV_KEYS, "CLAUDE_CONFIG_DIR"].join(" ")}; ${directory ? `export CLAUDE_CONFIG_DIR=${quote(directory)}; ` : ""}${[resolved.command, ...resolved.args].map(quote).join(" ")})`;

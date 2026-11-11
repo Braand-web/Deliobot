@@ -9,7 +9,7 @@ const WOKE_TIMEOUT_MS = 5_000;
 
 export function wokeSignature(secret: string, machineId: string, timestamp: string, nonce: string, body: string): string {
   const bodyHash = createHash("sha256").update(body).digest("hex");
-  return createHmac("sha256", secret).update(`omb-power-woke-v1\n${machineId}\n${timestamp}\n${nonce}\n${bodyHash}`).digest("base64url");
+  return createHmac("sha256", secret).update(`odb-power-woke-v1\n${machineId}\n${timestamp}\n${nonce}\n${bodyHash}`).digest("base64url");
 }
 
 export function createWokeNotifier(options: {
@@ -21,8 +21,8 @@ export function createWokeNotifier(options: {
     const body = JSON.stringify({ v: 1, wokeAt: now() });
     const timestamp = String(Math.floor(now() / 1000)), nonce = randomBytes(18).toString("base64url");
     void fetcher(`${adminOrigin}${WOKE_ADMIN_PATH}`, { method: "POST", redirect: "error", cache: "no-store", body, signal: AbortSignal.timeout(WOKE_TIMEOUT_MS), headers: {
-      accept: "application/json", "content-type": "application/json", "x-omb-cloud-machine": machineId, "x-omb-cloud-timestamp": timestamp, "x-omb-cloud-nonce": nonce,
-      "x-omb-cloud-signature": `v1=${wokeSignature(secret, machineId, timestamp, nonce, body)}`,
+      accept: "application/json", "content-type": "application/json", "x-odb-cloud-machine": machineId, "x-odb-cloud-timestamp": timestamp, "x-odb-cloud-nonce": nonce,
+      "x-odb-cloud-signature": `v1=${wokeSignature(secret, machineId, timestamp, nonce, body)}`,
     } }).then(async (response) => {
       await response.body?.cancel().catch(() => {});
       if (!response.ok && response.status !== 404 && !warned) { warned = true; log?.(`cloud power: the Admin answered HTTP ${response.status} to the wake notice`); }

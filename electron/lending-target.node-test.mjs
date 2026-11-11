@@ -5,10 +5,10 @@ import { ownCloud } from "./cloud-list.mjs";
 import { createLendingTarget } from "./lending-target.mjs";
 
 test("lending's Cloud comes from the verified sign-in, and survives a brief disconnect of the same account only", () => {
-  let state = { status: "connected", account: { id: "acct_1" }, machine: { origin: "https://omb-u-1.fly.dev" } };
-  const cloud = { id: "cloud", origin: "https://omb-u-1.fly.dev" };
+  let state = { status: "connected", account: { id: "acct_1" }, machine: { origin: "https://odb-u-1.fly.dev" } };
+  const cloud = { id: "cloud", origin: "https://odb-u-1.fly.dev" };
   const target = createLendingTarget({ account: () => ({ state: () => state }), environments: () => [{ id: "other", origin: "https://other.example" }, cloud] });
-  assert.deepEqual(target.cloud(), { status: "connected", accountId: "acct_1", origin: "https://omb-u-1.fly.dev" });
+  assert.deepEqual(target.cloud(), { status: "connected", accountId: "acct_1", origin: "https://odb-u-1.fly.dev" });
   assert.equal(target.environment(), cloud);
   state = { status: "unavailable", account: { id: "acct_1" }, machine: null };
   assert.equal(target.environment(), cloud, "the same account, briefly unreachable");
@@ -20,8 +20,8 @@ test("lending's Cloud comes from the verified sign-in, and survives a brief disc
 });
 
 test("another Cloud of the person's own is checked at its own address while the session lists it; any other place against My Cloud", () => {
-  const home = { id: "home", origin: "https://omb-u-1.fly.dev", home: true }, other = { id: "a", origin: "https://omb-c-a.fly.dev", cloud: { id: "c-a" } };
-  const server = { id: "s", origin: "https://bots.example.test" }, gone = { id: "g", origin: "https://omb-c-gone.fly.dev", cloud: { id: "c-gone" } };
+  const home = { id: "home", origin: "https://odb-u-1.fly.dev", home: true }, other = { id: "a", origin: "https://odb-c-a.fly.dev", cloud: { id: "c-a" } };
+  const server = { id: "s", origin: "https://bots.example.test" }, gone = { id: "g", origin: "https://odb-c-gone.fly.dev", cloud: { id: "c-gone" } };
   const state = { status: "connected", account: { id: "acct-1" }, machine: { status: "ready", origin: home.origin } };
   const target = createLendingTarget({ account: () => ({ state: () => state, isOwnCloud: (origin) => [home.origin, other.origin].includes(origin) }), environments: () => [server, other, home, gone] });
   assert.deepEqual(target.cloud(other), { status: "connected", accountId: "acct-1", origin: other.origin });
@@ -31,12 +31,12 @@ test("another Cloud of the person's own is checked at its own address while the 
 });
 
 test("this computer is lent to the person's own Clouds only, My Cloud first: never a Team Cloud, a server that only signed in, or a Cloud the session dropped", () => {
-  const home = { id: "home", name: "My Cloud", origin: "https://omb-u-1.fly.dev", home: true };
-  const other = { id: "a", name: "Client A", origin: "https://omb-c-a.fly.dev", cloud: { id: "c-a", role: "owner" } };
-  const team = { id: "t", name: "Acme team", origin: "https://omb-t-acme.fly.dev", team: { id: "t-acme", role: "owner" } };
-  const memberOf = { id: "m", name: "Their Cloud", origin: "https://omb-c-theirs.fly.dev", cloud: { id: "c-theirs", role: "member" } };
+  const home = { id: "home", name: "My Cloud", origin: "https://odb-u-1.fly.dev", home: true };
+  const other = { id: "a", name: "Client A", origin: "https://odb-c-a.fly.dev", cloud: { id: "c-a", role: "owner" } };
+  const team = { id: "t", name: "Acme team", origin: "https://odb-t-acme.fly.dev", team: { id: "t-acme", role: "owner" } };
+  const memberOf = { id: "m", name: "Their Cloud", origin: "https://odb-c-theirs.fly.dev", cloud: { id: "c-theirs", role: "member" } };
   const server = { id: "s", name: "Mac mini", origin: "https://mini.example.test", cloud: { id: "s-mini", role: "owner" } };
-  const gone = { id: "g", name: "Old", origin: "https://omb-c-gone.fly.dev", cloud: { id: "c-gone", role: "owner" } };
+  const gone = { id: "g", name: "Old", origin: "https://odb-c-gone.fly.dev", cloud: { id: "c-gone", role: "owner" } };
   let state = { status: "connected", account: { id: "acct-1" }, machine: { status: "ready", origin: home.origin }, clouds: [
     { id: "c-home", origin: home.origin, teamId: null, role: "owner", primary: true },
     { id: "c-a", origin: other.origin, teamId: null, role: "owner" },
@@ -53,7 +53,7 @@ test("this computer is lent to the person's own Clouds only, My Cloud first: nev
 });
 
 test("a server of the person's own is lent only while it is their bots' home, bound to that server's identity, after their Clouds", () => {
-  const home = { id: "home", name: "My Cloud", origin: "https://omb-u-1.fly.dev", home: true };
+  const home = { id: "home", name: "My Cloud", origin: "https://odb-u-1.fly.dev", home: true };
   const garage = { id: "g", kind: "remote", name: "Garage server", origin: "https://garage.example.test" };
   const family = { id: "f", kind: "remote", name: "Family server", origin: "https://family.example.test" };
   const state = { status: "connected", account: { id: "acct-1" }, machine: { status: "ready", origin: home.origin } };

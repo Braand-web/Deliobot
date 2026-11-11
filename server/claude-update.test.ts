@@ -51,7 +51,7 @@ describe("updateClaudeCli", () => {
     };
 
     await expect(updateClaudeCli("claude", {}, execute, noAppCopy)).rejects.toThrow(
-      "Claude finished updating, but OpenMausBot could not verify",
+      "Claude finished updating, but OpenDeliobot could not verify",
     );
   });
 
@@ -86,7 +86,7 @@ describe("updateClaudeCli", () => {
 
 describe("isAppInstalledClaude", () => {
   it("is true only when the claude a turn runs is the one in the app's engines folder", () => {
-    const root = mkdtempSync(join(tmpdir(), "omb-claude-update-"));
+    const root = mkdtempSync(join(tmpdir(), "odb-claude-update-"));
     try {
       const engines = join(root, "tools", "npm", "bin");
       const other = join(root, "elsewhere");

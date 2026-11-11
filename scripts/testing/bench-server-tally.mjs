@@ -1,13 +1,13 @@
 // Loaded with --import into a fixture server that scripts/bench-desktop.ts starts, never into the app: it counts
-// timer callbacks, child processes and file writes, and on SIGUSR2 writes the running totals, CPU and memory to $OMB_BENCH_TALLY.
+// timer callbacks, child processes and file writes, and on SIGUSR2 writes the running totals, CPU and memory to $ODB_BENCH_TALLY.
 import childProcess from "node:child_process";
 import fs from "node:fs";
 import module from "node:module";
 import { basename, dirname } from "node:path";
 import timers from "node:timers";
 
-const out = process.env.OMB_BENCH_TALLY;
-delete process.env.OMB_BENCH_TALLY;
+const out = process.env.ODB_BENCH_TALLY;
+delete process.env.ODB_BENCH_TALLY;
 
 const fired = new Map();
 const intervals = new Map();

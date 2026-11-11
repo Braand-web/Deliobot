@@ -71,12 +71,12 @@ const handOn = (job: string, to: Bot, brief: string) => ({ key: `${job}-L`, matc
 const done = (job: string) => ({ key: `${job}-L-DONE`, match: [SETTLED, `${job}-JOB`], reply: `${job}-L-DONE: fertig.` });
 
 beforeAll(async () => {
-  browserTools = mkdtempSync(join(tmpdir(), "omb-question-routing-"));
+  browserTools = mkdtempSync(join(tmpdir(), "odb-question-routing-"));
   const binaryPath = join(browserTools, "agent-browser");
   // Answers the saved-login check a browser mount makes; every other command succeeds silently.
   writeFileSync(binaryPath, `#!/bin/sh\nif [ "$1" = session ] && [ "$2" = list ]; then printf '{"success":true,"data":{"sessions":[]}}'; fi\nexit 0\n`, { mode: 0o755 });
   fx = await launchCloudSendFixture({ onePasswordToken: TOKEN, team: { id: "team-acme-qr", name: "Acme", engine: ENGINE,
-    env: { OMB_AGENT_BROWSER_PATH: binaryPath, AGENT_BROWSER_EXECUTABLE_PATH: join(browserTools, "chrome") } } });
+    env: { ODB_AGENT_BROWSER_PATH: binaryPath, AGENT_BROWSER_EXECUTABLE_PATH: join(browserTools, "chrome") } } });
   team = fx.team!;
   writeFileSync(file("room-plan.json"), "{}");
   marco = (await team.pair(MARCO)).token!;
@@ -261,7 +261,7 @@ describe("Ask me first: a question waits for the person, and an answer counts wh
     const question = "Nur den Abschlusstext oder auch den Einladungstext?";
     script(fuchs.id, handOn("AF3", dachs, "AF3-BRIEF: Setz den Fix um."), done("AF3"));
     script(dachs.id,
-      { key: "AF3-B2", match: ["AF3-BRIEF", "OpenMausBot restarted"], reply: "AF3-B2: Beides angepasst, wie im Auftrag." },
+      { key: "AF3-B2", match: ["AF3-BRIEF", "OpenDeliobot restarted"], reply: "AF3-B2: Beides angepasst, wie im Auftrag." },
       { key: "AF3-B", match: ["AF3-BRIEF"], timeoutMs: 120_000, steps: [{ server: "ogb", tool: "ask_user", arguments: { question, choices: ["Nur den Abschlusstext", "Beides"] } }], reply: "AF3-B: nie erreicht." });
     await say(fuchs, inbox, "AF3-JOB: Lass Dachs den Fix umsetzen.");
     const work = await (async () => { await until(async () => Boolean(await workThread())); return (await workThread())!; })();

@@ -45,11 +45,11 @@ beforeAll(async () => {
     return json(404, { error: { message: "not found" } });
   });
   await new Promise<void>((resolve) => api.listen(0, "127.0.0.1", resolve));
-  process.env.OMB_COMPOSIO_API = `http://127.0.0.1:${(api.address() as { port: number }).port}/api/v3.1`;
+  process.env.ODB_COMPOSIO_API = `http://127.0.0.1:${(api.address() as { port: number }).port}/api/v3.1`;
 });
 
 afterAll(async () => {
-  delete process.env.OMB_COMPOSIO_API;
+  delete process.env.ODB_COMPOSIO_API;
   await new Promise<void>((resolve) => api.close(() => resolve()));
 });
 
@@ -63,41 +63,41 @@ beforeEach(() => {
 });
 
 const account = (user_id: string, slug: string, status = "ACTIVE") => ({ id: `ca_${user_id}_${slug}`, user_id, status, toolkit: { slug } });
-const NEW_USER = /^openmausbot_[0-9a-f-]{36}$/u;
+const NEW_USER = /^opendeliobot_[0-9a-f-]{36}$/u;
 const prepareFresh = () => prepareProjectSession("ak_reuse", undefined, undefined, { reuseEarlierUser: true });
 
 describe("a fresh installation connecting a project an earlier installation used", () => {
   it("keeps the earlier installation's Composio user, so its connected apps come back", async () => {
     accounts = [
-      account("openmausbot_earlier", "gmail"),
-      account("openmausbot_earlier", "github"),
-      account("openmausbot_earlier", "slack"),
+      account("opendeliobot_earlier", "gmail"),
+      account("opendeliobot_earlier", "github"),
+      account("opendeliobot_earlier", "slack"),
       account("someone_elses_app", "notion"),
     ];
     const prepared = await prepareFresh();
-    expect(prepared.userId).toBe("openmausbot_earlier");
-    expect(sessionUsers).toEqual(["openmausbot_earlier"]);
+    expect(prepared.userId).toBe("opendeliobot_earlier");
+    expect(sessionUsers).toEqual(["opendeliobot_earlier"]);
     expect(accountQueries.length).toBe(2);
     expect(accountQueries.every((query) => !query.has("user_ids"))).toBe(true);
   });
 
   it("reads only a few pages, and starts a new user when the project is too big to tell", async () => {
-    accounts = Array.from({ length: 30 }, (_, n) => account("openmausbot_earlier", `app${n}`));
+    accounts = Array.from({ length: 30 }, (_, n) => account("opendeliobot_earlier", `app${n}`));
     const prepared = await prepareFresh();
     expect(prepared.userId).toMatch(NEW_USER);
     expect(accountQueries.length).toBe(4);
   });
 
   it("starts a new user when the project has no earlier installation's live connections", async () => {
-    accounts = [account("someone_elses_app", "notion"), account("openmausbot_gone", "gmail", "EXPIRED")];
+    accounts = [account("someone_elses_app", "notion"), account("opendeliobot_gone", "gmail", "EXPIRED")];
     const prepared = await prepareFresh();
     expect(prepared.userId).toMatch(NEW_USER);
   });
 
   it("starts a new user when several earlier installations share the project, since it can't tell whose apps are whose", async () => {
     accounts = [
-      account("openmausbot_one", "gmail"),
-      account("openmausbot_two", "github"),
+      account("opendeliobot_one", "gmail"),
+      account("opendeliobot_two", "github"),
       account("someone_elses_app", "notion"),
       account("someone_elses_app", "slack"),
     ];
@@ -107,7 +107,7 @@ describe("a fresh installation connecting a project an earlier installation used
   });
 
   it("starts a new user when another installation's connections have only expired", async () => {
-    accounts = [account("openmausbot_earlier", "gmail"), account("openmausbot_other", "github", "EXPIRED")];
+    accounts = [account("opendeliobot_earlier", "gmail"), account("opendeliobot_other", "github", "EXPIRED")];
     const prepared = await prepareFresh();
     expect(prepared.userId).toMatch(NEW_USER);
   });
@@ -120,15 +120,15 @@ describe("a fresh installation connecting a project an earlier installation used
   });
 
   it("never looks for another user when this installation already has one", async () => {
-    accounts = [account("openmausbot_earlier", "gmail")];
-    const prepared = await prepareProjectSession("ak_reuse", { userId: "openmausbot_mine" }, undefined, { reuseEarlierUser: true });
-    expect(prepared.userId).toBe("openmausbot_mine");
+    accounts = [account("opendeliobot_earlier", "gmail")];
+    const prepared = await prepareProjectSession("ak_reuse", { userId: "opendeliobot_mine" }, undefined, { reuseEarlierUser: true });
+    expect(prepared.userId).toBe("opendeliobot_mine");
     expect(accountQueries).toEqual([]);
   });
 });
 
 describe("who may look for an earlier installation's user", () => {
-  const earlier = () => { accounts = [account("openmausbot_earlier", "gmail"), account("openmausbot_earlier", "slack")]; };
+  const earlier = () => { accounts = [account("opendeliobot_earlier", "gmail"), account("opendeliobot_earlier", "slack")]; };
 
   // Composio refuses the Session, so the route answers before it saves anything.
   async function saveKeyThroughConfigRoute(shared: boolean) {
@@ -178,6 +178,6 @@ describe("who may look for an earlier installation's user", () => {
     earlier();
     await saveKeyThroughConfigRoute(false);
     expect(accountQueries.length).toBeGreaterThan(0);
-    expect(sessionUsers).toEqual(["openmausbot_earlier"]);
+    expect(sessionUsers).toEqual(["opendeliobot_earlier"]);
   });
 });

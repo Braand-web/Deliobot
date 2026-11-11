@@ -6,7 +6,7 @@ import { createFirstReplyRescue, DEFAULT_FIRST_REPLY_NOTICE_MS } from "./first-r
 import type { Message } from "./store.ts";
 
 const THREAD = "thread-1";
-const BOT = { id: "bot-1", name: "Maus", modelSelection: { instanceId: "opencodeGo", model: "free" } };
+const BOT = { id: "bot-1", name: "Delio", modelSelection: { instanceId: "opencodeGo", model: "free" } };
 
 const event = (fields: Record<string, unknown>): RuntimeEvent =>
   ({ eventId: `e-${Math.random()}`, provider: "opencodeGo", threadId: THREAD, createdAt: "", ...fields }) as unknown as RuntimeEvent;
@@ -49,12 +49,12 @@ function harness(options: { quiet?: boolean; speaker?: { botId: string; name: st
 
 beforeEach(() => {
   vi.useFakeTimers();
-  delete process.env.OMB_FIRST_REPLY_NOTICE_MS;
+  delete process.env.ODB_FIRST_REPLY_NOTICE_MS;
 });
 
 afterEach(() => {
   vi.useRealTimers();
-  delete process.env.OMB_FIRST_REPLY_NOTICE_MS;
+  delete process.env.ODB_FIRST_REPLY_NOTICE_MS;
 });
 
 describe("first-reply rescue", () => {
@@ -70,7 +70,7 @@ describe("first-reply rescue", () => {
       role: "bot", kind: "activity", turnId: "turn-1",
       tool: {
         // The plain line every older client (the phones) prints as it is.
-        name: "notice: Maus hasn't heard back from OpenCode yet.",
+        name: "notice: Delio hasn't heard back from OpenCode yet.",
         ok: true,
         // The row names its own turn and the message that turn answers, so its buttons can never reach another one.
         rescue: { botId: "bot-1", threadId: THREAD, turnId: "turn-1", requestMessageId: "request-of-turn-1", instanceId: "opencodeGo", ai: "OpenCode" },
@@ -133,7 +133,7 @@ describe("first-reply rescue", () => {
     rescue.onEvent(event(end));
     // History, in words that stay true for the clients that print them.
     expect(rows()[0]!.tool).toMatchObject({
-      name: "notice: Maus didn't hear back from OpenCode.",
+      name: "notice: Delio didn't hear back from OpenCode.",
       rescue: { turnId: "turn-1", over: true },
     });
     expect(rows()[0]!.tool!.rescue!.settled).toBeUndefined();
@@ -183,8 +183,8 @@ describe("first-reply rescue", () => {
     expect(DEFAULT_FIRST_REPLY_NOTICE_MS).toBe(20_000);
   });
 
-  it("takes its delay from OMB_FIRST_REPLY_NOTICE_MS", () => {
-    process.env.OMB_FIRST_REPLY_NOTICE_MS = "5000";
+  it("takes its delay from ODB_FIRST_REPLY_NOTICE_MS", () => {
+    process.env.ODB_FIRST_REPLY_NOTICE_MS = "5000";
     const { rescue, rows } = harness();
     rescue.onEvent(started());
     vi.advanceTimersByTime(4_999);
@@ -193,8 +193,8 @@ describe("first-reply rescue", () => {
     expect(rows()).toHaveLength(1);
   });
 
-  it("is off when OMB_FIRST_REPLY_NOTICE_MS is 0", () => {
-    process.env.OMB_FIRST_REPLY_NOTICE_MS = "0";
+  it("is off when ODB_FIRST_REPLY_NOTICE_MS is 0", () => {
+    process.env.ODB_FIRST_REPLY_NOTICE_MS = "0";
     const { rescue, rows } = harness();
     rescue.onEvent(started());
     vi.advanceTimersByTime(10 * 60_000);
@@ -244,16 +244,16 @@ describe("first-reply rescue", () => {
 
   it("closes the notices a restart left open: their turns are gone", () => {
     const left = { id: "old", at: 1, role: "bot", kind: "activity", turnId: "turn-0",
-      tool: { name: "notice: Maus hasn't heard back from OpenCode yet.", ok: true,
+      tool: { name: "notice: Delio hasn't heard back from OpenCode yet.", ok: true,
         rescue: { botId: "bot-1", threadId: THREAD, turnId: "turn-0", instanceId: "opencodeGo", ai: "OpenCode" } } } as Message;
     const { patch } = harness({ leftOpen: [left] });
     expect(patch).toHaveBeenCalledWith(THREAD, "old", {
-      tool: { ...left.tool, name: "notice: Maus didn't hear back from OpenCode.", rescue: { ...left.tool!.rescue, over: true } },
+      tool: { ...left.tool, name: "notice: Delio didn't hear back from OpenCode.", rescue: { ...left.tool!.rescue, over: true } },
     });
   });
 
   it("speaks from the speaking bot in a room", () => {
-    const speaker = { botId: "bot-1", name: "Maus", color: "green" };
+    const speaker = { botId: "bot-1", name: "Delio", color: "green" };
     const { rescue, rows } = harness({ speaker });
     rescue.onEvent(started());
     vi.advanceTimersByTime(20_000);

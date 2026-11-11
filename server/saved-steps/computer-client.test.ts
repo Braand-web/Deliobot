@@ -18,7 +18,7 @@ createInterface({ input: process.stdin }).on("line", (line) => {
   if (method === "initialize") send({ jsonrpc: "2.0", id, result: { protocolVersion: "2024-11-05", capabilities: { tools: {} } } });
   if (method === "tools/list") send({ jsonrpc: "2.0", id, result: { tools: [] } });
   if (method === "tools/call" && params.name === "read_env") send({ jsonrpc: "2.0", id, result: { content: [], structuredContent: {
-    journal: process.env.OMB_COMPUTER_JOURNAL ?? null, kept: process.env.FIXTURE_KEPT ?? null } } });
+    journal: process.env.ODB_COMPUTER_JOURNAL ?? null, kept: process.env.FIXTURE_KEPT ?? null } } });
   if (method === "tools/call" && params.name === "unknown_tool") send({ jsonrpc: "2.0", id, error: { code: -32602, message: "Unknown tool" } });
 });`;
 
@@ -32,7 +32,7 @@ afterEach(async () => {
   for (const dir of dirs.splice(0)) rmSync(dir, { force: true, recursive: true });
 });
 
-const GATE = { OMB_CONTROL_URL: "http://127.0.0.1:1/api/internal/computer-control", OMB_CONTROL_TOKEN: "turn-token" };
+const GATE = { ODB_CONTROL_URL: "http://127.0.0.1:1/api/internal/computer-control", ODB_CONTROL_TOKEN: "turn-token" };
 
 async function open(spec: Parameters<typeof openComputerCaller>[0]) {
   const caller = await openComputerCaller({ ...spec, env: { ...GATE, ...spec.env } }, signal);
@@ -44,7 +44,7 @@ const recordingComputer = (env: Record<string, string> = {}) => open({ command: 
 
 describe("openComputerCaller", () => {
   it("calls a tool through MCP after the handshake", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-saved-steps-caller-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-saved-steps-caller-"));
     dirs.push(dir);
     const file = join(dir, "call.json");
     const caller = await open({ command: process.execPath, args: ["--experimental-strip-types", FAKE], env: { FAKE_MCP_CALL_FILE: file } });
@@ -54,7 +54,7 @@ describe("openComputerCaller", () => {
   });
 
   it("starts the computer with the journal switched off and keeps the rest of its environment", async () => {
-    const caller = await recordingComputer({ OMB_COMPUTER_JOURNAL: "1", FIXTURE_KEPT: "yes" });
+    const caller = await recordingComputer({ ODB_COMPUTER_JOURNAL: "1", FIXTURE_KEPT: "yes" });
     expect(await caller.call("read_env", {}, signal)).toEqual({ ok: true, structured: { journal: "0", kept: "yes" } });
   });
 
@@ -78,10 +78,10 @@ describe("openComputerCaller", () => {
 
   it.each([
     ["no control gate at all", {}],
-    ["a gate address but no turn token", { OMB_CONTROL_URL: GATE.OMB_CONTROL_URL }],
-    ["a turn token but no gate address", { OMB_CONTROL_TOKEN: GATE.OMB_CONTROL_TOKEN }],
+    ["a gate address but no turn token", { ODB_CONTROL_URL: GATE.ODB_CONTROL_URL }],
+    ["a turn token but no gate address", { ODB_CONTROL_TOKEN: GATE.ODB_CONTROL_TOKEN }],
   ])("never drives a computer spec with %s", async (_, env) => {
-    const dir = mkdtempSync(join(tmpdir(), "omb-saved-steps-caller-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-saved-steps-caller-"));
     dirs.push(dir);
     const file = join(dir, "started");
     const spawn = `require("node:fs").writeFileSync(${JSON.stringify(file)}, "")`;

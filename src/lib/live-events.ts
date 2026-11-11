@@ -8,7 +8,7 @@ export const LIVE_EVENTS_PATH = "/api/events";
 export const LIVE_EVENTS_STALE_MS = 40_000;
 export const LIVE_EVENTS_RETRY_MIN_MS = 500;
 export const LIVE_EVENTS_RETRY_MAX_MS = 10_000;
-const RETRY_LIVE_EVENTS = "omb:retry-live-events";
+const RETRY_LIVE_EVENTS = "odb:retry-live-events";
 
 export function retryLiveEvents(): void {
   window.dispatchEvent(new Event(RETRY_LIVE_EVENTS));

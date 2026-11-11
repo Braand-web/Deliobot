@@ -20,7 +20,7 @@ afterEach(async () => {
 });
 async function fixture(driver = GrokAgentDriver, environment: Record<string, string> = {}) {
   ensureDirs(); chmodSync(cli, 0o755);
-  const home = mkdtempSync(join(tmpdir(), "omb-acp-selection-")); directories.push(home);
+  const home = mkdtempSync(join(tmpdir(), "odb-acp-selection-")); directories.push(home);
   mkdirSync(join(home, ".grok")); writeFileSync(join(home, ".grok/auth.json"), "{}");
   const dump = join(home, "dump.json"); const launches = join(home, "launches.txt");
   const instance = await driver.create({ instanceId: "selection", displayName: "Scope fixture", enabled: true, config: { cli, fullAuto: true }, environment: { HOME: home, USERPROFILE: home, FAKE_ACP_DUMP: dump, FAKE_ACP_LAUNCH_COUNT_FILE: launches, ...environment } });
@@ -58,7 +58,7 @@ it("intersects an inherited Grok profile rather than re-enabling its disabled to
 });
 
 it("reads the actual configured Grok profile and refuses unknown profile sources", () => {
-  const home = mkdtempSync(join(tmpdir(), "omb-grok-profile-")); directories.push(home);
+  const home = mkdtempSync(join(tmpdir(), "odb-grok-profile-")); directories.push(home);
   const directory = join(home, ".grok"); mkdirSync(directory);
   const path = join(home, "profile.md");
   writeFileSync(path, '---\nname: reader\ndescription: Existing profile\ninjectDefaultTools: false\ntools: [read_file]\ndisallowedTools: [write]\n---\nKeep the owner instructions.\n');
@@ -84,7 +84,7 @@ it.each([
   'agent = { definition = PROFILE }',
   '[agent]\n"definition" = PROFILE',
 ])("preserves or refuses inherited restrictions in alternate TOML syntax: %s", text => {
-  const home = mkdtempSync(join(tmpdir(), "omb-grok-syntax-")); directories.push(home); mkdirSync(join(home, ".grok"));
+  const home = mkdtempSync(join(tmpdir(), "odb-grok-syntax-")); directories.push(home); mkdirSync(join(home, ".grok"));
   const path = join(home, "reader.md");
   writeFileSync(path, '---\nname: reader\ndescription: Existing restriction\ntools: [read_file]\ndisallowedTools: [write]\n---\n');
   writeFileSync(join(home, ".grok/config.toml"), text.replace("PROFILE", JSON.stringify(path)) + "\n");
@@ -96,12 +96,12 @@ it.each([
 });
 
 it.each(["--tools=write", "--disallowed-tools read_file", "--agent-profile", "--agent-profile=reader.md --agent-profile=other.md"])("refuses ambiguous Grok CLI restrictions before overriding a profile: %s", flags => {
-  const home = mkdtempSync(join(tmpdir(), "omb-grok-cli-")); directories.push(home);
+  const home = mkdtempSync(join(tmpdir(), "odb-grok-cli-")); directories.push(home);
   expect(() => grokInheritedProfile(`grok ${flags}`, { HOME: home }, home)).toThrow(/cannot be safely intersected/);
 });
 
 it("establishes the restricted Grok profile on the selected model without inheriting its default harness", async () => {
-  const rpc = join(mkdtempSync(join(tmpdir(), "omb-grok-rpc-")), "requests.json"); directories.push(dirname(rpc));
+  const rpc = join(mkdtempSync(join(tmpdir(), "odb-grok-rpc-")), "requests.json"); directories.push(dirname(rpc));
   const f = await fixture(GrokAgentDriver, { FAKE_ACP_GROK_VERSION: "1.0.41", FAKE_ACP_SESSION_MODELS: "fake-acp-model", FAKE_ACP_RPC_DUMP: rpc });
   await f.instance.adapter.sendTurn({ threadId: "pinned", text: "Must stay restricted", model: "fake-acp-model", toolScope: { allow: [] } });
   await f.recorder.until(event => event.type === "turn.completed");
@@ -152,7 +152,7 @@ it("gates eligible ACP servers and retires a pooled process when selection chang
   const servers = JSON.parse(readFileSync(`${f.dump}.mcp.json`, "utf8"));
   expect(servers.map((server: { name: string }) => server.name)).toEqual(["notes"]);
   const env = Object.fromEntries(servers[0].env.map((entry: { name: string; value: string }) => [entry.name, entry.value]));
-  expect(JSON.parse(env.OMB_GATE_TOOL_SCOPE)).toEqual({ allow: ["native:*", "mcp:notes:read"] });
+  expect(JSON.parse(env.ODB_GATE_TOOL_SCOPE)).toEqual({ allow: ["native:*", "mcp:notes:read"] });
   expect(servers[0].args).not.toContain("Bearer synthetic");
   const before = Number(readFileSync(f.launches, "utf8"));
   f.recorder.events.length = 0;

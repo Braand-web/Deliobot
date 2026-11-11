@@ -13,12 +13,12 @@ export interface TestCertificate { key: string; cert: string }
 
 /** A self-signed certificate for `names`, or undefined where no openssl runs. */
 export function testCertificate(names: string[]): TestCertificate | undefined {
-  const dir = mkdtempSync(join(tmpdir(), "omb-fake-smtp-cert-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-fake-smtp-cert-"));
   try {
     // A config of its own, so no system openssl.cnf is needed (Windows).
     writeFileSync(join(dir, "openssl.cnf"), [
       "[req]", "distinguished_name = dn", "x509_extensions = v3", "prompt = no",
-      "[dn]", "CN = OpenMausBot fake mail",
+      "[dn]", "CN = OpenDeliobot fake mail",
       "[v3]", "basicConstraints = critical,CA:TRUE", "keyUsage = critical,digitalSignature,keyCertSign",
       "extendedKeyUsage = serverAuth", `subjectAltName = ${names.map((name) => `DNS:${name}`).join(",")}`, "",
     ].join("\n"));

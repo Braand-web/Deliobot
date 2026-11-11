@@ -22,7 +22,7 @@ import {
   openCodePromptUnreachedModel,
   OpenCodeDriver,
   openCodeProviderKeysAllowed,
-  openMausOwnsWorkingFolder,
+  openDelioOwnsWorkingFolder,
   parseOpenCodeModelsOutput,
   preferredOpenCodeModel,
   resetOpenCodeModelCache,
@@ -168,7 +168,7 @@ describe("OpenCode catalog", () => {
   });
 
   it("recognizes an OpenCode Go login stored by the CLI", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-auth-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-auth-"));
     const authDir = join(scratch, "opencode");
     mkdirSync(authDir, { recursive: true });
     writeFileSync(join(authDir, "auth.json"), JSON.stringify({
@@ -192,7 +192,7 @@ describe("OpenCode catalog", () => {
 
   it("finds the CLI's login at ~/.local/share on every platform, macOS included", async () => {
     // No XDG override on purpose: `opencode auth list` on macOS prints ~/.local/share/opencode/auth.json.
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-home-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-home-"));
     const authDir = join(scratch, ".local", "share", "opencode");
     mkdirSync(authDir, { recursive: true });
     writeFileSync(join(authDir, "auth.json"), JSON.stringify({
@@ -215,7 +215,7 @@ describe("OpenCode catalog", () => {
   });
 
   it("recognizes an existing OpenCode Zen login", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-oauth-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-oauth-"));
     const authDir = join(scratch, "opencode");
     mkdirSync(authDir, { recursive: true });
     writeFileSync(join(authDir, "auth.json"), JSON.stringify({
@@ -238,7 +238,7 @@ describe("OpenCode catalog", () => {
   });
 
   it("treats OpenCode's anonymous free catalog as runnable without a saved key", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-free-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-free-"));
     const driver = createOpenCodeDriver(async () => catalog("opencode/big-pickle"));
     const instance = await driver.create({
       instanceId: "opencode-free",
@@ -261,7 +261,7 @@ describe("OpenCode catalog", () => {
   });
 
   it("runs a Zen model through ACP using the exact discovered id", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-zen-only-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-zen-only-"));
     const authDir = join(scratch, "opencode");
     mkdirSync(authDir, { recursive: true });
     writeFileSync(join(authDir, "auth.json"), JSON.stringify({
@@ -401,7 +401,7 @@ describe("OpenCode catalog", () => {
     },
   );
 
-  it("points a rejected Zen key at the key OpenMaus saves", () => {
+  it("points a rejected Zen key at the key OpenDelio saves", () => {
     expect(describeOpenCodeAccountError("invalid_credentials", "opencode/big-pickle")).toContain("Settings → API keys");
     for (const model of [undefined, "opencode/big-pickle", "opencode-go/minimax-m3"]) {
       expect(describeOpenCodeAccountError("invalid_credentials", model)).not.toContain("opencode auth login");
@@ -421,7 +421,7 @@ describe("OpenCode catalog", () => {
   });
 
   it("passes the person's provider keys through, as the CLI would see them", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-go-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-go-"));
     try {
       const dump = join(scratch, "env.json");
       const driver = createOpenCodeDriver(async () => catalog("opencode-go/minimax-m3"));
@@ -436,7 +436,7 @@ describe("OpenCode catalog", () => {
           CLINE_API_KEY: "cline-provider-key",
           XAI_API_KEY: "saved-for-grok",
           MISTRAL_API_KEY: "saved-for-mistral",
-          OMB_ANTHROPIC_API_KEY: "workspace-anthropic",
+          ODB_ANTHROPIC_API_KEY: "workspace-anthropic",
           FAKE_ACP_DUMP: dump,
         },
         enabled: true,
@@ -451,7 +451,7 @@ describe("OpenCode catalog", () => {
       expect(child.env.CLINE_API_KEY).toBe("cline-provider-key");
       expect(child.env.XAI_API_KEY).toBeUndefined();
       expect(child.env.MISTRAL_API_KEY).toBeUndefined();
-      expect(child.env.OMB_ANTHROPIC_API_KEY).toBeUndefined();
+      expect(child.env.ODB_ANTHROPIC_API_KEY).toBeUndefined();
       await instance.dispose();
     } finally {
       await removeTempDir(scratch);
@@ -482,7 +482,7 @@ describe("OpenCode catalog", () => {
   });
 
   it("keeps the server's own provider keys out on a Cloud home or a managed desktop", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-managed-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-managed-"));
     setOpenCodeProviderKeyPolicy(() => false);
     for (const key of OPENCODE_PROVIDER_ENV) vi.stubEnv(key, `operator-${key}`);
     try {
@@ -508,7 +508,7 @@ describe("OpenCode catalog", () => {
   });
 
   it("lets the owner's saved provider keys through on a Cloud home, and only those", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-own-keys-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-own-keys-"));
     setOpenCodeProviderKeyPolicy(() => false);
     for (const key of OPENCODE_PROVIDER_ENV) vi.stubEnv(key, `operator-${key}`);
     try {
@@ -592,7 +592,7 @@ describe("OpenCode catalog discovery from the ACP session", () => {
   });
 
   it("builds the catalog from ACP and adds OpenCode 1's metadata", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-discover-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-discover-"));
     try {
       const found = await discoverOpenCodeModels({
         ...process.env, HOME: scratch, FAKE_ACP_MODELS: "opencode/big-pickle,opencode-go/minimax-m3",
@@ -605,7 +605,7 @@ describe("OpenCode catalog discovery from the ACP session", () => {
   });
 
   it("reads OpenCode 1's metadata again when a first run in a new home loses the database race", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-discover-race-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-discover-race-"));
     try {
       const found = await discoverOpenCodeModels({
         ...process.env, HOME: scratch, FAKE_ACP_MODELS: "opencode/big-pickle",
@@ -619,7 +619,7 @@ describe("OpenCode catalog discovery from the ACP session", () => {
   });
 
   it("still lists every model on OpenCode 2, where models --verbose fails", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-discover-v2-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-discover-v2-"));
     try {
       const found = await discoverOpenCodeModels({
         ...process.env, HOME: scratch, FAKE_ACP_MODELS_LIST: "v2",
@@ -635,7 +635,7 @@ describe("OpenCode catalog discovery from the ACP session", () => {
   const efforts = (ids: string[]) => ({ currentValue: "default", options: ids.map((value) => ({ value, name: value === "xhigh" ? "Xhigh" : value })) });
 
   it("offers each model's efforts on OpenCode 2, where only its ACP session names them", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-discover-v2-efforts-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-discover-v2-efforts-"));
     try {
       const found = await discoverOpenCodeModels({
         ...process.env, HOME: scratch, FAKE_ACP_MODELS_LIST: "v2",
@@ -659,7 +659,7 @@ describe("OpenCode catalog discovery from the ACP session", () => {
   });
 
   it("keeps the model list when OpenCode stops while its efforts are being read", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-discover-v2-exit-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-discover-v2-exit-"));
     try {
       const found = await discoverOpenCodeModels({
         ...process.env, HOME: scratch, FAKE_ACP_MODELS_LIST: "v2",
@@ -675,7 +675,7 @@ describe("OpenCode catalog discovery from the ACP session", () => {
   });
 
   it("keeps OpenCode 1's metadata beside the efforts its session names", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-discover-v1-efforts-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-discover-v1-efforts-"));
     try {
       const found = await discoverOpenCodeModels({
         ...process.env, HOME: scratch, FAKE_ACP_MODELS: "opencode/big-pickle,github-copilot/gpt-5.3-codex",
@@ -787,7 +787,7 @@ describe("OpenCode turns without a sign-in gate", () => {
     resetOpenCodeModelCache();
   });
   const open = async (instanceId: string, environmentFor: (scratch: string) => Record<string, string>) => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-gate-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-gate-"));
     const environment = environmentFor(scratch);
     const driver = createOpenCodeDriver(async () => ({ default: "", options: [] }));
     const instance = await driver.create({
@@ -838,8 +838,8 @@ describe("OpenCode turns without a sign-in gate", () => {
 
   it("names a rate limit OpenCode logged for this turn's main request while the turn stays quiet", async () => {
     vi.spyOn(quietStatus, "sampleProcessTree").mockResolvedValue({ cpuMs: 0, connections: 1 });
-    vi.stubEnv("OMB_ACP_QUIET_NOTICE_MS", "300");
-    vi.stubEnv("OMB_ACP_QUIET_TICK_MS", "50");
+    vi.stubEnv("ODB_ACP_QUIET_NOTICE_MS", "300");
+    vi.stubEnv("ODB_ACP_QUIET_TICK_MS", "50");
     // The row format of a real opencode log, with a synthetic run and model.
     const row = (session: string, small: boolean, error: string) =>
       `timestamp=2026-10-01T00:00:03.000Z level=ERROR run=fixture_run message="stream error" providerID=opencode modelID=mimo-v2.6-flash-free session.id=${session} small=${small} agent=build mode=primary error.error="${error}"`;
@@ -867,9 +867,9 @@ describe("OpenCode turns without a sign-in gate", () => {
   // error" row in its log, then nothing over ACP while it sleeps the whole retry-after, uncapped, five times over.
   it("ends a turn that waits out a usage limit as that limit, so another AI can carry on", async () => {
     vi.spyOn(quietStatus, "sampleProcessTree").mockResolvedValue({ cpuMs: 0, connections: 0 });
-    vi.stubEnv("OMB_ACP_QUIET_NOTICE_MS", "300");
-    vi.stubEnv("OMB_ACP_QUIET_TICK_MS", "50");
-    vi.stubEnv("OMB_ACP_LIMIT_QUIET_MS", "400");
+    vi.stubEnv("ODB_ACP_QUIET_NOTICE_MS", "300");
+    vi.stubEnv("ODB_ACP_QUIET_TICK_MS", "50");
+    vi.stubEnv("ODB_ACP_LIMIT_QUIET_MS", "400");
     const row = `timestamp=2026-10-28T22:11:15.919Z level=ERROR run=fixture_run message="stream error" providerID=opencode-go modelID=kimi-k3 session.id={session} small=false agent=build mode=primary error.error="AI_APICallError: Usage limit reached"`;
     const f = await open("opencode-go-limit", () => ({
       FAKE_ACP_MODE: "quiet-then-answer", FAKE_ACP_QUIET_MS: "30000", FAKE_ACP_MODELS: "opencode/big-pickle",
@@ -889,9 +889,9 @@ describe("OpenCode turns without a sign-in gate", () => {
   // free-tier limit, so it holds that model alone and the account stays usable on a Go model.
   it("holds only the free model a Go account's free allowance limited, not the account", async () => {
     vi.spyOn(quietStatus, "sampleProcessTree").mockResolvedValue({ cpuMs: 0, connections: 0 });
-    vi.stubEnv("OMB_ACP_QUIET_NOTICE_MS", "300");
-    vi.stubEnv("OMB_ACP_QUIET_TICK_MS", "50");
-    vi.stubEnv("OMB_ACP_LIMIT_QUIET_MS", "400");
+    vi.stubEnv("ODB_ACP_QUIET_NOTICE_MS", "300");
+    vi.stubEnv("ODB_ACP_QUIET_TICK_MS", "50");
+    vi.stubEnv("ODB_ACP_LIMIT_QUIET_MS", "400");
     const row = `timestamp=2026-11-07T10:13:43.366Z level=ERROR run=fixture_run message="stream error" providerID=opencode modelID=deepseek-v4.1-flash-free session.id={session} small=false agent=build mode=primary error.error="AI_APICallError: Free usage limit reached. Free models work in OpenCode (https://opencode.ai); subscribe to OpenCode Go to keep going: https://opencode.ai/go"`;
     const f = await open("opencode-go-free-limit", () => ({
       FAKE_ACP_MODE: "quiet-then-answer", FAKE_ACP_QUIET_MS: "30000", FAKE_ACP_MODELS: "opencode/deepseek-v4.1-flash-free",
@@ -919,9 +919,9 @@ describe("OpenCode turns without a sign-in gate", () => {
 
   it("stops an engine with no open request, no CPU use and nothing logged after a few minutes, not the full silence guard", async () => {
     vi.spyOn(quietStatus, "sampleProcessTree").mockResolvedValue({ cpuMs: 0, connections: 0 });
-    vi.stubEnv("OMB_ACP_QUIET_NOTICE_MS", "200");
-    vi.stubEnv("OMB_ACP_QUIET_TICK_MS", "50");
-    vi.stubEnv("OMB_ACP_NO_SIGNS_STOP_MS", "500");
+    vi.stubEnv("ODB_ACP_QUIET_NOTICE_MS", "200");
+    vi.stubEnv("ODB_ACP_QUIET_TICK_MS", "50");
+    vi.stubEnv("ODB_ACP_NO_SIGNS_STOP_MS", "500");
     const f = await open("opencode-lifeless", () => ({ FAKE_ACP_MODE: "quiet-then-answer", FAKE_ACP_QUIET_MS: "30000", FAKE_ACP_MODELS: "opencode/big-pickle" }));
     try {
       const { done, events } = await f.run("t-lifeless", "opencode/big-pickle");
@@ -947,7 +947,7 @@ describe("OpenCode after a login added since its process started", () => {
     resetOpenCodeModelCache();
   });
   const open = async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-login-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-login-"));
     const modelsFile = join(scratch, "models");
     writeFileSync(modelsFile, "opencode/big-pickle");
     const driver = createOpenCodeDriver(async () => catalog("opencode/big-pickle", added));
@@ -1011,7 +1011,7 @@ describe("OpenCode catalog probes", () => {
     .map((line) => JSON.parse(line) as { method: string; sessionId?: string; cwd?: string });
 
   it("deletes only sessions a probe opened: its own, and those an earlier probe left behind", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-probe-delete-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-probe-delete-"));
     let ledger = "";
     try {
       const discover = async (rpc: string) => {
@@ -1021,7 +1021,7 @@ describe("OpenCode catalog probes", () => {
           FAKE_ACP_SESSION_DELETE: "1", FAKE_ACP_RPC_APPEND_FILE: rpc,
         }, FAKE_CLI);
         const lines = rpcLines(rpc);
-        ledger = join(lines.find((entry) => entry.method === "session/new")!.cwd!, ".openmaus-probe-sessions.json");
+        ledger = join(lines.find((entry) => entry.method === "session/new")!.cwd!, ".opendelio-probe-sessions.json");
         return lines.filter((entry) => entry.method === "session/delete").map((entry) => entry.sessionId).sort();
       };
       expect(await discover(join(scratch, "first.jsonl"))).toEqual(["fake-acp-session"]);
@@ -1038,7 +1038,7 @@ describe("OpenCode catalog probes", () => {
   });
 
   it("deletes a session whose probe OpenCode died under, once a later probe finds it stale", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-probe-crashed-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-probe-crashed-"));
     let ledger = "";
     try {
       const environment = { ...process.env, HOME: scratch, FAKE_ACP_SESSION_DELETE: "1" };
@@ -1049,7 +1049,7 @@ describe("OpenCode catalog probes", () => {
       }, FAKE_CLI);
       const lines = rpcLines(crashed);
       expect(lines.some((entry) => entry.method === "session/delete")).toBe(false);
-      ledger = join(lines.find((entry) => entry.method === "session/new")!.cwd!, ".openmaus-probe-sessions.json");
+      ledger = join(lines.find((entry) => entry.method === "session/new")!.cwd!, ".opendelio-probe-sessions.json");
       expect(Object.keys(JSON.parse(readFileSync(ledger, "utf8")))).toEqual(["ses_crashed"]);
 
       writeFileSync(ledger, JSON.stringify({ ses_crashed: Date.now() - 10 * 60_000 }));
@@ -1068,13 +1068,13 @@ describe("OpenCode catalog probes", () => {
   });
 
   it("neither deletes nor records sessions when OpenCode cannot delete them", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-probe-no-delete-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-probe-no-delete-"));
     try {
       const rpc = join(scratch, "rpc.jsonl");
       await discoverOpenCodeModels({ ...process.env, HOME: scratch, FAKE_ACP_MODELS: "opencode/big-pickle", FAKE_ACP_RPC_APPEND_FILE: rpc }, FAKE_CLI);
       const lines = rpcLines(rpc);
       expect(lines.some((entry) => entry.method === "session/delete")).toBe(false);
-      const ledger = join(lines.find((entry) => entry.method === "session/new")!.cwd!, ".openmaus-probe-sessions.json");
+      const ledger = join(lines.find((entry) => entry.method === "session/new")!.cwd!, ".opendelio-probe-sessions.json");
       expect(existsSync(ledger) ? JSON.parse(readFileSync(ledger, "utf8")) : {}).toEqual({});
     } finally {
       await removeTempDir(scratch);
@@ -1087,7 +1087,7 @@ describe("OpenCode catalog probes", () => {
     } catch {
       return;
     }
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-probe-folder-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-probe-folder-"));
     try {
       const rpc = join(scratch, "rpc.jsonl");
       await discoverOpenCodeModels({ ...process.env, HOME: scratch, FAKE_ACP_MODELS: "opencode/big-pickle", FAKE_ACP_RPC_APPEND_FILE: rpc }, FAKE_CLI);
@@ -1107,7 +1107,7 @@ describe("OpenCode catalog probes", () => {
   });
 });
 
-describe("OpenCode access to folders OpenMaus owns", () => {
+describe("OpenCode access to folders OpenDelio owns", () => {
   it("names the attachments folder and only this bot's shared folder", () => {
     expect(openCodeOwnedDirectories("bot-7")).toEqual([ATTACHMENTS_DIR, workspaceDir("bot-7")]);
     expect(openCodeOwnedDirectories("..")).toEqual([ATTACHMENTS_DIR]);
@@ -1120,7 +1120,7 @@ describe("OpenCode access to folders OpenMaus owns", () => {
     ["the bot's shared folder (a room's)", workspaceDir("bot-7")],
     ["a folder inside the shared one", join(workspaceDir("bot-7"), "memory")],
     ["the attachments folder", ATTACHMENTS_DIR],
-    ["OpenMaus's data folder", dirname(ATTACHMENTS_DIR)],
+    ["OpenDelio's data folder", dirname(ATTACHMENTS_DIR)],
     ["a project folder", join(tmpdir(), "project")],
   ])("never allows the working folder or a folder above it: %s", (_label, cwd) => {
     const inside = (path: string, folder: string) => {
@@ -1132,16 +1132,16 @@ describe("OpenCode access to folders OpenMaus owns", () => {
     expect(allowed).not.toContain(join(TASK_WORKSPACES_DIR, "bot-7"));
   });
 
-  it("switches off project config only in OpenMaus's own working folders", () => {
-    expect(openMausOwnsWorkingFolder(join(TASK_WORKSPACES_DIR, "bot-7", "thread-1"))).toBe(true);
-    expect(openMausOwnsWorkingFolder(workspaceDir("bot-7"))).toBe(true);
-    expect(openMausOwnsWorkingFolder(TASK_WORKSPACES_DIR)).toBe(false);
-    expect(openMausOwnsWorkingFolder(join(tmpdir(), "project"))).toBe(false);
-    expect(openMausOwnsWorkingFolder(`${TASK_WORKSPACES_DIR}-elsewhere`)).toBe(false);
+  it("switches off project config only in OpenDelio's own working folders", () => {
+    expect(openDelioOwnsWorkingFolder(join(TASK_WORKSPACES_DIR, "bot-7", "thread-1"))).toBe(true);
+    expect(openDelioOwnsWorkingFolder(workspaceDir("bot-7"))).toBe(true);
+    expect(openDelioOwnsWorkingFolder(TASK_WORKSPACES_DIR)).toBe(false);
+    expect(openDelioOwnsWorkingFolder(join(tmpdir(), "project"))).toBe(false);
+    expect(openDelioOwnsWorkingFolder(`${TASK_WORKSPACES_DIR}-elsewhere`)).toBe(false);
   });
 
-  it("keeps the person's single folder rule ahead of OpenMaus's folders", () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-folder-rule-"));
+  it("keeps the person's single folder rule ahead of OpenDelio's folders", () => {
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-folder-rule-"));
     try {
       const configDir = join(scratch, "config", "opencode");
       mkdirSync(configDir, { recursive: true });
@@ -1165,7 +1165,7 @@ describe("OpenCode access to folders OpenMaus owns", () => {
   });
 
   it("carries the person's deny into a turn's folder policy", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-deny-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-deny-"));
     const dump = join(scratch, "env.json");
     mkdirSync(join(scratch, "opencode"), { recursive: true });
     writeFileSync(join(scratch, "opencode", "opencode.json"), JSON.stringify({ permission: { external_directory: "deny" } }));
@@ -1196,7 +1196,7 @@ describe("OpenCode access to folders OpenMaus owns", () => {
   });
 
   it.each([["ask", false], ["full", true]] as const)("sets OpenCode's folder policy for %s turns", async (approvalMode, full) => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-permission-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-permission-"));
     const dump = join(scratch, "env.json");
     const driver = createOpenCodeDriver(async () => catalog("opencode/big-pickle"));
     const instance = await driver.create({
@@ -1244,7 +1244,7 @@ describe("OpenCode session variants", () => {
   ];
   const fixtures: Array<{ scratch: string; instance: ProviderInstance; recorder: EventRecorder }> = [];
   const fixture = async (variants: Record<string, unknown>, environment: Record<string, string> = {}) => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-variants-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-variants-"));
     const dump = join(scratch, "rpc");
     const driver = createOpenCodeDriver(async () => catalog(model, secondModel, plainModel));
     const instance = await driver.create({
@@ -1463,7 +1463,7 @@ describe("OpenCode model choice without a saved model", () => {
   });
 
   it("runs a free model, not OpenCode's own paid default", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-paid-default-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-paid-default-"));
     const dump = join(scratch, "rpc");
     const driver = createOpenCodeDriver(async () => ({ default: "", options: [] }));
     const instance = await driver.create({
@@ -1492,7 +1492,7 @@ describe("OpenCode model choice without a saved model", () => {
 describe("OpenCode ready only through its free models", () => {
   const noKeys = { OPENCODE_API_KEY: "", OPENCODE_AUTH_CONTENT: "", ...Object.fromEntries(OPENCODE_PROVIDER_ENV.map((key) => [key, ""])) };
   async function snapshotWith(models: ModelCatalog, environment: Record<string, string> = {}, login?: Record<string, unknown>) {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-fallback-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-fallback-"));
     if (login) {
       mkdirSync(join(scratch, "data", "opencode"), { recursive: true });
       writeFileSync(join(scratch, "data", "opencode", "auth.json"), JSON.stringify(login));
@@ -1549,8 +1549,8 @@ describe("OpenCode ready only through its free models", () => {
 });
 
 describe("OpenCode one-off calls (connection checks, memory upkeep)", () => {
-  it("file their session under OpenMaus's own OpenCode project, never the global one the person's other folders share", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-oneshot-"));
+  it("file their session under OpenDelio's own OpenCode project, never the global one the person's other folders share", async () => {
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-oneshot-"));
     const requests = join(scratch, "requests.jsonl");
     const driver = createOpenCodeDriver(async () => catalog("opencode/big-pickle"));
     const instance = await driver.create({
@@ -1601,7 +1601,7 @@ describe("OpenCode without Node.js", () => {
     ["the app's own copy with OpenCode's self-updater off", true],
     ["a copy the person installed with its updater left alone", false],
   ])("runs %s", async (_label, appCopy) => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-opencode-autoupdate-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-opencode-autoupdate-"));
     const dump = join(scratch, "env.json");
     let cli = FAKE_CLI;
     if (appCopy) {
@@ -1633,7 +1633,7 @@ describe("OpenCode without Node.js", () => {
 
 describe.skipIf(process.platform === "win32")("which OpenCode runs", () => {
   async function runTurn(scratch: string, log: string, withOwnCopy: boolean) {
-    const original = process.env.PATH, sealed = process.env.OMB_TEST_SEALED_PATH;
+    const original = process.env.PATH, sealed = process.env.ODB_TEST_SEALED_PATH;
     const dump = join(scratch, "env.json");
     const copy = (folder: string, label: string) => {
       mkdirSync(folder, { recursive: true });
@@ -1645,7 +1645,7 @@ describe.skipIf(process.platform === "win32")("which OpenCode runs", () => {
     copy(enginesBinDir(), "npm");
     copy(join(standaloneEngineDir("opencode"), "bin"), "standalone");
     // Only these copies and node: a real OpenCode on this computer (Homebrew, npm) must never answer the test's turn.
-    process.env.OMB_TEST_SEALED_PATH = "1";
+    process.env.ODB_TEST_SEALED_PATH = "1";
     process.env.PATH = withOwnCopy ? `${own}${delimiter}${dirname(process.execPath)}` : dirname(process.execPath);
     resetPathCacheForTests();
     registerPathDir(enginesBinDir());
@@ -1665,8 +1665,8 @@ describe.skipIf(process.platform === "win32")("which OpenCode runs", () => {
       recorder.stop();
       await instance.dispose();
       process.env.PATH = original;
-      if (sealed === undefined) delete process.env.OMB_TEST_SEALED_PATH;
-      else process.env.OMB_TEST_SEALED_PATH = sealed;
+      if (sealed === undefined) delete process.env.ODB_TEST_SEALED_PATH;
+      else process.env.ODB_TEST_SEALED_PATH = sealed;
       resetPathCacheForTests();
     }
   }
@@ -1680,7 +1680,7 @@ describe.skipIf(process.platform === "win32")("which OpenCode runs", () => {
   });
 
   it("runs the person's own copy ahead of the one npm put in the app's folder, with its updater left alone", async () => {
-    scratch = mkdtempSync(join(tmpdir(), "omb-opencode-which-"));
+    scratch = mkdtempSync(join(tmpdir(), "odb-opencode-which-"));
     const log = join(scratch, "runs.log");
     const env = await runTurn(scratch, log, true);
     expect(readFileSync(log, "utf8").trim().split("\n")).toEqual(["own"]);
@@ -1689,7 +1689,7 @@ describe.skipIf(process.platform === "win32")("which OpenCode runs", () => {
   });
 
   it("runs the app's own build ahead of the npm copy, with OpenCode's self-updater off", async () => {
-    scratch = mkdtempSync(join(tmpdir(), "omb-opencode-which-"));
+    scratch = mkdtempSync(join(tmpdir(), "odb-opencode-which-"));
     const log = join(scratch, "runs.log");
     const env = await runTurn(scratch, log, false);
     expect(readFileSync(log, "utf8").trim().split("\n")).toEqual(["standalone"]);

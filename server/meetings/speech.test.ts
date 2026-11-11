@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { GROQ_API, OPENAI_API, RELAY_ROTATE_MS, speechSource, SpeechRefusal } from "./speech.ts";
 
-const CLOUD = { OMB_CLOUD_VOICE_URL: "https://admin.example.test/api/cloud/services/voice/v1", OMB_CLOUD_VOICE_TOKEN: "omb_voice_relay_token" };
+const CLOUD = { ODB_CLOUD_VOICE_URL: "https://admin.example.test/api/cloud/services/voice/v1", ODB_CLOUD_VOICE_TOKEN: "odb_voice_relay_token" };
 const ALL_KEYS = { tts: { key: "sk_eleven" }, groq: { key: "gsk_groq" }, openai: { key: "sk-openai" } };
 
 describe("which speech-to-text a meeting uses", () => {
@@ -23,8 +23,8 @@ describe("which speech-to-text a meeting uses", () => {
 
   it("asks the relay for a single-use token with the relay token, and says plainly when the allowance is used up", async () => {
     const fetchImpl = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
-      expect(String(url)).toBe(`${CLOUD.OMB_CLOUD_VOICE_URL}/single-use-token/realtime_scribe`);
-      expect(new Headers(init?.headers).get("xi-api-key")).toBe(CLOUD.OMB_CLOUD_VOICE_TOKEN);
+      expect(String(url)).toBe(`${CLOUD.ODB_CLOUD_VOICE_URL}/single-use-token/realtime_scribe`);
+      expect(new Headers(init?.headers).get("xi-api-key")).toBe(CLOUD.ODB_CLOUD_VOICE_TOKEN);
       return Response.json({ token: "sutkn_1" });
     }) as unknown as typeof fetch;
     const relay = speechSource({}, {}, fetchImpl, CLOUD);

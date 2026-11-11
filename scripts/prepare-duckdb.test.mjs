@@ -28,7 +28,7 @@ function writePackage(directory, name, version, files, scope = "@duckdb") {
 
 /** A flat node_modules (npm's layout) holding the DuckDB, resvg and 1Password packages for one target. */
 function flatInstall({ version = PIN, platform = "linux", arch = "x64", nativeFiles, resvgBinary = "node", onePasswordCore = OP_PIN } = {}) {
-  const root = temporary("omb-duckdb-root-");
+  const root = temporary("odb-duckdb-root-");
   fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({ dependencies: { "@duckdb/node-api": PIN, "@resvg/resvg-js": RESVG_PIN, "@1password/sdk": OP_PIN } }));
   const nodeModules = path.join(root, "node_modules");
   const scope = path.join(nodeModules, "@duckdb");
@@ -90,13 +90,13 @@ describe("the pin", () => {
 
   it("stages both mac arches and x64 elsewhere", () => {
     expect(targetsFor("darwin", {})).toEqual([{ platform: "darwin", arch: "arm64" }, { platform: "darwin", arch: "x64" }]);
-    expect(targetsFor("darwin", { OPENMAUSBOT_CUA_ARCHES: "arm64", OPENMAUSBOT_CUA_ARCHES_PARTIAL: "1" })).toEqual([{ platform: "darwin", arch: "arm64" }]);
+    expect(targetsFor("darwin", { OPENDELIOBOT_CUA_ARCHES: "arm64", OPENDELIOBOT_CUA_ARCHES_PARTIAL: "1" })).toEqual([{ platform: "darwin", arch: "arm64" }]);
     expect(targetsFor("linux", {})).toEqual([{ platform: "linux", arch: "x64" }]);
     // The Docker build stages the image's CPU, which need not be the build host's (linux/arm64 under buildx).
-    expect(targetsFor("linux", { OMB_DUCKDB_ARCH: "arm64" })).toEqual([{ platform: "linux", arch: "arm64" }]);
-    expect(targetsFor("linux", { OMB_DUCKDB_ARCH: "x64" })).toEqual([{ platform: "linux", arch: "x64" }]);
-    expect(() => targetsFor("linux", { OMB_DUCKDB_ARCH: "amd64" })).toThrow(/OMB_DUCKDB_ARCH/);
-    expect(targetsFor("win32", { OMB_DUCKDB_ARCH: "arm64" })).toEqual([{ platform: "win32", arch: "x64" }]);
+    expect(targetsFor("linux", { ODB_DUCKDB_ARCH: "arm64" })).toEqual([{ platform: "linux", arch: "arm64" }]);
+    expect(targetsFor("linux", { ODB_DUCKDB_ARCH: "x64" })).toEqual([{ platform: "linux", arch: "x64" }]);
+    expect(() => targetsFor("linux", { ODB_DUCKDB_ARCH: "amd64" })).toThrow(/ODB_DUCKDB_ARCH/);
+    expect(targetsFor("win32", { ODB_DUCKDB_ARCH: "arm64" })).toEqual([{ platform: "win32", arch: "x64" }]);
     expect(targetsFor("win32", {})).toEqual([{ platform: "win32", arch: "x64" }]);
   });
 });
@@ -125,7 +125,7 @@ describe("staging from an install", () => {
   });
 
   it("finds the 1Password core beside the SDK in pnpm's store, and refuses a tree without the core it needs", async () => {
-    const root = temporary("omb-duckdb-pnpm-1p-");
+    const root = temporary("odb-duckdb-pnpm-1p-");
     const nodeModules = path.join(root, "node_modules");
     const store = path.join(nodeModules, ".pnpm", `@1password+sdk@${OP_PIN}`, "node_modules", "@1password");
     writePackage(path.join(store, "sdk"), "sdk", OP_PIN, {}, "@1password");
@@ -143,7 +143,7 @@ describe("staging from an install", () => {
   });
 
   it("finds the packages through pnpm's store links", () => {
-    const root = temporary("omb-duckdb-pnpm-");
+    const root = temporary("odb-duckdb-pnpm-");
     const nodeModules = path.join(root, "node_modules");
     const store = path.join(nodeModules, ".pnpm");
     const api = path.join(store, `@duckdb+node-api@${PIN}`, "node_modules", "@duckdb");
@@ -181,7 +181,7 @@ describe("staging from an install", () => {
       return directory;
     };
     const staged = await stageDuckdb({ root, targets: [{ platform: "win32", arch: "x64" }], pack, sign: false, log: null });
-    const cache = path.join(root, "node_modules", ".cache", "openmausbot", "duckdb");
+    const cache = path.join(root, "node_modules", ".cache", "opendeliobot", "duckdb");
     // Both native packages the host lacks are fetched, each at its own pin.
     expect(packed).toEqual([
       { name: "node-bindings-win32-x64", version: PIN, cache, scope: "@duckdb" },
@@ -246,7 +246,7 @@ describe.skipIf(!canBuildMachO)("macOS slices", () => {
   const archs = (file) => execFileSync("/usr/bin/lipo", ["-archs", file], { encoding: "utf8" }).trim();
 
   beforeAll(() => {
-    directory = fs.mkdtempSync(path.join(os.tmpdir(), "omb-duckdb-macho-"));
+    directory = fs.mkdtempSync(path.join(os.tmpdir(), "odb-duckdb-macho-"));
     fs.writeFileSync(path.join(directory, "main.c"), "int main(void) { return 0; }\n");
     for (const arch of ["arm64", "x86_64"]) {
       binaries[arch] = path.join(directory, arch);

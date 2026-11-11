@@ -1,4 +1,4 @@
-// MausBot connector protocol v2: what the connector on an own server (a "box") and the MausBot Cloud Admin say to each
+// Delio connector protocol v2: what the connector on an own server (a "box") and the Delio Cloud Admin say to each
 // other. The Admin side copies this file as it is: it imports nothing.
 //
 // The connector only ever calls out. It enrols once over HTTPS with a one-time code, sending the public half of an
@@ -14,7 +14,7 @@
 export const PROTOCOL_VERSION = 2;
 
 /**
- * Who runs the server. `operated`: MausBot does (a Team Cloud on a server we manage), and the connector does whatever
+ * Who runs the server. `operated`: Delio does (a Team Cloud on a server we manage), and the connector does whatever
  * the Admin signs. `customer-run`: its owner does; the connector then runs only the jobs, answers only the requests and
  * reports only the fields listed in customer-run.ts, whatever the Admin sends. The mode is chosen on the server when
  * it enrols and kept there; the Admin is told it (`EnrollRequest.mode`, `Heartbeat`) and can never change it.
@@ -23,10 +23,10 @@ export type ServerMode = "operated" | "customer-run";
 
 /** `POST {admin}{ENROLL_PATH}` with an `EnrollRequest`; answers an `EnrollResponse`. The code is single use. */
 export const ENROLL_PATH = "/api/cloud/box/v1/enroll";
-/** `GET {admin}{CONNECT_PATH}`, upgraded to a WebSocket with subprotocol `CHANNEL_PROTOCOL` and header `x-omb-box`. */
+/** `GET {admin}{CONNECT_PATH}`, upgraded to a WebSocket with subprotocol `CHANNEL_PROTOCOL` and header `x-odb-box`. */
 export const CONNECT_PATH = "/api/cloud/box/v1/connect";
-export const CHANNEL_PROTOCOL = "omb-box.v2";
-export const BOX_HEADER = "x-omb-box";
+export const CHANNEL_PROTOCOL = "odb-box.v2";
+export const BOX_HEADER = "x-odb-box";
 /** `PUT {admin}{EXPORT_PATH}/<job id>`, `content-type: application/gzip`: an `export-disk` job's archive of `/data`. */
 export const EXPORT_PATH = "/api/cloud/box/v1/export";
 /** `Authorization: Box <envelope>` on a transfer to or from the Admin: a `TransferPayload` the box signed. */
@@ -59,8 +59,8 @@ export const HEARTBEAT_INTERVAL_MS = 30_000;
 export const UPDATE_HEALTH_WINDOW_MS = 10 * 60_000;
 
 /** The only images a home may run, and the only ones the connector may become: our registry, pinned by digest. */
-export const HOME_IMAGE = /^ghcr\.io\/milind-soni\/openmausbot-cloud-home@sha256:[0-9a-f]{64}$/;
-export const CONNECTOR_IMAGE = /^ghcr\.io\/milind-soni\/mausbot-connector@sha256:[0-9a-f]{64}$/;
+export const HOME_IMAGE = /^ghcr\.io\/braand-web\/opendeliobot-cloud-home@sha256:[0-9a-f]{64}$/;
+export const CONNECTOR_IMAGE = /^ghcr\.io\/braand-web\/delio-connector@sha256:[0-9a-f]{64}$/;
 
 export interface ConnectorIdentity {
   version: string;
@@ -94,7 +94,7 @@ export type CheckId = "arch" | "docker" | "rootless" | "apparmor" | "profiles" |
 export interface HostCheck {
   id: CheckId;
   ok: boolean;
-  /** A warning still lets MausBot run. */
+  /** A warning still lets Delio run. */
   warning?: boolean;
   fix?: string;
 }
@@ -270,7 +270,7 @@ export interface Auth {
 }
 
 export function authText(box: string, adminNonce: string, boxNonce: string, count: number): string {
-  return `omb-box auth v1\n${box}\n${adminNonce}\n${boxNonce}\n${count}`;
+  return `odb-box auth v1\n${box}\n${adminNonce}\n${boxNonce}\n${count}`;
 }
 
 /** Admin → connector, `{t: "hello", signed}`: an envelope (signed.ts) of this payload, under a key the connector pinned. */
@@ -353,18 +353,18 @@ export interface TransferPayload {
 const JOB_ID = /^[A-Za-z0-9_-]{1,64}$/;
 const BACKUP_ID = /^[a-z0-9][a-z0-9-]{0,62}$/;
 const OPAQUE_ID = /^[A-Za-z0-9_-]{1,128}$/;
-const ENV_NAME = /^OMB_[A-Z0-9_]{1,60}$/;
+const ENV_NAME = /^ODB_[A-Z0-9_]{1,60}$/;
 // oxlint-disable-next-line no-control-regex
 const ENV_VALUE = /^[^\0\r\n]{0,8192}$/;
 const MAX_ENV = 64;
 
 /** The home's boot contract: without these the home refuses to start. */
-export const REQUIRED_HOME_ENV = ["OMB_CLOUD_ROLE", "OMB_CLOUD_MACHINE_ID", "OMB_CLOUD_ADMIN_URL", "OMB_PUBLIC_URL", "OMB_CLOUD_BOOTSTRAP_SECRET"] as const;
+export const REQUIRED_HOME_ENV = ["ODB_CLOUD_ROLE", "ODB_CLOUD_MACHINE_ID", "ODB_CLOUD_ADMIN_URL", "ODB_PUBLIC_URL", "ODB_CLOUD_BOOTSTRAP_SECRET"] as const;
 
 /** Settings the image owns, or that make sense only on Fly; a home on an own server never takes them from outside. */
 export const REFUSED_HOME_ENV = new Set([
-  "OMB_CLOUD_EDGE_HOLD", "OMB_CLOUD_EDGE_BIN", "OMB_CLOUD_EDGE_CONFIG", "OMB_CLOUD_HARDEN",
-  "OMB_DATA_DIR", "OMB_STATIC_DIR", "OMB_DUCKDB_DIR", "OMB_PORT", "OMB_WEBHOOK_PORT", "OMB_CLOUD_SECRETS_FD", "OMB_CLOUD_CAPS_DROPPED", "OMB_CLOUD_TUNNEL_BIN",
+  "ODB_CLOUD_EDGE_HOLD", "ODB_CLOUD_EDGE_BIN", "ODB_CLOUD_EDGE_CONFIG", "ODB_CLOUD_HARDEN",
+  "ODB_DATA_DIR", "ODB_STATIC_DIR", "ODB_DUCKDB_DIR", "ODB_PORT", "ODB_WEBHOOK_PORT", "ODB_CLOUD_SECRETS_FD", "ODB_CLOUD_CAPS_DROPPED", "ODB_CLOUD_TUNNEL_BIN",
 ]);
 
 export type Checked<T> = { ok: true; value: T } | { ok: false; message: string };
@@ -390,20 +390,20 @@ function httpsOrigin(value: string): boolean {
   }
 }
 
-/** The home's environment: names are `OMB_*` and never one the image owns; values are one line. Never echoes a value. */
+/** The home's environment: names are `ODB_*` and never one the image owns; values are one line. Never echoes a value. */
 export function checkHomeEnv(env: unknown): Checked<Record<string, string>> {
   if (!plainObject(env)) return { ok: false, message: "env must be an object of names and values" };
   const entries = Object.entries(env);
   if (entries.length > MAX_ENV) return { ok: false, message: `env has more than ${MAX_ENV} names` };
   for (const [name, value] of entries) {
-    if (!ENV_NAME.test(name)) return { ok: false, message: `env name ${JSON.stringify(name.slice(0, 64))} is not an OMB_ setting` };
+    if (!ENV_NAME.test(name)) return { ok: false, message: `env name ${JSON.stringify(name.slice(0, 64))} is not an ODB_ setting` };
     if (REFUSED_HOME_ENV.has(name)) return { ok: false, message: `env name ${name} is the image's own setting` };
     if (typeof value !== "string" || !ENV_VALUE.test(value)) return { ok: false, message: `env value of ${name} must be one line of at most 8192 characters` };
   }
   for (const name of REQUIRED_HOME_ENV) if (typeof env[name] !== "string" || !env[name]) return { ok: false, message: `env must set ${name}` };
-  if (env.OMB_CLOUD_ROLE !== "home" && env.OMB_CLOUD_ROLE !== "team") return { ok: false, message: 'OMB_CLOUD_ROLE must be "home" or "team"' };
-  if (!httpsOrigin(env.OMB_PUBLIC_URL as string)) return { ok: false, message: "OMB_PUBLIC_URL must be an https origin" };
-  if (!httpsOrigin(env.OMB_CLOUD_ADMIN_URL as string)) return { ok: false, message: "OMB_CLOUD_ADMIN_URL must be an https origin" };
+  if (env.ODB_CLOUD_ROLE !== "home" && env.ODB_CLOUD_ROLE !== "team") return { ok: false, message: 'ODB_CLOUD_ROLE must be "home" or "team"' };
+  if (!httpsOrigin(env.ODB_PUBLIC_URL as string)) return { ok: false, message: "ODB_PUBLIC_URL must be an https origin" };
+  if (!httpsOrigin(env.ODB_CLOUD_ADMIN_URL as string)) return { ok: false, message: "ODB_CLOUD_ADMIN_URL must be an https origin" };
   return { ok: true, value: Object.fromEntries(entries) as Record<string, string> };
 }
 
@@ -442,20 +442,20 @@ function checkArgs(type: JobType, args: Record<string, unknown>): Checked<JobArg
     case "start": {
       const extra = only(args, ["image", "env"]);
       if (extra) return { ok: false, message: extra };
-      if (typeof args.image !== "string" || !HOME_IMAGE.test(args.image)) return { ok: false, message: "image must be ghcr.io/milind-soni/openmausbot-cloud-home@sha256:<digest>" };
+      if (typeof args.image !== "string" || !HOME_IMAGE.test(args.image)) return { ok: false, message: "image must be ghcr.io/braand-web/opendeliobot-cloud-home@sha256:<digest>" };
       const env = checkHomeEnv(args.env);
       return env.ok ? { ok: true, value: { image: args.image, env: env.value } } : env;
     }
     case "update": {
       const extra = only(args, ["image"]);
       if (extra) return { ok: false, message: extra };
-      if (typeof args.image !== "string" || !HOME_IMAGE.test(args.image)) return { ok: false, message: "image must be ghcr.io/milind-soni/openmausbot-cloud-home@sha256:<digest>" };
+      if (typeof args.image !== "string" || !HOME_IMAGE.test(args.image)) return { ok: false, message: "image must be ghcr.io/braand-web/opendeliobot-cloud-home@sha256:<digest>" };
       return { ok: true, value: { image: args.image } };
     }
     case "self-update": {
       const extra = only(args, ["image"]);
       if (extra) return { ok: false, message: extra };
-      if (typeof args.image !== "string" || !CONNECTOR_IMAGE.test(args.image)) return { ok: false, message: "image must be ghcr.io/milind-soni/mausbot-connector@sha256:<digest>" };
+      if (typeof args.image !== "string" || !CONNECTOR_IMAGE.test(args.image)) return { ok: false, message: "image must be ghcr.io/braand-web/delio-connector@sha256:<digest>" };
       return { ok: true, value: { image: args.image } };
     }
     case "restore": {
@@ -552,5 +552,5 @@ export function checkConfig(payload: Record<string, unknown>, box: string): Chec
 export function checkEnrollCode(value: unknown): Checked<string> {
   return typeof value === "string" && /^[A-Za-z0-9][A-Za-z0-9-]{5,127}$/.test(value)
     ? { ok: true, value }
-    : { ok: false, message: "the code is the one-time code MausBot shows next to the install command" };
+    : { ok: false, message: "the code is the one-time code Delio shows next to the install command" };
 }

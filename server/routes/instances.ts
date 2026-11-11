@@ -132,7 +132,7 @@ export function createInstanceRoutes(deps: InstanceRouteDeps): RouteHandler {
     if (method === "GET" && path === "/api/health/engines") {
       const described = await describeInstances();
       const available = Array.isArray(described) ? described.filter((instance) => Object(Object(instance).snapshot).state === "available").length : 0;
-      return json(res, 200, { app: "openmausbot", engines: available });
+      return json(res, 200, { app: "opendeliobot", engines: available });
     }
     const companyMutation = /^\/api\/instances\/(company\.[\w.-]+)(?:\/|$)/.exec(path);
     if (hostedModels && path.startsWith("/api/instances/") && method !== "GET") return json(res, 403, { error: HOSTED_PROVIDER_SETTINGS_ERROR });
@@ -349,7 +349,7 @@ export function createInstanceRoutes(deps: InstanceRouteDeps): RouteHandler {
         }
         if (action === "install") {
           const installed = await registry.installRuntime(instanceId);
-          if (!installed) return json(res, 404, { error: "Installing this engine from Settings is not available on this server. Use the install command on the machine running OpenMausBot." });
+          if (!installed) return json(res, 404, { error: "Installing this engine from Settings is not available on this server. Use the install command on the machine running OpenDeliobot." });
           const usingAppCopy = installed !== true && await useAppCopy(instanceId, installed.useCli);
           return json(res, 200, { instances: await describeInstances(), ...(usingAppCopy ? { usingAppCopy: true } : {}) });
         }
@@ -358,7 +358,7 @@ export function createInstanceRoutes(deps: InstanceRouteDeps): RouteHandler {
           if (!instance) return json(res, 404, { error: "unknown instance" });
           // The official local OAuth callback terminates on this machine, not a phone or a remote browser.
           if (instance.authenticationMethod === "browser-pkce" && (isProxied(req) || !isLoopbackHost(req.socket.remoteAddress))) {
-            return json(res, 403, { error: "Continue with ChatGPT on the computer running OpenMausBot. Hosted Pro sign-in requires OpenAI's hosted-app approval." });
+            return json(res, 403, { error: "Continue with ChatGPT on the computer running OpenDeliobot. Hosted Pro sign-in requires OpenAI's hosted-app approval." });
           }
           const started = await providerAuthSessions.start(instance, owner);
           if (started.phase === "succeeded") registry.forgetSnapshots();
@@ -539,7 +539,7 @@ export function createInstanceRoutes(deps: InstanceRouteDeps): RouteHandler {
       if (providerInUse(instanceId)) {
         return json(res, 409, { error: "Choose another account for the bots and default model using this account before removing it." });
       }
-      // OpenMausBot keeps a ChatGPT account's sign-in in its own data folder: removing the account clears it.
+      // OpenDeliobot keeps a ChatGPT account's sign-in in its own data folder: removing the account clears it.
       const live = addedChatgpt ? registry.get(instanceId) : undefined;
       if (live?.signOut) {
         try { await providerAuthSessions.signOut(live, auth.kind === "session" ? auth.session.id : "loopback"); }
@@ -554,7 +554,7 @@ export function createInstanceRoutes(deps: InstanceRouteDeps): RouteHandler {
       try {
         delete instances[instanceId];
         await persistProviderInstance(instanceId, instances);
-        // An added Antigravity account's Google sign-in lives in OpenMausBot's data folder too: removing the account deletes it.
+        // An added Antigravity account's Google sign-in lives in OpenDeliobot's data folder too: removing the account deletes it.
         if (addedAntigravity) await removeAntigravityProfile(instanceId);
         return json(res, 200, { instances: await describeInstances() });
       } finally {

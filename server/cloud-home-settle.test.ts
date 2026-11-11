@@ -22,12 +22,12 @@ const line = (id: string, person?: string) => ({ id, role: "user", kind: "text",
 /** A Cloud home's records: conversations by id, routines, their writers, and the people who have sessions. */
 function cloudHome(threads: Record<string, any[]>, routines: Array<{ id: string; sourceThreadId?: string }>, writers: Record<string, string>,
   options: { sessions?: Array<{ id: string; scopes: string[] }>; webhookRuns?: string[] } = {}) {
-  const dir = mkdtempSync(join(tmpdir(), "omb-cloud-home-settle-")); dirs.push(dir);
+  const dir = mkdtempSync(join(tmpdir(), "odb-cloud-home-settle-")); dirs.push(dir);
   writeFileSync(join(dir, "lending-routines.json"), JSON.stringify({ version: 1, routines: {}, writers }));
   writeFileSync(join(dir, "thread-starters.json"), "{}");
   const authors = createCloudRoutineAuthors(join(dir, "lending-routines.json"));
   const sessions = options.sessions ?? [{ id: "owner-device", scopes: ["admin"] }];
-  const shaped = routines.map((routine) => ({ ...routine, prompt: definition.instructions, botId: "bot", runOn: "maus",
+  const shaped = routines.map((routine) => ({ ...routine, prompt: definition.instructions, botId: "bot", runOn: "delio",
     schedule: asSchedule(definition.schedule, 0), target: "bot" }));
   const deps = (): CloudHomeSettleDeps => ({
     file: join(dir, "cloud-owner.json"), machineId: "machine", ownerKey: OWNER, nobodyKey: NOBODY,

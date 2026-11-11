@@ -6,7 +6,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 
 import { hostTimeout } from "./testing/host-timeout.ts";
 
-const INCLUDED = "box_omb_included-relay-token";
+const INCLUDED = "box_odb_included-relay-token";
 const OWN = "boat_own-key";
 const botId = "auto-sleep-test";
 const boxId = "bx_23456789";
@@ -97,10 +97,10 @@ describe("a cloud computer goes to sleep after its idle window", () => {
     logs = [];
     busy = false;
     vi.stubEnv("BOX_TOKEN", undefined);
-    vi.stubEnv("OMB_BOAT_API", `${base}/boat/api/v1`);
-    vi.stubEnv("OMB_CLOUD_BOAT_URL", `${base}/relay/api/box/v1`);
-    vi.stubEnv("OMB_CLOUD_BOAT_TOKEN", INCLUDED);
-    vi.stubEnv("OMB_CLOUD_COMPUTER_IDLE_MS", "1000");
+    vi.stubEnv("ODB_BOAT_API", `${base}/boat/api/v1`);
+    vi.stubEnv("ODB_CLOUD_BOAT_URL", `${base}/relay/api/box/v1`);
+    vi.stubEnv("ODB_CLOUD_BOAT_TOKEN", INCLUDED);
+    vi.stubEnv("ODB_CLOUD_COMPUTER_IDLE_MS", "1000");
   });
 
   afterEach(() => {

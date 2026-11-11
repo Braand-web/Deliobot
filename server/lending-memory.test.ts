@@ -34,7 +34,7 @@ const memoryFingerprint = (workspace: string, workingFolders: readonly string[] 
 let dir = "";
 afterEach(() => { if (dir) rmSync(dir, { recursive: true, force: true }); dir = ""; Object.assign(fsCalls, { sameTick: "", tick: undefined }); vi.restoreAllMocks(); });
 const workspace = () => {
-  dir = mkdtempSync(join(tmpdir(), "omb-lending-memory-"));
+  dir = mkdtempSync(join(tmpdir(), "odb-lending-memory-"));
   const ws = join(dir, "workspaces", "bot1");
   mkdirSync(join(ws, "memory", "log"), { recursive: true });
   writeFileSync(join(ws, "MEMORY.md"), "# Memory\n");

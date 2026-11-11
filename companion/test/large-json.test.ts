@@ -8,7 +8,7 @@ import { createProxyHandler, type ProxyOptions } from "../src/proxy.ts";
 import { gzipTunnelReplies } from "../src/tunnel-gzip.ts";
 import { scrub } from "../src/wire.ts";
 
-const TOKEN = "omb_test_token";
+const TOKEN = "odb_test_token";
 const MiB = 1024 * 1024;
 const LOW_CEILING = 256 * 1024;
 

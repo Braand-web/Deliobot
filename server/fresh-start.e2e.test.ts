@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, it } from "vitest";
 
-import { launchVerificationServer, runControlOmb } from "../scripts/control-omb.ts";
+import { launchVerificationServer, runControlOdb } from "../scripts/control-odb.ts";
 import { request } from "../scripts/mcp-server.ts";
 import type { WireMessage } from "../shared/wire.ts";
 import { withoutTurnClock } from "./testing/turn-clock-text.ts";
@@ -12,7 +12,7 @@ const OLD = /OLD_SECRET_ALPHA|OLD_BETA_REPLY|OLD_DELTA_REPLY|OLD_GAMMA_MORE|Earl
 
 async function setup(extraEnv: NodeJS.ProcessEnv) {
   const fixture = await launchVerificationServer({ ...process.env, ...extraEnv }, undefined, undefined, undefined, undefined, undefined, ["codex"]);
-  const control = async (...args: string[]) => runControlOmb([...args, "--url", fixture.info.url]) as Promise<any>;
+  const control = async (...args: string[]) => runControlOdb([...args, "--url", fixture.info.url]) as Promise<any>;
   const bot = (await control("new-bot", "--name", "Fresh probe")).bot;
   const thread: string = bot.activeTaskId;
   const api = (path: string, options: RequestInit = {}) => request(path, options, fixture.info.url);
@@ -38,7 +38,7 @@ async function setup(extraEnv: NodeJS.ProcessEnv) {
 
 it("sends the provider nothing from before the divider, while a warm session and the turn before it stay untouched", async () => {
   // The reply state keeps the scripted replies in order across the new process, so "OLD" only ever marks the turns before the divider.
-  const dir = mkdtempSync(join(tmpdir(), "omb-fresh-start-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-fresh-start-"));
   const f = await setup({ FAKE_CLAUDE_REPLIES: JSON.stringify(["OLD_BETA_REPLY", "OLD_DELTA_REPLY", "after one", "after two", "after three"]), FAKE_CLAUDE_REPLY_STATE: join(dir, "replies") });
   try {
     const first = await f.send("OLD_SECRET_ALPHA remember this");

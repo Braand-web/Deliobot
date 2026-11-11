@@ -24,7 +24,7 @@ afterEach(() => {
 });
 
 function dataDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), "omb-model-manifest-"));
+  const dir = mkdtempSync(join(tmpdir(), "odb-model-manifest-"));
   scratchDirs.push(dir);
   return dir;
 }

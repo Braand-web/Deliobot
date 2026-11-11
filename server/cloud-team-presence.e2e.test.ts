@@ -48,7 +48,7 @@ const peopleOf = async (token: string) => (await team.as(token, "GET", "/api/tea
 const lastList = (who: string, threadId: string) => streams[who]!.frames().filter((frame) => frame.kind === "thread.presence" && frame.threadId === threadId).at(-1)?.people;
 
 beforeAll(async () => {
-  fx = await launchCloudSendFixture({ onePasswordToken: `ops_fake-team-${randomBytes(8).toString("hex")}`, team: { id: "team-acme-1", name: "Acme", env: { OMB_TEAM_PRESENCE_GRACE_MS: String(GRACE_MS) } } });
+  fx = await launchCloudSendFixture({ onePasswordToken: `ops_fake-team-${randomBytes(8).toString("hex")}`, team: { id: "team-acme-1", name: "Acme", env: { ODB_TEAM_PRESENCE_GRACE_MS: String(GRACE_MS) } } });
   team = fx.team!;
   owner = (await team.pair(OWNER)).token!;
   admin = (await team.pair(ADMIN)).token!;

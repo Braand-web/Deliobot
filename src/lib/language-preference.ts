@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { loadLocale } from "@/lib/i18n";
 
-export const LANGUAGE_KEY = "omb-language";
+export const LANGUAGE_KEY = "odb-language";
 
 let sessionChoice: string | null | undefined;
 let storedChoiceOffered = false;

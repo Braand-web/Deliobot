@@ -8,7 +8,7 @@ import { createPersonLanguages, PERSON_LANGUAGES_FILE } from "./person-languages
 const dirs: string[] = [];
 afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }); });
 
-function fixture(configured?: string, dataDir = mkdtempSync(join(tmpdir(), "omb-person-languages-"))) {
+function fixture(configured?: string, dataDir = mkdtempSync(join(tmpdir(), "odb-person-languages-"))) {
   dirs.push(dataDir);
   let clock = 1_000;
   const languages = createPersonLanguages({ dataDir, configured: () => configured, now: () => clock });
@@ -49,7 +49,7 @@ describe("the language a line for a person is written in", () => {
   });
 
   it("writes a conversation's lines in its one person's language, and a shared one's in the place's, whoever spoke last", () => {
-    const dataDir = mkdtempSync(join(tmpdir(), "omb-person-languages-"));
+    const dataDir = mkdtempSync(join(tmpdir(), "odb-person-languages-"));
     dirs.push(dataDir);
     const languages = createPersonLanguages({ dataDir, configured: () => undefined, privateTo: (threadId) => (threadId === "ada-own" ? "ada" : null) });
     languages.heard("ada", "pt-br");
@@ -72,7 +72,7 @@ describe("the language a line for a person is written in", () => {
   });
 
   it("starts fresh from a file it cannot read", () => {
-    const dataDir = mkdtempSync(join(tmpdir(), "omb-person-languages-"));
+    const dataDir = mkdtempSync(join(tmpdir(), "odb-person-languages-"));
     writeFileSync(join(dataDir, PERSON_LANGUAGES_FILE), "{ not json");
     const { languages } = fixture("it", dataDir);
     expect(languages.forLine("ada")).toBe("it");

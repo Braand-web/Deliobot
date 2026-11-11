@@ -60,7 +60,7 @@ describe("failed turn text", () => {
   });
 
   it("previews a tool step in plain words and a status row without its marker", () => {
-    expect(activityPreview({ name: "mcp__omb__computer_batch", ok: true }, engine())).toBe("Use the screen");
+    expect(activityPreview({ name: "mcp__odb__computer_batch", ok: true }, engine())).toBe("Use the screen");
     expect(activityPreview({ name: "GITHUB_GET_A_COMMIT", ok: true }, engine())).toBe("Get a commit");
     expect(activityPreview({ name: "notice: This thread now uses Sonnet.", ok: true }, engine())).toBe("This thread now uses Sonnet.");
     expect(activityPreview({ name: "recovery: Automatic recovery: trying Codex once.", ok: true }, engine())).toBe("Automatic recovery: trying Codex once.");
@@ -68,7 +68,7 @@ describe("failed turn text", () => {
   });
 
   it("keeps technical tool names in Advanced mode and Data titles in both modes", () => {
-    const tool = { name: "mcp__omb__computer_batch", ok: true };
+    const tool = { name: "mcp__odb__computer_batch", ok: true };
     expect(activityPreview(tool, engine(), undefined, true)).toBe(tool.name);
     expect(activityPreview({ name: "notice: Switched model" }, engine(), undefined, true)).toBe("notice: Switched model");
     const dataResult = { botId: "bot", cardId: "result", title: "Revenue", kind: "chart" as const };
@@ -91,12 +91,12 @@ describe("failed turn text", () => {
 });
 
 describe("a failed turn the server words as a notice", () => {
-  const restarted = { name: "error: turn interrupted — OpenMausBot restarted", ok: false as const, nameCode: "chat.notice.restartInterrupted" };
+  const restarted = { name: "error: turn interrupted — OpenDeliobot restarted", ok: false as const, nameCode: "chat.notice.restartInterrupted" };
   it("previews in the person's language with its code, and in English without one", () => {
     setLocale("pt-br");
     try {
-      expect(activityPreview(restarted, undefined)).toBe("Sessão interrompida: o OpenMausBot reiniciou.");
-      expect(activityPreview({ name: restarted.name, ok: false }, undefined)).toBe("turn interrupted — OpenMausBot restarted");
+      expect(activityPreview(restarted, undefined)).toBe("Sessão interrompida: o OpenDeliobot reiniciou.");
+      expect(activityPreview({ name: restarted.name, ok: false }, undefined)).toBe("turn interrupted — OpenDeliobot restarted");
     } finally {
       setLocale("en");
     }

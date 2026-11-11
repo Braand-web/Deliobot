@@ -1,5 +1,5 @@
-# OpenMausBot harness server — hosted/self-hosted tenant image, and the
-# OMB Cloud Pro home machine (docs/cloud-pro.md).
+# OpenDeliobot harness server — hosted/self-hosted tenant image, and the
+# ODB Cloud Pro home machine (docs/cloud-pro.md).
 #
 # Build the renderer + the self-contained server bundle, then ship only those
 # artifacts on a slim Node runtime. The runtime stage holds what changes
@@ -11,13 +11,13 @@
 # Caddy in the same network namespace to terminate TLS and authentication at
 # the edge.
 #
-#   docker build -t openmausbot .
-#   docker build --build-arg ENGINES="@anthropic-ai/claude-code @openai/codex" -t openmausbot .
-#   docker build --target cloud-home -t omb-cloud-home .
-#   docker buildx build --platform linux/arm64 -t openmausbot .   # Raspberry Pi 4/5, ARM servers
+#   docker build -t opendeliobot .
+#   docker build --build-arg ENGINES="@anthropic-ai/claude-code @openai/codex" -t opendeliobot .
+#   docker build --target cloud-home -t odb-cloud-home .
+#   docker buildx build --platform linux/arm64 -t opendeliobot .   # Raspberry Pi 4/5, ARM servers
 #
 # HOME is the /data volume, so engine CLI logins (~/.claude, ~/.codex, ~/.grok,
-# ...) and OpenMausBot's own state (~/.openmausbot) persist across container
+# ...) and OpenDeliobot's own state (~/.opendeliobot) persist across container
 # restarts.
 #
 # A plain `docker run` of either image wants `--init --shm-size=512m`, as the
@@ -68,7 +68,7 @@ RUN pnpm build:server && NODE_OPTIONS=--max-old-space-size=6144 pnpm exec vite b
 # (pnpm-workspace.yaml supportedArchitectures).
 ARG TARGETARCH
 RUN arch=x64 && if [ "$TARGETARCH" = arm64 ]; then arch=arm64; fi \
-  && OMB_DUCKDB_ARCH=$arch node scripts/prepare-duckdb.mjs \
+  && ODB_DUCKDB_ARCH=$arch node scripts/prepare-duckdb.mjs \
   && mv "dist-native/duckdb/linux-$arch" dist-native/duckdb/target && chmod -R go-w dist-native/duckdb
 
 FROM node:24-bookworm-slim AS runtime
@@ -85,7 +85,7 @@ RUN apt-get update \
     libatk-bridge2.0-0 libdrm2 libxkbcommon0 libatspi2.0-0 libcups2 \
     libxshmfence1 libgbm1 fonts-noto-color-emoji fonts-noto-cjk fonts-freefont-ttf \
   && rm -rf /var/lib/apt/lists/* \
-  && useradd --create-home --home-dir /data --shell /bin/bash maus
+  && useradd --create-home --home-dir /data --shell /bin/bash delio
 # The bots' browser (docs/plans/browser-engine.md): the pinned agent-browser
 # and a Chrome for Testing with its libraries, so a server bot can browse.
 # Pin here and in server/browser-engine-release.ts together.
@@ -104,9 +104,9 @@ RUN echo "agent-browser ${AGENT_BROWSER_VERSION}, Chrome for Testing ${CHROME_CA
   && npm install -g --cache /tmp/npm-cache agent-browser@${AGENT_BROWSER_VERSION} \
   && if [ "$TARGETARCH" = arm64 ]; then \
        apt-get update && apt-get install -y --no-install-recommends chromium && rm -rf /var/lib/apt/lists/* \
-       && mkdir -p /opt/openmausbot-browser && ln -s /usr/lib/chromium/chromium /opt/openmausbot-browser/chrome; \
-     else HOME=/opt/openmausbot-browser agent-browser install \
-       && ln -s /opt/openmausbot-browser/.agent-browser/browsers/chrome-*/chrome /opt/openmausbot-browser/chrome; \
+       && mkdir -p /opt/opendeliobot-browser && ln -s /usr/lib/chromium/chromium /opt/opendeliobot-browser/chrome; \
+     else HOME=/opt/opendeliobot-browser agent-browser install \
+       && ln -s /opt/opendeliobot-browser/.agent-browser/browsers/chrome-*/chrome /opt/opendeliobot-browser/chrome; \
      fi \
   && native="$(readlink -f "$(command -v agent-browser)")" \
   && case "$native" in */agent-browser/bin/agent-browser-linux-*) ;; *) echo "agent-browser is not a native binary: $native" >&2; exit 1;; esac \
@@ -118,13 +118,13 @@ RUN echo "agent-browser ${AGENT_BROWSER_VERSION}, Chrome for Testing ${CHROME_CA
 # which may be an existing mounted volume. Session state still lives in HOME,
 # which each image sets after its last build step, so no build step writes
 # into what a fresh volume starts with.
-#  OMB_DUCKDB_DIR: the DuckDB binding tree the server requires (no node_modules here).
-ENV AGENT_BROWSER_EXECUTABLE_PATH=/opt/openmausbot-browser/chrome \
-    OMB_DUCKDB_DIR=/app/duckdb \
-    OMB_DATA_DIR=/data/.openmausbot \
-    OMB_STATIC_DIR=/app/dist \
-    OMB_PORT=8799 \
-    OMB_WEBHOOK_PORT=8800 \
+#  ODB_DUCKDB_DIR: the DuckDB binding tree the server requires (no node_modules here).
+ENV AGENT_BROWSER_EXECUTABLE_PATH=/opt/opendeliobot-browser/chrome \
+    ODB_DUCKDB_DIR=/app/duckdb \
+    ODB_DATA_DIR=/data/.opendeliobot \
+    ODB_STATIC_DIR=/app/dist \
+    ODB_PORT=8799 \
+    ODB_WEBHOOK_PORT=8800 \
     NODE_ENV=production
 WORKDIR /app
 
@@ -142,19 +142,19 @@ ARG TARGETARCH
 RUN apt-get update \
   && apt-get install -y --no-install-recommends python3 poppler-utils unzip bubblewrap socat \
   && rm -rf /var/lib/apt/lists/* \
-  && HOME=/tmp/omb-build-home npm install -g pnpm@10.33.0 \
+  && HOME=/tmp/odb-build-home npm install -g pnpm@10.33.0 \
   && uv_arch=x86_64 && if [ "$TARGETARCH" = arm64 ]; then uv_arch=aarch64; fi \
   && mkdir -p /tmp/uv-install \
   && curl -fsSL "https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/uv-${uv_arch}-unknown-linux-gnu.tar.gz" | tar -xz -C /tmp/uv-install --strip-components=1 \
   && install -m 0755 /tmp/uv-install/uv /tmp/uv-install/uvx /usr/local/bin/ \
-  && bwrap --version && socat -V | head -1 && HOME=/tmp/omb-build-home pnpm --version && uv --version | grep -qF "uv ${UV_VERSION}" \
-  && rm -rf /tmp/omb-build-home /tmp/uv-install /tmp/node-compile-cache
+  && bwrap --version && socat -V | head -1 && HOME=/tmp/odb-build-home pnpm --version && uv --version | grep -qF "uv ${UV_VERSION}" \
+  && rm -rf /tmp/odb-build-home /tmp/uv-install /tmp/node-compile-cache
 # Caddy and Grok are pinned, so they sit beneath the engines, which change
 # more often.
 COPY --from=edge /caddy /usr/local/bin/caddy
 COPY --from=tunnel /cloudflared /usr/local/bin/cloudflared
-# cloudflared's own user: its token rides its environment, which maus can't read.
-RUN useradd --system --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin omb-tunnel
+# cloudflared's own user: its token rides its environment, which delio can't read.
+RUN useradd --system --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin odb-tunnel
 # Grok Build, the grok.com subscription engine: xAI's own installer, pinned to
 # the version the Grok driver is verified against (server/drivers/acp/grok.ts).
 # People sign it in from the app with a device code; its login lands in
@@ -180,12 +180,12 @@ RUN if [ -n "$GROK_VERSION" ]; then \
 ARG CLOUD_HOME_ENGINES="@anthropic-ai/claude-code @openai/codex"
 ARG ENGINES_CACHE_TAG=""
 RUN echo "engines: ${CLOUD_HOME_ENGINES:-none} ${ENGINES_CACHE_TAG}" \
-  && if [ -n "$CLOUD_HOME_ENGINES" ]; then HOME=/tmp/omb-build-home npm install -g $CLOUD_HOME_ENGINES; fi \
-  && rm -rf /tmp/omb-build-home /tmp/node-compile-cache
+  && if [ -n "$CLOUD_HOME_ENGINES" ]; then HOME=/tmp/odb-build-home npm install -g $CLOUD_HOME_ENGINES; fi \
+  && rm -rf /tmp/odb-build-home /tmp/node-compile-cache
 COPY deploy/fly/Caddyfile deploy/fly/Caddyfile.tls deploy/fly/Caddyfile.tunnel deploy/fly/edge-routes.caddy /app/cloud/
 # The root supervisor runs /app's code and hands the server its secrets, so
-# no file there may be one `maus` can change: unlike the server image's, these
-# copies stay root's. Only the /data volume is maus's; the launcher refuses to
+# no file there may be one `delio` can change: unlike the server image's, these
+# copies stay root's. Only the /data volume is delio's; the launcher refuses to
 # start otherwise (codeTrustProblem), and this check refuses to build.
 # DuckDB and resvg change on a version bump, not per commit: beneath the app files.
 COPY --from=build /src/dist-native/duckdb/target ./duckdb
@@ -193,27 +193,27 @@ COPY --from=build /src/dist-server ./dist-server
 COPY --from=build /src/dist ./dist
 # The bundled skills (server/skill-library.ts reads ./skills from /app).
 COPY --from=build /src/skills ./skills
-RUN export HOME=/tmp/omb-build-home \
+RUN export HOME=/tmp/odb-build-home \
  && chmod go-w /app/cloud /app/cloud/Caddyfile /app/cloud/Caddyfile.tls /app/cloud/Caddyfile.tunnel /app/cloud/edge-routes.caddy \
  && caddy version \
  && cloudflared version \
- && OMB_CLOUD_PUBLIC_HOST=validate.fly.dev caddy validate --config /app/cloud/Caddyfile --adapter caddyfile \
- && OMB_CLOUD_PUBLIC_HOST=validate.example.com OMB_CLOUD_EDGE_STORAGE=/tmp/omb-build-home/edge caddy validate --config /app/cloud/Caddyfile.tls --adapter caddyfile \
- && OMB_CLOUD_PUBLIC_HOST=validate.example.com OMB_CLOUD_EDGE_STORAGE=/tmp/omb-build-home/edge OMB_CLOUD_EDGE_CERT_ISSUERS="$(OMB_CLOUD_EDGE_ACME_EMAIL=validate@example.com node --input-type=module -e 'import { edgeCertIssuers } from "/app/dist-server/cloud-home-start.js"; process.stdout.write(edgeCertIssuers(process.env));')" caddy validate --config /app/cloud/Caddyfile.tls --adapter caddyfile \
- && OMB_CLOUD_PUBLIC_HOST=validate.example.com caddy validate --config /app/cloud/Caddyfile.tunnel --adapter caddyfile \
+ && ODB_CLOUD_PUBLIC_HOST=validate.fly.dev caddy validate --config /app/cloud/Caddyfile --adapter caddyfile \
+ && ODB_CLOUD_PUBLIC_HOST=validate.example.com ODB_CLOUD_EDGE_STORAGE=/tmp/odb-build-home/edge caddy validate --config /app/cloud/Caddyfile.tls --adapter caddyfile \
+ && ODB_CLOUD_PUBLIC_HOST=validate.example.com ODB_CLOUD_EDGE_STORAGE=/tmp/odb-build-home/edge ODB_CLOUD_EDGE_CERT_ISSUERS="$(ODB_CLOUD_EDGE_ACME_EMAIL=validate@example.com node --input-type=module -e 'import { edgeCertIssuers } from "/app/dist-server/cloud-home-start.js"; process.stdout.write(edgeCertIssuers(process.env));')" caddy validate --config /app/cloud/Caddyfile.tls --adapter caddyfile \
+ && ODB_CLOUD_PUBLIC_HOST=validate.example.com caddy validate --config /app/cloud/Caddyfile.tunnel --adapter caddyfile \
  && test -f /app/dist-server/cloud-home-start.js \
  && untrusted="$(find /app /usr/local/bin/caddy /usr/local/bin/cloudflared \( ! -user root -o ! -type l -perm /022 \) -print)" \
  && if [ -n "$untrusted" ]; then echo "not root's, or writable by others:" >&2; echo "$untrusted" >&2; exit 1; fi \
- && rm -rf /tmp/omb-build-home
+ && rm -rf /tmp/odb-build-home
 ENV HOME=/data
 VOLUME ["/data"]
 EXPOSE 8080
 # Fly uses the checks in fly.toml; this one serves a plain `docker run`.
 HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=5 \
-  CMD curl -sf http://127.0.0.1:8080/api/health | grep -q openmausbot || exit 1
-# Starts as root: hands a fresh volume to `maus`, runs the server and the edge
-# as `maus`, and hands the server its secrets over a pipe, never an
-# environment `maus` could read (server/cloud-home-start.ts). It runs only
+  CMD curl -sf http://127.0.0.1:8080/api/health | grep -q opendeliobot || exit 1
+# Starts as root: hands a fresh volume to `delio`, runs the server and the edge
+# as `delio`, and hands the server its secrets over a pipe, never an
+# environment `delio` could read (server/cloud-home-start.ts). It runs only
 # root's code from the image, never anything on the volume.
 USER root
 CMD ["node", "/app/dist-server/cloud-home-start.js"]
@@ -222,19 +222,19 @@ CMD ["node", "/app/dist-server/cloud-home-start.js"]
 FROM runtime AS server
 # Optional engine CLIs baked into the image (space-separated npm packages).
 ARG ENGINES=""
-RUN if [ -n "$ENGINES" ]; then HOME=/tmp/omb-build-home npm install -g $ENGINES && rm -rf /tmp/omb-build-home /tmp/node-compile-cache; fi
-COPY --from=build --chown=maus:maus /src/dist-native/duckdb/target ./duckdb
-COPY --from=build --chown=maus:maus /src/dist-server ./dist-server
-COPY --from=build --chown=maus:maus /src/dist ./dist
-COPY --from=build --chown=maus:maus /src/skills ./skills
-# `docker compose exec omb openmausbot pair`: the commands the CLI prints start the same way.
-RUN printf '#!/bin/sh\nexec node /app/dist-server/openmausbot.js "$@"\n' > /usr/local/bin/openmausbot && chmod 0755 /usr/local/bin/openmausbot
+RUN if [ -n "$ENGINES" ]; then HOME=/tmp/odb-build-home npm install -g $ENGINES && rm -rf /tmp/odb-build-home /tmp/node-compile-cache; fi
+COPY --from=build --chown=delio:delio /src/dist-native/duckdb/target ./duckdb
+COPY --from=build --chown=delio:delio /src/dist-server ./dist-server
+COPY --from=build --chown=delio:delio /src/dist ./dist
+COPY --from=build --chown=delio:delio /src/skills ./skills
+# `docker compose exec odb opendeliobot pair`: the commands the CLI prints start the same way.
+RUN printf '#!/bin/sh\nexec node /app/dist-server/opendeliobot.js "$@"\n' > /usr/local/bin/opendeliobot && chmod 0755 /usr/local/bin/opendeliobot
 ENV HOME=/data \
-    OMB_CLI_PREFIX="docker compose exec omb openmausbot"
+    ODB_CLI_PREFIX="docker compose exec odb opendeliobot"
 VOLUME ["/data"]
-USER maus
+USER delio
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD curl -sf http://127.0.0.1:8799/api/health | grep -q openmausbot || exit 1
+  CMD curl -sf http://127.0.0.1:8799/api/health | grep -q opendeliobot || exit 1
 # The launcher runs dist-server/index.js and starts it again when it asks to
 # (a copied workspace committing, server/restart.ts), so the container, and a
 # Caddy sharing its network, stays up through that restart.

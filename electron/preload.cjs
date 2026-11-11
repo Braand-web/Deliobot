@@ -2,7 +2,7 @@
 const { contextBridge, ipcRenderer, webFrame, webUtils } = require("electron");
 
 // Sandboxed preloads get Electron's restricted `require`, which cannot load sibling CommonJS files.
-const desktopRemoteClient = process.argv.includes("--openmausbot-remote-client");
+const desktopRemoteClient = process.argv.includes("--opendeliobot-remote-client");
 
 let pendingPackageInstallUrl = null;
 const packageInstallListeners = new Set();
@@ -46,7 +46,7 @@ ipcRenderer.on("app:open-settings", (_event, section) => {
 });
 
 // The full bridge goes only to the local server's UI; a remote page gets the safe subset, and main enforces the same rule.
-const localOrigin = process.argv.find((arg) => arg.startsWith("--omb-local-origin="))?.slice("--omb-local-origin=".length) ?? null;
+const localOrigin = process.argv.find((arg) => arg.startsWith("--odb-local-origin="))?.slice("--odb-local-origin=".length) ?? null;
 const isLocalPage = !localOrigin || location.origin === localOrigin;
 
 // The window's own rail of places stands at its left edge (electron/chrome-rail.mjs): main says how wide, and every page
@@ -105,13 +105,13 @@ const remoteKeys = isLocalPage ? REMOTE_SAFE : new Set([...REMOTE_SAFE, ...(upda
 
 // Keep in parity with shared/workspace-backup-client.ts (a sandboxed preload cannot import it).
 const COMPANY_BACKUP_CLIENT_KEYS = [
-  "omb-drafts", "omb-draft-attachments", "omb-draft-send-ids", "omb-draft-channel-modes",
-  "omb-skin", "omb-show-threads", "omb-show-run-card", "omb-send-key", "omb-color-user-bubbles", "omb-chat-width", "openmausbot.sidebarDensity",
-  "openmausbot.sidebarToolsLayout",
-  "openmausbot.sidebarCollapsedSections.v1", "openmausbot.sidebarSectionOrder.v1",
-  "omb-analytics-opt-out", "openmausbot.remote-voice.v1",
+  "odb-drafts", "odb-draft-attachments", "odb-draft-send-ids", "odb-draft-channel-modes",
+  "odb-skin", "odb-show-threads", "odb-show-run-card", "odb-send-key", "odb-color-user-bubbles", "odb-chat-width", "openopendeliobot.comdebarDensity",
+  "openopendeliobot.comdebarToolsLayout",
+  "openopendeliobot.comdebarCollapsedSections.v1", "openopendeliobot.comdebarSectionOrder.v1",
+  "odb-analytics-opt-out", "opendeliobot.remote-voice.v1",
 ];
-if (isLocalPage && !desktopRemoteClient && process.argv.includes("--omb-company-desktop=1")) {
+if (isLocalPage && !desktopRemoteClient && process.argv.includes("--odb-company-desktop=1")) {
   ipcRenderer.on("company-backups:collect-client-state", (_event, request) => {
     if (!request || typeof request.requestId !== "string" || !/^[a-f0-9-]{36}$/.test(request.requestId)) return;
     try {
@@ -131,7 +131,7 @@ if (isLocalPage && !desktopRemoteClient && process.argv.includes("--omb-company-
 }
 
 // main passes app.getVersion(): a server's page carries that server's version, so About asks this for the app's own.
-const appVersion = (process.argv.find((arg) => arg.startsWith("--omb-app-version="))?.slice("--omb-app-version=".length) ?? "").slice(0, 64);
+const appVersion = (process.argv.find((arg) => arg.startsWith("--odb-app-version="))?.slice("--odb-app-version=".length) ?? "").slice(0, 64);
 
 /** ipcRenderer wraps a main-process throw in "Error invoking remote method"; the page shows the text verbatim. */
 function invokeWithPlainError(channel, ...args) {
@@ -144,7 +144,7 @@ function invokeWithPlainError(channel, ...args) {
 const bridge = {
   platform: process.platform,
   /** Linux without a GPU (electron/linux-gpu.mjs): the page drops its backdrop blurs. */
-  softwareRendering: process.argv.includes("--omb-software-rendering=1"),
+  softwareRendering: process.argv.includes("--odb-software-rendering=1"),
   /** This app's version, and whether this page is this app's own (served by this computer, not a server from the Server menu). */
   app: { version: appVersion, ownPage: isLocalPage },
   // Safe on a cloud page: the person chooses in a native menu, or a circle of the rail main listed (only for this app's
@@ -419,7 +419,7 @@ const bridge = {
   openAtLogin: {
     state: () => ipcRenderer.invoke("open-at-login:state"),
     set: on => on !== true || isLocalPage || navigator.userActivation?.isActive === true
-      ? ipcRenderer.invoke("open-at-login:set", on === true) : Promise.reject(new Error("Turn on the switch to open OpenMausBot at login.")),
+      ? ipcRenderer.invoke("open-at-login:set", on === true) : Promise.reject(new Error("Turn on the switch to open OpenDeliobot at login.")),
   },
   setCredential: (name, value, options) => ipcRenderer.invoke("credential:set", name, value, options),
   // Saved keys this launch could not read, and "Reset saved keys" (main asks the person first, then restarts).
@@ -465,7 +465,7 @@ const bridge = {
       return () => ipcRenderer.removeListener("workspaces:open-settings", handler);
     },
   },
-  cloudAccount: process.argv.includes("--omb-company-desktop=1") ? {
+  cloudAccount: process.argv.includes("--odb-company-desktop=1") ? {
     state: () => ipcRenderer.invoke("cloud-account:state"),
     begin: () => ipcRenderer.invoke("cloud-account:begin"),
     signInAgain: () => ipcRenderer.invoke("cloud-account:signInAgain"),
@@ -517,7 +517,7 @@ const bridge = {
     },
   } : undefined,
   // Either page: the one-time move's line.
-  cloudSendPage: process.argv.includes("--omb-company-desktop=1") ? {
+  cloudSendPage: process.argv.includes("--odb-company-desktop=1") ? {
     notice: () => ipcRenderer.invoke("cloud-send:notice"),
     dismiss: signature => ipcRenderer.invoke("cloud-send:dismiss", String(signature)),
     moveRetry: () => isLocalPage || navigator.userActivation?.isActive === true
@@ -545,7 +545,7 @@ const bridge = {
       ? ipcRenderer.invoke("cloud-send:move-everything") : Promise.reject(new Error("Choose which bots move.")),
     botMoveRetry: () => ipcRenderer.invoke("cloud-send:bot-move-retry"),
     openMyCloud: () => ipcRenderer.invoke("cloud-send:open-my-cloud"),
-    // Settings → MausBot Cloud, Advanced: "Keep this computer's bots on this computer".
+    // Settings → Delio Cloud, Advanced: "Keep this computer's bots on this computer".
     keepHere: () => ipcRenderer.invoke("one-home:keep"),
     setKeepHere: on => isLocalPage || navigator.userActivation?.isActive === true
       ? ipcRenderer.invoke("one-home:keep-set", on === true) : Promise.reject(new Error("Turn the switch to keep this computer's bots here.")),
@@ -567,7 +567,7 @@ const bridge = {
     },
   },
   // Who is signed in on this device: this app's own pages only (main checks the sender). No token ever comes through here.
-  accounts: process.argv.includes("--omb-company-desktop=1") ? {
+  accounts: process.argv.includes("--odb-company-desktop=1") ? {
     list: () => ipcRenderer.invoke("accounts:list"),
     signOut: id => ipcRenderer.invoke("accounts:sign-out", String(id)),
     addStart: email => ipcRenderer.invoke("accounts:add-start", String(email)),
@@ -590,12 +590,12 @@ const bridge = {
     },
   } : undefined,
   // Any place's page: opens the accounts sheet on the rail's page, from the person's click. The page learns nothing of them.
-  accountSheet: process.argv.includes("--omb-company-desktop=1") ? {
+  accountSheet: process.argv.includes("--odb-company-desktop=1") ? {
     offered: () => ipcRenderer.invoke("accounts:offered"),
     open: () => isLocalPage || navigator.userActivation?.isActive === true
       ? ipcRenderer.invoke("accounts:open") : Promise.reject(new Error("Choose your account to open it.")),
   } : undefined,
-  cloudPlan: process.argv.includes("--omb-company-desktop=1") ? {
+  cloudPlan: process.argv.includes("--odb-company-desktop=1") ? {
     state: () => ipcRenderer.invoke("cloud-plan:state"),
     manage: () => isLocalPage || navigator.userActivation?.isActive === true
       ? ipcRenderer.invoke("cloud-plan:manage") : Promise.reject(new Error("Choose Manage to open your Plan page.")),
@@ -618,7 +618,7 @@ const bridge = {
     restartNow: () => navigator.userActivation?.isActive === true
       ? ipcRenderer.invoke("cloud-plan:restart-now") : Promise.reject(new Error("Choose Restart now to restart the Cloud.")),
   } : undefined,
-  organization: process.argv.includes("--omb-company-desktop=1") ? {
+  organization: process.argv.includes("--odb-company-desktop=1") ? {
     settingsOpened: () => ipcRenderer.invoke("organization:settings-opened"),
     state: () => ipcRenderer.invoke("organization:state"),
     begin: input => ipcRenderer.invoke("organization:begin", input),
@@ -632,7 +632,7 @@ const bridge = {
       return () => ipcRenderer.removeListener("organization:state-changed", handler);
     },
   } : undefined,
-  companyBackups: process.argv.includes("--omb-company-desktop=1") ? {
+  companyBackups: process.argv.includes("--odb-company-desktop=1") ? {
     state: () => ipcRenderer.invoke("company-backups:state"),
     list: () => ipcRenderer.invoke("company-backups:list"),
     create: input => ipcRenderer.invoke("company-backups:create", input),

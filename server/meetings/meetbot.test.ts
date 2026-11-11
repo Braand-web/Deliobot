@@ -144,10 +144,10 @@ describe("the meeting bot on Google Meet", () => {
     exists.mockImplementation(async (spec: { css?: string }) => !String(spec.css ?? "").includes("name"));
     const op = page.op as unknown as ReturnType<typeof vi.fn>;
     const base = op.getMockImplementation() as (a: { op: string }) => Promise<unknown>;
-    op.mockImplementation(async (a: { op: string }) => (a.op === "account" ? "Milind" : base(a)));
+    op.mockImplementation(async (a: { op: string }) => (a.op === "account" ? "Alex" : base(a)));
     const run = parts(page, { config: { ...config, platform: "meet", url: "https://meet.google.com/abc-defg-hij", profileDir: "/p" }, adapter: ADAPTERS.meet });
     await runSession(run.session);
-    expect(run.events.find((e) => e.type === "signed_in")?.data).toEqual({ as: "Milind" });
+    expect(run.events.find((e) => e.type === "signed_in")?.data).toEqual({ as: "Alex" });
     expect(sent[0]).toBe(config.consent);
   });
 });

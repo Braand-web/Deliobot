@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { launchVerificationServer, type VerificationServer } from "../scripts/control-omb.ts";
+import { launchVerificationServer, type VerificationServer } from "../scripts/control-odb.ts";
 
 describe("creating a chat without selecting it", () => {
   let fixture: VerificationServer;

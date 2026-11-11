@@ -36,23 +36,23 @@ Launch the headless chat UI with a slow fake engine, as in
 
 ```sh
 FAKE_CLAUDE_SLOW_FINISH_GATE=/tmp/widget-gate \
-  node --experimental-strip-types scripts/control-omb.ts ui launch --mode slow
+  node --experimental-strip-types scripts/control-odb.ts ui launch --mode slow
 ```
 
-Send Pepper a message so a turn is open, read that turn's `OMB_COMMS_TOKEN`
+Send Pepper a message so a turn is open, read that turn's `ODB_COMMS_TOKEN`
 from `fake-claude-dump.json` in the printed data directory, and post two of
 the samples in `shared/widget-samples.ts` to `/api/internal/options-card` as
 `{"tool":"show_widget","widget":…}` with that bearer token. Create the gate
 file to let the turn finish, then:
 
 ```sh
-H=/tmp/openmausbot-verify-data-XXXXXX/ui.json
-pnpm control:omb ui snapshot --ui $H
-pnpm control:omb ui click --ui $H --name "Create routine"
-pnpm control:omb ui wait-settle --ui $H --timeout 60
-pnpm control:omb ui click --ui $H --name "Details"
-pnpm control:omb ui screenshot --ui $H --out .omb-scratch/verify-evidence/widgets.png
-pnpm control:omb ui console --ui $H
+H=/tmp/opendeliobot-verify-data-XXXXXX/ui.json
+pnpm control:odb ui snapshot --ui $H
+pnpm control:odb ui click --ui $H --name "Create routine"
+pnpm control:odb ui wait-settle --ui $H --timeout 60
+pnpm control:odb ui click --ui $H --name "Details"
+pnpm control:odb ui screenshot --ui $H --out .odb-scratch/verify-evidence/widgets.png
+pnpm control:odb ui console --ui $H
 ```
 
 Expected: the snapshot holds a `Pull requests` list with three rows and the

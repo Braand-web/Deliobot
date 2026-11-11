@@ -110,7 +110,7 @@ function reclaimMode(value: unknown): TunnelReclaimMode {
   // Unset or invalid: observe only. Reclaiming is switched on deliberately.
   if (value === "on" || value === "observe") return value;
   if (value !== undefined && value !== null && value !== "") {
-    console.error(JSON.stringify({ message: "invalid OMB_TUNNEL_RECLAIM; observing only", allowed: ["on", "observe"] }));
+    console.error(JSON.stringify({ message: "invalid ODB_TUNNEL_RECLAIM; observing only", allowed: ["on", "observe"] }));
   }
   return "observe";
 }
@@ -119,40 +119,40 @@ function reclaimMode(value: unknown): TunnelReclaimMode {
 export function readCapacityConfig(env: Partial<Record<string, unknown>>): CapacityConfig {
   return {
     cleanupSweepLimit: boundedIntegerVar(
-      env.OMB_CLEANUP_SWEEP_LIMIT,
-      "OMB_CLEANUP_SWEEP_LIMIT",
+      env.ODB_CLEANUP_SWEEP_LIMIT,
+      "ODB_CLEANUP_SWEEP_LIMIT",
       DEFAULT_CLEANUP_SWEEP_LIMIT,
       1,
       MAX_CLEANUP_SWEEP_LIMIT,
     ),
     dnsRecordLimit: boundedIntegerVar(
-      env.OMB_DNS_RECORD_LIMIT,
-      "OMB_DNS_RECORD_LIMIT",
+      env.ODB_DNS_RECORD_LIMIT,
+      "ODB_DNS_RECORD_LIMIT",
       DEFAULT_DNS_RECORD_LIMIT,
       1,
       10_000_000,
     ),
     offlineReclaimMs: boundedIntegerVar(
-      env.OMB_TUNNEL_OFFLINE_RECLAIM_DAYS,
-      "OMB_TUNNEL_OFFLINE_RECLAIM_DAYS",
+      env.ODB_TUNNEL_OFFLINE_RECLAIM_DAYS,
+      "ODB_TUNNEL_OFFLINE_RECLAIM_DAYS",
       DEFAULT_OFFLINE_RECLAIM_DAYS,
       MIN_OFFLINE_RECLAIM_DAYS,
       365,
     ) * DAY_MS,
-    reclaimMode: reclaimMode(env.OMB_TUNNEL_RECLAIM),
-    reclaimPreviewMs: env.OMB_TUNNEL_RECLAIM_PREVIEW_DAYS === undefined || env.OMB_TUNNEL_RECLAIM_PREVIEW_DAYS === null
-      || env.OMB_TUNNEL_RECLAIM_PREVIEW_DAYS === ""
+    reclaimMode: reclaimMode(env.ODB_TUNNEL_RECLAIM),
+    reclaimPreviewMs: env.ODB_TUNNEL_RECLAIM_PREVIEW_DAYS === undefined || env.ODB_TUNNEL_RECLAIM_PREVIEW_DAYS === null
+      || env.ODB_TUNNEL_RECLAIM_PREVIEW_DAYS === ""
       ? null
       : boundedIntegerVar(
-        env.OMB_TUNNEL_RECLAIM_PREVIEW_DAYS,
-        "OMB_TUNNEL_RECLAIM_PREVIEW_DAYS",
+        env.ODB_TUNNEL_RECLAIM_PREVIEW_DAYS,
+        "ODB_TUNNEL_RECLAIM_PREVIEW_DAYS",
         0,
         MIN_OFFLINE_RECLAIM_DAYS,
         365,
       ) * DAY_MS || null,
     tunnelLimit: boundedIntegerVar(
-      env.OMB_TUNNEL_LIMIT,
-      "OMB_TUNNEL_LIMIT",
+      env.ODB_TUNNEL_LIMIT,
+      "ODB_TUNNEL_LIMIT",
       DEFAULT_TUNNEL_LIMIT,
       1,
       10_000_000,

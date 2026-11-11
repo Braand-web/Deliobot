@@ -9,7 +9,7 @@ function memory(initial = null) {
   let value = initial;
   return { read: () => { if (value === null) throw new Error("no file"); return value; }, write: (next) => { value = next; } };
 }
-const ACME = { id: "team-acme", name: "Acme", role: "member", machine: { status: "ready", origin: "https://omb-t-acme.fly.dev" } };
+const ACME = { id: "team-acme", name: "Acme", role: "member", machine: { status: "ready", origin: "https://odb-t-acme.fly.dev" } };
 const GLOBEX = { id: "team-globex", name: "Globex", role: "admin", machine: null };
 
 function world({ teams = [ACME, GLOBEX], answers = {}, remembered = memory() } = {}) {
@@ -25,14 +25,14 @@ function world({ teams = [ACME, GLOBEX], answers = {}, remembered = memory() } =
 }
 
 test("a team's bots are read over the window's own sign-in there, by name only, and remembered for when the team is not open", async () => {
-  const w = world({ answers: { "https://omb-t-acme.fly.dev": { bots: [{ id: "b1", name: "Sales" }, { id: "b2", name: " Support " }, { id: "b3", name: "Hidden", hidden: true }, { id: "b4" }] } } });
+  const w = world({ answers: { "https://odb-t-acme.fly.dev": { bots: [{ id: "b1", name: "Sales" }, { id: "b2", name: " Support " }, { id: "b3", name: "Hidden", hidden: true }, { id: "b4" }] } } });
   const places = w.places();
   assert.deepEqual(places.map((place) => [place.key, place.name, place.kind]), [["team:team-acme", "Acme", "team"], ["team:team-globex", "Globex", "team"]]);
   assert.equal(places[0].tell, undefined);
   assert.equal(places[0].bring, undefined);
   assert.deepEqual(usedBots(await places[0].read()), ["Sales", "Support"]);
   assert.equal(w.fetched[0].init.credentials, "include");
-  assert.equal(w.fetched[0].init.headers.origin, "https://omb-t-acme.fly.dev");
+  assert.equal(w.fetched[0].init.headers.origin, "https://odb-t-acme.fly.dev");
   assert.deepEqual(parseRemembered(w.remembered.read()), { "team-acme": { name: "Acme", bots: ["Sales", "Support"] } });
   // Globex has no machine and nothing remembered: it says nothing.
   assert.equal(await places[1].read(), null);
@@ -48,7 +48,7 @@ test("a team is a place the person's own places hear about, never one that is to
     local: async () => summary("Chief"),
     here: { name: async () => "Work laptop", tell: async (payload) => { told.push(["here", payload]); } },
     places: () => [
-      { key: "cloud:https://omb-u-1.fly.dev", name: "My Cloud", kind: "cloud", read: async () => summary("Scout"), tell: async (payload) => { told.push(["cloud", payload]); } },
+      { key: "cloud:https://odb-u-1.fly.dev", name: "My Cloud", kind: "cloud", read: async () => summary("Scout"), tell: async (payload) => { told.push(["cloud", payload]); } },
       { key: "team:team-acme", name: "Acme", kind: "team", read: async () => summary("Sales") },
     ],
     settled: () => true, dismissed: { read: () => null, write() {} },
@@ -66,7 +66,7 @@ test("a place on an older version, which refuses a team, still hears about the p
   const two = createTwoPlaces({
     local: async () => null,
     places: () => [
-      { key: "cloud:https://omb-u-1.fly.dev", name: "My Cloud", kind: "cloud", read: async () => summary("Scout"), tell: async (payload) => {
+      { key: "cloud:https://odb-u-1.fly.dev", name: "My Cloud", kind: "cloud", read: async () => summary("Scout"), tell: async (payload) => {
         told.push(payload);
         if (payload.places.some((place) => place.kind === "team")) throw Object.assign(new Error("refused"), { status: 400 });
       } },
@@ -97,7 +97,7 @@ test("main reads the teams the verified session lists and tells them nothing; a 
   });
   try {
     await main.refresh({ force: true });
-    assert.deepEqual(calls, ["GET https://omb-t-acme.fly.dev/api/bots?messages=0"]);
+    assert.deepEqual(calls, ["GET https://odb-t-acme.fly.dev/api/bots?messages=0"]);
     assert.deepEqual(told.at(-1).places, [{ name: "Acme", kind: "team", bots: ["Sales"] }]);
     assert.equal(main.state().suggest, null);
     teams = [];

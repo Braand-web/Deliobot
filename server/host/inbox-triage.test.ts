@@ -118,7 +118,7 @@ describe("inbox triage on the helper models", () => {
 
 describe("the brief on a non-Claude engine, sorted by the helper models", () => {
   function world(helpers: { decider: ReturnType<typeof fakeDecider>; extractor: ReturnType<typeof fakeExtractor> } | null) {
-    const dir = mkdtempSync(join(tmpdir(), "omb-inbox-triage-"));
+    const dir = mkdtempSync(join(tmpdir(), "odb-inbox-triage-"));
     dirs.push(dir);
     let now = Date.parse("2026-10-22T08:00:00Z");
     const store = new Store(() => ({ instanceId: "codex", model: "gpt-5.5" }));
@@ -144,7 +144,7 @@ describe("the brief on a non-Claude engine, sorted by the helper models", () => 
       ...(helpers ? { inbox: createInboxTriage({ decider: helpers.decider, extractor: helpers.extractor, config: () => HELPERS_ON }) } : {}),
     });
     const routine: Routine = {
-      id: "watch", name: "Keep an eye on my day", prompt: "Check my day.", target: "bot", botId: chief.id, runOn: "maus", enabled: true,
+      id: "watch", name: "Keep an eye on my day", prompt: "Check my day.", target: "bot", botId: chief.id, runOn: "delio", enabled: true,
       schedule: { type: "interval", everyMinutes: 15, anchorAt: 0 }, durationMinutes: 30, nextRunAt: null, createdAt: now - 60 * MINUTE, updatedAt: 0,
       checks: ["calendar", "mail", "runs"], access: "read-and-draft", deliver: "brief",
     };

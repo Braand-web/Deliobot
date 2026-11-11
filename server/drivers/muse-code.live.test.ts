@@ -1,6 +1,6 @@
 // Against the real Muse Code CLI, signed in on this machine. Skipped unless
-// OMB_LIVE_MUSE=1: it spends the account's Muse usage.
-//   OMB_LIVE_MUSE=1 pnpm exec vitest run server/drivers/muse-code.live.test.ts
+// ODB_LIVE_MUSE=1: it spends the account's Muse usage.
+//   ODB_LIVE_MUSE=1 pnpm exec vitest run server/drivers/muse-code.live.test.ts
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir, userInfo } from "node:os";
 import { join } from "node:path";
@@ -8,13 +8,13 @@ import { afterAll, describe, expect, it } from "vitest";
 import type { ProviderInstance, RuntimeEvent } from "../contracts.ts";
 import { MuseCodeDriver } from "./muse-code.ts";
 
-const live = process.env.OMB_LIVE_MUSE === "1";
+const live = process.env.ODB_LIVE_MUSE === "1";
 // The test setup points HOME at a temp dir; only the engine gets the real one, where `muse login` saved.
 const home = userInfo().homedir;
-const cli = process.env.OMB_MUSE_CLI ?? join(home, ".local", "bin", "muse");
+const cli = process.env.ODB_MUSE_CLI ?? join(home, ".local", "bin", "muse");
 
 describe.skipIf(!live)("Muse Code (live)", () => {
-  const cwd = mkdtempSync(join(tmpdir(), "omb-muse-live-"));
+  const cwd = mkdtempSync(join(tmpdir(), "odb-muse-live-"));
   const instances: ProviderInstance[] = [];
   afterAll(async () => {
     await Promise.all(instances.map(instance => instance.dispose()));
@@ -57,11 +57,11 @@ describe.skipIf(!live)("Muse Code (live)", () => {
     expect(session?.sessionId).toBeTruthy();
 
     const asked: RuntimeEvent[] = [];
-    const second = await run(instance, { threadId: "live-1", text: "Run the shell command `echo omb-muse-check` and tell me its output.", cwd, approvalMode: "ask", effort: "low" },
+    const second = await run(instance, { threadId: "live-1", text: "Run the shell command `echo odb-muse-check` and tell me its output.", cwd, approvalMode: "ask", effort: "low" },
       (event) => { asked.push(event); void instance.adapter.respondToRequest("live-1", event.requestId!, { behavior: "allow" }); });
     expect(second.completed).toMatchObject({ ok: true });
     expect(second.events.some(event => event.type === "item.started" && event.itemType === "tool")).toBe(true);
-    expect(text(second.events)).toContain("omb-muse-check");
+    expect(text(second.events)).toContain("odb-muse-check");
     console.info(`permission cards: ${asked.length}`);
 
     await instance.dispose(); // an app restart: the old host is gone
@@ -69,7 +69,7 @@ describe.skipIf(!live)("Muse Code (live)", () => {
     const third = await run(restarted, { threadId: "live-1", text: "What exact word did the command print? Answer with just it.", cwd,
       approvalMode: "ask", effort: "low", resumeCursor: session!.sessionId });
     expect(third.completed).toMatchObject({ ok: true });
-    expect(text(third.events)).toContain("omb-muse-check");
+    expect(text(third.events)).toContain("odb-muse-check");
   }, 300_000);
 
 });

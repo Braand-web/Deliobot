@@ -1,4 +1,4 @@
-// Who this server publishes pages as: the MausBot account it is signed in to. One mechanism on every surface: ask the
+// Who this server publishes pages as: the Delio account it is signed in to. One mechanism on every surface: ask the
 // Admin for a short-lived upload token, then send the page to the pages Worker with it. Only the credential differs:
 //   a Cloud home signs its request with the bootstrap secret it already shares with the Admin;
 //   a desktop's main process fetches its sign-in's own pages token and hands it over on the private parent port.
@@ -12,10 +12,10 @@ export type PagesAccess =
   | { kind: "desktop"; url: string; token: string }
   | { kind: "home"; url: string; machineId: string; secret: string };
 
-/** Must match openmaus-cloud server/cloud-pages.ts `pagesHomeSignature`. */
+/** Must match opendelio-cloud server/cloud-pages.ts `pagesHomeSignature`. */
 export function pagesHomeSignature(secret: string, machineId: string, timestamp: string, nonce: string, body: string): string {
   const bodyHash = createHash("sha256").update(body).digest("base64url");
-  return createHmac("sha256", secret).update(`omb-pages-v1\n${machineId}\n${timestamp}\n${nonce}\n${bodyHash}`).digest("base64url");
+  return createHmac("sha256", secret).update(`odb-pages-v1\n${machineId}\n${timestamp}\n${nonce}\n${bodyHash}`).digest("base64url");
 }
 
 /** The headers that prove a request to the Admin's token route comes from this account. */
@@ -23,10 +23,10 @@ export function pagesAuthHeaders(access: PagesAccess, body: string, now = Date.n
   if (access.kind === "desktop") return { authorization: `Bearer ${access.token}` };
   const timestamp = String(Math.floor(now / 1000)), nonce = randomBytes(18).toString("base64url");
   return {
-    "x-omb-cloud-machine": access.machineId,
-    "x-omb-cloud-timestamp": timestamp,
-    "x-omb-cloud-nonce": nonce,
-    "x-omb-cloud-signature": `v1=${pagesHomeSignature(access.secret, access.machineId, timestamp, nonce, body)}`,
+    "x-odb-cloud-machine": access.machineId,
+    "x-odb-cloud-timestamp": timestamp,
+    "x-odb-cloud-nonce": nonce,
+    "x-odb-cloud-signature": `v1=${pagesHomeSignature(access.secret, access.machineId, timestamp, nonce, body)}`,
   };
 }
 
@@ -45,10 +45,10 @@ function adminUrl(value: unknown): string | null {
   }
 }
 
-/** `{ type: "openmausbot:included-pages", access: { url, token } | null }` from the desktop's main process. True when it
+/** `{ type: "opendeliobot:included-pages", access: { url, token } | null }` from the desktop's main process. True when it
  * was one (then applied), false for any other message; a malformed one throws and changes nothing. */
 export function applyIncludedPagesMessage(message: unknown): boolean {
-  if (!message || typeof message !== "object" || (message as { type?: unknown }).type !== "openmausbot:included-pages") return false;
+  if (!message || typeof message !== "object" || (message as { type?: unknown }).type !== "opendeliobot:included-pages") return false;
   const access = (message as { access?: unknown }).access;
   if (access === null) {
     desktopPages = null;
@@ -57,7 +57,7 @@ export function applyIncludedPagesMessage(message: unknown): boolean {
   }
   const { url, token } = (access && typeof access === "object" ? access : {}) as { url?: unknown; token?: unknown };
   const target = adminUrl(url);
-  if (typeof token !== "string" || !/^omb_pd_[A-Za-z0-9_-]{43}$/.test(token) || !target) throw new Error("invalid pages access");
+  if (typeof token !== "string" || !/^odb_pd_[A-Za-z0-9_-]{43}$/.test(token) || !target) throw new Error("invalid pages access");
   desktopPages = { url: target, token };
   desktopPagesNotOffered = false;
   return true;
@@ -68,7 +68,7 @@ export function pagesNotOffered(home: unknown): boolean {
   return !home && !desktopPages && desktopPagesNotOffered;
 }
 
-/** A Cloud home's own credential, else a signed-in desktop's; null when this server is signed in to no MausBot account. */
+/** A Cloud home's own credential, else a signed-in desktop's; null when this server is signed in to no Delio account. */
 export function pagesAccess(home: { adminOrigin: string; machineId: string; bootstrapSecret: string } | null): PagesAccess | null {
   if (home) return { kind: "home", url: `${home.adminOrigin}${PAGES_TOKEN_PATH}`, machineId: home.machineId, secret: home.bootstrapSecret };
   return desktopPages ? { kind: "desktop", ...desktopPages } : null;

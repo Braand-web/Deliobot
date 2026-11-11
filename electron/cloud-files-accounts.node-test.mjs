@@ -5,7 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import { filesFolderOf, installCloudFiles } from "./cloud-sync-main.mjs";
 
-const scratch = (t) => { const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omb-files-accounts-")); t.after(() => fs.rmSync(dir, { recursive: true, force: true })); return dir; };
+const scratch = (t) => { const dir = fs.mkdtempSync(path.join(os.tmpdir(), "odb-files-accounts-")); t.after(() => fs.rmSync(dir, { recursive: true, force: true })); return dir; };
 
 test("the first account keeps Files' folder as it was; another gets one of its own", (t) => {
   const root = scratch(t);

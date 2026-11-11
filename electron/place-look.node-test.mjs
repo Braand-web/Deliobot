@@ -10,7 +10,7 @@ import { railPlaces } from "./cloud-rail.mjs";
 import { createHomePlaces } from "./home-places.mjs";
 import { installPlaceLook, pageLook, placeLook, swatchOf } from "./place-look.mjs";
 
-const HOME = "https://omb-u-1a2b3c4d5e6f.fly.dev", CLIENT_A = "https://omb-c-a.fly.dev", TEAM = "https://omb-t-acme.fly.dev", VPS = "https://bots.example.test";
+const HOME = "https://odb-u-1a2b3c4d5e6f.fly.dev", CLIENT_A = "https://odb-c-a.fly.dev", TEAM = "https://odb-t-acme.fly.dev", VPS = "https://bots.example.test";
 const cloud = (over = {}) => ({ id: "c-a", name: "Client A", color: "green", role: "owner", tier: "pro", runsOn: "cloud", status: "ready", origin: CLIENT_A, teamId: null, primary: false, ...over });
 const CLOUDS = parseCloudList([cloud({ id: "c-home", name: "My Cloud", color: null, origin: HOME, primary: true }), cloud(),
   cloud({ id: "c-acme", name: "Acme", color: "amber", teamId: "team-acme", role: "admin", origin: TEAM })]);
@@ -83,7 +83,7 @@ test("a page changes only its own place's colour: a Cloud's on the Admin first, 
     assert.deepEqual(await computer.call("workspaces:look"), { name: "This computer", color: null, swatch: null, change: "local" }, "this computer's page: plain until a colour is picked");
     assert.deepEqual(await computer.call("workspaces:color", "rose"), { outcome: "saved", look: { name: "This computer", color: "red", swatch: "rose", change: "local" } });
     assert.deepEqual([computer.asked, computer.saved, computer.state().localColor], [[], [["local", "red"]], "red"],
-      "this computer's colour is this app's own, kept beside its saved places, whether or not it is signed in to MausBot Cloud");
+      "this computer's colour is this app's own, kept beside its saved places, whether or not it is signed in to Delio Cloud");
     assert.deepEqual(await computer.call("workspaces:look"), { name: "This computer", color: "red", swatch: "rose", change: "local" }, "read back as chosen");
     assert.deepEqual(await computer.call("workspaces:color", "slate"), { outcome: "saved", look: { name: "This computer", color: null, swatch: null, change: "local" } }, "None: plain again");
     assert.equal(Object.hasOwn(computer.state(), "localColor"), false);
@@ -106,7 +106,7 @@ test("main's own wiring: This computer's page reads and changes its own colour, 
   assert.deepEqual(await call("workspaces:look"), { name: "This computer", color: null, swatch: null, change: "local" }, "plain until a colour is picked");
   assert.deepEqual((await call("workspaces:color", "amber")).look, { name: "This computer", color: "yellow", swatch: "amber", change: "local" });
   assert.deepEqual([persisted.length, context.environmentsState.localColor, context.environmentsState.environments], [1, "yellow", [typed]],
-    "kept beside the saved places, signed out of MausBot Cloud");
+    "kept beside the saved places, signed out of Delio Cloud");
   assert.equal(environments.parseEnvironments(environments.serializeEnvironments(context.environmentsState)).localColor, "yellow", "and in the file");
   assert.deepEqual((await call("workspaces:color", "slate")).look.color, null, "None");
   assert.equal(Object.hasOwn(context.environmentsState, "localColor"), false);

@@ -138,7 +138,7 @@ function claudeEnvironment(
 /** Escape hatch: the bot inherits this machine's Claude Code setup (MCP servers, connectors,
  * skills, agents, hooks, personal CLAUDE.md). */
 function inheritsUserConfig(env: NodeJS.ProcessEnv): boolean {
-  return env.OMB_CLAUDE_INHERIT_USER_CONFIG === "1";
+  return env.ODB_CLAUDE_INHERIT_USER_CONFIG === "1";
 }
 
 export function claudeInheritWarning(env: NodeJS.ProcessEnv): ProviderSnapshot["warning"] | undefined {
@@ -146,7 +146,7 @@ export function claudeInheritWarning(env: NodeJS.ProcessEnv): ProviderSnapshot["
   return {
     title: "Bots inherit this machine's Claude Code setup",
     message:
-      "OMB_CLAUDE_INHERIT_USER_CONFIG=1 is set on the OpenMausBot process, so every Claude bot also loads this " +
+      "ODB_CLAUDE_INHERIT_USER_CONFIG=1 is set on the OpenDeliobot process, so every Claude bot also loads this " +
       "computer's own MCP servers, connectors, skills, hooks and personal CLAUDE.md on every turn — often thousands " +
       "of extra tokens per model call, and tools nobody gave the bot. Unless a bot genuinely needs a server from " +
       "your user-scope Claude config, remove the variable and restart; add the server under Settings → MCP servers " +
@@ -179,10 +179,10 @@ export function readClaudeAuthSettings(
   }
 }
 
-/** OMB_CLAUDE_AUTOCOMPACT: a token count, "auto" (the CLI's own window) or "off". The CLI rejects
+/** ODB_CLAUDE_AUTOCOMPACT: a token count, "auto" (the CLI's own window) or "off". The CLI rejects
  * a window outside 100k-1M as an argument error, so a configured value is clamped. */
 export function autoCompactWindow(env: NodeJS.ProcessEnv): string | null {
-  const raw = (env.OMB_CLAUDE_AUTOCOMPACT ?? "").trim().toLowerCase();
+  const raw = (env.ODB_CLAUDE_AUTOCOMPACT ?? "").trim().toLowerCase();
   if (raw === "off") return null;
   if (raw === "auto") return "auto";
   const parsed = raw ? Number(raw) : DEFAULT_AUTOCOMPACT_TOKENS;
@@ -245,7 +245,7 @@ export function claudeCliUpdate(version: string | null, cli: string): ProviderSn
   const missing = (Object.keys(CLAUDE_FLAG_FLOORS) as (keyof typeof CLAUDE_FLAG_FLOORS)[])
     .filter((flag) => !claudeCliSupports(parsed, flag));
   const effects = [
-    ...(missing.includes("--autocompact") ? ["no compaction window picked by OpenMausBot"] : []),
+    ...(missing.includes("--autocompact") ? ["no compaction window picked by OpenDeliobot"] : []),
     ...(missing.includes("--setting-sources") ? ["bots still see this machine's own Claude Code setup"] : []),
     ...(missing.includes("--system-prompt-snapshot") ? ["resumed turns cannot refresh stale system prompts"] : []),
   ];
@@ -341,13 +341,13 @@ type AskBehavior = "allow" | "deny" | "answer";
 type AskResolutionSource = "user" | "timeout" | "system";
 
 const DENY_TIMEOUT_NOTE =
-  "OpenMausBot: nobody answered this permission request in time. Skip this action and finish what you can without it.";
-const DUPLICATE_ASK_ID_NOTE = "OpenMausBot: duplicate ask id — skipping this request.";
+  "OpenDeliobot: nobody answered this permission request in time. Skip this action and finish what you can without it.";
+const DUPLICATE_ASK_ID_NOTE = "OpenDeliobot: duplicate ask id — skipping this request.";
 
 function systemEndedReply(kind: Ask["kind"]): { behavior: AskBehavior; message: string } {
   return kind === "question"
-    ? { behavior: "answer", message: "OpenMausBot: the turn is ending — wrap up." }
-    : { behavior: "deny", message: "OpenMausBot: the turn ended" };
+    ? { behavior: "answer", message: "OpenDeliobot: the turn is ending — wrap up." }
+    : { behavior: "deny", message: "OpenDeliobot: the turn ended" };
 }
 
 function askQuestions(ask: Ask): AskQuestion[] | null {
@@ -441,7 +441,7 @@ export function brokerSocketCandidates(threadId: string, botId?: string): string
       .update(`${DATA_DIR}\0${process.pid}\0${botId ?? ""}\0${threadId}`)
       .digest("hex")
       .slice(0, 16);
-    return [base, join(tmpdir(), `omb-perm-${scope}.sock`)];
+    return [base, join(tmpdir(), `odb-perm-${scope}.sock`)];
   }
   return [
     base,
@@ -778,7 +778,7 @@ export const ClaudeDriver: ProviderDriver<ClaudeConfig> = {
       claudeEnvironment(config.managed ? undefined : model, { ...process.env, ...input.environment }, config.configDir, input.environment, Boolean(config.endpointModels), config.bedrock === true);
     const catalogEnv = environment();
     if (inheritsUserConfig(catalogEnv)) {
-      console.error(`claude (${instanceId}): OMB_CLAUDE_INHERIT_USER_CONFIG=1 — bots inherit this machine's Claude Code MCP servers, skills, hooks and CLAUDE.md on every turn; remove it unless a bot needs a user-scope server`);
+      console.error(`claude (${instanceId}): ODB_CLAUDE_INHERIT_USER_CONFIG=1 — bots inherit this machine's Claude Code MCP servers, skills, hooks and CLAUDE.md on every turn; remove it unless a bot needs a user-scope server`);
     }
     let cliVersion: ClaudeCliVersion | null = null;
     let cliVersionChecked = false;
@@ -1127,7 +1127,7 @@ export const ClaudeDriver: ProviderDriver<ClaudeConfig> = {
       if (permissionMode !== "bypassPermissions") {
         args.push("--permission-prompt-tool", "mcp__ogb__approve");
       }
-      const permissionEnv = { ...NODE_ENV_FLAG, ...(turn.toolScope !== undefined ? { OMB_PERMISSION_TOOL_SCOPE: JSON.stringify(turn.toolScope) } : {}) };
+      const permissionEnv = { ...NODE_ENV_FLAG, ...(turn.toolScope !== undefined ? { ODB_PERMISSION_TOOL_SCOPE: JSON.stringify(turn.toolScope) } : {}) };
       mcpServers.ogb = { command: process.execPath, args: [PERM_PROXY_PATH, socketPath], env: permissionEnv, alwaysLoad: true };
       allowed.push("mcp__ogb", ...gateQueryTools(mcpServers));
       // A guest pre-allows only harness tools; anything else (the browser can open file:) asks.
@@ -1136,7 +1136,7 @@ export const ClaudeDriver: ProviderDriver<ClaudeConfig> = {
       // The MCP config carries credentials and argv is readable via `ps`: a 0600 file, removed at settle.
       let mcpConfigPath: string | null = null;
       if (Object.keys(mcpServers).length) {
-        mcpConfigPath = join(mkdtempSync(join(tmpdir(), "omb-mcp-")), "mcp.json");
+        mcpConfigPath = join(mkdtempSync(join(tmpdir(), "odb-mcp-")), "mcp.json");
         args.push("--mcp-config", mcpConfigPath);
         args.push("--allowedTools", allowed.join(","));
       }
@@ -1150,8 +1150,8 @@ export const ClaudeDriver: ProviderDriver<ClaudeConfig> = {
       if (hooks && hookTokenPath) {
         mkdirSync(dirname(hookTokenPath), { recursive: true, mode: 0o700 });
         writeFileAtomicIfChanged(hookTokenPath, hooks.token, { mode: 0o600, durable: false });
-        env.OMB_HOOK_URL = hooks.url;
-        env.OMB_HOOK_TOKEN_FILE = hookTokenPath;
+        env.ODB_HOOK_URL = hooks.url;
+        env.ODB_HOOK_TOKEN_FILE = hookTokenPath;
         // in the packaged app process.execPath is Electron — run the helper as node
         if (process.versions.electron) env.ELECTRON_RUN_AS_NODE = "1";
       }
@@ -1243,7 +1243,7 @@ export const ClaudeDriver: ProviderDriver<ClaudeConfig> = {
 
       try {
         if (launchSystem) {
-          systemPromptPath = join(mkdtempSync(join(tmpdir(), "omb-system-")), "prompt.txt");
+          systemPromptPath = join(mkdtempSync(join(tmpdir(), "odb-system-")), "prompt.txt");
           writeFileSync(systemPromptPath, launchSystem, { mode: 0o600 });
           args.push("--append-system-prompt-file", systemPromptPath);
         }

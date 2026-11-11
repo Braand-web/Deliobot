@@ -60,12 +60,12 @@ async function release(threadId = shared, token = ada) {
   writeFileSync(home("release"), "");
   await expect.poll(async () => !(await busy(threadId, token)) && (await queue(token, threadId)).length === 0, { timeout: hostTimeout(60_000), interval: 100 }).toBe(true);
 }
-/** Longer than the person-first wait (OMB_PERSON_FIRST_MS below), so a stop it would make has happened. */
+/** Longer than the person-first wait (ODB_PERSON_FIRST_MS below), so a stop it would make has happened. */
 const pastPersonFirst = () => new Promise((resolve) => setTimeout(resolve, 3_000));
 
 beforeAll(async () => {
   fx = await launchCloudSendFixture({ onePasswordToken: `ops_fake-asker-${randomBytes(8).toString("hex")}`, team: { id: "team-acme-asker", name: "Acme", engine: ENGINE,
-    env: { OMB_BOT_BOX: "0", OMB_PERSON_FIRST_MS: "1500" } } });
+    env: { ODB_BOT_BOX: "0", ODB_PERSON_FIRST_MS: "1500" } } });
   team = fx.team!;
   writeFileSync(home("markers.json"), JSON.stringify(ANSWERS));
   writeFileSync(home("tool-calls.json"), "[]");

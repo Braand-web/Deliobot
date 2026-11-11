@@ -79,7 +79,7 @@ export function nearLimitNote(limit: EngineLimit | undefined, name: string, time
 export interface LimitClockOptions {
   /** The signed-in subscription engines whose usage can be read. */
   accounts: () => PlanAccount[];
-  /** Plan usage for those engines; the default reads each engine's own sign-in, or OMB_TEST_PLAN_USAGE_FILE. */
+  /** Plan usage for those engines; the default reads each engine's own sign-in, or ODB_TEST_PLAN_USAGE_FILE. */
   loadUsage?: (accounts: PlanAccount[], refresh: boolean) => Promise<PlanUsageReport>;
   /** Something is waiting on a reset time, so usage is checked again on its own. */
   waiting?: () => boolean;
@@ -280,7 +280,7 @@ export class LimitResetClock {
 
   private load(accounts: PlanAccount[], force: boolean): Promise<PlanUsageReport> {
     if (this.options.loadUsage) return this.options.loadUsage(accounts, force);
-    const fixture = process.env.OMB_TEST_PLAN_USAGE_FILE;
+    const fixture = process.env.ODB_TEST_PLAN_USAGE_FILE;
     if (fixture) return Promise.resolve(fixtureUsage(fixture, this.now()));
     return loadPlanUsage({ accounts, refresh: force });
   }

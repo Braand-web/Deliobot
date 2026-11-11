@@ -272,7 +272,7 @@ describe("an OpenCode Go allowance", () => {
 describe("plan usage fetcher", () => {
   it("does not call fetch when the Claude token is expired", async () => {
     const fetchImpl = vi.fn<PlanFetch>();
-    const configDir = join(tmpdir(), "omb-plan-usage-claude");
+    const configDir = join(tmpdir(), "odb-plan-usage-claude");
     const reads: string[] = [];
     const report = await fetchPlanUsage([account("claude", { id: "work", name: "Work Claude", configDir })], {
       fetch: fetchImpl,
@@ -325,7 +325,7 @@ describe("plan usage fetcher", () => {
 
   it("asks the keychain only for the custom config dir service", async () => {
     const token = "claude-keychain-other-token";
-    const configDir = normalize(join(tmpdir(), "omb-plan-usage-claude-other"));
+    const configDir = normalize(join(tmpdir(), "odb-plan-usage-claude-other"));
     const suffixed = `Claude Code-credentials-${createHash("sha256").update(configDir).digest("hex").slice(0, 8)}`;
     const fetchImpl = vi.fn<PlanFetch>(async () => jsonResponse({
       five_hour: { utilization: 25, resets_at: "2026-09-26T12:00:00.000Z" },
@@ -355,7 +355,7 @@ describe("plan usage fetcher", () => {
 
   it("does not use the default Claude keychain login for a custom config dir", async () => {
     const defaultToken = "claude-keychain-default-token";
-    const configDir = normalize(join(tmpdir(), "omb-plan-usage-claude-custom"));
+    const configDir = normalize(join(tmpdir(), "odb-plan-usage-claude-custom"));
     const suffixed = `Claude Code-credentials-${createHash("sha256").update(configDir).digest("hex").slice(0, 8)}`;
     const fetchImpl = vi.fn<PlanFetch>(async () => jsonResponse({}));
     const services: string[] = [];

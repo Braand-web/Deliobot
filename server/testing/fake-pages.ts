@@ -1,11 +1,11 @@
-// A stand-in for MausBot's pages: the Admin's token route and the pages Worker, as one fetch. Pages, quotas and tokens
+// A stand-in for Delio's pages: the Admin's token route and the pages Worker, as one fetch. Pages, quotas and tokens
 // are kept in memory; nothing reaches the network.
 import { pagesHomeSignature } from "../pages/access.ts";
 
 export const FAKE_ADMIN = "https://cloud.example.test";
 export const FAKE_TOKEN_URL = `${FAKE_ADMIN}/api/cloud/pages/token`;
 export const FAKE_UPLOAD = "https://upload.pages.test";
-export const FAKE_DESKTOP_TOKEN = `omb_pd_${"d".repeat(43)}`;
+export const FAKE_DESKTOP_TOKEN = `odb_pd_${"d".repeat(43)}`;
 export const FAKE_HOME = { adminOrigin: FAKE_ADMIN, machineId: "cm-fake-home", bootstrapSecret: "b".repeat(43) };
 
 /** `admin` and `upload`: the token route's and the Worker's origins (one loopback server can be both). */
@@ -21,9 +21,9 @@ export function fakePagesService(options: { quota?: number; plan?: string; admin
 
   const caller = (request: Request, body: string): "desktop" | "home" | null => {
     if (request.headers.get("authorization") === `Bearer ${FAKE_DESKTOP_TOKEN}`) return "desktop";
-    const machine = request.headers.get("x-omb-cloud-machine"), timestamp = request.headers.get("x-omb-cloud-timestamp") ?? "", nonce = request.headers.get("x-omb-cloud-nonce") ?? "";
+    const machine = request.headers.get("x-odb-cloud-machine"), timestamp = request.headers.get("x-odb-cloud-timestamp") ?? "", nonce = request.headers.get("x-odb-cloud-nonce") ?? "";
     const expected = `v1=${pagesHomeSignature(FAKE_HOME.bootstrapSecret, FAKE_HOME.machineId, timestamp, nonce, body)}`;
-    return machine === FAKE_HOME.machineId && request.headers.get("x-omb-cloud-signature") === expected ? "home" : null;
+    return machine === FAKE_HOME.machineId && request.headers.get("x-odb-cloud-signature") === expected ? "home" : null;
   };
 
   const fetch: typeof globalThis.fetch = async (input, init) => {
@@ -32,16 +32,16 @@ export function fakePagesService(options: { quota?: number; plan?: string; admin
     if (state.down) throw new TypeError("fetch failed");
     if (url.href === tokenUrl) {
       const body = await request.text(), who = caller(request, body);
-      if (!who) return Response.json({ error: "invalid_token", message: "Sign in to MausBot again to publish pages." }, { status: 401 });
+      if (!who) return Response.json({ error: "invalid_token", message: "Sign in to Delio again to publish pages." }, { status: 401 });
       const { action, pageId } = JSON.parse(body) as { action: string; pageId?: string };
       minted.push({ action, ...(pageId ? { pageId } : {}), caller: who });
       if (action === "create" && pages.size >= state.quota) {
-        return Response.json({ error: "page_limit", message: `You’ve used your ${state.quota} free pages. MausBot Cloud gives you more, and pages without the badge.`,
+        return Response.json({ error: "page_limit", message: `You’ve used your ${state.quota} free pages. Delio Cloud gives you more, and pages without the badge.`,
           usage: usage(), plan: state.plan, upgrade: true }, { status: 402 });
       }
       const id = action === "create" ? newId() : pageId!, token = `fake-token-${minted.length}`;
       tokens.set(token, { action, pageId: id });
-      return Response.json({ token, pageId: id, action, uploadUrl: upload, pageUrl: `https://${id}.mausbot.page/`, plan: state.plan,
+      return Response.json({ token, pageId: id, action, uploadUrl: upload, pageUrl: `https://${id}.delio.page/`, plan: state.plan,
         limits: { pages: state.quota, bytes: 5 * 1024 * 1024, files: 200, perHour: 30 }, badge: state.plan === "free",
         ...(action === "create" ? { limit: { message: `You’ve used your ${state.quota} free pages.`, upgrade: true } } : {}) });
     }
@@ -59,7 +59,7 @@ export function fakePagesService(options: { quota?: number; plan?: string; admin
       const files = new Map<string, string>();
       for (const [index, file] of manifest.files.entries()) files.set(file.path, await (form.get(`f${index}`) as Blob).text());
       pages.set(page, { title: manifest.title, files });
-      return Response.json({ pageId: page, url: `https://${page}.mausbot.page/`, version: 1, badge: state.plan === "free", usage: usage() });
+      return Response.json({ pageId: page, url: `https://${page}.delio.page/`, version: 1, badge: state.plan === "free", usage: usage() });
     }
     throw new Error(`Unexpected request to ${url.href}`);
   };

@@ -1,4 +1,4 @@
-// A Cloud home's own installation on OpenMausBot's connected-apps service, which its plan includes. The server registers
+// A Cloud home's own installation on OpenDeliobot's connected-apps service, which its plan includes. The server registers
 // it the way the desktop app registers itself (electron/managed-composio.mjs), keeps the token in a 0600 file on the
 // volume that no backup carries, and hands it to the one managed path (composio.setManagedBrokerAccess). A Composio
 // project key the owner saves still wins: composio.connectionMode checks it first.
@@ -39,7 +39,7 @@ export interface CloudConnectedAppsOptions {
   brokerUrl: string;
   /** composio.setManagedBrokerAccess, plus anything that tells clients. */
   apply(access: ManagedComposioAccess | null): void;
-  /** OMB_CLOUD_CONNECTED_APPS_GRANT: the Admin's proof that this is a paid Cloud, which raises its daily app-event limit. */
+  /** ODB_CLOUD_CONNECTED_APPS_GRANT: the Admin's proof that this is a paid Cloud, which raises its daily app-event limit. */
   cloudGrant?: string;
   /** Whether the owner's own Composio project key is saved; while it is, nothing is sent to the service. */
   ownKey?: () => boolean;
@@ -202,18 +202,18 @@ export function startCloudConnectedApps(options: CloudConnectedAppsOptions): Clo
 }
 
 let cloudHome: CloudConnectedApps | null = null;
-/** The connected-apps service a Cloud home and a Team Cloud's members register with: the built server uses OpenMausBot's;
- * from source (development, tests) only an explicit OMB_COMPOSIO_BROKER_URL. "" for none. */
-export const cloudConnectedAppsBrokerUrl = (): string => managedComposioBrokerUrl(process.env.OMB_COMPOSIO_BROKER_URL, !import.meta.url.endsWith(".ts"));
+/** The connected-apps service a Cloud home and a Team Cloud's members register with: the built server uses OpenDeliobot's;
+ * from source (development, tests) only an explicit ODB_COMPOSIO_BROKER_URL. "" for none. */
+export const cloudConnectedAppsBrokerUrl = (): string => managedComposioBrokerUrl(process.env.ODB_COMPOSIO_BROKER_URL, !import.meta.url.endsWith(".ts"));
 
 /** A Cloud home's plan includes the connected-apps service, so it registers itself. */
 export function startCloudHomeConnectedApps(input: { cloudHome: boolean; dataDir: string; apply: CloudConnectedAppsOptions["apply"]; cloudGrant?: string; ownKey?: () => boolean }): void {
   if (!input.cloudHome || cloudHome) return;
   if (managedComposioBrokerOff()) {
-    console.log("cloud home: the connected-apps service is switched off (OMB_COMPOSIO_BROKER)");
+    console.log("cloud home: the connected-apps service is switched off (ODB_COMPOSIO_BROKER)");
     return;
   }
-  const configured = process.env.OMB_COMPOSIO_BROKER_URL;
+  const configured = process.env.ODB_COMPOSIO_BROKER_URL;
   const brokerUrl = cloudConnectedAppsBrokerUrl();
   if (!brokerUrl) {
     if (configured?.trim()) console.warn("cloud home: connected-apps service URL rejected: HTTPS or a loopback HTTP URL is required");

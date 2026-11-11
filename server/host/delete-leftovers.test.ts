@@ -26,7 +26,7 @@ type Task = { threadId: string; resumeCursors?: Record<string, unknown> };
 type Bot = { id: string; threadId?: string; resumeCursors?: Record<string, unknown>; tasks?: Task[] };
 
 function fixture(over: Partial<DeleteLeftoversDeps> = {}) {
-  const sandbox = mkdtempSync(join(tmpdir(), "omb-delete-leftovers-"));
+  const sandbox = mkdtempSync(join(tmpdir(), "odb-delete-leftovers-"));
   made.push(sandbox);
   const dataDir = join(sandbox, "data");
   const home = join(sandbox, "home");

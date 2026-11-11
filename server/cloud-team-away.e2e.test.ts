@@ -61,14 +61,14 @@ beforeAll(async () => {
       if (req.url !== TEAM_AWAY_ADMIN_PATH) { res.writeHead(404); res.end(JSON.stringify({ error: "Not found." })); return; }
       const raw = Buffer.concat(chunks).toString("utf8"), body = JSON.parse(raw) as AwayRequest;
       const headers = req.headers as Record<string, string>;
-      asked.push({ raw, body, signed: /^v1=[\w-]{43}$/.test(headers["x-omb-cloud-signature"] ?? "") && headers["x-omb-cloud-machine"] === "0d9e8f7a-6b5c-4d3e-9f8a-7b6c5d4e3f2a" });
+      asked.push({ raw, body, signed: /^v1=[\w-]{43}$/.test(headers["x-odb-cloud-signature"] ?? "") && headers["x-odb-cloud-machine"] === "0d9e8f7a-6b5c-4d3e-9f8a-7b6c5d4e3f2a" });
       res.writeHead(200);
       res.end(JSON.stringify({ v: 1, results: body.notices.map(({ id }) => ({ id, state: "sent" })) }));
     });
   });
   await new Promise<void>((resolve) => adminServer.listen(0, "127.0.0.1", resolve));
   fx = await launchCloudSendFixture({ onePasswordToken: "ops_fake-away", team: { id: "team-acme-1", name: "Acme", engine: ENGINE, env: {
-    OMB_BOT_BOX: "0", FIXTURE_ADMIN_STAND_IN: `http://127.0.0.1:${(adminServer.address() as AddressInfo).port}`, OMB_TEAM_AWAY_WINDOW_MS: String(WINDOW_MS),
+    ODB_BOT_BOX: "0", FIXTURE_ADMIN_STAND_IN: `http://127.0.0.1:${(adminServer.address() as AddressInfo).port}`, ODB_TEAM_AWAY_WINDOW_MS: String(WINDOW_MS),
   } } });
   team = fx.team!;
   cleo = (await team.pair(CLEO)).token!;

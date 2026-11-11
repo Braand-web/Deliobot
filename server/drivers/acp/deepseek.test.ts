@@ -55,7 +55,7 @@ describe("DeepSeek key detection", () => {
     for (const d of dirs.splice(0)) await removeTempDir(d);
   });
   const home = () => {
-    const d = mkdtempSync(join(tmpdir(), "omb-dsh-"));
+    const d = mkdtempSync(join(tmpdir(), "odb-dsh-"));
     dirs.push(d);
     return d;
   };
@@ -182,7 +182,7 @@ describe("DeepSeek ACP support", () => {
   });
 
   it("puts the persona ahead of the prompt text", () => {
-    expect(deepseekSupport.buildPromptText?.({ system: "You are Maus.", text: "hi" } as never)).toBe("You are Maus.\n\nhi");
+    expect(deepseekSupport.buildPromptText?.({ system: "You are Delio.", text: "hi" } as never)).toBe("You are Delio.\n\nhi");
     expect(deepseekSupport.buildPromptText?.({ system: "", text: "hi" } as never)).toBe("hi");
   });
 });
@@ -269,7 +269,7 @@ process.stdin.on("data", (chunk) => {
   });
 
   function fakeCli(env: Record<string, string>): { cli: string; env: Record<string, string>; dump: string } {
-    const home = mkdtempSync(join(tmpdir(), "omb-dsh-probe-"));
+    const home = mkdtempSync(join(tmpdir(), "odb-dsh-probe-"));
     dirs.push(home);
     const cli = join(home, "fake-dsh.ts");
     writeFileSync(cli, FAKE_CLI_SOURCE, { mode: 0o755 });
@@ -280,7 +280,7 @@ process.stdin.on("data", (chunk) => {
 
   it("drives initialize → session/new → session/close and returns the catalog", async () => {
     const { cli, env, dump } = fakeCli({});
-    const cwd = mkdtempSync(join(tmpdir(), "omb-dsh-ws-"));
+    const cwd = mkdtempSync(join(tmpdir(), "odb-dsh-ws-"));
     dirs.push(cwd);
     await expect(fetchDeepSeekCatalog(cli, env, cwd)).resolves.toEqual(PARSED);
     const calls = JSON.parse(readFileSync(dump, "utf8")) as Array<{ method: string; params: any }>;
@@ -333,7 +333,7 @@ describe("DeepSeek Harness after a provider was added in dsh since its process s
     }
   });
   const open = async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-deepseek-stale-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-deepseek-stale-"));
     const modelsFile = join(scratch, "models");
     writeFileSync(modelsFile, `${base}\n`);
     const instance = await DeepSeekAgentDriver.create({
@@ -391,7 +391,7 @@ describe("DeepSeek Harness when a turn's tools change", () => {
   });
 
   it("resumes the session in a fresh process instead of the one where it is still open", async () => {
-    const scratch = mkdtempSync(join(tmpdir(), "omb-deepseek-active-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-deepseek-active-"));
     const instance = await DeepSeekAgentDriver.create({
       instanceId: "deepseek-active", displayName: "DeepSeek Harness", enabled: true,
       config: { cli: FAKE_CLI, fullAuto: false, workspace: scratch },
@@ -409,7 +409,7 @@ describe("DeepSeek Harness when a turn's tools change", () => {
       await removeTempDir(scratch);
     };
     writeFileSync(join(scratch, "reject"), "1");
-    const agents = (token: string) => ({ agents: { command: process.execPath, args: [FAKE_CLI], env: { OMB_COMMS_TOKEN: token } } });
+    const agents = (token: string) => ({ agents: { command: process.execPath, args: [FAKE_CLI], env: { ODB_COMMS_TOKEN: token } } });
     const run = async (text: string, token: string, resumeCursor?: string) => {
       const { turnId } = await instance.adapter.sendTurn({ threadId: "t-active", text, integrations: agents(token), ...(resumeCursor ? { resumeCursor } : {}) });
       return recorder.until((event) => event.type === "turn.completed" && event.turnId === turnId);
@@ -425,7 +425,7 @@ describe("DeepSeek Harness when a turn's tools change", () => {
     expect(Number(readFileSync(join(scratch, "launches"), "utf8"))).toBe(2);
     const servers = JSON.parse(readFileSync(join(scratch, "dump.mcp.json"), "utf8")) as Array<{ name: string }>;
     const agentsServer = JSON.stringify(servers.find((server) => server.name === "agents"));
-    expect(agentsServer).toContain("OMB_COMMS_TOKEN");
+    expect(agentsServer).toContain("ODB_COMMS_TOKEN");
     expect(agentsServer).toContain("token-two");
   });
 });

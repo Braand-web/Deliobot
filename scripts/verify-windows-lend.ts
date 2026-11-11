@@ -1,7 +1,7 @@
 // What a person sees when their own Cloud can't use their PC: the taskbar icon's menu as the real module builds it, the
 // card a Cloud's bot raises in the real chat, and the PC's own screen-control status in the real panel.
 // Run: node --experimental-strip-types scripts/verify-windows-lend.ts --shots <dir>
-// It photographs each view in a light and a dark look with a headless Chrome in a throwaway profile (OMB_CDP_CHROME,
+// It photographs each view in a light and a dark look with a headless Chrome in a throwaway profile (ODB_CDP_CHROME,
 // else the installed Google Chrome), then exits. Nothing here touches this computer's lending or the person's app.
 import { spawn } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -14,7 +14,7 @@ import { createLendingIndicator } from "../electron/lending-indicator.mjs";
 const at = process.argv.indexOf("--shots");
 if (at === -1) throw new Error("--shots <dir> is required");
 const shots = resolve(process.argv[at + 1] ?? "");
-const CHROME = process.env.OMB_CDP_CHROME ?? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const CHROME = process.env.ODB_CDP_CHROME ?? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const ICON = `data:image/png;base64,${readFileSync(new URL("../electron/resources/app-icon.png", import.meta.url)).toString("base64")}`;
 
 async function openChrome(profile: string) {
@@ -110,7 +110,7 @@ const VIEWS = [
 ];
 
 mkdirSync(shots, { recursive: true });
-const profile = mkdtempSync(join(tmpdir(), "omb-windows-lend-chrome-"));
+const profile = mkdtempSync(join(tmpdir(), "odb-windows-lend-chrome-"));
 const chrome = await openChrome(profile);
 let ui: MountedPreview | undefined;
 try {

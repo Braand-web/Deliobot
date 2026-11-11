@@ -39,8 +39,8 @@ const boxedForks = (wrap: { mock: { results: Array<{ value: unknown }> } }, kind
 
 describe("a fork's spawn", () => {
   it("asks for the bot box by name, with its private folder read-only in it", () => {
-    const options = forkSpawnOptions({ cwd: "/work/t1" }, { PATH: "/usr/bin" }, "/tmp/omb-keepwarm-x");
-    expect(options).toMatchObject({ cwd: "/work/t1", engineHome: true, botWork: true, box: { ro: ["/tmp/omb-keepwarm-x"] } });
+    const options = forkSpawnOptions({ cwd: "/work/t1" }, { PATH: "/usr/bin" }, "/tmp/odb-keepwarm-x");
+    expect(options).toMatchObject({ cwd: "/work/t1", engineHome: true, botWork: true, box: { ro: ["/tmp/odb-keepwarm-x"] } });
   });
 });
 
@@ -61,7 +61,7 @@ describe("keep-warm forks in the bot box", () => {
   it.skipIf(process.platform === "win32")("start the bot's own command server inside the box, for a ping and for a summary", async () => {
     ensureDirs();
     chmodSync(FAKE_CLI, 0o755);
-    const scratch = mkdtempSync(join(tmpdir(), "omb-keepwarm-box-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-keepwarm-box-"));
     dirs.push(scratch);
     const fakeBwrap = join(scratch, "fake-bwrap.sh");
     writeFileSync(fakeBwrap, MARKING_BWRAP);
@@ -122,7 +122,7 @@ describe("keep-warm forks in the bot box", () => {
   it.skipIf(process.platform === "win32")("launch a ping and a summary as the boxed turn was launched, so they read the turn's cached prefix", async () => {
     ensureDirs();
     chmodSync(FAKE_CLI, 0o755);
-    const scratch = mkdtempSync(join(tmpdir(), "omb-keepwarm-prefix-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-keepwarm-prefix-"));
     dirs.push(scratch);
     const fakeBwrap = join(scratch, "fake-bwrap.sh");
     writeFileSync(fakeBwrap, MARKING_BWRAP);
@@ -153,7 +153,7 @@ describe("keep-warm forks in the bot box", () => {
     const turnSpawn = wrap.mock.results.map((result) => result.value as WrappedSpawn | null).find((spawned) => spawned?.args.includes("stream-json"));
     expect(turnSpawn, "the turn went through the box").toBeTruthy();
     // Each boxed process gets its own broker token in place of the key; the broker sends the same key upstream.
-    const sameUpstream = (env: Record<string, string>) => Object.fromEntries(Object.entries(env).map(([name, value]) => [name, value.replace(/omb_t0_[a-f0-9]{48}/g, "<broker token>")]));
+    const sameUpstream = (env: Record<string, string>) => Object.fromEntries(Object.entries(env).map(([name, value]) => [name, value.replace(/odb_t0_[a-f0-9]{48}/g, "<broker token>")]));
     // The deny hook's folder and the dead permission socket are the fork's own; neither is in the request.
     const servers = (config: { mcpServers: Record<string, { args?: string[] }> }) => Object.fromEntries(Object.entries(config.mcpServers)
       .map(([name, server]) => [name, name === "ogb" ? { ...server, args: server.args?.slice(0, -1) } : server]));
@@ -161,7 +161,7 @@ describe("keep-warm forks in the bot box", () => {
     const flags = (argv: string[]) => PREFIX_FLAGS.map((flag) => [flag, argv.includes(flag) ? argv[argv.indexOf(flag) + 1] : null]);
     // What the box shows, but for each process's own private files: the turn's MCP config, prompt and permission socket,
     // the fork's folder.
-    const PRIVATE = /\/(omb-(mcp|system|keepwarm|hook)-[^/]+|perm-[^/]+\.sock)(\/|$)/;
+    const PRIVATE = /\/(odb-(mcp|system|keepwarm|hook)-[^/]+|perm-[^/]+\.sock)(\/|$)/;
     const view = (spawned: WrappedSpawn) => ({
       mounts: spawned.plan.mounts.filter((mount) => !("source" in mount && PRIVATE.test(mount.source))),
       net: spawned.plan.net, botId: spawned.plan.botId, options: spawned.plan.options,
@@ -182,7 +182,7 @@ describe("keep-warm forks in the bot box", () => {
   it.skipIf(process.platform === "win32")("with the box off, a fork runs as it did", async () => {
     ensureDirs();
     chmodSync(FAKE_CLI, 0o755);
-    const scratch = mkdtempSync(join(tmpdir(), "omb-keepwarm-nobox-"));
+    const scratch = mkdtempSync(join(tmpdir(), "odb-keepwarm-nobox-"));
     dirs.push(scratch);
     const wrap = vi.spyOn(botBox, "wrap");
     const marker = join(scratch, "started.txt");
@@ -201,7 +201,7 @@ describe("keep-warm forks in the bot box", () => {
 });
 
 // The same in a real box, where one can run: Linux with an unprivileged bubblewrap (a Cloud home, the Fly test machine).
-const detection = detectBox({ env: { ...process.env, OMB_BOT_BOX: "1" } });
+const detection = detectBox({ env: { ...process.env, ODB_BOT_BOX: "1" } });
 const available = detection.box === "bwrap" && detection.tools !== null;
 
 describe.skipIf(!available)(`keep-warm forks in a real box (${available ? "bubblewrap works here" : `skipped: ${detection.reason}`})`, () => {
@@ -221,7 +221,7 @@ describe.skipIf(!available)(`keep-warm forks in a real box (${available ? "bubbl
     const other = join(DATA_DIR, "workspaces", "bot-b");
     mkdirSync(other, { recursive: true });
     writeFileSync(join(other, "notes.md"), "another-bot-keeps-herring");
-    await botBox.start({ dataDir: DATA_DIR, home: homedir(), port: 18799, denyEnv: new Set(), env: { ...process.env, OMB_BOT_BOX: "1" }, log: () => {} });
+    await botBox.start({ dataDir: DATA_DIR, home: homedir(), port: 18799, denyEnv: new Set(), env: { ...process.env, ODB_BOT_BOX: "1" }, log: () => {} });
     expect(botBox.enabled()).toBe(true);
     delete process.env.TMPDIR;
     const cwd = join(DATA_DIR, "task-workspaces", "bot-a", "t-warm-real");

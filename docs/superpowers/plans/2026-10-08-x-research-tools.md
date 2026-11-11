@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-08-x-research-tools-design.md`
 
-**Worktree:** `/Users/omkar/Desktop/openmaus/OpenGrokBot-x-research`, branch `feat/x-research-tools`. Run every command from there. Never push.
+**Worktree:** `/Users/omkar/Desktop/opendelio/OpenGrokBot-x-research`, branch `feat/x-research-tools`. Run every command from there. Never push.
 
 ## Global Constraints
 
@@ -18,7 +18,7 @@
 - A tool is shown and served only when a token is saved **and** `bot.xResearch === true`. An absent field means off.
 - The route re-checks token and switch on every call. Never trust the catalog alone.
 - The token never reaches an engine environment, a prompt, the renderer or a response body.
-- Config section `treg`, field `token`, env `OMB_TREG_TOKEN`, Electron credential name `tregToken`.
+- Config section `treg`, field `token`, env `ODB_TREG_TOKEN`, Electron credential name `tregToken`.
 - Base URL `https://treg.to`, auth header `X-Treg-Token`, `X-Treg-Route-Max-Cost: 0.05` on every `/call/`, 30 s timeout, `redirect: "error"`, 2 MiB body cap.
 - Endpoints exactly as `TREG_X_ENDPOINTS` in Task 1. Only an `unavailable` failure earns the routed fallback; a bad token, an empty balance or a malformed request never does.
 - `limit` is 1–50 and defaults to 20. Post `text` is cut at 1,500 code points and `quoted.text` at 300, each with `…`.
@@ -68,8 +68,8 @@ const CREATED = 1791418354;
 
 /** A row as anyapi's search answers it (treg's published example). */
 const searchRow = (id: string, extra: Record<string, unknown> = {}) => ({
-  authorName: "Maus",
-  authorUsername: "maus",
+  authorName: "Delio",
+  authorUsername: "delio",
   authorVerified: true,
   bookmarkCount: 0,
   conversationId: id,
@@ -154,27 +154,27 @@ describe("parsePostRef", () => {
   it("reads a bare id, and an x.com or twitter.com link with its handle", () => {
     expect(parsePostRef("2107987482155561188")).toEqual({ id: "2107987482155561188" });
     expect(parsePostRef("https://x.com/pbteja1998/status/2107987482155561188/photo/1")).toEqual({ id: "2107987482155561188", handle: "pbteja1998" });
-    expect(parsePostRef("https://twitter.com/maus/status/42")).toEqual({ id: "42", handle: "maus" });
+    expect(parsePostRef("https://twitter.com/delio/status/42")).toEqual({ id: "42", handle: "delio" });
     expect(parsePostRef("https://mobile.twitter.com/i/web/status/43")).toEqual({ id: "43" });
   });
 
   it("refuses anything that is not an X post", () => {
-    expect(parsePostRef("https://example.com/maus/status/42")).toBeNull();
-    expect(parsePostRef("https://x.com/maus")).toBeNull();
+    expect(parsePostRef("https://example.com/delio/status/42")).toBeNull();
+    expect(parsePostRef("https://x.com/delio")).toBeNull();
     expect(parsePostRef("forty two")).toBeNull();
   });
 });
 
 describe("normalizeHandle", () => {
   it("accepts @name, name and an x.com profile link", () => {
-    expect(normalizeHandle("@maus")).toBe("maus");
-    expect(normalizeHandle("  maus ")).toBe("maus");
-    expect(normalizeHandle("https://x.com/maus")).toBe("maus");
-    expect(normalizeHandle("https://twitter.com/maus/status/1")).toBe("maus");
+    expect(normalizeHandle("@delio")).toBe("delio");
+    expect(normalizeHandle("  delio ")).toBe("delio");
+    expect(normalizeHandle("https://x.com/delio")).toBe("delio");
+    expect(normalizeHandle("https://twitter.com/delio/status/1")).toBe("delio");
   });
 
   it("refuses non-X links and names X does not allow", () => {
-    expect(normalizeHandle("https://example.com/maus")).toBeNull();
+    expect(normalizeHandle("https://example.com/delio")).toBeNull();
     expect(normalizeHandle("not a handle!")).toBeNull();
     expect(normalizeHandle("a".repeat(16))).toBeNull();
     expect(normalizeHandle("")).toBeNull();
@@ -186,8 +186,8 @@ describe("toPost", () => {
     expect(toPost(searchRow("7"))).toEqual({
       id: "7",
       url: "https://x.com/i/web/status/7",
-      author: "@maus",
-      authorName: "Maus",
+      author: "@delio",
+      authorName: "Delio",
       createdAt: "2026-10-08T00:12:34.000Z",
       text: "post 7",
       likes: 18,
@@ -200,7 +200,7 @@ describe("toPost", () => {
   });
 
   it("reads anyapi's shorter timeline names, taking the author from the caller", () => {
-    expect(toPost(timelineRow("8"), "maus")).toMatchObject({ id: "8", author: "@maus", likes: 2, reposts: 0, replies: 0, quotes: 0, views: 1597 });
+    expect(toPost(timelineRow("8"), "delio")).toMatchObject({ id: "8", author: "@delio", likes: 2, reposts: 0, replies: 0, quotes: 0, views: 1597 });
   });
 
   it("reads anyapi's reply row", () => {
@@ -252,11 +252,11 @@ describe("toPost", () => {
 describe("search", () => {
   it("calls anyapi's search with the token, a cost ceiling and Latest, and returns compact posts", async () => {
     const { fetcher, calls } = fakeFetch({ body: anyapi({ items: [searchRow("12"), searchRow("11")], nextCursor: "" }) });
-    const result = await clientWith(fetcher).search({ query: "mausbot", sort: "latest", limit: 20 });
+    const result = await clientWith(fetcher).search({ query: "delio", sort: "latest", limit: 20 });
     expect(calls).toHaveLength(1);
     expect(calls[0]!.method).toBe("POST");
     expect(calls[0]!.url.href).toBe("https://treg.to/call/anyapi.x.search.posts");
-    expect(calls[0]!.body).toEqual({ query: "mausbot", queryType: "Latest", limit: 20 });
+    expect(calls[0]!.body).toEqual({ query: "delio", queryType: "Latest", limit: 20 });
     expect(calls[0]!.headers.get("x-treg-token")).toBe("test-token");
     expect(calls[0]!.headers.get("x-treg-route-max-cost")).toBe("0.05");
     expect(result.posts.map((post) => post.id)).toEqual(["12", "11"]);
@@ -270,7 +270,7 @@ describe("search", () => {
       nextCursor: `after-${start}`,
     });
     const { fetcher, calls } = fakeFetch({ body: page(1000) }, { body: page(980) }, { body: page(960) });
-    const result = await clientWith(fetcher).search({ query: "maus", sort: "latest", limit: 50 });
+    const result = await clientWith(fetcher).search({ query: "delio", sort: "latest", limit: 50 });
     expect(calls.map((call) => (call.body as { cursor?: string }).cursor)).toEqual([undefined, "after-1000", "after-980"]);
     expect(result.posts).toHaveLength(50);
     expect(result.newestId).toBe("1000");
@@ -279,15 +279,15 @@ describe("search", () => {
 
   it("with sinceId, asks X for newer posts and stops at the first one already seen", async () => {
     const { fetcher, calls } = fakeFetch({ body: anyapi({ items: ["103", "102", "101", "100", "99"].map((id) => searchRow(id)), nextCursor: "c2" }) });
-    const result = await clientWith(fetcher).search({ query: "maus", sort: "latest", limit: 20, sinceId: "100" });
-    expect((calls[0]!.body as { query: string }).query).toBe("maus since_id:100");
+    const result = await clientWith(fetcher).search({ query: "delio", sort: "latest", limit: 20, sinceId: "100" });
+    expect((calls[0]!.body as { query: string }).query).toBe("delio since_id:100");
     expect(result.posts.map((post) => post.id)).toEqual(["103", "102", "101"]);
     expect(result.more).toBe(false);
   });
 
   it("with top sort, asks for Top, and sinceId drops old posts but keeps reading past them", async () => {
     const { fetcher, calls } = fakeFetch({ body: anyapi({ items: ["105", "90", "104"].map((id) => searchRow(id)) }) });
-    const result = await clientWith(fetcher).search({ query: "maus", sort: "top", limit: 20, sinceId: "100" });
+    const result = await clientWith(fetcher).search({ query: "delio", sort: "top", limit: 20, sinceId: "100" });
     expect((calls[0]!.body as { queryType: string }).queryType).toBe("Top");
     expect(result.posts.map((post) => post.id)).toEqual(["105", "104"]);
     expect(result.newestId).toBe("105");
@@ -298,9 +298,9 @@ describe("search", () => {
       { status: 503, body: { error: "provider_capacity_unavailable" } },
       { body: { output: { posts: [graphqlRow, searchRow("5")], next_cursor: "n2" }, raw: {}, _treg: { served_by: "tikhub.x.twitter-web-fetch-search-timeline" } } },
     );
-    const result = await clientWith(fetcher).search({ query: "maus", sort: "latest", limit: 20 });
+    const result = await clientWith(fetcher).search({ query: "delio", sort: "latest", limit: 20 });
     expect(calls[1]!.url.href).toBe("https://treg.to/call/treg.x.search.posts");
-    expect(calls[1]!.body).toEqual({ q: "maus" });
+    expect(calls[1]!.body).toEqual({ q: "delio" });
     expect(result.posts.map((post) => post.id)).toEqual(["77", "5"]);
     expect(result.more).toBe(true);
   });
@@ -308,7 +308,7 @@ describe("search", () => {
   it("does not fall back on a rejected token or an empty balance", async () => {
     for (const status of [401, 402]) {
       const { fetcher, calls } = fakeFetch({ status, body: { detail: "no" } });
-      await failure(clientWith(fetcher).search({ query: "maus", sort: "latest", limit: 20 }));
+      await failure(clientWith(fetcher).search({ query: "delio", sort: "latest", limit: 20 }));
       expect(calls).toHaveLength(1);
     }
   });
@@ -317,22 +317,22 @@ describe("search", () => {
 describe("userPosts", () => {
   it("reads an account's posts, naming the author, without its replies by default", async () => {
     const { fetcher, calls } = fakeFetch({ body: anyapi({ tweets: [timelineRow("3"), timelineRow("2", { isReply: true })], nextCursor: "" }) });
-    const result = await clientWith(fetcher).userPosts({ handle: "maus", limit: 20, includeReplies: false });
+    const result = await clientWith(fetcher).userPosts({ handle: "delio", limit: 20, includeReplies: false });
     expect(calls[0]!.url.href).toBe("https://treg.to/call/anyapi.x.user.posts");
-    expect(calls[0]!.body).toEqual({ handle: "maus", limit: 20 });
-    expect(result.posts.map((post) => [post.id, post.author])).toEqual([["3", "@maus"]]);
+    expect(calls[0]!.body).toEqual({ handle: "delio", limit: 20 });
+    expect(result.posts.map((post) => [post.id, post.author])).toEqual([["3", "@delio"]]);
   });
 
   it("keeps replies when asked", async () => {
     const { fetcher } = fakeFetch({ body: anyapi({ tweets: [timelineRow("3"), timelineRow("2", { isReply: true })] }) });
-    const result = await clientWith(fetcher).userPosts({ handle: "maus", limit: 20, includeReplies: true });
+    const result = await clientWith(fetcher).userPosts({ handle: "delio", limit: 20, includeReplies: true });
     expect(result.posts.map((post) => post.id)).toEqual(["3", "2"]);
   });
 
   it("skips an old pinned post instead of stopping at it", async () => {
     const rows = [timelineRow("50", { isPinned: true }), timelineRow("120"), timelineRow("110"), timelineRow("100"), timelineRow("90")];
     const { fetcher } = fakeFetch({ body: anyapi({ tweets: rows, nextCursor: "more" }) });
-    const result = await clientWith(fetcher).userPosts({ handle: "maus", limit: 20, sinceId: "100", includeReplies: false });
+    const result = await clientWith(fetcher).userPosts({ handle: "delio", limit: 20, sinceId: "100", includeReplies: false });
     expect(result.posts.map((post) => post.id)).toEqual(["120", "110"]);
     expect(result.more).toBe(false);
   });
@@ -342,10 +342,10 @@ describe("userPosts", () => {
       { status: 502, body: { error: "upstream" } },
       { body: { output: { posts: [timelineRow("4")] }, raw: {}, _treg: { served_by: "tikhub.x.user.posts" } } },
     );
-    const result = await clientWith(fetcher).userPosts({ handle: "maus", limit: 20, includeReplies: false });
+    const result = await clientWith(fetcher).userPosts({ handle: "delio", limit: 20, includeReplies: false });
     expect(calls[1]!.url.href).toBe("https://treg.to/call/treg.x.user.posts");
-    expect(calls[1]!.body).toEqual({ username: "maus" });
-    expect(result.posts.map((post) => [post.id, post.author])).toEqual([["4", "@maus"]]);
+    expect(calls[1]!.body).toEqual({ username: "delio" });
+    expect(result.posts.map((post) => [post.id, post.author])).toEqual([["4", "@delio"]]);
   });
 });
 
@@ -357,12 +357,12 @@ describe("post", () => {
       { body: { output: { found: true, data: tweet }, provider: "AnyAPI" } },
       { body: { output: { found: true, data: { items: [{ authorHandle: "a", id: "43", text: "r1" }, { authorHandle: "b", id: "44", text: "r2" }], nextCursor: "r2" } } } },
     );
-    const result = await clientWith(fetcher).post({ id: "42", handle: "maus", replies: true });
+    const result = await clientWith(fetcher).post({ id: "42", handle: "delio", replies: true });
     expect(calls[0]!.url.href).toBe("https://treg.to/call/anyapi.twitter.tweet");
-    expect(calls[0]!.body).toEqual({ url: "https://x.com/maus/status/42" });
+    expect(calls[0]!.body).toEqual({ url: "https://x.com/delio/status/42" });
     expect(calls[1]!.url.href).toBe("https://treg.to/call/anyapi.x.post.comments");
-    expect(calls[1]!.body).toEqual({ url: "https://x.com/maus/status/42", limit: 20 });
-    expect(result.post).toMatchObject({ id: "42", author: "@maus", likes: 9, reposts: 3, replies: 2, quotes: 1, views: 500 });
+    expect(calls[1]!.body).toEqual({ url: "https://x.com/delio/status/42", limit: 20 });
+    expect(result.post).toMatchObject({ id: "42", author: "@delio", likes: 9, reposts: 3, replies: 2, quotes: 1, views: 500 });
     expect(result.replies?.map((post) => post.author)).toEqual(["@a", "@b"]);
     expect(result.moreReplies).toBe(true);
   });
@@ -386,13 +386,13 @@ describe("post", () => {
 describe("profile", () => {
   it("maps treg's normalized profile", async () => {
     const { fetcher, calls } = fakeFetch({ body: { output: {
-      username: "maus", user_id: "1", name: "Maus", followers: 1200, following: 80, posts_count: 340, is_verified: true, description: "Open source Grok Bot",
+      username: "delio", user_id: "1", name: "Delio", followers: 1200, following: 80, posts_count: 340, is_verified: true, description: "Open source Grok Bot",
     }, raw: {}, _treg: { served_by: "anyapi.x.user.profile" } } });
-    expect(await clientWith(fetcher).profile("maus")).toEqual({
-      handle: "@maus", name: "Maus", bio: "Open source Grok Bot", followers: 1200, following: 80, posts: 340, verified: true, url: "https://x.com/maus",
+    expect(await clientWith(fetcher).profile("delio")).toEqual({
+      handle: "@delio", name: "Delio", bio: "Open source Grok Bot", followers: 1200, following: 80, posts: 340, verified: true, url: "https://x.com/delio",
     });
     expect(calls[0]!.url.href).toBe("https://treg.to/call/treg.x.user.profile");
-    expect(calls[0]!.body).toEqual({ username: "maus" });
+    expect(calls[0]!.body).toEqual({ username: "delio" });
   });
 
   it("names the missing account when every scraper misses", async () => {
@@ -405,7 +405,7 @@ describe("profile", () => {
 
 describe("accountInfo", () => {
   it("finds the token's team, then reads its balance in dollars", async () => {
-    const { fetcher, calls } = fakeFetch({ body: { email: "a@b.c", org_id: 7, org: "maus", role: "owner" } }, { body: { org_id: 7, balance_micro: 970_000, balance_usd: "0.97" } });
+    const { fetcher, calls } = fakeFetch({ body: { email: "a@b.c", org_id: 7, org: "delio", role: "owner" } }, { body: { org_id: 7, balance_micro: 970_000, balance_usd: "0.97" } });
     expect(await clientWith(fetcher).accountInfo()).toEqual({ balanceUsd: 0.97 });
     expect(calls.map((call) => [call.method, call.url.pathname])).toEqual([["GET", "/auth/me"], ["GET", "/orgs/7/balance"]]);
     expect(calls[1]!.headers.get("x-treg-token")).toBe("test-token");
@@ -605,7 +605,7 @@ function idOf(...values: unknown[]): string | undefined {
   return undefined;
 }
 
-/** "@maus", "maus" or an x.com profile link → "maus"; anything else → null. */
+/** "@delio", "delio" or an x.com profile link → "delio"; anything else → null. */
 export function normalizeHandle(raw: string): string | null {
   let value = raw.trim();
   try {
@@ -940,7 +940,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   - `AppConfig`, near `:621`
   - env override, near `:1046-1049`
   - `syncCredentialEnv`, near `:1131`
-  - `WORKSPACE_CREDENTIAL_ENV`, after `"OMB_OPENAI_LIVE_KEY"` near `:1193`
+  - `WORKSPACE_CREDENTIAL_ENV`, after `"ODB_OPENAI_LIVE_KEY"` near `:1193`
   - `saveConfig` section list, `:1366`
 - Modify: `electron/workspace-credentials.mjs:10-20`, `electron/diagnostics.mjs:14-36`
 - Modify: `server/index.ts` `configStatus()` near `:15433`
@@ -949,7 +949,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 **Interfaces:**
 - Consumes: nothing.
-- Produces: `cfg.treg?.token: string | undefined`, env `OMB_TREG_TOKEN`, `ConfigStatus.treg?: { configured: boolean }`. Tasks 4, 5 and 7 read these.
+- Produces: `cfg.treg?.token: string | undefined`, env `ODB_TREG_TOKEN`, `ConfigStatus.treg?: { configured: boolean }`. Tasks 4, 5 and 7 read these.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -958,19 +958,19 @@ Append to `server/config.test.ts`, in its top-level `describe` or a new one. Add
 ```ts
 describe("treg token", () => {
   it("is a workspace credential that never reaches an engine", () => {
-    expect(WORKSPACE_CREDENTIAL_ENV).toContain("OMB_TREG_TOKEN");
+    expect(WORKSPACE_CREDENTIAL_ENV).toContain("ODB_TREG_TOKEN");
   });
 
   it("follows a save into the running process and leaves on a clear", () => {
-    const before = process.env.OMB_TREG_TOKEN;
+    const before = process.env.ODB_TREG_TOKEN;
     try {
       syncCredentialEnv({ treg: { token: "new-token" } });
-      expect(process.env.OMB_TREG_TOKEN).toBe("new-token");
+      expect(process.env.ODB_TREG_TOKEN).toBe("new-token");
       syncCredentialEnv({ treg: { token: "" } });
-      expect(process.env.OMB_TREG_TOKEN).toBeUndefined();
+      expect(process.env.ODB_TREG_TOKEN).toBeUndefined();
     } finally {
-      if (before === undefined) delete process.env.OMB_TREG_TOKEN;
-      else process.env.OMB_TREG_TOKEN = before;
+      if (before === undefined) delete process.env.ODB_TREG_TOKEN;
+      else process.env.ODB_TREG_TOKEN = before;
     }
   });
 });
@@ -999,27 +999,27 @@ In `server/config.ts`:
 ```ts
 // loadConfig env override, after the cerebras lines
   cfg.treg = { ...cfg.treg };
-  if (process.env.OMB_TREG_TOKEN !== undefined) cfg.treg.token = process.env.OMB_TREG_TOKEN;
+  if (process.env.ODB_TREG_TOKEN !== undefined) cfg.treg.token = process.env.ODB_TREG_TOKEN;
 ```
 
 ```ts
-// syncCredentialEnv `secrets`, after [patch.live?.key, "OMB_OPENAI_LIVE_KEY"],
-    [patch.treg?.token, "OMB_TREG_TOKEN"],
+// syncCredentialEnv `secrets`, after [patch.live?.key, "ODB_OPENAI_LIVE_KEY"],
+    [patch.treg?.token, "ODB_TREG_TOKEN"],
 ```
 
 ```ts
-// WORKSPACE_CREDENTIAL_ENV, directly after "OMB_OPENAI_LIVE_KEY",
-  "OMB_TREG_TOKEN",
+// WORKSPACE_CREDENTIAL_ENV, directly after "ODB_OPENAI_LIVE_KEY",
+  "ODB_TREG_TOKEN",
 ```
 
 In the `saveConfig` section list at `:1366`, add `"treg"` right after `"cerebras"`.
 
-In `electron/diagnostics.mjs` `CREDENTIAL_ENV_NAMES`, add `"OMB_TREG_TOKEN",` directly after `"OMB_OPENAI_LIVE_KEY",`. It must be the same position as in `WORKSPACE_CREDENTIAL_ENV`, because the parity test compares order.
+In `electron/diagnostics.mjs` `CREDENTIAL_ENV_NAMES`, add `"ODB_TREG_TOKEN",` directly after `"ODB_OPENAI_LIVE_KEY",`. It must be the same position as in `WORKSPACE_CREDENTIAL_ENV`, because the parity test compares order.
 
 In `electron/workspace-credentials.mjs`, add a row after the `live` row:
 
 ```js
-  { section: "treg", field: "token", name: "tregToken", env: "OMB_TREG_TOKEN" },
+  { section: "treg", field: "token", name: "tregToken", env: "ODB_TREG_TOKEN" },
 ```
 
 In `server/index.ts` `configStatus()`, after the `cerebras` line:
@@ -1205,26 +1205,26 @@ describe("X research internal routes", () => {
   it("refuses without a token, and refuses a bot that is not switched on, before any spend", async () => {
     const client = fakeClient();
     const noToken = createXResearchInternalRoutes({ token: () => undefined, botEnabled: () => true, client: () => client });
-    expect(await callInternal(noToken, { body: { query: "maus" } })).toMatchObject({ status: 403, body: { error: X_MESSAGES.noKey } });
+    expect(await callInternal(noToken, { body: { query: "delio" } })).toMatchObject({ status: 403, body: { error: X_MESSAGES.noKey } });
     const { handler } = enabled(client);
-    expect(await callInternal(handler, { botId: "bot-2", body: { query: "maus" } })).toMatchObject({ status: 403, body: { error: X_MESSAGES.botOff } });
+    expect(await callInternal(handler, { botId: "bot-2", body: { query: "delio" } })).toMatchObject({ status: 403, body: { error: X_MESSAGES.botOff } });
     expect(client.search).not.toHaveBeenCalled();
   });
 
   it("reads the token on every call, so clearing it stops the next one", async () => {
     let token: string | undefined = "t";
     const { handler } = enabled(fakeClient(), () => token);
-    expect((await callInternal(handler, { body: { query: "maus" } })).status).toBe(200);
+    expect((await callInternal(handler, { body: { query: "delio" } })).status).toBe(200);
     token = undefined;
-    expect((await callInternal(handler, { body: { query: "maus" } })).status).toBe(403);
+    expect((await callInternal(handler, { body: { query: "delio" } })).status).toBe(403);
   });
 
   it("validates input with a reason a retry can use", async () => {
     const { handler } = enabled();
     for (const [path, body] of [
       ["/api/internal/x/search", {}],
-      ["/api/internal/x/search", { query: "maus", sinceId: "abc" }],
-      ["/api/internal/x/search", { query: "maus", limit: 51 }],
+      ["/api/internal/x/search", { query: "delio", sinceId: "abc" }],
+      ["/api/internal/x/search", { query: "delio", limit: 51 }],
       ["/api/internal/x/user-posts", { handle: "not a handle!" }],
       ["/api/internal/x/post", { post: "https://example.com/1" }],
       ["/api/internal/x/profile", { handle: "" }],
@@ -1237,20 +1237,20 @@ describe("X research internal routes", () => {
 
   it("hands the client normalized input with defaults filled in", async () => {
     const { client, handler } = enabled();
-    await callInternal(handler, { body: { query: "maus" } });
-    expect(client.search).toHaveBeenCalledWith({ query: "maus", sort: "latest", limit: 20 });
-    await callInternal(handler, { path: "/api/internal/x/user-posts", body: { handle: "@maus", sinceId: "99", limit: 5 } });
-    expect(client.userPosts).toHaveBeenCalledWith({ handle: "maus", limit: 5, includeReplies: false, sinceId: "99" });
-    await callInternal(handler, { path: "/api/internal/x/post", body: { post: "https://x.com/maus/status/42", replies: true } });
-    expect(client.post).toHaveBeenCalledWith({ id: "42", handle: "maus", replies: true });
-    await callInternal(handler, { path: "/api/internal/x/profile", body: { handle: "https://x.com/maus" } });
-    expect(client.profile).toHaveBeenCalledWith("maus");
+    await callInternal(handler, { body: { query: "delio" } });
+    expect(client.search).toHaveBeenCalledWith({ query: "delio", sort: "latest", limit: 20 });
+    await callInternal(handler, { path: "/api/internal/x/user-posts", body: { handle: "@delio", sinceId: "99", limit: 5 } });
+    expect(client.userPosts).toHaveBeenCalledWith({ handle: "delio", limit: 5, includeReplies: false, sinceId: "99" });
+    await callInternal(handler, { path: "/api/internal/x/post", body: { post: "https://x.com/delio/status/42", replies: true } });
+    expect(client.post).toHaveBeenCalledWith({ id: "42", handle: "delio", replies: true });
+    await callInternal(handler, { path: "/api/internal/x/profile", body: { handle: "https://x.com/delio" } });
+    expect(client.profile).toHaveBeenCalledWith("delio");
   });
 
   it("returns the client's result as the body", async () => {
     const posts = { posts: [{ id: "5", url: "https://x.com/a/status/5", author: "@a", text: "t" }], newestId: "5", more: false };
     const { handler } = enabled(fakeClient({ search: vi.fn(async () => posts) }));
-    expect(await callInternal(handler, { body: { query: "maus" } })).toMatchObject({ status: 200, body: posts });
+    expect(await callInternal(handler, { body: { query: "delio" } })).toMatchObject({ status: 200, body: posts });
   });
 
   it("turns provider failures into 404 or 502 with the plain sentence, never 401", async () => {
@@ -1258,7 +1258,7 @@ describe("X research internal routes", () => {
     expect(await callInternal(gone.handler, { path: "/api/internal/x/post", body: { post: "42" } }))
       .toMatchObject({ status: 404, body: { error: X_MESSAGES.postNotFound, code: "not_found" } });
     const badToken = enabled(fakeClient({ search: vi.fn(async () => { throw new XResearchError("bad_key", X_MESSAGES.badKey); }) }));
-    expect(await callInternal(badToken.handler, { body: { query: "maus" } }))
+    expect(await callInternal(badToken.handler, { body: { query: "delio" } }))
       .toMatchObject({ status: 502, body: { error: X_MESSAGES.badKey, code: "bad_key" } });
   });
 });
@@ -1371,7 +1371,7 @@ function parse<T>(schema: z.ZodType<T>, body: unknown): T {
 
 function handleFrom(raw: string): string {
   const handle = normalizeHandle(raw);
-  if (!handle) throw new XResearchError("bad_input", "handle must be an X handle such as @openmausbot, or an x.com profile link.");
+  if (!handle) throw new XResearchError("bad_input", "handle must be an X handle such as @opendeliobot, or an x.com profile link.");
   return handle;
 }
 
@@ -1509,7 +1509,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Regenerate: `server/drivers/agents-catalog-goldens/*.json`
 
 **Interfaces:**
-- Consumes: env `OMB_X_RESEARCH`, set from `cfg.treg?.token` (Task 2) and `bot.xResearch` (Task 3).
+- Consumes: env `ODB_X_RESEARCH`, set from `cfg.treg?.token` (Task 2) and `bot.xResearch` (Task 3).
 - Produces: tool names `x_search`, `x_user_posts`, `x_post`, `x_profile` with the argument names `query`, `sort`, `limit`, `sinceId`, `handle`, `includeReplies`, `post`, `replies`. Task 6's handlers pass these through unchanged.
 
 - [ ] **Step 1: Write the failing test**
@@ -1522,11 +1522,11 @@ In `server/drivers/agents-catalog-wire.test.ts`:
   // X research is one more switch, on only for a bot its person turned on.
   // The fullest profiles carry it, so every other profile stays a subset.
   for (const name of ["direct+skills+shared+voice", "room+own-thread+skills+shared+voice"]) {
-    all[`${name}+x`] = { family: all[name]!.family, env: { ...all[name]!.env, OMB_X_RESEARCH: "1" } };
+    all[`${name}+x`] = { family: all[name]!.family, env: { ...all[name]!.env, ODB_X_RESEARCH: "1" } };
   }
 ```
 
-(b) In `all["external+everything"].env`, add `OMB_X_RESEARCH: "1",`.
+(b) In `all["external+everything"].env`, add `ODB_X_RESEARCH: "1",`.
 
 (c) Change `FULL` to:
 
@@ -1541,7 +1541,7 @@ const FULL = { direct: "direct+skills+shared+voice+x", room: "room+own-thread+sk
     const X = ["x_search", "x_user_posts", "x_post", "x_profile"];
     for (const [name, profile] of Object.entries(PROFILES)) {
       const names = toolsOf(wires[name]!).map((tool) => tool.name);
-      const on = profile.env.OMB_X_RESEARCH === "1" && profile.family !== "external";
+      const on = profile.env.ODB_X_RESEARCH === "1" && profile.family !== "external";
       for (const tool of X) expect(names.includes(tool), `${name}: ${tool}`).toBe(on);
     }
     const switchedOn = Object.keys(PROFILES).filter((name) => name.endsWith("+x"));
@@ -1573,7 +1573,7 @@ In `server/drivers/agents-catalog.ts`:
 `catalogProfileFromEnv`, after `voiceNotes: …,`:
 
 ```ts
-    xResearch: env.OMB_X_RESEARCH === "1",
+    xResearch: env.ODB_X_RESEARCH === "1",
 ```
 
 Tool definitions: insert directly after the `send_voice_note` entry:
@@ -1668,13 +1668,13 @@ with:
     : X_READY_TOOLS.filter((tool) => !CHIEF_ONLY_TOOL_NAMES.has(tool.name)).map((tool) => {
 ```
 
-In `server/index.ts` `agentsIntegration()`, after the `OMB_VOICE_NOTES` entry:
+In `server/index.ts` `agentsIntegration()`, after the `ODB_VOICE_NOTES` entry:
 
 ```ts
       // X research spends the person's own treg balance, so the tools
       // are shown only to a bot they switched on, and only with a key saved;
       // the routes (server/routes/x-research.ts) re-check both on every call.
-      OMB_X_RESEARCH: cfg.treg?.token && store.bot(botId)?.xResearch === true ? "1" : "0",
+      ODB_X_RESEARCH: cfg.treg?.token && store.bot(botId)?.xResearch === true ? "1" : "0",
 ```
 
 - [ ] **Step 4: Regenerate the goldens, then set the two new budgets by hand**
@@ -1730,7 +1730,7 @@ describe("X research tools", () => {
   it("sends each tool's arguments to its route and returns the JSON the route gave", async () => {
     for (const [tool, route] of Object.entries(ROUTES)) {
       const calls: Array<{ path: string; body: unknown }> = [];
-      const result = await callTool(tool, { query: "maus", handle: "@maus", post: "42" }, context({
+      const result = await callTool(tool, { query: "delio", handle: "@delio", post: "42" }, context({
         client: {
           api: async () => ({}),
           apiResponse: async (path, init) => {
@@ -1739,14 +1739,14 @@ describe("X research tools", () => {
           },
         },
       }));
-      expect(calls).toEqual([{ path: `/api/internal/x/${route}`, body: { query: "maus", handle: "@maus", post: "42" } }]);
+      expect(calls).toEqual([{ path: `/api/internal/x/${route}`, body: { query: "delio", handle: "@delio", post: "42" } }]);
       expect(result.isError).toBeUndefined();
       expect(JSON.parse(result.text)).toEqual({ posts: [{ id: "1" }], more: false });
     }
   });
 
   it("hands the bot the route's own sentence when it refuses", async () => {
-    const result = await callTool("x_search", { query: "maus" }, context({
+    const result = await callTool("x_search", { query: "delio" }, context({
       client: {
         api: async () => ({}),
         apiResponse: async () => ({ ok: false, status: 403, body: { error: "X research is off for this bot. Turn it on in this bot's settings under Access." } }),
@@ -2071,16 +2071,16 @@ Expected: all green. Fix any failure where it comes from. Never update a golden 
 
 - [ ] **Step 2: Real-key checks**
 
-These need Omkar's treg token, entered by him in the app, never in a shell or a file. With the OMB2 build from Step 3:
+These need Omkar's treg token, entered by him in the app, never in a shell or a file. With the ODB2 build from Step 3:
   - Press Test in Settings → API keys. It should show "Works. $X left on treg." Confirm the figure matches `treg balance`. If `/auth/me` or the balance route refuses the `X-Treg-Token` header, fix `accountInfo`.
-  - Ask a switched-on bot: "Search X for posts mentioning MausBot this week." Confirm the posts and links are real.
+  - Ask a switched-on bot: "Search X for posts mentioning Delio this week." Confirm the posts and links are real.
   - Ask it to run the same search with the `newestId` it got as `sinceId`. Confirm it returns no repeats. If `since_id:` breaks the query, the client-side filter alone must still return no repeats.
   - Temporarily paste a wrong token, then call `x_search`. The bot should say "treg rejected the token…". Look up an account that does not exist with `x_profile` and record how treg answers a full miss; adjust the not-found path if it is not `username: null`.
 
 - [ ] **Step 3: End-to-end check with a fake engine**
 
-Use the repo's `verify-omb` skill (isolated fake-engine instance) to confirm, before any real token: a bot with `xResearch` off is not shown the `x_*` tools; switching it on with a token saved shows them on the next turn; and an `x_search` call on a bot switched off mid-turn is refused with the bot-off sentence.
+Use the repo's `verify-odb` skill (isolated fake-engine instance) to confirm, before any real token: a bot with `xResearch` off is not shown the `x_*` tools; switching it on with a token saved shows them on the next turn; and an `x_search` call on a bot switched off mid-turn is refused with the bot-off sentence.
 
 - [ ] **Step 4: Hand off for a local test**
 
-Use the `test-locally` skill to build OMB2 from `feat/x-research-tools`. Do not touch `/Applications/OpenMausBot.app`. Report the branch, the commits, and what Omkar should try. Do not push or open a PR.
+Use the `test-locally` skill to build ODB2 from `feat/x-research-tools`. Do not touch `/Applications/OpenDeliobot.app`. Report the branch, the commits, and what Omkar should try. Do not push or open a PR.

@@ -1,4 +1,4 @@
-// Email sign-in through the OpenMausBot control plane, or through the server's own mail server when OMB_SIGNIN_SMTP_URL is
+// Email sign-in through the OpenDeliobot control plane, or through the server's own mail server when ODB_SIGNIN_SMTP_URL is
 // set: the code exchange is server-side, so a browser only talks to this server, and a server with an empty allow-list
 // does not expose the routes. The result is an ordinary local session.
 import { resolveCompanionControlPlaneURL } from "../electron/companion-account-service.mjs";
@@ -54,16 +54,16 @@ export function createEmailSignIn(options: {
 }): EmailSignIn {
   const env = options.env ?? process.env;
   const allow = () => (typeof options.allow === "function" ? options.allow() : options.allow);
-  const smtpUrl = env.OMB_SIGNIN_SMTP_URL?.trim();
+  const smtpUrl = env.ODB_SIGNIN_SMTP_URL?.trim();
   if (smtpUrl) {
-    return mailedSignIn(allow, createSignInMail({ url: smtpUrl, from: env.OMB_SIGNIN_SMTP_FROM,
+    return mailedSignIn(allow, createSignInMail({ url: smtpUrl, from: env.ODB_SIGNIN_SMTP_FROM,
       ...(options.mailTransport ? { transport: options.mailTransport } : {}) }));
   }
   let client: ControlPlaneClient | null = options.client ?? null;
   const controlPlane = (): ControlPlaneClient => {
     if (client) return client;
     const url = resolveCompanionControlPlaneURL({ isPackaged: true, environment: env });
-    if (!url) throw new Error("OMB_CONTROL_PLANE_URL is set but is not an https address");
+    if (!url) throw new Error("ODB_CONTROL_PLANE_URL is set but is not an https address");
     client = createControlPlaneClient({ baseURL: url, fetchImpl: options.fetchImpl });
     return client;
   };

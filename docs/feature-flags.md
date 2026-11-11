@@ -10,8 +10,8 @@ packaged releases may differ, including which controls Settings shows.
 
 ## Change a switch
 
-The default file is `~/.openmausbot/config.json` on the machine running the server.
-If the server uses `OMB_DATA_DIR`, edit `config.json` in that directory instead.
+The default file is `~/.opendeliobot/config.json` on the machine running the server.
+If the server uses `ODB_DATA_DIR`, edit `config.json` in that directory instead.
 Stop that server (or quit the app if it runs the server), back up the file, merge
 only the keys you want into its existing `features` object, then start it again.
 Keep the other configuration, including engine instances and credentials.
@@ -77,7 +77,7 @@ The desktop asks its person before ordinary server lending. There is an
 exception after **Make &lt;server&gt; my home** moves the bots to a server owned by
 that person alone: the computer then works for its home automatically, without
 another access dialog, even when `sharedComputers` is `false`. Use the
-OpenMausBot menu bar item to **Pause** that lending. Cloud homes also have their
+OpenDeliobot menu bar item to **Pause** that lending. Cloud homes also have their
 own lending rules; this flag is not a universal pause control. See
 [Self-hosting](self-hosting.md) for the move, pairing and trust boundaries.
 
@@ -95,8 +95,8 @@ shell. For these two switches, exactly `1` or `0` overrides the saved value:
 
 | Variable | Overrides |
 | --- | --- |
-| `OMB_AGENTS_TOOL_BRIDGE` | `features.agentsToolBridge`. `0` also disables the automatic local-model opt-in. Eligibility and tool-selection safeguards still apply when it is `1`. |
-| `OMB_ACP_PLAN_LINES` | `features.acpPlanLines`. |
+| `ODB_AGENTS_TOOL_BRIDGE` | `features.agentsToolBridge`. `0` also disables the automatic local-model opt-in. Eligibility and tool-selection safeguards still apply when it is `1`. |
+| `ODB_ACP_PLAN_LINES` | `features.acpPlanLines`. |
 
 Other strings do not act as these overrides. Restart the server after changing
 its launch environment.

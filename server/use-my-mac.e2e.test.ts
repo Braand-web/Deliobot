@@ -22,7 +22,7 @@ import { hostTimeout } from "./testing/host-timeout.ts";
 import { freePortBlock } from "./testing/ports.ts";
 
 const SERVER_DIR = dirname(fileURLToPath(import.meta.url));
-const HOST = "omb-t-0123456789ab.fly.dev";
+const HOST = "odb-t-0123456789ab.fly.dev";
 /** The Mac's public address as My Cloud sees it, through the edge. */
 const MAC_PUBLIC = "203.0.113.9";
 const edge = { host: HOST, "x-forwarded-for": MAC_PUBLIC, "x-forwarded-proto": "https", origin: `https://${HOST}` };
@@ -79,11 +79,11 @@ async function api(method: string, path: string, options: { body?: unknown; toke
 }
 
 async function adminPairing(): Promise<string> {
-  const body = JSON.stringify({ label: "OpenMausBot app (Cloud)", ttlSeconds: 300 });
+  const body = JSON.stringify({ label: "OpenDeliobot app (Cloud)", ttlSeconds: 300 });
   const timestamp = String(Math.floor(Date.now() / 1000)), nonce = randomBytes(16).toString("base64url");
   const response = await fetch(`${base}/api/cloud/pairing`, { method: "POST", headers: {
     ...edge, "content-type": "application/json",
-    "x-omb-cloud-timestamp": timestamp, "x-omb-cloud-nonce": nonce, "x-omb-cloud-signature": `v1=${cloudPairingSignature(secret, timestamp, nonce, body)}`,
+    "x-odb-cloud-timestamp": timestamp, "x-odb-cloud-nonce": nonce, "x-odb-cloud-signature": `v1=${cloudPairingSignature(secret, timestamp, nonce, body)}`,
   }, body });
   const granted = await response.json() as { code: string };
   const paired = await api("POST", "/api/auth/pair", { body: { code: granted.code } });
@@ -101,7 +101,7 @@ async function turnOf(botId: string, before: Set<string>): Promise<Turn> {
       if (before.has(name) || !name.endsWith(".json")) continue;
       try {
         const turn = JSON.parse(readFileSync(join(turnDumps(), name), "utf8")) as Turn;
-        if (turn.mcpConfig?.mcpServers?.agents?.env?.OMB_BOT_ID === botId) { found = turn; return true; }
+        if (turn.mcpConfig?.mcpServers?.agents?.env?.ODB_BOT_ID === botId) { found = turn; return true; }
       } catch {}
     }
     return false;
@@ -184,7 +184,7 @@ function lend(file: string, power = createCloudPowerGate()) {
 }
 
 async function boot() {
-  const dataDir = join(home, ".openmausbot");
+  const dataDir = join(home, ".opendeliobot");
   // Off the internet: My Cloud's own fetches go nowhere, and its own way out resolves no name, so it reaches nothing.
   const offlinePrelude = `data:text/javascript,${encodeURIComponent([
     'import dns from "node:dns/promises"; import { syncBuiltinESMExports } from "node:module";',
@@ -195,10 +195,10 @@ async function boot() {
     cwd: join(SERVER_DIR, ".."),
     env: {
       PATH: process.env.PATH, ...(process.env.SystemRoot ? { SystemRoot: process.env.SystemRoot } : {}),
-      HOME: home, USERPROFILE: home, OMB_DATA_DIR: dataDir, OMB_PORT: String(port), OMB_WEBHOOK_PORT: String(port + 1),
-      OMB_CLOUD_ROLE: "home", OMB_CLOUD_MACHINE_ID: "3f9c2a4e-8b1d-4c6e-9a7f-2d5e8c1b0a93", OMB_CLOUD_ADMIN_URL: "https://cloud.example.test",
-      OMB_CLOUD_BOOTSTRAP_SECRET: secret, OMB_PUBLIC_URL: `https://${HOST}`,
-      OMB_AGENT_BROWSER_PATH: join(home, "agent-browser"),
+      HOME: home, USERPROFILE: home, ODB_DATA_DIR: dataDir, ODB_PORT: String(port), ODB_WEBHOOK_PORT: String(port + 1),
+      ODB_CLOUD_ROLE: "home", ODB_CLOUD_MACHINE_ID: "3f9c2a4e-8b1d-4c6e-9a7f-2d5e8c1b0a93", ODB_CLOUD_ADMIN_URL: "https://cloud.example.test",
+      ODB_CLOUD_BOOTSTRAP_SECRET: secret, ODB_PUBLIC_URL: `https://${HOST}`,
+      ODB_AGENT_BROWSER_PATH: join(home, "agent-browser"),
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -214,8 +214,8 @@ async function boot() {
 }
 
 beforeAll(async () => {
-  home = realpathSync(mkdtempSync(join(tmpdir(), "omb-use-my-mac-")));
-  const dataDir = join(home, ".openmausbot");
+  home = realpathSync(mkdtempSync(join(tmpdir(), "odb-use-my-mac-")));
+  const dataDir = join(home, ".opendeliobot");
   mkdirSync(dataDir, { recursive: true });
   mkdirSync(turnDumps());
   const cli = join(home, "fixture-claude.mjs");
@@ -266,7 +266,7 @@ let gate = 0;
 const posixOnly = it.skipIf(process.platform === "win32");
 
 it("My Cloud offers the device link, and a fresh Mac signed in to it lends itself by itself: the internet connection and Chrome, no terminal, no click", async () => {
-  expect((await api("GET", "/.well-known/openmausbot/environment")).body.capabilities).toMatchObject({ sharedComputers: true, deviceLink: true });
+  expect((await api("GET", "/.well-known/opendeliobot/environment")).body.capabilities).toMatchObject({ sharedComputers: true, deviceLink: true });
   const file = join(home, "desktop-profile", "computer-sharing.json");
   expect(existsSync(file), "nothing was ever lent from this Mac").toBe(false);
   mac = lend(file);
@@ -284,7 +284,7 @@ posixOnly("a bot's browser on My Cloud reaches Instagram from the Mac's own conn
   expect(page.body).toContain("hello from www.instagram.com");
   expect(visits.length).toBeGreaterThan(0);
   expect(visits.every((visit) => macSockets.has(visit.peer)), "every request the website served came over a socket the Mac opened").toBe(true);
-  if (!chrome) return console.log("skipping the real-Chrome page through the Mac: no Chrome found (set OMB_TEST_CHROME)");
+  if (!chrome) return console.log("skipping the real-Chrome page through the Mac: no Chrome found (set ODB_TEST_CHROME)");
   const browser = await launchPipeChrome(chrome, gateChromeFlags(gate));
   try {
     const tab = await browser.page();
@@ -325,7 +325,7 @@ posixOnly("a page that reaches for the Mac's home network, the Mac itself, a met
 }, hostTimeout(30_000));
 
 posixOnly("a 2 MiB file on the Mac reads whole through My Cloud, under its 4 MB body", async () => {
-  const folderPath = realpathSync(mkdtempSync(join(tmpdir(), "omb-use-my-mac-folder-")));
+  const folderPath = realpathSync(mkdtempSync(join(tmpdir(), "odb-use-my-mac-folder-")));
   const bytes = randomBytes(2 * 1024 * 1024);
   writeFileSync(join(folderPath, "photo.bin"), bytes);
   const folder = { id: randomUUID(), name: "Photos", path: folderPath, write: false };
@@ -402,7 +402,7 @@ it("Pause survives a restart of the app: nothing is lent again, neither by itsel
   const again = lend(join(home, "desktop-profile", "computer-sharing.json"));
   const dialsBefore = dials;
   again.connector.start();
-  const project = realpathSync(mkdtempSync(join(tmpdir(), "omb-use-my-mac-project-")));
+  const project = realpathSync(mkdtempSync(join(tmpdir(), "odb-use-my-mac-project-")));
   await expect(again.connector.lendProjects([project])).rejects.toThrow(/waits/);
   await new Promise((resolve) => setTimeout(resolve, 1000));
   expect(again.connector.paused()).toBe(true);

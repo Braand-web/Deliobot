@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 
-const STORAGE_KEY = "omb-favorite-models";
+const STORAGE_KEY = "odb-favorite-models";
 const NONE: ReadonlySet<string> = new Set();
 const listeners = new Set<() => void>();
 let current: ReadonlySet<string> | null = null;

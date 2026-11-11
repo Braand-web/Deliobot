@@ -7,7 +7,7 @@ import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 import { expect, it } from "vitest";
 
-import { launchVerificationServer, runControlOmb, verificationServerArgs, verificationServerEnvironment } from "../scripts/control-omb.ts";
+import { launchVerificationServer, runControlOdb, verificationServerArgs, verificationServerEnvironment } from "../scripts/control-odb.ts";
 import { CONTROL_WAITED } from "./control-client.ts";
 import { CONSENT_RULE } from "./peer-provenance.ts";
 import { waitForExit } from "./testing/cleanup.ts";
@@ -26,7 +26,7 @@ type ModelRequest = { lastUser: string; toolsSinceUser: number };
 
 async function chiefJob(test: (f: any) => Promise<void>) {
   // The approval deadline and the stall window elapse only on marker files, never on their own.
-  const parentEnv = { ...process.env, OMB_TEST_APPROVAL_CLOCK: "1", OMB_TEST_STALL_CLOCK: "1" };
+  const parentEnv = { ...process.env, ODB_TEST_APPROVAL_CLOCK: "1", ODB_TEST_STALL_CLOCK: "1" };
   const requests: ModelRequest[] = [];
   let answer: (request: ModelRequest) => ModelAnswer = () => ({ say: "OK" });
   let callSerial = 0;
@@ -84,7 +84,7 @@ async function chiefJob(test: (f: any) => Promise<void>) {
       try { parsed = JSON.parse(raw); } catch {}
       return { status: response.status, body: parsed };
     };
-    const cli = (...args: string[]) => runControlOmb([...args, "--url", url]) as Promise<any>;
+    const cli = (...args: string[]) => runControlOdb([...args, "--url", url]) as Promise<any>;
     // The team works at Ask, as Claude Code does there, so its approvals are cards.
     const bot = async (name: string, section: string) => {
       const made = (await cli("new-bot", "--name", name, "--section", section)).bot;
@@ -520,7 +520,7 @@ it("tells a teammate the person's job is its task, and a routine's handoff is no
   writeFileSync(join(userData, "cua-connection.json"), JSON.stringify({ mode: "embedded", status: "ready", socketPath: join(f.dataDir, "cua.sock"),
     mcpCommand: "/fixture/cua-driver", mcpArgs: ["mcp"], mcpEnv: {} }), { mode: 0o600 });
   // A call acts only if it got the computer within a second (production: 5).
-  await f.restart("SIGTERM", { OMB_TEST_DESKTOP_CUA_CONNECTION: join(userData, "cua-connection.json"), OMB_COMPUTER_CALL_ACT_WITHIN_MS: "1000" });
+  await f.restart("SIGTERM", { ODB_TEST_DESKTOP_CUA_CONNECTION: join(userData, "cua-connection.json"), ODB_COMPUTER_CALL_ACT_WITHIN_MS: "1000" });
   const kai = await f.bot("Kai", "Engineering");
   f.script(f.clive.id,
     { key: "S0", match: ["PHASE-SCREEN-MARCH"], steps: [{ arguments: { bot_ids: [f.mira.id], message: "EXPORT-MARCH: export March from the invoice app on screen." } }], reply: "S0: Mira is exporting March." },

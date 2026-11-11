@@ -106,8 +106,8 @@ describe("runLivenessProbe", () => {
   it("uses the bridge's explicit environment for its transport probe", async () => {
     await expect(runLivenessProbe({
       command: process.execPath,
-      args: ["-e", "process.exit(process.env.OMB_TEST_BRIDGE_ENV === 'shared-ssh' ? 0 : 1)"],
-    }, 1_000, { ...process.env, OMB_TEST_BRIDGE_ENV: "shared-ssh" })).resolves.toBe(true);
+      args: ["-e", "process.exit(process.env.ODB_TEST_BRIDGE_ENV === 'shared-ssh' ? 0 : 1)"],
+    }, 1_000, { ...process.env, ODB_TEST_BRIDGE_ENV: "shared-ssh" })).resolves.toBe(true);
   });
 
   it("maps exit status to liveness and treats an unspawnable probe as dead", async () => {
@@ -118,7 +118,7 @@ describe("runLivenessProbe", () => {
       runLivenessProbe({ command: process.execPath, args: ["-e", "process.exit(3)"] }),
     ).resolves.toBe(false);
     await expect(
-      runLivenessProbe({ command: "/nonexistent/openmausbot-probe", args: [] }),
+      runLivenessProbe({ command: "/nonexistent/opendeliobot-probe", args: [] }),
     ).resolves.toBe(false);
   });
 
@@ -333,15 +333,15 @@ describe("createChildCalls", () => {
     const typed = children.forCall(meta).call("type_text", { text: "a" });
     const plain = children.forCall(undefined).call("list_windows", {});
     expect(written).toEqual([
-      { jsonrpc: "2.0", id: "omb-bridge-1", method: "tools/call", params: { name: "type_text", arguments: { text: "a" }, _meta: meta } },
-      { jsonrpc: "2.0", id: "omb-bridge-2", method: "tools/call", params: { name: "list_windows", arguments: {} } },
+      { jsonrpc: "2.0", id: "odb-bridge-1", method: "tools/call", params: { name: "type_text", arguments: { text: "a" }, _meta: meta } },
+      { jsonrpc: "2.0", id: "odb-bridge-2", method: "tools/call", params: { name: "list_windows", arguments: {} } },
     ]);
     expect(children.take(JSON.stringify({ jsonrpc: "2.0", id: 1, result: { content: [] } }))).toBe(false);
-    expect(children.take(JSON.stringify({ jsonrpc: "2.0", id: "omb-bridge-1", result: { content: [{ type: "text", text: "typed" }] } }))).toBe(true);
-    expect(children.take(JSON.stringify({ jsonrpc: "2.0", id: "omb-bridge-2", error: { code: -32602, message: "Missing required per-request MCP metadata" } }))).toBe(true);
+    expect(children.take(JSON.stringify({ jsonrpc: "2.0", id: "odb-bridge-1", result: { content: [{ type: "text", text: "typed" }] } }))).toBe(true);
+    expect(children.take(JSON.stringify({ jsonrpc: "2.0", id: "odb-bridge-2", error: { code: -32602, message: "Missing required per-request MCP metadata" } }))).toBe(true);
     await expect(typed).resolves.toEqual({ content: [{ type: "text", text: "typed" }] });
     await expect(plain).resolves.toEqual({ content: [{ type: "text", text: "Missing required per-request MCP metadata" }], isError: true });
-    expect(children.take(JSON.stringify({ jsonrpc: "2.0", id: "omb-bridge-1", result: {} }))).toBe(false);
+    expect(children.take(JSON.stringify({ jsonrpc: "2.0", id: "odb-bridge-1", result: {} }))).toBe(false);
   });
 
   it("learns the driver's version from its initialize answer or its per-request metadata", () => {
