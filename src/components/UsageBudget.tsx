@@ -192,13 +192,39 @@ export function PricesCard() {
   );
 }
 
+/** A hosted workspace's Delio credits; nothing on a server that has none. */
+function CreditsCard() {
+  const [credits, setCredits] = useState<{ credits: number; usedThisMonth: number } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    api<{ credits: number; usedThisMonth: number }>("/api/credits", { background: true }).then(
+      (view) => { if (!cancelled && typeof view?.credits === "number") setCredits(view); },
+      () => undefined,
+    );
+    return () => { cancelled = true; };
+  }, []);
+  if (!credits) return null;
+  const format = (value: number) => value.toLocaleString(undefined, { maximumFractionDigits: 1 });
+  return (
+    <Card title={t("usage.credits.title")}>
+      <div className="flex items-baseline gap-2" data-testid="credits-balance">
+        <span className={credits.credits <= 0 ? "text-[22px] font-semibold text-danger" : "text-[22px] font-semibold text-ink"}>{format(credits.credits)}</span>
+        <span className="text-[13px] text-ink-secondary">{t("usage.credits.left")}</span>
+      </div>
+      <p className="mt-1 text-[12px] text-ink-secondary">{t("usage.credits.used", { credits: format(credits.usedThisMonth) })}</p>
+      {credits.credits <= 0 && <p className="mt-2 text-[12px] text-danger">{t("usage.credits.empty")}</p>}
+    </Card>
+  );
+}
+
 export function UsageBudgetCards({ budget }: { budget: BudgetState | null }) {
   const { state } = useStore();
   const budgets = entitledTo(state.config, "budgets");
   const billing = entitledTo(state.config, "billing");
-  if (!budgets && !billing) return null;
+  if (!budgets && !billing) return <CreditsCard />;
   return (
     <>
+      <CreditsCard />
       {budgets && <BudgetCard budget={budget} />}
       {billing && <PricesCard />}
     </>

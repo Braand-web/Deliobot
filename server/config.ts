@@ -337,7 +337,7 @@ const appConfigSchema = z.object({
   /** OpenRouter key, for the `openrouter` instance only. */
   openrouter: z.object({ key: optionalText }).optional(),
   /** fal.ai key, for image and video generation. */
-  fal: z.object({ key: optionalText }).optional(),
+  fal: z.object({ key: optionalText, url: optionalText }).optional(),
   /** Workspace monthly spend limit; enforced only with the `budgets` entitlement. */
   budgets: z
     .object({
@@ -483,7 +483,8 @@ export interface AppConfig extends HelperConfig {
   anthropic?: { key?: string; url?: string; everyClaudeBot?: boolean };
   openai?: { key?: string };
   openrouter?: { key?: string };
-  fal?: { key?: string };
+  /** `url`: the fal.ai queue, or a Delio gateway in front of it (ODB_FAL_URL); the key then is the workspace token. */
+  fal?: { key?: string; url?: string };
   budgets?: { monthlyUsd?: number; warnAtPercent?: number };
   decisions?: { retentionDays?: number };
   loopGuard?: LoopGuardConfig;
@@ -765,6 +766,7 @@ export function loadConfig(): AppConfig {
   if (process.env.ODB_OPENROUTER_API_KEY !== undefined) cfg.openrouter.key = process.env.ODB_OPENROUTER_API_KEY;
   cfg.fal = { ...cfg.fal };
   if (process.env.ODB_FAL_KEY !== undefined) cfg.fal.key = process.env.ODB_FAL_KEY;
+  if (process.env.ODB_FAL_URL !== undefined) cfg.fal.url = process.env.ODB_FAL_URL;
   cfg.openaiCompat = { ...cfg.openaiCompat };
   if (process.env.OPENAI_COMPAT_API_KEY !== undefined) cfg.openaiCompat.key = process.env.OPENAI_COMPAT_API_KEY;
   if (process.env.OPENAI_COMPAT_URL !== undefined) cfg.openaiCompat.url = process.env.OPENAI_COMPAT_URL;

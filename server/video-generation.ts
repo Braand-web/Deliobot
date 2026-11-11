@@ -3,7 +3,7 @@ import { autoVideoModel, MEDIA_AUTO } from "./media-auto.ts";
 import {
   VIDEO_SECONDS_DEFAULT, VIDEO_SECONDS_MAX, type VideoAspect, type VideoGenerationConfig,
 } from "../shared/video-generation.ts";
-import { createFalSchemaCache, falDownload, falError, falInput, falRun, validFalModel } from "./fal.ts";
+import { createFalSchemaCache, falDownload, falQueueBase, falError, falInput, falRun, validFalModel } from "./fal.ts";
 
 export const VIDEO_GENERATION_TIMEOUT_MS = 6 * 60_000;
 /** Kept within what the chat plays inline, so a made video never lands as a file the person cannot watch. */
@@ -11,7 +11,7 @@ export const VIDEO_DOWNLOAD_MAX_BYTES = PREVIEW_MAX_BYTES;
 const VIDEO_MIMES = ["video/mp4", "video/webm", "video/quicktime"] as const;
 
 export interface VideoCredentials {
-  fal?: { key?: string };
+  fal?: { key?: string; url?: string };
   videoGen?: VideoGenerationConfig;
 }
 
@@ -56,7 +56,7 @@ export async function generateVideo(
   const fetchImpl = options.fetchImpl ?? fetch;
   const fields = await falSchemas(model, { key, fetchImpl });
   const result = await falRun(model, falInput(fields, { prompt: request.prompt, seconds, aspect: request.aspect ?? "16:9" }), {
-    key, fetchImpl, timeoutMs: options.timeoutMs ?? VIDEO_GENERATION_TIMEOUT_MS, signal: options.signal,
+    key, baseUrl: falQueueBase(cfg.fal?.url), fetchImpl, timeoutMs: options.timeoutMs ?? VIDEO_GENERATION_TIMEOUT_MS, signal: options.signal,
   });
   const video = result.video && typeof result.video === "object" ? (result.video as { url?: unknown }).url : undefined;
   if (typeof video !== "string") throw falError(`fal.ai returned no video (model ${model})`, 502);

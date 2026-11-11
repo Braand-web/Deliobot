@@ -42,6 +42,9 @@ Open http://localhost:8790. In development, sign-in codes and invitation links a
 | `DELIO_ADMIN_MAIL_API_KEY`, `DELIO_ADMIN_MAIL_FROM` | Email sending. Required in production. |
 | `DELIO_ADMIN_MAIL_ENDPOINT` | A JSON mail API that accepts `{from,to,subject,text}` with a bearer key. Default: Resend's `https://api.resend.com/emails`. |
 | `DELIO_ADMIN_MAIL=console` | Prints mail instead of sending it, even in production. Never use this on a public deployment. |
+| `DELIO_ADMIN_OPENROUTER_KEY` | The operator's OpenRouter key, used only by the AI gateway. |
+| `DELIO_ADMIN_FAL_KEY` | The operator's fal.ai key, used only by the AI gateway. |
+| `DELIO_ADMIN_CREDIT_USD` | The provider cost one credit stands for. Default: `0.002` (so 1 USD of provider cost = 500 credits). |
 | `PORT`, `HOST` | Listening address. Default: `8790`. Binds `127.0.0.1` in development and `0.0.0.0` in production. |
 
 Put the portal behind a TLS-terminating proxy.
@@ -59,6 +62,36 @@ Put the portal behind a TLS-terminating proxy.
    ```
 
 From then on, anyone who opens the workspace address goes through the portal to sign in.
+
+## AI gateway and credits
+
+Hosted workspaces use Delio's own provider keys through the portal, paying with
+prepaid **credits** kept per workspace.
+
+- **Workspace token.** An operator issues it on the workspace's **Billing** page
+  (shown once; a new one revokes the old). The workspace's server gets it as
+  `ODB_HOSTED_MODEL_TOKEN` and, for fal.ai, `ODB_FAL_KEY` with
+  `ODB_FAL_URL=https://<portal>/api/gateway/<slug>/fal`.
+- **Gateway.** `/api/gateway/<slug>/openrouter/v1/chat/completions` and `/models`,
+  and `/api/gateway/<slug>/fal/<model>` with its queue status, result and cancel
+  URLs. Each request is checked against the workspace's token, then **held**
+  against its credits (0.05 USD for text; fal.ai's list price × length for
+  media), sent with the operator's key, and **settled** at its real cost:
+  OpenRouter's `usage.cost` (the gateway asks for it), fal.ai's list price. A
+  request that made nothing gets its hold back. At zero credits the gateway
+  answers `402` with `credits_exhausted` before calling the provider. A cost
+  above what was left is still charged, so the balance can go below zero
+  until the next top-up. At most 8 requests run at once per workspace.
+- **Isolation.** A fal.ai job is reachable only through the workspace that
+  started it. Provider keys never leave the portal.
+- **Billing page.** Balance, this month's use and the history for workspace
+  admins; operators add credits (or take some back) and issue the token.
+  Paid plans and top-ups come with Stripe.
+- **Account.** `GET /api/workspace/<slug>/account` (with the token) answers the
+  balance; the workspace shows it under **Settings → Usage**.
+
+Claude and Codex company engines are not offered through the gateway yet:
+Claude, GPT and the other models are reached through OpenRouter.
 
 ## Tests
 

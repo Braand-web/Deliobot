@@ -16,6 +16,17 @@ export function falError(message: string, status: number, neverStarted = false):
   return Object.assign(new Error(message), { status, neverStarted });
 }
 
+/** The queue a configured URL names: fal.ai's own, or an HTTPS gateway in front of it. Anything else falls back to fal.ai, so a bad setting never sends the key elsewhere in clear. */
+export function falQueueBase(raw: string | undefined): string | undefined {
+  if (!raw?.trim()) return undefined;
+  try {
+    const url = new URL(raw.trim());
+    return url.protocol === "https:" && !url.username && !url.password && !url.search ? url.href.replace(/\/+$/, "") : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function validFalModel(model: string): boolean {
   return model.length <= 200 && MODEL_ID.test(model) && !model.split("/").includes("..");
 }

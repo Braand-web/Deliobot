@@ -1,6 +1,6 @@
 import { MUSIC_SECONDS_DEFAULT, MUSIC_SECONDS_MAX, type MusicGenerationConfig } from "../shared/music-generation.ts";
 import { PREVIEW_MAX_BYTES } from "../shared/upload-limits.ts";
-import { createFalSchemaCache, falDownload, falError, falInput, falRun, validFalModel } from "./fal.ts";
+import { createFalSchemaCache, falDownload, falQueueBase, falError, falInput, falRun, validFalModel } from "./fal.ts";
 import { autoMusicModel, MEDIA_AUTO } from "./media-auto.ts";
 
 export const MUSIC_GENERATION_TIMEOUT_MS = 5 * 60_000;
@@ -8,7 +8,7 @@ export const MUSIC_GENERATION_TIMEOUT_MS = 5 * 60_000;
 const AUDIO_MIMES = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/wave"] as const;
 
 export interface MusicCredentials {
-  fal?: { key?: string };
+  fal?: { key?: string; url?: string };
   musicGen?: MusicGenerationConfig;
 }
 
@@ -64,7 +64,7 @@ export async function generateMusic(
   const fetchImpl = options.fetchImpl ?? fetch;
   const fields = await falSchemas(model, { key, fetchImpl });
   const result = await falRun(model, falInput(fields, { prompt: request.prompt, seconds, lyrics: request.lyrics }), {
-    key, fetchImpl, timeoutMs: options.timeoutMs ?? MUSIC_GENERATION_TIMEOUT_MS, signal: options.signal,
+    key, baseUrl: falQueueBase(cfg.fal?.url), fetchImpl, timeoutMs: options.timeoutMs ?? MUSIC_GENERATION_TIMEOUT_MS, signal: options.signal,
   });
   const url = falAudioUrl(result);
   if (!url) throw falError(`fal.ai returned no audio (model ${model})`, 502);

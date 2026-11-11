@@ -40,7 +40,11 @@ if (operators.size === 0) console.warn("delio-admin: no DELIO_ADMIN_OPERATORS, s
 
 const port = Number(env.PORT ?? 8790);
 const host = env.HOST ?? (production ? "0.0.0.0" : "127.0.0.1");
-const server = createServer(createAdminApp({ store, publicUrl, operators, mailer }));
+const creditUsd = env.DELIO_ADMIN_CREDIT_USD ? Number(env.DELIO_ADMIN_CREDIT_USD) : undefined;
+if (creditUsd !== undefined && !(creditUsd > 0)) fail("DELIO_ADMIN_CREDIT_USD must be a positive number of dollars, such as 0.002");
+const gateway = { openrouterKey: env.DELIO_ADMIN_OPENROUTER_KEY?.trim() || undefined, falKey: env.DELIO_ADMIN_FAL_KEY?.trim() || undefined, creditUsd };
+if (!gateway.openrouterKey && !gateway.falKey) console.warn("delio-admin: no DELIO_ADMIN_OPENROUTER_KEY or DELIO_ADMIN_FAL_KEY, so the AI gateway refuses every request");
+const server = createServer(createAdminApp({ store, publicUrl, operators, mailer, gateway }));
 server.listen(port, host, () => console.log(`delio-admin: listening on http://${host}:${port}, public at ${publicUrl.origin}`));
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {

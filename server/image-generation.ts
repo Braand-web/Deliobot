@@ -4,7 +4,7 @@ import { z } from "zod";
 import { IMAGE_DEFAULT_MODELS, IMAGE_PROVIDERS, looksLikeApiKey, normalizeImageGenerationUrl, type ImageGenerationConfig, type ImageProvider } from "../shared/image-generation.ts";
 import { decodeGeneratedImage } from "./generated-image.ts";
 import { autoImageModel, MEDIA_AUTO } from "./media-auto.ts";
-import { createFalSchemaCache, FAL_QUEUE_URL, falDownload, falError, falInput, falRun } from "./fal.ts";
+import { createFalSchemaCache, FAL_QUEUE_URL, falQueueBase, falDownload, falError, falInput, falRun } from "./fal.ts";
 
 export const IMAGE_GENERATION_TIMEOUT_MS = 120_000;
 const MAX_UPSTREAM_RESPONSE_BYTES = 15 * 1024 * 1024;
@@ -18,7 +18,7 @@ export interface ImageCredentials {
   imageGen?: ImageGenerationConfig;
   xai?: { key?: string };
   openrouter?: { key?: string };
-  fal?: { key?: string };
+  fal?: { key?: string; url?: string };
 }
 
 export interface ImageSlot {
@@ -211,10 +211,10 @@ const IMAGE_MIMES = ["image/png", "image/jpeg", "image/webp"] as const;
 const IMAGE_DOWNLOAD_MAX_BYTES = 10 * 1024 * 1024;
 
 /** fal.ai answers with a URL on its media host, not inline data; `falDownload` holds that URL to fal's own hosts. */
-async function generateFalImage(key: string, slotModel: string, request: ImageRequest, fetchImpl: typeof fetch, timeoutMs: number, cancel?: AbortSignal): Promise<GeneratedImage> {
+async function generateFalImage(key: string, baseUrl: string | undefined, slotModel: string, request: ImageRequest, fetchImpl: typeof fetch, timeoutMs: number, cancel?: AbortSignal): Promise<GeneratedImage> {
   const model = slotModel === MEDIA_AUTO ? autoImageModel(request.prompt) : slotModel;
   const fields = await falSchemas(model, { key, fetchImpl });
-  const result = await falRun(model, falInput(fields, { prompt: request.prompt, aspect: request.aspect ?? "1:1" }), { key, fetchImpl, timeoutMs, signal: cancel });
+  const result = await falRun(model, falInput(fields, { prompt: request.prompt, aspect: request.aspect ?? "1:1" }), { key, baseUrl, fetchImpl, timeoutMs, signal: cancel });
   const images = Array.isArray(result.images) ? result.images : [];
   const url = images.map((image) => (image && typeof image === "object" ? (image as { url?: unknown }).url : undefined)).find((value): value is string => typeof value === "string");
   if (!url) throw falError(`fal.ai returned no image (model ${model})`, 502);
@@ -232,7 +232,7 @@ export async function generateImageWith(
 ): Promise<GeneratedImage> {
   const provider = PROVIDERS[slot.provider];
   if (!imageSlotConfigured(cfg, slot)) fail(provider.missing, 409, true);
-  if (slot.provider === "fal") return generateFalImage(provider.key(cfg)!.trim(), slot.model, request, fetchImpl, timeoutMs, cancel);
+  if (slot.provider === "fal") return generateFalImage(provider.key(cfg)!.trim(), falQueueBase(cfg.fal?.url), slot.model, request, fetchImpl, timeoutMs, cancel);
 
   const apiKey = provider.key(cfg)?.trim();
   const headers: Record<string, string> = { "content-type": "application/json" };

@@ -1,4 +1,5 @@
 import type { Invitation, Member, Role, SsoConfig, Workspace } from "./store.ts";
+import type { LedgerRow } from "./wallet.ts";
 
 export type Html = { readonly html: string };
 const raw = (html: string): Html => ({ html });
@@ -68,9 +69,9 @@ export function homePage(input: { workspaces: Array<Workspace & { role: Role }>;
   const mine = input.workspaces.length === 0
     ? h`<p class="muted">You are not in any workspace yet. Ask an administrator for an invitation.</p>`
     : input.workspaces.map((workspace) => h`<div class="row"><div class="grow"><b>${workspace.name}</b><div class="muted">${workspace.slug} · ${workspace.role}</div></div>
-<a href="${workspace.tenantUrl}">Open</a>${workspace.role === "admin" ? h` <a href="/people?workspace=${workspace.slug}">People</a> <a href="/sso?workspace=${workspace.slug}">SSO</a>` : ""}</div>`);
+<a href="${workspace.tenantUrl}">Open</a>${workspace.role === "admin" ? h` <a href="/people?workspace=${workspace.slug}">People</a> <a href="/sso?workspace=${workspace.slug}">SSO</a> <a href="/billing?workspace=${workspace.slug}">Billing</a>` : ""}</div>`);
   const operator = input.operator ? h`<h2>All workspaces</h2><div class="card">${input.all.length === 0 ? h`<p class="muted">None yet.</p>`
-    : input.all.map((workspace) => h`<div class="row"><div class="grow"><b>${workspace.slug}</b><div class="muted">${workspace.tenantUrl}</div></div><a href="/people?workspace=${workspace.slug}">People</a></div>`)}</div>
+    : input.all.map((workspace) => h`<div class="row"><div class="grow"><b>${workspace.slug}</b><div class="muted">${workspace.tenantUrl}</div></div><a href="/people?workspace=${workspace.slug}">People</a> <a href="/billing?workspace=${workspace.slug}">Billing</a></div>`)}</div>
 <h2>New workspace</h2><form method="post" action="/workspaces" class="card">
 <label for="slug">Slug</label><input id="slug" name="slug" pattern="[a-z][a-z0-9-]{1,30}" required placeholder="acme">
 <label for="name">Name</label><input id="name" name="name" required maxlength="80" placeholder="Acme">
@@ -129,4 +130,25 @@ export function slackPage(workspace: Workspace): Html {
 
 export function messagePage(title: string, text: string, link?: { href: string; label: string }): Html {
   return h`<div class="narrow center"><h1>${title}</h1><p class="muted">${text}</p>${link ? h`<p><a href="${link.href}">${link.label}</a></p>` : ""}</div>`;
+}
+
+const credits = (value: number) => value.toLocaleString("en-US", { maximumFractionDigits: 1 });
+
+export function billingPage(input: { workspace: Workspace; operator: boolean; balance: number; usedThisMonth: number; hasToken: boolean; ledger: LedgerRow[];
+  gatewayUrl: string; token?: string; message?: string; error?: string }): Html {
+  const slug = input.workspace.slug;
+  return h`<h1>Billing · ${input.workspace.name}</h1><p class="muted">Delio credits pay for the AI this workspace uses through Delio's own keys: text, images, video and music.</p>
+${notice(input.message)}${notice(input.error, "error")}
+<div class="card"><div class="row"><div class="grow"><div class="muted">Balance</div><div style="font-size:28px;font-weight:600">${credits(input.balance)} credits</div></div>
+<div class="grow"><div class="muted">Used this month</div><div style="font-size:20px">${credits(input.usedThisMonth)} credits</div></div></div></div>
+${input.operator ? h`<h2>Add credits</h2><form method="post" action="/billing/credit" class="card"><input type="hidden" name="workspace" value="${slug}">
+<label for="credits">Credits (a negative number takes some back)</label><input id="credits" name="credits" inputmode="decimal" required placeholder="2000">
+<label for="note">Note</label><input id="note" name="note" maxlength="200" placeholder="Monthly Pro credits">
+<p><button class="primary">Add</button></p></form>
+<h2>Workspace token</h2><div class="card"><p class="muted">The workspace's server uses this token to reach Delio's AI gateway at <code>${input.gatewayUrl}</code>. Issuing a new one revokes the old one.</p>
+${input.token ? h`<div class="notice">Copy it now, it is shown only once: <code>${input.token}</code></div>` : input.hasToken ? h`<p>A token is active.</p>` : h`<p>No token yet.</p>`}
+<form method="post" action="/billing/token"><input type="hidden" name="workspace" value="${slug}"><button>${input.hasToken ? "Issue a new token" : "Issue a token"}</button></form></div>` : ""}
+<h2>History</h2><div class="card">${input.ledger.length === 0 ? h`<p class="muted">Nothing yet.</p>` : input.ledger.map((row) => h`<div class="row"><div class="grow"><code>${row.kind}</code> <span class="muted">${row.model ?? row.note ?? ""}</span></div>
+<span style="color:${row.delta < 0 ? "var(--ink-2)" : "var(--success)"}">${row.delta > 0 ? "+" : ""}${credits(row.delta / 1_000_000)}</span>
+<span class="muted">${new Date(row.at).toISOString().replace("T", " ").slice(0, 16)}</span></div>`)}</div>`;
 }

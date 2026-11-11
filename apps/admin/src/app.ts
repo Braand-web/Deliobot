@@ -4,7 +4,9 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { HOSTED_CONTRACT_HEADER, HOSTED_CONTRACT_METADATA, HOSTED_CONTRACT_MISMATCH, HOSTED_CONTRACT_VERSION, hostedContractCompatible } from "../../../server/hosted-contract.ts";
 import type { Mailer } from "./mail.ts";
 import { discover, exchangeCode, pkceChallenge, verifyIdToken } from "./oidc.ts";
-import { codePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, slackPage, ssoPage, type Html } from "./pages.ts";
+import { createGateway, type GatewayOptions } from "./gateway.ts";
+import { MICRO, Wallet } from "./wallet.ts";
+import { billingPage, codePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, slackPage, ssoPage, type Html } from "./pages.ts";
 import { normalizeEmail, token, validEmail, validSlug, type Account, type AdminStore, type Role, type Workspace } from "./store.ts";
 
 export interface AdminAppOptions {
@@ -18,6 +20,8 @@ export interface AdminAppOptions {
   now?: () => number;
   /** Tests only: lets a fixture identity provider run over plain HTTP. */
   allowHttpProviders?: boolean;
+  /** The operator's provider keys and upstreams for the paid gateway; a provider without a key is refused there. */
+  gateway?: Omit<GatewayOptions, "store" | "wallet" | "publicUrl" | "fetchImpl" | "now"> & { creditUsd?: number };
 }
 
 const MAX_BODY = 16 * 1024;
@@ -93,6 +97,8 @@ export function createAdminApp(options: AdminAppOptions): (req: IncomingMessage,
   const secure = publicUrl.protocol === "https:";
   const cookieName = secure ? "__Host-delio-admin" : "delio-admin";
   const ssoRedirectUri = new URL(SSO_CALLBACK_PATH, publicUrl).href;
+  const wallet = new Wallet(store.db, { now, creditUsd: options.gateway?.creditUsd });
+  const gateway = createGateway({ ...options.gateway, store, wallet, publicUrl, fetchImpl, now });
 
   function sessionCookie(value: string, maxAgeSeconds: number): string {
     return `${cookieName}=${value}; Path=/; Max-Age=${maxAgeSeconds}; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}`;
@@ -222,6 +228,7 @@ export function createAdminApp(options: AdminAppOptions): (req: IncomingMessage,
       return;
     }
     if (path === "/api/health") return json(res, 200, { ok: true, service: "delio-admin", ...HOSTED_CONTRACT_METADATA });
+    if (await gateway.handle(req, res, url)) return;
     if (path === "/api/handoff/consume" || path === "/api/handoff/check") {
       if (method !== "POST") return json(res, 405, { error: "method not allowed" });
       return handoff(req, res, path === "/api/handoff/consume" ? "consume" : "check");
@@ -412,12 +419,40 @@ export function createAdminApp(options: AdminAppOptions): (req: IncomingMessage,
       return redirect(res, `/sso?workspace=${workspace.slug}&done=1`);
     }
 
+    if (method === "GET" && path === "/billing") {
+      const workspace = requireWorkspaceAdmin(user, url.searchParams.get("workspace") ?? "");
+      return html(res, 200, { title: "Billing", email: user.email, body: billing(workspace, user, { message: url.searchParams.get("done") ? "Saved." : undefined }) });
+    }
+    if (method === "POST" && (path === "/billing/credit" || path === "/billing/token")) {
+      const body = await readBody(req);
+      const workspace = requireWorkspaceAdmin(user, text(body, "workspace", 64));
+      if (!operators.has(user.email)) throw new HttpError(403, "Only operators can add credits or issue workspace tokens.");
+      if (path === "/billing/token") {
+        const issued = wallet.issueToken(workspace.slug);
+        store.audit(workspace.slug, user.email, "gateway.token", null);
+        return html(res, 200, { title: "Billing", email: user.email, body: billing(workspace, user, { token: issued }) });
+      }
+      const credits = Number(text(body, "credits", 16));
+      if (!Number.isFinite(credits) || credits === 0 || Math.abs(credits) > 10_000_000) {
+        return html(res, 400, { title: "Billing", email: user.email, body: billing(workspace, user, { error: "Enter a number of credits." }) });
+      }
+      wallet.credit(workspace.slug, Math.round(credits * MICRO), credits > 0 ? "grant" : "adjust", text(body, "note", 200) || null);
+      store.audit(workspace.slug, user.email, "credits.add", String(credits));
+      return redirect(res, `/billing?workspace=${workspace.slug}&done=1`);
+    }
+
     if (method === "GET" && path === "/slack") {
       const workspace = requireWorkspaceAdmin(user, url.searchParams.get("workspace") ?? "");
       return html(res, 200, { title: "Slack", email: user.email, body: slackPage(workspace) });
     }
 
     throw new HttpError(404, "Not found.");
+  }
+
+  function billing(workspace: Workspace, user: Account, extra: { message?: string; error?: string; token?: string }): Html {
+    return billingPage({ workspace, operator: operators.has(user.email), balance: wallet.balance(workspace.slug) / MICRO,
+      usedThisMonth: wallet.usedThisMonth(workspace.slug) / MICRO, hasToken: wallet.hasToken(workspace.slug), ledger: wallet.ledger(workspace.slug, 30),
+      gatewayUrl: new URL(`/api/gateway/${workspace.slug}`, publicUrl).href, ...extra });
   }
 
   function people(workspace: Workspace, user: Account, extra: { message?: string; error?: string; inviteLink?: string }): Html {
