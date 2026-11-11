@@ -1,0 +1,12 @@
+{
+  "name": "delio-mascot-3d",
+  "private": true,
+  "description": "Renders the Delio mascot's expressions with three.js in headless Chromium.",
+  "type": "commonjs",
+  "scripts": {
+    "render": "node render.cjs"
+  },
+  "dependencies": {
+    "three": "0.170.0"
+  }
+}

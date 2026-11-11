@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { CursorAvatar } from "@/components/CursorAvatar";
 import { MASCOT_BODIES } from "../../shared/mascot-bodies";
-import { steelBodyImage, type SteelImage } from "./steel-body";
+import { PICTURE_EXPRESSION, STEEL_IMAGES, steelBodyImage, type SteelImage } from "./steel-body";
 
 const images: SteelImage[] = [40, 56, 88, 128, 192, 256].map((px) => ({ body: "cursor", px, url: `/steel/cursor-${px}.webp` }));
 
@@ -16,6 +16,26 @@ describe("MausBot's rendered steel body", () => {
     expect(steelBodyImage("cursor", 96, 2, images)).toBe("/steel/cursor-192.webp");
     expect(steelBodyImage("cursor", 112, 3, images)).toBe("/steel/cursor-256.webp");
     expect(steelBodyImage("cursor", 28, 0, images)).toBe("/steel/cursor-40.webp");
+  });
+
+  it("shows the picture for the state's expression, and the resting face when that expression has none", () => {
+    const faces: SteelImage[] = [
+      ...images,
+      ...[40, 256].map((px) => ({ body: "cursor", px, url: `/steel/cursor.happy-${px}.webp`, expression: "happy" as const })),
+    ];
+    expect(steelBodyImage("cursor", 20, 2, faces, "laughing")).toBe("/steel/cursor.happy-40.webp");
+    expect(steelBodyImage("cursor", 112, 2, faces, "happy")).toBe("/steel/cursor.happy-256.webp");
+    expect(steelBodyImage("cursor", 20, 2, faces, "idle")).toBe("/steel/cursor-40.webp");
+    expect(steelBodyImage("cursor", 20, 2, faces, "sleeping")).toBe("/steel/cursor-40.webp");
+    expect(steelBodyImage("cursor", 20, 2, faces)).toBe("/steel/cursor-40.webp");
+  });
+
+  it("ships a resting face and every expression in each size", () => {
+    const own = STEEL_IMAGES.filter((image) => image.body === "cursor");
+    const sizes = [40, 56, 88, 128, 192, 256];
+    for (const expression of [undefined, ...new Set(Object.values(PICTURE_EXPRESSION))].filter((e) => e !== "idle")) {
+      expect(own.filter((image) => image.expression === expression).map((image) => image.px)).toEqual(sizes);
+    }
   });
 
   it("keeps the drawn steel for a body with no images", () => {

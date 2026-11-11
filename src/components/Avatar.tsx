@@ -195,7 +195,7 @@ function GradientAvatarComponent(
         size={size}
         silhouette={silhouette}
         gradient={gradient ?? gradientFor(color)}
-        picture={chrome && !faceInk ? steelBodyImage(silhouette.id, size, globalThis.devicePixelRatio ?? 1) : null}
+        picture={chrome && !faceInk ? steelBodyImage(silhouette.id, size, globalThis.devicePixelRatio ?? 1, undefined, motionState ?? state) : null}
         eyeColor={faceInk ?? (chrome ? CHROME_EYES : undefined)}
         title={label ?? null}
         lookAround={lookAround ?? (forward ? 0 : 1)}

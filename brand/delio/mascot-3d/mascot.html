@@ -1,0 +1,247 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:transparent}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
+</head><body>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const q = new URLSearchParams(location.search);
+const SIZE = Number(q.get('size') || 1024);
+const EXPR = q.get('expr') || 'idle';
+const FRAME = q.get('frame') || 'full';   // full | icon
+const YAW = Number(q.get('yaw') ?? -0.38);
+
+/** Each expression: eye shape, mouth shape, gaze, antenna glow, blush strength. */
+const EXPRESSIONS = {
+  idle:      { eyes: 'open',   mouth: 'smile', orb: 1.0 },
+  happy:     { eyes: 'happy',  mouth: 'grin',  orb: 1.2, blush: 1.3 },
+  thinking:  { eyes: 'open',   mouth: 'flat',  orb: 1.5, gaze: [0.9, 1] },
+  working:   { eyes: 'squint', mouth: 'flat',  orb: 1.7 },
+  surprised: { eyes: 'round',  mouth: 'o',     orb: 1.4 },
+  curious:   { eyes: 'curious', mouth: 'smile', orb: 1.2, gaze: [-0.6, 0.3] },
+  listening: { eyes: 'open',   mouth: 'o-small', orb: 2.0, glow: 1.6 },
+  sad:       { eyes: 'sad',    mouth: 'frown', orb: 0.5, gaze: [0, -0.8] },
+  proud:     { eyes: 'happy',  mouth: 'smile', orb: 1.3, blush: 1.6 },
+  sleeping:  { eyes: 'closed', mouth: 'small', orb: 0.15, z: true },
+};
+const E = { blush: 1, gaze: [0, 0], glow: 1, ...EXPRESSIONS[EXPR] };
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(SIZE, SIZE);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+
+const scene = new THREE.Scene();
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.06).texture;
+scene.environmentIntensity = 0.7;
+scene.add(new THREE.HemisphereLight(0xffffff, 0xb9c0e0, 0.6));
+const key = new THREE.DirectionalLight(0xffffff, 1.3); key.position.set(-3, 4.5, 4); scene.add(key);
+const fill = new THREE.DirectionalLight(0xe4e8ff, 0.35); fill.position.set(3, 0, 3); scene.add(fill);
+const rim = new THREE.DirectionalLight(0x9db4ff, 1.4); rim.position.set(2.5, 2, -3.5); scene.add(rim);
+
+const sm = (a, b, t) => { const k = Math.min(1, Math.max(0, (t - a) / (b - a))); return k * k * (3 - 2 * k); };
+
+/* The body: a tall soft gumdrop that leans a little left at the crown and swells to the lower right. */
+function bodyGeometry() {
+  const geo = new THREE.SphereGeometry(1, 220, 160);
+  const p = geo.attributes.position, v = new THREE.Vector3();
+  for (let i = 0; i < p.count; i++) {
+    v.fromBufferAttribute(p, i);
+    let { x, y, z } = v;
+    const w = 1 + 0.2 * sm(0.7, -0.8, v.y);
+    x *= w; z *= w * 0.9;
+    y = y > 0 ? y * 1.0 : y * 0.92;
+    const crown = 1 + 0.08 * sm(0.2, 0.9, v.y);
+    x *= crown; z *= crown;
+    x -= 0.05 * sm(0.0, 1.0, v.y);
+    x += 0.16 * sm(0.2, -0.9, v.y) * Math.max(0, v.x);
+    if (y < -0.82) y = -0.82 + (y + 0.82) * 0.2;
+    p.setXYZ(i, x, y, z);
+  }
+  geo.computeVertexNormals();
+  return geo;
+}
+
+const white = new THREE.MeshPhysicalMaterial({
+  color: 0xf8f8fd, roughness: 0.6, sheen: 1, sheenRoughness: 0.45, sheenColor: new THREE.Color('#d6dcff'),
+  clearcoat: 0.08, clearcoatRoughness: 0.7,
+});
+const recess = new THREE.MeshPhysicalMaterial({ color: 0xc9cbdc, roughness: 0.7 });
+const ink = new THREE.MeshPhysicalMaterial({
+  color: 0x101330, roughness: 0.1, clearcoat: 1, clearcoatRoughness: 0.04,
+  iridescence: 0.8, iridescenceIOR: 1.5, iridescenceThicknessRange: [250, 650],
+});
+const mouthInk = new THREE.MeshStandardMaterial({ color: 0x15172b, roughness: 0.5 });
+
+function radial(stops, size = 256) {
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const x = c.getContext('2d'), g = x.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  stops.forEach(([o, col]) => g.addColorStop(o, col)); x.fillStyle = g; x.fillRect(0, 0, size, size);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+function linear(stops, size = 256) {
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const x = c.getContext('2d'), g = x.createLinearGradient(0, 0, size, size * 0.4);
+  stops.forEach(([o, col]) => g.addColorStop(o, col)); x.fillStyle = g; x.fillRect(0, 0, size, size);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+
+const mascot = new THREE.Group();
+const body = new THREE.Mesh(bodyGeometry(), white);
+mascot.add(body);
+body.updateMatrixWorld();
+
+const ray = new THREE.Raycaster();
+function hitFront(x, y) {
+  ray.set(new THREE.Vector3(x, y, 5), new THREE.Vector3(0, 0, -1));
+  const h = ray.intersectObject(body)[0];
+  return { point: h.point, normal: h.face.normal.clone() };
+}
+function hitTop(x, z) {
+  ray.set(new THREE.Vector3(x, 5, z), new THREE.Vector3(0, -1, 0));
+  const h = ray.intersectObject(body)[0];
+  return { point: h.point, normal: h.face.normal.clone() };
+}
+function stick(obj, x, y, lift = 0, spin = 0) {
+  const { point, normal } = hitFront(x, y);
+  obj.position.copy(point).addScaledVector(normal, lift);
+  obj.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
+  obj.rotateZ(spin);
+  mascot.add(obj);
+  return obj;
+}
+
+/* Antenna: a root that melts into the crown, a stalk that curls right, a glowing orb. */
+const root = hitTop(-0.22, 0.05);
+const lathe = new THREE.LatheGeometry([
+  [0.25, -0.05], [0.18, -0.01], [0.135, 0.04], [0.112, 0.09], [0.105, 0.14],
+].map(([r, y]) => new THREE.Vector2(r, y)), 64);
+const rootMesh = new THREE.Mesh(lathe, white);
+rootMesh.position.copy(root.point);
+rootMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), root.normal.clone().lerp(new THREE.Vector3(0, 1, 0), 0.4).normalize());
+mascot.add(rootMesh);
+const top = root.point.clone().add(new THREE.Vector3(0, 0.14, 0));
+const curve = new THREE.CatmullRomCurve3([
+  top.clone().add(new THREE.Vector3(0, -0.08, 0)), top.clone().add(new THREE.Vector3(0.02, 0.1, 0.02)),
+  top.clone().add(new THREE.Vector3(0.12, 0.24, 0.04)), top.clone().add(new THREE.Vector3(0.3, 0.27, 0.05)),
+]);
+mascot.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 80, 0.105, 32, false), white));
+const orbPos = top.clone().add(new THREE.Vector3(0.5, 0.3, 0.05));
+const orbTex = linear([[0, '#2db8ff'], [0.25, '#3cc3ff'], [0.5, '#5a7dff'], [0.75, '#a46cff'], [1, '#c58bff']]);
+const orbShade = new THREE.Color().setScalar(Math.min(1, 0.35 + 0.65 * Math.min(1, E.orb)));
+const orbGeo = new THREE.SphereGeometry(0.24, 64, 48);
+{
+  const pos = orbGeo.attributes.position, cols = [], a = new THREE.Color('#38b6ff'), m = new THREE.Color('#6a7cff'), b = new THREE.Color('#b87cff'), c = new THREE.Color();
+  for (let i = 0; i < pos.count; i++) {
+    const t = Math.min(1, Math.max(0, (pos.getX(i) - pos.getY(i) * 0.35) / 0.48 + 0.5));
+    c.copy(t < 0.5 ? a : m).lerp(t < 0.5 ? m : b, t < 0.5 ? t * 2 : t * 2 - 1).multiply(orbShade);
+    cols.push(c.r, c.g, c.b);
+  }
+  orbGeo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
+}
+const orb = new THREE.Mesh(orbGeo, new THREE.MeshStandardMaterial({ vertexColors: true, emissive: 0x000000, roughness: 0.3, toneMapped: false }));
+orb.onBeforeRender = () => {};
+orb.material.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('vec3 totalEmissiveRadiance = emissive;', `vec3 totalEmissiveRadiance = vColor * ${(0.45 + 0.4 * Math.min(1.4, E.orb)).toFixed(2)};`); };
+const orbSheen = new THREE.Mesh(new THREE.SphereGeometry(0.232, 64, 48), new THREE.MeshPhysicalMaterial({
+  color: 0xffffff, transparent: true, opacity: 0.12, roughness: 0.2, clearcoat: 1, clearcoatRoughness: 0.2 }));
+orb.position.copy(orbPos); mascot.add(orb); orbSheen.position.copy(orbPos); mascot.add(orbSheen);
+const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: radial([[0, `rgba(110,160,255,${0.55 * Math.min(1, E.orb)})`], [0.4, `rgba(150,120,255,${0.22 * Math.min(1, E.orb)})`], [1, 'rgba(150,120,255,0)']]),
+  transparent: true, depthWrite: false,
+}));
+glow.position.copy(orbPos); glow.scale.setScalar(1.1 * E.glow); mascot.add(glow);
+const orbLight = new THREE.PointLight(0x7f9cff, 1.6 * E.orb, 3, 2);
+orbLight.position.copy(orbPos).add(new THREE.Vector3(-0.1, -0.15, 0.25)); mascot.add(orbLight);
+
+/* Face. Coordinates are on the front of the body before it turns. */
+const EY = 0.36, DX = 0.29, TILT = 0.3;
+const [gx, gy] = E.gaze;
+function eyeOpen(s, hScale = 1, wScale = 1, lift = 0) {
+  const x = s * DX + gx * 0.035, y = EY + gy * 0.035;
+  const hole = new THREE.Mesh(new THREE.CapsuleGeometry(0.158 * wScale, 0.18 * hScale, 16, 48), recess);
+  hole.scale.set(1, 1, 0.22); stick(hole, x, y, -0.012, TILT);
+  const eye = new THREE.Mesh(new THREE.CapsuleGeometry(0.144 * wScale, 0.17 * hScale, 16, 48), ink);
+  eye.scale.set(1, 1, 0.3); stick(eye, x, y, -0.006 + lift, TILT);
+  const hi = new THREE.Mesh(new THREE.PlaneGeometry(0.2 * wScale, 0.16 * Math.max(0.5, hScale)), new THREE.MeshBasicMaterial({
+    map: radial([[0, 'rgba(190,205,255,0.95)'], [0.35, 'rgba(140,150,255,0.55)'], [1, 'rgba(150,120,255,0)']]),
+    transparent: true, depthWrite: false, toneMapped: false }));
+  stick(hi, x + 0.03 * wScale + gx * 0.02, y + 0.1 * hScale + gy * 0.02, 0.045, TILT + 0.5);
+}
+function arcEye(s, up, arc = Math.PI * 0.82, r = 0.13) {
+  const g = new THREE.TorusGeometry(r, 0.04, 16, 64, arc);
+  const spin = (up ? Math.PI / 2 : -Math.PI / 2) - arc / 2;
+  stick(new THREE.Mesh(g, ink), s * DX, EY - (up ? 0.03 : 0), 0.0, spin + TILT * 0.4);
+}
+for (const s of [-1, 1]) {
+  switch (E.eyes) {
+    case 'open': eyeOpen(s); break;
+    case 'squint': eyeOpen(s, 0.25, 1.05); break;
+    case 'round': eyeOpen(s, 0.55, 1.28); break;
+    case 'curious': eyeOpen(s, s < 0 ? 0.8 : 1.15, s < 0 ? 0.95 : 1.08); break;
+    case 'sad': eyeOpen(s, 0.75, 0.95); break;
+    case 'happy': arcEye(s, true); break;
+    case 'closed': arcEye(s, false, Math.PI * 0.7, 0.115); break;
+  }
+}
+const MY = EY - 0.3, MX = 0.05;
+const arcMouth = (up, arc, r, t = 0.022) => stick(new THREE.Mesh(new THREE.TorusGeometry(r, t, 16, 48, arc), mouthInk),
+  MX, MY - (up ? 0.02 : 0), 0, (up ? Math.PI / 2 : -Math.PI / 2) - arc / 2);
+switch (E.mouth) {
+  case 'smile': arcMouth(false, Math.PI * 0.78, 0.11, 0.034); break;
+  case 'small': arcMouth(false, Math.PI * 0.7, 0.07, 0.026); break;
+  case 'frown': arcMouth(true, Math.PI * 0.7, 0.085, 0.032); break;
+  case 'flat': stick(new THREE.Mesh(new THREE.CapsuleGeometry(0.03, 0.11, 8, 16), mouthInk), MX, MY - 0.03, 0, Math.PI / 2); break;
+  case 'o': { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), mouthInk); m.scale.set(0.075, 0.095, 0.02); stick(m, MX, MY - 0.05, 0); break; }
+  case 'o-small': { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), mouthInk); m.scale.set(0.05, 0.055, 0.015); stick(m, MX, MY - 0.035, 0); break; }
+  case 'grin': {
+    const m = new THREE.Mesh(new THREE.CircleGeometry(0.14, 48, Math.PI, Math.PI), mouthInk); stick(m, MX, MY + 0.02, 0.006);
+    const t = new THREE.Mesh(new THREE.CircleGeometry(0.07, 32, Math.PI, Math.PI), new THREE.MeshStandardMaterial({ color: 0xf28fa8, roughness: 0.6 }));
+    stick(t, MX, MY - 0.06, 0.012); break;
+  }
+}
+const cheek = (x, y, w, h, col) => stick(new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({
+  map: radial([[0, col(0.7 * E.blush)], [0.5, col(0.3 * E.blush)], [1, col(0)]]), transparent: true, depthWrite: false, toneMapped: false,
+})), x, y, 0.025);
+cheek(-0.5, EY - 0.42, 0.72, 0.6, (a) => `rgba(95,180,255,${a})`);
+cheek(0.5, EY - 0.36, 0.55, 0.45, (a) => `rgba(215,150,255,${a})`);
+
+if (E.z) {
+  const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d');
+  x.font = '800 150px Manrope, Arial, sans-serif'; x.fillStyle = 'rgba(160,170,215,0.9)'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('z', 128, 128);
+  const tex = new THREE.CanvasTexture(c);
+  [[0.75, 1.0, 0.28], [1.0, 1.3, 0.2]].forEach(([px, py, s]) => {
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+    sp.position.set(px, py, 0.3); sp.scale.setScalar(s); mascot.add(sp);
+  });
+}
+
+mascot.rotation.y = YAW;
+scene.add(mascot);
+
+const camera = new THREE.PerspectiveCamera(24, 1, 0.1, 100);
+if (FRAME === 'icon') {
+  camera.position.set(0.55, 0.45, 5.4); camera.lookAt(0.55, 0.45, 0);
+  mascot.position.set(-0.05, -0.55, 0); mascot.scale.setScalar(1.25);
+} else {
+  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.3), new THREE.MeshBasicMaterial({
+    map: radial([[0, 'rgba(30,32,70,0.22)'], [1, 'rgba(30,32,70,0)']]), transparent: true, depthWrite: false }));
+  shadow.rotation.x = -Math.PI / 2; shadow.position.set(0.05, -0.83, 0); scene.add(shadow);
+  camera.position.set(0, 0.62, 9.6); camera.lookAt(0, 0.52, 0);
+}
+renderer.render(scene, camera);
+
+let out = renderer.domElement;
+if (FRAME === 'icon') {
+  out = document.createElement('canvas'); out.width = out.height = SIZE;
+  const x = out.getContext('2d');
+  x.fillStyle = '#1c1d23'; x.fillRect(0, 0, SIZE, SIZE);
+  x.drawImage(renderer.domElement, 0, 0);
+}
+document.body.appendChild(out);
+window.__png = out.toDataURL('image/png');
+window.__done = true;
+</script></body></html>
