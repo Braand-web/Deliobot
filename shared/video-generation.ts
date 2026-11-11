@@ -5,7 +5,8 @@ export type VideoProvider = (typeof VIDEO_PROVIDERS)[number];
 export const VIDEO_ASPECTS = ["16:9", "9:16", "1:1"] as const;
 export type VideoAspect = (typeof VIDEO_ASPECTS)[number];
 
-export const VIDEO_DEFAULT_MODEL = "fal-ai/kling-video/v2.5-turbo/pro/text-to-video";
+/** Auto chooses per request; the video settings offer it first. */
+export const VIDEO_DEFAULT_MODEL = "auto";
 export const VIDEO_SECONDS_DEFAULT = 5;
 export const VIDEO_SECONDS_MAX = 10;
 export const VIDEO_MAX_PER_TURN_DEFAULT = 1;
@@ -15,6 +16,7 @@ export interface VideoModelChoice { id: string; name: string }
 
 /** Offered first in Settings; fal.ai's live catalog adds the rest, and any other ID can be typed. */
 export const VIDEO_MODEL_CHOICES: readonly VideoModelChoice[] = [
+  { id: "auto", name: "Auto" },
   { id: "fal-ai/kling-video/v2.5-turbo/pro/text-to-video", name: "Kling 2.5 Turbo Pro" },
   { id: "fal-ai/kling-video/v3/standard/text-to-video", name: "Kling 3 Standard" },
   { id: "alibaba/wan-3.0/text-to-video", name: "Wan 3.0" },
@@ -27,6 +29,7 @@ export const VIDEO_MODEL_CHOICES: readonly VideoModelChoice[] = [
 export interface VideoGenerationConfig {
   /** Off until the person turns it on: a video costs far more than an image. */
   enabled?: boolean;
+  /** A fal.ai text-to-video model ID, or "auto" (the default) to choose per request. */
   model?: string;
   /** The longest clip a bot may ask for, in seconds. */
   maxSeconds?: number;

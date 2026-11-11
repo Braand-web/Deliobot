@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { IMAGE_DEFAULT_MODELS, IMAGE_PROVIDERS, looksLikeApiKey, normalizeImageGenerationUrl, type ImageGenerationConfig, type ImageProvider } from "../shared/image-generation.ts";
 import { decodeGeneratedImage } from "./generated-image.ts";
+import { autoImageModel, MEDIA_AUTO } from "./media-auto.ts";
 import { createFalSchemaCache, FAL_QUEUE_URL, falDownload, falError, falInput, falRun } from "./fal.ts";
 
 export const IMAGE_GENERATION_TIMEOUT_MS = 120_000;
@@ -36,9 +37,11 @@ export interface ImageRequest {
 export interface GeneratedImage {
   bytes: Buffer;
   mime: "image/png" | "image/jpeg" | "image/webp";
+  /** The model that made it, when the slot named Auto. */
+  model?: string;
 }
 
-export interface GeneratedSlotImage extends GeneratedImage, ImageSlot {
+export interface GeneratedSlotImage extends Omit<GeneratedImage, "model">, ImageSlot {
   usedFallback: boolean;
   /** Why the base did not make it, when the backup did. */
   baseError?: string;
@@ -208,14 +211,15 @@ const IMAGE_MIMES = ["image/png", "image/jpeg", "image/webp"] as const;
 const IMAGE_DOWNLOAD_MAX_BYTES = 10 * 1024 * 1024;
 
 /** fal.ai answers with a URL on its media host, not inline data; `falDownload` holds that URL to fal's own hosts. */
-async function generateFalImage(key: string, model: string, request: ImageRequest, fetchImpl: typeof fetch, timeoutMs: number, cancel?: AbortSignal): Promise<GeneratedImage> {
+async function generateFalImage(key: string, slotModel: string, request: ImageRequest, fetchImpl: typeof fetch, timeoutMs: number, cancel?: AbortSignal): Promise<GeneratedImage> {
+  const model = slotModel === MEDIA_AUTO ? autoImageModel(request.prompt) : slotModel;
   const fields = await falSchemas(model, { key, fetchImpl });
   const result = await falRun(model, falInput(fields, { prompt: request.prompt, aspect: request.aspect ?? "1:1" }), { key, fetchImpl, timeoutMs, signal: cancel });
   const images = Array.isArray(result.images) ? result.images : [];
   const url = images.map((image) => (image && typeof image === "object" ? (image as { url?: unknown }).url : undefined)).find((value): value is string => typeof value === "string");
   if (!url) throw falError(`fal.ai returned no image (model ${model})`, 502);
   const file = await falDownload(url, { maxBytes: IMAGE_DOWNLOAD_MAX_BYTES, mimes: IMAGE_MIMES, fetchImpl, timeoutMs: 60_000, signal: cancel });
-  return { bytes: file.bytes, mime: file.mime as GeneratedImage["mime"] };
+  return { bytes: file.bytes, mime: file.mime as GeneratedImage["mime"], model };
 }
 
 export async function generateImageWith(
@@ -303,11 +307,10 @@ export async function generateImage(
   options: { slot?: "primary" | "fallback"; fetchImpl?: typeof fetch; timeoutMs?: number; signal?: AbortSignal } = {},
 ): Promise<GeneratedSlotImage> {
   const { primary, fallback } = imageSlots(cfg);
-  const attempt = async (slot: ImageSlot, usedFallback: boolean): Promise<GeneratedSlotImage> => ({
-    ...await generateImageWith(cfg, slot, request, options.fetchImpl, options.timeoutMs, options.signal),
-    ...slot,
-    usedFallback,
-  });
+  const attempt = async (slot: ImageSlot, usedFallback: boolean): Promise<GeneratedSlotImage> => {
+    const image = await generateImageWith(cfg, slot, request, options.fetchImpl, options.timeoutMs, options.signal);
+    return { bytes: image.bytes, mime: image.mime, provider: slot.provider, model: image.model ?? slot.model, usedFallback };
+  };
   if (options.slot === "fallback") {
     if (!fallback) fail("No backup image provider is set", 409);
     return attempt(fallback, true);

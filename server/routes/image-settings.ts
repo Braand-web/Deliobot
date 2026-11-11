@@ -2,6 +2,7 @@
 import { z } from "zod";
 
 import { IMAGE_MODEL_CHOICES, IMAGE_PROVIDERS, type ImageProvider, type ImageProviderTest } from "../../shared/image-generation.ts";
+import { MUSIC_MODEL_CHOICES } from "../../shared/music-generation.ts";
 import { VIDEO_MODEL_CHOICES } from "../../shared/video-generation.ts";
 import { avatarGenerationRequestSchema, generateAvatarImage } from "../avatar-image.ts";
 import { parseBotProfilePatch } from "../bot-profile.ts";
@@ -78,7 +79,7 @@ export async function testImageProvider(cfg: ImageCredentials, provider: ImagePr
 
 export function createImageSettingsRoutes(deps: { config: () => ImageCredentials; fetch?: typeof fetch }): RouteHandler {
   const models = createOpenRouterModelCatalog({ fetch: deps.fetch, output: "image", curated: IMAGE_MODEL_CHOICES.openrouter });
-  const falModels = createFalModelCatalog({ fetch: deps.fetch, curated: { image: IMAGE_MODEL_CHOICES.fal, video: VIDEO_MODEL_CHOICES } });
+  const falModels = createFalModelCatalog({ fetch: deps.fetch, curated: { image: IMAGE_MODEL_CHOICES.fal, video: VIDEO_MODEL_CHOICES, music: MUSIC_MODEL_CHOICES } });
   return async ({ req, res, url, path, method, json, readBody }) => {
     if (method === "POST" && path === "/api/bot-defaults/avatar") {
       const body = await readBody(req);
@@ -98,7 +99,7 @@ export function createImageSettingsRoutes(deps: { config: () => ImageCredentials
     }
     if (path === "/api/media/fal-models" && method === "GET") {
       const kind = url.searchParams.get("kind");
-      if (kind !== "image" && kind !== "video") return json(res, 400, { error: "kind must be image or video" });
+      if (kind !== "image" && kind !== "video" && kind !== "music") return json(res, 400, { error: "kind must be image, video or music" });
       res.setHeader("cache-control", "no-store");
       return json(res, 200, await falModels.load(kind));
     }

@@ -86,6 +86,8 @@ export interface ConfigStatus {
     ready: boolean;
     voice: string;
     provider?: "elevenlabs" | "fish" | "system" | "chatterbox" | "xai" | "gemini" | "openai";
+    /** The person chose Auto: `provider` is the one Auto picked from those set up here. */
+    auto?: boolean;
     baseUrl?: string;
     model?: string;
     /** Voice note with every reply, for every bot without its own choice. Absent from older servers. */
@@ -141,6 +143,8 @@ export interface ConfigStatus {
   };
   /** Video clips on fal.ai: the saved choices, and whether bots are offered generate_video now. */
   videoGen?: import("../../shared/video-generation").VideoGenerationConfig & { ready: boolean };
+  /** Music, songs and sound effects on fal.ai, as `videoGen`. */
+  musicGen?: import("../../shared/music-generation").MusicGenerationConfig & { ready: boolean };
   /** who's using the app — collected in onboarding, shown in the sidebar */
   profile?: { name: string; email: string; aboutMe?: string; avatarUrl?: string };
   /** Rules every bot follows, ahead of its department's context and its own instructions; sent to admins only. */

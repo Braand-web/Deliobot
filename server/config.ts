@@ -9,6 +9,7 @@ import { z } from "zod";
 import type { ImageGenerationConfig } from "../shared/image-generation.ts";
 import { validFalModel } from "./fal.ts";
 import { VIDEO_SECONDS_MAX, type VideoGenerationConfig } from "../shared/video-generation.ts";
+import { MUSIC_SECONDS_MAX, type MusicGenerationConfig } from "../shared/music-generation.ts";
 import { imageGenConfigSchema, imageGenPatchSchema, keepKeysOutOfImageModels, type ImageGenCredentialPatch } from "./image-generation-config.ts";
 import { botAvatarUrlSchema } from "../shared/bot-avatar.ts";
 import { writeFileAtomic } from "./atomic.ts";
@@ -305,6 +306,8 @@ const threadsPatchSchema = threadsConfigSchema.extend({
   eventLogMaxBytes: threadsConfigSchema.shape.eventLogMaxBytes.nullable(),
   eventLogRetentionDays: threadsConfigSchema.shape.eventLogRetentionDays.nullable(),
 });
+const falModelSetting = z.string().trim().max(200).refine((value) => !value || value === "auto" || validFalModel(value), "Use a fal.ai model ID, such as fal-ai/flux/schnell, or auto");
+
 const appConfigSchema = z.object({
   /** Set only by the verified domain endpoint, never by a config patch. */
   customDomain: z.string().optional(),
@@ -374,7 +377,7 @@ const appConfigSchema = z.object({
     fishKey: optionalText,
     geminiKey: optionalText,
     voice: optionalText,
-    provider: z.enum(["elevenlabs", "fish", "system", "chatterbox", "xai", "gemini", "openai"]).optional(),
+    provider: z.enum(["auto", "elevenlabs", "fish", "system", "chatterbox", "xai", "gemini", "openai"]).optional(),
     baseUrl: z
       .string()
       .trim()
@@ -388,10 +391,20 @@ const appConfigSchema = z.object({
   live: liveConfigSchema.optional(),
   /** Image provider credentials stay separate; choosing a router never reuses a cloud key. */
   imageGen: imageGenConfigSchema.optional(),
+  /** The model Auto picks for each tier, when the engine's catalog has it; unset tiers are chosen from the catalog. */
+  auto: z.object({ light: optionalText, standard: optionalText, power: optionalText }).strict().optional(),
+  /** Music, songs and sound effects bots make on fal.ai with `fal.key`; off unless `enabled`. */
+  musicGen: z.object({
+    enabled: z.boolean().optional(),
+    model: falModelSetting.optional(),
+    maxSeconds: z.number().int().min(1).max(MUSIC_SECONDS_MAX).optional(),
+    maxPerTurn: z.number().int().min(1).max(4).optional(),
+    dailyCap: z.number().int().min(1).max(500).optional(),
+  }).strict().optional(),
   /** Video clips bots make on fal.ai with `fal.key`; off unless `enabled`. */
   videoGen: z.object({
     enabled: z.boolean().optional(),
-    model: z.string().trim().max(200).refine((value) => !value || validFalModel(value), "Use a fal.ai model ID, such as fal-ai/kling-video/v2.5-turbo/pro/text-to-video").optional(),
+    model: falModelSetting.optional(),
     maxSeconds: z.number().int().min(1).max(VIDEO_SECONDS_MAX).optional(),
     maxPerTurn: z.number().int().min(1).max(4).optional(),
     dailyCap: z.number().int().min(1).max(500).optional(),
@@ -483,10 +496,12 @@ export interface AppConfig extends HelperConfig {
   /** A named host from the user's SSH config. Authentication stays with SSH. */
   vps?: { sshAlias?: string };
   opencodeGo?: { apiKey?: string; providerKeys?: Record<string, string> };
-  tts?: { key?: string; fishKey?: string; geminiKey?: string; voice?: string; provider?: "elevenlabs" | "fish" | "system" | "chatterbox" | "xai" | "gemini" | "openai"; baseUrl?: string; model?: string; fishModel?: FishTtsModel; everyReply?: boolean };
+  tts?: { key?: string; fishKey?: string; geminiKey?: string; voice?: string; provider?: "auto" | "elevenlabs" | "fish" | "system" | "chatterbox" | "xai" | "gemini" | "openai"; baseUrl?: string; model?: string; fishModel?: FishTtsModel; everyReply?: boolean };
   decider?: DeciderConfig;
   imageGen?: ImageGenerationConfig;
+  auto?: { light?: string; standard?: string; power?: string };
   videoGen?: VideoGenerationConfig;
+  musicGen?: MusicGenerationConfig;
   live?: LiveConfig;
   profile?: { name?: string; email?: string; aboutMe?: string; avatarUrl?: string }; everyBotRules?: string;
   rooms?: { turnTimeoutMinutes: number };
@@ -916,7 +931,7 @@ export function saveConfig(
   const keepImageModels = keepKeysOutOfImageModels(disk, checkedPatch.imageGen);
   const storedProfiles = storedBrowserProfilesSchema.safeParse(disk.browserProfiles);
   if (storedProfiles.success) disk.browserProfiles = storedProfiles.data;
-  for (const key of ["xai", "anthropic", "mistral", "cerebras", "treg", "postiz", "groq", "greenference", "meta", "deepseek", "openai", "openrouter", "fal", "openaiCompat", "composio", "box", "opencodeGo", "tts", "decider", "imageGen", "videoGen", "live", "profile", "rooms", "mcp", "threads", "context", "memory", "localVm", "features", "budgets", "billing", "decisions", "loopGuard", "onboarding", "browserEngine", "newBots", "safetyFloor"] as const) {
+  for (const key of ["xai", "anthropic", "mistral", "cerebras", "treg", "postiz", "groq", "greenference", "meta", "deepseek", "openai", "openrouter", "fal", "openaiCompat", "composio", "box", "opencodeGo", "tts", "decider", "imageGen", "videoGen", "musicGen", "auto", "live", "profile", "rooms", "mcp", "threads", "context", "memory", "localVm", "features", "budgets", "billing", "decisions", "loopGuard", "onboarding", "browserEngine", "newBots", "safetyFloor"] as const) {
     const section = checkedPatch[key];
     if (!section) continue;
     const current = jsonObjectSchema.safeParse(disk[key]);

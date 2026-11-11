@@ -4,7 +4,7 @@ export type ImageProvider = (typeof IMAGE_PROVIDERS)[number];
 
 export const IMAGE_MAX_PER_TURN_DEFAULT = 4;
 export const IMAGE_DEFAULT_MODELS: Record<ImageProvider, string> = {
-  openai: "gpt-image-2", xai: "grok-imagine-image-2.0", gemini: "gemini-2.5-flash-image", openrouter: "google/gemini-2.5-flash-image", fal: "fal-ai/flux/schnell", custom: "",
+  openai: "gpt-image-2", xai: "grok-imagine-image-2.0", gemini: "gemini-2.5-flash-image", openrouter: "google/gemini-2.5-flash-image", fal: "auto", custom: "",
 };
 
 /** What Settings' Test learns about a provider; no image is made. */
@@ -38,6 +38,7 @@ export const IMAGE_MODEL_CHOICES: Record<ImageProvider, readonly ImageModelChoic
     { id: "qwen/qwen-image-3", name: "Qwen: Qwen Image 3" },
   ],
   fal: [
+    { id: "auto", name: "Auto" },
     { id: "fal-ai/flux/schnell", name: "FLUX.1 [schnell]" },
     { id: "fal-ai/nano-banana-pro", name: "Nano Banana Pro" },
     { id: "fal-ai/nano-banana-2", name: "Nano Banana 2" },

@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { falCostUsd, falDownload, falInput, falInputFields, falRun, validFalModel } from "./fal.ts";
 import { generateImage } from "./image-generation.ts";
 import { createImageDailyCap } from "./image-daily-cap.ts";
-import { generateVideoForTurn, type VideoTurn } from "./routes/video-tools.ts";
+import { generateMediaForTurn, type MediaTurn } from "./routes/media-tools.ts";
 import { removeTempDir } from "./testing/cleanup.ts";
 
 const PNG = Buffer.from("89504e470d0a1a0a0000000d4948445200000001000000010806000000", "hex");
@@ -113,7 +113,7 @@ describe("fal.ai images and videos", () => {
     expect(fal.calls.find((call) => call.url.includes("fal.media"))?.auth, "the key never goes to the media host").toBeNull();
   });
 
-  function turn(): VideoTurn & { attached: number } {
+  function turn(): MediaTurn & { attached: number } {
     const state = { attached: 0 };
     return Object.assign(state, { key: "t1", parked: () => state.attached, attach: async () => { state.attached += 1; return true; } });
   }
@@ -125,13 +125,13 @@ describe("fal.ai images and videos", () => {
     const base = { cfg: { fal: { key: "k" }, videoGen: { enabled: true, model: "fal-ai/veo3", maxSeconds: 8 } }, personTurn: true, daily: createImageDailyCap(dir, { cap: 5, file: "v.json" }),
       fetchImpl: fal.fetchImpl, inFlight: new Map<string, number>(), made: (video: unknown) => made.push(video) };
     const own = turn();
-    expect((await generateVideoForTurn({ prompt: "x" }, { ...base, personTurn: false, turn: own })).status).toBe(403);
-    expect((await generateVideoForTurn({ prompt: "x" }, { ...base, cfg: { ...base.cfg, videoGen: { enabled: false } }, turn: own })).status).toBe(409);
-    const ok = await generateVideoForTurn({ prompt: "waves", seconds: 9 }, { ...base, turn: own });
+    expect((await generateMediaForTurn("video", { prompt: "x" }, { ...base, personTurn: false, turn: own })).status).toBe(403);
+    expect((await generateMediaForTurn("video", { prompt: "x" }, { ...base, cfg: { ...base.cfg, videoGen: { enabled: false } }, turn: own })).status).toBe(409);
+    const ok = await generateMediaForTurn("video", { prompt: "waves", seconds: 9 }, { ...base, turn: own });
     expect(ok).toMatchObject({ status: 201 });
     expect(own.attached).toBe(1);
     expect(fal.calls.find((call) => call.method === "POST")?.body, "longer than allowed is held to the limit, then to the model's nearest length").toEqual({ prompt: "waves", duration: "8s" });
     expect(made).toEqual([expect.objectContaining({ model: "fal-ai/veo3", seconds: 8, mime: "video/mp4" })]);
-    expect((await generateVideoForTurn({ prompt: "again" }, { ...base, turn: own })).status, "one video per reply by default").toBe(429);
+    expect((await generateMediaForTurn("video", { prompt: "again" }, { ...base, turn: own })).status, "one video per reply by default").toBe(429);
   });
 });

@@ -7,6 +7,7 @@ import * as grok from "./grok.ts";
 import * as fish from "./fish.ts";
 import * as gemini from "./gemini.ts";
 import * as systemVoices from "./system-voices.ts";
+import { OPENAI_VOICES } from "../../shared/openai-voice.ts";
 
 export type VoiceProvider = "elevenlabs" | "fish" | "system" | "chatterbox" | "xai" | "gemini" | "openai";
 
@@ -27,13 +28,46 @@ export class NoVoiceConfigured extends Error {
 
 const elevenLabs = (cfg: AppConfig) => voiceCredential(cfg.tts?.key);
 
+/** The provider Auto uses: the first one set up here, best first. OpenAI and Gemini have built-in voices; the others need one chosen. */
+export function autoVoiceProvider(cfg: AppConfig): VoiceProvider | null {
+  const voice = Boolean(cfg.tts?.voice?.trim());
+  if (elevenLabs(cfg) && voice) return "elevenlabs";
+  if (cfg.openai?.key) return "openai";
+  if (cfg.tts?.geminiKey) return "gemini";
+  if (cfg.tts?.fishKey && voice) return "fish";
+  if (cfg.xai?.key && voice) return "xai";
+  if (cfg.tts?.baseUrl?.trim() && voice) return "chatterbox";
+  if (systemVoices.systemVoicesAvailable() && voice) return "system";
+  return null;
+}
+
+/** On Auto, the configuration as the chosen provider sees it, with a voice that provider has: a voice of another provider never reaches it. */
+export function resolveAutoVoice(cfg: AppConfig): AppConfig {
+  if (cfg.tts?.provider !== "auto") return cfg;
+  const provider = autoVoiceProvider(cfg) ?? "elevenlabs";
+  const stored = cfg.tts.voice ?? "";
+  const voice = provider === "openai" ? ((OPENAI_VOICES as readonly string[]).includes(stored) ? stored : "marin")
+    : provider === "gemini" ? (gemini.isSupportedVoice(stored) ? stored : "Kore")
+    : stored;
+  return { ...cfg, tts: { ...cfg.tts, provider, voice } };
+}
+
+/** A bot's own voice on Auto, kept only when the chosen provider has it. */
+function autoVoiceId(cfg: AppConfig, voiceId: string | undefined): string | undefined {
+  if (!voiceId || cfg.tts?.provider !== "auto") return voiceId;
+  const provider = autoVoiceProvider(cfg);
+  if (provider === "openai") return (OPENAI_VOICES as readonly string[]).includes(voiceId) ? voiceId : undefined;
+  if (provider === "gemini") return gemini.isSupportedVoice(voiceId) ? voiceId : undefined;
+  return voiceId;
+}
+
 /**
  * Resolves the active voice synthesis provider from configuration.
  * @param cfg The application configuration.
  * @returns The resolved VoiceProvider name.
  */
 export function voiceProvider(cfg: AppConfig): VoiceProvider {
-  const provider = cfg.tts?.provider;
+  const provider = resolveAutoVoice(cfg).tts?.provider;
   return provider === "gemini" || provider === "openai" || provider === "xai" || provider === "fish" || provider === "system" || provider === "chatterbox" ? provider : "elevenlabs";
 }
 
@@ -42,7 +76,8 @@ export function voiceProvider(cfg: AppConfig): VoiceProvider {
  * @param cfg The application configuration.
  * @returns True if provider requirements are configured.
  */
-export function providerConfigured(cfg: AppConfig): boolean {
+export function providerConfigured(original: AppConfig): boolean {
+  const cfg = resolveAutoVoice(original);
   const provider = voiceProvider(cfg);
   if (provider === "gemini") return Boolean(cfg.tts?.geminiKey);
   if (provider === "openai") return Boolean(cfg.openai?.key);
@@ -58,7 +93,8 @@ export function providerConfigured(cfg: AppConfig): boolean {
  * @param cfg The application configuration.
  * @returns True if provider has both key and configured voice.
  */
-export function voiceConfigured(cfg: AppConfig): boolean {
+export function voiceConfigured(original: AppConfig): boolean {
+  const cfg = resolveAutoVoice(original);
   const provider = voiceProvider(cfg);
   if (provider === "gemini") return Boolean(cfg.tts?.geminiKey && gemini.isSupportedVoice(cfg.tts?.voice));
   if (provider === "openai") return Boolean(cfg.openai?.key && cfg.tts?.voice);
@@ -77,7 +113,9 @@ export function voiceConfigured(cfg: AppConfig): boolean {
  * @param voiceId Optional override voice ID.
  * @returns True if ready to synthesize speech.
  */
-export function voiceReady(cfg: AppConfig, voiceId?: string): boolean {
+export function voiceReady(original: AppConfig, ownVoice?: string): boolean {
+  const cfg = resolveAutoVoice(original);
+  const voiceId = autoVoiceId(original, ownVoice);
   const provider = voiceProvider(cfg);
   if (provider === "gemini") return Boolean(cfg.tts?.geminiKey && gemini.isSupportedVoice(voiceId || cfg.tts?.voice));
   if (provider === "openai") return Boolean(cfg.openai?.key && (voiceId || cfg.tts?.voice));
@@ -95,7 +133,8 @@ export function voiceReady(cfg: AppConfig, voiceId?: string): boolean {
  * @param cfg The application configuration.
  * @returns An object describing the current voice configuration status.
  */
-export function describeVoice(cfg: AppConfig) {
+export function describeVoice(original: AppConfig) {
+  const cfg = resolveAutoVoice(original);
   const provider = voiceProvider(cfg);
   const included = provider === "elevenlabs" && elevenLabs(cfg)?.included === true;
   return {
@@ -103,6 +142,7 @@ export function describeVoice(cfg: AppConfig) {
     ready: voiceConfigured(cfg),
     voice: cfg.tts?.voice ?? "",
     provider,
+    ...(original.tts?.provider === "auto" ? { auto: true as const } : {}),
     baseUrl: provider === "chatterbox" ? (cfg.tts?.baseUrl ?? "") : "",
     model: provider === "gemini" ? (cfg.tts?.model || gemini.DEFAULT_GEMINI_MODEL) : provider === "chatterbox" ? (cfg.tts?.model ?? "") : "",
     ...(provider === "fish" ? { fishModel: cfg.tts?.fishModel ?? fish.DEFAULT_FISH_MODEL } : {}),
@@ -135,6 +175,7 @@ export async function listVoices(
   run?: systemVoices.Runner,
   search?: fish.VoiceSearch,
 ): Promise<elevenlabs.Voice[]> {
+  cfg = resolveAutoVoice(cfg);
   const provider = voiceProvider(cfg);
   if (provider === "gemini") return cfg.tts?.geminiKey ? gemini.listVoices() : [];
   if (provider === "openai") return cfg.openai?.key ? openai.listVoices() : [];
@@ -175,7 +216,9 @@ export async function addSharedVoice(cfg: AppConfig, publicOwnerId: string, voic
  * @param run Optional runner for system voices.
  * @returns Synthesized audio buffer or stream promise.
  */
-export function speak(cfg: AppConfig, text: string, voiceId?: string, run?: systemVoices.Runner, signal?: AbortSignal) {
+export function speak(original: AppConfig, text: string, ownVoice?: string, run?: systemVoices.Runner, signal?: AbortSignal) {
+  const cfg = resolveAutoVoice(original);
+  const voiceId = autoVoiceId(original, ownVoice);
   const provider = voiceProvider(cfg);
   if (provider === "gemini") {
     const key = cfg.tts?.geminiKey;

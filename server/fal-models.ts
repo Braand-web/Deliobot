@@ -1,6 +1,6 @@
 import { FAL_API_URL, validFalModel } from "./fal.ts";
 
-export type FalMediaKind = "image" | "video";
+export type FalMediaKind = "image" | "video" | "music";
 
 export interface FalModel {
   id: string;
@@ -13,7 +13,7 @@ export interface FalModelList {
   models: FalModel[];
 }
 
-const CATEGORY: Record<FalMediaKind, string> = { image: "text-to-image", video: "text-to-video" };
+const CATEGORY: Record<FalMediaKind, string> = { image: "text-to-image", video: "text-to-video", music: "text-to-audio" };
 const FETCH_TIMEOUT_MS = 4_000;
 const OK_TTL_MS = 60 * 60_000;
 const FAILED_TTL_MS = 60_000;

@@ -10,7 +10,7 @@ import { saveCredential } from "./keys/key-save";
 import { Card, SettingRow } from "./SettingsPrimitives";
 import { Select } from "./Select";
 import { productName } from "@/lib/brand";
-import { useFalModels, VideoGenerationSettings } from "./VideoGenerationSettings";
+import { MusicGenerationSettings, useFalModels, VideoGenerationSettings } from "./VideoGenerationSettings";
 
 const PROVIDER_LABEL: Record<ImageProvider, string> = {
   openai: "OpenAI", xai: "Grok (xAI)", gemini: "Gemini", openrouter: "OpenRouter", fal: "fal.ai", custom: "Custom",
@@ -143,6 +143,7 @@ export function ImageGenerationSettings() {
       {providers.map((provider) => <ProviderKeyCard key={provider} provider={provider} status={status} />)}
 
       <VideoGenerationSettings keyCard={providers.includes("fal") ? null : <ProviderKeyCard provider="fal" status={status} />} />
+      <MusicGenerationSettings keyCard={providers.includes("fal") || state.config?.videoGen?.enabled ? null : <ProviderKeyCard provider="fal" status={status} />} />
     </>
   );
 }

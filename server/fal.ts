@@ -273,7 +273,7 @@ function durationValue(field: FalField, seconds: number): string | number | unde
   return undefined;
 }
 
-export interface FalMediaRequest { prompt: string; aspect?: string; seconds?: number; imageUrl?: string }
+export interface FalMediaRequest { prompt: string; aspect?: string; seconds?: number; imageUrl?: string; lyrics?: string }
 
 /** The request a model's own schema accepts; without a schema, only fields every fal media model takes. */
 export function falInput(fields: FalInputSchema | null, request: FalMediaRequest): Record<string, unknown> {
@@ -288,9 +288,16 @@ export function falInput(fields: FalInputSchema | null, request: FalMediaRequest
     if (fields.aspect_ratio && allows("aspect_ratio", request.aspect)) input.aspect_ratio = request.aspect;
     else if (fields.image_size && IMAGE_SIZES[request.aspect] && allows("image_size", IMAGE_SIZES[request.aspect]!)) input.image_size = IMAGE_SIZES[request.aspect];
   }
-  if (request.seconds !== undefined && fields.duration) {
-    const value = durationValue(fields.duration, request.seconds);
-    if (value !== undefined) input.duration = value;
+  if (request.seconds !== undefined) {
+    // Audio models name their length differently: seconds, seconds_total, or milliseconds.
+    const field = fields.duration ? "duration" : fields.seconds_total ? "seconds_total" : fields.duration_seconds ? "duration_seconds" : null;
+    const value = field ? durationValue(fields[field]!, request.seconds) : undefined;
+    if (field && value !== undefined) input[field] = value;
+    else if (fields.music_length_ms) input.music_length_ms = request.seconds * 1000;
+  }
+  if (request.lyrics) {
+    if (fields.lyrics) input.lyrics = request.lyrics;
+    else if (fields.lyrics_prompt) input.lyrics_prompt = request.lyrics;
   }
   if (fields.num_images) input.num_images = 1;
   if (request.imageUrl && fields.image_url) input.image_url = request.imageUrl;

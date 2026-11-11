@@ -183,7 +183,7 @@ export function createConfigRoutes(deps: ConfigRouteDeps): RouteHandler {
         if (!planned.ok) return json(res, 400, refusalBody(planned));
         patch.decider = planned.patch;
       }
-      const changingVoiceProvider = patch.tts?.provider !== undefined
+      const changingVoiceProvider = patch.tts?.provider !== undefined && patch.tts.provider !== "auto" && cfg.tts?.provider !== "auto"
         && patch.tts.provider !== tts.voiceProvider(cfg);
       if (changingVoiceProvider && patch.tts?.voice === undefined) {
         // Voice ids are provider-owned: never carry one from one catalog into another.

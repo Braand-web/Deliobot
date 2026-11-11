@@ -206,8 +206,9 @@ export function VoiceSettings({
       .finally(() => current() && setAddingVoice(null));
   };
 
-  const setProvider = (next: "elevenlabs" | "fish" | "system" | "chatterbox" | "xai" | "gemini" | "openai") => {
-    if (next === provider || switching || (next === "system" && !systemVoicesAvailable)) return;
+  const auto = tts?.auto === true;
+  const setProvider = (next: "auto" | "elevenlabs" | "fish" | "system" | "chatterbox" | "xai" | "gemini" | "openai") => {
+    if ((next === "auto" ? auto : next === provider && !auto) || switching || (next === "system" && !systemVoicesAvailable)) return;
     setSwitching(true);
     setKeyDraft({ provider: null, value: "" });
     setError(null);
@@ -328,6 +329,7 @@ export function VoiceSettings({
           <div className="mb-2 text-[13px] text-ink-secondary">{t("voice.engine")}</div>
           <div className="grid grid-cols-4 gap-1 rounded-xl bg-inset p-1" role="radiogroup" aria-label={t("voice.engine")}>
             {([
+              { value: "auto", label: t("voice.auto.label"), available: true, span: "col-span-1" },
               { value: "elevenlabs", label: t("voice.elevenlabs.label"), available: true, span: "col-span-1" },
               { value: "fish", label: t("voice.fish.label"), available: true, span: "col-span-1" },
               { value: "openai", label: "OpenAI", available: true, span: "col-span-1" },
@@ -340,20 +342,21 @@ export function VoiceSettings({
                 key={option.value}
                 type="button"
                 role="radio"
-                aria-checked={provider === option.value}
+                aria-checked={option.value === "auto" ? auto : !auto && provider === option.value}
                 disabled={switching || !option.available}
                 title={!option.available ? t("voice.macOnly") : undefined}
                 onClick={() => setProvider(option.value)}
                 className={cn(
                   "min-w-0 rounded-lg px-2 py-1.5 text-[13px] leading-tight transition-colors disabled:opacity-50",
                   option.span,
-                  provider === option.value ? "bg-raised text-ink shadow" : "text-ink-secondary hover:text-ink",
+                  (option.value === "auto" ? auto : !auto && provider === option.value) ? "bg-raised text-ink shadow" : "text-ink-secondary hover:text-ink",
                 )}
               >
                 {option.label}
               </button>
             ))}
           </div>
+          {auto && <p className="mt-2 text-[12px] leading-relaxed text-ink-secondary">{t("voice.auto.note")}</p>}
         </div>
       )}
 

@@ -29,6 +29,7 @@ export interface CatalogProfile {
   room?: boolean;
   imageGeneration?: boolean;
   videoGeneration?: boolean;
+  musicGeneration?: boolean;
   /** A cloud computer can be had here (Boat): the meeting tools are mounted. */
   meetings?: boolean;
 }
@@ -51,6 +52,7 @@ export function catalogProfileFromEnv(env: NodeJS.ProcessEnv): CatalogProfile {
     room: env.ODB_ROOM === "1",
     imageGeneration: env.ODB_IMAGE_GENERATION === "1",
     videoGeneration: env.ODB_VIDEO_GENERATION === "1",
+    musicGeneration: env.ODB_MUSIC_GENERATION === "1",
     meetings: env.ODB_MEETINGS === "1",
   };
 }

@@ -1,6 +1,7 @@
 import { PREVIEW_MAX_BYTES } from "../shared/upload-limits.ts";
+import { autoVideoModel, MEDIA_AUTO } from "./media-auto.ts";
 import {
-  VIDEO_DEFAULT_MODEL, VIDEO_SECONDS_DEFAULT, VIDEO_SECONDS_MAX, type VideoAspect, type VideoGenerationConfig,
+  VIDEO_SECONDS_DEFAULT, VIDEO_SECONDS_MAX, type VideoAspect, type VideoGenerationConfig,
 } from "../shared/video-generation.ts";
 import { createFalSchemaCache, falDownload, falError, falInput, falRun, validFalModel } from "./fal.ts";
 
@@ -27,9 +28,9 @@ export interface GeneratedVideo {
   seconds: number;
 }
 
-export function videoModel(cfg: VideoCredentials): string {
+export function videoModel(cfg: VideoCredentials, prompt: string): string {
   const model = cfg.videoGen?.model?.trim() ?? "";
-  return model && validFalModel(model) ? model : VIDEO_DEFAULT_MODEL;
+  return model && model !== MEDIA_AUTO && validFalModel(model) ? model : autoVideoModel(prompt);
 }
 
 export function videoMaxSeconds(cfg: VideoCredentials): number {
@@ -50,7 +51,7 @@ export async function generateVideo(
 ): Promise<GeneratedVideo> {
   const key = cfg.fal?.key?.trim();
   if (!key) throw falError("Add a fal.ai API key first", 409, true);
-  const model = videoModel(cfg);
+  const model = videoModel(cfg, request.prompt);
   const seconds = Math.min(Math.max(1, Math.round(request.seconds ?? VIDEO_SECONDS_DEFAULT)), videoMaxSeconds(cfg));
   const fetchImpl = options.fetchImpl ?? fetch;
   const fields = await falSchemas(model, { key, fetchImpl });

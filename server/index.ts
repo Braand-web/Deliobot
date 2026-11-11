@@ -72,8 +72,10 @@ import {
 } from "./message-file.ts";
 import { avatarImageStatus } from "./avatar-image.ts";
 import { imageGenerationReady } from "./image-generation.ts";
+import { withAutoModel } from "./auto-model.ts";
 import { videoGenerationReady } from "./video-generation.ts";
-import { createVideoToolRoutes } from "./routes/video-tools.ts";
+import { createMediaToolRoutes, type MediaKind } from "./routes/media-tools.ts";
+import { musicGenerationReady } from "./music-generation.ts";
 import { createFalPriceBook, falCostUsd } from "./fal.ts";
 import { createImageToolRoutes } from "./routes/image-tools.ts"; import { createMeetingsHost } from "./host/meetings-host.ts"; import { meetingsUnavailablePrompt } from "./meetings/prompt.ts";
 import { createImageSettingsRoutes } from "./routes/image-settings.ts";
@@ -782,7 +784,8 @@ const FALLBACK_PUBLIC_URL = process.env.ODB_PUBLIC_URL?.trim().replace(/\/+$/, "
 const cfg = loadConfig();
 const hostedModels = hostedModelPolicy(DATA_DIR);
 const providerConfigs = () => hostedModels ? hostedModels.configs() : instanceConfigs(cfg);
-const decorateHostedProvider = hostedModels ? (instance: ProviderInstance) => hostedModels.decorate(instance) : undefined;
+const decorateHostedProvider = (instance: ProviderInstance): ProviderInstance =>
+  withAutoModel(hostedModels ? hostedModels.decorate(instance) : instance, { tiers: () => cfg.auto ?? {} });
 if (hostedModels) {
   const selection = hostedModels.select(cfg.defaultModelSelection);
   if (selection.instanceId && JSON.stringify(selection) !== JSON.stringify(cfg.defaultModelSelection)) saveConfig({ defaultModelSelection: selection });
@@ -1831,7 +1834,7 @@ function agentsIntegration(
   const bot = store.bot(botId), speaking = botForThread(botId, threadId) ?? bot;
   // Only advertises the tools; the routes behind them refuse regardless.
   const host = { skillAuthoring: skillAuthoringEnabled(cfg), sharedComputers: botLending(), cloudHome: Boolean(CLOUD_HOME), team: Boolean(CLOUD_TEAM),
-    voiceNotes: tts.voiceReady(cfg, speaking?.voice) && speaking?.voiceNotes !== false, x: Boolean(researchCredential(cfg.treg?.key)), research: researchAvailability.available(), imageGeneration: imageGenerationReady(cfg), videoGeneration: videoGenerationReady(cfg), meetings: boat.boatConfigured(cfg) };
+    voiceNotes: tts.voiceReady(cfg, speaking?.voice) && speaking?.voiceNotes !== false, x: Boolean(researchCredential(cfg.treg?.key)), research: researchAvailability.available(), imageGeneration: imageGenerationReady(cfg), videoGeneration: videoGenerationReady(cfg), musicGeneration: musicGenerationReady(cfg), meetings: boat.boatConfigured(cfg) };
   return { ...agentsProxyLaunch(), env: agentsServerEnv({ threadId, bot: bot ?? { id: botId }, room: Boolean(store.groupByThread(threadId)), teamComputer: Boolean(bot && inheritedTeamComputer(bot)), botDriven: automated || botDrivenConversation(store.taskByThread(botId, threadId)), host },
     { generation, depth, skillAuthoring, roomHandoffId, ...(hostFiles && !CLOUD_HOME && !HOSTED_WORKSPACE ? { deliversSavedFiles: true } : {}) },
     (turn) => mintInternalCapability({ botId, threadId, kind: "agents", createdBots: 0, openedThreads: 0, ...turn }), `http://127.0.0.1:${PORT}`) };
@@ -2827,7 +2830,7 @@ const falPrices = createFalPriceBook();
 /** A person's own line started this turn's work: never a routine, a webhook, an app, a guest or a goal's coordinator. */
 const internalPersonTurn = (capability: InternalCapability) => turnOrigin(capability).kind === "user" || (Boolean(roomRun(capability.generation)?.requestMessageId) && guestDrivenTurns.get(capability.threadId) !== capability.generation);
 /** A made image or video goes in the usage ledger like a turn, so budgets and reports count it; fal.ai models carry their list price. */
-async function bookMediaUsage(by: { botId: string; threadId: string }, media: { provider: string; model: string; kind: "image" | "video"; seconds?: number }): Promise<void> {
+async function bookMediaUsage(by: { botId: string; threadId: string }, media: { provider: string; model: string; kind: "image" | "video" | "audio"; seconds?: number }): Promise<void> {
   const falKey = cfg.fal?.key?.trim();
   const costUsd = media.provider === "fal" && falKey ? falCostUsd(await falPrices(media.model, { key: falKey }), media) : null;
   const booked = attributeUsage({ at: new Date().toISOString(), botId: by.botId, botName: store.bot(by.botId)?.name ?? by.botId, threadId: by.threadId,
@@ -2838,13 +2841,18 @@ async function bookMediaUsage(by: { botId: string; threadId: string }, media: { 
 const imageTools = createImageToolRoutes({ config: () => cfg, dataDir: DATA_DIR, liveTurn: (threadId) => liveTurnByThread.get(threadId), key: turnAttachmentKey, images: (key) => (turnAttachmentsByTurn.get(key) ?? []).filter((item) => item.kind === "image").length, park: (key, image) => { const saved = saveImage(image.bytes, image.mime); turnAttachmentsByTurn.set(key, [...turnAttachmentsByTurn.get(key) ?? [], { kind: "image", path: saved.path, mime: saved.mime }]); },
   made: (image, by) => void bookMediaUsage(by, { ...image, kind: "image" }) });
 const VIDEO_EXTENSIONS: Record<string, string> = { "video/mp4": "mp4", "video/webm": "webm", "video/quicktime": "mov" };
-const videoTools = createVideoToolRoutes({ config: () => cfg, dataDir: DATA_DIR, liveTurn: (threadId) => liveTurnByThread.get(threadId), key: turnAttachmentKey,
-  videos: (key) => (turnAttachmentsByTurn.get(key) ?? []).filter((item) => item.kind === "file" && item.mime.startsWith("video/")).length,
-  park: async (key, video) => {
-    const saved = await saveFile((async function* () { yield video.bytes; })(), `video-${new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-")}.${VIDEO_EXTENSIONS[video.mime] ?? "mp4"}`, video.mime, { expectedBytes: video.bytes.byteLength });
+const parkedMedia = (kind: MediaKind, key: string) => (turnAttachmentsByTurn.get(key) ?? []).filter((item) => kind === "music" ? item.kind === "audio" : item.kind === "file" && item.mime.startsWith("video/")).length;
+const mediaTools = createMediaToolRoutes({ config: () => cfg, dataDir: DATA_DIR, liveTurn: (threadId) => liveTurnByThread.get(threadId), key: turnAttachmentKey, parked: parkedMedia,
+  park: async (kind, key, media) => {
+    if (kind === "music") {
+      const saved = saveAudio(media.bytes, media.mime);
+      turnAttachmentsByTurn.set(key, [...turnAttachmentsByTurn.get(key) ?? [], { kind: "audio", path: saved.path, mime: saved.mime, durationMs: media.seconds * 1000 }]);
+      return;
+    }
+    const saved = await saveFile((async function* () { yield media.bytes; })(), `video-${new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-")}.${VIDEO_EXTENSIONS[media.mime] ?? "mp4"}`, media.mime, { expectedBytes: media.bytes.byteLength });
     turnAttachmentsByTurn.set(key, [...turnAttachmentsByTurn.get(key) ?? [], { kind: "file", path: saved.path, mime: saved.mime, name: saved.name }]);
   },
-  made: (video, by) => void bookMediaUsage(by, { provider: "fal", model: video.model, kind: "video", seconds: video.seconds }) });
+  made: (kind, media, by) => void bookMediaUsage(by, { provider: "fal", model: media.model, kind: kind === "music" ? "audio" : "video", seconds: media.seconds }) });
 const noAiNotice = createNoAiNotice({ team: CLOUD_TEAM, dataDir: DATA_DIR, people: () => teamOwners.people?.list() ?? [], personName: teamHost.personName, inbox: () => teamMessages.inbox, language: personLanguages.forLine, threadLanguage: conversationLanguage });
 const botNameClash = createBotNameClash({ store, people: () => teamMessages.people(), profileName: () => cfg.profile?.name });
 const refusedHandoffs = createRefusedHandoffs({ bots: () => store.bots, hides: (from, target) => personalReach.hides(from, target), runOf: (threadId) => (routines?.isActiveThread(threadId) ? routines.runForThread(threadId) ?? undefined : undefined), writerOf: (routineId) => cloudRoutineAuthors?.writer(routineId), askedPerson: teamOwners.routing.askedPerson, theirOwn: (threadId, person) => audienceMember(teamHost.audienceOf(threadId)) === person, inbox: () => teamMessages.inbox, language: conversationLanguage }); const devsReports = createDevsReports({ dataDir: DATA_DIR, store, installId: ENVIRONMENT_ID, appVersion: serverVersion(), runsOn: CLOUD_TEAM ? "Team Cloud" : CLOUD_HOME ? "My Cloud" : DESKTOP_MANAGED ? "desktop app" : HOSTED_WORKSPACE ? "hosted server" : "self-hosted server", recentLog: captureRecentLog(), send: devsReportSender(bugReportEndpoint(process.env, CLOUD_HOME?.adminOrigin)), askStatus: devsStatusAsker(bugReportEndpoint(process.env, CLOUD_HOME?.adminOrigin), CLOUD_HOME), statusEveryMs: Number(process.env.ODB_DEVS_STATUS_MS) || undefined, tell: (threadId, text, person) => { const group = store.groupByThread(threadId), bot = group ? store.bot(group.memberIds[0] ?? "") : store.botByThread(threadId); if (bot) notify({ ...buildNoticeNotification(bot, threadId, text), ...(group ? { groupId: group.id } : {}), ...(CLOUD_TEAM && person ? { forPerson: person } : {}) }); }, working: (threadId) => { const group = store.groupByThread(threadId), bot = group ? null : store.botByThread(threadId); return group ? Boolean(group.busyBotId) || groupThreadIsWorking(group.id, threadId) : Boolean(bot && threadBusy(bot.id, threadId)); }, automated: (threadId) => Boolean(routines?.isActiveThread(threadId)), engine: (instanceId) => (registry.get(instanceId) ? { name: engineName(instanceId), snapshot: registry.lastSnapshot(instanceId) } : null), appsReady: () => composio.configured(cfg), sessions: () => sessions.list(), ownerKey: CLOUD_OWNER_KEY, team: Boolean(CLOUD_TEAM), profileEmail: () => cfg.profile?.email, language: appLanguage, lineLanguage: personLanguages.forLine });
@@ -11781,7 +11789,7 @@ function configStatus() {
     opencodeGo: { ...keyStatus(cfg.opencodeGo?.apiKey), providerKeys: Object.keys(openCodeProviderKeys(cfg)) },
     tts: tts.describeVoice(cfg),
     decider: describeDecider(cfg), helpers: describeHelpers(cfg),
-    imageGen: avatarImageStatus(cfg), videoGen: { ...cfg.videoGen, ready: videoGenerationReady(cfg) }, savedKeys: nestedKeyStatus(cfg),
+    imageGen: avatarImageStatus(cfg), videoGen: { ...cfg.videoGen, ready: videoGenerationReady(cfg) }, musicGen: { ...cfg.musicGen, ready: musicGenerationReady(cfg) }, savedKeys: nestedKeyStatus(cfg),
     live: liveSettingsFor(cfg),
     profile: CLOUD_TEAM ? NOBODY_PROFILE : { name: cfg.profile?.name ?? "", email: cfg.profile?.email ?? "", aboutMe: cfg.profile?.aboutMe ?? "", ...(cfg.profile?.avatarUrl ? { avatarUrl: cfg.profile.avatarUrl } : {}) },
     managedPolicy: managedPolicy.summary(),
@@ -11972,7 +11980,7 @@ async function persistProviderInstance(instanceId: string, instances: NonNullabl
   providerAuthSessions.clearInstance(instanceId);
   bus.detach(instanceId);
   if (Object.hasOwn(instances, instanceId)) {
-    await registry.load({ [instanceId]: instanceConfigs(cfg)[instanceId] });
+    await registry.load({ [instanceId]: instanceConfigs(cfg)[instanceId] }, decorateHostedProvider);
     const live = registry.get(instanceId);
     if (live) bus.attach([live]);
   } else {
@@ -13010,7 +13018,7 @@ const handleRequest = async (req: IncomingMessage, res: ServerResponse) => {
           throw Object.assign(new Error(TURN_ENDED_REFUSAL), { status: 401 });
         }
       };
-      const botFolders = async () => ({ roots: messageFileRootsForThread(internalSender.id, internalCapability.threadId).filter((root) => root !== ATTACHMENTS_DIR), vmWorkspace: (await attachmentVmForTurn(internalCapability))?.workspaceDir ?? null }); if (await lentMcp.route({ method, path, req, res, json, turn: internalCapability, readBody: readInternalBody }) !== PASS || await internalToolRoutes({ method, path, res, json, botId: internalSender.id, threadId: internalCapability.threadId, readBody: readInternalBody, folders: botFolders }) !== PASS || await waitRoutes({ method, path, res, json, botId: internalSender.id, threadId: internalCapability.threadId, readBody: readInternalBody, ...waitTurnChecks(internalCapability, internalSender) }) !== PASS || await teamMessages.internal({ method, path, res, json, botId: internalSender.id, threadId: internalCapability.threadId, readBody: readInternalBody }) !== PASS || await devsReports.internal({ method, path, res, json, botId: internalSender.id, threadId: internalCapability.threadId, readBody: readInternalBody }) !== PASS || (computerAsks && await computerAsks.internal({ method, path, res, json, turn: internalCapability, readBody: readInternalBody }) !== PASS) || await meetingsHost.internal({ method, path, res, json, readBody: readInternalBody, bot: internalSender, threadId: internalCapability.threadId, active: () => internalCapabilityIsActive(internalCapability) }) !== PASS || await imageTools.internal({ method, path, res, json, readBody: readInternalBody, threadId: internalCapability.threadId, botId: internalSender.id, requireActive: requireActiveInternalCapability, personTurn: internalPersonTurn(internalCapability) }) !== PASS || await videoTools.internal({ method, path, res, json, readBody: readInternalBody, threadId: internalCapability.threadId, botId: internalSender.id, requireActive: requireActiveInternalCapability, personTurn: internalPersonTurn(internalCapability) }) !== PASS) return; const callSignal = turnCallSignals.signal(internalCapability, res); if (await publishedPages.internal({ method, path, res, json, botId: internalSender.id, threadId: internalCapability.threadId, readBody: readInternalBody, requireActive: requireActiveInternalCapability, signal: callSignal, folders: botFolders, post: (text, publishedPage, bundle) => { const source = connectorThread(internalSender.id, internalCapability.threadId); return !source ? null : (bundle && publishedPages.show({ threadId: internalCapability.threadId, card: publishedPage, bundle, bot: internalSender })) || store.appendMessage(internalCapability.threadId, { role: "bot", kind: "text", text, publishedPage, ...(source.group ? { from: { botId: internalSender.id, name: internalSender.name, color: internalSender.color } } : {}) }).id; } }) !== PASS) return;
+      const botFolders = async () => ({ roots: messageFileRootsForThread(internalSender.id, internalCapability.threadId).filter((root) => root !== ATTACHMENTS_DIR), vmWorkspace: (await attachmentVmForTurn(internalCapability))?.workspaceDir ?? null }); if (await lentMcp.route({ method, path, req, res, json, turn: internalCapability, readBody: readInternalBody }) !== PASS || await internalToolRoutes({ method, path, res, json, botId: internalSender.id, threadId: internalCapability.threadId, readBody: readInternalBody, folders: botFolders }) !== PASS || await waitRoutes({ method, path, res, json, botId: internalSender.id, threadId: internalCapability.threadId, readBody: readInternalBody, ...waitTurnChecks(internalCapability, internalSender) }) !== PASS || await teamMessages.internal({ method, path, res, json, botId: internalSender.id, threadId: internalCapability.threadId, readBody: readInternalBody }) !== PASS || await devsReports.internal({ method, path, res, json, botId: internalSender.id, threadId: internalCapability.threadId, readBody: readInternalBody }) !== PASS || (computerAsks && await computerAsks.internal({ method, path, res, json, turn: internalCapability, readBody: readInternalBody }) !== PASS) || await meetingsHost.internal({ method, path, res, json, readBody: readInternalBody, bot: internalSender, threadId: internalCapability.threadId, active: () => internalCapabilityIsActive(internalCapability) }) !== PASS || await imageTools.internal({ method, path, res, json, readBody: readInternalBody, threadId: internalCapability.threadId, botId: internalSender.id, requireActive: requireActiveInternalCapability, personTurn: internalPersonTurn(internalCapability) }) !== PASS || await mediaTools.internal({ method, path, res, json, readBody: readInternalBody, threadId: internalCapability.threadId, botId: internalSender.id, requireActive: requireActiveInternalCapability, personTurn: internalPersonTurn(internalCapability) }) !== PASS) return; const callSignal = turnCallSignals.signal(internalCapability, res); if (await publishedPages.internal({ method, path, res, json, botId: internalSender.id, threadId: internalCapability.threadId, readBody: readInternalBody, requireActive: requireActiveInternalCapability, signal: callSignal, folders: botFolders, post: (text, publishedPage, bundle) => { const source = connectorThread(internalSender.id, internalCapability.threadId); return !source ? null : (bundle && publishedPages.show({ threadId: internalCapability.threadId, card: publishedPage, bundle, bot: internalSender })) || store.appendMessage(internalCapability.threadId, { role: "bot", kind: "text", text, publishedPage, ...(source.group ? { from: { botId: internalSender.id, name: internalSender.name, color: internalSender.color } } : {}) }).id; } }) !== PASS) return;
       const delegatedThisTurn = (taskId: string) => {
         (internalCapability.delegatedThisTurn ??= new Set()).add(taskId);
       };

@@ -52,7 +52,7 @@ export interface UsageRow {
   contextWindow?: number;
   usageStatus?: TraceUsageStatus;
   /** An image or video a bot made: what and how much, for rows that carry no tokens. */
-  media?: { kind: "image" | "video"; seconds?: number };
+  media?: { kind: "image" | "video" | "audio"; seconds?: number };
 }
 
 export type UsageGroupBy = "bot" | "model" | "user" | "day" | "engine" | "routine" | "department";
