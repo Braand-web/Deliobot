@@ -1,7 +1,8 @@
 {
   "$schema": "../control-plane/node_modules/wrangler/config-schema.json",
   "name": "deliobot",
+  "main": "dist/worker.js",
   "compatibility_date": "2026-08-25",
   "workers_dev": true,
-  "assets": { "directory": "./public", "not_found_handling": "404-page" }
+  "preview_urls": false
 }
