@@ -1,4 +1,4 @@
-import { AudioLines, Blocks, CalendarClock, Clapperboard, Fingerprint, Image, LockKeyhole, Monitor, Phone, Search, Server, Zap, type LucideIcon } from "lucide-react";
+import { AudioLines, Blocks, CalendarClock, Clapperboard, Sparkles, Fingerprint, Image, LockKeyhole, Monitor, Phone, Search, Server, Zap, type LucideIcon } from "lucide-react";
 import type { AppSettingsSection, ConfigStatus } from "@/state/store";
 import type { SavedKey } from "@/state/config-status";
 import type { KeyProvider } from "@/lib/analytics-allowlist";
@@ -45,7 +45,7 @@ export interface KeyTarget {
 export type KeyId =
   | "openai" | "anthropic" | "xai" | "openrouter" | "fal" | "mistral" | "cerebras" | "groq" | "greenference" | "meta" | "deepseek" | "opencodeGo" | "opencodeProviders"
   | "ollama" | "lmStudio" | "openaiCompat" | "liveCalls" | "liveKey" | "elevenlabs" | "fishAudio" | "geminiTts" | "box" | "vps" | "onePassword" | "composio" | "treg" | "postiz"
-  | "jev" | "openrouterHelper" | "workersAi" | "imageOpenai" | "imageGemini" | "imageCustom";
+  | "jev" | "openrouterHelper" | "workersAi" | "imageOpenai" | "imageGemini" | "imageCustom" | "delioAccount";
 
 export type KeyMark = { driverKind: string; preset?: ProviderIconPreset } | { icon: LucideIcon };
 
@@ -94,6 +94,9 @@ export const KEY_CATALOG: readonly KeyEntry[] = [
   { id: "openrouter", section: "ai", labelKey: "keys.openrouter.label", purposeKey: "keys.purpose.openrouter", name: "OpenRouter", env: ["ODB_OPENROUTER_API_KEY"],
     words: ["openrouter", "router", "models"], mark: provider("openai-compat", "openrouter"), kind: "key",
     target: providerKey("openrouter", { slot: "openrouterApiKey", placeholder: "sk-or-v1-…", href: "https://openrouter.ai/keys", test: "openrouter", analytics: "openrouter", shape: /^sk-or-/ }) },
+  { id: "delioAccount", section: "ai", labelKey: "delioAccount.title", purposeKey: "keys.purpose.delioAccount", name: "Delio", env: ["ODB_DELIO_TOKEN"],
+    words: ["delio", "account", "credits", "compte", "crédits"], mark: { icon: Sparkles }, kind: "elsewhere", whereKey: "keys.where.delioAccount",
+    status: (config) => ({ configured: config.delio?.connected === true }) },
   { id: "fal", section: "ai", labelKey: "keys.fal.label", purposeKey: "keys.purpose.fal", name: "fal.ai", env: ["ODB_FAL_KEY"],
     words: ["fal", "fal.ai", "images", "video", "flux"], mark: { icon: Clapperboard }, kind: "key",
     target: providerKey("fal", { slot: "falApiKey", placeholder: "…", placeholderKey: "keys.fal.placeholder", href: "https://fal.ai/dashboard/keys", analytics: "fal" }) },

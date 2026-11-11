@@ -1,4 +1,5 @@
 import type { Invitation, Member, Role, SsoConfig, Workspace } from "./store.ts";
+import type { DeviceRow } from "./devices.ts";
 import type { LedgerRow } from "./wallet.ts";
 
 export type Html = { readonly html: string };
@@ -135,7 +136,7 @@ export function messagePage(title: string, text: string, link?: { href: string; 
 const credits = (value: number) => value.toLocaleString("en-US", { maximumFractionDigits: 1 });
 
 export function billingPage(input: { workspace: Workspace; operator: boolean; balance: number; usedThisMonth: number; hasToken: boolean; ledger: LedgerRow[];
-  gatewayUrl: string; token?: string; message?: string; error?: string }): Html {
+  gatewayUrl: string; devices: DeviceRow[]; token?: string; message?: string; error?: string }): Html {
   const slug = input.workspace.slug;
   return h`<h1>Billing · ${input.workspace.name}</h1><p class="muted">Delio credits pay for the AI this workspace uses through Delio's own keys: text, images, video and music.</p>
 ${notice(input.message)}${notice(input.error, "error")}
@@ -148,7 +149,20 @@ ${input.operator ? h`<h2>Add credits</h2><form method="post" action="/billing/cr
 <h2>Workspace token</h2><div class="card"><p class="muted">The workspace's server uses this token to reach Delio's AI gateway at <code>${input.gatewayUrl}</code>. Issuing a new one revokes the old one.</p>
 ${input.token ? h`<div class="notice">Copy it now, it is shown only once: <code>${input.token}</code></div>` : input.hasToken ? h`<p>A token is active.</p>` : h`<p>No token yet.</p>`}
 <form method="post" action="/billing/token"><input type="hidden" name="workspace" value="${slug}"><button>${input.hasToken ? "Issue a new token" : "Issue a token"}</button></form></div>` : ""}
+<h2>Connected apps</h2><div class="card">${input.devices.length === 0 ? h`<p class="muted">No desktop app is connected. In the app: Settings → API keys → Delio account.</p>`
+  : input.devices.map((device) => h`<div class="row"><div class="grow">${device.label}<div class="muted">connected ${new Date(device.createdAt).toISOString().slice(0, 10)}${device.lastUsedAt ? ` · last used ${new Date(device.lastUsedAt).toISOString().slice(0, 10)}` : ""}</div></div>
+<form class="inline" method="post" action="/billing/device"><input type="hidden" name="workspace" value="${slug}"><input type="hidden" name="device" value="${device.id}"><button class="danger">Disconnect</button></form></div>`)}</div>
 <h2>History</h2><div class="card">${input.ledger.length === 0 ? h`<p class="muted">Nothing yet.</p>` : input.ledger.map((row) => h`<div class="row"><div class="grow"><code>${row.kind}</code> <span class="muted">${row.model ?? row.note ?? ""}</span></div>
 <span style="color:${row.delta < 0 ? "var(--ink-2)" : "var(--success)"}">${row.delta > 0 ? "+" : ""}${credits(row.delta / 1_000_000)}</span>
 <span class="muted">${new Date(row.at).toISOString().replace("T", " ").slice(0, 16)}</span></div>`)}</div>`;
+}
+
+export function devicePage(input: { code: string; label: string | null; workspaces: Array<Workspace & { role: Role }>; error?: string }): Html {
+  return h`<div class="narrow"><h1 class="center">Connect an app</h1>
+<p class="muted center">${input.label ? `“${input.label}” asks to use your Delio credits.` : "Enter the code your app shows."} Check that the code matches the one on your screen.</p>
+${notice(input.error, "error")}<form method="post" action="/device" class="card">
+<label for="code">Code</label><input id="code" name="code" value="${input.code}" required autocomplete="off" placeholder="BCDF-GHJK" style="font-size:20px;letter-spacing:.12em;text-transform:uppercase">
+<label for="workspace">Spend the credits of</label><select id="workspace" name="workspace">
+${input.workspaces.map((workspace) => h`<option value="${workspace.slug}">${workspace.name}</option>`)}<option value="personal">A new personal workspace</option></select>
+<p style="display:flex;gap:8px"><button class="primary" name="decision" value="allow" style="flex:1">Connect</button><button name="decision" value="deny">Refuse</button></p></form></div>`;
 }

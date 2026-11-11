@@ -10,6 +10,8 @@ import { MICRO, type Wallet } from "./wallet.ts";
 export interface GatewayOptions {
   store: AdminStore;
   wallet: Wallet;
+  /** A connected desktop app's token, accepted beside the workspace token. */
+  deviceToken?: (token: string, workspace: string) => boolean;
   publicUrl: URL;
   openrouterKey?: string;
   falKey?: string;
@@ -279,7 +281,8 @@ export function createGateway(options: GatewayOptions) {
       const account = /^\/api\/workspace\/([a-z][a-z0-9-]{1,30})\/account$/.exec(url.pathname);
       const workspace = gateway?.[1] ?? account?.[1];
       if (!workspace) return false;
-      if (!store.workspace(workspace) || !wallet.tokenWorkspace(bearer(req), workspace)) {
+      const presented = bearer(req);
+      if (!store.workspace(workspace) || !(wallet.tokenWorkspace(presented, workspace) || options.deviceToken?.(presented, workspace))) {
         failure(res, 401, "This workspace token is not valid.");
         return true;
       }

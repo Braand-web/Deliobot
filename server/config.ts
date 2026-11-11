@@ -8,6 +8,7 @@ import { isDeepStrictEqual } from "node:util";
 import { z } from "zod";
 import type { ImageGenerationConfig } from "../shared/image-generation.ts";
 import { validFalModel } from "./fal.ts";
+import { delioInstanceConfigs } from "./delio-account.ts";
 import { VIDEO_SECONDS_MAX, type VideoGenerationConfig } from "../shared/video-generation.ts";
 import { MUSIC_SECONDS_MAX, type MusicGenerationConfig } from "../shared/music-generation.ts";
 import { imageGenConfigSchema, imageGenPatchSchema, keepKeysOutOfImageModels, type ImageGenCredentialPatch } from "./image-generation-config.ts";
@@ -338,6 +339,8 @@ const appConfigSchema = z.object({
   openrouter: z.object({ key: optionalText }).optional(),
   /** fal.ai key, for image and video generation. */
   fal: z.object({ key: optionalText, url: optionalText }).optional(),
+  /** A Delio account this app is connected to: its portal, the workspace whose credits it spends, and the device token. */
+  delio: z.object({ portal: optionalText, workspace: optionalText, token: optionalText }).nullable().optional(),
   /** Workspace monthly spend limit; enforced only with the `budgets` entitlement. */
   budgets: z
     .object({
@@ -485,6 +488,7 @@ export interface AppConfig extends HelperConfig {
   openrouter?: { key?: string };
   /** `url`: the fal.ai queue, or a Delio gateway in front of it (ODB_FAL_URL); the key then is the workspace token. */
   fal?: { key?: string; url?: string };
+  delio?: { portal?: string; workspace?: string; token?: string } | null;
   budgets?: { monthlyUsd?: number; warnAtPercent?: number };
   decisions?: { retentionDays?: number };
   loopGuard?: LoopGuardConfig;
@@ -767,6 +771,7 @@ export function loadConfig(): AppConfig {
   cfg.fal = { ...cfg.fal };
   if (process.env.ODB_FAL_KEY !== undefined) cfg.fal.key = process.env.ODB_FAL_KEY;
   if (process.env.ODB_FAL_URL !== undefined) cfg.fal.url = process.env.ODB_FAL_URL;
+  if (process.env.ODB_DELIO_TOKEN !== undefined) cfg.delio = { ...cfg.delio, token: process.env.ODB_DELIO_TOKEN };
   cfg.openaiCompat = { ...cfg.openaiCompat };
   if (process.env.OPENAI_COMPAT_API_KEY !== undefined) cfg.openaiCompat.key = process.env.OPENAI_COMPAT_API_KEY;
   if (process.env.OPENAI_COMPAT_URL !== undefined) cfg.openaiCompat.url = process.env.OPENAI_COMPAT_URL;
@@ -823,6 +828,7 @@ export function syncCredentialEnv(patch: Partial<Omit<AppConfig, "threads" | "ne
     [patch.openai?.key, "ODB_OPENAI_API_KEY"],
     [patch.openrouter?.key, "ODB_OPENROUTER_API_KEY"],
     [patch.fal?.key, "ODB_FAL_KEY"],
+    [patch.delio?.token, "ODB_DELIO_TOKEN"],
     [patch.composio?.apiKey, "COMPOSIO_API_KEY"],
     [patch.box?.token, "BOX_TOKEN"],
     [patch.opencodeGo?.apiKey, "OPENCODE_API_KEY"],
@@ -933,7 +939,7 @@ export function saveConfig(
   const keepImageModels = keepKeysOutOfImageModels(disk, checkedPatch.imageGen);
   const storedProfiles = storedBrowserProfilesSchema.safeParse(disk.browserProfiles);
   if (storedProfiles.success) disk.browserProfiles = storedProfiles.data;
-  for (const key of ["xai", "anthropic", "mistral", "cerebras", "treg", "postiz", "groq", "greenference", "meta", "deepseek", "openai", "openrouter", "fal", "openaiCompat", "composio", "box", "opencodeGo", "tts", "decider", "imageGen", "videoGen", "musicGen", "auto", "live", "profile", "rooms", "mcp", "threads", "context", "memory", "localVm", "features", "budgets", "billing", "decisions", "loopGuard", "onboarding", "browserEngine", "newBots", "safetyFloor"] as const) {
+  for (const key of ["xai", "anthropic", "mistral", "cerebras", "treg", "postiz", "groq", "greenference", "meta", "deepseek", "openai", "openrouter", "fal", "delio", "openaiCompat", "composio", "box", "opencodeGo", "tts", "decider", "imageGen", "videoGen", "musicGen", "auto", "live", "profile", "rooms", "mcp", "threads", "context", "memory", "localVm", "features", "budgets", "billing", "decisions", "loopGuard", "onboarding", "browserEngine", "newBots", "safetyFloor"] as const) {
     const section = checkedPatch[key];
     if (!section) continue;
     const current = jsonObjectSchema.safeParse(disk[key]);
@@ -1234,7 +1240,7 @@ export function instanceConfigs(cfg: AppConfig): InstanceConfigMap {
       }
     }
   }
-  return map;
+  return { ...map, ...delioInstanceConfigs(cfg) };
 }
 
 // config.json: { "mcpServers": { "notes": { "command": "npx", "args": ["-y", "@x/notes-mcp"], "env": { "NOTES_TOKEN": "…" } },

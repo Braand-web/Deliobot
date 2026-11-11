@@ -548,6 +548,7 @@ export function createConfigRoutes(deps: ConfigRouteDeps): RouteHandler {
           if (persisted.anthropic?.key !== undefined) persisted.anthropic.key = "";
           if (persisted.openrouter?.key !== undefined) persisted.openrouter.key = "";
           if (persisted.fal?.key !== undefined) persisted.fal.key = "";
+          if (persisted.delio?.token !== undefined) persisted.delio.token = "";
           if (persisted.mistral?.key !== undefined) persisted.mistral.key = "";
           if (persisted.cerebras?.key !== undefined) persisted.cerebras.key = "";
           if (persisted.groq?.key !== undefined) persisted.groq.key = "";

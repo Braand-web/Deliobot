@@ -100,6 +100,15 @@ prepaid **credits** kept per workspace.
   computer of the workspace is put to sleep (its disk is kept) and none can
   start or wake. One computer awake at a time per workspace.
 
+- **Desktop apps.** In the app, **Settings → API keys → Delio account →
+  Connect** shows a code and opens `https://<portal>/device` (RFC 8628 device
+  flow: `POST /api/device/start`, then the app polls `POST /api/device/token`).
+  The person, signed in, approves it for a workspace they administer or a new
+  personal one. The app then holds its own `odb_device_…` token: a **Delio**
+  engine (OpenRouter's catalog through the gateway, Auto first) and, without a
+  fal.ai key of its own, images, video and music spend that workspace's
+  credits. **Billing → Connected apps** lists and disconnects them.
+
 Claude and Codex company engines are not offered through the gateway yet:
 Claude, GPT and the other models are reached through OpenRouter.
 

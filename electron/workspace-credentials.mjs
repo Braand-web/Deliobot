@@ -5,6 +5,7 @@ export const WORKSPACE_CREDENTIALS = [
   { section: "anthropic", field: "key", name: "anthropicApiKey", env: "ODB_ANTHROPIC_API_KEY" },
   { section: "openrouter", field: "key", name: "openrouterApiKey", env: "ODB_OPENROUTER_API_KEY" },
   { section: "fal", field: "key", name: "falApiKey", env: "ODB_FAL_KEY" },
+  { section: "delio", field: "token", name: "delioToken", env: "ODB_DELIO_TOKEN" },
   { section: "mistral", field: "key", name: "mistralApiKey", env: "MISTRAL_API_KEY" },
   { section: "cerebras", field: "key", name: "cerebrasApiKey", env: "CEREBRAS_API_KEY" },
   { section: "groq", field: "key", name: "groqApiKey", env: "ODB_GROQ_API_KEY" },

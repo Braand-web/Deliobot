@@ -182,11 +182,11 @@ describe("Delio Boat relay", () => {
     const beta = await target.workspace("beta", 100);
     const created = await target.gateway("acme", "boat/v1/sandboxes", acme, { method: "POST", body: JSON.stringify({ name: "odb-test" }) });
     expect(created.status).toBe(202);
-    expect((await created.json()).sandbox.id).toBe("bx_abcd2345");
+    expect(((await created.json()) as { sandbox: { id: string } }).sandbox.id).toBe("bx_abcd2345");
     expect(upstream.calls.at(-1)!.auth).toBe("Bearer boat-operator");
     expect((await target.gateway("acme", "boat/v1/sandboxes", acme, { method: "POST", body: "{}" })).status, "one awake computer on this plan").toBe(409);
 
-    const listed = await (await target.gateway("acme", "boat/v1/sandboxes", acme)).json();
+    const listed = await (await target.gateway("acme", "boat/v1/sandboxes", acme)).json() as { sandboxes: Array<{ id: string }> };
     expect(listed.sandboxes.map((item: { id: string }) => item.id), "the operator account's other computers stay hidden").toEqual(["bx_abcd2345"]);
     expect((await target.gateway("beta", "boat/v1/sandboxes/bx_abcd2345", beta)).status).toBe(404);
     expect((await target.gateway("beta", "boat/v1/sandboxes/bx_abcd2345/commands", beta, { method: "POST", body: "{}" })).status).toBe(404);

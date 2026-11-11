@@ -5,8 +5,9 @@ import { HOSTED_CONTRACT_HEADER, HOSTED_CONTRACT_METADATA, HOSTED_CONTRACT_MISMA
 import type { Mailer } from "./mail.ts";
 import { discover, exchangeCode, pkceChallenge, verifyIdToken } from "./oidc.ts";
 import { createGateway, type GatewayOptions } from "./gateway.ts";
+import { DEVICE_POLL_SECONDS, Devices } from "./devices.ts";
 import { MICRO, Wallet } from "./wallet.ts";
-import { billingPage, codePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, slackPage, ssoPage, type Html } from "./pages.ts";
+import { billingPage, codePage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, slackPage, ssoPage, type Html } from "./pages.ts";
 import { normalizeEmail, token, validEmail, validSlug, type Account, type AdminStore, type Role, type Workspace } from "./store.ts";
 
 export interface AdminAppOptions {
@@ -103,7 +104,8 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   const cookieName = secure ? "__Host-delio-admin" : "delio-admin";
   const ssoRedirectUri = new URL(SSO_CALLBACK_PATH, publicUrl).href;
   const wallet = new Wallet(store.db, { now, creditUsd: options.gateway?.creditUsd });
-  const gateway = createGateway({ ...options.gateway, store, wallet, publicUrl, fetchImpl, now });
+  const devices = new Devices(store.db, now);
+  const gateway = createGateway({ ...options.gateway, store, wallet, publicUrl, fetchImpl, now, deviceToken: (value, slug) => devices.check(value, slug) });
 
   function sessionCookie(value: string, maxAgeSeconds: number): string {
     return `${cookieName}=${value}; Path=/; Max-Age=${maxAgeSeconds}; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}`;
@@ -234,6 +236,23 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     }
     if (path === "/api/health") return json(res, 200, { ok: true, service: "delio-admin", ...HOSTED_CONTRACT_METADATA });
     if (await gateway.handle(req, res, url)) return;
+    if (path === "/api/device/start" || path === "/api/device/token") {
+      if (method !== "POST") return json(res, 405, { error: "method not allowed" });
+      const body = await readBody(req);
+      if (path === "/api/device/start") {
+        if (!store.allow(`device:${clientAddress(req)}`, 20, 15 * 60_000)) return json(res, 429, { error: "slow_down" });
+        const started = devices.start(text(body, "label", 80));
+        const verification = new URL("/device", publicUrl);
+        return json(res, 200, { device_code: started.deviceCode, user_code: started.userCode, verification_uri: verification.href,
+          verification_uri_complete: `${verification.href}?code=${encodeURIComponent(started.userCode)}`, expires_in: started.expiresIn, interval: DEVICE_POLL_SECONDS });
+      }
+      const deviceCode = text(body, "device_code", 128);
+      if (!/^[A-Za-z0-9_-]{43}$/.test(deviceCode)) return json(res, 400, { error: "invalid_request" });
+      const polled = devices.poll(deviceCode);
+      if (polled.status === "pending") return json(res, 400, { error: "authorization_pending" });
+      if (polled.status !== "approved") return json(res, 400, { error: polled.status === "denied" ? "access_denied" : "expired_token" });
+      return json(res, 200, { token: polled.token, workspace: polled.workspace, gateway: new URL(`/api/gateway/${polled.workspace}`, publicUrl).href, portal: publicUrl.origin });
+    }
     if (path === "/api/handoff/consume" || path === "/api/handoff/check") {
       if (method !== "POST") return json(res, 405, { error: "method not allowed" });
       return handoff(req, res, path === "/api/handoff/consume" ? "consume" : "check");
@@ -424,6 +443,41 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       return redirect(res, `/sso?workspace=${workspace.slug}&done=1`);
     }
 
+    if (method === "GET" && path === "/device") {
+      return html(res, 200, { title: "Connect an app", email: user.email, mascot: "curious",
+        body: devicePage({ code: url.searchParams.get("code") ?? "", label: devices.pendingLabel(url.searchParams.get("code") ?? ""), workspaces: store.workspacesOf(user.id).filter((item) => item.role === "admin") }) });
+    }
+    if (method === "POST" && path === "/device") {
+      const body = await readBody(req);
+      const code = text(body, "code", 16);
+      const admin = store.workspacesOf(user.id).filter((item) => item.role === "admin");
+      const again = (status: number, error: string) => html(res, status, { title: "Connect an app", email: user.email, mascot: "sad", body: devicePage({ code, label: devices.pendingLabel(code), workspaces: admin, error }) });
+      if (!devices.pendingLabel(code)) return again(400, "This code has expired or was already used. Start again from the app.");
+      if (text(body, "decision", 8) === "deny") {
+        devices.decide(code, "deny");
+        return html(res, 200, { title: "Connect an app", email: user.email, body: messagePage("Connection refused", "The app was not connected. You can close this page.") });
+      }
+      let slug = text(body, "workspace", 64);
+      if (slug === "personal") {
+        slug = `me-${token(6).toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 8).padEnd(8, "x")}`;
+        store.createWorkspace({ slug, name: `${user.email} (personal)`, tenantUrl: publicUrl.origin, ownerEmail: user.email }, user.email);
+      } else if (!admin.some((item) => item.slug === slug)) {
+        return again(403, "Choose a workspace you administer.");
+      }
+      const label = devices.pendingLabel(code);
+      devices.decide(code, { workspace: slug, accountId: user.id });
+      store.audit(slug, user.email, "device.connect", label);
+      return html(res, 200, { title: "Connected", email: user.email, mascot: "happy",
+        body: messagePage("The app is connected", "Go back to the app: it finishes on its own in a few seconds. It uses this workspace's Delio credits.") });
+    }
+    if (method === "POST" && path === "/billing/device") {
+      const body = await readBody(req);
+      const workspace = requireWorkspaceAdmin(user, text(body, "workspace", 64));
+      devices.revoke(workspace.slug, text(body, "device", 32));
+      store.audit(workspace.slug, user.email, "device.revoke", null);
+      return redirect(res, `/billing?workspace=${workspace.slug}&done=1`);
+    }
+
     if (method === "GET" && path === "/billing") {
       const workspace = requireWorkspaceAdmin(user, url.searchParams.get("workspace") ?? "");
       return html(res, 200, { title: "Billing", email: user.email, body: billing(workspace, user, { message: url.searchParams.get("done") ? "Saved." : undefined }) });
@@ -457,7 +511,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   function billing(workspace: Workspace, user: Account, extra: { message?: string; error?: string; token?: string }): Html {
     return billingPage({ workspace, operator: operators.has(user.email), balance: wallet.balance(workspace.slug) / MICRO,
       usedThisMonth: wallet.usedThisMonth(workspace.slug) / MICRO, hasToken: wallet.hasToken(workspace.slug), ledger: wallet.ledger(workspace.slug, 30),
-      gatewayUrl: new URL(`/api/gateway/${workspace.slug}`, publicUrl).href, ...extra });
+      gatewayUrl: new URL(`/api/gateway/${workspace.slug}`, publicUrl).href, devices: devices.list(workspace.slug), ...extra });
   }
 
   function people(workspace: Workspace, user: Account, extra: { message?: string; error?: string; inviteLink?: string }): Html {

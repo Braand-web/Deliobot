@@ -5,6 +5,7 @@ import { skillsLibraryEnabled } from "@/lib/feature-flags";
 import { type LocaleKey } from "@/locales";
 import { t } from "@/lib/i18n";
 import { AdminOnly } from "./AdminOnly";
+import { DelioAccountCard } from "./keys/DelioAccountCard";
 import { KeysPage } from "./keys/KeysPage";
 import { KEY_CATALOG, keyMatches, keySection, type KeyEntry } from "./keys/key-catalog";
 import { openKeySettings, useKeyFocus } from "./keys/key-focus";
@@ -423,7 +424,7 @@ function SettingsDialog() {
       case "experimental":
         return <ExperimentalFeaturesRow />;
       case "connections":
-        return <AdminOnly><KeysPage /></AdminOnly>;
+        return <AdminOnly><div className="flex flex-col gap-4"><DelioAccountCard /><KeysPage /></div></AdminOnly>;
       case "decisionModel": return <AdminOnly><DecisionModelSettings /></AdminOnly>;
       case "imageGeneration": return <AdminOnly><ImageGenerationSettings /></AdminOnly>;
       case "engines": return <AdminOnly><EnginesSettings /></AdminOnly>;
