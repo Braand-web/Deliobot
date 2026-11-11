@@ -1,6 +1,6 @@
 import type { Invitation, Member, Role, SsoConfig, Workspace } from "./store.ts";
 import type { DeviceRow } from "./devices.ts";
-import { PLANS, TOPUPS, type Order, type Subscription } from "./plans.ts";
+import { PLANS, TRIAL_DAYS, type Catalog, type Cycle, type Order, type PlanId, type Subscription } from "./plans.ts";
 import type { LedgerRow } from "./wallet.ts";
 
 export type Html = { readonly html: string };
@@ -136,23 +136,48 @@ export function messagePage(title: string, text: string, link?: { href: string; 
 
 const credits = (value: number) => value.toLocaleString("en-US", { maximumFractionDigits: 1 });
 
+/** A dollar price as the site shows it, with the francs a payer is charged in small type beneath. */
+function price(usd: number, francs: number, per: string): Html {
+  const dollars = `$${usd.toLocaleString("en-US", { minimumFractionDigits: Number.isInteger(usd) ? 0 : 2, maximumFractionDigits: 2 })}`;
+  return h`<div><span style="font-size:24px;font-weight:600">${dollars}</span> <span class="muted">${per}</span></div>
+<div class="muted" style="font-size:12px">≈ ${francs.toLocaleString("fr-FR")} FCFA</div>`;
+}
+
 export function billingPage(input: { workspace: Workspace; operator: boolean; balance: number; usedThisMonth: number; hasToken: boolean; ledger: LedgerRow[];
   gatewayUrl: string; devices: DeviceRow[]; subscription: Subscription; orders: Order[]; payments: boolean; currency: string; trialAvailable: boolean;
-  seats: number; prices: Record<string, string>; token?: string; message?: string; error?: string }): Html {
+  catalog: Catalog; chosen?: PlanId; cycle?: Cycle; token?: string; message?: string; error?: string }): Html {
   const slug = input.workspace.slug;
   const sub = input.subscription;
-  const money = (amount: string) => `${Number(amount).toLocaleString("en-US", { maximumFractionDigits: 2 })} ${input.currency}`;
+  const cycle = input.cycle ?? "month";
+  const francs = input.currency === "XOF" || input.currency === "XAF";
+  const money = (amount: string) => `${Number(amount).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} ${francs ? "FCFA" : input.currency}`;
   const day = (at: number) => new Date(at).toISOString().slice(0, 10);
   const status = sub.status === "none" ? "No plan yet"
     : sub.status === "trialing" ? `Trial until ${day(sub.periodEnd)}`
-    : sub.status === "active" ? `${PLANS[sub.plan].name}${PLANS[sub.plan].perSeat ? ` · ${sub.seats} seat${sub.seats === 1 ? "" : "s"}` : ""} until ${day(sub.periodEnd)}`
+    : sub.status === "active" ? `${PLANS[sub.plan].name} · ${sub.cycle === "year" ? "yearly" : "monthly"} · until ${day(sub.periodEnd)}`
     : sub.status === "grace" ? `${PLANS[sub.plan].name} ended on ${day(sub.periodEnd)}: renew before ${day(sub.periodEnd + 7 * 24 * 60 * 60_000)}`
     : `${PLANS[sub.plan].name} ended on ${day(sub.periodEnd)}`;
-  const planForm = (id: "pro" | "byok" | "business") => h`<form method="post" action="/billing/checkout" class="card" style="margin:0">
-<input type="hidden" name="workspace" value="${slug}"><input type="hidden" name="kind" value="plan"><input type="hidden" name="plan" value="${id}">
-<b>${PLANS[id].name}</b><div class="muted">${money(input.prices[id]!)} per seat · 30 days${PLANS[id].credits ? ` · ${PLANS[id].credits.toLocaleString("en-US")} credits per seat` : " · your own AI keys"}</div>
-<label>Seats</label><input name="seats" type="number" min="1" max="500" value="${String(Math.max(1, input.seats))}">
-<p><button class="primary"${input.payments ? "" : raw(" disabled")}>${sub.plan === id && sub.status !== "none" && sub.status !== "expired" ? "Renew" : "Choose"}</button></p></form>`;
+  const disabled = input.payments ? "" : raw(" disabled");
+  const hidden = (fields: Record<string, string>) => Object.entries(fields).map(([name, value]) => h`<input type="hidden" name="${name}" value="${value}">`);
+  const cycleLink = (value: Cycle, label: string) => value === cycle
+    ? h`<b style="padding:6px 12px;border-radius:999px;background:rgba(127,127,127,.18)">${label}</b>`
+    : h`<a href="/billing?workspace=${slug}&cycle=${value}${input.chosen ? `&plan=${input.chosen}` : ""}" style="padding:6px 12px">${label}</a>`;
+  const planCard = (plan: Catalog["plans"][number]) => {
+    const yearly = cycle === "year" && plan.usdYear !== null && plan.francsYear !== null;
+    const current = sub.plan === plan.id && sub.cycle === cycle && (sub.status === "active" || sub.status === "grace");
+    const highlight = input.chosen === plan.id || (!input.chosen && plan.id === input.catalog.recommended);
+    return h`<form method="post" action="/billing/checkout" class="card" style="margin:0${highlight ? ";outline:2px solid #0a84ff" : ""}">
+${hidden({ workspace: slug, kind: "plan", plan: plan.id, cycle })}
+<div class="row"><b class="grow">${plan.name}</b>${plan.id === input.catalog.recommended ? h`<span class="muted" style="font-size:12px">Most popular</span>` : ""}</div>
+${yearly ? price(plan.usdYear!, plan.francsYear!, "/year") : price(plan.usd, plan.francs, "/month")}
+${yearly ? h`<div class="muted" style="font-size:12px">One month free · $${(plan.usdYear! / 12).toFixed(2)} a month</div>` : ""}
+<ul class="muted" style="padding-left:18px;margin:10px 0">${plan.gateway
+      ? h`<li>${plan.credits.toLocaleString("en-US")} AI credits a month</li><li>${plan.computerHours} cloud computer hours a month</li><li>${plan.computers === 1 ? "1 cloud computer" : `${plan.computers} cloud computers at once`}</li>`
+      : h`<li>Your own AI keys (OpenRouter, fal.ai)</li><li>Your own cloud computer key (Boat)</li><li>Every Deliobot feature</li>`}</ul>
+<p><button class="primary"${disabled}>${current ? "Renew" : "Choose"}</button></p></form>`;
+  };
+  const trial = input.catalog.plans.find((plan) => plan.id === "trial")!;
+  const sold = input.catalog.plans.filter((plan) => plan.id !== "trial");
   return h`<h1>Billing · ${input.workspace.name}</h1><p class="muted">Delio credits pay for the AI this workspace uses through Delio's own keys: text, images, video and music.</p>
 ${notice(input.message)}${notice(input.error, "error")}
 <div class="card"><div class="row"><div class="grow"><div class="muted">Balance</div><div style="font-size:28px;font-weight:600">${credits(input.balance)} credits</div></div>
@@ -165,13 +190,16 @@ ${input.operator ? h`<h2>Add credits</h2><form method="post" action="/billing/cr
 ${input.token ? h`<div class="notice">Copy it now, it is shown only once: <code>${input.token}</code></div>` : input.hasToken ? h`<p>A token is active.</p>` : h`<p>No token yet.</p>`}
 <form method="post" action="/billing/token"><input type="hidden" name="workspace" value="${slug}"><button>${input.hasToken ? "Issue a new token" : "Issue a token"}</button></form></div>` : ""}
 <h2>Plan</h2><div class="card"><b>${status}</b>${!input.payments ? h`<p class="muted">Payments are not set up on this deployment yet.</p>` : ""}</div>
-${input.trialAvailable && sub.status === "none" ? h`<form method="post" action="/billing/checkout" class="card"><input type="hidden" name="workspace" value="${slug}"><input type="hidden" name="kind" value="plan"><input type="hidden" name="plan" value="trial">
-<b>Try Delio for 3 days</b><div class="muted">${money(input.prices.trial!)} · ${PLANS.trial.credits} credits</div><p><button class="primary"${input.payments ? "" : raw(" disabled")}>Start the trial</button></p></form>` : ""}
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">${planForm("pro")}${planForm("business")}${planForm("byok")}</div>
-<h2>Top up credits</h2><div class="card">${TOPUPS.map((pack) => h`<form class="inline" method="post" action="/billing/checkout" style="margin:4px 8px 4px 0"><input type="hidden" name="workspace" value="${slug}">
-<input type="hidden" name="kind" value="topup"><input type="hidden" name="topup" value="${pack.id}"><button${input.payments ? "" : raw(" disabled")}>${pack.credits.toLocaleString("en-US")} credits · ${money(input.prices[pack.id]!)}</button></form>`)}
-<p class="muted">Paid with mobile money or card through SasPay. Credits from top-ups stay until used.</p></div>
-${input.orders.length ? h`<h2>Payments</h2><div class="card">${input.orders.map((order) => h`<div class="row"><div class="grow">${order.kind === "plan" && order.plan ? PLANS[order.plan].name : "Top-up"} · ${order.credits.toLocaleString("en-US")} credits</div>
+${input.trialAvailable && sub.status === "none" ? h`<form method="post" action="/billing/checkout" class="card">${hidden({ workspace: slug, kind: "plan", plan: "trial" })}
+<div class="row"><div class="grow"><b>Try Delio for ${TRIAL_DAYS} days</b><div class="muted">${trial.credits} AI credits · ${trial.computerHours} cloud computer hours</div></div>
+<div style="text-align:right">${price(trial.usd, trial.francs, `for ${TRIAL_DAYS} days`)}</div></div>
+<p><button class="primary"${disabled}>Start the trial</button></p></form>` : ""}
+<div class="row" style="margin:8px 0 12px">${cycleLink("month", "Monthly")}${cycleLink("year", "Yearly · 1 month free")}</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">${sold.map(planCard)}</div>
+<h2>Top up credits</h2><div class="card"><div style="display:flex;flex-wrap:wrap;gap:8px">${input.catalog.topups.map((pack) => h`<form class="inline" method="post" action="/billing/checkout">
+${hidden({ workspace: slug, kind: "topup", topup: pack.id })}<button${disabled} style="text-align:left;line-height:1.35">${pack.credits.toLocaleString("en-US")} credits · $${pack.usd}<br><small class="muted">≈ ${pack.francs.toLocaleString("fr-FR")} FCFA</small></button></form>`)}</div>
+<p class="muted">Paid with mobile money or card through SasPay, in CFA francs. Credits from top-ups stay until used.</p></div>
+${input.orders.length ? h`<h2>Payments</h2><div class="card">${input.orders.map((order) => h`<div class="row"><div class="grow">${order.kind === "plan" && order.plan ? `${PLANS[order.plan].name}${order.plan === "trial" ? "" : order.cycle === "year" ? " · yearly" : " · monthly"}` : "Top-up"} · ${order.credits.toLocaleString("en-US")} credits</div>
 <span class="muted">${money(order.amount)}</span><code>${order.status}</code><span class="muted">${day(order.createdAt)}</span></div>`)}</div>` : ""}
 <h2>Connected apps</h2><div class="card">${input.devices.length === 0 ? h`<p class="muted">No desktop app is connected. In the app: Settings → API keys → Delio account.</p>`
   : input.devices.map((device) => h`<div class="row"><div class="grow">${device.label}<div class="muted">connected ${new Date(device.createdAt).toISOString().slice(0, 10)}${device.lastUsedAt ? ` · last used ${new Date(device.lastUsedAt).toISOString().slice(0, 10)}` : ""}</div></div>

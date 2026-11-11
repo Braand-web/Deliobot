@@ -1,6 +1,7 @@
 import { pageIsThisComputer } from "@/lib/companion-bridge";
 import type { ReactNode } from "react";
 import type { AppSettingsSection } from "@/state/store";
+import { useOwnerOrAdmin } from "@/lib/use-owner-or-admin";
 import { t } from "@/lib/i18n";
 import { appVersion } from "@/lib/app-links";
 import { SIMPLE_ONLY } from "@/lib/simple-only";
@@ -239,11 +240,13 @@ export function SimpleComputerPage({ has, remoteAccess, servers, disclose }: { h
   );
 }
 
-export function SimpleBillingPage({ has, disclose, cloudAccount }: { has: Has; disclose: Disclose; cloudAccount: ReactNode }) {
+/** `onPlans`: opens Delio's plans and top-ups, which only an admin can buy. */
+export function SimpleBillingPage({ has, disclose, cloudAccount, onPlans }: { has: Has; disclose: Disclose; cloudAccount: ReactNode; onPlans?: () => void }) {
   const { usage, upgrade, dialog } = useCloudUsageSettings();
   const plan = useCloudPlan();
   const signedOut = plan?.view.kind === "signed-out" || plan?.view.kind === "removed";
   const credits = useDelioCredits();
+  const admin = useOwnerOrAdmin() !== false;
   return (
     <>
       <div data-settings-block="usage" className="scroll-mt-4">
@@ -251,6 +254,11 @@ export function SimpleBillingPage({ has, disclose, cloudAccount }: { has: Has; d
           : credits ? <DelioCreditsCard credits={credits} />
           : <AdminOnly note="settings.adminOnly.usage"><PlanUsageSummary /></AdminOnly>}
       </div>
+      {onPlans && admin && <SettingsRows>
+        <SettingRow title={t("delioPlans.row.title")} subtitle={t("delioPlans.row.subtitle")}>
+          <button type="button" data-delio-plans-open="" className="ui-button" onClick={onPlans}>{t("delioPlans.row.open")}</button>
+        </SettingRow>
+      </SettingsRows>}
       {(usage || has("usage")) && (
         <SettingsDisclosureRow title={t("settings.simple.billing.limits")} {...disclose("billing-limits")}>
           {usage && <CloudUsageDetails usage={usage} upgrade={upgrade} />}

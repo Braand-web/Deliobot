@@ -1,5 +1,6 @@
 // The Boat relay a hosted workspace's cloud computers go through: Boat's v1 API (https://docs.boat.dev/api/v1) with the
-// operator's key, each sandbox tied to the workspace that created it, its awake minutes charged in credits, and every
+// operator's key, each sandbox tied to the workspace that created it, its awake minutes beyond the plan's included hours
+// charged in credits, and every
 // computer of a workspace put to sleep (never deleted) when its credits run out.
 import type { IncomingMessage, ServerResponse } from "node:http";
 
@@ -19,6 +20,8 @@ export interface BoatRelayOptions {
   usdPerHour?: number;
   /** Cloud computers a workspace may keep awake at once. */
   limit?: (workspace: string) => number;
+  /** Awake hours a workspace's plan includes each calendar month (UTC) before minutes are charged in credits. */
+  includedHours?: (workspace: string) => number;
   fetchImpl?: typeof fetch;
   now?: () => number;
 }
@@ -46,12 +49,23 @@ export function createBoatRelay(options: BoatRelayOptions) {
   const { wallet } = options;
   const { db } = wallet;
   db.exec(`CREATE TABLE IF NOT EXISTS boat_sandboxes (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, awake INTEGER NOT NULL, billed_at INTEGER NOT NULL, deleted INTEGER NOT NULL DEFAULT 0);
-CREATE INDEX IF NOT EXISTS boat_sandboxes_workspace ON boat_sandboxes (workspace);`);
+CREATE INDEX IF NOT EXISTS boat_sandboxes_workspace ON boat_sandboxes (workspace);
+CREATE TABLE IF NOT EXISTS boat_included (workspace TEXT NOT NULL, month TEXT NOT NULL, minutes INTEGER NOT NULL, PRIMARY KEY (workspace, month));`);
   const fetchImpl = options.fetchImpl ?? fetch;
   const now = options.now ?? Date.now;
   const api = (options.apiUrl ?? "https://boat.dev/api/v1").replace(/\/+$/, "");
   const perMinuteUsd = (options.usdPerHour ?? 0.1) / 60;
   const limit = options.limit ?? (() => 1);
+  const includedHours = options.includedHours ?? (() => 0);
+
+  /** Of `minutes` awake now, how many the plan's included hours still cover this month; those are counted as used. */
+  function takeIncluded(workspace: string, minutes: number): number {
+    const month = new Date(now()).toISOString().slice(0, 7);
+    const used = (db.prepare("SELECT minutes FROM boat_included WHERE workspace = ? AND month = ?").get(workspace, month) as { minutes: number } | undefined)?.minutes ?? 0;
+    const free = Math.max(0, Math.min(minutes, Math.floor(includedHours(workspace) * 60) - used));
+    if (free > 0) db.prepare("INSERT INTO boat_included (workspace, month, minutes) VALUES (?, ?, ?) ON CONFLICT (workspace, month) DO UPDATE SET minutes = minutes + excluded.minutes").run(workspace, month, free);
+    return free;
+  }
 
   const owned = (workspace: string, id: string) =>
     Boolean(db.prepare("SELECT 1 FROM boat_sandboxes WHERE id = ? AND workspace = ? AND deleted = 0").get(id, workspace));
@@ -65,7 +79,8 @@ CREATE INDEX IF NOT EXISTS boat_sandboxes_workspace ON boat_sandboxes (workspace
     const elapsed = now() - row.billed_at;
     const minutes = final ? Math.ceil(elapsed / MINUTE_MS) : Math.floor(elapsed / MINUTE_MS);
     if (minutes <= 0) return;
-    wallet.charge(row.workspace, wallet.microFor(minutes * perMinuteUsd), "boat", "cloud computer");
+    const paid = minutes - takeIncluded(row.workspace, minutes);
+    if (paid > 0) wallet.charge(row.workspace, wallet.microFor(paid * perMinuteUsd), "boat", "cloud computer");
     db.prepare("UPDATE boat_sandboxes SET billed_at = ? WHERE id = ?").run(final ? now() : row.billed_at + minutes * MINUTE_MS, id);
   }
 

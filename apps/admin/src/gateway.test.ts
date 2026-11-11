@@ -8,9 +8,11 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { falRun } from "../../../server/fal.ts";
 import { createAdminApp } from "./app.ts";
+import { createBoatRelay } from "./boat-relay.ts";
 import { falUnits, openrouterCost } from "./gateway.ts";
 import type { MailMessage } from "./mail.ts";
 import { AdminStore } from "./store.ts";
+import { MICRO, Wallet } from "./wallet.ts";
 
 const cleanups: Array<() => void | Promise<void>> = [];
 afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) await cleanup(); });
@@ -201,5 +203,32 @@ describe("Delio Boat relay", () => {
     expect(upstream.calls.filter((call) => call.url.endsWith("/sandboxes/bx_abcd2345/stop"))).toHaveLength(1);
     expect((await target.gateway("acme", "boat/v1/sandboxes/bx_abcd2345/resume", acme, { method: "POST" })).status, "out of credits: it cannot wake").toBe(402);
     expect((await target.gateway("acme", "boat/v1/sandboxes", acme, { method: "POST", body: "{}" })).status).toBe(402);
+  });
+});
+
+describe("a plan's included cloud computer hours", () => {
+  it("leaves awake minutes free up to the plan's hours each month, then charges them in credits", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "delio-included-"));
+    const store = new AdminStore({ file: join(dir, "admin.db"), secret: randomBytes(32) });
+    cleanups.push(() => { store.close(); rmSync(dir, { recursive: true, force: true }); });
+    store.createWorkspace({ slug: "acme", name: "Acme", tenantUrl: "https://acme.example.test", ownerEmail: "boss@acme.test" }, "ops@delio.test");
+    const clock = { now: Date.UTC(2026, 10, 1, 8) };
+    const wallet = new Wallet(store.db, { now: () => clock.now });
+    wallet.credit("acme", 1000 * MICRO, "grant", null);
+    const relay = createBoatRelay({ wallet, key: "boat-operator", usdPerHour: 0.12, includedHours: () => 1, now: () => clock.now, fetchImpl: (async () => Response.json({})) as typeof fetch });
+    store.db.prepare("INSERT INTO boat_sandboxes (id, workspace, awake, billed_at) VALUES ('bx_abcd2345', 'acme', 1, ?)").run(clock.now);
+
+    clock.now += 50 * 60_000;
+    await relay.sweep();
+    expect(wallet.balance("acme") / MICRO, "inside the included hour").toBe(1000);
+    clock.now += 20 * 60_000;
+    await relay.sweep();
+    expect(wallet.balance("acme") / MICRO, "ten minutes past the hour at 0.12 USD an hour").toBeCloseTo(990, 5);
+
+    clock.now = Date.UTC(2026, 11, 1, 8);
+    store.db.prepare("UPDATE boat_sandboxes SET billed_at = ?").run(clock.now);
+    clock.now += 30 * 60_000;
+    await relay.sweep();
+    expect(wallet.balance("acme") / MICRO, "a new month brings the hours back").toBeCloseTo(990, 5);
   });
 });

@@ -464,7 +464,7 @@ function SettingsDialog() {
           : <SimpleGeneralPage has={has} peopleOpen={section === "people"} onLooks={() => setSubPage("looks")} onMore={has("general") ? () => setSubPage("more") : undefined} />;
       case "ai": return <SimpleAiPage has={has} disclose={disclose} connections={renderSection("connections")} />;
       case "computer": return <SimpleComputerPage has={has} remoteAccess={remoteAccess} servers={<ConnectedWorkspacesSettings />} disclose={disclose} />;
-      case "billing": return <SimpleBillingPage has={has} disclose={disclose} cloudAccount={renderSection("cloudAccount")} />;
+      case "billing": return <SimpleBillingPage has={has} disclose={disclose} cloudAccount={renderSection("cloudAccount")} onPlans={() => dispatch({ type: "openCloudAdd", source: "app_settings" })} />;
       case "updates": return <SimpleUpdatesPage remoteActive={remoteActive} />;
       default:
         return <>

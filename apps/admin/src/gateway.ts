@@ -23,7 +23,7 @@ export interface GatewayOptions {
   boatUrl?: string;
   boatUsdPerHour?: number;
   /** What the workspace's plan allows: spending Delio credits, and cloud computers awake at once. */
-  allowance?: (workspace: string) => { gateway: boolean; computers: number; reason?: string };
+  allowance?: (workspace: string) => { gateway: boolean; computers: number; computerHours?: number; reason?: string };
   now?: () => number;
 }
 
@@ -108,7 +108,8 @@ export function createGateway(options: GatewayOptions) {
   const openrouterUrl = (options.openrouterUrl ?? "https://openrouter.ai/api/v1").replace(/\/+$/, "");
   const falQueueUrl = (options.falQueueUrl ?? "https://queue.fal.run").replace(/\/+$/, "");
   const falApiUrl = (options.falApiUrl ?? "https://api.fal.ai/v1").replace(/\/+$/, "");
-  const boat = createBoatRelay({ wallet, key: options.boatKey, apiUrl: options.boatUrl, usdPerHour: options.boatUsdPerHour, limit: (workspace) => options.allowance?.(workspace).computers ?? 1, fetchImpl, now });
+  const boat = createBoatRelay({ wallet, key: options.boatKey, apiUrl: options.boatUrl, usdPerHour: options.boatUsdPerHour, limit: (workspace) => options.allowance?.(workspace).computers ?? 1,
+    includedHours: (workspace) => options.allowance?.(workspace).computerHours ?? 0, fetchImpl, now });
   const running = new Map<string, number>();
   const prices = new Map<string, { at: number; price: { unitPrice: number; unit: string } | null }>();
 

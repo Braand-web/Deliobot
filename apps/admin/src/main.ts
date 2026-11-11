@@ -48,14 +48,15 @@ const gateway = { openrouterKey: env.DELIO_ADMIN_OPENROUTER_KEY?.trim() || undef
   boatKey: env.DELIO_ADMIN_BOAT_KEY?.trim() || undefined, boatUsdPerHour, creditUsd };
 if (!gateway.openrouterKey && !gateway.falKey) console.warn("delio-admin: no DELIO_ADMIN_OPENROUTER_KEY or DELIO_ADMIN_FAL_KEY, so the AI gateway refuses every request");
 const currency = (env.DELIO_ADMIN_CURRENCY ?? "XOF").trim().toUpperCase();
-const usdPerEur = env.DELIO_ADMIN_USD_PER_EUR ? Number(env.DELIO_ADMIN_USD_PER_EUR) : undefined;
+const xofPerUsd = env.DELIO_ADMIN_XOF_PER_USD ? Number(env.DELIO_ADMIN_XOF_PER_USD) : undefined;
 if (!["XOF", "XAF", "USD"].includes(currency)) fail("DELIO_ADMIN_CURRENCY must be XOF, XAF or USD");
-if (currency === "USD" && !(usdPerEur && usdPerEur > 0)) fail("set DELIO_ADMIN_USD_PER_EUR, such as 1.08, to price checkouts in USD");
+if (xofPerUsd !== undefined && !(xofPerUsd > 0)) fail("DELIO_ADMIN_XOF_PER_USD must be a positive number of CFA francs, such as 600");
+if (xofPerUsd === undefined && currency !== "USD") console.warn("delio-admin: no DELIO_ADMIN_XOF_PER_USD, so prices in CFA francs use 600 francs to the dollar");
 const saspayKey = env.DELIO_ADMIN_SASPAY_KEY?.trim() || undefined;
 if (saspayKey && !env.DELIO_ADMIN_SASPAY_WEBHOOK_SECRET?.trim()) fail("set DELIO_ADMIN_SASPAY_WEBHOOK_SECRET to the signing secret SasPay showed when the webhook was created");
 if (production && saspayKey?.startsWith("sk_test_")) console.warn("delio-admin: SasPay is in test mode, so no real payment is taken");
 if (!saspayKey) console.warn("delio-admin: no DELIO_ADMIN_SASPAY_KEY, so plans and top-ups cannot be paid");
-const payments = { saspayKey, webhookSecret: env.DELIO_ADMIN_SASPAY_WEBHOOK_SECRET?.trim(), currency, usdPerEur };
+const payments = { saspayKey, webhookSecret: env.DELIO_ADMIN_SASPAY_WEBHOOK_SECRET?.trim(), currency, xofPerUsd };
 const app = createAdminApp({ store, publicUrl, operators, mailer, gateway, payments });
 const server = createServer(app);
 const sweeper = setInterval(() => void app.sweep().catch((error: unknown) => console.error("delio-admin: billing sweep failed", error)), 60_000);

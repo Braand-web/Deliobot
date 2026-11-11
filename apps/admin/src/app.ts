@@ -6,7 +6,7 @@ import type { Mailer } from "./mail.ts";
 import { discover, exchangeCode, pkceChallenge, verifyIdToken } from "./oidc.ts";
 import { createGateway, type GatewayOptions } from "./gateway.ts";
 import { DEVICE_POLL_SECONDS, Devices } from "./devices.ts";
-import { Billing, PLANS, priceIn, reconcileOrders, TOPUPS, type PlanId, type TopupId } from "./plans.ts";
+import { Billing, catalog, PLANS, reconcileOrders, TOPUPS, TRIAL_DAYS, type Cycle, type PlanId, type TopupId } from "./plans.ts";
 import { createSasPay, verifySasPayWebhook } from "./saspay.ts";
 import { MICRO, Wallet } from "./wallet.ts";
 import { billingPage, codePage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, slackPage, ssoPage, type Html } from "./pages.ts";
@@ -26,7 +26,7 @@ export interface AdminAppOptions {
   /** The operator's provider keys and upstreams for the paid gateway; a provider without a key is refused there. */
   gateway?: Omit<GatewayOptions, "store" | "wallet" | "publicUrl" | "fetchImpl" | "now" | "allowance" | "deviceToken"> & { creditUsd?: number };
   /** SasPay: the secret key, the webhook signing secret, and the currency checkouts are priced in (XOF by default). */
-  payments?: { saspayKey?: string; webhookSecret?: string; currency?: string; usdPerEur?: number; apiUrl?: string };
+  payments?: { saspayKey?: string; webhookSecret?: string; currency?: string; xofPerUsd?: number; apiUrl?: string };
 }
 
 const MAX_BODY = 16 * 1024;
@@ -255,6 +255,10 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     }
     if (path === "/api/health") return json(res, 200, { ok: true, service: "delio-admin", ...HOSTED_CONTRACT_METADATA });
     if (await gateway.handle(req, res, url)) return;
+    if (path === "/api/public/plans") {
+      if (method !== "GET") return json(res, 405, { error: "method not allowed" });
+      return json(res, 200, catalog(options.payments?.xofPerUsd), { "access-control-allow-origin": "*", "cache-control": "public, max-age=300" });
+    }
     if (path === "/api/saspay/webhook") {
       if (method !== "POST") return json(res, 405, { error: "method not allowed" });
       const raw = await readRawBody(req);
@@ -511,15 +515,17 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       const kind = text(body, "kind", 8);
       const plan = text(body, "plan", 16) as PlanId;
       const topup = text(body, "topup", 16) as TopupId;
+      const cycle: Cycle = text(body, "cycle", 8) === "year" ? "year" : "month";
       if (kind === "plan" && !Object.hasOwn(PLANS, plan)) return fail(400, "Choose a plan.");
       if (kind === "topup" && !TOPUPS.some((pack) => pack.id === topup)) return fail(400, "Choose a top-up.");
       if (kind !== "plan" && kind !== "topup") return fail(400, "Choose a plan or a top-up.");
       if (kind === "plan" && plan === "trial" && plans.trialUsed(user.email, workspace.slug)) return fail(409, "The trial was already used for this account or workspace.");
-      const seats = Number(text(body, "seats", 4)) || store.members(workspace.slug).length;
       const order = kind === "plan"
-        ? plans.createOrder({ workspace: workspace.slug, email: user.email, kind, plan, seats }, currency, options.payments?.usdPerEur)
-        : plans.createOrder({ workspace: workspace.slug, email: user.email, kind, topup }, currency, options.payments?.usdPerEur);
-      const description = kind === "plan" ? `Delio ${PLANS[plan].name}${PLANS[plan].perSeat ? ` · ${order.seats} seat${order.seats === 1 ? "" : "s"} · 30 days` : " · 3 days"}` : `Delio credits · ${order.credits}`;
+        ? plans.createOrder({ workspace: workspace.slug, email: user.email, kind, plan, cycle }, currency, options.payments?.xofPerUsd)
+        : plans.createOrder({ workspace: workspace.slug, email: user.email, kind, topup }, currency, options.payments?.xofPerUsd);
+      const description = kind === "plan"
+        ? `Delio ${PLANS[plan].name} · ${plan === "trial" ? `${TRIAL_DAYS} days` : order.cycle === "year" ? "1 year" : "1 month"}`
+        : `Delio credits · ${order.credits}`;
       try {
         const session = await saspay.createCheckout({ amount: order.amount, currency, description, email: user.email, name: user.email,
           returnUrl: new URL(`/billing/return?order=${order.id}`, publicUrl).href, metadata: { order: order.id, workspace: workspace.slug } });
@@ -554,8 +560,18 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     }
 
     if (method === "GET" && path === "/billing") {
-      const workspace = requireWorkspaceAdmin(user, url.searchParams.get("workspace") ?? "");
-      return html(res, 200, { title: "Billing", email: user.email, body: billing(workspace, user, { message: url.searchParams.get("done") ? "Saved." : undefined }) });
+      const asked = url.searchParams.get("workspace");
+      if (!asked) {
+        const first = store.workspacesOf(user.id).find((item) => item.role === "admin");
+        if (!first) return html(res, 200, { title: "Billing", email: user.email, body: messagePage("No workspace yet", "Plans are bought for a workspace you administer. Ask its administrator, or create one first.", { href: "/", label: "Back" }) });
+        const next = new URLSearchParams(url.searchParams);
+        next.set("workspace", first.slug);
+        return redirect(res, `/billing?${next}`);
+      }
+      const workspace = requireWorkspaceAdmin(user, asked);
+      const chosen = url.searchParams.get("plan");
+      return html(res, 200, { title: "Billing", email: user.email, body: billing(workspace, user, { message: url.searchParams.get("done") ? "Saved." : undefined,
+        chosen: chosen && Object.hasOwn(PLANS, chosen) ? chosen as PlanId : undefined, cycle: url.searchParams.get("cycle") === "year" ? "year" : "month" }) });
     }
     if (method === "POST" && (path === "/billing/credit" || path === "/billing/token")) {
       const body = await readBody(req);
@@ -583,12 +599,10 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     throw new HttpError(404, "Not found.");
   }
 
-  function billing(workspace: Workspace, user: Account, extra: { message?: string; error?: string; token?: string }): Html {
+  function billing(workspace: Workspace, user: Account, extra: { message?: string; error?: string; token?: string; chosen?: PlanId; cycle?: Cycle }): Html {
     return billingPage({ workspace, operator: operators.has(user.email), balance: wallet.balance(workspace.slug) / MICRO,
       subscription: plans.subscription(workspace.slug), orders: plans.orders(workspace.slug, 10), payments: Boolean(saspay), currency,
-      trialAvailable: !plans.trialUsed(user.email, workspace.slug), seats: store.members(workspace.slug).length,
-      prices: Object.fromEntries([...Object.values(PLANS).map((plan) => [plan.id, priceIn(plan.eur, currency, options.payments?.usdPerEur)]),
-        ...TOPUPS.map((pack) => [pack.id, priceIn(pack.eur, currency, options.payments?.usdPerEur)])]),
+      trialAvailable: !plans.trialUsed(user.email, workspace.slug), catalog: catalog(options.payments?.xofPerUsd),
       usedThisMonth: wallet.usedThisMonth(workspace.slug) / MICRO, hasToken: wallet.hasToken(workspace.slug), ledger: wallet.ledger(workspace.slug, 30),
       gatewayUrl: new URL(`/api/gateway/${workspace.slug}`, publicUrl).href, devices: devices.list(workspace.slug), ...extra });
   }
@@ -613,13 +627,19 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   async function sweep(): Promise<void> {
     await gateway.sweep();
     if (saspay) await reconcileOrders(plans, saspay);
+    plans.grantDue();
     for (const due of plans.dueReminders()) {
       const workspace = store.workspace(due.workspace);
       if (!workspace) continue;
       const link = new URL(`/billing?workspace=${due.workspace}`, publicUrl).href;
+      const day = new Date(due.periodEnd).toISOString().slice(0, 10);
+      const message = due.plan === "trial"
+        ? { subject: `Your Delio trial for ${workspace.name} ends soon`,
+          text: `The trial of ${workspace.name} ends on ${day}.\n\nChoose a plan here to keep your bots working with Delio's AI: ${link}` }
+        : { subject: `Your Delio ${PLANS[due.plan].name} plan for ${workspace.name} ends soon`,
+          text: `The ${PLANS[due.plan].name} plan of ${workspace.name} ends on ${day}.\n\nRenew it here to keep its credits coming: ${link}\n\nAfter that day the workspace has 7 days of grace, then its bots stop using Delio credits until it is renewed.` };
       for (const admin of store.members(due.workspace).filter((member) => member.role === "admin")) {
-        await mailer.send({ to: admin.email, subject: `Your Delio ${PLANS[due.plan].name} plan for ${workspace.name} ends soon`,
-          text: `The ${PLANS[due.plan].name} plan of ${workspace.name} ends on ${new Date(due.periodEnd).toISOString().slice(0, 10)}.\n\nRenew it here to keep its credits coming: ${link}\n\nAfter that day the workspace has 7 days of grace, then its bots stop using Delio credits until it is renewed.` })
+        await mailer.send({ to: admin.email, ...message })
           .catch(() => console.error("delio-admin: a renewal reminder could not be sent"));
       }
     }

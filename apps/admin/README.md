@@ -49,7 +49,8 @@ Open http://localhost:8790. In development, sign-in codes and invitation links a
 | `DELIO_ADMIN_CREDIT_USD` | The provider cost one credit stands for. Default: `0.002` (so 1 USD of provider cost = 500 credits). |
 | `DELIO_ADMIN_SASPAY_KEY` | The SasPay secret key (`sk_test_…` in test, `sk_live_…` in production), with the PAYIN scope. |
 | `DELIO_ADMIN_SASPAY_WEBHOOK_SECRET` | The signing secret SasPay shows once when the webhook is created in its dashboard. |
-| `DELIO_ADMIN_CURRENCY` | `XOF` (default), `XAF` or `USD`. CFA francs use the euro peg (655.957); USD needs `DELIO_ADMIN_USD_PER_EUR`. |
+| `DELIO_ADMIN_CURRENCY` | What SasPay charges: `XOF` (default), `XAF` or `USD`. Prices are set in dollars. |
+| `DELIO_ADMIN_XOF_PER_USD` | CFA francs per dollar, used to charge and to show the franc price under each dollar price. Default: `600`; follow the market rate. |
 | `PORT`, `HOST` | Listening address. Default: `8790`. Binds `127.0.0.1` in development and `0.0.0.0` in production. |
 
 Put the portal behind a TLS-terminating proxy.
@@ -118,18 +119,25 @@ Claude, GPT and the other models are reached through OpenRouter.
 ## Plans and payments (SasPay)
 
 [SasPay](https://docs.saspay.me) takes mobile money and card payments on a hosted
-page. It has no automatic subscriptions, so a plan is a **prepaid 30-day period**.
+page. It has no automatic subscriptions, so a plan is a **prepaid period**: a
+month, or a year (12 months of 30 days) paid at once for the price of 11.
 
-| Plan | Price | Credits | Cloud computers |
-| --- | --- | --- | --- |
-| Trial | 1 € once, 3 days | 100 | none |
-| Pro | 25 € per seat | 2,000 per seat | 1 |
-| Pro BYOK | 12 € per seat | none: the workspace's own keys | 1 |
-| Business | 59 € per seat | 6,000 per seat | 5 |
+| Plan | Month | Year | Credits a month | Cloud computer hours a month | Computers at once | On the site |
+| --- | --- | --- | --- | --- | --- | --- |
+| Trial | $5 for 3 days, once | | 300 for the trial | 3 for the trial | 1 | no |
+| Starter | $15 | $165 | 1,300 | 15 | 1 | yes |
+| Pro | $49 | $539 | 5,500 | 90 | 2 | yes |
+| Max | $99 | $1,089 | 13,500 | 180 | 5 | yes |
+| BYOK | $12 | $132 | none: the workspace's own keys | none | none | no |
 
-Top-ups: 5,000 credits for 20 €, 15,000 for 50 €. Prices are charged in the
-configured currency.
+Top-ups, sold to signed-in admins only: 4,500 credits for $20, 13,500 for $50;
+they never expire. Prices are set in dollars and charged in the configured
+currency at `DELIO_ADMIN_XOF_PER_USD`; every price shows the francs under the
+dollars. `GET /api/public/plans` returns this catalog for the site and the apps.
 
+- Awake minutes of cloud computers are free up to the plan's hours in each
+  calendar month (UTC), then charged in credits.
+- A yearly plan grants its credits at the start of each 30-day month.
 - A workspace admin picks a plan, the trial (once per account and workspace) or
   a top-up on **Billing**. The portal records the order, opens a SasPay checkout
   session with a return URL, and sends the person to SasPay's page.
@@ -137,11 +145,11 @@ configured currency.
   when the person comes back (`/billing/return`), when a signed
   `transaction.success` webhook arrives (`POST /api/saspay/webhook`: HMAC-SHA256
   of `timestamp.body`, at most five minutes old), and once a minute for any
-  order still pending. An order is applied once: its credits, and for a plan its
-  30 days (added after the current period when renewing the same plan).
+  order still pending. An order is applied once: its first month's credits and
+  its period (added after the current period when renewing the same plan).
 - Three days before a period ends, the workspace's admins get an email with the
-  Billing link. After the end comes a 7-day grace; then the gateway answers
-  `402 plan_inactive` until the plan is renewed. Pro BYOK never spends Delio
+  Billing link. After a paid period comes a 7-day grace; then the gateway answers
+  `402 plan_inactive` until the plan is renewed. BYOK never spends Delio
   credits. Credits already granted stay in the wallet.
 - In SasPay's dashboard: create the webhook on `https://<portal>/api/saspay/webhook`,
   subscribe it to `transaction.success`, and copy its signing secret.

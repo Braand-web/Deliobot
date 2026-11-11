@@ -94,15 +94,15 @@ describe("SasPay webhook signature", () => {
     expect(verifySasPayWebhook(body, { timestamp }, SECRET, now)).toBe(false);
   });
 
-  it("prices in CFA francs at the euro peg, rounded up to a whole franc", () => {
-    expect(priceIn(1, "XOF")).toBe("656.00");
-    expect(priceIn(50, "XAF")).toBe("32798.00");
-    expect(priceIn(25, "USD", 1.08)).toBe("27.00");
+  it("charges dollar prices in CFA francs at the operator's rate, rounded up to a whole franc", () => {
+    expect(priceIn(5, "XOF")).toBe("3000.00");
+    expect(priceIn(1.5, "XAF", 607)).toBe("911.00");
+    expect(priceIn(49, "USD")).toBe("49.00");
   });
 });
 
 describe("plans paid through SasPay", () => {
-  it("runs the one-euro trial once, credits it on a signed webhook only once, then sells and renews Pro by the seat", async () => {
+  it("runs the five-dollar trial once, credits it on a signed webhook only once, then sells and renews Pro by the month", async () => {
     const clock = { now: Date.now() };
     const saspay = fakeSasPay();
     const target = await portal(saspay, clock);
@@ -112,7 +112,7 @@ describe("plans paid through SasPay", () => {
     expect(trial.headers.get("location")).toBe("https://pay.saspay.me/checkout/cs_1");
     const created = saspay.calls[0]!;
     expect(created.auth).toBe("Bearer sk_test_operator");
-    expect(created.body).toMatchObject({ amount: "656.00", currency: "XOF", customer_email: "boss@acme.test", metadata: { workspace: "acme" } });
+    expect(created.body).toMatchObject({ amount: "3000.00", currency: "XOF", customer_email: "boss@acme.test", metadata: { workspace: "acme" } });
     expect(String((created.body as { return_url: string }).return_url)).toMatch(/\/billing\/return\?order=ord_/);
 
     expect((await target.webhook({ event: "transaction.success", data: { id: "t1" } }, { secret: "forged" })).status).toBe(403);
@@ -122,34 +122,57 @@ describe("plans paid through SasPay", () => {
 
     saspay.pay("cs_1");
     expect((await target.webhook({ event: "transaction.success", data: { id: "t2" } })).status).toBe(200);
-    expect((await target.account()).credits).toBe(100);
+    expect((await target.account()).credits).toBe(300);
     await target.webhook({ event: "transaction.success", data: { id: "t3" } });
-    expect((await target.account()).credits, "a second confirmation changes nothing").toBe(100);
+    expect((await target.account()).credits, "a second confirmation changes nothing").toBe(300);
     expect(await (await target.get("/billing?workspace=acme")).text()).toContain("Trial until");
     expect((await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "trial" })).status, "one trial per account and workspace").toBe(409);
 
-    const pro = await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "pro", seats: "2" });
-    expect(saspay.calls.at(-1)!.body, "25 EUR × 2 seats").toMatchObject({ amount: "32798.00" });
+    const pro = await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "pro", cycle: "month" });
+    expect(saspay.calls.at(-1)!.body, "49 USD at 600 francs").toMatchObject({ amount: "29400.00" });
     saspay.pay("cs_2");
-    const back = await target.get(new URL(pro.headers.get("location")!).pathname === "/checkout/cs_2" ? `/billing/return?order=${/order=(ord_[^&"]+)/.exec(String((saspay.calls.at(-1)!.body as { return_url: string }).return_url))![1]}` : "/");
-    expect(await back.text(), "the return page confirms with SasPay itself").toContain("Payment received");
-    expect((await target.account()).credits).toBe(4100);
-    const page = await (await target.get("/billing?workspace=acme")).text();
-    expect(page).toMatch(/Pro · 2 seats until/);
+    const order = /order=(ord_[^&"]+)/.exec(String((saspay.calls.at(-1)!.body as { return_url: string }).return_url))![1];
+    expect(new URL(pro.headers.get("location")!).pathname).toBe("/checkout/cs_2");
+    expect(await (await target.get(`/billing/return?order=${order}`)).text(), "the return page confirms with SasPay itself").toContain("Payment received");
+    expect((await target.account()).credits).toBe(5800);
+    expect(await (await target.get("/billing?workspace=acme")).text()).toMatch(/Pro · monthly · until/);
 
-    await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "pro", seats: "2" });
+    await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "pro", cycle: "month" });
     saspay.pay("cs_3");
     await target.sweep();
-    expect((await target.account()).credits, "the sweep confirms payments whose webhook never came").toBe(8100);
+    expect((await target.account()).credits, "the sweep confirms payments whose webhook never came").toBe(11300);
     expect(await (await target.get("/billing?workspace=acme")).text(), "a renewal adds 30 days after the current period")
       .toContain(`until ${new Date(clock.now + 60 * DAY).toISOString().slice(0, 10)}`);
+  });
+
+  it("sells a year for the price of eleven months and grants its credits month by month", async () => {
+    const clock = { now: Date.now() };
+    const saspay = fakeSasPay();
+    const target = await portal(saspay, clock);
+    await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "starter", cycle: "year" });
+    expect(saspay.calls.at(-1)!.body).toMatchObject({ amount: "99000.00", description: "Delio Starter · 1 year" });
+    saspay.pay("cs_1");
+    await target.sweep();
+    expect((await target.account()).credits).toBe(1300);
+
+    clock.now += 29 * DAY;
+    await target.sweep();
+    expect((await target.account()).credits, "the next month has not begun").toBe(1300);
+    clock.now += 1 * DAY;
+    await target.sweep();
+    expect((await target.account()).credits).toBe(2600);
+
+    clock.now += 400 * DAY;
+    await target.sweep();
+    expect((await target.account()).credits, "twelve months, then nothing more").toBe(12 * 1300);
+    expect((await target.account()).gateway, "the year and its grace week are over").toBe(false);
   });
 
   it("reminds admins before a period ends, keeps a week of grace, then stops the gateway; BYOK never spends Delio credits", async () => {
     const clock = { now: Date.now() };
     const saspay = fakeSasPay();
     const target = await portal(saspay, clock);
-    await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "pro", seats: "1" });
+    await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "pro" });
     saspay.pay("cs_1");
     await target.sweep();
     expect((await target.account()).gateway).toBe(true);
@@ -169,20 +192,31 @@ describe("plans paid through SasPay", () => {
     expect(await refused.json()).toMatchObject({ error: { code: "plan_inactive" } });
 
     await target.signIn("boss@acme.test");
-    await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "byok", seats: "1" });
+    await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "byok" });
     saspay.pay("cs_2");
     await target.sweep();
     expect((await target.chat()).status, "BYOK uses the workspace's own keys").toBe(402);
   });
 
-  it("sells top-ups priced in CFA francs, credited once SasPay confirms them", async () => {
+  it("sells top-ups priced in dollars and charged in CFA francs, credited once SasPay confirms them", async () => {
     const clock = { now: Date.now() };
     const saspay = fakeSasPay();
     const target = await portal(saspay, clock);
     await target.post("/billing/checkout", { workspace: "acme", kind: "topup", topup: "small" });
-    expect(saspay.calls.at(-1)!.body).toMatchObject({ amount: "13120.00", currency: "XOF" });
+    expect(saspay.calls.at(-1)!.body).toMatchObject({ amount: "12000.00", currency: "XOF" });
     saspay.pay("cs_1");
     await target.sweep();
-    expect((await target.account()).credits).toBe(5000);
+    expect((await target.account()).credits).toBe(4500);
+  });
+
+  it("publishes the catalog in dollars with its franc prices; only Starter, Pro and Max are listed for the site", async () => {
+    const clock = { now: Date.now() };
+    const target = await portal(fakeSasPay(), clock);
+    const response = await target.get("/api/public/plans");
+    expect(response.headers.get("access-control-allow-origin")).toBe("*");
+    const body = await response.json() as { plans: Array<{ id: string; usd: number; usdYear: number | null; francs: number; listed: boolean }>; topups: Array<{ credits: number; francs: number }> };
+    expect(body.plans.filter((plan) => plan.listed).map((plan) => plan.id)).toEqual(["starter", "pro", "max"]);
+    expect(body.plans.find((plan) => plan.id === "pro")).toMatchObject({ usd: 49, usdYear: 539, francs: 29400 });
+    expect(body.topups.map((pack) => pack.credits)).toEqual([4500, 13500]);
   });
 });
