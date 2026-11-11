@@ -19,6 +19,8 @@ interface UpstreamCall { url: string; method: string; auth: string | null; body:
 
 /** OpenRouter and fal.ai stand-ins reached through the portal's fetch: they record what the gateway sent them. */
 function upstreams(options: { cost?: number; falUnit?: string; falPrice?: number } = {}) {
+  const boats: Array<{ id: string; state: string }> = [{ id: "bx_zzzz9999", state: "idle" }];
+  let nextBoat = 0;
   const calls: UpstreamCall[] = [];
   let polls = 0;
   const fetchImpl = (async (input: string | URL | Request, init?: RequestInit) => {
@@ -33,6 +35,21 @@ function upstreams(options: { cost?: number; falUnit?: string; falPrice?: number
       ].map((event) => `data: ${JSON.stringify(event)}\n\n`).join("") + "data: [DONE]\n\n";
       return new Response(events, { headers: { "content-type": "text/event-stream" } });
     }
+    if (url.host === "boat.test") {
+      const path = url.pathname.replace("/api/v1", "");
+      if (path === "/sandboxes" && init?.method === "POST") {
+        const boat = { id: ["bx_abcd2345", "bx_efgh2345"][nextBoat++]!, state: "provisioning" };
+        boats.push(boat);
+        return Response.json({ sandbox: boat }, { status: 202 });
+      }
+      if (path === "/sandboxes") return Response.json({ sandboxes: boats });
+      const [, , id, action] = path.split("/");
+      const boat = boats.find((item) => item.id === id);
+      if (!boat) return Response.json({ error: "missing" }, { status: 404 });
+      if (action === "stop") boat.state = "archived";
+      if (action === "resume") boat.state = "idle";
+      return Response.json({ sandbox: boat });
+    }
     if (url.host === "openrouter.test" && url.pathname === "/api/v1/models") return Response.json({ data: [{ id: "openai/gpt-5" }] });
     if (url.host === "api.fal.test") return Response.json({ prices: [{ endpoint_id: url.searchParams.get("endpoint_id"), unit_price: options.falPrice ?? 0.07, unit: options.falUnit ?? "second", currency: "USD" }] });
     if (url.host === "queue.fal.test" && init?.method === "POST") {
@@ -46,7 +63,7 @@ function upstreams(options: { cost?: number; falUnit?: string; falPrice?: number
   return { fetchImpl, calls };
 }
 
-async function portal(upstream: ReturnType<typeof upstreams>) {
+async function portal(upstream: ReturnType<typeof upstreams>, clock: { now: number } = { now: Date.now() }) {
   const dir = mkdtempSync(join(tmpdir(), "delio-gateway-"));
   const store = new AdminStore({ file: join(dir, "admin.db"), secret: randomBytes(32) });
   const mail: MailMessage[] = [];
@@ -54,10 +71,13 @@ async function portal(upstream: ReturnType<typeof upstreams>) {
   await new Promise<void>((done) => server.listen(0, "127.0.0.1", done));
   const origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
   cleanups.push(() => new Promise<void>((done) => server.close(() => { store.close(); rmSync(dir, { recursive: true, force: true }); done(); })));
-  server.on("request", createAdminApp({
+  const app = createAdminApp({
     store, publicUrl: new URL(origin), operators: new Set(["ops@delio.test"]), mailer: { send: async (message) => void mail.push(message) }, fetchImpl: upstream.fetchImpl,
-    gateway: { openrouterKey: "sk-or-operator", falKey: "fal-operator", openrouterUrl: "https://openrouter.test/api/v1", falQueueUrl: "https://queue.fal.test", falApiUrl: "https://api.fal.test/v1" },
-  }));
+    gateway: { openrouterKey: "sk-or-operator", falKey: "fal-operator", openrouterUrl: "https://openrouter.test/api/v1", falQueueUrl: "https://queue.fal.test", falApiUrl: "https://api.fal.test/v1",
+      boatKey: "boat-operator", boatUrl: "https://boat.test/api/v1", boatUsdPerHour: 0.12 },
+    now: () => clock.now,
+  });
+  server.on("request", app);
   let cookie = "";
   const post = async (path: string, form: Record<string, string>) => {
     const response = await fetch(new URL(path, origin), { method: "POST", redirect: "manual", body: new URLSearchParams(form).toString(),
@@ -79,7 +99,7 @@ async function portal(upstream: ReturnType<typeof upstreams>) {
   const gateway = (slug: string, path: string, token: string, init: RequestInit = {}) =>
     fetch(new URL(`/api/gateway/${slug}/${path}`, origin), { ...init, headers: { authorization: `Bearer ${token}`, "content-type": "application/json", ...init.headers as Record<string, string> } });
   const account = async (slug: string, token: string) => (await fetch(new URL(`/api/workspace/${slug}/account`, origin), { headers: { authorization: `Bearer ${token}` } })).json() as Promise<{ credits: number; usedThisMonth: number }>;
-  return { origin, workspace, gateway, account, page: (path: string) => fetch(new URL(path, origin), { headers: { cookie } }) };
+  return { origin, workspace, gateway, account, page: (path: string) => fetch(new URL(path, origin), { headers: { cookie } }), sweep: () => app.sweep() };
 }
 
 describe("cost and length readers", () => {
@@ -153,3 +173,33 @@ describe("Delio AI gateway", () => {
   });
 });
 
+describe("Delio Boat relay", () => {
+  it("ties each cloud computer to its workspace, holds the plan's limit, bills awake minutes and puts it to sleep at zero", async () => {
+    const clock = { now: Date.now() };
+    const upstream = upstreams();
+    const target = await portal(upstream, clock);
+    const acme = await target.workspace("acme", 15);
+    const beta = await target.workspace("beta", 100);
+    const created = await target.gateway("acme", "boat/v1/sandboxes", acme, { method: "POST", body: JSON.stringify({ name: "odb-test" }) });
+    expect(created.status).toBe(202);
+    expect((await created.json()).sandbox.id).toBe("bx_abcd2345");
+    expect(upstream.calls.at(-1)!.auth).toBe("Bearer boat-operator");
+    expect((await target.gateway("acme", "boat/v1/sandboxes", acme, { method: "POST", body: "{}" })).status, "one awake computer on this plan").toBe(409);
+
+    const listed = await (await target.gateway("acme", "boat/v1/sandboxes", acme)).json();
+    expect(listed.sandboxes.map((item: { id: string }) => item.id), "the operator account's other computers stay hidden").toEqual(["bx_abcd2345"]);
+    expect((await target.gateway("beta", "boat/v1/sandboxes/bx_abcd2345", beta)).status).toBe(404);
+    expect((await target.gateway("beta", "boat/v1/sandboxes/bx_abcd2345/commands", beta, { method: "POST", body: "{}" })).status).toBe(404);
+
+    clock.now += 10 * 60_000;
+    await target.sweep();
+    expect((await target.account("acme", acme)).usedThisMonth, "10 minutes at 0.12 USD an hour, 0.002 USD a credit").toBeCloseTo(10, 5);
+    expect(upstream.calls.some((call) => call.url.endsWith("/stop")), "credits left: it keeps running").toBe(false);
+
+    clock.now += 60 * 60_000;
+    await target.sweep();
+    expect(upstream.calls.filter((call) => call.url.endsWith("/sandboxes/bx_abcd2345/stop"))).toHaveLength(1);
+    expect((await target.gateway("acme", "boat/v1/sandboxes/bx_abcd2345/resume", acme, { method: "POST" })).status, "out of credits: it cannot wake").toBe(402);
+    expect((await target.gateway("acme", "boat/v1/sandboxes", acme, { method: "POST", body: "{}" })).status).toBe(402);
+  });
+});

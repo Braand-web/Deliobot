@@ -44,6 +44,8 @@ Open http://localhost:8790. In development, sign-in codes and invitation links a
 | `DELIO_ADMIN_MAIL=console` | Prints mail instead of sending it, even in production. Never use this on a public deployment. |
 | `DELIO_ADMIN_OPENROUTER_KEY` | The operator's OpenRouter key, used only by the AI gateway. |
 | `DELIO_ADMIN_FAL_KEY` | The operator's fal.ai key, used only by the AI gateway. |
+| `DELIO_ADMIN_BOAT_KEY` | The operator's Boat key, used only by the cloud-computer relay. |
+| `DELIO_ADMIN_BOAT_USD_PER_HOUR` | What an awake cloud computer costs, charged per minute. Default: `0.10`; set it to your Boat rate. |
 | `DELIO_ADMIN_CREDIT_USD` | The provider cost one credit stands for. Default: `0.002` (so 1 USD of provider cost = 500 credits). |
 | `PORT`, `HOST` | Listening address. Default: `8790`. Binds `127.0.0.1` in development and `0.0.0.0` in production. |
 
@@ -89,6 +91,14 @@ prepaid **credits** kept per workspace.
   Paid plans and top-ups come with Stripe.
 - **Account.** `GET /api/workspace/<slug>/account` (with the token) answers the
   balance; the workspace shows it under **Settings → Usage**.
+
+- **Cloud computers.** `/api/gateway/<slug>/boat/v1/…` is the Boat relay a
+  workspace reaches with `ODB_CLOUD_BOAT_URL=https://<portal>/api/gateway/<slug>/boat/v1`
+  and `ODB_CLOUD_BOAT_TOKEN=<workspace token>`, with no change on its side.
+  Each computer belongs to the workspace that created it; listings show only
+  those. Awake minutes are charged once a minute; at zero credits every awake
+  computer of the workspace is put to sleep (its disk is kept) and none can
+  start or wake. One computer awake at a time per workspace.
 
 Claude and Codex company engines are not offered through the gateway yet:
 Claude, GPT and the other models are reached through OpenRouter.

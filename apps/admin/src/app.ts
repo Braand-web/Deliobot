@@ -90,7 +90,12 @@ function tenantOrigin(value: string): string | null {
   } catch { return null; }
 }
 
-export function createAdminApp(options: AdminAppOptions): (req: IncomingMessage, res: ServerResponse) => Promise<void> {
+export type AdminApp = ((req: IncomingMessage, res: ServerResponse) => Promise<void>) & {
+  /** Charges cloud computers' awake minutes and puts those of workspaces out of credits to sleep; run once a minute. */
+  sweep: () => Promise<void>;
+};
+
+export function createAdminApp(options: AdminAppOptions): AdminApp {
   const { store, publicUrl, operators, mailer } = options;
   const fetchImpl = options.fetchImpl ?? fetch;
   const now = options.now ?? Date.now;
@@ -460,7 +465,7 @@ export function createAdminApp(options: AdminAppOptions): (req: IncomingMessage,
       audit: store.auditLog(workspace.slug, 20), ...extra });
   }
 
-  return async (req, res) => {
+  const handler = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
     try {
       await route(req, res);
     } catch (error) {
@@ -472,4 +477,5 @@ export function createAdminApp(options: AdminAppOptions): (req: IncomingMessage,
       html(res, status, { title: "Error", body: messagePage(status === 404 ? "Not found" : "That did not work", message, { href: "/", label: "Back" }), mascot: "sad" });
     }
   };
+  return Object.assign(handler, { sweep: () => gateway.sweep() });
 }

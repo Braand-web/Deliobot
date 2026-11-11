@@ -3,6 +3,7 @@
 // Security: provider keys never leave this process, and a workspace only ever reaches its own fal.ai jobs.
 import type { IncomingMessage, ServerResponse } from "node:http";
 
+import { createBoatRelay } from "./boat-relay.ts";
 import type { AdminStore } from "./store.ts";
 import { MICRO, type Wallet } from "./wallet.ts";
 
@@ -16,6 +17,11 @@ export interface GatewayOptions {
   openrouterUrl?: string;
   falQueueUrl?: string;
   falApiUrl?: string;
+  boatKey?: string;
+  boatUrl?: string;
+  boatUsdPerHour?: number;
+  /** Cloud computers a workspace may keep awake at once; one by default. */
+  boatLimit?: (workspace: string) => number;
   now?: () => number;
 }
 
@@ -100,6 +106,7 @@ export function createGateway(options: GatewayOptions) {
   const openrouterUrl = (options.openrouterUrl ?? "https://openrouter.ai/api/v1").replace(/\/+$/, "");
   const falQueueUrl = (options.falQueueUrl ?? "https://queue.fal.run").replace(/\/+$/, "");
   const falApiUrl = (options.falApiUrl ?? "https://api.fal.ai/v1").replace(/\/+$/, "");
+  const boat = createBoatRelay({ wallet, key: options.boatKey, apiUrl: options.boatUrl, usdPerHour: options.boatUsdPerHour, limit: options.boatLimit, fetchImpl, now });
   const running = new Map<string, number>();
   const prices = new Map<string, { at: number; price: { unitPrice: number; unit: string } | null }>();
 
@@ -264,9 +271,11 @@ export function createGateway(options: GatewayOptions) {
   }
 
   return {
+    /** Charges cloud computers' awake minutes; run once a minute. */
+    sweep: () => boat.sweep(),
     /** Handles /api/gateway/<workspace>/<provider>/… and /api/workspace/<workspace>/account; false for any other path. */
     async handle(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
-      const gateway = /^\/api\/gateway\/([a-z][a-z0-9-]{1,30})\/(openrouter\/v1|fal|anthropic|openai\/v1)\/(.+)$/.exec(url.pathname);
+      const gateway = /^\/api\/gateway\/([a-z][a-z0-9-]{1,30})\/(openrouter\/v1|fal|boat\/v1|anthropic|openai\/v1)\/(.+)$/.exec(url.pathname);
       const account = /^\/api\/workspace\/([a-z][a-z0-9-]{1,30})\/account$/.exec(url.pathname);
       const workspace = gateway?.[1] ?? account?.[1];
       if (!workspace) return false;
@@ -283,6 +292,7 @@ export function createGateway(options: GatewayOptions) {
       try {
         if (provider === "openrouter/v1") await openrouter(req, res, workspace, rest);
         else if (provider === "fal") await fal(req, res, workspace, rest);
+        else if (provider === "boat/v1") await boat.handle(req, res, workspace, rest);
         else failure(res, 501, "Claude and Codex company models are not offered on this deployment yet; use the OpenRouter company models.");
       } catch (error) {
         if (!res.headersSent) failure(res, (error as { status?: number }).status ?? 502, "The gateway could not complete this request.");

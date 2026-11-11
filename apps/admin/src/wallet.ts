@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS fal_jobs (request_id TEXT PRIMARY KEY, workspace TEXT
 const HOLD_TTL_MS = 30 * 60_000;
 
 export class Wallet {
-  private readonly db: DatabaseSync;
+  readonly db: DatabaseSync;
   private readonly now: () => number;
   readonly creditUsd: number;
 
@@ -101,6 +101,16 @@ export class Wallet {
       this.db.prepare("UPDATE wallets SET balance = balance + ? WHERE workspace = ?").run(hold.amount - costMicro, hold.workspace);
       this.db.prepare("INSERT INTO credit_ledger (workspace, delta, kind, provider, model, note, at) VALUES (?, ?, 'usage', ?, ?, NULL, ?)")
         .run(hold.workspace, -costMicro, provider, model, this.now());
+    });
+  }
+
+  /** Charges work already done, such as a cloud computer's minutes, without a hold. */
+  charge(workspace: string, micro: number, provider: string, model: string): void {
+    this.transaction(() => {
+      this.db.prepare("INSERT INTO wallets (workspace, balance) VALUES (?, 0) ON CONFLICT (workspace) DO NOTHING").run(workspace);
+      this.db.prepare("UPDATE wallets SET balance = balance - ? WHERE workspace = ?").run(micro, workspace);
+      this.db.prepare("INSERT INTO credit_ledger (workspace, delta, kind, provider, model, note, at) VALUES (?, ?, 'usage', ?, ?, NULL, ?)")
+        .run(workspace, -micro, provider, model, this.now());
     });
   }
 

@@ -42,11 +42,16 @@ const port = Number(env.PORT ?? 8790);
 const host = env.HOST ?? (production ? "0.0.0.0" : "127.0.0.1");
 const creditUsd = env.DELIO_ADMIN_CREDIT_USD ? Number(env.DELIO_ADMIN_CREDIT_USD) : undefined;
 if (creditUsd !== undefined && !(creditUsd > 0)) fail("DELIO_ADMIN_CREDIT_USD must be a positive number of dollars, such as 0.002");
-const gateway = { openrouterKey: env.DELIO_ADMIN_OPENROUTER_KEY?.trim() || undefined, falKey: env.DELIO_ADMIN_FAL_KEY?.trim() || undefined, creditUsd };
+const boatUsdPerHour = env.DELIO_ADMIN_BOAT_USD_PER_HOUR ? Number(env.DELIO_ADMIN_BOAT_USD_PER_HOUR) : undefined;
+if (boatUsdPerHour !== undefined && !(boatUsdPerHour > 0)) fail("DELIO_ADMIN_BOAT_USD_PER_HOUR must be a positive number of dollars");
+const gateway = { openrouterKey: env.DELIO_ADMIN_OPENROUTER_KEY?.trim() || undefined, falKey: env.DELIO_ADMIN_FAL_KEY?.trim() || undefined,
+  boatKey: env.DELIO_ADMIN_BOAT_KEY?.trim() || undefined, boatUsdPerHour, creditUsd };
 if (!gateway.openrouterKey && !gateway.falKey) console.warn("delio-admin: no DELIO_ADMIN_OPENROUTER_KEY or DELIO_ADMIN_FAL_KEY, so the AI gateway refuses every request");
-const server = createServer(createAdminApp({ store, publicUrl, operators, mailer, gateway }));
+const app = createAdminApp({ store, publicUrl, operators, mailer, gateway });
+const server = createServer(app);
+const sweeper = setInterval(() => void app.sweep().catch((error: unknown) => console.error("delio-admin: billing sweep failed", error)), 60_000);
 server.listen(port, host, () => console.log(`delio-admin: listening on http://${host}:${port}, public at ${publicUrl.origin}`));
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
-  process.on(signal, () => server.close(() => { store.close(); process.exit(0); }));
+  process.on(signal, () => { clearInterval(sweeper); server.close(() => { store.close(); process.exit(0); }); });
 }
