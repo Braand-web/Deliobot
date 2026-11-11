@@ -47,6 +47,9 @@ Open http://localhost:8790. In development, sign-in codes and invitation links a
 | `DELIO_ADMIN_BOAT_KEY` | The operator's Boat key, used only by the cloud-computer relay. |
 | `DELIO_ADMIN_BOAT_USD_PER_HOUR` | What an awake cloud computer costs, charged per minute. Default: `0.10`; set it to your Boat rate. |
 | `DELIO_ADMIN_CREDIT_USD` | The provider cost one credit stands for. Default: `0.002` (so 1 USD of provider cost = 500 credits). |
+| `DELIO_ADMIN_SASPAY_KEY` | The SasPay secret key (`sk_test_…` in test, `sk_live_…` in production), with the PAYIN scope. |
+| `DELIO_ADMIN_SASPAY_WEBHOOK_SECRET` | The signing secret SasPay shows once when the webhook is created in its dashboard. |
+| `DELIO_ADMIN_CURRENCY` | `XOF` (default), `XAF` or `USD`. CFA francs use the euro peg (655.957); USD needs `DELIO_ADMIN_USD_PER_EUR`. |
 | `PORT`, `HOST` | Listening address. Default: `8790`. Binds `127.0.0.1` in development and `0.0.0.0` in production. |
 
 Put the portal behind a TLS-terminating proxy.
@@ -111,6 +114,37 @@ prepaid **credits** kept per workspace.
 
 Claude and Codex company engines are not offered through the gateway yet:
 Claude, GPT and the other models are reached through OpenRouter.
+
+## Plans and payments (SasPay)
+
+[SasPay](https://docs.saspay.me) takes mobile money and card payments on a hosted
+page. It has no automatic subscriptions, so a plan is a **prepaid 30-day period**.
+
+| Plan | Price | Credits | Cloud computers |
+| --- | --- | --- | --- |
+| Trial | 1 € once, 3 days | 100 | none |
+| Pro | 25 € per seat | 2,000 per seat | 1 |
+| Pro BYOK | 12 € per seat | none: the workspace's own keys | 1 |
+| Business | 59 € per seat | 6,000 per seat | 5 |
+
+Top-ups: 5,000 credits for 20 €, 15,000 for 50 €. Prices are charged in the
+configured currency.
+
+- A workspace admin picks a plan, the trial (once per account and workspace) or
+  a top-up on **Billing**. The portal records the order, opens a SasPay checkout
+  session with a return URL, and sends the person to SasPay's page.
+- The payment is confirmed only by asking SasPay for the session's status:
+  when the person comes back (`/billing/return`), when a signed
+  `transaction.success` webhook arrives (`POST /api/saspay/webhook`: HMAC-SHA256
+  of `timestamp.body`, at most five minutes old), and once a minute for any
+  order still pending. An order is applied once: its credits, and for a plan its
+  30 days (added after the current period when renewing the same plan).
+- Three days before a period ends, the workspace's admins get an email with the
+  Billing link. After the end comes a 7-day grace; then the gateway answers
+  `402 plan_inactive` until the plan is renewed. Pro BYOK never spends Delio
+  credits. Credits already granted stay in the wallet.
+- In SasPay's dashboard: create the webhook on `https://<portal>/api/saspay/webhook`,
+  subscribe it to `transaction.success`, and copy its signing secret.
 
 ## Tests
 

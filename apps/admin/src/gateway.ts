@@ -22,8 +22,8 @@ export interface GatewayOptions {
   boatKey?: string;
   boatUrl?: string;
   boatUsdPerHour?: number;
-  /** Cloud computers a workspace may keep awake at once; one by default. */
-  boatLimit?: (workspace: string) => number;
+  /** What the workspace's plan allows: spending Delio credits, and cloud computers awake at once. */
+  allowance?: (workspace: string) => { gateway: boolean; computers: number; reason?: string };
   now?: () => number;
 }
 
@@ -108,7 +108,7 @@ export function createGateway(options: GatewayOptions) {
   const openrouterUrl = (options.openrouterUrl ?? "https://openrouter.ai/api/v1").replace(/\/+$/, "");
   const falQueueUrl = (options.falQueueUrl ?? "https://queue.fal.run").replace(/\/+$/, "");
   const falApiUrl = (options.falApiUrl ?? "https://api.fal.ai/v1").replace(/\/+$/, "");
-  const boat = createBoatRelay({ wallet, key: options.boatKey, apiUrl: options.boatUrl, usdPerHour: options.boatUsdPerHour, limit: options.boatLimit, fetchImpl, now });
+  const boat = createBoatRelay({ wallet, key: options.boatKey, apiUrl: options.boatUrl, usdPerHour: options.boatUsdPerHour, limit: (workspace) => options.allowance?.(workspace).computers ?? 1, fetchImpl, now });
   const running = new Map<string, number>();
   const prices = new Map<string, { at: number; price: { unitPrice: number; unit: string } | null }>();
 
@@ -286,8 +286,13 @@ export function createGateway(options: GatewayOptions) {
         failure(res, 401, "This workspace token is not valid.");
         return true;
       }
+      const allowed = options.allowance?.(workspace) ?? { gateway: true, computers: 1 };
       if (account) {
-        send(res, 200, { workspace, credits: wallet.balance(workspace) / MICRO, usedThisMonth: wallet.usedThisMonth(workspace) / MICRO, creditUsd: wallet.creditUsd });
+        send(res, 200, { workspace, credits: wallet.balance(workspace) / MICRO, usedThisMonth: wallet.usedThisMonth(workspace) / MICRO, creditUsd: wallet.creditUsd, gateway: allowed.gateway });
+        return true;
+      }
+      if (!allowed.gateway) {
+        failure(res, 402, allowed.reason ?? OUT_OF_CREDITS, "plan_inactive");
         return true;
       }
       const provider = gateway![2]!;

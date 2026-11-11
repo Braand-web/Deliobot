@@ -47,7 +47,16 @@ if (boatUsdPerHour !== undefined && !(boatUsdPerHour > 0)) fail("DELIO_ADMIN_BOA
 const gateway = { openrouterKey: env.DELIO_ADMIN_OPENROUTER_KEY?.trim() || undefined, falKey: env.DELIO_ADMIN_FAL_KEY?.trim() || undefined,
   boatKey: env.DELIO_ADMIN_BOAT_KEY?.trim() || undefined, boatUsdPerHour, creditUsd };
 if (!gateway.openrouterKey && !gateway.falKey) console.warn("delio-admin: no DELIO_ADMIN_OPENROUTER_KEY or DELIO_ADMIN_FAL_KEY, so the AI gateway refuses every request");
-const app = createAdminApp({ store, publicUrl, operators, mailer, gateway });
+const currency = (env.DELIO_ADMIN_CURRENCY ?? "XOF").trim().toUpperCase();
+const usdPerEur = env.DELIO_ADMIN_USD_PER_EUR ? Number(env.DELIO_ADMIN_USD_PER_EUR) : undefined;
+if (!["XOF", "XAF", "USD"].includes(currency)) fail("DELIO_ADMIN_CURRENCY must be XOF, XAF or USD");
+if (currency === "USD" && !(usdPerEur && usdPerEur > 0)) fail("set DELIO_ADMIN_USD_PER_EUR, such as 1.08, to price checkouts in USD");
+const saspayKey = env.DELIO_ADMIN_SASPAY_KEY?.trim() || undefined;
+if (saspayKey && !env.DELIO_ADMIN_SASPAY_WEBHOOK_SECRET?.trim()) fail("set DELIO_ADMIN_SASPAY_WEBHOOK_SECRET to the signing secret SasPay showed when the webhook was created");
+if (production && saspayKey?.startsWith("sk_test_")) console.warn("delio-admin: SasPay is in test mode, so no real payment is taken");
+if (!saspayKey) console.warn("delio-admin: no DELIO_ADMIN_SASPAY_KEY, so plans and top-ups cannot be paid");
+const payments = { saspayKey, webhookSecret: env.DELIO_ADMIN_SASPAY_WEBHOOK_SECRET?.trim(), currency, usdPerEur };
+const app = createAdminApp({ store, publicUrl, operators, mailer, gateway, payments });
 const server = createServer(app);
 const sweeper = setInterval(() => void app.sweep().catch((error: unknown) => console.error("delio-admin: billing sweep failed", error)), 60_000);
 server.listen(port, host, () => console.log(`delio-admin: listening on http://${host}:${port}, public at ${publicUrl.origin}`));

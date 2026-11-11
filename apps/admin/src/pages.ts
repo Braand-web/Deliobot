@@ -1,5 +1,6 @@
 import type { Invitation, Member, Role, SsoConfig, Workspace } from "./store.ts";
 import type { DeviceRow } from "./devices.ts";
+import { PLANS, TOPUPS, type Order, type Subscription } from "./plans.ts";
 import type { LedgerRow } from "./wallet.ts";
 
 export type Html = { readonly html: string };
@@ -136,8 +137,22 @@ export function messagePage(title: string, text: string, link?: { href: string; 
 const credits = (value: number) => value.toLocaleString("en-US", { maximumFractionDigits: 1 });
 
 export function billingPage(input: { workspace: Workspace; operator: boolean; balance: number; usedThisMonth: number; hasToken: boolean; ledger: LedgerRow[];
-  gatewayUrl: string; devices: DeviceRow[]; token?: string; message?: string; error?: string }): Html {
+  gatewayUrl: string; devices: DeviceRow[]; subscription: Subscription; orders: Order[]; payments: boolean; currency: string; trialAvailable: boolean;
+  seats: number; prices: Record<string, string>; token?: string; message?: string; error?: string }): Html {
   const slug = input.workspace.slug;
+  const sub = input.subscription;
+  const money = (amount: string) => `${Number(amount).toLocaleString("en-US", { maximumFractionDigits: 2 })} ${input.currency}`;
+  const day = (at: number) => new Date(at).toISOString().slice(0, 10);
+  const status = sub.status === "none" ? "No plan yet"
+    : sub.status === "trialing" ? `Trial until ${day(sub.periodEnd)}`
+    : sub.status === "active" ? `${PLANS[sub.plan].name}${PLANS[sub.plan].perSeat ? ` · ${sub.seats} seat${sub.seats === 1 ? "" : "s"}` : ""} until ${day(sub.periodEnd)}`
+    : sub.status === "grace" ? `${PLANS[sub.plan].name} ended on ${day(sub.periodEnd)}: renew before ${day(sub.periodEnd + 7 * 24 * 60 * 60_000)}`
+    : `${PLANS[sub.plan].name} ended on ${day(sub.periodEnd)}`;
+  const planForm = (id: "pro" | "byok" | "business") => h`<form method="post" action="/billing/checkout" class="card" style="margin:0">
+<input type="hidden" name="workspace" value="${slug}"><input type="hidden" name="kind" value="plan"><input type="hidden" name="plan" value="${id}">
+<b>${PLANS[id].name}</b><div class="muted">${money(input.prices[id]!)} per seat · 30 days${PLANS[id].credits ? ` · ${PLANS[id].credits.toLocaleString("en-US")} credits per seat` : " · your own AI keys"}</div>
+<label>Seats</label><input name="seats" type="number" min="1" max="500" value="${String(Math.max(1, input.seats))}">
+<p><button class="primary"${input.payments ? "" : raw(" disabled")}>${sub.plan === id && sub.status !== "none" && sub.status !== "expired" ? "Renew" : "Choose"}</button></p></form>`;
   return h`<h1>Billing · ${input.workspace.name}</h1><p class="muted">Delio credits pay for the AI this workspace uses through Delio's own keys: text, images, video and music.</p>
 ${notice(input.message)}${notice(input.error, "error")}
 <div class="card"><div class="row"><div class="grow"><div class="muted">Balance</div><div style="font-size:28px;font-weight:600">${credits(input.balance)} credits</div></div>
@@ -149,6 +164,15 @@ ${input.operator ? h`<h2>Add credits</h2><form method="post" action="/billing/cr
 <h2>Workspace token</h2><div class="card"><p class="muted">The workspace's server uses this token to reach Delio's AI gateway at <code>${input.gatewayUrl}</code>. Issuing a new one revokes the old one.</p>
 ${input.token ? h`<div class="notice">Copy it now, it is shown only once: <code>${input.token}</code></div>` : input.hasToken ? h`<p>A token is active.</p>` : h`<p>No token yet.</p>`}
 <form method="post" action="/billing/token"><input type="hidden" name="workspace" value="${slug}"><button>${input.hasToken ? "Issue a new token" : "Issue a token"}</button></form></div>` : ""}
+<h2>Plan</h2><div class="card"><b>${status}</b>${!input.payments ? h`<p class="muted">Payments are not set up on this deployment yet.</p>` : ""}</div>
+${input.trialAvailable && sub.status === "none" ? h`<form method="post" action="/billing/checkout" class="card"><input type="hidden" name="workspace" value="${slug}"><input type="hidden" name="kind" value="plan"><input type="hidden" name="plan" value="trial">
+<b>Try Delio for 3 days</b><div class="muted">${money(input.prices.trial!)} · ${PLANS.trial.credits} credits</div><p><button class="primary"${input.payments ? "" : raw(" disabled")}>Start the trial</button></p></form>` : ""}
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">${planForm("pro")}${planForm("business")}${planForm("byok")}</div>
+<h2>Top up credits</h2><div class="card">${TOPUPS.map((pack) => h`<form class="inline" method="post" action="/billing/checkout" style="margin:4px 8px 4px 0"><input type="hidden" name="workspace" value="${slug}">
+<input type="hidden" name="kind" value="topup"><input type="hidden" name="topup" value="${pack.id}"><button${input.payments ? "" : raw(" disabled")}>${pack.credits.toLocaleString("en-US")} credits · ${money(input.prices[pack.id]!)}</button></form>`)}
+<p class="muted">Paid with mobile money or card through SasPay. Credits from top-ups stay until used.</p></div>
+${input.orders.length ? h`<h2>Payments</h2><div class="card">${input.orders.map((order) => h`<div class="row"><div class="grow">${order.kind === "plan" && order.plan ? PLANS[order.plan].name : "Top-up"} · ${order.credits.toLocaleString("en-US")} credits</div>
+<span class="muted">${money(order.amount)}</span><code>${order.status}</code><span class="muted">${day(order.createdAt)}</span></div>`)}</div>` : ""}
 <h2>Connected apps</h2><div class="card">${input.devices.length === 0 ? h`<p class="muted">No desktop app is connected. In the app: Settings → API keys → Delio account.</p>`
   : input.devices.map((device) => h`<div class="row"><div class="grow">${device.label}<div class="muted">connected ${new Date(device.createdAt).toISOString().slice(0, 10)}${device.lastUsedAt ? ` · last used ${new Date(device.lastUsedAt).toISOString().slice(0, 10)}` : ""}</div></div>
 <form class="inline" method="post" action="/billing/device"><input type="hidden" name="workspace" value="${slug}"><input type="hidden" name="device" value="${device.id}"><button class="danger">Disconnect</button></form></div>`)}</div>

@@ -1,0 +1,188 @@
+import { createHmac, randomBytes } from "node:crypto";
+import { mkdtempSync, rmSync } from "node:fs";
+import { createServer, type Server } from "node:http";
+import type { AddressInfo } from "node:net";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
+
+import { createAdminApp } from "./app.ts";
+import type { MailMessage } from "./mail.ts";
+import { priceIn } from "./plans.ts";
+import { verifySasPayWebhook } from "./saspay.ts";
+import { AdminStore } from "./store.ts";
+
+const SECRET = "whsec_test_secret";
+const DAY = 24 * 60 * 60_000;
+const cleanups: Array<() => void | Promise<void>> = [];
+afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) await cleanup(); });
+
+/** A SasPay stand-in: checkout sessions the test marks paid, and every request it got. */
+function fakeSasPay() {
+  const sessions = new Map<string, { status: string; body: Record<string, unknown> }>();
+  const calls: Array<{ url: string; method: string; auth: string | null; body: unknown }> = [];
+  let next = 0;
+  const fetchImpl = (async (input: string | URL | Request, init?: RequestInit) => {
+    const url = new URL(String(input));
+    const body = init?.body ? JSON.parse(String(init.body)) as Record<string, unknown> : undefined;
+    calls.push({ url: url.href, method: init?.method ?? "GET", auth: new Headers(init?.headers).get("authorization"), body });
+    if (url.pathname === "/api/v1/checkout-sessions/" && init?.method === "POST") {
+      const id = `cs_${++next}`;
+      sessions.set(id, { status: "PENDING", body: body! });
+      return Response.json({ success: true, data: { id, checkout_url: `https://pay.saspay.me/checkout/${id}`, status: "PENDING" }, code: 201 }, { status: 201 });
+    }
+    const status = /^\/api\/v1\/checkout-sessions\/([^/]+)\/status\/$/.exec(url.pathname);
+    if (status) return Response.json({ success: true, data: { id: status[1], status: sessions.get(status[1]!)?.status ?? "PENDING" } });
+    return new Response("{}", { status: 404 });
+  }) as typeof fetch;
+  return { fetchImpl, sessions, calls, pay: (id: string) => { sessions.get(id)!.status = "PAID"; } };
+}
+
+async function portal(saspay: ReturnType<typeof fakeSasPay>, clock: { now: number }) {
+  const dir = mkdtempSync(join(tmpdir(), "delio-payments-"));
+  const store = new AdminStore({ file: join(dir, "admin.db"), secret: randomBytes(32), now: () => clock.now });
+  const mail: MailMessage[] = [];
+  const server: Server = createServer();
+  await new Promise<void>((done) => server.listen(0, "127.0.0.1", done));
+  const origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  cleanups.push(() => new Promise<void>((done) => server.close(() => { store.close(); rmSync(dir, { recursive: true, force: true }); done(); })));
+  const app = createAdminApp({ store, publicUrl: new URL(origin), operators: new Set(["ops@delio.test"]), mailer: { send: async (message) => void mail.push(message) },
+    fetchImpl: saspay.fetchImpl, now: () => clock.now,
+    gateway: { openrouterKey: "sk-or", openrouterUrl: "https://openrouter.test/api/v1" },
+    payments: { saspayKey: "sk_test_operator", webhookSecret: SECRET, currency: "XOF", apiUrl: "https://saspay.test/api/v1" } });
+  server.on("request", app);
+  let cookie = "";
+  const post = async (path: string, form: Record<string, string>) => {
+    const response = await fetch(new URL(path, origin), { method: "POST", redirect: "manual", body: new URLSearchParams(form).toString(),
+      headers: { origin, "content-type": "application/x-www-form-urlencoded", ...(cookie ? { cookie } : {}) } });
+    const set = response.headers.getSetCookie()[0];
+    if (set) cookie = set.split(";")[0]!;
+    return response;
+  };
+  const get = (path: string) => fetch(new URL(path, origin), { redirect: "manual", headers: cookie ? { cookie } : {} });
+  const signIn = async (email: string) => {
+    cookie = "";
+    await post("/login", { email, next: "/" });
+    const code = /code is (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
+    await post("/login/verify", { email, code: code[1]! + code[2]!, next: "/" });
+  };
+  await signIn("ops@delio.test");
+  await post("/workspaces", { slug: "acme", name: "Acme", tenantUrl: "https://acme.example.test", ownerEmail: "boss@acme.test" });
+  const token = /odb_workspace_[A-Za-z0-9_-]{43}/.exec(await (await post("/billing/token", { workspace: "acme" })).text())![0];
+  await signIn("boss@acme.test");
+  const webhook = (event: unknown, options: { secret?: string; age?: number } = {}) => {
+    const body = JSON.stringify(event);
+    const timestamp = String(Math.floor(clock.now / 1000) - (options.age ?? 0));
+    const signature = createHmac("sha256", options.secret ?? SECRET).update(`${timestamp}.${body}`).digest("hex");
+    return fetch(new URL("/api/saspay/webhook", origin), { method: "POST", body, headers: { "content-type": "application/json", "x-webhook-signature": signature, "x-webhook-timestamp": timestamp, "x-webhook-event": "transaction.success" } });
+  };
+  const account = async () => (await fetch(new URL("/api/workspace/acme/account", origin), { headers: { authorization: `Bearer ${token}` } })).json() as Promise<{ credits: number; gateway: boolean }>;
+  const chat = () => fetch(new URL("/api/gateway/acme/openrouter/v1/chat/completions", origin), { method: "POST", body: "{}", headers: { authorization: `Bearer ${token}`, "content-type": "application/json" } });
+  return { post, get, webhook, account, chat, mail, sweep: () => app.sweep(), signIn };
+}
+
+describe("SasPay webhook signature", () => {
+  it("accepts SasPay's HMAC of timestamp and body, and refuses another secret, another body or an old delivery", () => {
+    const now = 1_800_000_000_000;
+    const body = Buffer.from('{"event":"transaction.success","data":{"id":"t1"}}');
+    const timestamp = String(now / 1000);
+    const signature = createHmac("sha256", SECRET).update(`${timestamp}.${body}`).digest("hex");
+    expect(verifySasPayWebhook(body, { signature, timestamp }, SECRET, now)).toBe(true);
+    expect(verifySasPayWebhook(body, { signature, timestamp }, "other", now)).toBe(false);
+    expect(verifySasPayWebhook(Buffer.from(`${body} `), { signature, timestamp }, SECRET, now)).toBe(false);
+    expect(verifySasPayWebhook(body, { signature, timestamp }, SECRET, now + 301_000)).toBe(false);
+    expect(verifySasPayWebhook(body, { timestamp }, SECRET, now)).toBe(false);
+  });
+
+  it("prices in CFA francs at the euro peg, rounded up to a whole franc", () => {
+    expect(priceIn(1, "XOF")).toBe("656.00");
+    expect(priceIn(50, "XAF")).toBe("32798.00");
+    expect(priceIn(25, "USD", 1.08)).toBe("27.00");
+  });
+});
+
+describe("plans paid through SasPay", () => {
+  it("runs the one-euro trial once, credits it on a signed webhook only once, then sells and renews Pro by the seat", async () => {
+    const clock = { now: Date.now() };
+    const saspay = fakeSasPay();
+    const target = await portal(saspay, clock);
+
+    const trial = await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "trial" });
+    expect(trial.status).toBe(303);
+    expect(trial.headers.get("location")).toBe("https://pay.saspay.me/checkout/cs_1");
+    const created = saspay.calls[0]!;
+    expect(created.auth).toBe("Bearer sk_test_operator");
+    expect(created.body).toMatchObject({ amount: "656.00", currency: "XOF", customer_email: "boss@acme.test", metadata: { workspace: "acme" } });
+    expect(String((created.body as { return_url: string }).return_url)).toMatch(/\/billing\/return\?order=ord_/);
+
+    expect((await target.webhook({ event: "transaction.success", data: { id: "t1" } }, { secret: "forged" })).status).toBe(403);
+    expect((await target.webhook({ event: "transaction.success", data: { id: "t1" } }, { age: 600 })).status).toBe(403);
+    expect((await target.webhook({ event: "transaction.success", data: { id: "t1" } })).status, "signed, but SasPay still says pending").toBe(200);
+    expect((await target.account()).credits).toBe(0);
+
+    saspay.pay("cs_1");
+    expect((await target.webhook({ event: "transaction.success", data: { id: "t2" } })).status).toBe(200);
+    expect((await target.account()).credits).toBe(100);
+    await target.webhook({ event: "transaction.success", data: { id: "t3" } });
+    expect((await target.account()).credits, "a second confirmation changes nothing").toBe(100);
+    expect(await (await target.get("/billing?workspace=acme")).text()).toContain("Trial until");
+    expect((await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "trial" })).status, "one trial per account and workspace").toBe(409);
+
+    const pro = await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "pro", seats: "2" });
+    expect(saspay.calls.at(-1)!.body, "25 EUR × 2 seats").toMatchObject({ amount: "32798.00" });
+    saspay.pay("cs_2");
+    const back = await target.get(new URL(pro.headers.get("location")!).pathname === "/checkout/cs_2" ? `/billing/return?order=${/order=(ord_[^&"]+)/.exec(String((saspay.calls.at(-1)!.body as { return_url: string }).return_url))![1]}` : "/");
+    expect(await back.text(), "the return page confirms with SasPay itself").toContain("Payment received");
+    expect((await target.account()).credits).toBe(4100);
+    const page = await (await target.get("/billing?workspace=acme")).text();
+    expect(page).toMatch(/Pro · 2 seats until/);
+
+    await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "pro", seats: "2" });
+    saspay.pay("cs_3");
+    await target.sweep();
+    expect((await target.account()).credits, "the sweep confirms payments whose webhook never came").toBe(8100);
+    expect(await (await target.get("/billing?workspace=acme")).text(), "a renewal adds 30 days after the current period")
+      .toContain(`until ${new Date(clock.now + 60 * DAY).toISOString().slice(0, 10)}`);
+  });
+
+  it("reminds admins before a period ends, keeps a week of grace, then stops the gateway; BYOK never spends Delio credits", async () => {
+    const clock = { now: Date.now() };
+    const saspay = fakeSasPay();
+    const target = await portal(saspay, clock);
+    await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "pro", seats: "1" });
+    saspay.pay("cs_1");
+    await target.sweep();
+    expect((await target.account()).gateway).toBe(true);
+
+    clock.now += 28 * DAY;
+    await target.sweep();
+    expect(target.mail.filter((message) => message.subject.includes("ends soon")).map((message) => message.to)).toEqual(["boss@acme.test"]);
+    await target.sweep();
+    expect(target.mail.filter((message) => message.subject.includes("ends soon")), "once per period").toHaveLength(1);
+
+    clock.now += 5 * DAY;
+    expect((await target.account()).gateway, "inside the grace week").toBe(true);
+    clock.now += 7 * DAY;
+    expect((await target.account()).gateway).toBe(false);
+    const refused = await target.chat();
+    expect(refused.status).toBe(402);
+    expect(await refused.json()).toMatchObject({ error: { code: "plan_inactive" } });
+
+    await target.signIn("boss@acme.test");
+    await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "byok", seats: "1" });
+    saspay.pay("cs_2");
+    await target.sweep();
+    expect((await target.chat()).status, "BYOK uses the workspace's own keys").toBe(402);
+  });
+
+  it("sells top-ups priced in CFA francs, credited once SasPay confirms them", async () => {
+    const clock = { now: Date.now() };
+    const saspay = fakeSasPay();
+    const target = await portal(saspay, clock);
+    await target.post("/billing/checkout", { workspace: "acme", kind: "topup", topup: "small" });
+    expect(saspay.calls.at(-1)!.body).toMatchObject({ amount: "13120.00", currency: "XOF" });
+    saspay.pay("cs_1");
+    await target.sweep();
+    expect((await target.account()).credits).toBe(5000);
+  });
+});

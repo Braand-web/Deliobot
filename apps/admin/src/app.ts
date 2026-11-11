@@ -6,6 +6,8 @@ import type { Mailer } from "./mail.ts";
 import { discover, exchangeCode, pkceChallenge, verifyIdToken } from "./oidc.ts";
 import { createGateway, type GatewayOptions } from "./gateway.ts";
 import { DEVICE_POLL_SECONDS, Devices } from "./devices.ts";
+import { Billing, PLANS, priceIn, reconcileOrders, TOPUPS, type PlanId, type TopupId } from "./plans.ts";
+import { createSasPay, verifySasPayWebhook } from "./saspay.ts";
 import { MICRO, Wallet } from "./wallet.ts";
 import { billingPage, codePage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, slackPage, ssoPage, type Html } from "./pages.ts";
 import { normalizeEmail, token, validEmail, validSlug, type Account, type AdminStore, type Role, type Workspace } from "./store.ts";
@@ -22,7 +24,9 @@ export interface AdminAppOptions {
   /** Tests only: lets a fixture identity provider run over plain HTTP. */
   allowHttpProviders?: boolean;
   /** The operator's provider keys and upstreams for the paid gateway; a provider without a key is refused there. */
-  gateway?: Omit<GatewayOptions, "store" | "wallet" | "publicUrl" | "fetchImpl" | "now"> & { creditUsd?: number };
+  gateway?: Omit<GatewayOptions, "store" | "wallet" | "publicUrl" | "fetchImpl" | "now" | "allowance" | "deviceToken"> & { creditUsd?: number };
+  /** SasPay: the secret key, the webhook signing secret, and the currency checkouts are priced in (XOF by default). */
+  payments?: { saspayKey?: string; webhookSecret?: string; currency?: string; usdPerEur?: number; apiUrl?: string };
 }
 
 const MAX_BODY = 16 * 1024;
@@ -78,6 +82,17 @@ const text = (body: Record<string, unknown>, key: string, max = 512): string => 
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 };
 
+async function readRawBody(req: IncomingMessage): Promise<Buffer> {
+  const chunks: Buffer[] = [];
+  let size = 0;
+  for await (const chunk of req as AsyncIterable<Buffer>) {
+    size += chunk.length;
+    if (size > 256 * 1024) throw new HttpError(413, "Request too large.");
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks);
+}
+
 /** Only same-site paths, so a crafted `next` can never send someone elsewhere after sign-in. */
 function localPath(value: string | null | undefined): string {
   return value && value.startsWith("/") && !value.startsWith("//") && !value.startsWith("/\\") && value.length <= 2048 ? value : "/";
@@ -105,7 +120,11 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   const ssoRedirectUri = new URL(SSO_CALLBACK_PATH, publicUrl).href;
   const wallet = new Wallet(store.db, { now, creditUsd: options.gateway?.creditUsd });
   const devices = new Devices(store.db, now);
-  const gateway = createGateway({ ...options.gateway, store, wallet, publicUrl, fetchImpl, now, deviceToken: (value, slug) => devices.check(value, slug) });
+  const plans = new Billing(wallet, now);
+  const saspay = options.payments?.saspayKey ? createSasPay({ key: options.payments.saspayKey, apiUrl: options.payments.apiUrl, fetchImpl }) : null;
+  const currency = options.payments?.currency ?? "XOF";
+  const gateway = createGateway({ ...options.gateway, store, wallet, publicUrl, fetchImpl, now, deviceToken: (value, slug) => devices.check(value, slug),
+    allowance: (slug) => plans.allowance(slug) });
 
   function sessionCookie(value: string, maxAgeSeconds: number): string {
     return `${cookieName}=${value}; Path=/; Max-Age=${maxAgeSeconds}; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}`;
@@ -236,6 +255,20 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     }
     if (path === "/api/health") return json(res, 200, { ok: true, service: "delio-admin", ...HOSTED_CONTRACT_METADATA });
     if (await gateway.handle(req, res, url)) return;
+    if (path === "/api/saspay/webhook") {
+      if (method !== "POST") return json(res, 405, { error: "method not allowed" });
+      const raw = await readRawBody(req);
+      const header = (name: string) => { const value = req.headers[name]; return typeof value === "string" ? value : undefined; };
+      if (!verifySasPayWebhook(raw, { signature: header("x-webhook-signature"), timestamp: header("x-webhook-timestamp") }, options.payments?.webhookSecret ?? "", now())) {
+        return json(res, 403, { error: "invalid signature" });
+      }
+      let event: { event?: unknown; data?: { id?: unknown } } = {};
+      try { event = JSON.parse(raw.toString("utf8")) as typeof event; } catch { return json(res, 400, { error: "invalid JSON" }); }
+      const id = `${String(event.event)}:${String(event.data?.id ?? "")}:${header("x-webhook-timestamp")}`;
+      // The event names a transaction, not our order: every pending order is checked against SasPay itself.
+      if (plans.firstSeen(id) && event.event === "transaction.success" && saspay) await reconcileOrders(plans, saspay);
+      return json(res, 200, { ok: true });
+    }
     if (path === "/api/device/start" || path === "/api/device/token") {
       if (method !== "POST") return json(res, 405, { error: "method not allowed" });
       const body = await readBody(req);
@@ -470,6 +503,48 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       return html(res, 200, { title: "Connected", email: user.email, mascot: "happy",
         body: messagePage("The app is connected", "Go back to the app: it finishes on its own in a few seconds. It uses this workspace's Delio credits.") });
     }
+    if (method === "POST" && path === "/billing/checkout") {
+      const body = await readBody(req);
+      const workspace = requireWorkspaceAdmin(user, text(body, "workspace", 64));
+      const fail = (status: number, error: string) => html(res, status, { title: "Billing", email: user.email, body: billing(workspace, user, { error }) });
+      if (!saspay) return fail(503, "Payments are not set up on this Delio deployment yet.");
+      const kind = text(body, "kind", 8);
+      const plan = text(body, "plan", 16) as PlanId;
+      const topup = text(body, "topup", 16) as TopupId;
+      if (kind === "plan" && !Object.hasOwn(PLANS, plan)) return fail(400, "Choose a plan.");
+      if (kind === "topup" && !TOPUPS.some((pack) => pack.id === topup)) return fail(400, "Choose a top-up.");
+      if (kind !== "plan" && kind !== "topup") return fail(400, "Choose a plan or a top-up.");
+      if (kind === "plan" && plan === "trial" && plans.trialUsed(user.email, workspace.slug)) return fail(409, "The trial was already used for this account or workspace.");
+      const seats = Number(text(body, "seats", 4)) || store.members(workspace.slug).length;
+      const order = kind === "plan"
+        ? plans.createOrder({ workspace: workspace.slug, email: user.email, kind, plan, seats }, currency, options.payments?.usdPerEur)
+        : plans.createOrder({ workspace: workspace.slug, email: user.email, kind, topup }, currency, options.payments?.usdPerEur);
+      const description = kind === "plan" ? `Delio ${PLANS[plan].name}${PLANS[plan].perSeat ? ` · ${order.seats} seat${order.seats === 1 ? "" : "s"} · 30 days` : " · 3 days"}` : `Delio credits · ${order.credits}`;
+      try {
+        const session = await saspay.createCheckout({ amount: order.amount, currency, description, email: user.email, name: user.email,
+          returnUrl: new URL(`/billing/return?order=${order.id}`, publicUrl).href, metadata: { order: order.id, workspace: workspace.slug } });
+        plans.attachSession(order.id, session.id, session.checkoutUrl);
+        store.audit(workspace.slug, user.email, "billing.checkout", `${order.id}:${order.amount} ${currency}`);
+        res.statusCode = 303;
+        res.setHeader("cache-control", "no-store");
+        res.setHeader("location", session.checkoutUrl);
+        return void res.end();
+      } catch (error) {
+        plans.markFailed(order.id);
+        return fail(502, `The payment page could not be opened (${error instanceof Error ? error.message : "error"}). Try again in a moment.`);
+      }
+    }
+    if (method === "GET" && path === "/billing/return") {
+      const order = plans.order(url.searchParams.get("order") ?? "");
+      if (!order) throw new HttpError(404, "No such payment.");
+      const workspace = requireWorkspaceAdmin(user, order.workspace);
+      if (order.status === "pending" && saspay) await reconcileOrders(plans, saspay, order.id);
+      const latest = plans.order(order.id)!;
+      return html(res, 200, { title: "Billing", email: user.email, body: billing(workspace, user,
+        latest.status === "paid" ? { message: "Payment received: thank you. Your credits are added." }
+          : latest.status === "failed" ? { error: "The payment did not go through. You can try again." }
+          : { message: "The payment is being confirmed. This page shows it as soon as SasPay does." }) });
+    }
     if (method === "POST" && path === "/billing/device") {
       const body = await readBody(req);
       const workspace = requireWorkspaceAdmin(user, text(body, "workspace", 64));
@@ -510,6 +585,10 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
 
   function billing(workspace: Workspace, user: Account, extra: { message?: string; error?: string; token?: string }): Html {
     return billingPage({ workspace, operator: operators.has(user.email), balance: wallet.balance(workspace.slug) / MICRO,
+      subscription: plans.subscription(workspace.slug), orders: plans.orders(workspace.slug, 10), payments: Boolean(saspay), currency,
+      trialAvailable: !plans.trialUsed(user.email, workspace.slug), seats: store.members(workspace.slug).length,
+      prices: Object.fromEntries([...Object.values(PLANS).map((plan) => [plan.id, priceIn(plan.eur, currency, options.payments?.usdPerEur)]),
+        ...TOPUPS.map((pack) => [pack.id, priceIn(pack.eur, currency, options.payments?.usdPerEur)])]),
       usedThisMonth: wallet.usedThisMonth(workspace.slug) / MICRO, hasToken: wallet.hasToken(workspace.slug), ledger: wallet.ledger(workspace.slug, 30),
       gatewayUrl: new URL(`/api/gateway/${workspace.slug}`, publicUrl).href, devices: devices.list(workspace.slug), ...extra });
   }
@@ -531,5 +610,19 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       html(res, status, { title: "Error", body: messagePage(status === 404 ? "Not found" : "That did not work", message, { href: "/", label: "Back" }), mascot: "sad" });
     }
   };
-  return Object.assign(handler, { sweep: () => gateway.sweep() });
+  async function sweep(): Promise<void> {
+    await gateway.sweep();
+    if (saspay) await reconcileOrders(plans, saspay);
+    for (const due of plans.dueReminders()) {
+      const workspace = store.workspace(due.workspace);
+      if (!workspace) continue;
+      const link = new URL(`/billing?workspace=${due.workspace}`, publicUrl).href;
+      for (const admin of store.members(due.workspace).filter((member) => member.role === "admin")) {
+        await mailer.send({ to: admin.email, subject: `Your Delio ${PLANS[due.plan].name} plan for ${workspace.name} ends soon`,
+          text: `The ${PLANS[due.plan].name} plan of ${workspace.name} ends on ${new Date(due.periodEnd).toISOString().slice(0, 10)}.\n\nRenew it here to keep its credits coming: ${link}\n\nAfter that day the workspace has 7 days of grace, then its bots stop using Delio credits until it is renewed.` })
+          .catch(() => console.error("delio-admin: a renewal reminder could not be sent"));
+      }
+    }
+  }
+  return Object.assign(handler, { sweep });
 }
