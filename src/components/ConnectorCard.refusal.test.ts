@@ -40,7 +40,7 @@ const links = () => [...host.querySelectorAll("a")].map((link) => link.getAttrib
 
 beforeEach(() => {
   setLocale("en");
-  (window as { ogb?: unknown }).ogb = { openExternal: fixture.openExternal };
+  (window as { odb?: unknown }).odb = { openExternal: fixture.openExternal };
   fixture.api.mockRejectedValue(new ApiError(SENTENCE, 409, { error: SENTENCE, url: AUTH_URL }));
   host = document.createElement("div");
   document.body.append(host);
@@ -49,7 +49,7 @@ beforeEach(() => {
 afterEach(() => {
   flushSync(() => root.unmount());
   host.remove();
-  delete (window as { ogb?: unknown }).ogb;
+  delete (window as { odb?: unknown }).odb;
   vi.clearAllMocks();
 });
 

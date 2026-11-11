@@ -12,7 +12,7 @@ describe("cloud computer lifecycle", () => {
   beforeAll(async () => {
     const hash = createHash("sha256").update(botId).digest("hex").slice(0, 6);
     const prefix = botId.slice(0, 8).toLowerCase().replace(/[^a-z0-9]/g, "");
-    const machineName = `ogb-${prefix}-${hash}`;
+    const machineName = `odb-${prefix}-${hash}`;
     api = createServer((req, res) => {
       const url = new URL(req.url ?? "/", "http://boat.test");
       let body = "";

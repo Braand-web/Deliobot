@@ -11,7 +11,7 @@ import "./styles.css";
 
 // The window's own rail of places (electron/chrome-rail.mjs): see-through but for the rail and its open sheets. Only
 // the desktop's preload gives this app's page a rail; anywhere else this address is the app.
-if (window.ogb?.rail?.expand) {
+if (window.odb?.rail?.expand) {
   settleInterfaceMode();
   applySkinChoice(readSkinChoice());
   applyFont(readFont());

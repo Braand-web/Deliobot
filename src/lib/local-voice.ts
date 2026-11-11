@@ -36,8 +36,8 @@ function write(next: Preferences): void {
 export function localSystemVoicesAvailable(): boolean {
   return (
     typeof window !== "undefined" &&
-    window.ogb?.remoteClient?.active === true &&
-    window.ogb?.platform === "darwin" &&
+    window.odb?.remoteClient?.active === true &&
+    window.odb?.platform === "darwin" &&
     typeof window.speechSynthesis !== "undefined" &&
     typeof window.SpeechSynthesisUtterance !== "undefined"
   );

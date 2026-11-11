@@ -41,7 +41,7 @@ describe("desktop capability cache", () => {
       resolveInitial = resolve;
     });
     vi.stubGlobal("window", {
-      ogb: {
+      odb: {
         platform: "linux",
         getCapabilities: () => initial,
       },
@@ -62,9 +62,9 @@ describe("the bridge that resets a switch's approval to Ask", () => {
   it("is the desktop's own bridge, except on a paired desktop, where the host takes the switch", async () => {
     const approvals = { setMode: vi.fn() };
     const { askResetBridge } = await import("./desktop");
-    vi.stubGlobal("window", { ogb: { approvals } });
+    vi.stubGlobal("window", { odb: { approvals } });
     expect(askResetBridge()).toBe(approvals);
-    vi.stubGlobal("window", { ogb: { approvals, remoteClient: { active: true } } });
+    vi.stubGlobal("window", { odb: { approvals, remoteClient: { active: true } } });
     expect(askResetBridge()).toBeUndefined();
     vi.stubGlobal("window", {});
     expect(askResetBridge()).toBeUndefined();
@@ -78,7 +78,7 @@ describe("initial desktop capabilities", () => {
     ["linux", { available: true, engine: "fish-audio", onDevice: false }],
     ["freebsd", { available: false, engine: "none", onDevice: false, reasonCode: "unsupported-platform" }],
   ])("report dictation on %s", async (platform, dictation) => {
-    vi.stubGlobal("window", { ogb: { platform } });
+    vi.stubGlobal("window", { odb: { platform } });
     const desktop = await import("./desktop");
     expect(desktop.initialDesktopCapabilities().dictation).toEqual(dictation);
   });

@@ -177,7 +177,7 @@ export function GuidedTour() {
   }, [active, step, advance]);
 
   if (!active || !step) return null;
-  if (window.ogb?.remoteClient?.active === true) return null;
+  if (window.odb?.remoteClient?.active === true) return null;
 
   const { current, total } = stepNumber(step);
   const closing = step.id === "tour.done";

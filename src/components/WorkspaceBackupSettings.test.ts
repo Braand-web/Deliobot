@@ -208,7 +208,7 @@ describe("Settings full backups", () => {
 
   it("offers a real desktop restart without clearing the restore marker or drafts, once only", async () => {
     const relaunch = vi.fn().mockResolvedValue(true);
-    vi.stubGlobal("window", { ...window, ogb: { relaunch } });
+    vi.stubGlobal("window", { ...window, odb: { relaunch } });
     storage.set("odb-pending-workspace-restore", "stage-id"); storage.set("odb-drafts", "keep");
     fixture.api.mockResolvedValueOnce({ busy: true, pendingRestore: true });
     render(true); fixture.effects[0](); await flush();
@@ -226,7 +226,7 @@ describe("Settings full backups", () => {
 
   it.each([false, new Error("Fixture restart unavailable")])("keeps recovery intact and offers a retry when native restart fails (%s)", async result => {
     const relaunch = result === false ? vi.fn().mockResolvedValue(false) : vi.fn().mockRejectedValue(result);
-    vi.stubGlobal("window", { ...window, ogb: { relaunch } });
+    vi.stubGlobal("window", { ...window, odb: { relaunch } });
     storage.set("odb-pending-workspace-restore", "stage-id");
     render("restart").nodes.find(node => node.type === "button")!.props.onClick!(); await flush();
     const view = render("restart");
@@ -237,7 +237,7 @@ describe("Settings full backups", () => {
   });
 
   it.each([undefined, { relaunch: vi.fn(), remoteClient: { active: true } }])("never restarts the local app for a browser or remote workspace", bridge => {
-    window.ogb = bridge as Window["ogb"];
+    window.odb = bridge as Window["odb"];
     const view = render("restart");
     expect(view.html).toContain("restart the server process");
     expect(view.html).not.toContain("Restart and restore");

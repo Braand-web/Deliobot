@@ -416,9 +416,9 @@ export function MessageFolderFiles({ folderPath, listing, message }: {
 }
 
 const REVEALABLE_PATH = /^(?:\/(?!\/)|[a-zA-Z]:[\\/])/;
-function revealBridge(): NonNullable<Window["ogb"]>["revealInFolder"] {
-  const ogb = typeof window === "undefined" ? undefined : window.ogb;
-  return ogb?.remoteClient?.active ? undefined : ogb?.revealInFolder;
+function revealBridge(): NonNullable<Window["odb"]>["revealInFolder"] {
+  const odb = typeof window === "undefined" ? undefined : window.odb;
+  return odb?.remoteClient?.active ? undefined : odb?.revealInFolder;
 }
 
 export function OutsideWorkspaceFile({ filePath }: { filePath: string }) {

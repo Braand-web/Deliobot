@@ -34,10 +34,10 @@ function render(message: Message, state = app()) {
     createElement(PublishedPageCard, { message }), createElement(Panel))));
   return { container, root, panel };
 }
-const desktop = (bridge: Record<string, unknown> = {}) => { (window as { ogb?: unknown }).ogb = { platform: "darwin", ...bridge }; };
+const desktop = (bridge: Record<string, unknown> = {}) => { (window as { odb?: unknown }).odb = { platform: "darwin", ...bridge }; };
 const buttons = (container: HTMLElement) => [...container.querySelectorAll("button")];
 
-afterEach(() => { vi.clearAllMocks(); delete (window as { ogb?: unknown }).ogb; });
+afterEach(() => { vi.clearAllMocks(); delete (window as { odb?: unknown }).odb; });
 
 describe("a published page's card", () => {
   it("warns when an upload is uncertain and still lets the person unpublish it", async () => {

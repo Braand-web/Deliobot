@@ -37,12 +37,12 @@ beforeEach(() => {
       return current;
     }),
   };
-  (window as unknown as { ogb: unknown }).ogb = { updatesConsent: bridge };
+  (window as unknown as { odb: unknown }).odb = { updatesConsent: bridge };
   host = document.createElement("div"); document.body.append(host); root = createRoot(host);
 });
 afterEach(async () => {
   await act(async () => root.unmount()); host.remove();
-  delete (window as unknown as { ogb?: unknown }).ogb;
+  delete (window as unknown as { odb?: unknown }).odb;
   vi.unstubAllGlobals();
 });
 
@@ -51,11 +51,11 @@ describe("Settings → General: Product updates by email", () => {
     current = { ...base, available: false };
     await show();
     expect(toggle()).toBeNull();
-    (window as unknown as { ogb: unknown }).ogb = { updatesConsent: bridge, remoteClient: { active: true } };
+    (window as unknown as { odb: unknown }).odb = { updatesConsent: bridge, remoteClient: { active: true } };
     current = { ...base };
     await show();
     expect(toggle()).toBeNull();
-    (window as unknown as { ogb: unknown }).ogb = {};
+    (window as unknown as { odb: unknown }).odb = {};
     await show();
     expect(toggle()).toBeNull();
   });

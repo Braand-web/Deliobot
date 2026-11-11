@@ -22,8 +22,8 @@ const TEAM_TIERS: readonly string[] = ["team", "business"];
 export type UpgradeSource = "app_usage" | "app_settings" | "app_room";
 
 export function usageBridge(cloudHome: boolean): CloudPlanBridge | undefined {
-  if (window.ogb?.remoteClient?.active === true) return undefined;
-  return localDesktopPage() ? (window.ogb?.cloudAccount ? window.ogb?.cloudPlan : undefined) : cloudHome ? window.ogb?.cloudPlan : undefined;
+  if (window.odb?.remoteClient?.active === true) return undefined;
+  return localDesktopPage() ? (window.odb?.cloudAccount ? window.odb?.cloudPlan : undefined) : cloudHome ? window.odb?.cloudPlan : undefined;
 }
 
 export function useCloudUsage(): { usage: CloudUsage | null; bridge: CloudPlanBridge | undefined; teamHome: boolean } {

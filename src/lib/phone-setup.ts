@@ -1,4 +1,4 @@
-import type { CompanionAccountState } from "../types/ogb";
+import type { CompanionAccountState } from "../types/odb";
 import { t } from "./i18n";
 import type { CompanionEndpoint, CompanionPairingRouteMode } from "./companion-pairing";
 

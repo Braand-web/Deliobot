@@ -12,7 +12,7 @@ import { PASS, type RouteHandler } from "./table.ts";
 /** Small enough for a wall of live screens; the bot's own turn frames stay full size. */
 export const MAP_FRAME_WIDTH = 480;
 const MAP_FRAME_QUALITY = 60;
-const MAP_FRAME_PATH = "/tmp/ogb-map-frame.jpg";
+const MAP_FRAME_PATH = "/tmp/odb-map-frame.jpg";
 
 export interface ComputerFramesRouteDeps {
   cfg: AppConfig;

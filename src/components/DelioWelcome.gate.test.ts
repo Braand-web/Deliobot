@@ -32,7 +32,7 @@ beforeEach(() => {
   f.welcoming.mockReset();
   f.dispatch.mockReset();
   sessionStorage.clear();
-  vi.stubGlobal("ogb", undefined);
+  vi.stubGlobal("odb", undefined);
   const welcomed = { ...EMPTY_ONBOARDING, completedAt: "2026-10-23T00:00:00.000Z", version: WELCOME_VERSION };
   f.state = { hydrated: true, config: { onboarding: welcomed }, bots: [delio(1)], welcomeOpen: false, tourOpen: false, instances: [], groups: [] };
   host = document.createElement("div");

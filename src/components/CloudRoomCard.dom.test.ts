@@ -35,7 +35,7 @@ beforeEach(() => {
 afterEach(async () => { await act(async () => root.unmount()); container.remove(); document.body.innerHTML = ""; vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 const settle = async () => { for (let i = 0; i < 6; i++) await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); }); };
-const show = async (plan: CloudPlanBridge) => { vi.stubGlobal("window", Object.assign(window, { ogb: { cloudPlan: plan } })); await act(async () => { root.render(createElement(CloudRoomCard)); }); await settle(); };
+const show = async (plan: CloudPlanBridge) => { vi.stubGlobal("window", Object.assign(window, { odb: { cloudPlan: plan } })); await act(async () => { root.render(createElement(CloudRoomCard)); }); await settle(); };
 const card = () => document.querySelector<HTMLElement>("[data-cloud-room-card]");
 const text = () => card()?.textContent ?? "";
 const button = (label: string) => [...document.querySelectorAll("button")].find(item => item.textContent === label);

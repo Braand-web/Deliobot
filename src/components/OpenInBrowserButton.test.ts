@@ -8,7 +8,7 @@ import { OpenInBrowserButton } from "./HtmlFilePreview";
 describe("OpenInBrowserButton click (#4406)", () => {
   afterEach(() => { document.body.innerHTML = ""; vi.unstubAllGlobals(); });
   const click = (openHtmlInBrowser: (source: string, name: string) => Promise<unknown>, onError: (reason: string) => void) => {
-    vi.stubGlobal("ogb", { openHtmlInBrowser });
+    vi.stubGlobal("odb", { openHtmlInBrowser });
     const host = document.body.appendChild(document.createElement("div"));
     const root = createRoot(host);
     flushSync(() => root.render(createElement(OpenInBrowserButton, { source: "<p>hi</p>", name: "report.html", onError })));

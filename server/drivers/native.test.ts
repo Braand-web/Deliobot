@@ -24,8 +24,8 @@ describe("appendNative", () => {
             {
               name: "computer",
               env: [
-                { name: "OGB_BOX_ID", value: "boat-7" },
-                { name: "OGB_BOX_TOKEN", value: "box_live_dontlogme" },
+                { name: "ODB_BOX_ID", value: "boat-7" },
+                { name: "ODB_BOX_TOKEN", value: "box_live_dontlogme" },
               ],
             },
           ],
@@ -36,7 +36,7 @@ describe("appendNative", () => {
     const log = readFileSync(join(NATIVE_DIR, "t-native.ndjson"), "utf8");
     expect(log).not.toContain("box_live_dontlogme");
     expect(log).toContain("session/new");
-    expect(log).toContain("OGB_BOX_TOKEN");
+    expect(log).toContain("ODB_BOX_TOKEN");
     expect(log).toContain("boat-7");
   });
 

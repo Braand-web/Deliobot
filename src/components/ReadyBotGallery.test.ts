@@ -74,7 +74,7 @@ describe("ready-made bots gallery", () => {
   });
 
   it("on a paired device, which cannot read the host's defaults, makes the bot at once", () => {
-    vi.stubGlobal("ogb", { remoteClient: { active: true } });
+    vi.stubGlobal("odb", { remoteClient: { active: true } });
     render();
     flushSync(() => button("Add Fern, Plant care log").click());
     expect(opened.props).toBeNull();

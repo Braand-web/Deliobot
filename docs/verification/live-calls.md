@@ -5,9 +5,7 @@ things in its chat. Every request spoken on it carries the call's id, and a call
 that went live leaves one "call" row when it ends, which the desktop draws as a
 record of what the bot did. This recipe checks both against the fake GPT-Live
 (`server/testing/fake-openai-live.ts`) and the fake engine in a disposable
-workspace. Nothing here touches audio, a real OpenAI key or a phone. The design
-is "The call id and the call row" in
-`docs/superpowers/specs/2026-09-25-live-call-bar-design.md`.
+workspace. Nothing here touches audio, a real OpenAI key or a phone.
 
 ## Sub-features
 

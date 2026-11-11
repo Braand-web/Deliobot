@@ -11,7 +11,7 @@ import { SettingRow, Switch } from "./SettingsPrimitives";
  * may. */
 export function WindowFrameRow() {
   const { capabilities } = useDesktopCapabilities();
-  const bridge = typeof window === "undefined" ? undefined : window.ogb?.windowFrame;
+  const bridge = typeof window === "undefined" ? undefined : window.odb?.windowFrame;
   const [state, setState] = useState<WindowFrameState | null>(null);
   useEffect(() => {
     if (!bridge) return;
@@ -21,7 +21,7 @@ export function WindowFrameRow() {
   }, [bridge]);
   const platform = capabilities.host?.platform;
   if (!bridge || !state || (platform !== "darwin" && platform !== "win32")) return null;
-  const relaunch = window.ogb?.relaunch;
+  const relaunch = window.odb?.relaunch;
   const toggle = () => void bridge.set(!state.on).then(setState).catch(() => {});
   return <div data-window-frame-switch>
     <SettingRow title={t("settings.windowFrame.title")} subtitle={t("settings.windowFrame.subtitle")}>

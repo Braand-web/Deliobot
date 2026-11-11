@@ -80,14 +80,14 @@ describe("OpenInBrowserButton", () => {
   const button = () => renderToStaticMarkup(createElement(OpenInBrowserButton, { source: "<p>hi</p>", name: "report.html", onError: () => undefined }));
 
   it("shows on the desktop app that holds the file", () => {
-    vi.stubGlobal("window", { ogb: { openHtmlInBrowser: async () => true } });
+    vi.stubGlobal("window", { odb: { openHtmlInBrowser: async () => true } });
     expect(button()).toContain('aria-label="Open report.html in your browser"');
   });
 
   it("is hidden in a web browser and when the window shows another computer", () => {
     vi.stubGlobal("window", {});
     expect(button()).toBe("");
-    vi.stubGlobal("window", { ogb: { openHtmlInBrowser: async () => true, remoteClient: { active: true } } });
+    vi.stubGlobal("window", { odb: { openHtmlInBrowser: async () => true, remoteClient: { active: true } } });
     expect(button()).toBe("");
   });
 });

@@ -53,7 +53,7 @@ describe("OAuth tab reservation", () => {
   it("keeps Electron external opening without reserving a browser tab", async () => {
     const openExternal = vi.fn(async () => {});
     const open = vi.fn();
-    vi.stubGlobal("window", { ogb: { openExternal }, open });
+    vi.stubGlobal("window", { odb: { openExternal }, open });
     const launch = reserveConnectionPage();
     expect(open).not.toHaveBeenCalled();
     expect(await launch.open("https://auth.example.test/flow")).toBe(true);
@@ -62,7 +62,7 @@ describe("OAuth tab reservation", () => {
 
   it("opens straight to the page from a remote server's page in the desktop app, which has no openExternal", async () => {
     const open = vi.fn(() => null);
-    vi.stubGlobal("window", { ogb: { platform: "darwin" }, open });
+    vi.stubGlobal("window", { odb: { platform: "darwin" }, open });
     const launch = reserveConnectionPage();
     expect(open).not.toHaveBeenCalled();
     expect(await launch.open("https://auth.example.test/flow")).toBe(true);
@@ -70,7 +70,7 @@ describe("OAuth tab reservation", () => {
   });
 
   it("says the page did not open when the desktop app refuses it", async () => {
-    vi.stubGlobal("window", { ogb: { openExternal: vi.fn(async () => { throw new Error("only available while using the local server"); }) }, open: vi.fn() });
+    vi.stubGlobal("window", { odb: { openExternal: vi.fn(async () => { throw new Error("only available while using the local server"); }) }, open: vi.fn() });
     expect(await reserveConnectionPage().open("https://auth.example.test/flow")).toBe(false);
   });
 });

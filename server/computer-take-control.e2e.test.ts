@@ -94,7 +94,7 @@ describe("taking control never waits for the screen preview", () => {
         }
         if (verb === "desktop" && req.method === "POST") return send(200, { desktopUrl: `https://desktop.invalid/${row.id}` });
         if (verb === "commands" && req.method === "POST") {
-          if (String(body.command).includes("ogb-panel.jpg")) {
+          if (String(body.command).includes("odb-panel.jpg")) {
             shots.push(row.id);
             await holdShots;
           }

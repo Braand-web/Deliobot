@@ -217,7 +217,7 @@ $downloads = Join-Path $env:USERPROFILE 'Downloads'
 New-Item -ItemType Directory -Force -Path $downloads | Out-Null
 $target = Join-Path $downloads ${quote(path.basename(installer))}
 Copy-Item -LiteralPath ${quote(installer)} -Destination $target -Force
-Set-Content -LiteralPath $target -Stream Zone.Identifier -Value @('[ZoneTransfer]', 'ZoneId=3', 'ReferrerUrl=https://www.openopendeliobot.com/download', 'HostUrl=https://github.com/Braand-web/Deliobot/releases/latest/download/OpenDeliobot-setup.exe')
+Set-Content -LiteralPath $target -Stream Zone.Identifier -Value @('[ZoneTransfer]', 'ZoneId=3', 'ReferrerUrl=https://www.opendeliobot.com/download', 'HostUrl=https://github.com/Braand-web/Deliobot/releases/latest/download/OpenDeliobot-setup.exe')
 [pscustomobject]@{
   path = $target; bytes = (Get-Item -LiteralPath $target).Length; sha256 = (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash
   zone = @(Get-Content -LiteralPath $target -Stream Zone.Identifier) -join ' | '
@@ -388,7 +388,7 @@ async function appPage(ms) {
       for (const page of pages.filter((entry) => entry.type === "page" && /^http:\/\/(?:127\.0\.0\.1|localhost):\d+\//.test(entry.url))) {
         const tab = await devtools(page.webSocketDebuggerUrl);
         try {
-          if (await tab.evaluate("typeof window.ogb?.localControl?.retry === 'function'")) return page;
+          if (await tab.evaluate("typeof window.odb?.localControl?.retry === 'function'")) return page;
         } finally {
           tab.close();
         }
@@ -401,7 +401,7 @@ async function appPage(ms) {
   return null;
 }
 
-const SHOWN = "window.ogb.getCapabilities().then(({ localComputer }) => localComputer)";
+const SHOWN = "window.odb.getCapabilities().then(({ localComputer }) => localComputer)";
 
 /** The call the Start screen control button makes. */
 async function pressStart() {
@@ -412,7 +412,7 @@ async function pressStart() {
     const shown = await tab.evaluate(SHOWN);
     const before = (await processes()).driver;
     const began = Date.now();
-    const answer = await tab.evaluate("window.ogb.localControl.retry()", 180_000);
+    const answer = await tab.evaluate("window.odb.localControl.retry()", 180_000);
     const seconds = Math.round((Date.now() - began) / 1000);
     await sleep(3000);
     const after = (await processes()).driver;
@@ -654,7 +654,7 @@ function render(r, verdict) {
     else {
       const answer = r.startScreen.answer ?? {};
       add(`- Before pressing it, the app showed: ${shownLine(r.startScreen.shown)}.`);
-      add(`- Start screen control (the button's own call, \`window.ogb.localControl.retry()\`): ${answer.status === "ready" ? "**worked**" : "**didn't work**"} in ${r.startScreen.seconds} s, answer \`${JSON.stringify(answer)}\`; ${DRIVER} ${r.startScreen.after?.length ? `running afterwards (pid ${r.startScreen.after.map((entry) => entry.pid).join(", ")}; before: ${r.startScreen.before?.map((entry) => entry.pid).join(", ") || "none"})` : "**not running afterwards**"}.`);
+      add(`- Start screen control (the button's own call, \`window.odb.localControl.retry()\`): ${answer.status === "ready" ? "**worked**" : "**didn't work**"} in ${r.startScreen.seconds} s, answer \`${JSON.stringify(answer)}\`; ${DRIVER} ${r.startScreen.after?.length ? `running afterwards (pid ${r.startScreen.after.map((entry) => entry.pid).join(", ")}; before: ${r.startScreen.before?.map((entry) => entry.pid).join(", ") || "none"})` : "**not running afterwards**"}.`);
       add(`- Afterwards the app showed: ${shownLine(r.startScreen.shownAfter)}.`);
     }
   }

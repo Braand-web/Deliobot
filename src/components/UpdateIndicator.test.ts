@@ -23,7 +23,7 @@ beforeEach(async () => {
   (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
   install.mockClear();
   check.mockClear();
-  (window as unknown as { ogb: unknown }).ogb = {
+  (window as unknown as { odb: unknown }).odb = {
     updater: {
       onState: (callback: (state: UpdaterState) => void) => {
         push = callback;
@@ -44,7 +44,7 @@ beforeEach(async () => {
 afterEach(async () => {
   await act(async () => root.unmount());
   host.remove();
-  delete (window as unknown as { ogb?: unknown }).ogb;
+  delete (window as unknown as { odb?: unknown }).odb;
 });
 
 describe("the update button", () => {

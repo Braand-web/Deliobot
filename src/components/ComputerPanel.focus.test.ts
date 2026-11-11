@@ -98,7 +98,7 @@ const chatButton = () => {
 };
 
 beforeAll(() => {
-  vi.stubGlobal("ogb", undefined);
+  vi.stubGlobal("odb", undefined);
 });
 beforeEach(() => {
   const saved = new Map<string, string>();

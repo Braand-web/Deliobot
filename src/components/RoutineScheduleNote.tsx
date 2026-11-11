@@ -19,11 +19,11 @@ export function schedulePlace({ cloudHome, local, plan, ready, offersAllowed }: 
 export function RoutineScheduleNote() {
   const { state, dispatch } = useStore();
   const plan = useCloudPlan();
-  const local = localDesktopPage() && window.ogb?.remoteClient?.active !== true;
+  const local = localDesktopPage() && window.odb?.remoteClient?.active !== true;
   const place = schedulePlace({ cloudHome: state.config?.cloudHome === true, local, plan: plan?.view ?? null,
     ready: plan?.account?.machine?.status === "ready", offersAllowed: brandStatus().source !== "file" });
   const link = "text-left underline underline-offset-2 hover:text-ink";
-  const openCloud = () => { if (window.confirm(t("routines.scheduleNote.leave"))) void window.ogb?.cloudAccount?.connectHome().catch(() => {}); };
+  const openCloud = () => { if (window.confirm(t("routines.scheduleNote.leave"))) void window.odb?.cloudAccount?.connectHome().catch(() => {}); };
   return <p data-routine-schedule-note={place.kind === "local" ? place.next ?? "local" : place.kind} className="text-[11px] leading-relaxed text-ink-secondary">
     {place.kind === "cloud" ? t("routines.scheduleNote.cloud") : place.kind === "server" ? t("routines.scheduleNote.server") : <>
       {t("routines.scheduleNote.local")}

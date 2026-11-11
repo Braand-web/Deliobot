@@ -165,7 +165,6 @@ use their own Boat key, and how many bots run on cloud computers, without sendin
 | `simple_mode_prompt` | The Simple mode popup, shown once in each browser after an update when nothing else is on screen, is shown, its Simple mode switch is flipped, or it is closed (Done, the X, Escape or a click outside) | `action`: `shown`, `toggled`, `closed`; `mode`: `simple`, `advanced`, the mode it was shown or closed in, or the one a flip turned on |
 | `new_look_notice` | The notice that Simple is now the only look, shown once in each browser that was on Advanced mode, when nothing else is on screen, is shown or closed (Done, the X, Escape or a click outside) | `action`: `shown`, `closed` |
 | `advanced_back_notice` | The notice that Advanced mode is back, shown once in each browser that was on Advanced mode before Simple became the only look and is put back on it, when nothing else is on screen, is shown or closed (Done, the X, Escape or a click outside) | `action`: `shown`, `closed` |
-| `grok_move_popup` | The one-time Move from Grok Bot popup is shown or you act on it | `action`: `shown`, `start`, `not_now`, `close` |
 | `two_places_card` | You act on the card that says your bots live in two places (this computer and a server of your own, or My Cloud) | `action`: `bring`, `not_now`; `kind`: `server`, `cloud`, the place it offered |
 
 `api_key_saved` reports `ok` for a key the server checks with its provider before saving it (Boat, Composio,

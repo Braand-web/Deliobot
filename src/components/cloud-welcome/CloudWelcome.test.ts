@@ -82,11 +82,11 @@ beforeEach(() => {
     if (patch.onboarding) return { ...fixture.state.config, onboarding: { ...fixture.state.config.onboarding, ...patch.onboarding } };
     throw new Error(`unexpected ${path}`);
   });
-  window.ogb = {
+  window.odb = {
     platform: "darwin", cloudPlan: { state: vi.fn() },
     cloudSendPage: { notice: vi.fn().mockResolvedValue(quiet), dismiss: vi.fn(), onNotice: vi.fn(() => () => {}) },
     workspaces: { state: vi.fn().mockResolvedValue({ local: false, name: "Studio Cloud", origin: CLOUD.origin }), menu: vi.fn() },
-  } as unknown as typeof window.ogb;
+  } as unknown as typeof window.odb;
   host = document.createElement("div");
   document.body.append(host);
   root = createRoot(host);
@@ -94,7 +94,7 @@ beforeEach(() => {
 afterEach(() => {
   flushSync(() => root.unmount());
   host.remove();
-  delete window.ogb;
+  delete window.odb;
   vi.unstubAllGlobals();
 });
 
@@ -119,7 +119,7 @@ describe("CloudWelcome", () => {
 
   it("in an older app that still copies by hand, says to update it to bring the bots here by itself", async () => {
     fixture.state.bots = [fixture.state.bots[0]];
-    window.ogb = { ...window.ogb!, cloudMove: {} } as unknown as typeof window.ogb;
+    window.odb = { ...window.odb!, cloudMove: {} } as unknown as typeof window.odb;
     render();
     await vi.waitFor(() => expect(host.querySelector("[data-bring-update]")?.textContent).toBe("Update Delio to bring your bots here by itself."));
     expect([...host.querySelectorAll("button")].some((node) => node.textContent?.startsWith("Copy"))).toBe(false);
@@ -150,7 +150,7 @@ describe("CloudWelcome", () => {
   });
 
   it("outside the desktop app, tells the same from the bots and rooms the Cloud shows", () => {
-    delete window.ogb;
+    delete window.odb;
     fixture.state = { ...fixture.state, bots: [...fixture.state.bots, { id: "b3", threadId: "t3", name: "Rex" }] };
     render();
     expect(text()).toContain("Your bots are already here");
@@ -189,7 +189,7 @@ describe("CloudWelcome", () => {
   });
 
   it("in a desktop app connected to another server as its client, offers no copy from here either", () => {
-    window.ogb = { ...window.ogb!, remoteClient: { active: true } } as unknown as typeof window.ogb;
+    window.odb = { ...window.odb!, remoteClient: { active: true } } as unknown as typeof window.odb;
     fixture.state.bots = [fixture.state.bots[0]];
     render();
     expect(text()).toContain("Open the desktop app to bring your bots from your computer.");
@@ -197,7 +197,7 @@ describe("CloudWelcome", () => {
   });
 
   it("outside the desktop app, starts fresh and says where the copy is", () => {
-    delete window.ogb;
+    delete window.odb;
     fixture.state.bots = [fixture.state.bots[0]];
     render();
     expect(text()).toContain("Welcome to My Cloud");
@@ -291,13 +291,13 @@ describe("CloudWelcome", () => {
   it("from a browser, or on a Team Cloud, the folders card says the desktop app shares folders through Files", async () => {
     fixture.state.config.onboarding = { ...EMPTY_ONBOARDING, hintsSeen: [welcomeStepHint("bring"), welcomeStepHint("engine")] };
     const desktopText = "Bots on Studio Cloud can read folders you share from your computer, even when it's off. Share them from the desktop app, under Files.";
-    delete (window.ogb as Record<string, unknown>).cloudPlan;
+    delete (window.odb as Record<string, unknown>).cloudPlan;
     render();
     await vi.waitFor(() => expect(text()).toContain("Welcome to Studio Cloud"));
     expect(host.querySelector('[data-welcome-files="folders"]')?.textContent).toContain(desktopText);
     flushSync(() => root.unmount());
     root = createRoot(host);
-    (window.ogb as Record<string, unknown>).cloudPlan = { state: vi.fn() };
+    (window.odb as Record<string, unknown>).cloudPlan = { state: vi.fn() };
     fixture.state.config.team = { id: "t-acme", name: "Acme" };
     render();
     // On a team the welcome is the team's, by its name: never "My Cloud" or the Cloud's address.
@@ -342,7 +342,7 @@ describe("CloudWelcome", () => {
     const withSend = (value: CloudSendNotice | null) => {
       const page = { notice: vi.fn().mockResolvedValue(value), dismiss: vi.fn(),
         onNotice: vi.fn((listener: (next: CloudSendNotice) => void) => { pushNotice = listener; return () => {}; }) };
-      window.ogb = { ...window.ogb!, cloudSendPage: page } as unknown as typeof window.ogb;
+      window.odb = { ...window.odb!, cloudSendPage: page } as unknown as typeof window.odb;
       return page;
     };
     const rail = () => host.querySelector('[data-welcome-rail="bring"]')!;

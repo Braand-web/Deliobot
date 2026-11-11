@@ -57,7 +57,7 @@ export function OwnServerLink({ onBack, onConnected, connect = null, start = nul
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
   const codeField = useRef<HTMLInputElement>(null);
-  const workspaces = window.ogb?.workspaces;
+  const workspaces = window.odb?.workspaces;
   const canProbe = typeof workspaces?.probe === "function";
   const parsed = parseServerInput(address, code);
   const linkHasCode = parsed.ok && !code.trim() && (parsed.code !== null || parsed.credential !== null);
@@ -239,7 +239,7 @@ export function NewLocalWorkspace({ places, onBack, onDone }: { places: readonly
  * on a sheet of its own. */
 export function NewLocalFromMenu() {
   const [open, setOpen] = useState(false);
-  useEffect(() => (window.ogb?.remoteClient?.active ? undefined : window.ogb?.workspaces?.onNewLocal?.(() => setOpen(true))), []);
+  useEffect(() => (window.odb?.remoteClient?.active ? undefined : window.odb?.workspaces?.onNewLocal?.(() => setOpen(true))), []);
   if (!open) return null;
   return <RailSheet focusKey="local" onClose={() => setOpen(false)}>
     <NewLocalWorkspace places={[]} onBack={null} onDone={() => setOpen(false)} />
@@ -251,7 +251,7 @@ export function PlaceAddSheet({ choices, places = [], connect = null, onClose, o
   const several = [local, organization, choices.cloud, server, account].filter(Boolean).length > 1;
   const [view, setView] = useState<"choose" | "local" | "cloud" | "server" | "organization">(connect ? "server" : several ? "choose" : local ? "local" : organization ? "organization" : choices.cloud ? "cloud" : "server");
   const [wide, setWide] = useState(false);
-  const workspaces = window.ogb?.workspaces;
+  const workspaces = window.odb?.workspaces;
   const firstCloud = () => {
     track("rail_add", { step: "cloud" });
     onClose();

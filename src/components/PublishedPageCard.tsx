@@ -27,7 +27,7 @@ export function PublishedPageCard({ message }: { message: Message }) {
   const [failed, setFailed] = useState(false);
   const openPage = usePageOpener();
   if (!card) return null;
-  const bridge = window.ogb?.remoteClient?.active ? undefined : window.ogb?.cloudAccount;
+  const bridge = window.odb?.remoteClient?.active ? undefined : window.odb?.cloudAccount;
   const unpublish = async () => {
     if (!card.pageId) return;
     setBusy(true);

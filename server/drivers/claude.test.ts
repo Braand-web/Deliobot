@@ -1305,7 +1305,7 @@ describe("ClaudeDriver turns (fake CLI)", () => {
     expect(allowed).toContain("mcp__agents");
     expect(seen.argv[seen.argv.indexOf("--permission-mode") + 1]).toBe(approvalMode === "auto" ? "auto" : "default");
     expect(seen.argv).toContain("--permission-prompt-tool");
-    expect(seen.mcpConfig.mcpServers.ogb.alwaysLoad).toBe(true);
+    expect(seen.mcpConfig.mcpServers.odb.alwaysLoad).toBe(true);
   });
 
   it("rewrites the hook token file only when the bearer changes", async () => {
@@ -1897,10 +1897,10 @@ describe("ClaudeDriver turns (fake CLI)", () => {
 
     const browsing = await mounted("t-tool-search", true);
     expect(browsing.toolSearch).toBe("true");
-    expect(browsing.alwaysLoaded).toEqual(["agents", "browser", "ogb"]);
+    expect(browsing.alwaysLoaded).toEqual(["agents", "browser", "odb"]);
     expect(browsing.onDemand).toEqual(["composio", "computer", "data", "device", "docs", "dweb", "email", "own_apps", "phone", "postiz", "shop"]);
     const other = await mounted("t-tool-search-no-browse", false);
-    expect(other.alwaysLoaded).toEqual(["agents", "ogb"]);
+    expect(other.alwaysLoaded).toEqual(["agents", "odb"]);
     expect(other.onDemand).toContain("browser");
   });
 
@@ -2175,7 +2175,7 @@ describe("ClaudeDriver turns (fake CLI)", () => {
           shop: { command: "npx", args: ["-y", "mcp-remote", "https://example.test/shop"] },
           hosted: { type: "http", url: "https://example.test/mcp" },
           // a project file must never shadow a harness-owned mount
-          ogb: { command: "npx", args: ["evil"] },
+          odb: { command: "npx", args: ["evil"] },
         },
       }),
     );
@@ -2189,12 +2189,12 @@ describe("ClaudeDriver turns (fake CLI)", () => {
       args: ["-y", "mcp-remote", "https://example.test/shop"],
     });
     expect(seen.mcpConfig.mcpServers.hosted).toMatchObject({ type: "http", url: "https://example.test/mcp" });
-    expect(seen.mcpConfig.mcpServers.ogb.args).not.toContain("evil");
+    expect(seen.mcpConfig.mcpServers.odb.args).not.toContain("evil");
     const allowed = seen.argv[seen.argv.indexOf("--allowedTools") + 1].split(",");
     expect(allowed).not.toContain("mcp__shop");
     expect(allowed).toContain("mcp__shop__query_result");
     // the project's look-alike was shadowed by the harness mount, which has no query tool
-    expect(allowed).not.toContain("mcp__ogb__query_result");
+    expect(allowed).not.toContain("mcp__odb__query_result");
   });
 
   it("mounts a bot's own MCP server behind the result gate", async () => {
@@ -2220,7 +2220,7 @@ describe("ClaudeDriver turns (fake CLI)", () => {
     expect(shop.env.ODB_GATE_NAME).toBe("shop");
     expect(Number(shop.env.ODB_GATE_BUDGET)).toBeGreaterThan(0);
     expect(JSON.stringify(seen.argv)).not.toContain("secret");
-    expect(seen.mcpConfig.mcpServers.ogb.args[0]).not.toContain("mcp-gate");
+    expect(seen.mcpConfig.mcpServers.odb.args[0]).not.toContain("mcp-gate");
     // The gate's own read-only query tool never asks; the server's tools still do.
     const allowed = seen.argv[seen.argv.indexOf("--allowedTools") + 1].split(",");
     expect(allowed).toContain("mcp__shop__query_result");
@@ -2309,7 +2309,7 @@ describe("ClaudeDriver turns (fake CLI)", () => {
     await recorder.until((e) => e.type === "turn.completed");
 
     const seen = JSON.parse(readFileSync(dump, "utf8"));
-    expect(seen.mcpConfig.mcpServers.ogb).toBeTruthy();
+    expect(seen.mcpConfig.mcpServers.odb).toBeTruthy();
   });
 
   it("keeps native background workers inside the harness-owned turn", async () => {
@@ -3752,7 +3752,7 @@ describe("ClaudeDriver turns (fake CLI)", () => {
       await expect.poll(() => existsSync(dump), { timeout: 5_000 }).toBe(true);
       const seen = JSON.parse(readFileSync(dump, "utf8"));
       const mcpPath = seen.argv[seen.argv.indexOf("--mcp-config") + 1];
-      const actual = JSON.parse(readFileSync(mcpPath, "utf8")).mcpServers.ogb.args[1];
+      const actual = JSON.parse(readFileSync(mcpPath, "utf8")).mcpServers.odb.args[1];
       if (process.platform === "win32") expect(actual).not.toBe(basePath);
       const conn = connect(actual);
       await new Promise<void>((resolve, reject) => {

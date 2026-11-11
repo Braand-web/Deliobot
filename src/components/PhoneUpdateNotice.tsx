@@ -5,12 +5,12 @@ import { t } from "@/lib/i18n";
 import { noticeSeen, phoneUpdateHint } from "@/lib/notices";
 import type { OnboardingStatus } from "@/lib/onboarding";
 import { olderAppPhones, showTunnelRetiredNotice } from "@/lib/phone-link";
-import type { CompanionAccountState } from "../types/ogb";
+import type { CompanionAccountState } from "../types/odb";
 import { NoticeCard, NotNowButton, PRIMARY_BUTTON } from "./NoticeCard";
 
 type Bridges = { companion?: { state: () => Promise<CompanionState> }; companionAccount?: { state: () => Promise<CompanionAccountState> } };
 // SAFETY: main answers these narrow preload bridges only for this computer's own page.
-const bridges = (): Bridges => (typeof window === "undefined" ? {} : (window.ogb as Bridges | undefined) ?? {});
+const bridges = (): Bridges => (typeof window === "undefined" ? {} : (window.odb as Bridges | undefined) ?? {});
 
 /** Phones on an older app once this computer's secure link ended: undefined until known, [] when none. The account (which
  * may ask the control plane) is read only when a phone has an older app. */

@@ -6,7 +6,7 @@ import { openThread, type Action, type AppState, type ThreadTarget } from "@/sta
 export function useExternalChatLinks(state: AppState, dispatch: (action: Action) => void): void {
   const [link, setLink] = useState<string | null>(null);
   const showThreads = useShowThreads();
-  useEffect(() => window.ogb?.onChatLink?.(setLink), []);
+  useEffect(() => window.odb?.onChatLink?.(setLink), []);
   useEffect(() => {
     if (!link || !state.hydrated) return;
     setLink(null);
@@ -20,7 +20,7 @@ export function useExternalChatLinks(state: AppState, dispatch: (action: Action)
 export function useDesktopNotificationOpens(state: AppState, dispatch: (action: Action) => void): void {
   const [target, setTarget] = useState<ThreadTarget | null>(null);
   const showThreads = useShowThreads();
-  useEffect(() => window.ogb?.desktopNotifications?.onOpen(setTarget), []);
+  useEffect(() => window.odb?.desktopNotifications?.onOpen(setTarget), []);
   useEffect(() => {
     if (!target || !state.hydrated) return;
     setTarget(null);

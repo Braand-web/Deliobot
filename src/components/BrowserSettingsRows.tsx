@@ -35,7 +35,7 @@ export function BuiltInBrowserRow() {
   const browser = builtInBrowserEnabled(state.config);
   const desktopBrowser = browserAvailable(state.config);
   const browserInstallable = state.config?.browserEngine?.installable === true;
-  const browserBlockedOnWindows = window.ogb?.platform === "win32" && !desktopBrowser && !browserInstallable;
+  const browserBlockedOnWindows = window.odb?.platform === "win32" && !desktopBrowser && !browserInstallable;
   const { saving, error, save } = useConfigSave();
 
   return (

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
  * page gets, so it holds before anything loads. False in a browser, on this computer's page and in older desktop builds.
  */
 export function desktopShowsOtherServer(): boolean {
-  return typeof window !== "undefined" && window.ogb?.app?.ownPage === false;
+  return typeof window !== "undefined" && window.odb?.app?.ownPage === false;
 }
 
 /** That server's name as it was saved in the Server menu, or its address until the app answers; null when there is none. */
@@ -16,7 +16,7 @@ export function useOtherServerName(enabled = true): string | null {
   useEffect(() => {
     if (!other) return;
     let alive = true;
-    void window.ogb?.workspaces?.state()
+    void window.odb?.workspaces?.state()
       .then((state) => { if (alive && !state.local && state.name?.trim()) setName(state.name.trim()); })
       .catch(() => {});
     return () => { alive = false; };

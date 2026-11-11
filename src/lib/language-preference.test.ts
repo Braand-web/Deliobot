@@ -152,7 +152,7 @@ async function openPage(app: ReturnType<typeof desktopApp>, stored: string | nul
   local = memoryStorage();
   if (stored !== null) local.setItem("odb-language", stored);
   const bridge = app.page();
-  browser = Object.assign(new EventTarget(), { ogb: { desktopLanguage: bridge } });
+  browser = Object.assign(new EventTarget(), { odb: { desktopLanguage: bridge } });
   vi.stubGlobal("localStorage", local);
   vi.stubGlobal("window", browser);
   return { preference: await import("./language-preference"), storage: local, bridge };

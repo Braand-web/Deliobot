@@ -75,7 +75,7 @@ function Stop({ reason, home, busy, interest, onInterest, onClose }: {
 export function AddCloudFlow({ onClose, onFirstCloud, onWide = () => {}, onBack = null, now = Date.now, source }: {
   onClose: () => void; onFirstCloud: () => void; onWide?: (wide: boolean) => void; onBack?: (() => void) | null; now?: () => number; source?: CloudSource;
 }) {
-  const bridge = window.ogb?.cloudAdd;
+  const bridge = window.odb?.cloudAdd;
   const [view, setView] = useState<AddCloudView | null | undefined>(undefined);
   const [tier, setTier] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -89,7 +89,7 @@ export function AddCloudFlow({ onClose, onFirstCloud, onWide = () => {}, onBack 
   const read = () => bridge?.state().then(setView, () => setView(null)) ?? Promise.resolve(setView(null));
   useEffect(() => {
     void read();
-    const off = window.ogb?.workspaces?.onChanged?.(() => void read());
+    const off = window.odb?.workspaces?.onChanged?.(() => void read());
     void bridge?.sheet(true).catch(() => {});
     return () => { off?.(); void bridge?.sheet(false).catch(() => {}); };
   }, []);

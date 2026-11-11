@@ -148,7 +148,7 @@ describe("New bot", () => {
   });
 
   it("from a paired device, sends one request and leaves the defaults to the host", async () => {
-    vi.stubGlobal("window", { ogb: { remoteClient: { active: true } } });
+    vi.stubGlobal("window", { odb: { remoteClient: { active: true } } });
     const { calls, request } = server();
     const sent = await newBot(request, { section: "Sales" });
     expect(calls).toEqual([{ method: "POST", path: "/api/bots", body: { section: "Sales" } }]);

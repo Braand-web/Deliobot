@@ -12,7 +12,7 @@ import { OwnServerLink, RailSheet } from "./PlaceAddSheet";
 import { Switch } from "./SettingsPrimitives";
 import { CloudTile } from "./cloud-buy/parts";
 
-type Saved = Awaited<ReturnType<NonNullable<NonNullable<Window["ogb"]>["environments"]>["state"]>>;
+type Saved = Awaited<ReturnType<NonNullable<NonNullable<Window["odb"]>["environments"]>["state"]>>;
 type Entry = Saved["environments"][number];
 type Sheet = { address: string; locked: boolean; title: string } | null;
 /** A saved server of the person's own (this desktop is its admin), and how lending this computer to it is. */
@@ -79,7 +79,7 @@ export function ServerList({ saved, busy, sharingOffered, ownServers = [], appVe
   saved: Saved; busy: boolean; sharingOffered: boolean; ownServers?: OwnServerSharing[]; appVersion: string | null;
   onSwitch: (id: string) => void; onForget: (id: string) => void; onComputerAccess: (id: string) => void; onShare?: (id: string, on: boolean) => void;
 }) {
-  const bridge = window.ogb?.environments;
+  const bridge = window.odb?.environments;
   const [statuses, setStatuses] = useState<ServerStatus[]>([]);
   const [hidden, setHidden] = useState<string[]>([]);
   const [sheet, setSheet] = useState<Sheet>(null);

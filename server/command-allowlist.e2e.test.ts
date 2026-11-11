@@ -31,7 +31,7 @@ it("remembers real permission requests, scopes and revokes grants, and preserves
     rmSync(dump, { force: true });
     await api("POST", `/api/bots/${bot.id}/messages`, { threadId: thread, text: "Hold this verification task while its native command approvals are exercised." }, 202);
     await expect.poll(() => existsSync(dump), { timeout: 15_000 }).toBe(true);
-    return JSON.parse(readFileSync(dump, "utf8")).mcpConfig.mcpServers.ogb.args.at(-1) as string;
+    return JSON.parse(readFileSync(dump, "utf8")).mcpConfig.mcpServers.odb.args.at(-1) as string;
   };
   const ask = async (socketPath: string, command: string, input = {}, tool = "Bash") => {
     const socket = connect(socketPath);

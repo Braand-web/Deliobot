@@ -15,7 +15,7 @@ const create = vi.fn(async (_name: string, _color: unknown) => ({ outcome: "made
 beforeEach(() => {
   setLocale("en");
   vi.clearAllMocks();
-  Object.assign(window, { ogb: { workspaces: { places: vi.fn(async () => ({ places: [], add: { cloud: false, link: false, address: false } })), onChanged: () => () => {},
+  Object.assign(window, { odb: { workspaces: { places: vi.fn(async () => ({ places: [], add: { cloud: false, link: false, address: false } })), onChanged: () => () => {},
     local: { create, edit: vi.fn(), remove: vi.fn() }, onNewLocal: (callback: () => void) => { ask = callback; return () => { ask = null; }; } } } });
   host = document.createElement("div"); document.body.append(host);
 });

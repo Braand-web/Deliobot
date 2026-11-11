@@ -184,7 +184,7 @@ export function TeamPeopleCard({ team }: { team: { name: string; cloudPage?: str
 export function CloudAccountSettings({ linkRequest = 0, cloudHome = false, teamHome, onConnectPhone, onAddCloud, onSignIn }: {
   linkRequest?: number; cloudHome?: boolean; teamHome?: { name: string; cloudPage?: string }; onConnectPhone?: () => void; onAddCloud?: () => void; onSignIn?: () => void;
 } = {}) {
-  const bridge = window.ogb?.remoteClient?.active ? undefined : window.ogb?.cloudAccount;
+  const bridge = window.odb?.remoteClient?.active ? undefined : window.odb?.cloudAccount;
   const { platform } = useDesktopCapabilities().capabilities.host;
   const [account, setAccount] = useState<CloudAccountState | null>(null);
   const [busy, setBusy] = useState(false), [error, setError] = useState(false), [confirm, setConfirm] = useState(false);
@@ -245,17 +245,17 @@ export function CloudAccountSettings({ linkRequest = 0, cloudHome = false, teamH
     if (action === "sign-in") void perform(() => bridge.begin());
     if (action === "connect") { link.current.connected = true; connectHome(); }
   }, [bridge, linkRequest, account, busy]);
-  const [moveNotice] = useCloudSendNotice(bridge ? window.ogb?.cloudSendPage : undefined);
+  const [moveNotice] = useCloudSendNotice(bridge ? window.odb?.cloudSendPage : undefined);
   const move = moveNotice?.move ? moveLine(moveNotice.move, "local") : null;
   const moving = move && move.kind !== "done" ? move.text : null;
   const offer = useCloudOffer(Boolean(account) && buyOfferAllowed(cloudPlanView(account)), account?.offer);
   const renewal: CloudRenewalActions | null = bridge?.cancelPlan && bridge.keepPlan ? { cancel: survey => bridge.cancelPlan!(survey), keep: () => bridge.keepPlan!() } : null;
   if (!bridge) {
-    const plan = window.ogb?.remoteClient?.active || !cloudHome ? undefined : window.ogb?.cloudPlan;
+    const plan = window.odb?.remoteClient?.active || !cloudHome ? undefined : window.odb?.cloudPlan;
     return <>
       {cloudHome && teamHome ? <TeamPeopleCard team={teamHome} />
         : plan ? <CloudPlanOnCloud bridge={plan} onConnectPhone={onConnectPhone} /> : <p className="text-[13px] text-ink-secondary">{t("cloudAccount.desktopOnly")}</p>}
-      {plan && !teamHome && <CloudKeepHere bridge={window.ogb?.cloudSendPage} />}
+      {plan && !teamHome && <CloudKeepHere bridge={window.odb?.cloudSendPage} />}
     </>;
   }
   const view = cloudPlanView(account);
@@ -308,8 +308,8 @@ export function CloudAccountSettings({ linkRequest = 0, cloudHome = false, teamH
           {!confirm && <button type="button" disabled={busy} className="ui-button" onClick={() => setConfirm(true)}>{t("cloudAccount.signOut")}</button>}
         </div>
         {account.status === "connected" && account.renewal && <CloudCancelPlan renewal={account.renewal} actions={renewal} />}
-        {view.kind === "free" && !confirm && <p className="text-[12px] text-ink-secondary">{t(window.ogb?.accounts ? "cloudAccount.otherEmailOrTeam" : "cloudAccount.otherEmail")}{" "}
-          <button type="button" data-cloud-other-email disabled={busy} className="underline hover:text-ink" onClick={() => (window.ogb?.accounts ? setAddingEmail(true) : setConfirm(true))}>{t(window.ogb?.accounts ? "cloudAccount.addOtherEmail" : "cloudAccount.useOtherEmail")}</button></p>}
+        {view.kind === "free" && !confirm && <p className="text-[12px] text-ink-secondary">{t(window.odb?.accounts ? "cloudAccount.otherEmailOrTeam" : "cloudAccount.otherEmail")}{" "}
+          <button type="button" data-cloud-other-email disabled={busy} className="underline hover:text-ink" onClick={() => (window.odb?.accounts ? setAddingEmail(true) : setConfirm(true))}>{t(window.odb?.accounts ? "cloudAccount.addOtherEmail" : "cloudAccount.useOtherEmail")}</button></p>}
         {addingEmail && <AccountsSheet adding="" onClose={() => setAddingEmail(false)} />}
         {confirm && <div role="group" aria-label={t("cloudAccount.signoutTitle")} className="rounded-lg border border-hairline/40 p-3">
           <p className="text-[13px] text-ink-secondary">{t("cloudAccount.signoutHelp")}</p><div className="mt-3 flex flex-wrap gap-2">
@@ -324,6 +324,6 @@ export function CloudAccountSettings({ linkRequest = 0, cloudHome = false, teamH
       ? cloudHomeCard({ machine, busy, failed: homeFailed, onConnect: () => { if (team) openTeam(team.id); }, team: { name: team?.name ?? null } })
       : cloudHomeCard({ machine, busy, failed: homeFailed, onConnect: connectHome, trial: Boolean(account?.trial), waking: account?.waking === true, moving }))}
     {signed && view.kind === "paid" && !onTeamPlan && cloudPhoneCard({ ready: machine?.status === "ready", busy, failed: phoneFailed, onUse: openOnPhone })}
-    <CloudKeepHere bridge={window.ogb?.cloudSendPage} />
+    <CloudKeepHere bridge={window.odb?.cloudSendPage} />
   </>;
 }

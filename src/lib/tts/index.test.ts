@@ -636,7 +636,7 @@ describe("local system voice stream", () => {
     synth = makeSynth();
     spoken = [];
     vi.stubGlobal("window", {
-      ogb: { remoteClient: { active: true }, platform: "darwin" },
+      odb: { remoteClient: { active: true }, platform: "darwin" },
       speechSynthesis: synth,
       SpeechSynthesisUtterance: FakeUtterance,
     });

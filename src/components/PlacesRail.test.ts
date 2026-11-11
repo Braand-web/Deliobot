@@ -41,7 +41,7 @@ beforeEach(() => {
   setLocale("en");
   rail = { places: PLACES, add: { cloud: true, link: true, address: false } };
   organizations = undefined;
-  Object.assign(window, { ogb: { workspaces, cloudAdd } });
+  Object.assign(window, { odb: { workspaces, cloudAdd } });
   vi.clearAllMocks();
   host = document.createElement("div"); document.body.append(host);
 });
@@ -134,12 +134,12 @@ it("the same place clicked twice while it is pending is one click; the place on 
 
 it("on the window's own rail the new place's shell covers the page at once and says waking when main does; a place waiting on a bot keeps its ring only", async () => {
   await mount(createElement(PlacesRail, { chrome: true }));
-  Object.assign(window, { ogb: { workspaces, cloudAdd, rail: { expand: vi.fn(async () => {}) } } });
+  Object.assign(window, { odb: { workspaces, cloudAdd, rail: { expand: vi.fn(async () => {}) } } });
   const main = openWaits();
   await click(tile("a"));
   const veil = () => host.querySelector("[data-rail-veil]");
   expect(veil()?.textContent).toContain("Opening Client A…");
-  expect((window.ogb!.rail!.expand as ReturnType<typeof vi.fn>).mock.calls.at(-1), "it asks for the whole window while it covers the page").toEqual([true]);
+  expect((window.odb!.rail!.expand as ReturnType<typeof vi.fn>).mock.calls.at(-1), "it asks for the whole window while it covers the page").toEqual([true]);
   await act(async () => { rail = { ...rail, switching: { id: "a", waking: true } }; await refreshPlaces(); });
   expect(veil()?.textContent).toContain("Waking My Cloud…");
   await act(async () => { rail = { ...rail, places: rail.places.map((entry) => (entry.id === "a" ? { ...entry, settling: "Sam" } : entry)) }; await refreshPlaces(); });
@@ -245,7 +245,7 @@ const settle = () => act(async () => { await new Promise((done) => setTimeout(do
 it("Connect to a server never sits grey without saying why: it says it is looking, and says so when the check itself fails", async () => {
   let answer: (value: unknown) => void = () => {};
   const probe = vi.fn((): Promise<unknown> => new Promise((resolve, reject) => { answer = resolve; void reject; }));
-  Object.assign(window, { ogb: { workspaces: { ...workspaces, probe }, cloudAdd } });
+  Object.assign(window, { odb: { workspaces: { ...workspaces, probe }, cloudAdd } });
   await mount(createElement(PlacesRail));
   await click(host.querySelector("[data-rail-add]"));
   await click(document.querySelector('[data-place-add-choice="server"]'));
@@ -267,7 +267,7 @@ it("Connect to a server says plainly that another computer's desktop app can't b
   const probe = vi.fn(async (address: string): Promise<unknown> => (address === "123456"
     ? { outcome: "problem", problem: "oldCode" }
     : { outcome: "problem", problem: "desktopApp", host: "192.168.1.30:8799" }));
-  Object.assign(window, { ogb: { workspaces: { ...workspaces, probe }, cloudAdd } });
+  Object.assign(window, { odb: { workspaces: { ...workspaces, probe }, cloudAdd } });
   await mount(createElement(PlacesRail));
   await click(host.querySelector("[data-rail-add]"));
   await click(document.querySelector('[data-place-add-choice="server"]'));
@@ -289,7 +289,7 @@ it("Connect to a server takes an address and a code typed apart: a code pasted a
   const probe = vi.fn(async (address: string): Promise<unknown> => (address.includes("192.168.1.20")
     ? { outcome: "found", origin: "http://192.168.1.20:8799", label: "kitchen-box", version: "0.1.147", transport: "private-http", code: null, credential: null }
     : { outcome: "problem", problem: "publicHttp", host: "203.0.113.9" }));
-  Object.assign(window, { ogb: { workspaces: { ...workspaces, probe }, cloudAdd } });
+  Object.assign(window, { odb: { workspaces: { ...workspaces, probe }, cloudAdd } });
   await mount(createElement(PlacesRail));
   await click(host.querySelector("[data-rail-add]"));
   await click(document.querySelector('[data-place-add-choice="server"]'));
@@ -464,7 +464,7 @@ it("a server of the person's own on an older release than the newest has a quiet
 
 it("the window's own rail: drawn at every width, 36px wide with small rounded tiles named on hover, and its sheets cover the window while open", async () => {
   const expand = vi.fn(async () => {});
-  Object.assign(window, { ogb: { workspaces, cloudAdd, rail: { expand, onSkin: () => () => {} } } });
+  Object.assign(window, { odb: { workspaces, cloudAdd, rail: { expand, onSkin: () => () => {} } } });
   await mount(createElement(PlacesRail, { chrome: true }));
   const nav = host.querySelector("[data-places-rail]")!;
   expect(nav.className).toContain("flex h-full");
@@ -502,7 +502,7 @@ it("a right-click on a circle opens its place's menu: its colour, saved by main 
     place("vps", "Office", { kind: "server", paint: { swatch: null } }),
     place("acme", "Acme", { kind: "team", color: "purple", paint: { swatch: "violet", locked: "member" } }),
   ], add: { cloud: false, link: true, address: false } };
-  Object.assign(window, { ogb: { workspaces: { ...workspaces, recolor }, cloudAdd, rail: { expand, onSkin: () => () => {} } } });
+  Object.assign(window, { odb: { workspaces: { ...workspaces, recolor }, cloudAdd, rail: { expand, onSkin: () => () => {} } } });
   await mount(createElement(PlacesRail, { chrome: true }));
   const settle = () => act(async () => { for (let i = 0; i < 6; i++) await Promise.resolve(); });
   const menuOf = async (id: string) => {
@@ -540,7 +540,7 @@ it("a Cloud of the person's own that ended says so on its circle, and its menu o
     place("old", "Old Cloud", { ended: true, removable: true, paint: { swatch: null } }),
     place("a", "Client A", { paint: { swatch: "green" } }),
   ], add: { cloud: false, link: false, address: false } };
-  Object.assign(window, { ogb: { workspaces: { ...workspaces, remove }, cloudAdd, rail: { expand: vi.fn(async () => {}), onSkin: () => () => {} } } });
+  Object.assign(window, { odb: { workspaces: { ...workspaces, remove }, cloudAdd, rail: { expand: vi.fn(async () => {}), onSkin: () => () => {} } } });
   await mount(createElement(PlacesRail, { chrome: true }));
   const settle = () => act(async () => { for (let i = 0; i < 6; i++) await Promise.resolve(); });
   const menuOf = async (id: string) => {
@@ -574,7 +574,7 @@ it("a server of the person's own that main offers as home: its menu's one tap st
     place("garage", "Garage server", { kind: "server", makeHome: true, paint: { swatch: null } }),
     place("office", "Office", { kind: "server", paint: { swatch: null } }),
   ], add: { cloud: false, link: true, address: false } };
-  Object.assign(window, { ogb: { workspaces: { ...workspaces, makeHome }, cloudAdd, rail: { expand: vi.fn(async () => {}), onSkin: () => () => {} } } });
+  Object.assign(window, { odb: { workspaces: { ...workspaces, makeHome }, cloudAdd, rail: { expand: vi.fn(async () => {}), onSkin: () => () => {} } } });
   await mount(createElement(PlacesRail, { chrome: true }));
   const settle = () => act(async () => { for (let i = 0; i < 6; i++) await Promise.resolve(); });
   const menuOf = async (id: string) => {
@@ -627,7 +627,7 @@ it("several accounts: a thin divider between groups, This computer first, and ea
 
 it("a click on another account's place asks main by its id; a refusal shows the plain line, and nothing else moves", async () => {
   rail = { places: TWO_ACCOUNTS, add: { cloud: true, link: true, address: false } };
-  Object.assign(window, { ogb: { workspaces, cloudAdd, accounts } });
+  Object.assign(window, { odb: { workspaces, cloudAdd, accounts } });
   workspaces.open.mockResolvedValueOnce({ outcome: "moving" } as never);
   await mount(createElement(PlacesRail));
   await click(host.querySelector('[data-rail-place="b1"]'));
@@ -640,7 +640,7 @@ it("a click on another account's place asks main by its id; a refusal shows the 
 it("a saved account whose sign-in ended: its tile says so, and a click opens the emailed code for that address", async () => {
   const ended = TWO_ACCOUNTS.map((row) => (row.id === "b1" ? { ...row, signIn: true as const } : row));
   rail = { places: ended, add: { cloud: true, link: true, address: false } };
-  Object.assign(window, { ogb: { workspaces, cloudAdd, accounts } });
+  Object.assign(window, { odb: { workspaces, cloudAdd, accounts } });
   workspaces.open.mockResolvedValueOnce({ outcome: "sign-in", email: BOB } as never);
   await mount(createElement(PlacesRail));
   expect(host.querySelector('[data-rail-place="b1"]')?.getAttribute("title")).toBe(`My Cloud · ${BOB} · Sign in again`);
@@ -651,7 +651,7 @@ it("a saved account whose sign-in ended: its tile says so, and a click opens the
 
 it("＋ offers Add another account while someone is signed in, and it opens the sign-in over the window", async () => {
   rail = { places: TWO_ACCOUNTS, add: { cloud: true, link: true, address: false, account: true } };
-  Object.assign(window, { ogb: { workspaces, cloudAdd, accounts } });
+  Object.assign(window, { odb: { workspaces, cloudAdd, accounts } });
   await mount(createElement(PlacesRail));
   await click(host.querySelector("[data-rail-add]"));
   await click(document.querySelector('[data-place-add-choice="account"]'));
@@ -691,14 +691,14 @@ it("＋ stands for Add another account alone, when nothing else can be added", a
 it("once My Cloud is home, This Mac (This PC elsewhere) is a laptop circle that says what it is, and a click opens it through main by its profile id", async () => {
   const mac = place("profile:default", "This computer", { kind: "computer", profile: "default" });
   rail = { places: [mac, ...PLACES], add: { cloud: true, link: true, address: false } };
-  Object.assign(window, { ogb: { workspaces, cloudAdd, platform: "darwin" } });
+  Object.assign(window, { odb: { workspaces, cloudAdd, platform: "darwin" } });
   await mount(createElement(PlacesRail));
   const tile = host.querySelector('[data-rail-place="profile:default"]');
   expect(tile?.getAttribute("aria-label")).toBe("This Mac: a separate place on this computer, with its own bots. The bots on My Cloud stay there.");
   expect(tile?.getAttribute("data-rail-kind")).toBe("computer");
   await click(tile);
   expect(workspaces.open.mock.calls).toEqual([["profile:default"]]);
-  Object.assign(window, { ogb: { workspaces, cloudAdd, platform: "win32" } });
+  Object.assign(window, { odb: { workspaces, cloudAdd, platform: "win32" } });
   expect(placeLabel(mac)).toBe("This PC: a separate place on this computer, with its own bots. The bots on My Cloud stay there.");
   expect(matchingPlaces([mac, ...PLACES], "pc").map((entry) => entry.id)).toEqual(["profile:default"]);
   expect(placeLabel(place("local", "This computer", { kind: "computer" })), "before the move it is This computer, as ever").toBe("This computer");
@@ -709,7 +709,7 @@ it("a small cloud sits at the corner of every Cloud's tile, its own, a team's an
   const work = place("profile:work", "Work", { kind: "computer", profile: "work", named: true, color: "teal", paint: { swatch: "green" } });
   rail = { places: [mac, work, PLACES[0]!, PLACES[2]!, PLACES[3]!, place("vps2", "Mini", { kind: "cloud", server: true }), place("acct:b", "b@example.test", { kind: "account" }),
     place("other", "Their Cloud", { group: "b", email: "b@example.test" })], add: { cloud: true, link: true, address: false } };
-  Object.assign(window, { ogb: { workspaces, cloudAdd, platform: "darwin" } });
+  Object.assign(window, { odb: { workspaces, cloudAdd, platform: "darwin" } });
   await mount(createElement(PlacesRail));
   const badged = [...host.querySelectorAll("[data-rail-place]")].filter((tile) => tile.querySelector("[data-rail-cloud]")).map((tile) => tile.getAttribute("data-rail-place"));
   expect(badged.sort()).toEqual(["acme", "home", "other", "pending:c-b"].sort());
@@ -740,7 +740,7 @@ it("＋ offers a new workspace on this computer first, to Cloud owners too: a na
   const create = vi.fn(async (_name: string, _color: unknown) => ({ outcome: "made" as const, id: "personal" }) as { outcome: "made"; id: string } | { outcome: "name" | "taken" | "failed" });
   const mac = place("profile:default", "This computer", { kind: "computer", profile: "default", paint: { swatch: null } });
   rail = { places: [mac, place("profile:work", "Work", { kind: "computer", profile: "work", named: true, paint: { swatch: "blue" } }), ...PLACES], add: { cloud: true, link: true, address: false, local: true } };
-  Object.assign(window, { ogb: { workspaces: { ...workspaces, local: { create, edit: vi.fn(), remove: vi.fn() } }, cloudAdd, platform: "darwin" } });
+  Object.assign(window, { odb: { workspaces: { ...workspaces, local: { create, edit: vi.fn(), remove: vi.fn() } }, cloudAdd, platform: "darwin" } });
   await mount(createElement(PlacesRail));
   expect(host.querySelector("[data-rail-add]")?.getAttribute("aria-label")).toBe("Add a place for your bots");
   await click(host.querySelector("[data-rail-add]"));
@@ -783,7 +783,7 @@ it("＋ offers a new workspace on this computer first, to Cloud owners too: a na
 it("with only the new workspace to add, ＋ goes straight to its name, and Close leaves nothing behind", async () => {
   const create = vi.fn();
   rail = { places: [place("local", "This computer", { kind: "computer", active: true }), place("vps", "Office", { kind: "server" })], add: { cloud: false, link: false, address: false, local: true } };
-  Object.assign(window, { ogb: { workspaces: { ...workspaces, local: { create, edit: vi.fn(), remove: vi.fn() } }, cloudAdd } });
+  Object.assign(window, { odb: { workspaces: { ...workspaces, local: { create, edit: vi.fn(), remove: vi.fn() } }, cloudAdd } });
   await mount(createElement(PlacesRail));
   await click(host.querySelector("[data-rail-add]"));
   const form = document.querySelector('[data-place-add="local"]')!;
@@ -799,7 +799,7 @@ it("a workspace's menu: Rename (Enter saves, Escape leaves it), its colour, and 
   const remove = vi.fn(async (_id: string) => ({ outcome: "removed" as const }) as { outcome: "removed" | "gone" | "failed" });
   rail = { places: [place("profile:default", "This computer", { kind: "computer", profile: "default", paint: { swatch: null } }),
     place("profile:work", "Work", { kind: "computer", profile: "work", named: true, active: true, paint: { swatch: "green" } }), ...PLACES], add: { cloud: true, link: true, address: false, local: true } };
-  Object.assign(window, { ogb: { workspaces: { ...workspaces, local: { create: vi.fn(), edit, remove } }, cloudAdd, platform: "darwin", rail: { expand: vi.fn(async () => {}), onSkin: () => () => {} } } });
+  Object.assign(window, { odb: { workspaces: { ...workspaces, local: { create: vi.fn(), edit, remove } }, cloudAdd, platform: "darwin", rail: { expand: vi.fn(async () => {}), onSkin: () => () => {} } } });
   await mount(createElement(PlacesRail, { chrome: true }));
   const settle = () => act(async () => { for (let i = 0; i < 6; i++) await Promise.resolve(); });
   const menuOf = async (id: string) => {
@@ -851,7 +851,7 @@ it("a workspace's menu: Rename (Enter saves, Escape leaves it), its colour, and 
   await settle();
   expect(remove.mock.calls).toEqual([["profile:work"], ["profile:work"]]);
   expect(host.querySelector("[data-rail-menu]"), "removed: the menu closes, and the tile goes with main's next list").toBeNull();
-  Object.assign(window, { ogb: { ...window.ogb, platform: "win32" } });
+  Object.assign(window, { odb: { ...window.odb, platform: "win32" } });
   menu = await menuOf("profile:work");
   await click(menu.querySelector("[data-rail-remove-ask]"));
   expect(menu.querySelector("[role='alertdialog'] p")?.textContent).toContain("Recycle Bin");

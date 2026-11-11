@@ -44,7 +44,7 @@ beforeEach(() => {
   state = { ...initialState, bots: [structuredClone(bot)], selectedId: "another-bot" };
   menu = { botId: bot.id, x: 50, y: 50 }; onClose.mockReset();
 });
-afterEach(() => { flushSync(() => root.unmount()); container.remove(); vi.unstubAllGlobals(); delete window.ogb; setLocale("en"); });
+afterEach(() => { flushSync(() => root.unmount()); container.remove(); vi.unstubAllGlobals(); delete window.odb; setLocale("en"); });
 
 describe("bot menu bulk reads", () => {
   it("remains available with the full thread tree hidden, including Portuguese copy", () => {
@@ -103,7 +103,7 @@ describe("bot menu bulk reads", () => {
   });
 
   it("does not expose bulk sibling reads to thread-pinned remote clients", () => {
-    window.ogb = { remoteClient: { active: true } } as typeof window.ogb;
+    window.odb = { remoteClient: { active: true } } as typeof window.odb;
     draw(); expect(button()).toBeUndefined();
   });
 

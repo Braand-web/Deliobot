@@ -10,7 +10,7 @@ const INCLUDED = "box_odb_included-relay-token";
 const OWN = "boat_own-key";
 const botId = "auto-sleep-test";
 const boxId = "bx_23456789";
-const machineName = `ogb-${botId.slice(0, 8).toLowerCase().replace(/[^a-z0-9]/g, "")}-${createHash("sha256").update(botId).digest("hex").slice(0, 6)}`;
+const machineName = `odb-${botId.slice(0, 8).toLowerCase().replace(/[^a-z0-9]/g, "")}-${createHash("sha256").update(botId).digest("hex").slice(0, 6)}`;
 
 let api: Server;
 let base = "";

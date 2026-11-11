@@ -46,10 +46,10 @@ beforeEach(() => {
     answerDeletes: vi.fn().mockResolvedValue(base), locate: vi.fn().mockResolvedValue(base), setOutputs: vi.fn().mockResolvedValue(base),
     open: vi.fn().mockResolvedValue(undefined), moreSpace: vi.fn().mockResolvedValue(undefined),
   };
-  window.ogb = { cloudAccount: { files: bridge } } as unknown as typeof window.ogb;
+  window.odb = { cloudAccount: { files: bridge } } as unknown as typeof window.odb;
   host = document.createElement("div"); document.body.append(host); root = createRoot(host);
 });
-afterEach(() => { act(() => root.unmount()); host.remove(); document.body.replaceChildren(); delete window.ogb; });
+afterEach(() => { act(() => root.unmount()); host.remove(); document.body.replaceChildren(); delete window.odb; });
 
 describe("Shared with the Cloud", () => {
   it("says what sharing does, shows nothing shared yet, and always offers Add a folder", async () => {
@@ -262,7 +262,7 @@ describe("My Cloud's state", () => {
     expect(button("Add a folder")).toBeUndefined();
     await click("Open Delio Cloud settings");
     expect(dispatch).toHaveBeenCalledWith({ type: "toggleAppSettings", open: true, section: "cloudAccount" });
-    delete window.ogb;
+    delete window.odb;
     await mount();
     expect(page()).toContain("Files works with Delio Cloud.");
   });

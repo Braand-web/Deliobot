@@ -154,7 +154,7 @@ if (process.versions.electron && process.argv.includes(fixtureFlag)) {
     const hostedConnect = button("Connect");
     const addressLabel = "Server address or pairing link";
     await until(() => evaluate(`Boolean(${hostedConnect}) && document.body.textContent.includes('My cloud team')`), "hosted workspace settings rendered");
-    await evaluate("void window.ogb.environments.onOpenSettings(() => { document.body.dataset.settingsRequested = 'yes'; })");
+    await evaluate("void window.odb.environments.onOpenSettings(() => { document.body.dataset.settingsRequested = 'yes'; })");
     await evaluate("document.querySelector('[aria-label=\"Switch server: This computer\"]').click()");
     await until(() => evaluate("document.body.dataset.settingsRequested === 'yes'"), "native connect item requested Settings");
     assert.equal(saved.activeId, "local", "opening connection settings did not select a server");
@@ -260,7 +260,7 @@ if (process.versions.electron && process.argv.includes(fixtureFlag)) {
     await until(() => evaluate("document.body.textContent.includes('Connect to a server') && document.querySelector('input[aria-label=\"Search settings\"]').value === ''"), "native connection request clears Settings search");
 
     const remote = await open(false);
-    assert.deepEqual(await remote.webContents.executeJavaScript("({ server: typeof window.ogb?.environments, companion: typeof window.ogb?.remoteClient, sharing: typeof window.ogb?.computerSharing, node: typeof window.require, workspaceMethods: Object.keys(window.ogb?.workspaces ?? {}) })"),
+    assert.deepEqual(await remote.webContents.executeJavaScript("({ server: typeof window.odb?.environments, companion: typeof window.odb?.remoteClient, sharing: typeof window.odb?.computerSharing, node: typeof window.require, workspaceMethods: Object.keys(window.odb?.workspaces ?? {}) })"),
       { server: "undefined", companion: "undefined", sharing: "undefined", node: "undefined", workspaceMethods: ["state", "menu"] });
     assert.deepEqual(blockedRequests, [], "unexpected external request attempted");
     // Exercise Chromium's actual HttpOnly cookie jar and main-process fetch.

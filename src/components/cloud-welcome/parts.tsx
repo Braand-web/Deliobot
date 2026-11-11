@@ -37,7 +37,7 @@ export function Footer({ children, className }: { children: ReactNode; className
 /** The name this app keeps for the server open in the window; My Cloud wherever the app has none. */
 export function useCloudName(): string {
   const team = useStore().state.config?.team?.name?.trim();
-  const bridge = window.ogb?.workspaces;
+  const bridge = window.odb?.workspaces;
   const [name, setName] = useState<string | null>(null);
   useEffect(() => {
     let alive = true;

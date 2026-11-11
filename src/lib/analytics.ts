@@ -9,7 +9,7 @@ const TOKEN = "phc_m2hP39w8y2gLPvHgDvSXAu6xcZ3agjf4ruL56rGcMZEe";
 // Read before init(): an opted-out install must never call posthog.init(), so no request leaves the machine.
 const OPT_OUT_KEY = "odb-analytics-opt-out";
 // The desktop app's own page is served on whichever of its ports was free, and each port has its own storage.
-const desktopSwitch = () => globalThis.window?.ogb?.desktopAnalytics;
+const desktopSwitch = () => globalThis.window?.odb?.desktopAnalytics;
 
 let client: PostHog | undefined;
 let loading: Promise<void> | undefined;
@@ -188,7 +188,7 @@ export function withoutLocation(event: CaptureResult | null): CaptureResult | nu
 }
 
 export function analyticsSurface(): "local" | "server" {
-  return globalThis.window?.ogb?.environments ? "local" : "server";
+  return globalThis.window?.odb?.environments ? "local" : "server";
 }
 
 function whenReady(call: (ph: PostHog) => void) {

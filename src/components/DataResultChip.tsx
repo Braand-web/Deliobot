@@ -12,7 +12,7 @@ export function DataResultChip({ message }: { message: Message }) {
   if (!result) return null;
   const chart = result.kind === "chart";
   const Icon = chart ? ChartNoAxesCombined : Table2;
-  const companion = window.ogb?.remoteClient?.active === true;
+  const companion = window.odb?.remoteClient?.active === true;
   const available = !companion && state.bots.some((bot) => bot.id === result.botId);
   return (
     <div data-data-result={result.cardId} className="w-full max-w-[min(var(--chat-prose-max),var(--chat-card-pct))] overflow-hidden rounded-xl border border-hairline/40 bg-panel text-sm">

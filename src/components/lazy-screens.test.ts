@@ -200,7 +200,7 @@ describe("preloadScreens", () => {
     preloadScreens("cloud.example");
     for (const preload of preloads) expect(preload).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(60_000);
-    const rarelyOpened = [screens.CloudAddDialog, screens.GrokMoveDialog, screens.PhoneAppDialog, screens.ShareTeamDialog, screens.TeamLibraryPanel];
+    const rarelyOpened = [screens.CloudAddDialog, screens.PhoneAppDialog, screens.ShareTeamDialog, screens.TeamLibraryPanel];
     const stubbed = Object.values(screens).filter((value): value is ReturnType<typeof lazyScreen> => typeof value === "function" && "preload" in value);
     for (const screen of stubbed) expect(screen.preload).toHaveBeenCalledTimes(rarelyOpened.includes(screen as never) ? 0 : 1);
     expect(preloads.length).toBe(stubbed.length);

@@ -44,11 +44,11 @@ describe("where Connect your phone pairs", () => {
   });
 
   it("reads the window's bridges", () => {
-    vi.stubGlobal("window", { ogb: { companion: {} } });
+    vi.stubGlobal("window", { odb: { companion: {} } });
     expect(currentPhonePairingTarget(false)).toBe("computer");
-    vi.stubGlobal("window", { ogb: { companion: {}, remoteClient: { active: true } } });
+    vi.stubGlobal("window", { odb: { companion: {}, remoteClient: { active: true } } });
     expect(currentPhonePairingTarget(false)).toBe("server");
-    vi.stubGlobal("window", { ogb: { cloudPlan: {} } });
+    vi.stubGlobal("window", { odb: { cloudPlan: {} } });
     expect(currentPhonePairingTarget(true)).toBe("cloud");
     vi.stubGlobal("window", {});
     expect(currentPhonePairingTarget(false)).toBe("server");

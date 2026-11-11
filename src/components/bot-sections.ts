@@ -23,7 +23,7 @@ export function departmentNames(state: Pick<AppState, "sections" | "bots" | "gro
  * workspace, so it asks for the move in one request. */
 export function moveBotsToSection(dispatch: Dispatch<Action>, botIds: string[], section: string): void {
   if (!botIds.length) return;
-  if (typeof window === "undefined" || window.ogb?.remoteClient?.active !== true) {
+  if (typeof window === "undefined" || window.odb?.remoteClient?.active !== true) {
     for (const botId of botIds) dispatch({ type: "updateBot", botId, patch: { section } });
     return;
   }

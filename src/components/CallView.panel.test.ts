@@ -38,7 +38,7 @@ const composerStarts = vi.fn();
 
 beforeEach(() => {
   setCallMode("turns");
-  window.ogb = { speechStart: vi.fn(), speechStop: vi.fn(async () => {}) } as unknown as NonNullable<Window["ogb"]>;
+  window.odb = { speechStart: vi.fn(), speechStop: vi.fn(async () => {}) } as unknown as NonNullable<Window["odb"]>;
   host = document.createElement("div");
   document.body.append(host);
   root = createRoot(host);
@@ -49,7 +49,7 @@ afterEach(() => {
   endCall();
   composerStarts.mockReset();
   track.mockReset();
-  delete window.ogb;
+  delete window.odb;
 });
 
 const panelButton = () => host.querySelector<HTMLButtonElement>('[data-call-button="panel"]')!;

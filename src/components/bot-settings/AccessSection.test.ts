@@ -29,14 +29,14 @@ vi.mock("@/lib/mcp-servers", async (importOriginal) => ({
   useMcpServers: () => ({ servers: fixture.servers, error: fixture.mcpError, refresh: vi.fn() }),
 }));
 
-// DesktopCapabilities reads window.ogb at module scope, and this suite runs in the node environment.
+// DesktopCapabilities reads window.odb at module scope, and this suite runs in the node environment.
 vi.mock("../DesktopCapabilities", () => ({
   useDesktopCapabilities: () => ({ capabilities: fixture.capabilities }),
 }));
 
 const { AccessSection } = await import("./AccessSection");
 
-// WorkingFolder reads window.ogb?.pickFolder at render time, so window is stubbed per test.
+// WorkingFolder reads window.odb?.pickFolder at render time, so window is stubbed per test.
 beforeEach(() => {
   vi.stubGlobal("window", {});
   fixture.dispatch.mockReset();

@@ -227,8 +227,8 @@ export function VoiceSettings({
     if (!nextKey || !cloudProvider || keyDraft.provider !== cloudProvider.id) return Promise.resolve();
     setSaving(true);
     setError(null);
-    const request = window.ogb?.setCredential
-      ? window.ogb.setCredential(cloudProvider.credential, nextKey)
+    const request = window.odb?.setCredential
+      ? window.odb.setCredential(cloudProvider.credential, nextKey)
       : api("/api/config", {
           method: "PUT",
           body: JSON.stringify({ tts: { [cloudProvider.configField]: nextKey } }),

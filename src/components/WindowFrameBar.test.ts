@@ -3,7 +3,7 @@ import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { UpdaterState } from "@/types/ogb";
+import type { UpdaterState } from "@/types/odb";
 
 type Place = { local: boolean; name: string; origin?: string; color?: string; home?: boolean; role?: string; localPath?: string };
 const fixture = vi.hoisted(() => ({
@@ -51,9 +51,9 @@ beforeEach(() => {
   fixture.notifications = [];
   fixture.notificationsOpen = false;
   place = { local: false, name: "My Cloud", origin: "https://cloud.example", color: "blue" };
-  Object.assign(window, { ogb: { workspaces: { state: async () => place, onChanged: () => () => {}, menu: async () => {} } } });
+  Object.assign(window, { odb: { workspaces: { state: async () => place, onChanged: () => () => {}, menu: async () => {} } } });
 });
-afterEach(async () => { await act(async () => root?.unmount()); root = null; host.remove(); delete (window as { ogb?: unknown }).ogb; });
+afterEach(async () => { await act(async () => root?.unmount()); root = null; host.remove(); delete (window as { odb?: unknown }).odb; });
 
 async function mount(element: ReturnType<typeof createElement>) {
   root = createRoot(host);
@@ -110,7 +110,7 @@ describe("the window frame's top bar", () => {
   });
 
   it("names nothing where main says nothing (a browser, a remote client, an older app)", async () => {
-    delete (window as { ogb?: unknown }).ogb;
+    delete (window as { odb?: unknown }).odb;
     await mount(createElement(WindowFrameBar));
     expect(middle()).toBeNull();
     expect(bar()!.children).toHaveLength(3);

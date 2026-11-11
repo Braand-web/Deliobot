@@ -23,7 +23,7 @@ vi.mock("react", async original => ({ ...await original<typeof import("react")>(
 vi.mock("@/state/store", () => ({ api: vi.fn() }));
 import { CompanyBackupSettings, ConnectedCompanyBackupSettings, SavedCompanyBackupSchedule } from "./CompanyBackupSettings";
 
-type BackupBridge = NonNullable<NonNullable<Window["ogb"]>["companyBackups"]>;
+type BackupBridge = NonNullable<NonNullable<Window["odb"]>["companyBackups"]>;
 type Node = ReactElement<{
   children?: ReactNode; type?: string; disabled?: boolean; value?: string; role?: string;
   "aria-label"?: string; onChange?: (event: unknown) => void;
@@ -108,7 +108,7 @@ beforeEach(() => {
     state: vi.fn().mockResolvedValue(connected), begin: vi.fn(), cancelEnrollment: vi.fn(), refresh: vi.fn(), disconnect: vi.fn(),
     onState: vi.fn(callback => { pushOrganization = callback; return unsubscribeOrganization; }),
   };
-  vi.stubGlobal("window", { ogb: { organization, companyBackups: bridge }, location: { reload: vi.fn() } });
+  vi.stubGlobal("window", { odb: { organization, companyBackups: bridge }, location: { reload: vi.fn() } });
   vi.stubGlobal("localStorage", {
     getItem: (key: string) => storage.get(key) ?? null,
     setItem: vi.fn((key: string, value: string) => storage.set(key, value)),
@@ -132,9 +132,9 @@ async function validateRestore() {
 describe("optional Company cloud backup settings", () => {
   it.each(["browser", "remote", "missing organization", "missing backups"])("is absent on a %s surface without requesting cloud data", surface => {
     if (surface === "browser") vi.stubGlobal("window", {});
-    if (surface === "remote") vi.stubGlobal("window", { ogb: { organization, companyBackups: bridge, remoteClient: { active: true } } });
-    if (surface === "missing organization") vi.stubGlobal("window", { ogb: { companyBackups: bridge } });
-    if (surface === "missing backups") vi.stubGlobal("window", { ogb: { organization } });
+    if (surface === "remote") vi.stubGlobal("window", { odb: { organization, companyBackups: bridge, remoteClient: { active: true } } });
+    if (surface === "missing organization") vi.stubGlobal("window", { odb: { companyBackups: bridge } });
+    if (surface === "missing backups") vi.stubGlobal("window", { odb: { organization } });
     expect(render(true).html).toBe(""); effects();
     if (surface !== "missing backups") expect(organization.state).not.toHaveBeenCalled();
     expect(bridge.state).not.toHaveBeenCalled(); expect(bridge.list).not.toHaveBeenCalled();

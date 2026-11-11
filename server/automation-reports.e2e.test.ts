@@ -83,7 +83,7 @@ async function brokerOf(s: Awaited<ReturnType<typeof server>>, threadId: string)
   await expect.poll(() => {
     try { return JSON.parse(readFileSync(dump, "utf8")).mcpConfig?.mcpServers?.agents?.env?.ODB_THREAD_ID === threadId; } catch { return false; }
   }, { timeout: 20_000 }).toBe(true);
-  const socketPath = JSON.parse(readFileSync(dump, "utf8")).mcpConfig.mcpServers.ogb.args.at(-1);
+  const socketPath = JSON.parse(readFileSync(dump, "utf8")).mcpConfig.mcpServers.odb.args.at(-1);
   const socket = broker = connect(socketPath);
   socket.on("error", () => {});
   await new Promise<void>((resolve, reject) => { socket.once("connect", resolve); socket.once("error", reject); });

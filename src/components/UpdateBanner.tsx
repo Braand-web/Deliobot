@@ -49,13 +49,13 @@ export function UpdateBanner({ sidebarIndicator = false }: UpdateBannerProps) {
   useEffect(() => setPending(null), [status]);
 
   if (s?.updated && ["idle", "checking", "downloading", "preparing"].includes(s.status)) {
-    return <UpdatedLine version={s.updated} onSeen={() => void window.ogb?.updater?.seen?.().catch(() => {})} />;
+    return <UpdatedLine version={s.updated} onSeen={() => void window.odb?.updater?.seen?.().catch(() => {})} />;
   }
   if (!s || s.status === "idle" || s.status === "checking" || s.status === "downloading" || s.status === "preparing") return null;
   if (sidebarIndicator && (s.status === "downloaded" || s.status === "installing")) return null;
   const key = `${s.status}:${s.version ?? ""}`;
   if (dismissed === key) return null;
-  const updater = window.ogb!.updater!;
+  const updater = window.odb!.updater!;
 
   const installing = s.status === "installing";
   // Ubuntu system packages can't be swapped under a running app: the command is copied and a terminal opens.

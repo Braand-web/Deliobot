@@ -64,7 +64,7 @@ describe("the plan main reports to this page", () => {
     vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
     listeners = {}; unsubscribe = vi.fn();
     bridge = { state: vi.fn(async (): Promise<CloudPlanSnapshot> => ({ status: "paid", tier: "pro" })) };
-    vi.stubGlobal("window", { ogb: { cloudAccount: { onState: (cb: () => void) => { listeners.account = cb; return unsubscribe; } } },
+    vi.stubGlobal("window", { odb: { cloudAccount: { onState: (cb: () => void) => { listeners.account = cb; return unsubscribe; } } },
       addEventListener: (name: string, cb: () => void) => { listeners[name] = cb; }, removeEventListener: (name: string) => { delete listeners[name]; } });
   });
   const run = () => { f.index = 0; f.effects = []; return useCloudPlanSnapshot(bridge as CloudPlanBridge); };

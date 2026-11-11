@@ -15,7 +15,7 @@ beforeEach(() => {
   vi.useFakeTimers();
   requests = [];
   tab = { closed: false, opener: window, location: { replace: vi.fn() }, close: () => { tab.closed = true; } };
-  vi.stubGlobal("ogb", undefined);
+  vi.stubGlobal("odb", undefined);
   vi.spyOn(window, "open").mockImplementation(() => tab as unknown as Window);
 });
 afterEach(() => {

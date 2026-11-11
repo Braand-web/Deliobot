@@ -23,11 +23,11 @@ beforeEach(() => {
   fixture.platform = "darwin";
   saved = { on: true, restart: false };
   set.mockClear(); relaunch.mockClear();
-  Object.assign(window, { ogb: { windowFrame: { state: async () => saved, set }, relaunch } });
+  Object.assign(window, { odb: { windowFrame: { state: async () => saved, set }, relaunch } });
   host = document.createElement("div");
   document.body.append(host);
 });
-afterEach(async () => { await act(async () => root?.unmount()); root = null; host.remove(); delete (window as { ogb?: unknown }).ogb; });
+afterEach(async () => { await act(async () => root?.unmount()); root = null; host.remove(); delete (window as { odb?: unknown }).odb; });
 
 async function mount() {
   root = createRoot(host);
@@ -58,7 +58,7 @@ describe("Settings' switch for the window's frame", () => {
     await act(async () => { note()!.querySelector("button")!.click(); });
     expect(relaunch).toHaveBeenCalledOnce();
     await act(async () => root!.unmount());
-    Object.assign(window, { ogb: { windowFrame: { state: async () => saved, set } } });
+    Object.assign(window, { odb: { windowFrame: { state: async () => saved, set } } });
     await mount();
     expect(note()?.textContent, "a server's page can't restart the app: the note alone").toContain("Takes effect when");
     expect(note()?.querySelector("button")).toBeNull();
@@ -70,7 +70,7 @@ describe("Settings' switch for the window's frame", () => {
     expect(toggle()).toBeNull();
     await act(async () => root!.unmount());
     fixture.platform = "darwin";
-    delete (window as { ogb?: unknown }).ogb;
+    delete (window as { odb?: unknown }).odb;
     await mount();
     expect(toggle()).toBeNull();
   });

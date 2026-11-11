@@ -34,7 +34,7 @@ vi.mock("@/state/store", async (original) => {
   const actual = await original<typeof import("@/state/store")>();
   return { ...actual, useStore: () => ({ state: { ...actual.initialState, bots: avatarBots, groups: [avatarGroup] }, dispatch: vi.fn() }) };
 });
-// Replaced whole rather than spread over: its context default reads window.ogb at import time, and there is no DOM.
+// Replaced whole rather than spread over: its context default reads window.odb at import time, and there is no DOM.
 vi.mock("./DesktopCapabilities", () => ({
   useDesktopCapabilities: () => ({ capabilities: { dictation: { available: false } } }),
   useCaptionChrome: () => ({}),
@@ -45,7 +45,7 @@ import { RunRow } from "./UsageSection";
 import { TeamMapPage } from "./TeamMapPage";
 import { BotInstructionsDialog } from "./BotInstructionsDialog";
 const render = (component: Parameters<typeof renderToStaticMarkup>[0]) => {
-  vi.stubGlobal("window", { ogb: undefined });
+  vi.stubGlobal("window", { odb: undefined });
   vi.stubGlobal("document", { body: {} });
   return renderToStaticMarkup(component);
 };

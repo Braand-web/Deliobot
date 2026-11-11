@@ -175,7 +175,7 @@ describe("Show in folder for a file outside the workspace", () => {
   const render = (filePath: string) => renderToStaticMarkup(createElement(OutsideWorkspaceFile, { filePath }));
 
   it("offers the reveal only for an absolute local path, and only in the local desktop app", () => {
-    vi.stubGlobal("window", { ogb: { revealInFolder: vi.fn(), remoteClient: { active: false } } });
+    vi.stubGlobal("window", { odb: { revealInFolder: vi.fn(), remoteClient: { active: false } } });
     try {
       expect(render("/Users/delio/_draft/ollama-gen.js")).toContain("Show in folder");
       expect(render("C:\\Users\\Delio\\_draft\\ollama-gen.js")).toContain("Show in folder");
@@ -189,7 +189,7 @@ describe("Show in folder for a file outside the workspace", () => {
   });
 
   it("gives a remote client the path, since the file is not on its computer", () => {
-    vi.stubGlobal("window", { ogb: { revealInFolder: vi.fn(), remoteClient: { active: true } } });
+    vi.stubGlobal("window", { odb: { revealInFolder: vi.fn(), remoteClient: { active: true } } });
     try {
       expect(render("/Users/delio/_draft/ollama-gen.js")).toContain(">/Users/delio/_draft/ollama-gen.js</code>");
     } finally {
@@ -251,7 +251,7 @@ describe("a folder linked in a message", () => {
 
   it("opens in the file manager once the route authorized it, with no listing", async () => {
     const openFolder = vi.fn(async () => "opened");
-    vi.stubGlobal("ogb", { openFolder, remoteClient: { active: false } });
+    vi.stubGlobal("odb", { openFolder, remoteClient: { active: false } });
     try {
       expect(await clickLink(authorized)).toEqual({ state: "idle", folder: null });
       expect(openFolder).toHaveBeenCalledWith(folderPath);
@@ -262,7 +262,7 @@ describe("a folder linked in a message", () => {
 
   it("shows the listing when the desktop would not open it", async () => {
     const openFolder = vi.fn(async () => "not-folder");
-    vi.stubGlobal("ogb", { openFolder, remoteClient: { active: false } });
+    vi.stubGlobal("odb", { openFolder, remoteClient: { active: false } });
     try {
       expect(await clickLink(authorized)).toEqual({ state: "idle", folder: listing });
     } finally {
@@ -271,7 +271,7 @@ describe("a folder linked in a message", () => {
   });
 
   it("shows the listing where there is no desktop bridge", async () => {
-    vi.stubGlobal("ogb", undefined);
+    vi.stubGlobal("odb", undefined);
     try {
       expect(await clickLink(authorized)).toEqual({ state: "idle", folder: listing });
     } finally {
@@ -281,7 +281,7 @@ describe("a folder linked in a message", () => {
 
   it("never reaches the desktop when the route refuses the link", async () => {
     const openFolder = vi.fn(async () => "opened");
-    vi.stubGlobal("ogb", { openFolder, remoteClient: { active: false } });
+    vi.stubGlobal("odb", { openFolder, remoteClient: { active: false } });
     try {
       expect(await clickLink(refused)).toEqual({ state: "failed", folder: null });
       expect(openFolder).not.toHaveBeenCalled();

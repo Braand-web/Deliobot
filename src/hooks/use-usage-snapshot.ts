@@ -8,17 +8,17 @@ import { api, useStore, type ConfigStatus } from "@/state/store";
 type CompanionDevices = { state(): Promise<{ devices?: unknown }> };
 
 function browserSources(config: ConfigStatus | null): UsageSources {
-  const ogb = window.ogb;
-  const remoteClient = ogb?.remoteClient?.active === true;
+  const odb = window.odb;
+  const remoteClient = odb?.remoteClient?.active === true;
   const local = !remoteClient && localDesktopPage();
-  const companion = (globalThis as { ogb?: { companion?: CompanionDevices } }).ogb?.companion ?? null;
+  const companion = (globalThis as { odb?: { companion?: CompanionDevices } }).odb?.companion ?? null;
   return {
     // Background reads: the daily snapshot is nobody using a Cloud home (src/state/api.ts).
     request: (path) => api(path, { background: true }),
     connectedApps: () => preloadConnectedApps(false, true),
     companion: local ? companion : null,
-    cloudAccount: local ? ogb?.cloudAccount ?? null : null,
-    cloudPlan: !remoteClient && !local && config?.cloudHome === true ? ogb?.cloudPlan ?? null : null,
+    cloudAccount: local ? odb?.cloudAccount ?? null : null,
+    cloudPlan: !remoteClient && !local && config?.cloudHome === true ? odb?.cloudPlan ?? null : null,
     platform: navigator.userAgent.includes("Electron") ? "desktop" : "browser",
     remoteClient,
   };
@@ -32,7 +32,7 @@ export function useUsageSnapshot(): void {
   useEffect(() => {
     latest.current = state;
   });
-  const ready = owner === true && snapshotReady(state, window.ogb?.remoteClient?.active !== true);
+  const ready = owner === true && snapshotReady(state, window.odb?.remoteClient?.active !== true);
   useEffect(() => {
     if (!ready) return;
     const check = () => void sendDailySnapshot(latest.current, browserSources(latest.current.config));

@@ -19,7 +19,7 @@ const COPY: Record<SpotlightId, { key: "onboarding.spot.composer" | "onboarding.
 export function FirstConversationTour({ quiet = false }: { quiet?: boolean }) {
   const { state, dispatch } = useStore();
   const advanced = useAdvancedMode();
-  const remoteClient = window.ogb?.remoteClient?.active === true;
+  const remoteClient = window.odb?.remoteClient?.active === true;
   const record = state.config?.onboarding;
   const [dismissed, setDismissed] = useState<string[]>([]);
   const seen = useMemo(() => [...(record?.hintsSeen ?? []), ...dismissed, "spot.composer", "spot.model"], [record?.hintsSeen, dismissed]);

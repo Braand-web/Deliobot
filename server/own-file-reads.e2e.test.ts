@@ -55,7 +55,7 @@ it.skipIf(process.platform === "win32")("answers a bot's plain reads of its own 
     rmSync(dump, { force: true });
     await api("POST", `/api/bots/${bot.id}/messages`, { threadId: bot.threadId, text: "Hold this turn while its reads are asked about." }, 202);
     await expect.poll(() => existsSync(dump), { timeout: 15_000 }).toBe(true);
-    const socket = JSON.parse(readFileSync(dump, "utf8")).mcpConfig.mcpServers.ogb.args.at(-1) as string;
+    const socket = JSON.parse(readFileSync(dump, "utf8")).mcpConfig.mcpServers.odb.args.at(-1) as string;
 
     for (const [tool, input] of [
       ["Bash", { command: `cat ${soul}` }],

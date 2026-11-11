@@ -7,14 +7,14 @@ export type SidebarToolsLayout = "rows" | "toolbar";
 
 export const SIDEBAR_TOOLS_LAYOUTS: readonly SidebarToolsLayout[] = ["rows", "toolbar"];
 
-export const SIDEBAR_DENSITY_KEY = "openopendeliobot.comdebarDensity";
-export const SIDEBAR_TOOLS_LAYOUT_KEY = "openopendeliobot.comdebarToolsLayout";
-export const SIDEBAR_WIDTH_KEY = "openopendeliobot.comdebarWidth";
-export const SIMPLE_SIDEBAR_WIDTH_KEY = "openopendeliobot.comdebarWidth.simple";
-export const SIDEBAR_ATTENTION_PINNED_KEY = "openopendeliobot.comdebarAttentionPinned.v1";
-export const SIDEBAR_COLLAPSED_SECTIONS_KEY = "openopendeliobot.comdebarCollapsedSections.v1";
-export const SIDEBAR_SECTION_ORDER_KEY = "openopendeliobot.comdebarSectionOrder.v1";
-export const SIMPLE_SIDEBAR_SECTION_ORDER_KEY = "openopendeliobot.comdebarSectionOrder.simple.v1";
+export const SIDEBAR_DENSITY_KEY = "opendeliobot.sidebarDensity";
+export const SIDEBAR_TOOLS_LAYOUT_KEY = "opendeliobot.sidebarToolsLayout";
+export const SIDEBAR_WIDTH_KEY = "opendeliobot.sidebarWidth";
+export const SIMPLE_SIDEBAR_WIDTH_KEY = "opendeliobot.sidebarWidth.simple";
+export const SIDEBAR_ATTENTION_PINNED_KEY = "opendeliobot.sidebarAttentionPinned.v1";
+export const SIDEBAR_COLLAPSED_SECTIONS_KEY = "opendeliobot.sidebarCollapsedSections.v1";
+export const SIDEBAR_SECTION_ORDER_KEY = "opendeliobot.sidebarSectionOrder.v1";
+export const SIMPLE_SIDEBAR_SECTION_ORDER_KEY = "opendeliobot.sidebarSectionOrder.simple.v1";
 export const PINNED_CIRCLES_KEY = "opendeliobot.pinnedCircles";
 export const UNIVERSAL_PINS_KEY = "opendeliobot.universalPins";
 export const PINNED_CIRCLE_ORDER_KEY = "opendeliobot.pinnedCircleOrder.v1";

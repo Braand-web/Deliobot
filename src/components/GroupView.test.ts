@@ -6,7 +6,7 @@ import { StoreProvider, type Group, type Message } from "@/state/store";
 
 const mode = vi.hoisted(() => ({ advanced: false }));
 vi.mock("@/lib/interface-mode", () => ({ useAdvancedMode: () => mode.advanced, setAdvancedMode: vi.fn() }));
-// Replaced whole: its context default reads window.ogb at import time.
+// Replaced whole: its context default reads window.odb at import time.
 vi.mock("./DesktopCapabilities", () => ({
   useDesktopCapabilities: () => ({ capabilities: { dictation: { available: false } } }),
   useCaptionChrome: () => ({}),
@@ -73,7 +73,7 @@ describe("room header", () => {
   };
 
   it("wraps into a name line and a control line when the column is narrow in Advanced mode", () => {
-    vi.stubGlobal("window", { ogb: undefined });
+    vi.stubGlobal("window", { odb: undefined });
     mode.advanced = true;
     let markup: string;
     try {

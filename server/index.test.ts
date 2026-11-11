@@ -193,7 +193,7 @@ const managedBoatNameForFixture = (botId: string): string => {
   const environmentScope = createHash("sha256").update(environmentId).digest("hex").slice(0, 12);
   const botPrefix = botId.slice(0, 8).toLowerCase().replace(/[^a-z0-9]/g, "") || "bot";
   const botHash = createHash("sha256").update(botId).digest("hex").slice(0, 6);
-  return `ogb-${environmentScope}-${botPrefix}-${botHash}`;
+  return `odb-${environmentScope}-${botPrefix}-${botHash}`;
 };
 
 const managedVpsNameForFixture = (botId: string): string => {
@@ -1435,9 +1435,9 @@ describe("harness HTTP API", () => {
         .find((candidate: { id: string }) => candidate.id === bot.id)?.busy, { timeout: 5_000 }).toBe(true);
 
       const dump = z.object({
-        mcpConfig: z.object({ mcpServers: z.object({ ogb: z.object({ args: z.array(z.string()) }) }) }),
+        mcpConfig: z.object({ mcpServers: z.object({ odb: z.object({ args: z.array(z.string()) }) }) }),
       }).parse(await readJsonFileWhenReady(isolatedDump));
-      questionSocket = connect(dump.mcpConfig.mcpServers.ogb.args[1]!);
+      questionSocket = connect(dump.mcpConfig.mcpServers.odb.args[1]!);
       questionSocket.on("data", (chunk) => {
         socketBuffer += chunk.toString();
         const newline = socketBuffer.indexOf("\n");
@@ -7893,7 +7893,7 @@ describe("harness HTTP API", () => {
 
   it("a new bot greets its person by first name and is announced in its chosen look, or a fresh one, from the first frame", async () => {
     const before = (await api("GET", "/api/config")).body.profile?.name ?? "";
-    expect((await api("PUT", "/api/config", { profile: { name: "Braand-web" } })).status).toBe(200);
+    expect((await api("PUT", "/api/config", { profile: { name: "Alex Martin" } })).status).toBe(200);
     const stream = await openSse(`${BASE}/api/events`);
     let id = "";
     try {
@@ -7926,7 +7926,7 @@ describe("harness HTTP API", () => {
       ids.push(created.body.bot.id);
       return created.body.bot;
     };
-    expect((await api("PUT", "/api/config", { profile: { name: "Braand-web" }, features: { smartSetupChoices: true } })).status).toBe(200);
+    expect((await api("PUT", "/api/config", { profile: { name: "Alex Martin" }, features: { smartSetupChoices: true } })).status).toBe(200);
     try {
       writeFileSync(setupAnswersFile, `${JSON.stringify(answers)}\n`);
       rmSync(setupAnswersDump, { force: true });
@@ -9120,9 +9120,9 @@ describe("harness HTTP API", () => {
       rmSync(fakeClaudeDump, { force: true });
       expect((await api("POST", `/api/bots/${bot.id}/messages`, { text: "count my notes" })).status).toBe(202);
       const dump = z.object({
-        mcpConfig: z.object({ mcpServers: z.object({ ogb: z.object({ args: z.array(z.string()) }) }) }),
+        mcpConfig: z.object({ mcpServers: z.object({ odb: z.object({ args: z.array(z.string()) }) }) }),
       }).parse(await readJsonFileWhenReady(fakeClaudeDump));
-      const socketPath = dump.mcpConfig.mcpServers.ogb.args[1];
+      const socketPath = dump.mcpConfig.mcpServers.odb.args[1];
       const raise = async (
         id: string,
         command: string,

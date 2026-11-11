@@ -56,9 +56,9 @@ function storage() {
 }
 
 const fresh = { onboarding: EMPTY_ONBOARDING };
-const LOCAL_PAGE = { ogb: { platform: "darwin", remoteClient: { active: false }, workspaces: {} } };
+const LOCAL_PAGE = { odb: { platform: "darwin", remoteClient: { active: false }, workspaces: {} } };
 // A hosted workspace the desktop app opened: preload exposes only its remote-safe subset, still truthy.
-const REMOTE_PAGE = { ogb: { platform: "darwin", workspaces: {}, getCapabilities: () => ({}) } };
+const REMOTE_PAGE = { odb: { platform: "darwin", workspaces: {}, getCapabilities: () => ({}) } };
 beforeEach(() => {
   fixture.values = [];
   fixture.index = 0;
@@ -196,7 +196,7 @@ describe("who gets the welcome flow", () => {
 
   it("shows nothing to a remote client member or while a browser's session is unknown", () => {
     expect(gate(null).tree).toBeNull();
-    vi.stubGlobal("window", { ogb: { remoteClient: { active: true } } });
+    vi.stubGlobal("window", { odb: { remoteClient: { active: true } } });
     expect(gate({ hosted: true, canSave: false }).tree).toBeNull();
     expect(gate(LOCAL_VIEWER).tree).toBeNull();
   });

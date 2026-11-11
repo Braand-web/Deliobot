@@ -48,7 +48,7 @@ const PRELOAD = readFileSync(join(process.cwd(), "electron", "preload.cjs"), "ut
 const LOCAL_ORIGIN = "http://127.0.0.1:8799";
 const CLOUD_ORIGIN = "https://odb-t-0123456789ab.fly.dev";
 
-type Bridge = NonNullable<Window["ogb"]>;
+type Bridge = NonNullable<Window["odb"]>;
 type Platform = "darwin" | "win32" | "linux";
 let invoked: Array<{ channel: string; args: unknown[] }>;
 let pageMic: "allowed" | "refused" | undefined;
@@ -82,7 +82,7 @@ async function answer(channel: string, args: unknown[]): Promise<unknown> {
   return undefined;
 }
 function open(app: { bridge: Bridge; desktop: Desktop }) {
-  (window as { ogb?: Bridge }).ogb = app.bridge;
+  (window as { odb?: Bridge }).odb = app.bridge;
   fixture.desktop = app.desktop;
   cacheDesktopCapabilities(app.desktop.capabilities);
 }
@@ -200,7 +200,7 @@ beforeEach(() => {
   setCallMode("turns");
   stored.clear();
   fixture.desktop = null;
-  delete (window as { ogb?: Bridge }).ogb;
+  delete (window as { odb?: Bridge }).odb;
   cacheDesktopCapabilities(initialDesktopCapabilities());
   requests = [];
   invoked = [];
@@ -233,7 +233,7 @@ afterEach(() => {
   endCall();
   setCallMode("turns");
   fixture.desktop = null;
-  delete (window as { ogb?: Bridge }).ogb;
+  delete (window as { odb?: Bridge }).odb;
   vi.unstubAllGlobals();
 });
 

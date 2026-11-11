@@ -45,7 +45,7 @@ const PROBE = `<!DOCTYPE html>
     catch (error) { out[name] = { ok: false, error: String((error && (error.name || error.message)) || error) }; }
   };
   const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));
-  out.preload = typeof window.ogb;
+  out.preload = typeof window.odb;
   out.webkitHandlers = typeof (window.webkit && window.webkit.messageHandlers);
   out.androidAppHost = typeof window.appHost;
   out.helper = typeof (window.delio && window.delio.send);
@@ -240,7 +240,7 @@ async function run() {
   electron.powerSaveBlocker.start("prevent-app-suspension");
   const preload = join(data, "preload.cjs");
   // A stand-in for the app's preload bridge.
-  writeFileSync(preload, `require("electron").contextBridge.exposeInMainWorld("ogb", { openExternal: () => Promise.resolve(true), marker: "preload" });`);
+  writeFileSync(preload, `require("electron").contextBridge.exposeInMainWorld("odb", { openExternal: () => Promise.resolve(true), marker: "preload" });`);
   const win = new BrowserWindow({
     show: false, width: 760, height: 900,
     webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false, preload },
@@ -275,7 +275,7 @@ async function run() {
   const js = (code) => win.webContents.executeJavaScript(code, true);
 
   // The control: the host page has the preload bridge.
-  assert.equal(await js("typeof window.ogb"), "object");
+  assert.equal(await js("typeof window.odb"), "object");
   await js(`window.__mount("probe", ${JSON.stringify(input.probeDoc)})`);
   const attrs = await js(`(() => { const f = document.querySelector("#box-probe iframe"); return { sandbox: f.getAttribute("sandbox"), allow: f.hasAttribute("allow"), srcdoc: f.getAttribute("srcdoc") === ${JSON.stringify(input.probeDoc.srcdoc)} }; })()`);
   assert.deepEqual(attrs, { sandbox: "allow-scripts allow-forms", allow: false, srcdoc: true }, "rule 1: the frame element");

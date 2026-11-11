@@ -174,7 +174,7 @@ export function simpleUpdateTop(entry: Pick<UpdateEntry, "phase" | "source" | "i
 
 export function useUpdateItem(): UpdateEntry | null {
   const state = useUpdaterState();
-  const updater = window.ogb?.updater;
+  const updater = window.odb?.updater;
   const [pending, setPending] = useState(false);
   const [checkedAt, setCheckedAt] = useState(0);
   const status = state?.status ?? "idle";
@@ -278,7 +278,7 @@ function useConnectPhoneEntry(cloudHome: boolean): ConnectPhoneEntry | null {
 }
 
 export function useCloudPhoneDestination(enabled: boolean): { cloud: CloudPhoneDestination; bridge?: CloudAccountBridge } {
-  const bridge = enabled && !window.ogb?.remoteClient?.active ? window.ogb?.cloudAccount : undefined;
+  const bridge = enabled && !window.odb?.remoteClient?.active ? window.odb?.cloudAccount : undefined;
   const [account, setAccount] = useState<CloudAccountState | null>(null);
   useEffect(() => {
     if (!bridge) return;
@@ -559,13 +559,13 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
   const simple = account !== undefined;
   const [menuOpen, setMenuOpen] = useState(false);
   const cloudUsage = cloudUsageSummary(useCloudPlanSnapshot(simple ? usageBridge(state.config?.cloudHome === true) : undefined));
-  const engineUsage = usePlanUsageSummary(simple && menuOpen && cloudUsage === null && window.ogb?.remoteClient?.active !== true);
+  const engineUsage = usePlanUsageSummary(simple && menuOpen && cloudUsage === null && window.odb?.remoteClient?.active !== true);
   const phone = useSidebarPhoneStatus();
   const connectPhone = useConnectPhoneEntry(state.config?.cloudHome === true);
   const cloudPhone = useCloudPhoneDestination(connectPhone?.target === "computer");
   const destinations = phoneDestinations(connectPhone, cloudPhone.cloud);
   const desktopUpdate = useUpdateItem();
-  const serverUpdate = useServerUpdateItem(!window.ogb?.updater);
+  const serverUpdate = useServerUpdateItem(!window.odb?.updater);
   const update = desktopUpdate ?? serverUpdate;
   const [aboutOpen, setAboutOpen] = useState(false);
   const [phoneAppOpen, setPhoneAppOpen] = useState(false);
@@ -583,10 +583,10 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
   const profile = profileForSession(state.config?.profile, session);
   const name = profileLabel(profile);
   const connectTo = (destination: PhoneDestination) => selectPhoneDestination(destination, { bridge: cloudPhone.bridge, dispatch });
-  const remote = window.ogb?.remoteClient?.active === true;
+  const remote = window.odb?.remoteClient?.active === true;
   const besideRail = railShown(usePlaces());
   const filesReady = useCloudFilesReady();
-  const cloudAccount = !remote && Boolean(window.ogb?.cloudAccount || (window.ogb?.cloudPlan && state.config?.cloudHome === true));
+  const cloudAccount = !remote && Boolean(window.odb?.cloudAccount || (window.odb?.cloudPlan && state.config?.cloudHome === true));
   const openCloudAccount = () => dispatch({ type: "toggleAppSettings", open: true, section: "cloudAccount" });
   const move = useAccountMove(state.config?.cloudHome === true, { onOpen: openCloudAccount, onPairPhone: () => dispatch(phonePairingSettingsAction()) });
   const accounts = useAccounts();

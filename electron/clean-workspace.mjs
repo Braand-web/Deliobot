@@ -25,8 +25,6 @@ import nativeText from "./native-text.cjs";
 
 /** This first conversation stays quiet: no corner notices until a reply, no spotlights (src/lib/onboarding.ts MET_CHIEF_HINT). */
 const QUIET_HINT = "met-chief-v1";
-/** The popup that offers to bring bots here (src/lib/notices.ts GROK_MOVE_NOTICE) would read badly beside a line saying they're safe in the Cloud. */
-const NO_MOVE_POPUP = "grok-move-2026-11";
 const CLEAN = "clean-workspace";
 
 export const cleanWorkspaceDir = (dataDir) => `${dataDir}-clean`;
@@ -40,7 +38,7 @@ export const profileDir = (dataDir, id) => path.join(profilesDir(dataDir), id);
 /** A clean workspace's first config: never the new-user setup, which would read as the person's bots being gone. Connecting
  * an AI isn't part of this: the page's line offers it while none works (HomeLine). */
 export function cleanWorkspaceConfig(language = null, now = new Date()) {
-  return { ...(typeof language === "string" && language ? { language } : {}), onboarding: { completedAt: now.toISOString(), version: WELCOME_VERSION, hintsSeen: [QUIET_HINT, NO_MOVE_POPUP] } };
+  return { ...(typeof language === "string" && language ? { language } : {}), onboarding: { completedAt: now.toISOString(), version: WELCOME_VERSION, hintsSeen: [QUIET_HINT] } };
 }
 
 /**

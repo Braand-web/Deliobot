@@ -1930,8 +1930,8 @@ type TrustedApprovalBridge = {
 };
 
 export function desktopApprovalBridge(): TrustedApprovalBridge | undefined {
-  if (typeof window === "undefined" || !window.ogb?.approvals) return undefined;
-  return desktopCapabilitiesNow().host.packaged ? window.ogb.approvals : undefined;
+  if (typeof window === "undefined" || !window.odb?.approvals) return undefined;
+  return desktopCapabilitiesNow().host.packaged ? window.odb.approvals : undefined;
 }
 
 export async function persistTaskApproval(
@@ -2673,7 +2673,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
               memberIds: action.memberIds,
               name: action.name,
               section: action.section,
-              ...(window.ogb?.remoteClient?.active
+              ...(window.odb?.remoteClient?.active
                 ? { setup: { bulletin: "", defaultResponder: { kind: "mentions" } } }
                 : {}),
             }),
@@ -2980,7 +2980,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           return () => rawDispatch({ type: "notificationsHydrated", notifications: Array.isArray(notifications) ? notifications : [] });
         },
       },
-      ...(window.ogb?.remoteClient?.active ? [] : [{
+      ...(window.odb?.remoteClient?.active ? [] : [{
         key: "webhooks",
         request: async () => {
           const { webhooks, attempts, ingress } = snapshotArrays(await api("/api/webhooks"), "webhooks");

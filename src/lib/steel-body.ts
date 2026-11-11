@@ -51,14 +51,15 @@ export const PICTURE_EXPRESSION: Record<CursorState, PictureExpression> = {
   "powering-down": "sleeping",
 };
 
-export interface SteelImage { body: string; px: number; url: string; expression?: PictureExpression }
+export interface SteelImage { body: string; px: number; url: string; expression?: PictureExpression; blink?: true }
 
 export const STEEL_IMAGES: readonly SteelImage[] = Object.entries(files)
   .flatMap(([path, url]) => {
-    const match = /\/([a-z]+)(?:\.([a-z]+))?-(\d+)\.(?:webp|png)$/.exec(path);
+    const match = /\/([a-z]+)(?:\.([a-z]+))?(\.blink)?-(\d+)\.(?:webp|png)$/.exec(path);
     if (!match) return [];
-    const image: SteelImage = { body: match[1]!, px: Number(match[3]), url };
+    const image: SteelImage = { body: match[1]!, px: Number(match[4]), url };
     if (match[2] && match[2] !== "idle") image.expression = match[2] as PictureExpression;
+    if (match[3]) image.blink = true;
     return [image];
   })
   .sort((a, b) => a.px - b.px);
@@ -72,8 +73,38 @@ export function steelBodyImage(
   images: readonly SteelImage[] = STEEL_IMAGES,
   state?: CursorState,
 ): string | null {
+  return pickImage(images.filter((image) => image.body === body && !image.blink), size, density, state);
+}
+
+/** The same face with its eyes shut, for a blink; null when that face has no such pictures. */
+export function steelBodyBlink(
+  body: string,
+  size: number,
+  density: number,
+  images: readonly SteelImage[] = STEEL_IMAGES,
+  state?: CursorState,
+): string | null {
   const wanted = state ? PICTURE_EXPRESSION[state] : "idle";
-  const own = images.filter((image) => image.body === body);
+  const own = images.filter((image) => image.body === body && image.blink && (image.expression ?? "idle") === wanted);
+  return own.length ? pickImage(own, size, density, state) : null;
+}
+
+/** Where the glowing tip of a picture set's antenna sits, in the avatar's own viewBox units. */
+export const PICTURE_GLOW: Readonly<Record<string, { x: number; y: number; r: number }>> = {
+  cursor: { x: 133.08, y: 12.52, r: 23.78 },
+};
+
+/** How the antenna's light breathes: quickly while the bot works, slowly at rest, not at all asleep. */
+export type GlowTempo = "fast" | "slow" | "off";
+
+export function glowTempo(state: CursorState = "idle"): GlowTempo {
+  const face = PICTURE_EXPRESSION[state];
+  if (face === "sleeping") return "off";
+  return face === "working" || face === "thinking" || face === "listening" ? "fast" : "slow";
+}
+
+function pickImage(own: readonly SteelImage[], size: number, density: number, state?: CursorState): string | null {
+  const wanted = state ? PICTURE_EXPRESSION[state] : "idle";
   const expressed = wanted === "idle" ? [] : own.filter((image) => image.expression === wanted);
   const pool = expressed.length ? expressed : own.filter((image) => !image.expression);
   if (!pool.length) return null;

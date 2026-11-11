@@ -93,12 +93,12 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
   const unreadCount =
     state.bots.filter((bot) => !bot.hidden).reduce((sum, bot) => sum + botUnreadCount(bot), 0) +
     state.groups.filter((group) => group.unread).length;
-  const remoteClient = window.ogb?.remoteClient?.active === true;
+  const remoteClient = window.odb?.remoteClient?.active === true;
   const twoSidePanelsFit = useMediaQuery(TWO_SIDE_PANELS_FIT, true);
   const sidebarAndPanelFit = useMediaQuery(SIDEBAR_AND_PANEL_FIT, true);
   const sidebarInline = useMediaQuery(SIDEBAR_INLINE, false);
   useEffect(() => {
-    if (!window.ogb?.environments) return;
+    if (!window.odb?.environments) return;
     const open = (computerId?: string | null) => {
       if (computerId) {
         const target = new URL(window.location.href);
@@ -110,8 +110,8 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
     const url = new URL(window.location.href);
     const requestedSettings = url.searchParams.get("desktop-settings");
     const cloud = ["cloud", "cloud-settings", "cloud-add", "cloud-add-howto"].includes(requestedSettings ?? "");
-    if (requestedSettings === "workspaces" || (requestedSettings === "organization" && window.ogb.organization && !remoteClient) ||
-      (cloud && window.ogb.cloudAccount && !remoteClient)) {
+    if (requestedSettings === "workspaces" || (requestedSettings === "organization" && window.odb.organization && !remoteClient) ||
+      (cloud && window.odb.cloudAccount && !remoteClient)) {
       url.searchParams.delete("desktop-settings");
       window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
       if (requestedSettings === "organization") dispatch({ type: "toggleAppSettings", open: true, section: "organization" });
@@ -120,7 +120,7 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
       else if (requestedSettings === "cloud-add" || requestedSettings === "cloud-add-howto") dispatch({ type: "openCloudAdd", source: requestedSettings === "cloud-add" ? "app_menu" : "app_howto" });
       else open();
     }
-    return window.ogb.environments.onOpenSettings?.(open);
+    return window.odb.environments.onOpenSettings?.(open);
   }, [dispatch]);
   useEffect(() => {
     const rest = takePhonePairingRequest(window.location.href);
@@ -218,7 +218,7 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
 
   useReadShownChatOnFocus();
   useEffect(() => {
-    if (window.ogb?.setUnreadCount) window.ogb.setUnreadCount(unreadCount);
+    if (window.odb?.setUnreadCount) window.odb.setUnreadCount(unreadCount);
     else showBrowserUnread(unreadCount);
   }, [unreadCount]);
 
@@ -287,17 +287,17 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
     state.pluginsOpen;
 
   useEffect(() => {
-    return window.ogb?.onOpenAppSettings?.(section => dispatch((section === "cloud-add" || section === "cloud-add-howto") && window.ogb?.cloudAccount && !remoteClient
+    return window.odb?.onOpenAppSettings?.(section => dispatch((section === "cloud-add" || section === "cloud-add-howto") && window.odb?.cloudAccount && !remoteClient
       ? { type: "openCloudAdd", source: section === "cloud-add" ? "app_menu" : "app_howto" }
-      : section === "cloud" && window.ogb?.cloudAccount && !remoteClient
+      : section === "cloud" && window.odb?.cloudAccount && !remoteClient
         ? CLOUD_LINK_SETTINGS
-        : section === "cloud-settings" && (window.ogb?.cloudAccount || window.ogb?.cloudPlan) && !remoteClient
+        : section === "cloud-settings" && (window.odb?.cloudAccount || window.odb?.cloudPlan) && !remoteClient
           ? { type: "toggleAppSettings", open: true, section: "cloudAccount" }
-          : { type: "toggleAppSettings", open: true, ...(section === "organization" && window.ogb?.organization && !remoteClient ? { section } : {}) }));
+          : { type: "toggleAppSettings", open: true, ...(section === "organization" && window.odb?.organization && !remoteClient ? { section } : {}) }));
   }, [dispatch]);
 
   useEffect(() => {
-    return window.ogb?.desktopViewer?.onState((viewer) => {
+    return window.odb?.desktopViewer?.onState((viewer) => {
       if (viewer.open || !viewer.contextId) return;
       const botId = viewer.contextId;
       void fetch(`/api/bots/${botId}/computer/control`, {
@@ -463,7 +463,7 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
       </div>
       {/* Last child on purpose: Blink resolves -webkit-app-region in DOM order, so no-drag buttons must follow every drag region. */}
       <WindowCaptionButtons
-        visible={capabilities.windowChrome === "win-caption" && Boolean(window.ogb?.windowControls)}
+        visible={capabilities.windowChrome === "win-caption" && Boolean(window.odb?.windowControls)}
       />
     </div>
   );

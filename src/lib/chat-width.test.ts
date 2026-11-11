@@ -27,7 +27,7 @@ describe("chat width", () => {
     expect(readChatWidth()).toBe("standard");
   });
 
-  it("sizes the standard width like Grok Bot: a 960px column and bubbles of min(80%, 560px)", () => {
+  it("sizes the standard width: a 960px column and bubbles of min(80%, 560px)", () => {
     const body = css.match(/:root\s*\{\s*(--chat-bubble-max[^}]*)\}/)?.[1] ?? "";
     expect(body).toMatch(/--chat-bubble-max:\s*35rem/);
     expect(body).toMatch(/--chat-bubble-pct:\s*80%/);

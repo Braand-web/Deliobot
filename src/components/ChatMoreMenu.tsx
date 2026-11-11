@@ -35,7 +35,7 @@ export function useChatMoreItems(profile: Bot, phoneHeader = false): { items: Si
   const showThreads = useShowThreads();
   const findOpen = useChatFindOpen(bot.threadId);
   const [copyStatus, setCopyStatus] = useState<"copied" | "failed" | null>(null);
-  const remoteClient = window.ogb?.remoteClient?.active === true;
+  const remoteClient = window.odb?.remoteClient?.active === true;
   const usage = usageSummary(bot, state.instances);
   const hasMessages = messages.length > 0;
   const contextAction = useContextAction();

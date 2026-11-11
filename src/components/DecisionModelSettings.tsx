@@ -161,8 +161,8 @@ export function DecisionModelSettings() {
     setError(null);
     setVerdict(null);
     try {
-      const status = window.ogb?.setCredential
-        ? await window.ogb.setCredential(openrouter ? "openrouterDeciderKey" : "jevApiKey", draft)
+      const status = window.odb?.setCredential
+        ? await window.odb.setCredential(openrouter ? "openrouterDeciderKey" : "jevApiKey", draft)
         : await api<ConfigStatus>("/api/config", { method: "PUT", body: JSON.stringify({ decider: { [openrouter ? "openrouterKey" : "key"]: draft } }) });
       applied(status);
       setValue("");

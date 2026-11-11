@@ -26,7 +26,7 @@ export function AutomationsCalendar({ botFilter, department = "all", selectedAut
   onOpenRoom: (id: string) => void;
 }) {
   const { state, dispatch } = useStore();
-  const routinesOnly = window.ogb?.remoteClient?.active === true;
+  const routinesOnly = window.odb?.remoteClient?.active === true;
   const [days, setDays] = useState<1 | 7>(() => (window.innerWidth < 640 ? 1 : 7));
   const [anchor, setAnchor] = useState(() => startOfDay(Date.now()));
   const [calls, setCalls] = useState<CalendarCall[]>([]);

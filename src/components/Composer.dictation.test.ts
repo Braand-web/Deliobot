@@ -57,11 +57,11 @@ describe("native dictation in the real composer", () => {
     vi.spyOn(HTMLElement.prototype, "scrollIntoView").mockImplementation(() => {});
     speechStop = vi.fn().mockResolvedValue(undefined);
     speechStart = vi.fn().mockResolvedValue(undefined);
-    window.ogb = {
+    window.odb = {
       speechStart, speechStop,
       onSpeechTranscript: (cb: typeof transcript) => { transcript = cb; return vi.fn(); },
       onSpeechEnd: (cb: typeof end) => { end = cb; return vi.fn(); },
-    } as unknown as typeof window.ogb;
+    } as unknown as typeof window.odb;
     restoreComposerDraft(draftId, { text: "", attachments: [] });
     container = document.createElement("div");
     document.body.append(container);
@@ -76,7 +76,7 @@ describe("native dictation in the real composer", () => {
     container.remove();
     restoreComposerDraft(draftId, { text: "", attachments: [] });
     restoreComposerDraft(`bot:${bot.id}:other-thread`, { text: "", attachments: [] });
-    delete window.ogb;
+    delete window.odb;
     vi.clearAllMocks();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();

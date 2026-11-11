@@ -17,7 +17,7 @@ export interface EngineInstall {
 type Platform = NonNullable<EngineInstall["platform"]>;
 
 function hostPlatform(): Platform {
-  const platform = window.ogb?.platform;
+  const platform = window.odb?.platform;
   if (platform === "darwin" || platform === "win32" || platform === "linux") return platform;
   const userAgent = navigator.userAgent;
   if (userAgent.includes("Mac")) return "darwin";

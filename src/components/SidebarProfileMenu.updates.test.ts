@@ -10,7 +10,7 @@ import { useUpdateItem } from "./SidebarProfileMenu";
 afterEach(() => vi.unstubAllGlobals());
 function entry(state: UpdaterState | null) {
   fixture.state = state;
-  vi.stubGlobal("window", { ogb: { updater: { check: vi.fn(), install: vi.fn(), onState: vi.fn() } } });
+  vi.stubGlobal("window", { odb: { updater: { check: vi.fn(), install: vi.fn(), onState: vi.fn() } } });
   let result: ReturnType<typeof useUpdateItem> = null;
   renderToStaticMarkup(createElement(() => { result = useUpdateItem(); return null; }));
   return result as ReturnType<typeof useUpdateItem>;

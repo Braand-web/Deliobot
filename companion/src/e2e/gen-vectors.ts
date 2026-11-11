@@ -511,14 +511,14 @@ function nonCanonicalTail(text: string): string {
 function v7() {
   const k = b64u(T.publicKey);
   const h = b64u(INPUTS.hostId);
-  const r = ["relay1.openopendeliobot.com", "relay2.openopendeliobot.com"];
+  const r = ["relay1.opendeliobot.com", "relay2.opendeliobot.com"];
   const raw = (value: unknown) => b64u(Buffer.from(JSON.stringify(value), "utf8"));
   // 768 JSON bytes encode to exactly 1,024 characters; 769 to 1,026.
   const padded = (jsonBytes: number) => raw({ v: 1, k, h, r, x: "a".repeat(jsonBytes - JSON.stringify({ v: 1, k, h, r, x: "" }).length) });
   const valid = [
     { name: "relay", value: encodeDescriptor({ v: 1, k, h, r }) },
     { name: "direct_only", value: encodeDescriptor({ v: 1, k }) },
-    { name: "four_relays", value: raw({ v: 1, k, h, r: ["relay1.openopendeliobot.com", "relay2.openopendeliobot.com", "relay3.openopendeliobot.com", "relay99.openopendeliobot.com"] }) },
+    { name: "four_relays", value: raw({ v: 1, k, h, r: ["relay1.opendeliobot.com", "relay2.opendeliobot.com", "relay3.opendeliobot.com", "relay99.opendeliobot.com"] }) },
     { name: "key_order_and_unknown_field", value: raw({ r, x: 1, h, k, v: 1 }) },
     { name: "at_1024_chars", value: padded(768) },
     { name: "routes_local", value: encodeDescriptor({ v: 1, k, routes: "local" }) },
@@ -532,14 +532,14 @@ function v7() {
     { name: "bad_point", value: raw({ v: 1, k: offCurve }) },
     { name: "compressed_key", value: raw({ v: 1, k: b64u(T.publicKey.subarray(0, 33)) }) },
     { name: "missing_key", value: raw({ v: 1 }) },
-    { name: "relay_host_suffix", value: raw({ v: 1, k, h, r: ["relay1.openopendeliobot.com.example.net"] }) },
-    { name: "relay_host_zero", value: raw({ v: 1, k, h, r: ["relay0.openopendeliobot.com"] }) },
-    { name: "relay_host_upper", value: raw({ v: 1, k, h, r: ["Relay1.openopendeliobot.com"] }) },
+    { name: "relay_host_suffix", value: raw({ v: 1, k, h, r: ["relay1.opendeliobot.com.example.net"] }) },
+    { name: "relay_host_zero", value: raw({ v: 1, k, h, r: ["relay0.opendeliobot.com"] }) },
+    { name: "relay_host_upper", value: raw({ v: 1, k, h, r: ["Relay1.opendeliobot.com"] }) },
     { name: "relay_host_other_domain", value: raw({ v: 1, k, h, r: ["relay1.opendeliobot.org"] }) },
     { name: "h_without_r", value: raw({ v: 1, k, h }) },
     { name: "r_without_h", value: raw({ v: 1, k, r }) },
     { name: "no_relays", value: raw({ v: 1, k, h, r: [] }) },
-    { name: "five_relays", value: raw({ v: 1, k, h, r: [...r, "relay3.openopendeliobot.com", "relay4.openopendeliobot.com", "relay5.openopendeliobot.com"] }) },
+    { name: "five_relays", value: raw({ v: 1, k, h, r: [...r, "relay3.opendeliobot.com", "relay4.opendeliobot.com", "relay5.opendeliobot.com"] }) },
     { name: "host_id_15_bytes", value: raw({ v: 1, k, h: b64u(INPUTS.hostId.subarray(0, 15)), r }) },
     { name: "v0", value: raw({ v: 0, k }) },
     { name: "v_string", value: raw({ v: "1", k }) },

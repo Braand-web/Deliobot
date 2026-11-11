@@ -100,10 +100,10 @@ const HEADER_NAME = /^[!#$%&'*+.^_`|~0-9A-Za-z-]{1,128}$/;
 
 /** Codex exposes MCP env names through one app-server process: a custom server claiming one could take a built-in proxy's bearer. */
 export function isHarnessOwnedMcpEnvName(name: string): boolean {
-  return name === "ELECTRON_RUN_AS_NODE" || name.startsWith("ODB_") || name.startsWith("OGB_");
+  return name === "ELECTRON_RUN_AS_NODE" || name.startsWith("ODB_");
 }
 
-/** Codex shares one environment across MCP children: ODB_/OGB_ carry bearers, and ELECTRON_RUN_AS_NODE may only repeat the "1" the harness proxies need. */
+/** Codex shares one environment across MCP children: ODB_ carries bearers, and ELECTRON_RUN_AS_NODE may only repeat the "1" the harness proxies need. */
 export function isReservedMcpEnvEntry(name: string, value: string): boolean {
   if (name === "ELECTRON_RUN_AS_NODE") return value !== "1";
   return isHarnessOwnedMcpEnvName(name);

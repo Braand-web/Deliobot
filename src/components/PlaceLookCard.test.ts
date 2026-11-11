@@ -26,7 +26,7 @@ async function page(start: PlaceLook | null, { answer = saved(start ?? COMPUTER)
     prepareBanner: async (file: Blob) => ({ ok: true, blob: file }), uploadBanner: pictures.upload, removeBanner: pictures.remove }));
   let changed: () => void = () => {};
   const workspaces = { look: vi.fn(async () => start), color: vi.fn(async (swatch: string | null) => answer(swatch)), onChanged: vi.fn((callback: () => void) => { changed = callback; return () => {}; }) };
-  Object.assign(window, { ogb: { app: { version: "0.1.131", ownPage: own }, workspaces } });
+  Object.assign(window, { odb: { app: { version: "0.1.131", ownPage: own }, workspaces } });
   const { setLocale } = await import("@/lib/i18n");
   setLocale("en");
   const { PlaceLookCard } = await import("./PlaceLookCard");
@@ -153,7 +153,7 @@ it("a browser or an older app: no colour and no tint, only the place's picture",
   vi.resetModules();
   vi.doMock("@/state/store", () => ({ useStore: () => ({ state: { config: {} } }) }));
   vi.doMock("@/lib/use-owner-or-admin", () => ({ useOwnerOrAdmin: () => true }));
-  Object.assign(window, { ogb: { workspaces: { state: vi.fn() } } });
+  Object.assign(window, { odb: { workspaces: { state: vi.fn() } } });
   const { PlaceLookCard } = await import("./PlaceLookCard");
   root = createRoot(host);
   await act(async () => { root!.render(createElement(PlaceLookCard)); });

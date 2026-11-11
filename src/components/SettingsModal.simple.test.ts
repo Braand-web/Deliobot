@@ -79,7 +79,7 @@ vi.mock("@/lib/updater", async (importOriginal) => ({
   useUpdaterState: () => fixture.updater,
 }));
 
-const desktop = { ogb: { environments: {}, organization: {}, cloudAccount: {}, companion: {} } };
+const desktop = { odb: { environments: {}, organization: {}, cloudAccount: {}, companion: {} } };
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -238,7 +238,7 @@ describe("Settings in Simple mode", () => {
   });
 
   it("names this app and its version on Updates, then product updates, the welcome tour and diagnostics", () => {
-    vi.stubGlobal("window", { ogb: { ...desktop.ogb, updater: { check: vi.fn(), install: vi.fn(), onState: vi.fn() } } });
+    vi.stubGlobal("window", { odb: { ...desktop.odb, updater: { check: vi.fn(), install: vi.fn(), onState: vi.fn() } } });
     fixture.updater = { status: "idle" };
     const html = open("updates");
     expect(html).toMatch(/>Delio [^<]+<\/div>/);
@@ -306,7 +306,7 @@ describe("Settings in Simple mode", () => {
   });
 
   it("keeps a paired remote client's reduced set: General for appearance, and Computer with your devices and Connect from elsewhere", () => {
-    vi.stubGlobal("window", { ogb: { ...desktop.ogb, remoteClient: { active: true } } });
+    vi.stubGlobal("window", { odb: { ...desktop.odb, remoteClient: { active: true } } });
     fixture.section = "desktopWorkspaces";
     const html = render();
     expect(pages(html)).toEqual(["general", "computer"]);

@@ -515,7 +515,7 @@ describe("Group Local VM ownership on the real isolated server", () => {
       const scope = createHash("sha256").update(environmentId).digest("hex").slice(0, 12);
       const prefix = bot.id.slice(0, 8).replace(/[^a-z0-9]/g, "");
       const suffix = createHash("sha256").update(bot.id).digest("hex").slice(0, 6);
-      boatRow = { id: "bx_23456789", name: `ogb-${scope}-${prefix}-${suffix}`, state: "archived" };
+      boatRow = { id: "bx_23456789", name: `odb-${scope}-${prefix}-${suffix}`, state: "archived" };
       allowBoatCreation = true;
       if (state === "missing-auto") { boatRow = null; vmState({ failed: true }); }
       boatCalls.length = 0; boatPrompts.length = 0;
@@ -619,7 +619,7 @@ describe("Group Local VM ownership on the real isolated server", () => {
       const scope = createHash("sha256").update(environmentId).digest("hex").slice(0, 12);
       const prefix = bot.id.slice(0, 8).replace(/[^a-z0-9]/g, "");
       const suffix = createHash("sha256").update(bot.id).digest("hex").slice(0, 6);
-      boatRow = { id: "bx_23456789", name: `ogb-${scope}-${prefix}-${suffix}`, state: "archived" };
+      boatRow = { id: "bx_23456789", name: `odb-${scope}-${prefix}-${suffix}`, state: "archived" };
       await api("POST", `/api/bots/${bot.id}/messages`, { text: "Open Chrome on an available computer" });
       const token = ((await dump()) as any).mcpConfig.mcpServers.agents.env.ODB_COMMS_TOKEN;
       const call = (method: string, body?: unknown) => fetch(base + "/api/internal/computer/select", { method,
@@ -848,7 +848,7 @@ describe("Group Local VM ownership on the real isolated server", () => {
       const scope = createHash("sha256").update(environmentId).digest("hex").slice(0, 12);
       const prefix = bots[0].id.slice(0, 8).replace(/[^a-z0-9]/g, "");
       const suffix = createHash("sha256").update(bots[0].id).digest("hex").slice(0, 6);
-      boatRow = { id: "bx_23456789", name: `ogb-${scope}-${prefix}-${suffix}`, state: "archived" };
+      boatRow = { id: "bx_23456789", name: `odb-${scope}-${prefix}-${suffix}`, state: "archived" };
       boatCalls.length = 0; boatPrompts.length = 0;
       const onBoat = (sent: any) => computer(sent)?.args?.at(-1) === "computer" && /harness-mcp-proxy/.test(computer(sent).args[0]);
       writeFileSync(finishFile, "finish");

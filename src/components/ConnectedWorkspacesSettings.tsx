@@ -7,16 +7,16 @@ import { ServerList, type OwnServerSharing } from "./ServerList";
 import { useStore } from "@/state/store";
 import { sharedComputersEnabled } from "@/lib/feature-flags";
 
-type SavedWorkspaces = Awaited<ReturnType<NonNullable<NonNullable<Window["ogb"]>["environments"]>["state"]>>;
+type SavedWorkspaces = Awaited<ReturnType<NonNullable<NonNullable<Window["odb"]>["environments"]>["state"]>>;
 
 
 export function ConnectedWorkspacesSettings() {
-  const bridge = window.ogb?.environments;
+  const bridge = window.odb?.environments;
   // Security: the desktop bridge alone is not enough; never offer access the server refuses.
   const { state } = useStore();
-  const sharingOffered = sharedComputersEnabled(state.config) && Boolean(window.ogb?.computerSharing);
+  const sharingOffered = sharedComputersEnabled(state.config) && Boolean(window.odb?.computerSharing);
   // A server of the person's own takes this computer without that flag, once they allow it in main's popup.
-  const sharing = window.ogb?.computerSharing;
+  const sharing = window.odb?.computerSharing;
   const [ownServers, setOwnServers] = useState<OwnServerSharing[]>([]);
   const [saved, setSaved] = useState<SavedWorkspaces | null>(null);
   const [busy, setBusy] = useState(false);
@@ -76,7 +76,7 @@ export function ConnectedWorkspacesSettings() {
     }
   };
   if (!bridge) return <p className="text-[13px] text-ink-secondary">{t("servers.desktopOnly")}</p>;
-  const confirmAction = (message: string) => window.ogb?.confirm ? window.ogb.confirm(message) : window.confirm(message);
+  const confirmAction = (message: string) => window.odb?.confirm ? window.odb.confirm(message) : window.confirm(message);
   const connected = saved?.environments.find(entry => entry.id === computerId);
   const computerWorkspace = connected?.origin && !connected.home ? { id: connected.id, name: connected.name, origin: connected.origin } : undefined;
   const ownComputer = Boolean(computerWorkspace && ownServers.some((own) => own.id === computerWorkspace.id));
@@ -154,7 +154,7 @@ export function ConnectedWorkspacesSettings() {
     </Card>}
     <Card title={t("servers.yours.title")} subtitle={t("servers.yours.subtitle")}>
       {!saved ? <p role="status" className="text-[13px] text-ink-secondary">{t(error ? "servers.yours.loadFailed" : "servers.yours.loading")}</p> :
-        <ServerList saved={saved} busy={busy} sharingOffered={sharingOffered} ownServers={ownServers} appVersion={window.ogb?.app?.version ?? null} onShare={share}
+        <ServerList saved={saved} busy={busy} sharingOffered={sharingOffered} ownServers={ownServers} appVersion={window.odb?.app?.version ?? null} onShare={share}
           onSwitch={(id) => void perform(async () => { await bridge.switch(id); return true; })} onForget={(id) => void perform(() => bridge.forget(id))} onComputerAccess={setComputerId} />}
       {saved && error && <p role="alert" className="mt-2 text-[12px] text-danger">{error}</p>}
     </Card>

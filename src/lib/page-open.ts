@@ -77,7 +77,7 @@ export function usePageOpener(): (url: string) => void {
   latest.current = store;
   return useCallback((url: string) => {
     const app = latest.current, state = app?.state();
-    const botId = app && state ? pagePanelBot(url, { selectedId: state.selectedId, bots: state.bots ?? [], groups: state.groups ?? [], config: state.config, desktop: window.ogb }) : null;
+    const botId = app && state ? pagePanelBot(url, { selectedId: state.selectedId, bots: state.bots ?? [], groups: state.groups ?? [], config: state.config, desktop: window.odb }) : null;
     if (!app || !botId) { void openExternalLink(url).catch(() => {}); return; }
     requestPanelPage(botId, url);
     app.dispatch({ type: "toggleComputer", open: true });

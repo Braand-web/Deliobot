@@ -167,14 +167,14 @@ describe("ModelPicker with a signed-out or missing Claude", () => {
 
   it("on a paired desktop, sends a signed-out provider's sign-in to the host instead of offering one that cannot run", () => {
     fixture.instances = [signedOut()];
-    window.ogb = { remoteClient: { active: true } } as NonNullable<Window["ogb"]>;
+    window.odb = { remoteClient: { active: true } } as NonNullable<Window["odb"]>;
     try {
       const html = menu(open(bot("claude", "claude-opus-5-5")).html);
       expect(html).toContain("data-engine-setup-on-host");
       expect(html).toContain("Set up Claude there");
       expect(html).not.toContain("data-claude-sign-in");
     } finally {
-      delete window.ogb;
+      delete window.odb;
     }
   });
 

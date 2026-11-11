@@ -904,6 +904,10 @@ export interface CursorAvatarProps {
   silhouette?: CursorSilhouette
   gradient?: [string, string, string]
   picture?: string | null
+  /** The picture with its eyes shut, shown for a moment every few seconds, even while paused: it is a CSS animation. */
+  pictureBlink?: string | null
+  /** The picture's glowing antenna tip, in viewBox units, and how fast its light breathes. */
+  pictureGlow?: { x: number; y: number; r: number; tempo: 'fast' | 'slow' | 'off' } | null
   eyeColor?: string
   title?: string | null
   className?: string
@@ -937,7 +941,7 @@ export const CursorAvatar = React.forwardRef<CursorAvatarHandle, CursorAvatarPro
       autoExpression = true,
       paused = false,
       silhouette = DEFAULT_SILHOUETTE,
-      gradient = DEFAULT_GRADIENT, picture,
+      gradient = DEFAULT_GRADIENT, picture, pictureBlink, pictureGlow,
       eyeColor = "#ffffff",
       title,
       className,
@@ -947,6 +951,7 @@ export const CursorAvatar = React.forwardRef<CursorAvatarHandle, CursorAvatarPro
   ) {
     const reactId = useId()
     const uid = useMemo(() => 'mascot' + reactId.replace(/[^a-zA-Z0-9]/g, ''), [reactId])
+    const picturePhase = useMemo(() => [...uid].reduce((sum, c) => sum + c.charCodeAt(0), 0) % 47 / 10, [uid])
     const svg = useRef<SVGSVGElement | null>(null)
     const eye0 = useRef<SVGPathElement | null>(null)
     const eye1 = useRef<SVGPathElement | null>(null)
@@ -1254,6 +1259,13 @@ export const CursorAvatar = React.forwardRef<CursorAvatarHandle, CursorAvatarPro
         aria-hidden={label ? undefined : true}
       >
         <defs>
+          {pictureGlow && (
+            <radialGradient id={`${uid}-glow`}>
+              <stop offset="0%" stopColor="#9fb4ff" stopOpacity="0.9" />
+              <stop offset="45%" stopColor="#8a7dff" stopOpacity="0.35" />
+              <stop offset="100%" stopColor="#8a7dff" stopOpacity="0" />
+            </radialGradient>
+          )}
           <linearGradient id={`${uid}-grad`} x1="1" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={gradient[0]} />
             <stop offset="55%" stopColor={gradient[1]} />
@@ -1270,7 +1282,19 @@ export const CursorAvatar = React.forwardRef<CursorAvatarHandle, CursorAvatarPro
           <g ref={trailLayer} />
           <g ref={bodyGroup}>
           <g ref={bodyContent}>
-          {picture ? <image href={picture} x="-15" y="-15" width={VIEW_SPAN} height={VIEW_SPAN} preserveAspectRatio="none" /> : <g transform={silhouette.fit || undefined} dangerouslySetInnerHTML={{ __html: body }} />}
+          {picture ? (
+            <g className={paused || reduced ? undefined : 'delio-float'} style={paused || reduced ? undefined : { animationDelay: `${-picturePhase}s` }}>
+              <image href={picture} x="-15" y="-15" width={VIEW_SPAN} height={VIEW_SPAN} preserveAspectRatio="none" />
+              {pictureBlink && !reduced && (
+                <image href={pictureBlink} x="-15" y="-15" width={VIEW_SPAN} height={VIEW_SPAN} preserveAspectRatio="none"
+                  className="delio-blink" style={{ animationDelay: `${-picturePhase}s` }} />
+              )}
+              {pictureGlow && pictureGlow.tempo !== 'off' && (
+                <circle cx={pictureGlow.x} cy={pictureGlow.y} r={Math.min(pictureGlow.r * 2.2, pictureGlow.y + 15)} fill={`url(#${uid}-glow)`}
+                  className={reduced ? undefined : `delio-glow delio-glow-${pictureGlow.tempo}`} style={reduced ? { opacity: 0.55 } : undefined} />
+              )}
+            </g>
+          ) : <g transform={silhouette.fit || undefined} dangerouslySetInnerHTML={{ __html: body }} />}
           <g clipPath={`url(#${uid}-clip)`} visibility={picture ? 'hidden' : undefined}>
             <g transform={anchorTransform(silhouette.anchor)}>
               <path ref={eye0} fill={eyeColor} />

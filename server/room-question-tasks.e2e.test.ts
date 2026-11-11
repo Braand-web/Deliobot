@@ -48,9 +48,9 @@ it("keeps live room questions fenced but allows task changes after their turn se
     })).status).toBe(202);
     await expect.poll(() => existsSync(fixture.fixtureDumpPath), { timeout: 10_000 }).toBe(true);
     const dump = z.object({ mcpConfig: z.object({ mcpServers: z.object({
-      ogb: z.object({ args: z.array(z.string()) }),
+      odb: z.object({ args: z.array(z.string()) }),
     }) }) }).parse(JSON.parse(readFileSync(fixture.fixtureDumpPath, "utf8")));
-    questionSocket = connect(dump.mcpConfig.mcpServers.ogb.args[1]!);
+    questionSocket = connect(dump.mcpConfig.mcpServers.odb.args[1]!);
     let socketBuffer = "";
     let providerReply: unknown;
     questionSocket.on("data", (chunk) => {

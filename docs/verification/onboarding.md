@@ -97,7 +97,7 @@ That run also showed the member note, which review then limited to hosted
 workspaces (the fixture is not hosted). The hosted-only rule is covered by the
 tests above, not by a rerun. In that run, "Got it" made no `/api/config`
 write, and the note stayed away after a reload. Connect an AI was mounted from the Vite preview with a fake
-`window.ogb.organization` injected before mount; it showed the row signed out,
+`window.odb.organization` injected before mount; it showed the row signed out,
 then connecting with the code, then connected. `begin` ran once, with the
 default Admin. Screenshots are in `.odb-scratch/verify-evidence/onboarding/`.
 

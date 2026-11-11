@@ -156,7 +156,7 @@ describe("keep-warm forks in the bot box", () => {
     const sameUpstream = (env: Record<string, string>) => Object.fromEntries(Object.entries(env).map(([name, value]) => [name, value.replace(/odb_t0_[a-f0-9]{48}/g, "<broker token>")]));
     // The deny hook's folder and the dead permission socket are the fork's own; neither is in the request.
     const servers = (config: { mcpServers: Record<string, { args?: string[] }> }) => Object.fromEntries(Object.entries(config.mcpServers)
-      .map(([name, server]) => [name, name === "ogb" ? { ...server, args: server.args?.slice(0, -1) } : server]));
+      .map(([name, server]) => [name, name === "odb" ? { ...server, args: server.args?.slice(0, -1) } : server]));
     const PREFIX_FLAGS = ["--model", "--permission-mode", "--strict-mcp-config", "--setting-sources", "--system-prompt-snapshot", "--allowedTools", "--disallowedTools", "--effort", "--permission-prompt-tool"];
     const flags = (argv: string[]) => PREFIX_FLAGS.map((flag) => [flag, argv.includes(flag) ? argv[argv.indexOf(flag) + 1] : null]);
     // What the box shows, but for each process's own private files: the turn's MCP config, prompt and permission socket,

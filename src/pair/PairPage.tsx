@@ -25,7 +25,7 @@ const button = "mt-5 w-full rounded-md bg-accent px-4 py-2 text-[14px] font-medi
 const fieldLabel = "mt-4 block text-[12px] font-medium text-ink-secondary";
 
 /** Only the desktop app pairs from a link at once; a browser asks, so a sent link cannot sign it in unseen. */
-export function pairsAutomatically(initialCode: string | null, desktop = typeof window !== "undefined" && Boolean(window.ogb?.workspaces)): boolean {
+export function pairsAutomatically(initialCode: string | null, desktop = typeof window !== "undefined" && Boolean(window.odb?.workspaces)): boolean {
   return Boolean(initialCode) && desktop;
 }
 

@@ -7,7 +7,7 @@ import { DesktopWorkspaceSwitcher, openServerMenu, planSleeps } from "./DesktopW
 afterEach(() => { vi.unstubAllGlobals(); });
 
 it("names the saved-server switcher with the product word, not workspace", () => {
-  vi.stubGlobal("window", { ogb: { workspaces: { state: () => new Promise(() => {}), menu: () => Promise.resolve() } } });
+  vi.stubGlobal("window", { odb: { workspaces: { state: () => new Promise(() => {}), menu: () => Promise.resolve() } } });
   const html = renderToStaticMarkup(createElement(DesktopWorkspaceSwitcher));
   expect(html).toContain('aria-label="Switch server: Servers"');
   expect(html).toContain(">Servers<");
@@ -31,7 +31,7 @@ it("says My Cloud while a Cloud home is showing, in a browser too, never always 
   expect(compact).toContain('title="My Cloud"');
   expect(compact).toContain('<span class="sr-only">My Cloud</span>');
 
-  vi.stubGlobal("window", { ogb: { workspaces: { state: () => new Promise(() => {}), menu: () => Promise.resolve() } } });
+  vi.stubGlobal("window", { odb: { workspaces: { state: () => new Promise(() => {}), menu: () => Promise.resolve() } } });
   const desktop = renderToStaticMarkup(createElement(DesktopWorkspaceSwitcher, { cloudHome: true }));
   expect(visibleText(desktop)).toBe("My Cloud");
   expect(desktop).toContain('aria-label="Switch server: My Cloud"');
@@ -61,7 +61,7 @@ it("reads whether the plan sleeps from main's verified plan: an active plan with
 });
 
 it("is the Show me how tip's anchor, and opens the menu as reached from the tip only while the tip is up", async () => {
-  vi.stubGlobal("window", { ogb: { workspaces: { state: () => new Promise(() => {}), menu: () => Promise.resolve() } } });
+  vi.stubGlobal("window", { odb: { workspaces: { state: () => new Promise(() => {}), menu: () => Promise.resolve() } } });
   for (const props of [{}, { inline: true }, { compact: true }]) expect(renderToStaticMarkup(createElement(DesktopWorkspaceSwitcher, props))).toContain('data-tour="server-switcher"');
   const menu = vi.fn(() => Promise.resolve()), onClosed = vi.fn();
   await openServerMenu({ menu }, { howTo: true, onClosed });
@@ -74,7 +74,7 @@ it("is the Show me how tip's anchor, and opens the menu as reached from the tip 
 });
 
 it("draws Simple mode's switcher as a rounded pill that names the server in full, swapping to the laptop icon only when the row is too narrow", () => {
-  vi.stubGlobal("window", { ogb: { workspaces: { state: () => new Promise(() => {}), menu: () => Promise.resolve() } } });
+  vi.stubGlobal("window", { odb: { workspaces: { state: () => new Promise(() => {}), menu: () => Promise.resolve() } } });
   const pill = renderToStaticMarkup(createElement(DesktopWorkspaceSwitcher, { inline: true, pill: true }));
   expect(pill).toMatch(/aria-label="Switch server: Servers" aria-haspopup="menu" aria-expanded="false"[^>]*class="[^"]*\bh-8\b[^"]*\brounded-full\b[^"]*\bbg-raised\/50\b[^"]*\btext-\[13px\][^"]*\bfont-medium\b/);
   expect(pill).toContain('<span class="min-w-0 truncate @max-[124px]/sidebar-top:hidden">Servers</span>');

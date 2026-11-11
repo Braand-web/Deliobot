@@ -42,7 +42,7 @@ it("reads as an app with information only on a Team Cloud, and a caller can't wr
     expect(JSON.stringify(opened.systemPrompt)).toContain("through this bot's API");
     expect(opened.argv).toContain("--restricted");
     expect(opened.argv[opened.argv.indexOf("--permission-mode") + 1]).toBe("default");
-    expect(Object.keys(opened.mcpConfig.mcpServers)).toEqual(["ogb"]);
+    expect(Object.keys(opened.mcpConfig.mcpServers)).toEqual(["odb"]);
 
     // The same on a later message in that thread.
     expect((await send({ message: "Second question", thread })).status).toBe(200);

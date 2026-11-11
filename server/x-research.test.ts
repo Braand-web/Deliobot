@@ -385,10 +385,10 @@ describe("post", () => {
 describe("profile", () => {
   it("maps treg's normalized profile", async () => {
     const { fetcher, calls } = fakeFetch({ body: { output: {
-      username: "delio", user_id: "1", name: "Delio", followers: 1200, following: 80, posts_count: 340, is_verified: true, description: "Open source Grok Bot",
+      username: "delio", user_id: "1", name: "Delio", followers: 1200, following: 80, posts_count: 340, is_verified: true, description: "Open source agent team",
     }, raw: {}, _treg: { served_by: "anyapi.x.user.profile" } } });
     expect(await clientWith(fetcher).profile("delio")).toEqual({
-      handle: "@delio", name: "Delio", bio: "Open source Grok Bot", followers: 1200, following: 80, posts: 340, verified: true, url: "https://x.com/delio",
+      handle: "@delio", name: "Delio", bio: "Open source agent team", followers: 1200, following: 80, posts: 340, verified: true, url: "https://x.com/delio",
     });
     expect(calls[0]!.url.href).toBe(`${RELAY}/call/treg.x.user.profile`);
     expect(calls[0]!.body).toEqual({ username: "delio" });

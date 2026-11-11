@@ -1025,7 +1025,7 @@ describe("every capability of the picker stays reachable", () => {
     fixture.advanced = advanced;
     fixture.instances = rich();
     const forBot = followed();
-    window.ogb = { remoteClient: { active: true } } as NonNullable<Window["ogb"]>;
+    window.odb = { remoteClient: { active: true } } as NonNullable<Window["odb"]>;
     try {
       const html = menu(open(forBot).html);
       expect(html).toContain("Sonnet 5.5");
@@ -1039,7 +1039,7 @@ describe("every capability of the picker stays reachable", () => {
         expect(band.lastIndexOf('role="separator"')).toBeLessThan(band.indexOf(">X-High</button>"));
       }
     } finally {
-      delete window.ogb;
+      delete window.odb;
     }
   });
 

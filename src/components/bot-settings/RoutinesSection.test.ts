@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { Bot } from "@/state/store";
 import type { Routine, RoutineRun } from "@/lib/routines";
 
-// RoutineCalendarPage imports DesktopCapabilities, which reads window.ogb at import time; the node environment has no
+// RoutineCalendarPage imports DesktopCapabilities, which reads window.odb at import time; the node environment has no
 // window.
 vi.mock("@/components/DesktopCapabilities", () => ({
   useDesktopCapabilities: () => ({ capabilities: { host: { homeDir: undefined } } }),

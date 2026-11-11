@@ -43,8 +43,8 @@ export function htmlPreviewDocument(source: string): string {
 /** The desktop app opens a copy of the page in this computer's default browser. Security: never on the web or in the
  * Cloud app, where a page would have to run on the app's own origin, nor while the window shows another computer. */
 export function htmlBrowserBridge(): ((source: string, name: string) => Promise<unknown>) | undefined {
-  const ogb = typeof window === "undefined" ? undefined : window.ogb;
-  return ogb?.remoteClient?.active ? undefined : ogb?.openHtmlInBrowser;
+  const odb = typeof window === "undefined" ? undefined : window.odb;
+  return odb?.remoteClient?.active ? undefined : odb?.openHtmlInBrowser;
 }
 
 /** The preview dialog for an HTML or Markdown file in a message, opened by the eye button or by the file's name. */

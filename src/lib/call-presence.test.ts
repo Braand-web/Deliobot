@@ -16,7 +16,7 @@ beforeEach(() => {
 afterEach(async () => {
   await act(async () => { root.unmount(); });
   endCall();
-  delete (window as unknown as { ogb?: unknown }).ogb;
+  delete (window as unknown as { odb?: unknown }).odb;
   vi.unstubAllGlobals();
 });
 
@@ -30,7 +30,7 @@ describe("call presence", () => {
 
   it("tells main when a call starts and ends, and says none on mount", async () => {
     const callActive = vi.fn(async () => {});
-    (window as unknown as { ogb: unknown }).ogb = { callActive };
+    (window as unknown as { odb: unknown }).odb = { callActive };
     await act(async () => { root.render(createElement(() => { useReportCallPresence(); return null; })); });
     await act(async () => { startCall("bot-1"); });
     await act(async () => { endCall("bot-1"); });

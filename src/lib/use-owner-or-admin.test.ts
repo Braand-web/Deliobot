@@ -18,7 +18,7 @@ afterEach(() => {
   root = null;
   vi.useRealTimers();
   vi.unstubAllGlobals();
-  delete (window as { ogb?: unknown }).ogb;
+  delete (window as { odb?: unknown }).odb;
 });
 
 async function mount() {
@@ -79,7 +79,7 @@ describe("useOwnerOrAdmin", () => {
   it("shows owner controls on a paired desktop, whose companion does not serve the session route", async () => {
     const fetch = vi.fn<typeof globalThis.fetch>(async () => new Response(JSON.stringify({ error: "no route: GET /api/auth/session" }), { status: 404 }));
     vi.stubGlobal("fetch", fetch);
-    (window as { ogb?: unknown }).ogb = { remoteClient: { active: true } };
+    (window as { odb?: unknown }).odb = { remoteClient: { active: true } };
 
     await mount();
     await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });

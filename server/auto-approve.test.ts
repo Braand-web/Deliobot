@@ -177,7 +177,7 @@ describe("tools that ask a person", () => {
   it("never answers ask_user, bare or MCP-prefixed", () => {
     for (const mode of modes) {
       expect(autoVerdict(mode, "ask_user").approve, mode).toBeNull();
-      expect(autoVerdict(mode, "mcp__ogb__ask_user").approve, mode).toBeNull();
+      expect(autoVerdict(mode, "mcp__odb__ask_user").approve, mode).toBeNull();
     }
   });
 

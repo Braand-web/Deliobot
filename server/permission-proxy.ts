@@ -10,7 +10,7 @@ import { REFUSED_NEXT_STEP } from "./reply-habits.ts";
 const selection = parseToolScope(process.env.ODB_PERMISSION_TOOL_SCOPE === undefined
   ? undefined : (() => { try { return JSON.parse(process.env.ODB_PERMISSION_TOOL_SCOPE); } catch { return null; } })());
 if (!selection.ok) throw new Error(selection.error);
-const allowQuestion = allowsTool(selection.scope, { kind: "mcp", server: "ogb", name: "ask_user" });
+const allowQuestion = allowsTool(selection.scope, { kind: "mcp", server: "odb", name: "ask_user" });
 
 const socketPath = process.argv[2] ?? "";
 

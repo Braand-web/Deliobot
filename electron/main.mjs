@@ -1545,9 +1545,7 @@ function navigateMainWindow(url, keepingRecovery = false) {
 let rememberedHome = null;
 
 function acquireDataDirLeaseFor(dir) {
-  return dir === desktopDataDir()
-    ? acquireDataDirLease(dir, { t: nativeT, legacyDataDir: path.join(app.getPath("home"), ".opengrokbot") })
-    : acquireDataDirLease(dir, { t: nativeT });
+  return acquireDataDirLease(dir, { t: nativeT });
 }
 
 /** Pause the supervisor first, or its recovery forks on the wrong data dir; resume() stays in the finally. */
@@ -2081,7 +2079,7 @@ function createWindow({ deferNavigation = false } = {}) {
       try {
         const result = await win.webContents.executeJavaScript(`
           (async () => {
-            if (!window.ogb?.getCapabilities) throw new Error("desktop preload bridge is unavailable");
+            if (!window.odb?.getCapabilities) throw new Error("desktop preload bridge is unavailable");
             let crashPromise = null;
             if (${JSON.stringify(process.env.ODB_SMOKE_CUA === "1")}) {
               crashPromise = new Promise((resolve, reject) => {
@@ -2089,7 +2087,7 @@ function createWindow({ deferNavigation = false } = {}) {
                   unsubscribe?.();
                   reject(new Error("timed out waiting for CUA crash invalidation"));
                 }, 10000);
-                const unsubscribe = window.ogb.onCapabilitiesChanged((next) => {
+                const unsubscribe = window.odb.onCapabilitiesChanged((next) => {
                   if (next.localComputer.reasonCode !== "daemon-exited") return;
                   clearTimeout(timeout);
                   unsubscribe();
@@ -2098,7 +2096,7 @@ function createWindow({ deferNavigation = false } = {}) {
               });
             }
             const [initialCapabilities, healthResponse, ownerMutationResponse] = await Promise.all([
-              window.ogb.getCapabilities(),
+              window.odb.getCapabilities(),
               fetch("/api/health"),
               fetch("/api/auth/stream-ticket", { method: "POST" }),
             ]);
@@ -2119,8 +2117,8 @@ function createWindow({ deferNavigation = false } = {}) {
                 throw new Error("CUA was not ready before the simulated crash");
               }
               cuaCrashReason = await crashPromise;
-              cuaRetryStatus = await window.ogb.localControl.retry();
-              capabilities = await window.ogb.getCapabilities();
+              cuaRetryStatus = await window.odb.localControl.retry();
+              capabilities = await window.odb.getCapabilities();
             }
             return {
               initialCapabilities,
@@ -2858,9 +2856,7 @@ app.whenReady().then(async () => {
   if (app.isPackaged) {
     try {
       // Acquire before either plaintext credential migration touches config.json.
-      desktopDataDirLease = acquireDataDirLease(bootDataDir, { t: nativeT,
-        legacyDataDir: path.join(app.getPath("home"), ".opengrokbot"),
-      });
+      desktopDataDirLease = acquireDataDirLease(bootDataDir, { t: nativeT });
       runningDataDir = bootDataDir;
     } catch (error) {
       dialog.showErrorBox(
@@ -2995,9 +2991,7 @@ app.whenReady().then(async () => {
       }
       desktopDataDirLease = null;
       try {
-        desktopDataDirLease = acquireDataDirLease(desktopDataDir(), { t: nativeT,
-          legacyDataDir: path.join(app.getPath("home"), ".opengrokbot"),
-        });
+        desktopDataDirLease = acquireDataDirLease(desktopDataDir(), { t: nativeT });
         runningDataDir = desktopDataDir();
       } catch (error) {
         dialog.showErrorBox(

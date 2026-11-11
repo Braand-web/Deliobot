@@ -165,7 +165,7 @@ describe("SignInRequestCard while it waits", () => {
   });
 
   it("does not offer to save a login from a desktop paired to another computer", () => {
-    vi.stubGlobal("window", { ogb: { remoteClient: { active: true } } });
+    vi.stubGlobal("window", { odb: { remoteClient: { active: true } } });
     expect(view()).not.toContain("Save a login");
   });
 

@@ -898,7 +898,7 @@ it("the owner's devices are not told which conversations they may write in, even
 
 it("no command the owner saved answers for a conversation a guest left behind: it still asks the owner", async () => {
   const bot = await newBot("Saved commands", "held");
-  const socketPath = () => JSON.parse(readFileSync(dumpOf("held"), "utf8")).mcpConfig.mcpServers.ogb.args.at(-1) as string;
+  const socketPath = () => JSON.parse(readFileSync(dumpOf("held"), "utf8")).mcpConfig.mcpServers.odb.args.at(-1) as string;
   const ask = async (command: string) => {
     const socket = connect(socketPath());
     await new Promise<void>((resolve, reject) => { socket.once("connect", resolve); socket.once("error", reject); });

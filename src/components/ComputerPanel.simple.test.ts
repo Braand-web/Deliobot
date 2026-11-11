@@ -9,14 +9,14 @@ import type { FeatureFlagConfig } from "@/lib/feature-flags";
 // tree. `seed` presets what the resolve effect would have reached.
 const fixture = vi.hoisted(() => {
   const view = { current: "computer" as string };
-  const ogb: Record<string, unknown> = {};
-  vi.stubGlobal("window", { ogb });
+  const odb: Record<string, unknown> = {};
+  vi.stubGlobal("window", { odb });
   vi.stubGlobal("document", { visibilityState: "visible" });
   vi.stubGlobal("localStorage", { getItem: (key: string) => key.startsWith("odb-computer-panel-view") ? view.current : null, setItem: () => {} });
   return {
     advanced: false,
     view,
-    ogb,
+    odb,
     platform: "darwin" as "darwin" | "win32" | "linux",
     localComputer: {} as Record<string, unknown>,
     values: [] as unknown[],
@@ -198,7 +198,7 @@ beforeEach(() => {
   fixture.api = vi.fn(() => Promise.resolve({ features: { browser: true } }));
   fixture.setAdvancedMode = vi.fn();
   fixture.ownerOrAdmin = null;
-  for (const key of Object.keys(fixture.ogb)) delete fixture.ogb[key];
+  for (const key of Object.keys(fixture.odb)) delete fixture.odb[key];
 });
 
 describe("Computer panel tabs", () => {
@@ -630,7 +630,7 @@ describe("Technical controls", () => {
   });
 
   it("hides two desktops and Delete VM in Simple, keeps them in Advanced", () => {
-    fixture.ogb.desktopWorkspace = {};
+    fixture.odb.desktopWorkspace = {};
     fixture.seed = {
       phase: "vm",
       resolved: { botId: "scout", threadId: "thread-scout", computer: "vm", cloudBackend: "box" },

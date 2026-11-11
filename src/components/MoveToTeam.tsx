@@ -13,7 +13,7 @@ import { t } from "@/lib/i18n";
 type Team = { id: string; name: string; ready: boolean };
 type MenuItem = (icon: ReactNode, label: string, onClick?: () => void, opts?: { disabled?: boolean; hint?: string }) => ReactNode;
 
-const bridge = () => (!window.ogb?.remoteClient?.active ? window.ogb?.cloudSendPage : undefined);
+const bridge = () => (!window.odb?.remoteClient?.active ? window.odb?.cloudSendPage : undefined);
 
 /** The teams a bot of this Cloud can move into; none anywhere but My Cloud's own page in the app. */
 export function useMoveTeams(): Team[] {

@@ -18,7 +18,7 @@ const notice: CloudSendNotice = { ready: true, bots: ["Ember"], updatedBots: [],
 const strip = (cloudHome: boolean) => () => CloudSendStrip({ cloudHome });
 async function shown(value: CloudSendNotice, cloudHome: boolean) {
   const page: CloudSendPageBridge = { notice: vi.fn().mockResolvedValue(value), dismiss: vi.fn().mockResolvedValue({ ...value, move: undefined }), onNotice: vi.fn(() => () => {}) };
-  vi.stubGlobal("window", { ogb: { cloudSendPage: page } });
+  vi.stubGlobal("window", { odb: { cloudSendPage: page } });
   html(strip(cloudHome)); for (const effect of f.effects) effect(); await flush();
 }
 

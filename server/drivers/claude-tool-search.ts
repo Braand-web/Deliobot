@@ -11,7 +11,7 @@
 // over its own process environment, so a value in the project's or the person's .claude settings
 // would beat one set on the process; settings passed with --settings beat both.
 //
-// OpenDeliobot's own small servers stay loaded (`alwaysLoad` in claude.ts): `ogb` (approvals and
+// OpenDeliobot's own small servers stay loaded (`alwaysLoad` in claude.ts): `odb` (approvals and
 // questions) and `agents` (bots, rooms, jobs), plus the browser when the turn plans to browse.
 import { readFileSync, statSync } from "node:fs";
 import { homedir } from "node:os";

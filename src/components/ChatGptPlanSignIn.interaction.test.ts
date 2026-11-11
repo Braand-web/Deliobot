@@ -44,7 +44,7 @@ beforeEach(() => {
   vi.setSystemTime(new Date("2030-01-01T00:00:00.000Z"));
   vi.clearAllMocks();
   fixture.values = [];
-  vi.stubGlobal("window", { setTimeout, clearTimeout, ogb: { openExternal: fixture.openExternal } });
+  vi.stubGlobal("window", { setTimeout, clearTimeout, odb: { openExternal: fixture.openExternal } });
 });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 

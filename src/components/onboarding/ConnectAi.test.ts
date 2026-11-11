@@ -65,7 +65,7 @@ beforeEach(() => {
   vi.mocked(track).mockClear();
   f.row = null;
   f.fail = false;
-  vi.stubGlobal("ogb", undefined);
+  vi.stubGlobal("odb", undefined);
   host = document.createElement("div");
   document.body.append(host);
   root = createRoot(host);
@@ -220,15 +220,15 @@ describe("connecting an AI on the first screen", () => {
     await show();
     await otherWays();
     expect(f.row).toBeNull();
-    vi.stubGlobal("ogb", { organization: bridge });
-    window.ogb = { organization: bridge } as unknown as typeof window.ogb;
+    vi.stubGlobal("odb", { organization: bridge });
+    window.odb = { organization: bridge } as unknown as typeof window.odb;
     await show({ hosted: true });
     expect(f.row).toBeNull();
     await show();
     expect(f.row?.bridge).toBe(bridge);
     f.row!.onOpenSettings();
     expect(f.dispatch).toHaveBeenCalledWith({ type: "toggleAppSettings", open: true, section: "organization" });
-    delete window.ogb;
+    delete window.odb;
   });
 
   it("opens as the Connect an AI dialog, which Escape and a click outside close", async () => {

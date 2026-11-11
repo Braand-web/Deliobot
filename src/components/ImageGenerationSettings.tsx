@@ -278,8 +278,8 @@ function ProviderKeyCard({ provider, status }: { provider: ImageProvider; status
   };
   const saveKey = (key: string) => run(async () => {
     if (provider === "xai" || provider === "openrouter") return saveCredential(provider, key, false);
-    return window.ogb?.setCredential && own
-      ? window.ogb.setCredential(own.credential, key)
+    return window.odb?.setCredential && own
+      ? window.odb.setCredential(own.credential, key)
       : api("/api/config", { method: "PUT", body: JSON.stringify(own!.patch(key)) });
   });
   const saveUrl = () => run(async () => {

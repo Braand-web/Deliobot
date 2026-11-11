@@ -140,7 +140,7 @@ mac:
     NSBonjourServices:
       - _opendeliobot._tcp
     NSScreenCaptureUsageDescription: OpenDeliobot uses Screen Recording so bots can see this Mac before acting.
-    NSDownloadsFolderUsageDescription: OpenDeliobot looks in Downloads for the file your Grok Bot saved when you move it here.
+    NSDownloadsFolderUsageDescription: OpenDeliobot reads files you choose from Downloads.
   # Notarization runs manually after the build (notarytool + staple),
   # mirroring the BlueyLite ship_release.sh flow.
   notarize: false

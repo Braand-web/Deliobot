@@ -84,13 +84,13 @@ if (!enabled) console.log("skipping usage details UI: set ODB_UI_E2E=1 to instal
     }
     await agentBrowser(browser.binary, sessionEnv(browser), ["set", "viewport", "1100", "900"]);
     await expect.poll(() => evaluate("innerWidth")).toBe(1100);
-    const density = await evaluate("localStorage.getItem('openopendeliobot.comdebarDensity')");
+    const density = await evaluate("localStorage.getItem('opendeliobot.sidebarDensity')");
     await ui("click", "--name", "More");
     const snapshot = await ui("snapshot", "--interactive");
     const usage = Object.entries(snapshot.refs as Record<string, { name: string; role: string }>).find(([, entry]) => entry.role === "menuitem" && entry.name.startsWith("Usage"))!;
     await ui("click", "--ref", `@${usage[0]}`);
     await expect.poll(() => evaluate("document.querySelector('[data-sidebar]').getBoundingClientRect().width")).toBe(80);
-    expect(await evaluate("localStorage.getItem('openopendeliobot.comdebarDensity')")).toBe(density);
+    expect(await evaluate("localStorage.getItem('opendeliobot.sidebarDensity')")).toBe(density);
     await ui("screenshot", "--out", `${handle.logPath}.settings-1100.png`);
     expect(await evaluate("Boolean(document.querySelector('[role=dialog]'))")).toBe(true);
     await ui("press", "--keys", "Escape");

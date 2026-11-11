@@ -7,11 +7,11 @@ import { SharedWorkspaceHint } from "./SharedWorkspaceHint";
 import { WelcomeFlow } from "./WelcomeFlow";
 
 /**
- * Security: a remote page the desktop app loads gets a reduced but truthy window.ogb without remoteClient, and is no
+ * Security: a remote page the desktop app loads gets a reduced but truthy window.odb without remoteClient, and is no
  * more the owner than a browser.
  */
 export function localDesktopPage(): boolean {
-  return window.ogb?.remoteClient !== undefined;
+  return window.odb?.remoteClient !== undefined;
 }
 
 export function useWelcomeViewer(): WelcomeViewer | null {
@@ -37,7 +37,7 @@ export function useWelcomeViewer(): WelcomeViewer | null {
 export function WelcomeGate({ viewer }: { viewer: WelcomeViewer | null }) {
   const { state, dispatch } = useStore();
   const [dismissed, setDismissed] = useState(false);
-  const remoteClient = window.ogb?.remoteClient?.active === true;
+  const remoteClient = window.odb?.remoteClient?.active === true;
   // A welcome finished elsewhere (another window, an older version's record) leaves no draft behind to resume later.
   const finished = Boolean(viewer && state.config) && !welcomeDue(state.config, {
     remoteClient, legacyDone: emailGateDone(), hosted: viewer?.hosted, canSave: viewer?.canSave, cloudHome: viewer?.cloudHome,

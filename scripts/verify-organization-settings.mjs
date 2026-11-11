@@ -146,10 +146,10 @@ if (process.versions.electron && process.argv.includes(flag)) {
     await until(() => browserRequests.length === 2, "second browser request"); approved = true;
     await until(() => evaluate("document.body.textContent.includes('Fixture Studio')"), "approved company connected");
     assert.equal(await evaluate("document.body.textContent.includes('Approved models: 2')"), true);
-    assert.equal(await evaluate("JSON.stringify(window.ogb.organization).includes('token')"), false);
-    assert.equal(await evaluate("window.ogb.organization.state().then(s => /om[dg]_/.test(JSON.stringify(s)))"), false);
-    assert.equal(await evaluate("typeof window.ogb.organization.connection"), "undefined");
-    assert.equal(await evaluate("window.ogb.getCapabilities().then(value => value.dictation.available)"), process.platform === "darwin", "organisation sign-in does not turn the local renderer into a remote workspace");
+    assert.equal(await evaluate("JSON.stringify(window.odb.organization).includes('token')"), false);
+    assert.equal(await evaluate("window.odb.organization.state().then(s => /om[dg]_/.test(JSON.stringify(s)))"), false);
+    assert.equal(await evaluate("typeof window.odb.organization.connection"), "undefined");
+    assert.equal(await evaluate("window.odb.getCapabilities().then(value => value.dictation.available)"), process.platform === "darwin", "organisation sign-in does not turn the local renderer into a remote workspace");
     assert.ok(grantsApplied > 0);
     await until(() => evaluate("document.querySelector('img[alt=\"Organization logo\"]')?.naturalWidth > 0"), "organization logo decoded");
     await win.loadURL(`${url}?branding=1`);
@@ -188,7 +188,7 @@ if (process.versions.electron && process.argv.includes(flag)) {
     await until(() => client.state().status === "signed-out", "revoked grant cleared");
 
     const remote = await open(false);
-    assert.equal(await remote.webContents.executeJavaScript("typeof window.ogb.organization"), "undefined");
+    assert.equal(await remote.webContents.executeJavaScript("typeof window.odb.organization"), "undefined");
     assert.equal(await remote.webContents.executeJavaScript("typeof require"), "undefined");
     remote.destroy();
 
@@ -229,7 +229,7 @@ if (process.versions.electron && process.argv.includes(flag)) {
     });
     await win.loadURL(activeEnvironment(readEnvironments()).origin);
     await until(() => evaluate("document.body.textContent.includes('Old hosted workspace')"), "saved old server restored");
-    assert.equal(await evaluate("typeof window.ogb.organization"), "undefined", "old cloud renderer has no organisation authority");
+    assert.equal(await evaluate("typeof window.odb.organization"), "undefined", "old cloud renderer has no organisation authority");
     const beforeCancel = readFileSync(environmentsFile, "utf8");
     await entry.request();
     assert.equal(readFileSync(environmentsFile, "utf8"), beforeCancel, "cancel preserves the exact saved selection");
@@ -255,7 +255,7 @@ if (process.versions.electron && process.argv.includes(flag)) {
     win = await open(true, activeEnvironment(readEnvironments())?.origin ?? `${url}?app=1`);
     previousWindow.destroy();
     await until(() => evaluate("document.body.textContent.includes('Meet OpenDeliobot')"), "local choice survives recreated renderer");
-    assert.equal(await evaluate("typeof window.ogb.organization"), "object");
+    assert.equal(await evaluate("typeof window.odb.organization"), "object");
     assert.equal(new URL(win.webContents.getURL()).origin, localOrigin);
     // Simulate the already-confirmed companion disconnect's one-bit restart
     // intent; only the actual local panel's acknowledgement consumes it.

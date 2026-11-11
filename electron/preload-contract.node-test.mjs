@@ -29,7 +29,7 @@ const KEEP = `A Cloud or server page on ${contract.releases.join(" or ")} still 
 test("the bridge keeps every function a page of the last two releases calls", () => {
   for (const path of contract.paths) {
     const value = path.split(".").reduce((at, key) => at?.[key], exposed.api);
-    assert.notEqual(value, undefined, `window.ogb.${path} is gone. ${KEEP}`);
+    assert.notEqual(value, undefined, `window.odb.${path} is gone. ${KEEP}`);
   }
 });
 

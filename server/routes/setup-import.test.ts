@@ -75,19 +75,6 @@ async function serve({ local = true, home = fixtureHome(), dataDir }: { local?: 
 }
 
 describe("the setup import routes", () => {
-  it("hands out what Grok Bot left on this computer only to the owner's own loopback there", async () => {
-    const home = fixtureHome();
-    mkdirSync(join(home, "Downloads"));
-    writeFileSync(join(home, "Downloads", "grok-bot-export-drew.json"), "reply");
-    const local = await serve({ home });
-    for (const auth of ["paired", "service"]) expect((await local.call("GET", "/api/setup-import/grok", { auth })).status, auth).toBe(403);
-    expect((await (await serve({ local: false, home })).call("GET", "/api/setup-import/grok")).status).toBe(403);
-    expect((await local.call("POST", "/api/setup-import/grok", { body: {} })).status).toBe(405);
-    const found = await local.call("GET", "/api/setup-import/grok");
-    expect(found.headers.get("cache-control")).toBe("no-store");
-    expect(await found.json()).toMatchObject({ files: [{ name: "grok-bot-export-drew.json", text: "reply" }], bots: [] });
-  });
-
   it("deletes an old Cursor sign-in as the routes start, on any server", async () => {
     const home = fixtureHome();
     writeFileSync(join(home, "cursor-session.json"), "{\"accessToken\":\"x\"}");

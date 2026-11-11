@@ -1441,7 +1441,7 @@
   "settings.runCard.subtitle": "Mostra l'elenco dei comandi shell che un bot ha eseguito per la richiesta attuale. Disattivala per nascondere la scheda e la scorciatoia per salvare l'esecuzione come abilità.",
   "settings.runCard.show": "Mostra la scheda dell'esecuzione",
   "settings.pinnedCircles.title": "Bot fissati come cerchi",
-  "settings.pinnedCircles.subtitle": "Mostra i bot fissati come avatar grandi, come Grok Bot. Allargando la barra laterale ne entrano di più in ogni riga.",
+  "settings.pinnedCircles.subtitle": "Mostra i bot fissati come avatar grandi. Allargando la barra laterale ne entrano di più in ogni riga.",
   "settings.universalPins.title": "Fissati universali",
   "settings.universalPins.subtitle": "Tieni in cima alla barra laterale i bot fissati di ogni gruppo, capo del gruppo compreso. Restano lì mentre il resto dell'elenco scorre.",
   "settings.notificationSounds.title": "Suoni di notifica",

@@ -147,7 +147,7 @@ describe("ClaudeDriver warm summary (fake CLI)", () => {
     expect(argv[argv.indexOf("--output-format") + 1]).toBe("json");
     expect(argv[argv.indexOf("--model") + 1]).toBe("claude-sonnet-5");
     expect(dump.systemPrompt).toBe("You are Editor.");
-    expect(dump.mcpConfig.mcpServers.ogb.args.at(-1)).toMatch(/no-broker\.sock$/);
+    expect(dump.mcpConfig.mcpServers.odb.args.at(-1)).toMatch(/no-broker\.sock$/);
     expect(dump.settings.hooks).toEqual({ PreToolUse: [expect.objectContaining({ matcher: "*" })] });
     expect(dump.hookEnv).toEqual([]);
 

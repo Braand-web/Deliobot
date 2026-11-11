@@ -2,12 +2,11 @@ import { useId, useState } from "react";
 import { cn } from "@/lib/cn";
 import { HermesMark } from "./HermesMark";
 import { CursorMark } from "./CursorMark";
-import { GrokBotMark } from "./GrokBotMark";
 import type { InstanceInfo } from "@/state/store";
 import type { ProviderIconPreset } from "../../shared/provider-icon";
 import { FADED_PROVIDER_MARK, providerMarkTone } from "./provider-mark-fade";
 
-export { HermesMark, CursorMark, GrokBotMark };
+export { HermesMark, CursorMark };
 
 export interface IconProps {
   size?: number;

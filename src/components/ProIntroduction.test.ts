@@ -28,7 +28,7 @@ beforeEach(() => {
   vi.clearAllMocks(); f.values = []; f.index = 0; f.effects = []; f.dispatch = vi.fn(); offer = TRIAL;
   openExternal = vi.fn().mockResolvedValue(true);
   bridge = { state: vi.fn(async () => signedOut), onState: vi.fn(() => () => {}), offer: vi.fn(async () => offer) };
-  vi.stubGlobal("window", { ogb: { cloudAccount: bridge, openExternal } });
+  vi.stubGlobal("window", { odb: { cloudAccount: bridge, openExternal } });
 });
 afterEach(() => vi.unstubAllGlobals());
 
@@ -103,7 +103,7 @@ it("never offers a plan to anyone who pays, may pay, or whose state is unknown; 
   ];
   for (const state of nobodyToSell) expect(proOfferAvailable(state), JSON.stringify(state)).toBe(false);
   expect(proOfferAvailable(signedOut)).toBe(true); expect(proOfferAvailable(plan())).toBe(true);
-  vi.stubGlobal("window", { ogb: { remoteClient: { active: true }, cloudAccount: bridge } });
+  vi.stubGlobal("window", { odb: { remoteClient: { active: true }, cloudAccount: bridge } });
   expect(await card(signedOut)).toBe("");
   vi.stubGlobal("window", {});
   expect(await card(signedOut)).toBe("");

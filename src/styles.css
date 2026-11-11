@@ -3472,3 +3472,40 @@ button:disabled.bg-danger {
 .trace-step-box { background: color-mix(in srgb, #8b7cf6 14%, var(--color-card)); border-color: color-mix(in srgb, #8b7cf6 30%, var(--color-card)); }
 .trace-step-ink { color: color-mix(in srgb, #7c6cf0 85%, var(--color-ink)); }
 .trace-tool-ink { color: color-mix(in srgb, #1f9a8c 80%, var(--color-ink)); }
+
+/* The Delio mascot's pictures: a gentle float, a blink every few seconds, and the antenna's breathing light. */
+.delio-float {
+  animation: delio-float 3.6s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.delio-blink {
+  opacity: 0;
+  animation: delio-blink 4.7s linear infinite;
+}
+.delio-glow {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.delio-glow-slow {
+  animation: delio-glow 3.2s ease-in-out infinite;
+}
+.delio-glow-fast {
+  animation: delio-glow 1.1s ease-in-out infinite;
+}
+@keyframes delio-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2.5%); }
+}
+@keyframes delio-blink {
+  0%, 93.9% { opacity: 0; }
+  94%, 96.9% { opacity: 1; }
+  97%, 100% { opacity: 0; }
+}
+@keyframes delio-glow {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 0.9; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .delio-float, .delio-blink, .delio-glow { animation: none; }
+}

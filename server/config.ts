@@ -1,5 +1,5 @@
 // ~/.opendeliobot/config.json, with env vars overriding its credentials.
-import { readFileSync, mkdirSync, existsSync, renameSync } from "node:fs";
+import { readFileSync, mkdirSync } from "node:fs";
 import { dataHome } from "./data-dir.ts";
 import { signInFromEnv } from "./sign-in-env.ts";
 export { signInFromEnv };
@@ -694,17 +694,10 @@ export function changedInstanceIds(before: Record<string, unknown>, after: Recor
 }
 
 export const DATA_DIR = process.env.ODB_DATA_DIR || join(dataHome(), ".opendeliobot");
-const LEGACY_DATA_DIR = join(dataHome(), ".opengrokbot");
 export const EVENTS_DIR = join(DATA_DIR, "events");
 export const NATIVE_DIR = join(DATA_DIR, "native");
 
 export function ensureDirs() {
-  if (!existsSync(DATA_DIR) && existsSync(LEGACY_DATA_DIR)) {
-    try {
-      renameSync(LEGACY_DATA_DIR, DATA_DIR);
-    } catch {
-    }
-  }
   for (const dir of [DATA_DIR, EVENTS_DIR, NATIVE_DIR]) mkdirSync(dir, { recursive: true });
   migrateLegacyFeatureFlags(DATA_DIR);
 }

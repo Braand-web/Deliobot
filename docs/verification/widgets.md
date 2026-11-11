@@ -1,8 +1,7 @@
 # Chat widgets
 
 A bot shows a widget with `show_widget`, the person presses a button on it, and
-the press reaches the bot as their next message. Design:
-[`docs/superpowers/specs/2026-10-13-chat-widgets-design.md`](../superpowers/specs/2026-10-13-chat-widgets-design.md).
+the press reaches the bot as their next message.
 
 To see widgets with a real bot, paste the prompts in
 [Chat widgets: prompts to try with a real bot](widget-prompts.md).

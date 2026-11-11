@@ -186,8 +186,8 @@ describe("chat transcript rows", () => {
   });
 
   it("follows this device's voice choice at the next store event", async () => {
-    const bridge = window.ogb;
-    window.ogb = { ...bridge, platform: "darwin", remoteClient: { active: true } } as typeof window.ogb;
+    const bridge = window.odb;
+    window.odb = { ...bridge, platform: "darwin", remoteClient: { active: true } } as typeof window.odb;
     const kept = new Map<string, string>();
     vi.stubGlobal("localStorage", { getItem: (key: string) => kept.get(key) ?? null, setItem: (key: string, value: string) => kept.set(key, value) });
     vi.stubGlobal("speechSynthesis", { getVoices: () => [] });
@@ -204,7 +204,7 @@ describe("chat transcript rows", () => {
       await switchTo("host");
       expect(await speak()).toEqual([`${t("chat.speak.needsKey")} (off)`, `${t("chat.speak.needsKey")} (off)`]);
     } finally {
-      window.ogb = bridge;
+      window.odb = bridge;
     }
   });
 });

@@ -283,7 +283,7 @@ export function SimpleUpdatesPage({ remoteActive }: { remoteActive: boolean }) {
   return (
     <SettingsGroup block="updates">
       <SettingsRows>
-        {window.ogb?.updater ? <UpdatesRow title={versionTitle()} /> : <ServerUpdatesRow />}
+        {window.odb?.updater ? <UpdatesRow title={versionTitle()} /> : <ServerUpdatesRow />}
         <UpdatesConsentRow />
         {!remoteActive && <ReplayTourRow />}
         <DiagnosticsRow simple />

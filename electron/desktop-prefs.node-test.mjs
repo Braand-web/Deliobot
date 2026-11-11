@@ -12,21 +12,21 @@ const require = createRequire(import.meta.url);
 const environments = require("./environments.cjs");
 const localOrigin = require("./local-origin.cjs");
 
-const POPUP = "whats-new-2026-11", BOAT = "boat-credit-2026-11", GROK = "grok-move-2026-11", MODELGO = "modelgo-offer-2026-11";
+const POPUP = "whats-new-2026-11", BOAT = "boat-credit-2026-11", MODELGO = "modelgo-offer-2026-11";
 const NOON = new Date(2026, 9, 16, 12).getTime();
 const LOCAL = "http://127.0.0.1:18799", CLOUD = "https://odb-u-1.fly.dev", VPS = "https://bots.example.test";
 
 test("a page on an older release keeps working with the longer list: its own ids record as before, and it never reads the new one", () => {
-  let saved = { seen: [POPUP, GROK, "gone-notice"] };
+  let saved = { seen: [POPUP, MODELGO, "gone-notice"] };
   const prefs = createDesktopPrefs({ read: () => saved, write: value => { saved = structuredClone(value); } });
-  assert.deepEqual(prefs.seen(), [POPUP, GROK]);
+  assert.deepEqual(prefs.seen(), [POPUP, MODELGO]);
   prefs.markSeen(BOAT);
-  assert.deepEqual(saved.seen, [POPUP, GROK, BOAT], "the new id is kept beside the ones an older page records");
+  assert.deepEqual(saved.seen, [POPUP, MODELGO, BOAT], "the new id is kept beside the ones an older page records");
   assert.ok(prefs.seen().includes(BOAT) && prefs.seen().includes(POPUP), "the lookups an older page makes");
 });
 
-test("What's new, Boat's credit offer and the Grok Bot move are the notices a page can record; seen and analytics survive a restart; a broken record never stops the app", () => {
-  assert.deepEqual([...DESKTOP_NOTICES], [POPUP, BOAT, GROK, MODELGO]);
+test("What's new, Boat's credit offer and the ModelGo offer are the notices a page can record; seen and analytics survive a restart; a broken record never stops the app", () => {
+  assert.deepEqual([...DESKTOP_NOTICES], [POPUP, BOAT, MODELGO]);
   let saved = null;
   const writes = [];
   const prefs = createDesktopPrefs({ read: () => saved, write: value => { writes.push(value); saved = structuredClone(value); } });

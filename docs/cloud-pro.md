@@ -461,7 +461,7 @@ the Cloud's address.
 
 ### Open in the app: `opendeliobot://cloud`
 
-The Cloud page (`https://cloud.openopendeliobot.com/cloud`) can offer **Open in the
+The Cloud page (`https://cloud.opendeliobot.com/cloud`) can offer **Open in the
 app** as a link to exactly `opendeliobot://cloud`. The app accepts that string
 and nothing else: no path, query, fragment or trailing slash, and it ignores
 any other form. Like `opendeliobot://organization`, it is an action, not a
@@ -1394,7 +1394,7 @@ never echoes a secret.
 | --- | --- | --- |
 | `ODB_CLOUD_ROLE` | env | `home`. (`desktop` belongs to the Cloud desktop image and is refused here.) |
 | `ODB_CLOUD_MACHINE_ID` | env | The Admin's machine id (a UUID). Binds the volume. |
-| `ODB_CLOUD_ADMIN_URL` | secret | The Cloud origin, exact `https://`, e.g. `https://cloud.openopendeliobot.com`. |
+| `ODB_CLOUD_ADMIN_URL` | secret | The Cloud origin, exact `https://`, e.g. `https://cloud.opendeliobot.com`. |
 | `ODB_CLOUD_BOOTSTRAP_SECRET` | secret | 43 base64url characters (256 bits): the key the Admin signs pairing requests with. |
 | `ODB_PUBLIC_URL` | env | The machine's exact `https://` origin, `https://<app>.fly.dev`. |
 | `ODB_CLOUD_LEGACY_ORIGINS` | env | Optional, only for a home that moved to another provider: the exact `https://` origins it answered at before, comma-separated (at most 8, never a loopback name), e.g. `https://<app>.fly.dev`. |
@@ -1430,14 +1430,14 @@ For each service the Admin has configured, it also sets:
 
 | Variable | Fly | Value |
 | --- | --- | --- |
-| `ODB_CLOUD_BOAT_URL` | env | `https://cloud.openopendeliobot.com/api/cloud/services/boat/api/box/v1`, the Admin's Boat relay. The app speaks Boat's public API v1 (`/sandboxes`, `sandbox` envelopes); this relay still serves Boat's retired box API (`/boxes`, `box` envelopes), so for a base ending in `/api/box/v1` the app translates paths and answers in one place, `server/boat-relay.ts`. A base ending in `/api/v1` gets v1 as it is. Bots use it only for cloud computers, as a tool on their own engine; no turn runs on Boat's own agent, so nothing calls its `/prompt`, `/events`, `/prompts/{id}` or `/interrupt` routes. |
+| `ODB_CLOUD_BOAT_URL` | env | `https://cloud.opendeliobot.com/api/cloud/services/boat/api/box/v1`, the Admin's Boat relay. The app speaks Boat's public API v1 (`/sandboxes`, `sandbox` envelopes); this relay still serves Boat's retired box API (`/boxes`, `box` envelopes), so for a base ending in `/api/box/v1` the app translates paths and answers in one place, `server/boat-relay.ts`. A base ending in `/api/v1` gets v1 as it is. Bots use it only for cloud computers, as a tool on their own engine; no turn runs on Boat's own agent, so nothing calls its `/prompt`, `/events`, `/prompts/{id}` or `/interrupt` routes. |
 | `ODB_CLOUD_BOAT_TOKEN` | secret | This machine's Boat relay token (`box_odb_…`). It is not a Boat key and works only through the relay. |
-| `ODB_CLOUD_VOICE_URL` | env | `https://cloud.openopendeliobot.com/api/cloud/services/voice/v1`, the Admin's voice relay. |
+| `ODB_CLOUD_VOICE_URL` | env | `https://cloud.opendeliobot.com/api/cloud/services/voice/v1`, the Admin's voice relay. |
 | `ODB_CLOUD_VOICE_TOKEN` | secret | This machine's voice relay token (`odb_voice_…`). |
 | `ODB_TTS_DEFAULT_VOICE` | env | An ElevenLabs voice id, used until the person picks a voice or another speech provider in Settings. |
-| `ODB_CLOUD_DECIDER_URL` | env | `https://cloud.openopendeliobot.com/api/cloud/services/decider`, the Admin's Jev relay. It is a Jev base URL, used as it is: the decider adds `/v1/systemone`, so every included decision goes to exactly `<ODB_CLOUD_DECIDER_URL>/v1/systemone`, and extraction adds `/v1/extract`. |
+| `ODB_CLOUD_DECIDER_URL` | env | `https://cloud.opendeliobot.com/api/cloud/services/decider`, the Admin's Jev relay. It is a Jev base URL, used as it is: the decider adds `/v1/systemone`, so every included decision goes to exactly `<ODB_CLOUD_DECIDER_URL>/v1/systemone`, and extraction adds `/v1/extract`. |
 | `ODB_CLOUD_DECIDER_TOKEN` | secret | This machine's decision relay token (`odb_decide_…`). It is not a Jev key and works only through the relay. |
-| `ODB_CLOUD_X_URL` | env | `https://cloud.openopendeliobot.com/api/cloud/services/x`, the Admin's treg relay; the client calls `<ODB_CLOUD_X_URL>/call/<endpoint>` for the X tools' eight endpoints, `/research/search`, `/research/endpoints/<id>` and `/research/call/<id>` for the research tools, and `GET /usage` for the month's calls on the Apps page's X card (`GET /api/x/status`). The home asks `GET /research/search` with no job at start, which spends nothing: a 400 means research is on, an off answer hides the research tools (x_search stays) until an hour later or a restart, and a research call refused as off does the same. A person's own treg key (Settings → API keys) wins over it and goes straight to treg. |
+| `ODB_CLOUD_X_URL` | env | `https://cloud.opendeliobot.com/api/cloud/services/x`, the Admin's treg relay; the client calls `<ODB_CLOUD_X_URL>/call/<endpoint>` for the X tools' eight endpoints, `/research/search`, `/research/endpoints/<id>` and `/research/call/<id>` for the research tools, and `GET /usage` for the month's calls on the Apps page's X card (`GET /api/x/status`). The home asks `GET /research/search` with no job at start, which spends nothing: a 400 means research is on, an off answer hides the research tools (x_search stays) until an hour later or a restart, and a research call refused as off does the same. A person's own treg key (Settings → API keys) wins over it and goes straight to treg. |
 | `ODB_CLOUD_X_TOKEN` | secret | This machine's X research relay token (`odb_x_…`). Not a treg key; it works only through the relay, within the plan's monthly X research calls. A signed-in desktop gets its own (`odb_xd_…`) from `POST /api/cloud/desktop/services/x` and hands it to its server in memory. |
 
 A service is included only when both its URL and its token are set
@@ -1565,7 +1565,7 @@ credit, the Admin also sets:
 
 | Variable | Fly | Value |
 | --- | --- | --- |
-| `ODB_CLOUD_AI_URL` | env | `https://cloud.openopendeliobot.com/api/cloud/services/ai/v1`, an OpenAI-compatible base URL with its `/v1` (as the Admin sends it): `POST {url}/chat/completions` and `GET {url}/models` only. Nothing Anthropic-shaped (no `/v1/messages`) answers a credit token. |
+| `ODB_CLOUD_AI_URL` | env | `https://cloud.opendeliobot.com/api/cloud/services/ai/v1`, an OpenAI-compatible base URL with its `/v1` (as the Admin sends it): `POST {url}/chat/completions` and `GET {url}/models` only. Nothing Anthropic-shaped (no `/v1/messages`) answers a credit token. |
 | `ODB_CLOUD_AI_TOKEN` | secret | This machine's credit token (`odb_ai_…`), sent as `Authorization: Bearer`. It works only through the relay, only for this account's credit, and not at all once it is spent or the Cloud is deleted. |
 
 - **OpenDeliobot's own chat engine, nothing else.** `server/cloud-credit-provider.ts`
@@ -2135,9 +2135,9 @@ launch: What's new comes first, and the Boat card waits for a later one.
    button carries the slide's tag on the Cloud's funnel (`app_whats_new_pro`,
    `app_whats_new_team`): **Get Pro** opens the Add a Cloud dialog with
    `source: app_whats_new_pro`, which its checkout sends; **See the new Cloud**
-   opens `https://cloud.openopendeliobot.com/cloud?src=app_whats_new_pro` (the plans,
+   opens `https://cloud.opendeliobot.com/cloud?src=app_whats_new_pro` (the plans,
    for someone without one); **Start a Team** opens
-   `https://cloud.openopendeliobot.com/pro/buy?plan=team&src=app_whats_new_team`, the
+   `https://cloud.opendeliobot.com/pro/buy?plan=team&src=app_whats_new_team`, the
    website's Get Team with this slide's tag (the staging Admin's site for an app
    on staging), and for someone with a plan of their own, whom that page would
    only tell to write in, the Add a Cloud dialog with `source:
@@ -2248,7 +2248,7 @@ plans the app can move to itself (`upgrades: [{tier, amount}]`, US cents a month
 the Admin's `ODB_CLOUD_APP_UPGRADES` is off). `electron/cloud-home.mjs` `parseCloudUsage` drops anything malformed (an
 unknown kind, an allowance of nothing, a plan it doesn't know); it is display only and never grants or limits anything.
 Main keeps it on the account's state, and `cloudPlanSnapshot` hands it to this computer's page and the person's own Cloud
-page alike (`ogb.cloudPlan`), so the meter reads the same on both (`src/components/CloudUsageMeter.tsx`,
+page alike (`odb.cloudPlan`), so the meter reads the same on both (`src/components/CloudUsageMeter.tsx`,
 `src/lib/usage-meter.ts`).
 
 - **The sidebar card**, above the person's name (not in the icon rail), only while an allowance is at 80% or more: the
@@ -2260,13 +2260,13 @@ page alike (`ogb.cloudPlan`), so the meter reads the same on both (`src/componen
 - **Settings → General → Delio Cloud usage**, while there is a paid plan: every allowance with its meter, when they
   start over, and Upgrade to the next plan (the others as links), "You're on the top plan" on Max, or "To change your
   team's plan, write to us" on a team's plan.
-- **Upgrade, one tap and a confirm.** Upgrade asks main for a preview (`ogb.cloudPlan.upgradePreview(plan, source)`,
+- **Upgrade, one tap and a confirm.** Upgrade asks main for a preview (`odb.cloudPlan.upgradePreview(plan, source)`,
   only from a click, only for a plan the verified session lists), which asks the Admin
   (`POST /api/cloud/desktop/upgrade/preview`): Dodo's own numbers for this change, nothing changed. The confirm says them
   in plain words: "Max is $99 a month and starts right away. Today you pay $23.40, the difference for the rest of this
   billing month. From Nov 18 it's $99 a month, plus any tax." (a free trial: nothing today, the new price at its first
   payment). The preview's confirmation stays in main, never in a page. Only the confirm's own **Upgrade to Max**
-  (`ogb.cloudPlan.upgrade(plan, source)`, which needs a click) sends `POST /api/cloud/desktop/upgrade` with it; without a
+  (`odb.cloudPlan.upgrade(plan, source)`, which needs a click) sends `POST /api/cloud/desktop/upgrade` with it; without a
   preview of that very plan, still good (ten minutes), main sends nothing. The Admin changes the plan in Dodo (the prorated
   difference now, the billing date kept; `on_payment_failure: prevent_change`), refuses if Dodo would now charge more than
   the confirm said, and reads the plan back, so the session (read again at once) shows the new plan and allowances. Plain
@@ -2290,9 +2290,9 @@ only.
   the memory. $49 a month. Today you pay only for the rest of this month."), **Upgrade** and **Not now**; on the top plan
   a tip ("run fewer bots at once and close browsers you're not using") and **Got it**.
 - **Upgrade** is the usual one: the preview, then the person's confirm, with source `app_room`. After it the card offers
-  **Restart now** (`ogb.cloudPlan.restartNow()`, `POST /api/cloud/desktop/resize-now`, "Takes about a minute, and stops anything
+  **Restart now** (`odb.cloudPlan.restartNow()`, `POST /api/cloud/desktop/resize-now`, "Takes about a minute, and stops anything
   running now"); otherwise the Cloud gets its new size the next time it's not busy.
-- **Not now** (`ogb.cloudPlan.roomNotNow(id)`, `POST /api/cloud/desktop/room`) hides it here at once and the Admin offers
+- **Not now** (`odb.cloudPlan.roomNotNow(id)`, `POST /api/cloud/desktop/room`) hides it here at once and the Admin offers
   nothing for two weeks. A new offer comes at most once a week. Both channels act only on the session's own Cloud, only from
   a click.
 

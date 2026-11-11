@@ -38,8 +38,8 @@ const teamName = () => fetch("/.well-known/opendeliobot/environment").then((res)
   .then((descriptor) => (descriptor.capabilities?.cloudTeam === true && typeof descriptor.label === "string" ? descriptor.label : null), () => null);
 
 async function chooseRoot(): Promise<React.ReactNode> {
-  const home = window.ogb?.home;
-  if (location.pathname === "/home" && home) return <HomeScreen bridge={home} manage={window.ogb?.cloudPlan?.manage} />;
+  const home = window.odb?.home;
+  if (location.pathname === "/home" && home) return <HomeScreen bridge={home} manage={window.odb?.cloudPlan?.manage} />;
   if (location.pathname === "/pair") {
     const signIn = takeBrowserSignInFromLocation();
     if (signIn) {

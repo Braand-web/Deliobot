@@ -36,11 +36,11 @@ beforeEach(() => {
   setLocale("en"); vi.clearAllMocks(); steps = [];
   opener = document.body.appendChild(document.createElement("button")); opener.textContent = "composer"; opener.focus();
   host = document.body.appendChild(document.createElement("div")); root = createRoot(host);
-  (window as { ogb?: unknown }).ogb = { openExternal: vi.fn(async () => true) };
+  (window as { odb?: unknown }).odb = { openExternal: vi.fn(async () => true) };
 });
 afterEach(async () => {
   await act(async () => root.unmount());
-  document.body.replaceChildren(); delete (window as { ogb?: unknown }).ogb;
+  document.body.replaceChildren(); delete (window as { odb?: unknown }).odb;
   document.documentElement.style.removeProperty("--code-color-scheme");
 });
 
@@ -116,16 +116,16 @@ describe("the What's new popup", () => {
     await click("Get Pro");
     expect(props.onBuy).toHaveBeenCalledExactlyOnceWith("pro"); expect(props.onDone).toHaveBeenCalledOnce();
     expect(steps.at(-1)).toEqual(["get_pro", "pro"]);
-    expect(window.ogb!.openExternal, "Get Pro stays in the app").not.toHaveBeenCalled();
+    expect(window.odb!.openExternal, "Get Pro stays in the app").not.toHaveBeenCalled();
 
     vi.clearAllMocks(); await show();
     await click("See the new Cloud"); await flush();
-    expect(window.ogb!.openExternal).toHaveBeenCalledWith("https://cloud.openopendeliobot.com/cloud?src=app_whats_new_pro");
+    expect(window.odb!.openExternal).toHaveBeenCalledWith("https://cloud.opendeliobot.com/cloud?src=app_whats_new_pro");
     expect(props.onDone).toHaveBeenCalledOnce(); expect(steps.at(-1)).toEqual(["see_cloud", "pro"]);
 
     vi.clearAllMocks(); await show(); await click("Next");
     await click("Start a Team"); await flush();
-    expect(window.ogb!.openExternal).toHaveBeenCalledWith("https://cloud.openopendeliobot.com/pro/buy?plan=team&src=app_whats_new_team");
+    expect(window.odb!.openExternal).toHaveBeenCalledWith("https://cloud.opendeliobot.com/pro/buy?plan=team&src=app_whats_new_team");
     expect(props.onDone).toHaveBeenCalledOnce(); expect(steps.at(-1)).toEqual(["start_team", "team"]);
     expect(props.onBuy).not.toHaveBeenCalled();
   });
@@ -134,18 +134,18 @@ describe("the What's new popup", () => {
     await show(TEAM_ONLY);
     await click("Start a Team"); await flush();
     expect(props.onBuy).toHaveBeenCalledExactlyOnceWith("team"); expect(props.onDone).toHaveBeenCalledOnce();
-    expect(window.ogb!.openExternal).not.toHaveBeenCalled();
+    expect(window.odb!.openExternal).not.toHaveBeenCalled();
     expect(steps.at(-1)).toEqual(["start_team", "team"]);
   });
 
   it("an app on the staging Admin opens the staging Cloud website", async () => {
     await show({ ...BOTH, staging: true }); await click("Next");
     await click("Start a Team"); await flush();
-    expect(window.ogb!.openExternal).toHaveBeenCalledWith("https://odb-cloud-staging.fly.dev/pro/buy?plan=team&src=app_whats_new_team");
+    expect(window.odb!.openExternal).toHaveBeenCalledWith("https://odb-cloud-staging.fly.dev/pro/buy?plan=team&src=app_whats_new_team");
   });
 
   it("a browser that won't open keeps it up and says so", async () => {
-    vi.mocked(window.ogb!.openExternal!).mockRejectedValueOnce(new Error("no browser"));
+    vi.mocked(window.odb!.openExternal!).mockRejectedValueOnce(new Error("no browser"));
     await show();
     await click("See the new Cloud"); await flush();
     expect(props.onDone).not.toHaveBeenCalled();

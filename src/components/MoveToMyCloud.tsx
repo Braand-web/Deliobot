@@ -13,7 +13,7 @@ import { NotNowButton, PRIMARY_BUTTON } from "./NoticeCard";
 
 type MenuItem = (icon: ReactNode, label: string, onClick?: () => void, opts?: { disabled?: boolean; hint?: string }) => ReactNode;
 
-const bridge = () => (!window.ogb?.remoteClient?.active ? window.ogb?.cloudSendPage : undefined);
+const bridge = () => (!window.odb?.remoteClient?.active ? window.odb?.cloudSendPage : undefined);
 
 /** Which bots go to My Cloud: any of them, found by name, or everything with one press. */
 export function MoveChooser({ onClose }: { onClose: () => void }) {

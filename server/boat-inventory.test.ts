@@ -12,7 +12,7 @@ const DELETION_OPERATION_ID = "bdop_0123456789abcdef0123456789abcdef";
 const legacyNameFor = (botId: string) => {
   const prefix = botId.slice(0, 8).toLowerCase().replace(/[^a-z0-9]/g, "");
   const hash = createHash("sha256").update(botId).digest("hex").slice(0, 6);
-  return `ogb-${prefix}-${hash}`;
+  return `odb-${prefix}-${hash}`;
 };
 
 describe("OpenDelio-managed Boat inventory", () => {
@@ -170,9 +170,9 @@ describe("OpenDelio-managed Boat inventory", () => {
         dedicatedIp: "203.0.113.8",
         env: { PRIVATE_KEY: "do-not-leak" },
       },
-      { id: "bx_abcdefgh", name: "ogb-orphaned-abcdef", state: "archived", desktopUrl: "secret" },
+      { id: "bx_abcdefgh", name: "odb-orphaned-abcdef", state: "archived", desktopUrl: "secret" },
       { id: "bx_jkmnpqrs", name: "my-production-box", state: "running" },
-      { id: "bad/id", name: "ogb-invalid0-123456", state: "running" },
+      { id: "bad/id", name: "odb-invalid0-123456", state: "running" },
     ];
 
     const inventory = await boat.listManagedBoats(cfg, [{ botId, name: "Research", inUse: true }]);
@@ -379,11 +379,11 @@ describe("OpenDelio-managed Boat inventory", () => {
     const legacyBotId = "legacy-owner";
     const currentName = await boat.boatNameFor(currentBotId);
     const orphanName = await boat.boatNameFor("deleted-local-bot");
-    const currentScope = currentName.match(/^ogb-([a-f0-9]{12})-/)?.[1];
+    const currentScope = currentName.match(/^odb-([a-f0-9]{12})-/)?.[1];
     expect(currentScope).toBeTruthy();
     const foreignScope = currentScope === "000000000000" ? "111111111111" : "000000000000";
-    const foreignName = currentName.replace(/^ogb-[a-f0-9]{12}-/, `ogb-${foreignScope}-`);
-    const ownerlessLegacyName = "ogb-orphaned-abcdef";
+    const foreignName = currentName.replace(/^odb-[a-f0-9]{12}-/, `odb-${foreignScope}-`);
+    const ownerlessLegacyName = "odb-orphaned-abcdef";
     boats = [
       { id: "bx_23456789", name: currentName, state: "ready" },
       { id: "bx_abcdefgh", name: legacyNameFor(legacyBotId), state: "archived" },

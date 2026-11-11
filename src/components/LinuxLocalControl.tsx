@@ -35,7 +35,7 @@ export function LinuxLocalControl() {
   const bundledDriver = local.driverSource === "bundled";
 
   const run = async (action: "enable" | "disable" | "retry") => {
-    if (!window.ogb?.localControl) return;
+    if (!window.odb?.localControl) return;
     setPending(action);
     setError(null);
     try {
@@ -46,7 +46,7 @@ export function LinuxLocalControl() {
           return;
         }
       }
-      await window.ogb.localControl[action]();
+      await window.odb.localControl[action]();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : String(reason));
     } finally {

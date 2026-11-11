@@ -70,7 +70,7 @@ beforeAll(async () => {
   // One deliberately unknown engine: nothing probes an installed CLI.
   writeFileSync(join(dataDir, "config.json"), JSON.stringify({ instances: { fixture: { driver: "not-a-real-driver" } } }));
   // A computer this installation made on the included account.
-  accounts.relay = [{ id: INCLUDED_BOX, name: "ogb-included-fixture", state: "archived" }];
+  accounts.relay = [{ id: INCLUDED_BOX, name: "odb-included-fixture", state: "archived" }];
   journal = join(dataDir, "box-create-requests.json");
   writeFileSync(journal, JSON.stringify({ version: 1, requests: [{
     botId: "included-fixture-bot", requestBody: JSON.stringify({ fixture: true }), idempotencyKey: randomUUID(),

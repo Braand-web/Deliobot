@@ -86,7 +86,7 @@ RUN apt-get update \
     libxshmfence1 libgbm1 fonts-noto-color-emoji fonts-noto-cjk fonts-freefont-ttf \
   && rm -rf /var/lib/apt/lists/* \
   && useradd --create-home --home-dir /data --shell /bin/bash delio
-# The bots' browser (docs/plans/browser-engine.md): the pinned agent-browser
+# The bots' browser: the pinned agent-browser
 # and a Chrome for Testing with its libraries, so a server bot can browse.
 # Pin here and in server/browser-engine-release.ts together.
 ARG AGENT_BROWSER_VERSION=0.37.0

@@ -40,7 +40,7 @@ beforeEach(() => {
     teams: vi.fn().mockResolvedValue({ teams: [{ ...ACME, ready: true }, { id: "team-beta", name: "Beta", ready: false }] }),
     moveToTeam: vi.fn().mockResolvedValue(null), teamRetry: vi.fn().mockResolvedValue({ bot: SCOUT, team: ACME, phase: "moving" }), openTeam: vi.fn().mockResolvedValue(undefined),
   };
-  vi.stubGlobal("window", { ogb: { cloudSendPage: page }, addEventListener: () => {}, removeEventListener: () => {} });
+  vi.stubGlobal("window", { odb: { cloudSendPage: page }, addEventListener: () => {}, removeEventListener: () => {} });
   vi.stubGlobal("document", { body: {}, activeElement: null });
 });
 afterEach(() => { vi.unstubAllGlobals(); });

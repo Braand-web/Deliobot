@@ -34,8 +34,8 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-async function startSignIn(cloudHome: boolean, ogb: object): Promise<HTMLDetailsElement> {
-  vi.stubGlobal("ogb", { platform: "linux", openExternal: vi.fn(async () => {}), ...ogb });
+async function startSignIn(cloudHome: boolean, odb: object): Promise<HTMLDetailsElement> {
+  vi.stubGlobal("odb", { platform: "linux", openExternal: vi.fn(async () => {}), ...odb });
   const store = { state: { config: cloudHome ? { cloudHome: true } : {} }, dispatch: vi.fn(), refreshInstances: vi.fn(async () => {}), refreshModels: vi.fn(async () => {}) } as unknown as ReturnType<typeof useStore>;
   flushSync(() => root.render(createElement(BotEditorStore, { value: store, children: createElement(EngineSetup, { instance: antigravity }) })));
   const button = [...host.querySelectorAll("button")].find((b) => b.textContent?.includes("Sign in with Google"))!;

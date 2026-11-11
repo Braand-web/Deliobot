@@ -49,7 +49,7 @@ const { values } = parseArgs({
 const only = new Set((values.only ?? PHASES.join(",")).split(",").map((phase) => phase.trim()).filter(Boolean));
 for (const phase of only) if (!(PHASES as readonly string[]).includes(phase)) throw new Error(`unknown phase ${phase}; phases: ${PHASES.join(", ")}`);
 const IDLE_MS = Number(values["idle-seconds"]) * 1000;
-const STORAGE = { "odb-analytics-opt-out": "1", "odb-email-gate": "skipped", "odb-simple-mode-prompt": "1", "grok-move-2026-11": "1", "modelgo-offer-2026-11": "1", "odb-advanced-mode": values.advanced ? "1" : "0" };
+const STORAGE = { "odb-analytics-opt-out": "1", "odb-email-gate": "skipped", "odb-simple-mode-prompt": "1", "modelgo-offer-2026-11": "1", "odb-advanced-mode": values.advanced ? "1" : "0" };
 const log = (line: string) => process.stderr.write(`bench-desktop: ${line}\n`);
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const round = (value: number, digits = 1) => Math.round(value * 10 ** digits) / 10 ** digits;

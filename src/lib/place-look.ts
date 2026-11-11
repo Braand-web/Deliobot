@@ -8,7 +8,7 @@ let started = false;
 const listeners = new Set<(look: PlaceLook | null) => void>();
 
 function bridge() {
-  const workspaces = typeof window === "undefined" || window.ogb?.remoteClient?.active ? undefined : window.ogb?.workspaces;
+  const workspaces = typeof window === "undefined" || window.odb?.remoteClient?.active ? undefined : window.odb?.workspaces;
   return workspaces?.look ? workspaces : undefined;
 }
 

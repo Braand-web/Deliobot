@@ -337,7 +337,7 @@ it("the person's Mac, lent by itself through the real connector, is usable by th
     return false;
   }, { timeout: 15_000 }).toBe(true);
   expect(apiTurn!.argv).toContain("--restricted");
-  expect(Object.keys(apiTurn!.mcpConfig.mcpServers)).toEqual(["ogb"]);
+  expect(Object.keys(apiTurn!.mcpConfig.mcpServers)).toEqual(["odb"]);
   expect((await api("POST", `/api/bots/${apiBot.id}/interrupt`, { token: owner, body: { threadId: (await apiAnswered.json() as { thread: string }).thread } })).status).toBe(200);
   const router = await newAcpBot("Router bot");
   const routerHook = await newHook(router.id);

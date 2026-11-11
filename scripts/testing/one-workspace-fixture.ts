@@ -113,7 +113,7 @@ export class TabWindow extends EventEmitter {
     contents.isDestroyed = () => this.destroyed;
     contents.isLoadingMainFrame = () => false;
     contents.focus = () => {};
-    contents.send = (channel: string, ...args: unknown[]) => { void this.evaluate(`window.__ogbEmit?.(${JSON.stringify(channel)}, ...${JSON.stringify(args)})`).catch(() => {}); };
+    contents.send = (channel: string, ...args: unknown[]) => { void this.evaluate(`window.__odbEmit?.(${JSON.stringify(channel)}, ...${JSON.stringify(args)})`).catch(() => {}); };
     contents.executeJavaScript = (code: string) => this.evaluate(code);
     contents.reload = () => { void cdp.request("Page.reload", {}, sessionId).catch(() => {}); };
     this.webContents = contents;
@@ -192,7 +192,7 @@ function preloadStandIn(ipcBase: string, localOrigin: string, tab = "window"): s
   try { localStorage.setItem("odb-analytics-opt-out", "1"); localStorage.setItem("odb-email-gate", "skipped"); localStorage.setItem("odb-advanced-mode", "0");
     for (const notice of ${JSON.stringify(NOTICES)}) localStorage.setItem(notice, "1"); } catch {}
   const listeners = new Map();
-  window.__ogbEmit = (channel, ...args) => { for (const listener of [...(listeners.get(channel) ?? [])]) listener({}, ...args); };
+  window.__odbEmit = (channel, ...args) => { for (const listener of [...(listeners.get(channel) ?? [])]) listener({}, ...args); };
   let sent = 0;
   const call = async (channel, args) => {
     const response = await fetch(${JSON.stringify(ipcBase)} + "/__ipc/" + channel + "?tab=${tab}&seq=" + (++sent), { method: "POST", headers: { "content-type": "text/plain" }, body: JSON.stringify({ args }) });

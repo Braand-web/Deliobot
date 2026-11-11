@@ -157,7 +157,7 @@ beforeEach(() => {
   fixture.beacons = [];
   fixture.live = null;
   state = { ...initialState, instances: [engine], config: { box: { configured: true } } as AppState["config"], computerControl: {} } as AppState;
-  vi.stubGlobal("ogb", {
+  vi.stubGlobal("odb", {
     desktopViewer: { open: vi.fn(async () => true), close: vi.fn(async () => true), onState: () => () => {}, currentState: async () => ({ open: false, contextId: null }) },
   });
   vi.spyOn(window, "open").mockImplementation(() => null);
@@ -189,7 +189,7 @@ describe("taking control of a Local VM", () => {
     await press("Take control");
     await shownLive();
     expect(liveDesktop()!.dataset.target).toBe(`local/bot-${"a".repeat(64)}`);
-    expect(window.ogb!.desktopViewer!.open, "nothing may open in another window").not.toHaveBeenCalled();
+    expect(window.odb!.desktopViewer!.open, "nothing may open in another window").not.toHaveBeenCalled();
     expect(window.open).not.toHaveBeenCalled();
     expect(fixture.controls).toEqual([{ action: "take", controlLeaseId: expect.stringMatching(/^[0-9a-f]{36}$/) }]);
     expect(document.body.textContent).toContain("You're in control");
@@ -370,7 +370,7 @@ describe("taking control of other computers", () => {
     await press("Take control");
     await shownLive();
     expect(liveDesktop()!.dataset.target).toBe("vps/scout");
-    expect(window.ogb!.desktopViewer!.open).not.toHaveBeenCalled();
+    expect(window.odb!.desktopViewer!.open).not.toHaveBeenCalled();
     await press("Hand control back");
     expect(fixture.beacons.some((beacon) => beacon.url.startsWith("/api/bots/scout/computer/viewer-close"))).toBe(true);
   });
@@ -380,6 +380,6 @@ describe("taking control of other computers", () => {
     await press("Take control");
     expect(liveDesktop()).toBeNull();
     expect(fixture.posts).toContain("/api/bots/scout/computer/join");
-    expect(window.ogb!.desktopViewer!.open).toHaveBeenCalledWith("https://desktop.invalid/scout", "Scout's live desktop", "scout");
+    expect(window.odb!.desktopViewer!.open).toHaveBeenCalledWith("https://desktop.invalid/scout", "Scout's live desktop", "scout");
   });
 });

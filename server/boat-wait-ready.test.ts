@@ -5,7 +5,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 describe("waiting for a cloud computer", () => {
   const botId = "stalled-relay-bot";
   const prefix = botId.slice(0, 8).toLowerCase().replace(/[^a-z0-9]/g, "");
-  const name = `ogb-${prefix}-${createHash("sha256").update(botId).digest("hex").slice(0, 6)}`;
+  const name = `odb-${prefix}-${createHash("sha256").update(botId).digest("hex").slice(0, 6)}`;
   const held: ServerResponse[] = [];
   let stall: "read" | "resume" = "read";
   let api: Server;

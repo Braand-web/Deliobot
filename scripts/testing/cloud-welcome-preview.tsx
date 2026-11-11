@@ -21,7 +21,7 @@ function installCloudPage(move: string | null) {
     ...(move === "copy" ? { move: { phase: "copy" as const, chats: { done: 34, total: 142 } } } : {}),
     ...(move === "done" ? { move: { phase: "done" as const, counts: { bots: 6, skills: 2, logins: 2, onePassword: true, chats: 142, routines: 4 }, phone: true, held: [] } } : {}),
   };
-  window.ogb = {
+  window.odb = {
     platform: "darwin",
     getCapabilities: async () => initialDesktopCapabilities(),
     onCapabilitiesChanged: () => () => {},
@@ -31,7 +31,7 @@ function installCloudPage(move: string | null) {
       state: async () => ({ status: "paid", tier: "pro", credit: { grantedUsd: 5, remainingUsd: 5, state: "active" } }),
       manage: async () => {},
     },
-  } as unknown as typeof window.ogb;
+  } as unknown as typeof window.odb;
 }
 
 if (params.get("desktop") === "1") installCloudPage(params.get("move"));

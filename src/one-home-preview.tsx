@@ -30,7 +30,7 @@ const move = stateName === "cloud-failing" ? cloudFailing : stateName === "faili
   : stateName === "moving" ? { phase: "copy" as const, place: "Garage server", chats: { done: 14, total: 31 } } : null;
 const notice = { ready: true, bots: [], updatedBots: [], skills: 0, logins: 0, onePassword: false, settings: 0, signature: "", dismissed: false, running: false, last: null, whole: null,
   arrived: { bots: 0, updatedBots: 0, skills: 0, logins: 0, settings: 0, onePassword: false, chats: { conversations: 0, messages: 0 } }, ...(move ? { move } : {}) } as unknown as CloudSendNotice;
-Object.assign(window, { ogb: {
+Object.assign(window, { odb: {
   workspaces: { places: async () => rail, state: async () => ({ local: true, name: "This computer" }), menu: async () => {}, open: async () => {}, add: async () => {},
     makeHome: async () => ({ started: true }), onChanged: () => () => {} },
   rail: { expand: async () => {}, onSkin: () => () => {} },

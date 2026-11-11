@@ -244,7 +244,7 @@ it("a guest's Claude turn has no command-running tool and no read outside its fo
   expect(argv()).toContain("--restricted");
   expect(after("--tools")).toBe("Read,Grep,Glob,Edit,Write,WebSearch");
   expect(after("--permission-mode")).toBe("default");
-  const socket = connect(JSON.parse(readFileSync(dump, "utf8")).mcpConfig.mcpServers.ogb.args.at(-1) as string);
+  const socket = connect(JSON.parse(readFileSync(dump, "utf8")).mcpConfig.mcpServers.odb.args.at(-1) as string);
   await new Promise<void>((resolve, reject) => { socket.once("connect", resolve); socket.once("error", reject); });
   const requestId = randomUUID();
   socket.write(`${JSON.stringify({ t: "ask", id: requestId, tool: "Write", input: { file_path: "notes.md", content: "hi" } })}\n`);

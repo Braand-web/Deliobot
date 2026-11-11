@@ -17,7 +17,7 @@ import { BotSettingsDialog } from "./BotSettingsDialog";
 import { DesktopCapabilitiesProvider } from "./DesktopCapabilities";
 
 const bot = { id: "bot-1", name: "Maily" } as never as Bot;
-// The provider reads window.ogb.platform on render, so each case sees its stub.
+// The provider reads window.odb.platform on render, so each case sees its stub.
 const headerTag = () => {
   const html = renderToStaticMarkup(createElement(DesktopCapabilitiesProvider, null, createElement(BotSettingsDialog, { bot })));
   return html.match(/<div[^>]*>(?=<span id="bot-settings-title")/)?.[0] ?? "";
@@ -29,7 +29,7 @@ afterEach(() => vi.unstubAllGlobals());
 describe("bot settings caption inset", () => {
   // The window frame's top bar holds the caption buttons and the traffic lights, above the app's card.
   it.each(["win32", "darwin"] as const)("keeps the header flush on %s: the frame's top bar holds the window's buttons", (platform) => {
-    vi.stubGlobal("window", { ogb: { platform } });
+    vi.stubGlobal("window", { odb: { platform } });
     const classes = header();
     expect(classes).toContain("py-3");
     expect(classes).not.toContain("pt-[28px]");
@@ -38,7 +38,7 @@ describe("bot settings caption inset", () => {
   it.each([["darwin", true], ["win32", true], ["linux", false]] as const)(
     "makes the header a window drag region on %s: %s",
     (platform, drags) => {
-      vi.stubGlobal("window", { ogb: { platform } });
+      vi.stubGlobal("window", { odb: { platform } });
       const tag = headerTag();
       expect(tag.includes("data-window-drag")).toBe(drags);
       expect(tag.includes("-webkit-app-region:drag")).toBe(drags);

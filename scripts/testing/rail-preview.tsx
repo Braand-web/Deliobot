@@ -8,7 +8,6 @@ import { setAnalyticsEnabled, setEmailGateDone } from "../../src/lib/analytics";
 import { setAdvancedMode } from "../../src/lib/interface-mode";
 import { NOTICES } from "../../src/lib/notices";
 import { setSidebarDensity, SIDEBAR_WIDTH_KEY, SIMPLE_SIDEBAR_WIDTH_KEY } from "../../src/lib/sidebar-preferences";
-import { GROK_MOVE_NOTICE } from "../../src/lib/notices";
 import { markSimpleModePromptSeen } from "../../src/lib/simple-mode-prompt";
 import { applySkin, type SkinId } from "../../src/lib/skins";
 import "../../src/styles.css";
@@ -36,7 +35,6 @@ const params = new URLSearchParams(location.search);
 setAnalyticsEnabled(false);
 setEmailGateDone("skipped");
 markSimpleModePromptSeen();
-localStorage.setItem(GROK_MOVE_NOTICE, "1");
 try {
   for (const notice of NOTICES) localStorage.setItem(notice, "1");
   for (const width of [SIDEBAR_WIDTH_KEY, SIMPLE_SIDEBAR_WIDTH_KEY]) localStorage.removeItem(width);
@@ -127,7 +125,7 @@ const cloudAdd = { state: async () => addView, start: async () => ({ outcome: "o
 if (params.has("railpage")) {
   // The window's own rail page: see-through but for the rail, as main.tsx draws it.
   document.documentElement.style.background = document.body.style.background = "transparent";
-  Object.assign(window, { ogb: {
+  Object.assign(window, { odb: {
     platform: windows ? "win32" : "darwin", getCapabilities: capabilities, onCapabilitiesChanged: () => () => {}, applySkin: ok,
     workspaces: { places: async () => rail, open: ok, add: ok, recolor, onChanged: () => () => {} },
     cloudAdd, rail: { expand: ok, onSkin: () => () => {} },
@@ -147,7 +145,7 @@ if (params.has("railpage")) {
   };
   besidePage();
   const update = params.get("update");
-  Object.assign(window, { ogb: {
+  Object.assign(window, { odb: {
     platform: windows ? "win32" : "darwin",
     app: { version: "0.1.130", ownPage: computer },
     getCapabilities: capabilities,

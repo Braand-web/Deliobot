@@ -26,7 +26,7 @@ import { Select } from "./Select";
 
 export function UpdatesRow({ title = t("settings.updates.title") }: { title?: string }) {
   const s = useUpdaterState();
-  const updater = window.ogb?.updater;
+  const updater = window.odb?.updater;
   if (!s || !updater) return null;
   const label =
     s.status === "checking"

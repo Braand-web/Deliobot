@@ -14,7 +14,7 @@ export function EmptyChat({ bot }: { bot: Bot }) {
       {!advanced ? <div className="text-[17px] font-semibold text-ink">{bot.name}</div> : <RenameTitle
         value={bot.name}
         onCommit={(name) => {
-          if (window.ogb?.remoteClient?.active) {
+          if (window.odb?.remoteClient?.active) {
             void api(`/api/bots/${bot.id}/profile`, { method: "PATCH", body: JSON.stringify({ name }) })
               .then(({ bot: updated }) => dispatch({ type: "botPatched", bot: updated }))
               .catch((cause) => dispatch({ type: "error", message: cause instanceof Error ? cause.message : String(cause) }));

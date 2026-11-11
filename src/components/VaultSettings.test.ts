@@ -298,11 +298,11 @@ describe("Settings → Vault: keys and secrets", () => {
 });
 
 describe("Settings → Vault with My Cloud", () => {
-  afterEach(() => { delete (window as { ogb?: unknown }).ogb; });
+  afterEach(() => { delete (window as { odb?: unknown }).odb; });
   const where = (site: string) => host.querySelector(`[data-login-row="${site}"] [data-login-where]`)?.textContent;
 
   it("without My Cloud says nothing of sides; on My Cloud itself says its logins are its own and sends nothing", async () => {
-    (window as { ogb?: unknown }).ogb = { cloudLogins: { state: vi.fn().mockResolvedValue({ cloud: null }), send: vi.fn() } };
+    (window as { odb?: unknown }).odb = { cloudLogins: { state: vi.fn().mockResolvedValue({ cloud: null }), send: vi.fn() } };
     fixture.api.mockResolvedValueOnce({ logins: [SHARED_LOGIN], onePassword: OFF });
     await render();
     expect(host.querySelector("[data-logins-sides]")).toBeNull();
@@ -310,7 +310,7 @@ describe("Settings → Vault with My Cloud", () => {
     expect(where("example.org")).toBeUndefined();
     act(() => root.unmount());
     root = createRoot(host);
-    delete (window as { ogb?: unknown }).ogb;
+    delete (window as { odb?: unknown }).odb;
     fixture.config = { cloudHome: true };
     fixture.api.mockResolvedValueOnce({ logins: [SHARED_LOGIN], onePassword: OFF });
     await render();

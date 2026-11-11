@@ -66,7 +66,7 @@ describe("Boat deletion journal", () => {
     let journal = await import("./boat-delete-journal.ts");
     const prepared = journal.prepareBoatDeletion({
       boxId: "bx_23456789",
-      name: "ogb-0123456789ab-owner-abcdef",
+      name: "odb-0123456789ab-owner-abcdef",
       ownerBotId: "owner-bot",
     });
     expect(prepared).toMatchObject({

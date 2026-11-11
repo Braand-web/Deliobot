@@ -59,12 +59,12 @@ if (process.versions.electron && process.argv.includes(flag)) {
       await new Promise(resolve => setTimeout(resolve, 25));
     } throw new Error(`Button unavailable: ${text}`); };
     await win.loadURL(preview); await wait("Sign in to ODB Cloud"); assert.equal(begins, 0);
-    assert.equal(await evaluate("typeof window.ogb.cloudAccount.connection"), "undefined");
+    assert.equal(await evaluate("typeof window.odb.cloudAccount.connection"), "undefined");
     await click("Sign in to ODB Cloud"); await wait("Security details"); assert.equal(browsers[0], `${origin}/cloud/desktop?code=ABCDE-FGHJK`);
     await click("Cancel sign-in"); await wait("Sign in to ODB Cloud"); assert.equal(saved, null);
     await click("Sign in to ODB Cloud"); await wait("Security details"); approved = true;
     await wait("Free account"); assert.equal(saved.token, token);
-    assert.ok(!(await evaluate("(async () => JSON.stringify(await window.ogb.cloudAccount.state()))()")).includes(token));
+    assert.ok(!(await evaluate("(async () => JSON.stringify(await window.odb.cloudAccount.state()))()")).includes(token));
     await click("Choose a Cloud plan in your browser"); await new Promise(resolve => setTimeout(resolve, 50)); assert.equal(browsers.at(-1), `${origin}/cloud`);
     await wait("Free account"); assert.equal(await evaluate("document.body.innerText.includes('Pro active')"), false);
     entitlement = { plan: "pro", status: "active", expiresAt: Date.now() + 3600_000, version: 1 };
@@ -83,7 +83,7 @@ if (process.versions.electron && process.argv.includes(flag)) {
     await wait("Sign in to ODB Cloud");
     for (let count = 0; count < 80 && revokes !== 1; count++) await new Promise(resolve => setTimeout(resolve, 25));
     assert.equal(saved, null); assert.equal(revokes, 1);
-    await win.loadURL(`${origin}/`); assert.equal(await evaluate("typeof window.ogb?.cloudAccount"), "undefined"); assert.equal(await evaluate("typeof require"), "undefined");
+    await win.loadURL(`${origin}/`); assert.equal(await evaluate("typeof window.odb?.cloudAccount"), "undefined"); assert.equal(await evaluate("typeof require"), "undefined");
     const receipt = { passed: true, flow: "Optional personal Cloud sign-in, cancellation, free state, checkout cannot activate, verified Pro, unavailable, revocation, confirmed sign-out, narrow layout, remote boundary",
       limitation: "Synthetic Cloud/approval, captured external browser requests and in-memory credential storage. No real OTP, payment, OS keychain, installed update or production service." };
     writeFileSync(join(output, "receipt.json"), `${JSON.stringify(receipt, null, 2)}\n`); console.log(JSON.stringify(receipt));

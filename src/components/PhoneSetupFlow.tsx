@@ -57,7 +57,7 @@ import {
   type PhonePairingAttemptLock,
   type PhonePairingAttemptQueue,
 } from "../lib/phone-setup";
-import type { CompanionAccountState } from "../types/ogb";
+import type { CompanionAccountState } from "../types/odb";
 import {
   companionStateRefreshIsCurrent,
   mutateCompanionBridgeState,
@@ -71,7 +71,7 @@ import { productName } from "../lib/brand";
 import type { CompanionBridge, CompanionState } from "../lib/companion-types";
 export type { CompanionBridge, CompanionRoute, CompanionState, PhoneDevice } from "../lib/companion-types";
 
-type AccountBridge = NonNullable<NonNullable<Window["ogb"]>["companionAccount"]>;
+type AccountBridge = NonNullable<NonNullable<Window["odb"]>["companionAccount"]>;
 type StateBridge<T> = { state: () => Promise<T> };
 // Functions, not constants: a message resolved at import time would keep the language the app booted in.
 const directPairingUnavailable = () => t("phone.error.directUnavailable");
@@ -92,7 +92,7 @@ export { companionBridge };
 
 export const companionAccountBridge = (): AccountBridge | null =>
   // SAFETY: Electron exposes only these account operations and never sends credentials to the renderer.
-  (globalThis as { ogb?: { companionAccount?: AccountBridge } }).ogb?.companionAccount ?? null;
+  (globalThis as { odb?: { companionAccount?: AccountBridge } }).odb?.companionAccount ?? null;
 
 export const loadCompanionBridgeState = async (
   companion: StateBridge<CompanionState> | null,

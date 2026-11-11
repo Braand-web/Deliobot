@@ -111,7 +111,7 @@ export function botsUsingService(bots: Bot[], instances: InstanceInfo[], slug: s
 
 export function PluginsPanel() {
   const { state, dispatch } = useStore();
-  const remoteClient = window.ogb?.remoteClient?.active === true;
+  const remoteClient = window.odb?.remoteClient?.active === true;
   const dialogRef = useRef<HTMLDivElement>(null);
   const surface = state.pluginsSurface;
   const [cards, setCards] = useState<ToolkitCard[] | null>(null);

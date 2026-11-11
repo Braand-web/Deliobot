@@ -8,17 +8,17 @@
   "workers_dev": false,
   "routes": [
     {
-      "pattern": "accounts.openopendeliobot.com",
+      "pattern": "accounts.opendeliobot.com",
       "custom_domain": true
     }
   ],
   "vars": {
-    "BETTER_AUTH_URL": "https://accounts.openopendeliobot.com",
-    "EMAIL_FROM": "noreply@openopendeliobot.com",
+    "BETTER_AUTH_URL": "https://accounts.opendeliobot.com",
+    "EMAIL_FROM": "noreply@opendeliobot.com",
     "ALLOWED_ORIGINS": "",
     "CLOUDFLARE_ACCOUNT_ID": "0c92969a82eb9e173b013a7e7a02333d",
     "CLOUDFLARE_ZONE_ID": "bae08399bb6f96eb7266c65ac0057eee",
-    "COMPANION_HOST_SUFFIX": "openopendeliobot.com",
+    "COMPANION_HOST_SUFFIX": "opendeliobot.com",
     // More Cloudflare accounts for managed endpoints (README "Several
     // Cloudflare accounts"). Unset: the account above is the only one. A new
     // endpoint goes to the account with the most room; an endpoint never
@@ -50,7 +50,7 @@
     // quota. They drive the 90% usage alert and /healthz, rank accounts for
     // new endpoints, and tell a tunnel-quota 429 from a rate limit, so keep
     // them equal to Cloudflare's real quotas. They never refuse an
-    // allocation on their own. The openopendeliobot.com zone is on Pro: 3,500
+    // allocation on their own. The opendeliobot.com zone is on Pro: 3,500
     // DNS records.
     "ODB_TUNNEL_LIMIT": "1000",
     "ODB_DNS_RECORD_LIMIT": "3500",
@@ -73,7 +73,7 @@
     // exist; add relay2 when its box and DNS are up.
     // RELAY_ROLLOUT_PERCENT (0-100) admits computers by a stable hash of their host id; RELAY_ALLOW_INSTALLATIONS
     // (comma-separated installation ids) admits a few by name; RELAY_DISABLED "1" turns every token off.
-    "RELAY_NODES": "relay1.openopendeliobot.com,relay2.openopendeliobot.com",
+    "RELAY_NODES": "relay1.opendeliobot.com,relay2.opendeliobot.com",
     "RELAY_NODES_AMERICAS": "",
     "RELAY_TOKEN_KID": "k1",
     "RELAY_ROLLOUT_PERCENT": "100",
@@ -118,7 +118,7 @@
   "send_email": [
     {
       "name": "EMAIL",
-      "allowed_sender_addresses": ["noreply@openopendeliobot.com"]
+      "allowed_sender_addresses": ["noreply@opendeliobot.com"]
     }
   ],
   "triggers": {

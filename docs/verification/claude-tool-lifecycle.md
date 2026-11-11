@@ -18,7 +18,7 @@ That result must not settle a submitted user turn or consume its permissions.
 The regression fixture emits this result, then asks for WebFetch permission,
 and only finishes the parent after the test releases a file gate.
 
-The small `agents` and `ogb` MCP servers use `alwaysLoad: true` so the first
+The small `agents` and `odb` MCP servers use `alwaysLoad: true` so the first
 prompt includes coordination and approval tools; the browser does too when the
 turn plans to browse. Every other MCP server (connected apps, a bot's own
 servers, data, phone, computer and the rest) loads on demand: each turn's

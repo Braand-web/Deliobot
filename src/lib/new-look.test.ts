@@ -19,10 +19,10 @@ async function boot(simpleOnly = true) {
 }
 
 const ADVANCED_PREFS = {
-  "odb-font": "serif", "odb-chat-width": "full", "odb-show-threads": "1", "openopendeliobot.comdebarToolsLayout": "toolbar",
+  "odb-font": "serif", "odb-chat-width": "full", "odb-show-threads": "1", "opendeliobot.sidebarToolsLayout": "toolbar",
   "opendeliobot.pinnedCircles": "1", "opendeliobot.universalPins": "1", "odb-show-run-card": "0", "odb-web-panels": "[]",
 };
-const KEPT = { "odb-skin": "lagoon", "openopendeliobot.comdebarDensity": "avatars", "odb-drafts": "{}" };
+const KEPT = { "odb-skin": "lagoon", "opendeliobot.sidebarDensity": "avatars", "odb-drafts": "{}" };
 
 beforeEach(() => {
   values.clear();

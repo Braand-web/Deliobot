@@ -85,7 +85,7 @@ beforeEach(() => {
   fixture.dispatch.mockReset();
   fixture.track.mockReset();
   onConnection = vi.fn<(connected: boolean | null) => void>();
-  (window as unknown as { ogb?: unknown }).ogb = undefined;
+  (window as unknown as { odb?: unknown }).odb = undefined;
 });
 afterEach(() => {
   act(() => root.unmount());
@@ -142,7 +142,7 @@ describe("the X card in Apps", () => {
 
   it("saves a pasted key into the desktop's encrypted store when the app has one", async () => {
     const setCredential = vi.fn(async (_name: string, value: string) => { server.own = Boolean(value); return configStatus(); });
-    (window as unknown as { ogb: unknown }).ogb = { setCredential };
+    (window as unknown as { odb: unknown }).odb = { setCredential };
     await mount({});
     await type(KEY);
     await submit();

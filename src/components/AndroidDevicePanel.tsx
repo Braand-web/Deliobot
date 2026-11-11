@@ -3,7 +3,7 @@ import { ArrowLeft, Circle, Loader2, RotateCcw, ShieldCheck, Smartphone, Usb } f
 import { usePageVisible } from "@/lib/page-visible";
 import { t } from "@/lib/i18n";
 import { Select } from "./Select";
-import type { AndroidDeviceInput, AndroidDeviceStatus, AndroidUsbDevice } from "@/types/ogb";
+import type { AndroidDeviceInput, AndroidDeviceStatus, AndroidUsbDevice } from "@/types/odb";
 
 type UnitPoint = { x: number; y: number };
 
@@ -15,7 +15,7 @@ export type AndroidUsbDevicesStatus = AndroidDeviceStatus & {
 };
 
 export function useAndroidUsbDevices(): AndroidUsbDevicesStatus {
-  const bridge = window.ogb?.androidDevice;
+  const bridge = window.odb?.androidDevice;
   const [status, setStatus] = useState<AndroidDeviceStatus>(EMPTY_STATUS);
   const [scanned, setScanned] = useState(false);
   const pageVisible = usePageVisible();
@@ -70,7 +70,7 @@ function deviceLabel(device: AndroidUsbDevice) {
 }
 
 export function AndroidDevicePanel({ status }: { status: AndroidDeviceStatus }) {
-  const bridge = window.ogb?.androidDevice;
+  const bridge = window.odb?.androidDevice;
   const pageVisible = usePageVisible();
   const authorized = status.devices.filter((device) => device.state === "device");
   const [serial, setSerial] = useState(authorized[0]?.serial ?? status.devices[0]?.serial ?? "");

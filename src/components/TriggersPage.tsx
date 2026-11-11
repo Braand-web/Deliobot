@@ -40,7 +40,7 @@ export function TriggersPage({ onBack, onOpenRoom }: { onBack: () => void; onOpe
   const [department, setDepartment] = useState("all");
   const [newText, setNewText] = useState<string | null>(null);
   const [editing, setEditing] = useState<{ kind: SetUpKind; id?: string; botId?: string } | null>(null);
-  const routinesOnly = window.ogb?.remoteClient?.active === true;
+  const routinesOnly = window.odb?.remoteClient?.active === true;
   const visibleBots = state.bots.filter((bot) => !bot.hidden);
   const team = useTeamPeople();
   const botName = (botId: string) => state.bots.find((bot) => bot.id === botId)?.name ?? t("routines.unavailableBot");
@@ -175,7 +175,7 @@ export function TriggersPage({ onBack, onOpenRoom }: { onBack: () => void; onOpe
 
 /** While a Mac sleeps no schedule runs: the shell can hold it awake the hour before one is due, plugged in only. */
 function RoutineWakeBar() {
-  const bridge = typeof window !== "undefined" ? window.ogb?.routines : undefined;
+  const bridge = typeof window !== "undefined" ? window.odb?.routines : undefined;
   const [state, setState] = useState<DesktopRoutineWake | null>(null);
   const [busy, setBusy] = useState(false);
   useEffect(() => {

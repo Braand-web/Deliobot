@@ -5,7 +5,7 @@ import { SettingRow, Switch } from "./SettingsPrimitives";
 type OpenAtLogin = { available: boolean; on: boolean };
 
 export function OpenAtLoginRow({ simple = false }: { simple?: boolean }) {
-  const bridge = window.ogb?.openAtLogin;
+  const bridge = window.odb?.openAtLogin;
   const [state, setState] = useState<OpenAtLogin | null>(null);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);

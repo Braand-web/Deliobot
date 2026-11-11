@@ -113,8 +113,8 @@ it.each(["ask", "full", "auto"])("a bot at %s stops at the approval: nothing ans
   // Whatever the bot's own level: confined, and no tool of OpenDeliobot's, so it can start, schedule or change nothing.
   expect(launch.argv).toContain("--restricted");
   expect(launch.argv[launch.argv.indexOf("--tools") + 1]).toBe("Read,Grep,Glob,Edit,Write,WebSearch");
-  expect(Object.keys(launch.mcpConfig.mcpServers)).toEqual(["ogb"]);
-  socket = connect(launch.mcpConfig.mcpServers.ogb.args.at(-1));
+  expect(Object.keys(launch.mcpConfig.mcpServers)).toEqual(["odb"]);
+  socket = connect(launch.mcpConfig.mcpServers.odb.args.at(-1));
   await new Promise<void>((resolve, reject) => { socket!.once("connect", resolve); socket!.once("error", reject); });
   const answers: any[] = [];
   socket.on("data", (chunk) => { for (const line of String(chunk).split("\n").filter(Boolean)) answers.push(JSON.parse(line)); });
@@ -164,7 +164,7 @@ it("a saved command rule never answers for a call: the card waits for the person
   const task = ((await api("GET", "/api/bots")).bots as any[]).find((candidate) => candidate.id === bot.id).tasks.find((one: any) => one.botApi);
   const command = "printf 'rule fixture'";
   await api("POST", `/api/bots/${bot.id}/command-allowlist`, { command, cwd: task.cwd, providerInstanceId: "claude" });
-  socket = connect(dumped().mcpConfig.mcpServers.ogb.args.at(-1));
+  socket = connect(dumped().mcpConfig.mcpServers.odb.args.at(-1));
   await new Promise<void>((resolve, reject) => { socket!.once("connect", resolve); socket!.once("error", reject); });
   const answers: any[] = [];
   socket.on("data", (chunk) => { for (const line of String(chunk).split("\n").filter(Boolean)) answers.push(JSON.parse(line)); });

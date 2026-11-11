@@ -44,8 +44,8 @@ const emit = (channel, ...args) => {
 };
 const subscriberCount = (channel) => listeners.get(channel)?.size ?? 0;
 
-test("exposes the full local-shell bridge on window.ogb", () => {
-  assert.equal(exposed.name, "ogb");
+test("exposes the full local-shell bridge on window.odb", () => {
+  assert.equal(exposed.name, "odb");
   assert.equal(typeof exposed.api, "object");
   assert.equal(typeof exposed.api.onOpenAppSettings, "function");
 });

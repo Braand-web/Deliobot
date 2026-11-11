@@ -22,7 +22,7 @@ describe("paired phones", () => {
   });
 
   it("offers Connect from only once the computer serves the encrypted connection", () => {
-    const e2e = { enabled: true, relay: "connected" as const, node: "relay1.openopendeliobot.com", descriptor: null };
+    const e2e = { enabled: true, relay: "connected" as const, node: "relay1.opendeliobot.com", descriptor: null };
     expect(row(phone(), state())).not.toContain("Connect from");
     const markup = row(phone({ routes: "local" }), state({ e2e }));
     expect(markup).toContain("Connect from");

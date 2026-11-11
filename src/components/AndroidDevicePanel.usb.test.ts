@@ -2,7 +2,7 @@
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { AndroidUsbDevice } from "@/types/ogb";
+import type { AndroidUsbDevice } from "@/types/odb";
 import { useAndroidUsbDevices, type AndroidUsbDevicesStatus } from "./AndroidDevicePanel";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -32,7 +32,7 @@ async function draw() {
 }
 
 function bridge(status: () => Promise<unknown>) {
-  vi.stubGlobal("ogb", {
+  vi.stubGlobal("odb", {
     androidDevice: {
       status,
       frame: async () => ({ serial: "", dataUrl: "" }),
@@ -58,7 +58,7 @@ describe("useAndroidUsbDevices", () => {
   });
 
   it("treats a missing bridge as a final, empty answer", async () => {
-    vi.stubGlobal("ogb", undefined);
+    vi.stubGlobal("odb", undefined);
     await draw();
     expect(latest).toMatchObject({ scanned: true, devices: [] });
     expect(latest.reasonCode).toBeUndefined();

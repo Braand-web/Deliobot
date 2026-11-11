@@ -17,7 +17,7 @@ export function hideMacLocalControlUntilRelaunch() {
 }
 
 export async function openMacControlSettings(
-  open: (pane: "accessibility" | "screen") => Promise<void> | undefined = (pane) => window.ogb?.permOpenSettings?.(pane),
+  open: (pane: "accessibility" | "screen") => Promise<void> | undefined = (pane) => window.odb?.permOpenSettings?.(pane),
 ) {
   await open("accessibility");
   if (hiddenUntilRelaunch) return;
@@ -37,7 +37,7 @@ export function MacLocalControl() {
     setPending(true);
     setError(null);
     try {
-      await window.ogb?.localControl?.retry();
+      await window.odb?.localControl?.retry();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : String(reason));
     } finally {

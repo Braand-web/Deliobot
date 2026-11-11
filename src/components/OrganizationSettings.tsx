@@ -6,7 +6,7 @@ import { Card } from "./SettingsPrimitives";
 import { CompanyModels } from "./CompanyModels";
 
 const providerNames: Record<string, string> = { anthropic: "Anthropic", openai: "OpenAI", openrouter: "OpenRouter" };
-const DEFAULT_PORTAL_ORIGIN = "https://admin.openopendeliobot.com";
+const DEFAULT_PORTAL_ORIGIN = "https://admin.opendeliobot.com";
 const STATUS_TEXT: Record<ManagedMessageCode, LocaleKey> = {
   clearFailed: "organization.status.clearFailed",
   disconnected: "organization.status.disconnected",
@@ -32,7 +32,7 @@ export function connectionMessage(connection: Pick<ManagedDesktopState, "message
 
 /** Security: only the trusted desktop bridge can enroll this computer or hold its token. */
 export function OrganizationSettings() {
-  const bridge = window.ogb?.remoteClient?.active ? undefined : window.ogb?.organization;
+  const bridge = window.odb?.remoteClient?.active ? undefined : window.odb?.organization;
   const [connection, setConnection] = useState<ManagedDesktopState | null>(null);
   const [address, setAddress] = useState("");
   const [busy, setBusy] = useState(false);

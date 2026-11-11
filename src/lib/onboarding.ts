@@ -138,14 +138,14 @@ export function welcomeFinishedThisLaunch(): boolean {
   }
 }
 
-export const DEFAULT_ADMIN_ORIGIN = "https://admin.openopendeliobot.com";
+export const DEFAULT_ADMIN_ORIGIN = "https://admin.opendeliobot.com";
 
 export function organisationSignIn<Bridge>(
-  ogb: { organization?: Bridge; remoteClient?: { active?: boolean } } | undefined,
+  odb: { organization?: Bridge; remoteClient?: { active?: boolean } } | undefined,
   options: { hosted: boolean },
 ): Bridge | undefined {
-  if (options.hosted || !ogb || ogb.remoteClient?.active === true) return undefined;
-  return ogb.organization;
+  if (options.hosted || !odb || odb.remoteClient?.active === true) return undefined;
+  return odb.organization;
 }
 
 export function companyModelCount(state: { providers?: Array<{ configured: boolean; models: string[] }> } | null): number {

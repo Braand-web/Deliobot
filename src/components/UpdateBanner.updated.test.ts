@@ -20,7 +20,7 @@ beforeEach(async () => {
   seen.mockClear();
   focused = false;
   vi.spyOn(document, "hasFocus").mockImplementation(() => focused);
-  (window as unknown as { ogb: unknown }).ogb = {
+  (window as unknown as { odb: unknown }).odb = {
     updater: {
       onState: (callback: (state: UpdaterState) => void) => {
         push = callback;
@@ -40,7 +40,7 @@ beforeEach(async () => {
 afterEach(async () => {
   await act(async () => root.unmount());
   host.remove();
-  delete (window as unknown as { ogb?: unknown }).ogb;
+  delete (window as unknown as { odb?: unknown }).odb;
   vi.restoreAllMocks();
   vi.useRealTimers();
 });

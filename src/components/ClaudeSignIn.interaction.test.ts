@@ -49,7 +49,7 @@ beforeEach(() => {
   fixture.values = [];
   fixture.refreshInstances.mockResolvedValue(undefined);
   fixture.refreshModels.mockResolvedValue(undefined);
-  vi.stubGlobal("window", { setTimeout, clearTimeout, ogb: { openExternal: fixture.openExternal } });
+  vi.stubGlobal("window", { setTimeout, clearTimeout, odb: { openExternal: fixture.openExternal } });
 });
 afterEach(() => vi.unstubAllGlobals());
 

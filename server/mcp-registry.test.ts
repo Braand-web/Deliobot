@@ -39,7 +39,7 @@ describe("custom MCP registry", () => {
   });
 
   it("refuses harness-owned environment names in stored and renderer entries", () => {
-    for (const key of ["ODB_HARNESS_URL", "OGB_BOX_TOKEN"]) {
+    for (const key of ["ODB_HARNESS_URL", "ODB_BOX_TOKEN"]) {
       expect(parseStoredMcpServer("notes", { command: "notes-mcp", env: { [key]: "bad" } })).toEqual({
         ok: false,
         error: `Environment variable “${key}” is reserved by OpenDeliobot.`,

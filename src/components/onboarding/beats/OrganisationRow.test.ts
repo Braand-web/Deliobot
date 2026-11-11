@@ -68,7 +68,7 @@ async function mount(state: ManagedDesktopState = { status: "signed-out" }) {
 
 const connecting: ManagedDesktopState = {
   status: "connecting",
-  enrollment: { userCode: "ABCDE-FGHIJ", verificationUri: "https://admin.openopendeliobot.com/enroll?code=ABCDE-FGHIJ", expiresAt: Date.now() + 60_000 },
+  enrollment: { userCode: "ABCDE-FGHIJ", verificationUri: "https://admin.opendeliobot.com/enroll?code=ABCDE-FGHIJ", expiresAt: Date.now() + 60_000 },
 };
 const connected: ManagedDesktopState = {
   status: "connected",
@@ -128,7 +128,7 @@ describe("organisation sign-in row in the welcome flow", () => {
     signIn.props.onClick!();
     signIn.props.onClick!();
     await flush();
-    expect(bridge.begin).toHaveBeenCalledExactlyOnceWith({ portalOrigin: "https://admin.openopendeliobot.com" });
+    expect(bridge.begin).toHaveBeenCalledExactlyOnceWith({ portalOrigin: "https://admin.opendeliobot.com" });
 
     let html = render().html;
     expect(html).toContain("Finish in your browser");

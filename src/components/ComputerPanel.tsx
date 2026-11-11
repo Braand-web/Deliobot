@@ -339,7 +339,7 @@ export function ComputerPanel({
 
   useEffect(() => {
     let alive = true;
-    const dv = window.ogb?.desktopViewer;
+    const dv = window.odb?.desktopViewer;
     if (dv?.currentState) {
       void dv
         .currentState()
@@ -771,12 +771,12 @@ export function ComputerPanel({
   // 15+), so repeated empty frames mean denied.
   const [localMisses, setLocalMisses] = useState(0);
   useEffect(() => {
-    if (panelView !== "computer" || phase !== "local" || !computerStatusCurrent || !window.ogb || isLinux || !pageVisible) return;
+    if (panelView !== "computer" || phase !== "local" || !computerStatusCurrent || !window.odb || isLinux || !pageVisible) return;
     let alive = true;
     setLocalMisses(0);
     const shoot = async () => {
       try {
-        const url = await window.ogb!.screenFrame();
+        const url = await window.odb!.screenFrame();
         if (alive && url) setLocalFrame(url);
         else if (alive) setLocalMisses((n) => n + 1);
       } catch {
@@ -903,7 +903,7 @@ export function ComputerPanel({
 
   const handBack = async () => {
     setError(null);
-    void window.ogb?.desktopViewer?.close(bot.id);
+    void window.odb?.desktopViewer?.close(bot.id);
     await takeover.handBack().catch((cause) => setError(cause instanceof Error ? cause : String(cause)));
   };
 
@@ -1401,7 +1401,7 @@ export function ComputerPanel({
               {bot.computer === "cloud" && (phase === "unconfigured" || phase === "error") && cloudView.action?.id !== "add-boat-key" && placeActionButton(cloudView)}
               {phase === "local" && !isLinux && localMisses >= 3 && (
                 <button
-                  onClick={() => window.ogb?.permOpenSettings?.("screen")}
+                  onClick={() => window.odb?.permOpenSettings?.("screen")}
                   className="mt-1 rounded-lg bg-control px-3 py-1.5 text-[12px] text-ink hover:bg-raised-hover"
                 >
                   {t("computer.openSettings")}
@@ -1537,7 +1537,7 @@ export function ComputerPanel({
         {advanced &&
           phase === "vm" &&
           vmStatus?.mode === "per-bot" &&
-          window.ogb?.desktopWorkspace &&
+          window.odb?.desktopWorkspace &&
           onOpenVmWorkspace && (
             <button
               type="button"

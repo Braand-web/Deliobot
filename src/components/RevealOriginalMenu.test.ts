@@ -17,9 +17,9 @@ describe("Show in Finder for the original of a bot's attachment", () => {
 
   it("reads the desktop bridge, and a window connected to another computer has none", () => {
     expect(canRevealOriginal("/Users/me/q3.pdf")).toBe(false);
-    vi.stubGlobal("window", { ogb: { revealInFolder: shown } });
+    vi.stubGlobal("window", { odb: { revealInFolder: shown } });
     expect(canRevealOriginal("/Users/me/q3.pdf")).toBe(true);
-    vi.stubGlobal("window", { ogb: { revealInFolder: shown, remoteClient: { active: true } } });
+    vi.stubGlobal("window", { odb: { revealInFolder: shown, remoteClient: { active: true } } });
     expect(canRevealOriginal("/Users/me/q3.pdf")).toBe(false);
   });
 
@@ -66,10 +66,10 @@ describe("a folder link in chat opens the folder in the desktop app", () => {
   it("does nothing on the web, a phone or a window connected to another computer", async () => {
     const open = vi.fn(async () => "opened" as const);
     expect(await openLinkedFolder("/Users/me/Reports")).toBe(false);
-    vi.stubGlobal("window", { ogb: { openFolder: open, remoteClient: { active: true } } });
+    vi.stubGlobal("window", { odb: { openFolder: open, remoteClient: { active: true } } });
     expect(await openLinkedFolder("/Users/me/Reports")).toBe(false);
     expect(open).not.toHaveBeenCalled();
-    vi.stubGlobal("window", { ogb: { openFolder: open } });
+    vi.stubGlobal("window", { odb: { openFolder: open } });
     expect(await openLinkedFolder("C:\\Users\\me\\Reports")).toBe(true);
   });
 });

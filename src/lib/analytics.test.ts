@@ -181,7 +181,7 @@ describe("loading the client", () => {
     expect(ph.registered).toEqual([{ app_version: appVersion(), surface: "server" }]);
     expect(appVersion()).toMatch(/^\d+\.\d+\.\d+/);
     expect(ph.calls.indexOf("register")).toBeLessThan(ph.calls.indexOf("capture app_first_open"));
-    vi.stubGlobal("window", { ogb: { environments: {} } });
+    vi.stubGlobal("window", { odb: { environments: {} } });
     try { expect(fresh.analyticsSurface()).toBe("local"); } finally { vi.unstubAllGlobals(); vi.stubGlobal("localStorage", baseStorage); }
     expect(fresh.analyticsSurface()).toBe("server");
   });

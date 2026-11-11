@@ -171,7 +171,7 @@ describe("on the desktop app, where main shows the banner so its click outlives 
   function installBridge(answer: () => Promise<boolean>) {
     const installed = installNotification("granted");
     const show = vi.fn(answer);
-    vi.stubGlobal("window", { focus: vi.fn(), ogb: { desktopNotifications: { show } } });
+    vi.stubGlobal("window", { focus: vi.fn(), odb: { desktopNotifications: { show } } });
     return { ...installed, show };
   }
 

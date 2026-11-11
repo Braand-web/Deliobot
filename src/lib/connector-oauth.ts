@@ -14,7 +14,7 @@ export function reusableConnectionUrl(page: PendingAuthorization | null | undefi
 
 /** Reserve the tab during the click, before an authorization request consumes the browser's user activation. */
 export function reserveConnectionPage() {
-  const appOpensLinks = Boolean(window.ogb);
+  const appOpensLinks = Boolean(window.odb);
   let page: Window | null = null;
   let navigated = false;
   let cancelled = false;

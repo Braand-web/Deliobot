@@ -64,7 +64,7 @@ beforeEach(() => {
     modelSelection: fixture.kept.has(botId) ? { instanceId: "company.fixture.anthropic", model: "company-claude" } : { instanceId: "claude", model: "saved-model" } }));
   fixture.instances = [personalClaude, personalCodex, workingGrok, companyClaude, companyCodex];
   fixture.bots = [bot("b1", "Scout", "claude"), bot("b2", "Writer", "grok"), bot("b3", "Delio", "removed-instance")];
-  vi.stubGlobal("window", { ogb: { platform: "darwin" } });
+  vi.stubGlobal("window", { odb: { platform: "darwin" } });
   setLocale("en");
 });
 

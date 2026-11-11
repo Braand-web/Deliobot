@@ -58,7 +58,7 @@ export function showNotification(
       onOpen({ botId: frame.botId, threadId: frame.threadId });
     };
   };
-  const desktop = window.ogb?.desktopNotifications;
+  const desktop = window.odb?.desktopNotifications;
   if (!desktop) return shownByPage();
   void desktop.show({
     title, body, tag: options.tag, silent: options.silent === true, picture: options.icon, botId: frame.botId, threadId: frame.threadId,

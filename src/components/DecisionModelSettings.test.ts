@@ -332,7 +332,7 @@ describe("DecisionModelSettings", () => {
 
     it("on the desktop the key goes to the credential store under its own name", async () => {
       const setCredential = vi.fn().mockResolvedValue(openrouter({ configured: true, enabled: true }));
-      vi.stubGlobal("window", { ogb: { setCredential } });
+      vi.stubGlobal("window", { odb: { setCredential } });
       type(render().input, KEY);
       click(render().save);
       await flush();

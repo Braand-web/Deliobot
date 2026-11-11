@@ -17,7 +17,7 @@ export function useCloudPlanSnapshot(bridge: CloudPlanBridge | undefined): Cloud
     let active = true;
     const stop = () => { active = false; unsubscribe?.(); clearInterval(timer); window.removeEventListener?.("focus", read); window.removeEventListener?.(PLAN_CHANGED, read); };
     const read = () => { void bridge.state().then(next => { if (active) setPlan(next); }, () => { if (active) setPlan({ status: "none" }); stop(); }); };
-    const unsubscribe = window.ogb?.cloudAccount?.onState(read);
+    const unsubscribe = window.odb?.cloudAccount?.onState(read);
     const timer = setInterval(read, CLOUD_PLAN_REFRESH_MS);
     window.addEventListener?.("focus", read);
     window.addEventListener?.(PLAN_CHANGED, read);

@@ -27,7 +27,7 @@ export const SidebarBotTile = memo(function SidebarBotTile({ primary = false, dr
   const { bot, selected, deleting, mascotMotion, pendingQueued, instances, liveCall, dispatch, onMenu, renameRequest } = row;
   const showThreads = useShowThreads();
   const liveMedia = useLiveMedia();
-  const remoteClient = typeof window !== "undefined" && window.ogb?.remoteClient?.active === true;
+  const remoteClient = typeof window !== "undefined" && window.odb?.remoteClient?.active === true;
   const [renaming, setRenaming] = useState(false);
   const visible = useVisibleMessages(bot);
   const { waiting, working, teammateWait, queued } = sidebarBotStatus(bot, pendingQueued);

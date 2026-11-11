@@ -11,7 +11,7 @@ import { PlacesRail } from "./PlacesRail";
 export function ChromeRail() {
   usePageLanguage(effectiveLanguage(useLanguageChoice(), undefined));
   // The page beside the rail chose its skin: the rail wears the same one.
-  useEffect(() => window.ogb?.rail?.onSkin?.(wearSkin), []);
+  useEffect(() => window.odb?.rail?.onSkin?.(wearSkin), []);
   const accounts = useAccountsSheet();
   return <DesktopCapabilitiesProvider><div data-chrome-rail className="h-full"><PlacesRail chrome /></div>{accounts.open && <AccountsSheet onClose={accounts.close} />}</DesktopCapabilitiesProvider>;
 }

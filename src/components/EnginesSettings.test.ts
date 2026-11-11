@@ -298,7 +298,7 @@ describe("Settings → Engines → setup cards", () => {
     expect(saved).toContain("data-key-replace");
     expect(saved).not.toContain("OpenAI needs an API key");
 
-    vi.stubGlobal("window", { ogb: { remoteClient: { active: true } } });
+    vi.stubGlobal("window", { odb: { remoteClient: { active: true } } });
     const remote = renderToStaticMarkup(createElement(EnginesSettings));
     expect(remote).toContain("open Settings → API keys on the computer running Delio");
     expect(remote).not.toContain("data-key-row");

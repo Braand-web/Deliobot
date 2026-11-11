@@ -17,7 +17,7 @@ afterEach(() => vi.unstubAllGlobals());
 describe("saving an AI provider key", () => {
   it.each(SLOTS)("keeps %s in the desktop's encrypted store, and removes it there too", async (id, slot) => {
     const setCredential = vi.fn().mockResolvedValue({});
-    vi.stubGlobal("window", { ogb: { setCredential } });
+    vi.stubGlobal("window", { odb: { setCredential } });
     await saveKey(keyEntry(id).target!, "fixture-key", false);
     await saveKey(keyEntry(id).target!, "", false);
     expect(setCredential.mock.calls).toEqual([[slot, "fixture-key"], [slot, ""]]);
@@ -26,7 +26,7 @@ describe("saving an AI provider key", () => {
 
   it("carries the first Anthropic key's choice to leave Claude sign-ins alone", async () => {
     const setCredential = vi.fn().mockResolvedValue({});
-    vi.stubGlobal("window", { ogb: { setCredential } });
+    vi.stubGlobal("window", { odb: { setCredential } });
     await saveKey(keyEntry("anthropic").target!, "fixture-key", true);
     expect(setCredential).toHaveBeenCalledExactlyOnceWith("anthropicApiKey", "fixture-key", { everyClaudeBot: false });
   });
@@ -39,7 +39,7 @@ describe("saving an AI provider key", () => {
 
   it("sends a provider key to the host's server from a desktop paired to it, but not a key the host keeps encrypted", async () => {
     const setCredential = vi.fn().mockResolvedValue({});
-    vi.stubGlobal("window", { ogb: { setCredential, remoteClient: { active: true } } });
+    vi.stubGlobal("window", { odb: { setCredential, remoteClient: { active: true } } });
     await saveKey(keyEntry("openai").target!, "fixture-key", false);
     expect(setCredential).not.toHaveBeenCalled();
     expect(fixture.api).toHaveBeenCalledOnce();

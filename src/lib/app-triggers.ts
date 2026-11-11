@@ -55,7 +55,7 @@ export function loadAppTriggers(): Promise<void> {
 
 function start(): void {
   // A remote client reaches only routines, as for webhooks.
-  if (started || (typeof window !== "undefined" && window.ogb?.remoteClient?.active)) return;
+  if (started || (typeof window !== "undefined" && window.odb?.remoteClient?.active)) return;
   started = true;
   listenLiveFrames({ onFrame: applyAppTriggerFrame, onMissedFrames: () => void loadAppTriggers() });
   void loadAppTriggers();

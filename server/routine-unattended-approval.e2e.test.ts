@@ -51,7 +51,7 @@ it("waits for the person, tells them at once, and stops saying nobody answered t
   await expect.poll(() => existsSync(dump), { timeout: hostTimeout(15_000) }).toBe(true);
   const launch = JSON.parse(readFileSync(dump, "utf8"));
   expect(launch.argv).toContain("--permission-prompt-tool");
-  socket = connect(launch.mcpConfig.mcpServers.ogb.args.at(-1));
+  socket = connect(launch.mcpConfig.mcpServers.odb.args.at(-1));
   await new Promise<void>((resolve, reject) => { socket!.once("connect", resolve); socket!.once("error", reject); });
   const answers: any[] = [];
   socket.on("data", (chunk) => { for (const line of String(chunk).split("\n").filter(Boolean)) answers.push(JSON.parse(line)); });

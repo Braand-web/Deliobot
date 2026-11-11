@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
 import { Loader2, ShieldCheck } from "lucide-react";
-import type { CompanionAccountState } from "../types/ogb";
+import type { CompanionAccountState } from "../types/odb";
 import {
   PhoneSetupFlowView,
   companionAccountActionError,

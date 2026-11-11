@@ -16,11 +16,11 @@ export function MacCuaRecoveryActions({ reason }: { reason: string }) {
   if (!permissions.length || permissions.join(",") !== currentPermissions.join(",") ||
       !ready || capabilities.host.platform !== "darwin" ||
       capabilities.localComputer.available !== false || capabilities.localComputer.reasonCode === "remote-server" ||
-      typeof window.ogb?.permOpenSettings !== "function") return null;
+      typeof window.odb?.permOpenSettings !== "function") return null;
 
   const openSettings = async (permission: MacCuaPermission) => {
     try {
-      await window.ogb?.permOpenSettings(permission);
+      await window.odb?.permOpenSettings(permission);
       setError(null);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
@@ -29,7 +29,7 @@ export function MacCuaRecoveryActions({ reason }: { reason: string }) {
 
   const relaunch = async () => {
     try {
-      await window.ogb?.relaunch?.();
+      await window.odb?.relaunch?.();
       setError(null);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
@@ -44,7 +44,7 @@ export function MacCuaRecoveryActions({ reason }: { reason: string }) {
           {t(paneName[permission])}
         </button>
       ))}
-      {typeof window.ogb.relaunch === "function" && (
+      {typeof window.odb.relaunch === "function" && (
         <button type="button" onClick={() => void relaunch()}
           className="rounded-full border border-current/30 px-2.5 py-1 text-[13px] hover:bg-danger/15">
           {t("computer.mac.permission.relaunch")}

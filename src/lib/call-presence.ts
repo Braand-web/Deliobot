@@ -11,6 +11,6 @@ export function useReportCallPresence(): void {
   const { phase } = useLiveMedia();
   const active = callInProgress(onCall, phase);
   useEffect(() => {
-    void window.ogb?.callActive?.(active);
+    void window.odb?.callActive?.(active);
   }, [active]);
 }

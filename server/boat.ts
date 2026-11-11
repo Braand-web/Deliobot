@@ -68,8 +68,8 @@ const BOAT_DELETE_OPERATION_POLL_DELAYS_MS = [0, 100, 250, 500, 1_000, 2_000] as
 const BOAT_INVENTORY_PAGE_SIZE = 200;
 // Bounded: a broken or adversarial cursor must not hold Settings open.
 const MAX_BOAT_INVENTORY_PAGES = 10;
-const LEGACY_MANAGED_BOAT_NAME = /^ogb-[a-z0-9]{1,8}-[a-f0-9]{6}$/;
-const SCOPED_MANAGED_BOAT_NAME = /^ogb-[a-f0-9]{12}-[a-z0-9]{1,8}-[a-f0-9]{6}$/;
+const LEGACY_MANAGED_BOAT_NAME = /^odb-[a-z0-9]{1,8}-[a-f0-9]{6}$/;
+const SCOPED_MANAGED_BOAT_NAME = /^odb-[a-f0-9]{12}-[a-z0-9]{1,8}-[a-f0-9]{6}$/;
 const BOAT_ID = /^bx_[23456789abcdefghjkmnpqrstuvwxyz]{8}$/;
 /** Sandbox.state in v1, plus OpenDeliobot's own `removing` for a sandbox whose deletion is under way. */
 const BOAT_STATES = new Set([
@@ -85,7 +85,7 @@ function scopedBoatPrefix(): string {
     .update(loadEnvironmentId(DATA_DIR))
     .digest("hex")
     .slice(0, 12);
-  scopedBoatPrefixCache = `ogb-${scope}-`;
+  scopedBoatPrefixCache = `odb-${scope}-`;
   return scopedBoatPrefixCache;
 }
 
@@ -337,7 +337,7 @@ function boatBotNameParts(botId: string): { prefix: string; hash: string } {
 
 function legacyBoatNameFor(botId: string): string {
   const { prefix, hash } = boatBotNameParts(botId);
-  return `ogb-${prefix}-${hash}`;
+  return `odb-${prefix}-${hash}`;
 }
 
 export async function boatNameFor(botId: string) {
@@ -1187,7 +1187,7 @@ export async function execOnBoat(cfg: AppConfig, botId: string, command: string)
 
 // Base64 over command stdout is not reliable for full-size frames (probed 2026-08-12: corrupted length), so frames come over HTTP.
 // X11 captures leave the pointer out by default, hence scrot --pointer and ffmpeg -draw_mouse.
-const PANEL_PATH = "/tmp/ogb-panel.jpg";
+const PANEL_PATH = "/tmp/odb-panel.jpg";
 export const PANEL_FRAME_WIDTH = 1920;
 export const PANEL_FRAME_QUALITY = 85;
 // ffmpeg's -q:v runs 2 (best) to 31; 3 lands near JPEG quality 85.

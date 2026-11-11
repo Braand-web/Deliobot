@@ -10,7 +10,7 @@ vi.mock("./SidebarPhoneButton", () => ({ useSidebarPhoneStatus: () => ({ kind: "
 
 import { SidebarProfileMenu } from "./SidebarProfileMenu";
 
-beforeEach(() => { vi.stubGlobal("window", { ogb: { updater: {} } }); });
+beforeEach(() => { vi.stubGlobal("window", { odb: { updater: {} } }); });
 afterEach(() => { vi.unstubAllGlobals(); });
 
 it.each([false, true])("keeps update progress on the separate button, iconOnly=%s", (iconOnly) => {

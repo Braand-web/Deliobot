@@ -112,7 +112,7 @@ type Note = "copied" | "pay-failed" | "interest-sent" | "interest-failed" | null
 export function CloudAddDialog({ now = Date.now }: { now?: () => number }) {
   const { state, dispatch } = useStore();
   const request = state.cloudAdd;
-  const bridge = window.ogb?.remoteClient?.active ? undefined : window.ogb?.cloudAccount;
+  const bridge = window.odb?.remoteClient?.active ? undefined : window.odb?.cloudAccount;
   const [account, setAccount] = useState<CloudAccountState | null>(null);
   const [offer, setOffer] = useState<CloudOffer | null | undefined>(undefined);
   const [chosen, setChosen] = useState<string | null>(null);
@@ -265,7 +265,7 @@ export function CloudAddDialog({ now = Date.now }: { now?: () => number }) {
     return () => window.removeEventListener("blur", stop);
   }, [counting]);
   if (!open || !view || !request || !bridge || view.kind === "settings") return null;
-  if (view.kind === "has-cloud" && account?.status === "connected" && account.clouds && window.ogb?.cloudAdd
+  if (view.kind === "has-cloud" && account?.status === "connected" && account.clouds && window.odb?.cloudAdd
     && (account.addCloud?.canAdd !== false || (account.adding && !account.adding.done))) {
     return <CloudAddSheet kind={extraWide ? "offer" : "has-cloud"} staging={account.staging === true} onClose={close}>
       <AddCloudFlow onClose={close} onFirstCloud={() => {}} onWide={setExtraWide} source={request.source} />

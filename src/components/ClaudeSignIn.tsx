@@ -135,7 +135,7 @@ export function ClaudeSignIn({ instanceId, autoStart = false, onDone }: {
         <div className="space-y-1.5">
           <p className="text-[12px] font-medium text-ink">{t("accounts.claude.step1")}</p>
           <a href={link} target="_blank" rel="noopener noreferrer" onClick={(event) => {
-            if (window.ogb?.openExternal) { event.preventDefault(); void openExternalLink(link); }
+            if (window.odb?.openExternal) { event.preventDefault(); void openExternalLink(link); }
           }} className="flex w-fit items-center gap-1.5 rounded-lg bg-control px-3 py-1.5 text-[12px] font-medium text-ink hover:bg-raised-hover">
             {t("accounts.claude.openAgain")} <ExternalLink size={12} />
           </a>

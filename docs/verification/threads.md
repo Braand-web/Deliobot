@@ -117,7 +117,7 @@ orders of the full response and slim event, including late old-thread messages.
 
 For approval verification, new fake-provider launches also write fixture-only
 `<thread-id>.launch.json` receipts inside the printed disposable data directory.
-The live broker in their `mcpConfig.mcpServers.ogb` entry can be exercised using
+The live broker in their `mcpConfig.mcpServers.odb` entry can be exercised using
 the same `permission` recipe in `server/thread-capacity-api.test.ts`. Request a
 synthetic approval, switch away, and navigate back using an activity control
 with Show threads off. Answer **Allow once** and verify that broker receives

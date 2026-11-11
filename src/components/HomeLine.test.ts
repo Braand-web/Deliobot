@@ -19,13 +19,13 @@ vi.mock("@/state/store", () => ({
 vi.mock("@/components/onboarding/ConnectAi", () => ({ ConnectAiDialog: () => createElement("div", { "data-connect-ai": "" }) }));
 vi.mock("@/components/EngineLibrary", () => ({ engineReady: (instance: { ready?: boolean }) => instance.ready === true }));
 const mount = async (line: ReturnType<typeof vi.fn>, remote = false, state: Record<string, unknown> = { local: false, name: "My Cloud" }) => {
-  window.ogb = { workspaces: { state: vi.fn().mockResolvedValue(state), menu: vi.fn(), line }, ...(remote ? { remoteClient: { active: true } } : {}) } as unknown as typeof window.ogb;
+  window.odb = { workspaces: { state: vi.fn().mockResolvedValue(state), menu: vi.fn(), line }, ...(remote ? { remoteClient: { active: true } } : {}) } as unknown as typeof window.odb;
   flushSync(() => root.render(createElement(HomeLine)));
   await new Promise((resolve) => setTimeout(resolve, 0));
 };
 
 beforeEach(() => { setLocale("en"); ais.config = { onboarding: { hintsSeen: [] } }; ais.saved.length = 0; host = document.createElement("div"); document.body.append(host); root = createRoot(host); });
-afterEach(() => { flushSync(() => root.unmount()); host.remove(); delete window.ogb; });
+afterEach(() => { flushSync(() => root.unmount()); host.remove(); delete window.odb; });
 
 it("says the one line main has for the next page, in plain words, and nothing when there is none", async () => {
   await mount(vi.fn().mockResolvedValue({ kind: "left", name: "Acme" }));
@@ -45,7 +45,7 @@ it("asks once; a later null (a strict-mode remount) never takes the line back, a
   await new Promise((resolve) => setTimeout(resolve, 10));
   expect(host.querySelector("[data-home-line]")).not.toBeNull();
   flushSync(() => root.unmount()); root = createRoot(host);
-  window.ogb = { workspaces: { state: vi.fn(), menu: vi.fn() } } as unknown as typeof window.ogb;
+  window.odb = { workspaces: { state: vi.fn(), menu: vi.fn() } } as unknown as typeof window.odb;
   flushSync(() => root.render(createElement(HomeLine)));
   expect(host.innerHTML).toBe("");
   flushSync(() => root.unmount()); root = createRoot(host);
@@ -92,7 +92,7 @@ it("a team's line never offers it", async () => {
 it("in This Mac's own place, the line says it is separate from My Cloud, where the bots from before are, and where an older copy comes in", async () => {
   ais.instances = [{ ready: false, instanceId: "claude", driver: "claudeCode" }];
   await mount(vi.fn().mockResolvedValue({ kind: "profile" }));
-  window.ogb = { ...window.ogb, platform: "darwin" } as unknown as typeof window.ogb;
+  window.odb = { ...window.odb, platform: "darwin" } as unknown as typeof window.odb;
   await vi.waitFor(() => expect(host.querySelector("[data-home-line='profile']")).not.toBeNull());
   expect(homeLineText({ kind: "profile" }, "darwin")).toBe("This Mac starts fresh, separate from My Cloud. The bots you had here are on My Cloud; to bring in an older copy, import its backup in Settings → Backups.");
   expect(homeLineText({ kind: "profile" }, "win32")).toMatch(/^This PC starts fresh/);

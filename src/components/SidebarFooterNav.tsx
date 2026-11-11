@@ -89,7 +89,7 @@ export function SidebarAppsButton() {
 export function useAutomationsNeedYou(): boolean {
   const { state } = useStore();
   const appTriggers = useAppTriggers();
-  const routinesOnly = typeof window !== "undefined" && window.ogb?.remoteClient?.active === true;
+  const routinesOnly = typeof window !== "undefined" && window.odb?.remoteClient?.active === true;
   const unseenProblem = useMemo(() => hasUnseenProblemRun(automationsFrom({
     routines: state.routines, webhooks: routinesOnly ? [] : state.webhooks, appTriggers: appTriggers.triggers, runs: state.routineRuns, bots: state.bots,
   })), [state.routines, state.webhooks, appTriggers.triggers, state.routineRuns, state.bots, routinesOnly]);

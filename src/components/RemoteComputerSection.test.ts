@@ -42,8 +42,8 @@ describe("self-hosted server pairing links", () => {
 });
 
 describe("remote connection Settings", () => {
-  const render = (ogb?: unknown) => {
-    vi.stubGlobal("window", { ogb });
+  const render = (odb?: unknown) => {
+    vi.stubGlobal("window", { odb });
     setLocale("en");
     return renderToStaticMarkup(createElement(RemoteComputerSection));
   };
@@ -99,8 +99,8 @@ describe("remote connection Settings", () => {
 });
 
 describe("the desktop companion client, ending Dec 7", () => {
-  const legacy = (ogb: unknown) => {
-    vi.stubGlobal("window", { ogb });
+  const legacy = (odb: unknown) => {
+    vi.stubGlobal("window", { odb });
     setLocale("en");
     return renderToStaticMarkup(createElement(RemoteComputerSection, { legacyOnly: true, hideWhenUnavailable: true }));
   };

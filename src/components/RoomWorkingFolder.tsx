@@ -16,7 +16,7 @@ export function RoomWorkingFolder({ group, heading = true }: { group: Group; hea
   const [draft, setDraft] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const canPick = Boolean(window.ogb?.pickFolder);
+  const canPick = Boolean(window.odb?.pickFolder);
   const pinned = group.pinnedCwd;
   const locked = pinned !== undefined;
   const shownCwd = locked ? (pinned ?? undefined) : group.cwd;
@@ -34,7 +34,7 @@ export function RoomWorkingFolder({ group, heading = true }: { group: Group; hea
     }
   };
   const pick = async () => {
-    const chosen = await window.ogb?.pickFolder?.(group.cwd);
+    const chosen = await window.odb?.pickFolder?.(group.cwd);
     if (chosen) void save(chosen);
   };
 

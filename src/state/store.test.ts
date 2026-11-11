@@ -116,16 +116,16 @@ describe("composer thread approval persistence", () => {
       const now = desktopCapabilitiesNow();
       cacheDesktopCapabilities({ ...now, host: { ...now.host, packaged: value } });
     };
-    window.ogb = { approvals } as unknown as NonNullable<Window["ogb"]>;
+    window.odb = { approvals } as unknown as NonNullable<Window["odb"]>;
     try {
       packaged(false);
       expect(desktopApprovalBridge()).toBeUndefined();
       packaged(true);
       expect(desktopApprovalBridge()).toBe(approvals);
-      delete window.ogb;
+      delete window.odb;
       expect(desktopApprovalBridge()).toBeUndefined();
     } finally {
-      delete window.ogb;
+      delete window.odb;
       packaged(false);
     }
   });

@@ -28,7 +28,7 @@ it("in the desktop app, a code the link carried connects at once; a browser stil
 });
 
 it("opening My Cloud from the app needs no click and no code to type", async () => {
-  vi.stubGlobal("window", { ogb: { workspaces: {} } });
+  vi.stubGlobal("window", { odb: { workspaces: {} } });
   f.pair.mockResolvedValue({ ok: true });
   const html = render(code);
   expect(html).toContain("Connecting to this Delio…");
@@ -39,7 +39,7 @@ it("opening My Cloud from the app needs no click and no code to type", async () 
 });
 
 it("a code that no longer works falls back to the form, with the reason", async () => {
-  vi.stubGlobal("window", { ogb: { workspaces: {} } });
+  vi.stubGlobal("window", { odb: { workspaces: {} } });
   f.pair.mockResolvedValue({ ok: false, error: "That pairing code has expired." });
   render(code); f.effects[0](); await flush();
   expect(replaced).toEqual([]);
@@ -104,10 +104,10 @@ it("asks for the code first, with email sign-in as a link below, and says how to
 
 it("a team's Cloud whose session ended offers the way back through Delio Cloud, as the signed-in session told this browser, and only to an https page", () => {
   const team = { environmentId: "e", label: "Acme", platform: "linux", version: "1", capabilities: { remoteSessions: true as const, cloudHome: true as const, cloudTeam: true as const } } as unknown as EnvironmentDescriptor;
-  expect(teamPage(team, "https://cloud.openopendeliobot.com/cloud/team/t1")).toBe("https://cloud.openopendeliobot.com/cloud/team/t1");
+  expect(teamPage(team, "https://cloud.opendeliobot.com/cloud/team/t1")).toBe("https://cloud.opendeliobot.com/cloud/team/t1");
   expect(teamPage(team, null), "never told before sign-in").toBeNull();
   for (const bad of ["javascript:alert(1)", "http://evil.example/cloud", "https://u:p@cloud.example/x", "https://cloud.example/x#signin=1", "nope"]) expect(teamPage(team, bad)).toBeNull();
-  expect(teamPage({ ...team, capabilities: { remoteSessions: true, cloudHome: true } } as unknown as EnvironmentDescriptor, "https://cloud.openopendeliobot.com/cloud/team/t1"), "a My Cloud has no team page").toBeNull();
+  expect(teamPage({ ...team, capabilities: { remoteSessions: true, cloudHome: true } } as unknown as EnvironmentDescriptor, "https://cloud.opendeliobot.com/cloud/team/t1"), "a My Cloud has no team page").toBeNull();
   expect(en["pair.team.open"].replace("{team}", "Acme")).toBe("Open Acme with Delio Cloud");
 });
 

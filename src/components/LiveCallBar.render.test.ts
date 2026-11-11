@@ -44,7 +44,7 @@ describe("LiveCallBar", () => {
   });
 
   it("shows the hint when the window blocked the call's audio", async () => {
-    vi.stubGlobal("window", { ogb: { speechStop: vi.fn(async () => {}) } });
+    vi.stubGlobal("window", { odb: { speechStop: vi.fn(async () => {}) } });
     const track = { enabled: true, stop: () => {} };
     const peer = {
       ontrack: null as ((event: { track: unknown }) => void) | null,
@@ -69,7 +69,7 @@ describe("LiveCallBar", () => {
   });
 
   it("shows the call's controls while this window connects", () => {
-    vi.stubGlobal("window", { ogb: { speechStop: vi.fn(async () => {}) } });
+    vi.stubGlobal("window", { odb: { speechStop: vi.fn(async () => {}) } });
     configureLiveMedia({ getUserMedia: () => new Promise<MediaStream>(() => {}) });
     void startLiveCall({ botId: bot.id, threadId: bot.threadId });
     const markup = render(createElement(LiveCallBar, { bot }));
@@ -80,7 +80,7 @@ describe("LiveCallBar", () => {
   });
 
   it("takes clicks itself, inside the composer dock that lets them through", () => {
-    vi.stubGlobal("window", { ogb: { speechStop: vi.fn(async () => {}) } });
+    vi.stubGlobal("window", { odb: { speechStop: vi.fn(async () => {}) } });
     configureLiveMedia({ getUserMedia: () => new Promise<MediaStream>(() => {}) });
     void startLiveCall({ botId: bot.id, threadId: bot.threadId });
     const markup = render(createElement(LiveCallBar, { bot }));
@@ -91,7 +91,7 @@ describe("LiveCallBar", () => {
     ["refused", "The app didn&#x27;t let this page use the microphone. Open it in your web browser to make the Live call.", "Open in browser", "Try again"],
     ["allowed", "Allow microphone access for this app in your computer&#x27;s privacy settings, then try again.", "Try again", "Open in browser"],
   ] as const)("shows a microphone the app %s with its one action", async (pageMic, text, action, other) => {
-    vi.stubGlobal("window", { ogb: { speechStop: vi.fn(async () => {}) } });
+    vi.stubGlobal("window", { odb: { speechStop: vi.fn(async () => {}) } });
     configureLiveMedia({
       getUserMedia: async () => { throw new DOMException("denied", "NotAllowedError"); },
       capabilities: () => ({ dictation: { available: false, engine: "none", onDevice: false, reasonCode: "remote-server" } }) as DesktopCapabilities,
@@ -106,7 +106,7 @@ describe("LiveCallBar", () => {
 
   it("offers Open System Settings with a microphone this computer refused", async () => {
     const permOpenSettings = vi.fn(async () => {});
-    vi.stubGlobal("window", { ogb: { speechStop: vi.fn(async () => {}), permOpenSettings } });
+    vi.stubGlobal("window", { odb: { speechStop: vi.fn(async () => {}), permOpenSettings } });
     configureLiveMedia({
       getUserMedia: async () => { throw new DOMException("denied", "NotAllowedError"); },
       capabilities: () => ({ dictation: { available: true, engine: "none", onDevice: false } }) as unknown as DesktopCapabilities,
@@ -119,7 +119,7 @@ describe("LiveCallBar", () => {
   });
 
   it("names the keyboard chords on the mute and hang-up buttons", () => {
-    vi.stubGlobal("window", { ogb: { platform: "darwin", speechStop: vi.fn(async () => {}) } });
+    vi.stubGlobal("window", { odb: { platform: "darwin", speechStop: vi.fn(async () => {}) } });
     configureLiveMedia({ getUserMedia: () => new Promise<MediaStream>(() => {}) });
     void startLiveCall({ botId: bot.id, threadId: bot.threadId });
     const markup = render(createElement(LiveCallBar, { bot }));

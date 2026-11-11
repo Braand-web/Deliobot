@@ -3,11 +3,11 @@ export const APP_REPOSITORY = "https://github.com/Braand-web/Deliobot";
 export const DOCS_URL = `${APP_REPOSITORY}/tree/main/docs`;
 export const HELP_CENTER_URL = DOCS_URL;
 export const APPROVAL_LEVELS_URL = `${APP_REPOSITORY}/blob/main/docs/approval-levels.md`;
-export const PASSKEY_HELP_URL = "https://docs.openopendeliobot.com/docs/troubleshooting/google-sign-in-cloud-browser";
+export const PASSKEY_HELP_URL = "https://docs.opendeliobot.com/docs/troubleshooting/google-sign-in-cloud-browser";
 export const FEEDBACK_URL = "https://discord.gg/9Wb8MEpXRs";
 export const RELEASES_URL = `${APP_REPOSITORY}/releases`;
-export const PRICING_URL = "https://www.openopendeliobot.com/pricing";
-export const CLOUD_PLAN_URL = "https://cloud.openopendeliobot.com/cloud";
+export const PRICING_URL = "https://www.opendeliobot.com/pricing";
+export const CLOUD_PLAN_URL = "https://cloud.opendeliobot.com/cloud";
 export function withSource(url: string, source: string): string {
   const target = new URL(url);
   target.searchParams.set("src", source);
@@ -32,8 +32,8 @@ export function platformLabel(platform?: string): string | null {
 }
 
 export async function openExternalLink(url: string): Promise<void> {
-  if (window.ogb?.openExternal) {
-    await window.ogb.openExternal(url);
+  if (window.odb?.openExternal) {
+    await window.odb.openExternal(url);
     return;
   }
   window.open(url, "_blank", "noopener,noreferrer");
@@ -41,6 +41,6 @@ export async function openExternalLink(url: string): Promise<void> {
 
 /** A browser hands a mailto: link to its own mail app; the desktop app's window may not navigate to one, so main opens it. */
 export async function openEmailDraft(url: string): Promise<void> {
-  if (window.ogb) return openExternalLink(url);
+  if (window.odb) return openExternalLink(url);
   window.location.href = url;
 }

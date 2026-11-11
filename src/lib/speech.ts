@@ -4,8 +4,8 @@ import { desktopCapabilitiesNow } from "./desktop";
 import { fishSpeech, type SpeechBridge } from "./fish-speech";
 
 /** The speech bridge this computer listens through: the page's own Fish Audio listener, or the desktop app's helper. */
-export function speechBridge(): SpeechBridge | Window["ogb"] {
-  return desktopCapabilitiesNow().dictation.engine === "fish-audio" ? fishSpeech : globalThis.window?.ogb;
+export function speechBridge(): SpeechBridge | Window["odb"] {
+  return desktopCapabilitiesNow().dictation.engine === "fish-audio" ? fishSpeech : globalThis.window?.odb;
 }
 
 export function fishListeningReady(config: ConfigStatus | null | undefined): boolean {

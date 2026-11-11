@@ -38,7 +38,7 @@ it("denies a never-list command a grant would have allowed, at a saved command a
     rmSync(dump, { force: true });
     await api("POST", `/api/bots/${bot.id}/messages`, { threadId: bot.threadId, text: "Hold this verification task while its approvals are exercised." }, 202);
     await expect.poll(() => existsSync(dump), { timeout: 15_000 }).toBe(true);
-    return JSON.parse(readFileSync(dump, "utf8")).mcpConfig.mcpServers.ogb.args.at(-1) as string;
+    return JSON.parse(readFileSync(dump, "utf8")).mcpConfig.mcpServers.odb.args.at(-1) as string;
   };
   /** One fake Bash permission request, as the engine's broker client sends it. */
   const ask = async (socketPath: string, command: string) => {

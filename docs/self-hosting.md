@@ -2,7 +2,7 @@
 
 To keep Delio and its agents on your current computer and use a VPS only as a
 bot’s remote desktop, see [Bring Your Own VPS](byo-vps.md) and the
-[published setup guide](https://docs.openopendeliobot.com/docs/computers/byo-vps).
+[published setup guide](https://docs.opendeliobot.com/docs/computers/byo-vps).
 
 Run the server on a machine you control (a VPS, a home server, a Mac mini in a
 closet). Then connect the desktop app, browsers and phones to it. Every path
@@ -27,7 +27,7 @@ For server feature switches, defaults and configuration-file instructions, see
 | A domain name, and ports 80 and 443 open | `npx opendeliobot serve --domain delio.example.com` | `https://delio.example.com/pair#code=…` |
 | Tailscale on the server and your devices | `npx opendeliobot serve --tailscale` | `https://<machine>.<tailnet>.ts.net/pair#code=…` |
 | Only this network (home or office) | `npx opendeliobot serve --lan` | `http://192.168.1.20:8799/pair#code=…` |
-| Nothing at all | `npx opendeliobot login`, then `npx opendeliobot serve --tunnel` | `https://c-….openopendeliobot.com/pair#code=…` |
+| Nothing at all | `npx opendeliobot login`, then `npx opendeliobot serve --tunnel` | `https://c-….opendeliobot.com/pair#code=…` |
 | Only the phone app, from anywhere (a machine with no tunnel address, for now) | `npx opendeliobot login --relay`, then `npx opendeliobot serve --relay` | a QR for the Delio app ([Delio Relay](phone-relay-server.md)) |
 
 `--lan` can be added to any of the others. Plain `http://` is only for a
@@ -202,7 +202,7 @@ Runs fully on a server:
 - a browser for bots, once the engine is installed on the server
   (`npx opendeliobot browser install`, or nothing to do in the Docker image,
   which ships it): each bot gets its own isolated, persistent session.
-  Watching it live from the app is the next step (docs/plans/browser-engine.md).
+  Watching it live from the app is the next step.
   It reaches the public internet and the dev servers a bot starts itself,
   not this server's network or other services unless `browserEngine.egress.allow`
   lists them ([what a bot's browser can reach](browser-packaging.md#what-a-bots-browser-can-reach)).
@@ -257,7 +257,7 @@ too.
   says so and stays on loopback. Plain http travels in clear, so use it only
   on a network you trust.
 - **`--tunnel`**: `npx opendeliobot login` reserves an address like
-  `https://c-….openopendeliobot.com` for this machine (an emailed code signs it
+  `https://c-….opendeliobot.com` for this machine (an emailed code signs it
   in). `serve --tunnel` connects it through a Cloudflare tunnel, the same one
   the desktop app uses for its companion. The first run downloads
   `cloudflared` (pinned version and digest) into the data dir. Only traffic
@@ -845,7 +845,7 @@ is bootstrapped; while it does, Settings refuses to change that list and says
 which variable to change instead. One that is empty, as `.env.example` and the
 Compose files leave them, leaves the list to Settings.
 
-The code itself comes from `accounts.openopendeliobot.com`, the OpenDeliobot
+The code itself comes from `accounts.opendeliobot.com`, the OpenDeliobot
 account service, so your server needs no email credentials. Your server asks
 it to send the code, checks the answer, and then issues its own session
 cookie: the browser only ever talks to your server, and who is welcome is

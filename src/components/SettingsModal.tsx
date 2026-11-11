@@ -106,7 +106,7 @@ export const SECTIONS: Array<{
   { id: "organization", group: "account", labelKey: "settings.section.organization", icon: Building2, keywords: ["company", "organization", "organisation", "sign in", "enroll", "managed", "models", "disconnect"] },
   { id: "usage", group: "account", labelKey: "settings.section.usage", icon: Coins, keywords: ["tokens", "cost", "billing", "plan", "quota", "remaining", "weekly", "5-hour", "model", "used"] },
   { id: "backups", group: "account", labelKey: "settings.section.backups", icon: Archive, keywords: ["export", "import", "restore", "full backup", "password", "recovery"] },
-  { id: "import", group: "account", labelKey: "settings.section.import", icon: Download, keywords: ["import", "grok", "grok bot", "move", "cursor", "claude code", "codex", "gemini", "skills", "mcp", "tools", "bring"] },
+  { id: "import", group: "account", labelKey: "settings.section.import", icon: Download, keywords: ["import", "move", "cursor", "claude code", "codex", "gemini", "skills", "mcp", "tools", "bring"] },
   { id: "people", group: "account", labelKey: "settings.section.people", icon: Users, keywords: ["people", "users", "invite", "sign in", "members", "admins", "access"] },
   { id: "botAccess", group: "account", labelKey: "settings.section.botAccess", icon: Users, keywords: ["access", "share", "sharing", "who can", "view", "chat", "edit", "permissions", "team", "members", "bots"] },
   { id: "activity", group: "account", labelKey: "settings.section.activity", icon: ScrollText, keywords: ["activity", "audit", "log", "history", "who changed", "approvals", "decisions", "admin"] },
@@ -190,10 +190,10 @@ function SettingsDialog() {
   const isTop = useIsTopLayer();
   const { state, dispatch } = useStore();
   const advanced = useAdvancedMode();
-  const remoteActive = window.ogb?.remoteClient?.active === true;
+  const remoteActive = window.odb?.remoteClient?.active === true;
   const requested = state.appSettingsSection;
   const section: AppSettingsSection =
-    advanced && requested === "remote" && window.ogb?.environments
+    advanced && requested === "remote" && window.odb?.environments
       ? "desktopWorkspaces"
       : (remoteActive && !["appearance", "desktopWorkspaces"].includes(requested)) || requested === "remote"
       ? "companion"
@@ -202,8 +202,8 @@ function SettingsDialog() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const searchFirst = useRef(advanced);
   const [query, setQuery] = useState("");
-  useEffect(() => window.ogb?.environments?.onOpenSettings?.(() => setQuery("")), []);
-  useEffect(() => window.ogb?.onOpenAppSettings?.(() => setQuery("")), []);
+  useEffect(() => window.odb?.environments?.onOpenSettings?.(() => setQuery("")), []);
+  useEffect(() => window.odb?.onOpenAppSettings?.(() => setQuery("")), []);
   const q = query.trim().toLowerCase();
   const ownerOrAdmin = useOwnerOrAdmin();
   const thisComputer = pageIsThisComputer();
@@ -211,12 +211,12 @@ function SettingsDialog() {
     ? { ...entry, labelKey: thisComputer ? "settings.section.phoneDevices" as const : "settings.section.thisServer" as const }
     : entry);
   const baseSections = sectionsHere.filter((entry) => !remoteActive || entry.id === "companion" || entry.id === "appearance" || entry.id === "desktopWorkspaces")
-    .filter((entry) => entry.id !== "desktopWorkspaces" || Boolean(window.ogb?.environments))
-    .filter((entry) => entry.id !== "organization" || Boolean(window.ogb?.organization))
-    .filter((entry) => entry.id !== "cloudAccount" || Boolean(window.ogb?.cloudAccount || (window.ogb?.cloudPlan && state.config?.cloudHome === true)))
+    .filter((entry) => entry.id !== "desktopWorkspaces" || Boolean(window.odb?.environments))
+    .filter((entry) => entry.id !== "organization" || Boolean(window.odb?.organization))
+    .filter((entry) => entry.id !== "cloudAccount" || Boolean(window.odb?.cloudAccount || (window.odb?.cloudPlan && state.config?.cloudHome === true)))
     .filter((entry) => entry.id !== "workspaces" || workspacesAvailable(state.config))
-    .filter((entry) => entry.id !== "people" || (!window.ogb && state.config?.cloudHome !== true))
-    .filter((entry) => entry.id !== "activity" || (!window.ogb && ownerOrAdmin === true))
+    .filter((entry) => entry.id !== "people" || (!window.odb && state.config?.cloudHome !== true))
+    .filter((entry) => entry.id !== "activity" || (!window.odb && ownerOrAdmin === true))
     .filter((entry) => entry.id !== "botAccess" || (Boolean(state.config?.team) && ownerOrAdmin === true));
   const availableSections = baseSections.filter((entry) => entry.id !== "skills" || skillsLibraryEnabled(state.config));
   const visibleSections = availableSections.filter((entry) => sectionMatches(entry, q));
@@ -346,9 +346,9 @@ function SettingsDialog() {
       case "desktopWorkspaces":
         return <><ConnectedWorkspacesSettings />{remoteAccess.client}</>;
       case "organization":
-        return window.ogb?.organization && !remoteActive ? <OrganizationSettings /> : null;
+        return window.odb?.organization && !remoteActive ? <OrganizationSettings /> : null;
       case "cloudAccount":
-        return (window.ogb?.cloudAccount || (window.ogb?.cloudPlan && state.config?.cloudHome === true)) && !remoteActive
+        return (window.odb?.cloudAccount || (window.odb?.cloudPlan && state.config?.cloudHome === true)) && !remoteActive
           ? <CloudAccountSettings linkRequest={state.appSettingsCloudLink} cloudHome={state.config?.cloudHome === true} teamHome={state.config?.team}
             onConnectPhone={() => dispatch(phonePairingSettingsAction())} onAddCloud={advanced ? () => dispatch({ type: "openCloudAdd", source: "app_settings" }) : undefined}
             onSignIn={() => dispatch({ type: "openCloudAdd", source: "app_settings", signIn: true })} />
@@ -430,7 +430,7 @@ function SettingsDialog() {
       case "backups": return <AdminOnly><WorkspaceBackupSettings /><CompanyBackupSettings /></AdminOnly>;
       case "import": return <AdminOnly><ImportSettings /></AdminOnly>;
       case "companion":
-        return <>{remoteAccess.companion}{remoteAccess.pairing}{remoteAccess.domain}{window.ogb?.environments ? null : remoteAccess.client}</>;
+        return <>{remoteAccess.companion}{remoteAccess.pairing}{remoteAccess.domain}{window.odb?.environments ? null : remoteAccess.client}</>;
       case "computer":
         return <><BuiltInBrowserRow /><ServerSitesRow /><BrowserProfilesRow /><AdminOnly><LocalComputerSection /></AdminOnly></>;
       case "logins":

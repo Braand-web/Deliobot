@@ -42,9 +42,9 @@ test("tools layout persists in the backup client keys", () => {
   const f = fixture();
   const preloadKeys = JSON.parse(vm.runInContext("JSON.stringify(COMPANY_BACKUP_CLIENT_KEYS)", f.context));
   for (const keys of [preloadKeys, WORKSPACE_BACKUP_CLIENT_KEYS]) {
-    const density = keys.indexOf("openopendeliobot.comdebarDensity");
+    const density = keys.indexOf("opendeliobot.sidebarDensity");
     assert.ok(density >= 0, "density key is allowlisted");
-    assert.equal(keys[density + 1], "openopendeliobot.comdebarToolsLayout");
+    assert.equal(keys[density + 1], "opendeliobot.sidebarToolsLayout");
   }
 });
 

@@ -139,14 +139,14 @@ describe("what the snapshot asks this page's app", () => {
   beforeEach(() => { asked.length = 0; });
 
   it("asks the desktop app's own window for paired phones and the Cloud account", async () => {
-    vi.stubGlobal("ogb", { remoteClient: { active: false }, ...bridges });
+    vi.stubGlobal("odb", { remoteClient: { active: false }, ...bridges });
     await draw(ready());
     expect(asked.sort()).toEqual(["cloudAccount", "companion"]);
     expect(sent()[0]![1]).toMatchObject({ phones_paired: 2, cloud_plan: "none", remote_client: false });
   });
 
   it("asks a Cloud page shown in the desktop app for its own plan only", async () => {
-    vi.stubGlobal("ogb", bridges);
+    vi.stubGlobal("odb", bridges);
     await draw(ready({ config: { ...ready().config!, cloudHome: true } }));
     expect(asked).toEqual(["cloudPlan"]);
     expect(sent()[0]![1]).toMatchObject({ cloud_plan: "max", cloud_home: true });
@@ -154,7 +154,7 @@ describe("what the snapshot asks this page's app", () => {
   });
 
   it("asks nothing of the desktop app as a remote client, and does not wait for webhooks it never loads", async () => {
-    vi.stubGlobal("ogb", { remoteClient: { active: true }, ...bridges });
+    vi.stubGlobal("odb", { remoteClient: { active: true }, ...bridges });
     await draw(ready({ webhookIngress: null }));
     expect(asked).toEqual([]);
     expect(sent()[0]![1]).toMatchObject({ cloud_plan: "unknown", remote_client: true });

@@ -140,7 +140,7 @@ it("Q2 takes Clive's reply to Mira's thread as the answer to the card her ask to
     { key: "C-REPLY", match: ["Q2-SAG"], steps: [{ arguments: { bot_ids: [f.mira.id], message: "Only the footer text" } }], reply: "C-REPLY: passed on." },
     { key: "C1", match: [SETTLED, REPORT_FROM_MIRA], reply: "Q2-FINAL: the fix is in." });
   f.script(f.mira.id, { key: "M1", match: ["Q2-BRIEF"], timeoutMs: 90_000,
-    steps: [{ server: "ogb", tool: "ask_user", arguments: { question, choices: ["Only the footer text", "The footer and the welcome text"] }, capture: { answer: "([\\s\\S]+)" } }],
+    steps: [{ server: "odb", tool: "ask_user", arguments: { question, choices: ["Only the footer text", "The footer and the welcome text"] }, capture: { answer: "([\\s\\S]+)" } }],
     reply: "Q2-RESULT: done with {{answer}}" });
   await f.say(f.clive.id, f.job, "Q2-JOB: have Mira apply the fix.");
   await expect.poll(() => f.children()[0]?.status, { timeout: 30_000 }).toBe("running");
@@ -242,7 +242,7 @@ it("F4 keeps a second assignment Clive hands Mira in the same turn its own job, 
 
 const PERSON_QUESTION = "Keep the old pricing page as a backup?";
 const askThePerson = (f: any, key: string) => f.script(f.mira.id, { key: "M1", match: [key], timeoutMs: 90_000,
-  steps: [{ server: "ogb", tool: "ask_user", arguments: { question: PERSON_QUESTION, choices: ["Keep it", "Delete it"] }, capture: { answer: "([\\s\\S]+)" } }],
+  steps: [{ server: "odb", tool: "ask_user", arguments: { question: PERSON_QUESTION, choices: ["Keep it", "Delete it"] }, capture: { answer: "([\\s\\S]+)" } }],
   reply: `${key}-RESULT: done with {{answer}}` });
 const asking = async (f: any, chat: string) => (await f.messages(chat)).find((message: any) => message.card?.subtitle === PERSON_QUESTION)?.card;
 

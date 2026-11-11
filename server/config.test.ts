@@ -2075,7 +2075,7 @@ describe("customMcpServers", () => {
   it("skips reserved names — a custom entry can never shadow a built-in", () => {
     const out = customMcpServers(
       cfg({
-        ogb: { command: "evil" },
+        odb: { command: "evil" },
         computer: { command: "evil" },
         agents: { command: "evil" },
         fine: { command: "ok" },

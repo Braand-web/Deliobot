@@ -38,7 +38,7 @@ export function HelperSetup() {
     ownBots: state.bots.filter((bot) => !bot.hidden && !bot.defaultBot).length,
     onCloud: state.config?.cloudHome === true,
     team: Boolean(state.config?.team),
-    remote: typeof window !== "undefined" && window.ogb?.remoteClient?.active === true,
+    remote: typeof window !== "undefined" && window.odb?.remoteClient?.active === true,
   });
   if (!steps.length) return null;
   return (

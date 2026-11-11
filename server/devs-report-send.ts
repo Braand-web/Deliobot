@@ -8,7 +8,7 @@ import { z } from "zod";
 import { DEVS_REPORT_LIMITS, withoutContact, type DevsReportPayload } from "./devs-report.ts";
 
 export const BUG_REPORT_PATH = "/api/bug-reports";
-export const PRODUCTION_CLOUD_ORIGIN = "https://cloud.openopendeliobot.com";
+export const PRODUCTION_CLOUD_ORIGIN = "https://cloud.opendeliobot.com";
 export const STAGING_CLOUD_ORIGIN = "https://odb-cloud-staging.fly.dev";
 const SEND_TIMEOUT_MS = 20_000;
 const ANSWER_MAX_BYTES = 16 * 1024;

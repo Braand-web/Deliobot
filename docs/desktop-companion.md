@@ -23,10 +23,10 @@ below. The two connection types intentionally do not share credentials.
 2. Open a pairing window so the host displays a six-digit code.
 3. On the client, open **Settings → Servers → Connect to another computer**
    and choose **Desktop companion**.
-4. Enter the host's managed companion address (`https://c-….openopendeliobot.com` or `https://c-….opendeliobot.com`) and the six-digit code.
+4. Enter the host's managed companion address (`https://c-….opendeliobot.com` or `https://c-….opendeliobot.com`) and the six-digit code.
 5. Choose **Pair and switch to client mode**. The client restarts and opens the host's bot UI.
 
-The HTTPS address uses the host's managed outbound tunnel. TLS is verified by the operating system, and the client does not need Tailscale. HTTPS is intentionally restricted to the names OpenDeliobot issues (`c-` and 32 hexadecimal characters under `openopendeliobot.com` or `opendeliobot.com`) so a typo, or any other host in those domains, cannot receive the pairing code or a paired-device token. Desktop releases up to 0.1.103 accept only `openopendeliobot.com` names; update the client to pair with a host whose address is on `opendeliobot.com`, or pair over Tailscale.
+The HTTPS address uses the host's managed outbound tunnel. TLS is verified by the operating system, and the client does not need Tailscale. HTTPS is intentionally restricted to the names OpenDeliobot issues (`c-` and 32 hexadecimal characters under `opendeliobot.com` or `opendeliobot.com`) so a typo, or any other host in those domains, cannot receive the pairing code or a paired-device token. Desktop releases up to 0.1.103 accept only `opendeliobot.com` names; update the client to pair with a host whose address is on `opendeliobot.com`, or pair over Tailscale.
 
 ## Pair over Tailscale
 

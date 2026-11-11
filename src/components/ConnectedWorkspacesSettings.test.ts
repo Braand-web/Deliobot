@@ -32,7 +32,7 @@ const flush = async () => { for (let i = 0; i < 20; i++) await Promise.resolve()
 const VPS = { id: "vps", name: "VPS", origin: "https://bots.example.test" };
 function stub(extra: Record<string, unknown> = {}) {
   vi.stubGlobal("window", {
-    ogb: { environments: { state: vi.fn().mockResolvedValue({ localOrigin: "http://127.0.0.1:1", remote: false, activeId: "local", environments: [VPS] }),
+    odb: { environments: { state: vi.fn().mockResolvedValue({ localOrigin: "http://127.0.0.1:1", remote: false, activeId: "local", environments: [VPS] }),
       switch: vi.fn(), forget: vi.fn(), addFromLink: vi.fn(), onOpenSettings: () => () => {} }, ...extra },
     location: { search: "", href: "http://127.0.0.1:1/settings" }, history: { replaceState: () => {} },
   });
@@ -50,10 +50,10 @@ const envState = (overrides: Record<string, unknown> = {}) => ({
   localOrigin: "http://127.0.0.1:1", remote: false, packaged: true, activeId: "local",
   environments: [LOCAL_ENV, GONE_ENV, VPS], ...overrides,
 });
-function stubEnvironments(stateOverrides: Record<string, unknown> = {}, bridgeExtra: Record<string, unknown> = {}, ogbExtra: Record<string, unknown> = {}) {
+function stubEnvironments(stateOverrides: Record<string, unknown> = {}, bridgeExtra: Record<string, unknown> = {}, odbExtra: Record<string, unknown> = {}) {
   const environments = { state: vi.fn().mockResolvedValue(envState(stateOverrides)), switch: vi.fn(),
     forget: vi.fn(), addFromLink: vi.fn(), create: vi.fn(), pickDir: vi.fn(), onOpenSettings: () => () => {}, ...bridgeExtra };
-  stub({ environments, ...ogbExtra });
+  stub({ environments, ...odbExtra });
   return environments;
 }
 const rowButton = (ariaLabel: string) => render().nodes.filter(n => n.type === "button" && n.props["aria-label"] === ariaLabel)[0];
@@ -177,7 +177,7 @@ it("a Cloud of the person's own has no lending control here, since this computer
   const cloud = { id: "cloud", name: "My Cloud", origin: "https://odb-u-1.fly.dev", home: true };
   const other = { id: "a", name: "Client A", origin: "https://odb-c-a.fly.dev", cloud: { id: "c-a", role: "owner" } };
   stub({ computerSharing: { state: vi.fn() } });
-  vi.mocked((globalThis.window as unknown as { ogb: { environments: { state: ReturnType<typeof vi.fn> } } }).ogb.environments.state)
+  vi.mocked((globalThis.window as unknown as { odb: { environments: { state: ReturnType<typeof vi.fn> } } }).odb.environments.state)
     .mockResolvedValue({ localOrigin: "http://127.0.0.1:1", remote: false, activeId: "local", environments: [VPS, cloud, other] });
   await mount();
   const { html } = render();

@@ -86,7 +86,7 @@ const capabilities = {
   localComputer: { available: false, support: "unsupported", enabled: false, status: "unavailable", reasonCode: "cua-driver-blocked", message: blocked },
 };
 if (view === "pc") {
-  Object.assign(window, { ogb: { platform: "win32", getCapabilities: async () => capabilities, onCapabilitiesChanged: () => () => {}, localControl: { retry: async () => ({}) } } });
+  Object.assign(window, { odb: { platform: "win32", getCapabilities: async () => capabilities, onCapabilitiesChanged: () => () => {}, localControl: { retry: async () => ({}) } } });
 }
 
 createRoot(document.getElementById("root")!).render(<StrictMode><Gallery /></StrictMode>);

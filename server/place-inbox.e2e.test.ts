@@ -93,7 +93,7 @@ describe.each([
     const launch = await h.thread(eli.id, "Launch work");
     h.script(eli.id,
       { key: "P1", match: ["P1-GO"], timeoutMs: 120_000, approve: { tool: "Bash", input: { command: "echo hi" } }, reply: "P1: approved and ran", replyIfDenied: "P1: denied" },
-      { key: "Q1", match: ["Q1-GO"], timeoutMs: 120_000, steps: [{ server: "ogb", tool: "ask_user", arguments: { question: "Which page?", choices: ["Home", "Pricing"] }, capture: { answer: "([\\s\\S]+)" } }], reply: "Q1: going with {{answer}}" });
+      { key: "Q1", match: ["Q1-GO"], timeoutMs: 120_000, steps: [{ server: "odb", tool: "ask_user", arguments: { question: "Which page?", choices: ["Home", "Pricing"] }, capture: { answer: "([\\s\\S]+)" } }], reply: "Q1: going with {{answer}}" });
     const before = (await h.notes()).length;
     await h.say(eli.id, pricing, "P1-GO");
     await h.say(eli.id, launch, "Q1-GO");
@@ -157,7 +157,7 @@ describe.each([
     h.script(mira.id,
       { key: "W1", match: ["W1-GO"], steps: [{ arguments: { bot_ids: [eli.id], message: "W1-BRIEF: pick the page." } }], reply: "W1: handed on" },
       { key: "W1-DONE", match: ["Your downstream room requests have settled.", "W1-GO"], reply: "W1-DONE" });
-    h.script(eli.id, { key: "W1-E", match: ["W1-BRIEF"], timeoutMs: 120_000, steps: [{ server: "ogb", tool: "ask_user", arguments: { question: "Which page for Mira?", choices: ["Home", "Pricing"] }, capture: { answer: "([\\s\\S]+)" } }], reply: "W1-E: {{answer}}" });
+    h.script(eli.id, { key: "W1-E", match: ["W1-BRIEF"], timeoutMs: 120_000, steps: [{ server: "odb", tool: "ask_user", arguments: { question: "Which page for Mira?", choices: ["Home", "Pricing"] }, capture: { answer: "([\\s\\S]+)" } }], reply: "W1-E: {{answer}}" });
     await h.say(mira.id, mira.threadId, "W1-GO");
     await until(async () => (await h.listed()).some((row) => row.from.name === eli.name && row.kind === "ask"), "the handed-on question in the inbox");
     const row = (await h.listed()).find((one) => one.from.name === eli.name && one.kind === "ask")!;
@@ -208,8 +208,8 @@ describe("on a Cloud someone else once used", () => {
     const theirs = await h.thread(zed.id, "Sam's work");
     const owners = await h.thread(zed.id, "My work");
     h.script(zed.id,
-      { key: "G1", match: ["G1-GO"], timeoutMs: 120_000, steps: [{ server: "agents", tool: "message_person", arguments: { message: "For the guest" } }, { server: "ogb", tool: "ask_user", arguments: { question: "Guest's question?", choices: ["A", "B"] }, capture: { answer: "([\\s\\S]+)" } }], reply: "G1: {{answer}}" },
-      { key: "G2", match: ["G2-GO"], timeoutMs: 120_000, steps: [{ server: "ogb", tool: "ask_user", arguments: { question: "Owner's question?", choices: ["A", "B"] }, capture: { answer: "([\\s\\S]+)" } }], reply: "G2: {{answer}}" },
+      { key: "G1", match: ["G1-GO"], timeoutMs: 120_000, steps: [{ server: "agents", tool: "message_person", arguments: { message: "For the guest" } }, { server: "odb", tool: "ask_user", arguments: { question: "Guest's question?", choices: ["A", "B"] }, capture: { answer: "([\\s\\S]+)" } }], reply: "G1: {{answer}}" },
+      { key: "G2", match: ["G2-GO"], timeoutMs: 120_000, steps: [{ server: "odb", tool: "ask_user", arguments: { question: "Owner's question?", choices: ["A", "B"] }, capture: { answer: "([\\s\\S]+)" } }], reply: "G2: {{answer}}" },
       { key: "G3", match: ["G3-GO"], reply: "G3 done" });
 
     markLeftBehind(join(fx.root, "cloud", ".opendeliobot"), { threadIds: [theirs] });

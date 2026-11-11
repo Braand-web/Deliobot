@@ -25,8 +25,8 @@ export function isServerPairingLink(input: string): boolean {
 
 /** `legacyOnly`: only an installation already in client mode sees this card, to leave it before the mode ends. */
 export function RemoteComputerSection({ hideWhenUnavailable = false, legacyOnly = false }: { hideWhenUnavailable?: boolean; legacyOnly?: boolean }) {
-  const bridge = window.ogb?.remoteClient;
-  const environments = window.ogb?.environments;
+  const bridge = window.odb?.remoteClient;
+  const environments = window.odb?.environments;
   const [state, setState] = useState<DesktopRemoteClientState>({ active: bridge?.active === true });
   const [connection, setConnection] = useState<"server" | "companion">(environments ? "server" : "companion");
   const [serverLink, setServerLink] = useState("");
@@ -191,7 +191,7 @@ export function RemoteComputerSection({ hideWhenUnavailable = false, legacyOnly 
                 <input
                   value={endpoint}
                   onChange={(event) => setEndpoint(event.target.value)}
-                  placeholder="https://…openopendeliobot.com or computer.tailnet.ts.net"
+                  placeholder="https://…opendeliobot.com or computer.tailnet.ts.net"
                   disabled={busy}
                   autoCapitalize="none"
                   autoCorrect="off"

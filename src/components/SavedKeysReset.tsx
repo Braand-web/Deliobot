@@ -25,7 +25,7 @@ export function SavedKeysReset({ notice = false }: { notice?: boolean }) {
   const reset = () => {
     if (asking) return;
     setPending(true);
-    const request = Promise.resolve(window.ogb?.credentialStore?.reset()).then(() => {}, () => {});
+    const request = Promise.resolve(window.odb?.credentialStore?.reset()).then(() => {}, () => {});
     asking = request.finally(() => {
       asking = null;
       setPending(false);

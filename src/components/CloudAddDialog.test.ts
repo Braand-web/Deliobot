@@ -375,7 +375,7 @@ describe("the sheet", () => {
       look: vi.fn(async () => ({ name: "My Cloud", color: "blue" })), setLook: vi.fn(async (name: string, color: string) => ({ name, color })), sheet: vi.fn(async () => {}),
       readySeen: vi.fn(async () => {}),
       connectHome: vi.fn(async () => account), openTeam: vi.fn(async () => {}) };
-    vi.stubGlobal("window", { ogb: { cloudAccount: bridge }, addEventListener: vi.fn(), removeEventListener: vi.fn() });
+    vi.stubGlobal("window", { odb: { cloudAccount: bridge }, addEventListener: vi.fn(), removeEventListener: vi.fn() });
     vi.stubGlobal("document", { querySelector: () => null, activeElement: opener, body: {}, hasFocus: () => focused });
   });
 
@@ -417,7 +417,7 @@ describe("the sheet", () => {
     account = { ...free, entitlement: { plan: "pro", tier: "pro", status: "active", expiresAt: NOW + 86_400_000, version: 2 },
       machine: { status: "ready", origin: "https://odb-c1.fly.dev" } as CloudAccountState["machine"],
       clouds: [{ id: "c1", name: "My Cloud", color: null, role: "owner", tier: "pro", runsOn: "cloud", status: "ready", origin: "https://odb-c1.fly.dev", teamId: null, primary: true, managed: true }] };
-    vi.stubGlobal("window", { ogb: { cloudAccount: bridge, cloudAdd: { state: vi.fn(), start: vi.fn() } }, addEventListener: vi.fn(), removeEventListener: vi.fn() });
+    vi.stubGlobal("window", { odb: { cloudAccount: bridge, cloudAdd: { state: vi.fn(), start: vi.fn() } }, addEventListener: vi.fn(), removeEventListener: vi.fn() });
     await settle();
     expect(render()).toContain('data-add-cloud-flow="app_whats_new_team"');
   });
@@ -484,7 +484,7 @@ describe("the sheet", () => {
   it("the countdown stops when the window loses focus: nothing switches while the person is elsewhere", async () => {
     vi.useFakeTimers();
     const listeners = new Map<string, () => void>();
-    vi.stubGlobal("window", { ogb: { cloudAccount: bridge }, addEventListener: vi.fn((name: string, listener: () => void) => listeners.set(name, listener)),
+    vi.stubGlobal("window", { odb: { cloudAccount: bridge }, addEventListener: vi.fn((name: string, listener: () => void) => listeners.set(name, listener)),
       removeEventListener: vi.fn((name: string) => listeners.delete(name)) });
     account = paid({ machine: ready, checkout: { plan: "pro", startedAt: NOW - 120_000, link: true } });
     expect(await settle()).toContain("Opening in 3…");
@@ -685,7 +685,7 @@ describe("the sheet", () => {
   it("is only on This computer's page, and only while asked for", async () => {
     f.state = { cloudAdd: null }; expect(await settle()).toBe("");
     f.state = { cloudAdd: { source: "app_card" } };
-    vi.stubGlobal("window", { ogb: { remoteClient: { active: true }, cloudAccount: bridge } }); expect(await settle()).toBe("");
+    vi.stubGlobal("window", { odb: { remoteClient: { active: true }, cloudAccount: bridge } }); expect(await settle()).toBe("");
     vi.stubGlobal("window", {}); expect(await settle()).toBe("");
   });
 

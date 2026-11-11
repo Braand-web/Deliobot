@@ -16,7 +16,7 @@ export function WindowsLocalControl() {
     setPending(true);
     setError(null);
     try {
-      await window.ogb?.localControl?.retry();
+      await window.odb?.localControl?.retry();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : String(reason));
     } finally {

@@ -1024,7 +1024,7 @@
   "settings.runCard.subtitle": "Hiển thị danh sách các lệnh shell mà bot đã chạy cho yêu cầu hiện tại của bạn. Hãy tắt để ẩn thẻ này cùng với phím tắt lưu lần chạy dưới dạng kỹ năng.",
   "settings.runCard.show": "Hiển thị thẻ lần chạy",
   "settings.pinnedCircles.title": "Bot đã ghim dưới dạng hình tròn",
-  "settings.pinnedCircles.subtitle": "Hiển thị các bot đã ghim dưới dạng ảnh đại diện lớn, như Grok Bot. Mở rộng thanh bên sẽ chứa được nhiều bot hơn trên mỗi hàng.",
+  "settings.pinnedCircles.subtitle": "Hiển thị các bot đã ghim dưới dạng ảnh đại diện lớn. Mở rộng thanh bên sẽ chứa được nhiều bot hơn trên mỗi hàng.",
   "settings.universalPins.title": "Ghim chung",
   "settings.universalPins.subtitle": "Giữ các bot đã ghim từ mọi group chat ở đầu thanh bên, bao gồm cả bot phụ trách của group chat. Chúng sẽ cố định tại đó khi cuộn phần còn lại của danh sách.",
   "settings.notificationSounds.title": "Âm thanh thông báo",

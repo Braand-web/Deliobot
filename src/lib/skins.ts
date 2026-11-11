@@ -111,7 +111,7 @@ function paintSkin(id: SkinId): void {
   for (const listener of listeners) listener();
   // On Windows the caption buttons sit in a native overlay the main process paints, out of CSS's reach.
   try {
-    void window.ogb?.applySkin?.(id)?.catch(() => undefined);
+    void window.odb?.applySkin?.(id)?.catch(() => undefined);
   } catch {
   }
 }

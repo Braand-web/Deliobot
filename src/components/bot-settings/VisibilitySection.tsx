@@ -53,7 +53,7 @@ export function useChoosesVisibility(): boolean {
   const { state } = useStore();
   const ownerOrAdmin = useOwnerOrAdmin();
   const teamName = useTeamName();
-  return !window.ogb && ownerOrAdmin === true && Boolean(state.config) && !teamName;
+  return !window.odb && ownerOrAdmin === true && Boolean(state.config) && !teamName;
 }
 
 export function visibilityLabel(visibility: BotVisibility | undefined): string {

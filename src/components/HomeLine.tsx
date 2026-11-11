@@ -36,7 +36,7 @@ function ConnectAiLink() {
  * it is separate from My Cloud: words only, so its ✕ closes them for good in that workspace, and they go by themselves after
  * a few days (homeLineStage); connecting an AI stays offered while none is ready. */
 export function HomeLine() {
-  const bridge = !window.ogb?.remoteClient?.active ? window.ogb?.workspaces : undefined;
+  const bridge = !window.odb?.remoteClient?.active ? window.odb?.workspaces : undefined;
   const { state, dispatch } = useStore();
   const [line, setLine] = useState<Line | null>(null);
   const [closed, setClosed] = useState(false);
@@ -62,7 +62,7 @@ export function HomeLine() {
   if (!words && !aiMissing) return null;
   return <div role="status" data-home-line={line.kind} className={`relative flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-b border-hairline/40 bg-panel ${informational ? "px-8" : "px-3"} py-1.5 text-[13px] text-ink-secondary`}>
     {line.kind === "clean" ? <Cloud size={14} aria-hidden="true" /> : line.kind === "profile" ? <Laptop size={14} aria-hidden="true" /> : <Users size={14} aria-hidden="true" />}
-    {words && <span dir="auto">{homeLineText(line, window.ogb?.platform)}</span>}
+    {words && <span dir="auto">{homeLineText(line, window.odb?.platform)}</span>}
     {aiMissing && <ConnectAiLink />}
     {informational && words && <button type="button" data-home-line-close aria-label={t("common.close")} title={t("common.close")}
       className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 hover:bg-hairline/40 hover:text-ink" onClick={() => { setClosed(true); save(hintSeenPatch(record, HOME_LINE_NOTICE)); }}>

@@ -32,10 +32,10 @@ it("keeps a question nobody answered on Today after its turn ends, and a late an
     expect((await api("POST", `/api/bots/${bot.id}/messages`, { text: "Ask me which file to update" })).status).toBeLessThan(300);
     await expect.poll(busy, { timeout: 15_000 }).toBe(true);
     await expect.poll(() => {
-      try { return JSON.parse(readFileSync(fixture.fixtureDumpPath, "utf8")).mcpConfig?.mcpServers?.ogb?.args[1]; }
+      try { return JSON.parse(readFileSync(fixture.fixtureDumpPath, "utf8")).mcpConfig?.mcpServers?.odb?.args[1]; }
       catch { return undefined; }
     }, { timeout: 5_000 }).toEqual(expect.any(String));
-    socket = connect(JSON.parse(readFileSync(fixture.fixtureDumpPath, "utf8")).mcpConfig.mcpServers.ogb.args[1]);
+    socket = connect(JSON.parse(readFileSync(fixture.fixtureDumpPath, "utf8")).mcpConfig.mcpServers.odb.args[1]);
     socket.on("error", () => {});
     await new Promise<void>((resolve, reject) => {
       socket!.once("connect", resolve);

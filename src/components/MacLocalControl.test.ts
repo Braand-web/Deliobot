@@ -6,7 +6,7 @@ const fixture = vi.hoisted(() => ({
   localComputer: { available: false, message: "Accessibility required; grant access in System Settings" } as DesktopCapabilities["localComputer"],
 }));
 vi.stubGlobal("window", {
-  ogb: { platform: "darwin", permOpenSettings: vi.fn(), relaunch: vi.fn() },
+  odb: { platform: "darwin", permOpenSettings: vi.fn(), relaunch: vi.fn() },
 });
 vi.mock("./DesktopCapabilities", () => ({
   useDesktopCapabilities: () => ({ capabilities: { host: { platform: "darwin" }, localComputer: fixture.localComputer }, ready: true }),

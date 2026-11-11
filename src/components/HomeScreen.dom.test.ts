@@ -19,7 +19,7 @@ async function mount(bridge: HomeBridge, manage?: () => Promise<void>) {
   await settle();
 }
 const click = async (selector: string) => { const element = host.querySelector<HTMLElement>(selector); expect(element, selector).toBeTruthy(); await act(async () => { element!.click(); }); await settle(); };
-beforeEach(() => { setLocale("en"); host = document.createElement("div"); document.body.append(host); Object.assign(window, { ogb: {} }); });
+beforeEach(() => { setLocale("en"); host = document.createElement("div"); document.body.append(host); Object.assign(window, { odb: {} }); });
 afterEach(async () => { await act(async () => root?.unmount()); root = null; host.remove(); });
 
 it("an ended Cloud: Buy again on the Cloud page, and Remove from list asked first in plain words; the Admin's no is said", async () => {
@@ -56,7 +56,7 @@ it("Remove from list shows only where the Admin says so and the app can; a Cloud
 
 it("a checkout that wasn't finished continues where this app keeps its page, else on the Cloud page", async () => {
   const reopen = vi.fn(async () => false), manage = vi.fn(async () => {});
-  Object.assign(window, { ogb: { cloudAdd: { reopen } } });
+  Object.assign(window, { odb: { cloudAdd: { reopen } } });
   await mount(bridgeOf({ screen: "checkout", name: "Client B" }), manage);
   await click("[data-home-action='continue']");
   expect([reopen.mock.calls.length, manage.mock.calls.length]).toEqual([1, 1]);

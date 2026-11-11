@@ -37,8 +37,8 @@ describe("redactSecrets", () => {
             command: "/usr/bin/node",
             args: ["/app/computer-proxy.js"],
             env: [
-              { name: "OGB_BOX_ID", value: "boat-9" },
-              { name: "OGB_BOX_TOKEN", value: "box_live_abcdefghijklmnop" },
+              { name: "ODB_BOX_ID", value: "boat-9" },
+              { name: "ODB_BOX_TOKEN", value: "box_live_abcdefghijklmnop" },
             ],
           },
         ],
@@ -51,7 +51,7 @@ describe("redactSecrets", () => {
     expect(out).not.toContain("box_live_abcdefghijklmnop");
     expect(out).toContain("session/new");
     expect(out).toContain("ODB_COMMS_TOKEN");
-    expect(out).toContain("OGB_BOX_TOKEN");
+    expect(out).toContain("ODB_BOX_TOKEN");
     expect(out).toContain("bot-123");
     expect(out).toContain("boat-9");
     expect(out).toContain("/app/agents-proxy.js");
@@ -66,7 +66,7 @@ describe("redactSecrets", () => {
           url: "https://app.composio.dev/tool_router/v3/trs_test/mcp",
           headers: { "x-api-key": "ak_live_supersecret" },
         },
-        computer: { env: { ELECTRON_RUN_AS_NODE: "1", OGB_BOX_TOKEN: "box_live_zzz" } },
+        computer: { env: { ELECTRON_RUN_AS_NODE: "1", ODB_BOX_TOKEN: "box_live_zzz" } },
       },
     };
 

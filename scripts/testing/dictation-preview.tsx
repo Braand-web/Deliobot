@@ -17,7 +17,7 @@ const ends = new Set<(info: { code: number }) => void>();
 let starts = 0;
 let stops = 0;
 let capturing = false;
-window.ogb = {
+window.odb = {
   platform: "darwin",
   getCapabilities: async () => initialDesktopCapabilities(),
   speechStart: async () => { starts++; capturing = true; normalize = createSpeechTranscript(); },
@@ -28,7 +28,7 @@ window.ogb = {
     return () => listeners.delete(cb);
   },
   onSpeechEnd: (cb: (info: { code: number }) => void) => { ends.add(cb); return () => ends.delete(cb); },
-} as unknown as typeof window.ogb;
+} as unknown as typeof window.odb;
 
 Object.assign(window, { dictationFixture: {
   stats: () => ({ starts, stops, capturing }),

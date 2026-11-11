@@ -49,7 +49,7 @@ const transport = {
 };
 Object.assign(window, { cloudPreviewFixture: transport });
 const viewerListeners = new Set<(state: { open: boolean; contextId: string }) => void>();
-Object.assign(window, { ogb: { desktopViewer: {
+Object.assign(window, { odb: { desktopViewer: {
   currentState: async () => ({ open: false, contextId: "" }),
   onState: (listener: (state: { open: boolean; contextId: string }) => void) => {
     viewerListeners.add(listener);

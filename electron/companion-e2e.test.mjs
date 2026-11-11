@@ -15,7 +15,7 @@ const HOST_ID = "lz81isB3BuNV6rHgYgG3Wg";
 const grant = (overrides = {}) => ({
   token: "eyJ2IjoxfQ.c2lnbmF0dXJl",
   hostId: HOST_ID,
-  nodes: ["relay1.openopendeliobot.com", "relay2.openopendeliobot.com"],
+  nodes: ["relay1.opendeliobot.com", "relay2.opendeliobot.com"],
   expiresAt: 10 * 60 * 60_000,
   refreshAfter: 60 * 60_000,
   ...overrides,

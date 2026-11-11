@@ -953,7 +953,7 @@ export function LocalComputerSection() {
     return body as Status;
   };
 
-  const confirmAction = (message: string) => window.ogb?.confirm ? window.ogb.confirm(message) : window.confirm(message);
+  const confirmAction = (message: string) => window.odb?.confirm ? window.odb.confirm(message) : window.confirm(message);
 
   const act = async (action: Action) => {
     if (pending !== null || actionController.current) return;

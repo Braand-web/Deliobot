@@ -5,13 +5,13 @@ import { computerName } from "@/lib/places";
 import { useStore } from "@/state/store";
 import { PlaceMark } from "./PlacesRail";
 
-type WorkspaceState = Awaited<ReturnType<NonNullable<NonNullable<typeof window.ogb>["workspaces"]>["state"]>>;
+type WorkspaceState = Awaited<ReturnType<NonNullable<NonNullable<typeof window.odb>["workspaces"]>["state"]>>;
 
 /** The place this window shows, as main tells this page: null in a browser, on a remote client, or until main answers. */
 export function useWindowPlace(): WorkspaceState | null {
   const [place, setPlace] = useState<WorkspaceState | null>(null);
   useEffect(() => {
-    const workspaces = window.ogb?.remoteClient?.active ? undefined : window.ogb?.workspaces;
+    const workspaces = window.odb?.remoteClient?.active ? undefined : window.odb?.workspaces;
     if (!workspaces) return;
     let alive = true;
     const read = () => void workspaces.state().then((next) => { if (alive) setPlace(next); }).catch(() => {});

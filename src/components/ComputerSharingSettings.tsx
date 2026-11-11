@@ -11,7 +11,7 @@ import { t } from "@/lib/i18n";
 export function ComputerSharingSettings({ workspace, own = false, onClose }: { workspace: { id: string; name: string; origin: string }; own?: boolean; onClose: () => void }) {
   const { state: appState } = useStore();
   const offered = own || sharedComputersEnabled(appState.config);
-  const bridge = offered ? window.ogb?.computerSharing : undefined;
+  const bridge = offered ? window.odb?.computerSharing : undefined;
   const [state, setState] = useState<DesktopComputerSharing | null>(null);
   const [folders, setFolders] = useState<DesktopSharedFolder[]>([]);
   const [terminal, setTerminal] = useState(false);

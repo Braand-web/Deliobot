@@ -158,7 +158,7 @@ it("allows an open approval with a 👍 on its card and denies one with a 👎",
     await api("PATCH", `/api/bots/${bot.id}`, { approvalMode: "ask" });
     await api("POST", `/api/bots/${bot.id}/messages`, { threadId: bot.threadId, text: "Push the branch." }, 202);
     await expect.poll(() => existsSync(fixture.fixtureDumpPath), { timeout: 15_000 }).toBe(true);
-    const socketPath = JSON.parse(readFileSync(fixture.fixtureDumpPath, "utf8")).mcpConfig.mcpServers.ogb.args[1] as string;
+    const socketPath = JSON.parse(readFileSync(fixture.fixtureDumpPath, "utf8")).mcpConfig.mcpServers.odb.args[1] as string;
     broker = connect(socketPath);
     await new Promise<void>((resolve, reject) => { broker!.once("connect", resolve); broker!.once("error", reject); });
     const answers: Array<{ id: string; behavior: string }> = [];

@@ -26,7 +26,7 @@ const hook = (cloudHome = false) => { f.index = 0; f.effects = []; return useAcc
 const lineHook = (cloudHome = false) => { f.index = 0; f.effects = []; return useAccountMoveLine(cloudHome); };
 async function shown(value: CloudSendNotice, cloudHome = false) {
   page = { notice: vi.fn().mockResolvedValue(value), dismiss: vi.fn().mockResolvedValue({ ...value, move: undefined }), onNotice: vi.fn(() => () => {}) };
-  vi.stubGlobal("window", { ogb: { cloudSendPage: page } });
+  vi.stubGlobal("window", { odb: { cloudSendPage: page } });
   hook(cloudHome); for (const effect of f.effects) effect(); await flush();
   return hook(cloudHome);
 }

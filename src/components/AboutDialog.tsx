@@ -46,7 +46,7 @@ export function AboutDialog({ open, onClose }: { open: boolean; onClose: () => v
 
   if (!open) return null;
 
-  const [version, connected] = aboutVersionLines({ app: window.ogb?.app, bundle: appVersion(), platform: platformLabel(window.ogb?.platform), server });
+  const [version, connected] = aboutVersionLines({ app: window.odb?.app, bundle: appVersion(), platform: platformLabel(window.odb?.platform), server });
 
   return (
     <div

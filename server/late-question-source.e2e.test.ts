@@ -33,11 +33,11 @@ it("does not retarget a deleted room asker's late answer to the current speaker"
     })).status).toBe(202);
     await expect.poll(speaker, { timeout: 15_000 }).toBe(original.id);
     await expect.poll(() => {
-      try { return JSON.parse(readFileSync(fixture.fixtureDumpPath, "utf8")).mcpConfig?.mcpServers?.ogb?.args[1]; }
+      try { return JSON.parse(readFileSync(fixture.fixtureDumpPath, "utf8")).mcpConfig?.mcpServers?.odb?.args[1]; }
       catch { return undefined; }
     }, { timeout: 5_000 }).toEqual(expect.any(String));
     const dump = JSON.parse(readFileSync(fixture.fixtureDumpPath, "utf8"));
-    socket = connect(dump.mcpConfig.mcpServers.ogb.args[1]);
+    socket = connect(dump.mcpConfig.mcpServers.odb.args[1]);
     socket.on("error", () => {});
     await new Promise<void>((resolve, reject) => {
       socket!.once("connect", resolve);

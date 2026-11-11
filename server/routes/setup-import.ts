@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { claudeUserMcpEnabled, DATA_DIR, type AppConfig } from "../config.ts";
-import { lookForGrokBot, removeOldCursorSignIn } from "../grok-local.ts";
+import { removeOldCursorSignIn } from "../old-cursor-sign-in.ts";
 import { applySetupImport, detectSetup, thisMachine, type SetupHost, type SetupMachine } from "../setup-import.ts";
 import type { BusyFlag } from "./config.ts";
 import { PASS, type RouteHandler } from "./table.ts";
@@ -21,7 +21,6 @@ export interface SetupImportRouteDeps {
 }
 
 export const SETUP_IMPORT_PATH = "/api/setup-import";
-export const GROK_LOOK_PATH = "/api/setup-import/grok";
 const LOCAL_ONLY = "Only the desktop app on the computer running OpenDeliobot can bring in that computer's skills and tools.";
 const requestSchema = z.object({ skills: z.boolean().optional(), tools: z.boolean().optional() }).strict();
 
@@ -38,12 +37,6 @@ export function createSetupImportRoutes(deps: SetupImportRouteDeps): RouteHandle
     claudeUserMcp: () => claudeUserMcpEnabled(deps.cfg),
   };
   return async ({ req, res, path, method, auth, json, readBody }) => {
-    if (path === GROK_LOOK_PATH) {
-      if (method !== "GET") return json(res, 405, { error: "method not allowed" });
-      if (!deps.local || auth.kind !== "loopback" || auth.trust === "service") return json(res, 403, { error: LOCAL_ONLY });
-      res.setHeader("Cache-Control", "no-store");
-      return json(res, 200, lookForGrokBot(machine()));
-    }
     if (path !== SETUP_IMPORT_PATH) return PASS;
     if (method !== "GET" && method !== "POST") return json(res, 405, { error: "method not allowed" });
     if (!deps.local || auth.kind !== "loopback" || auth.trust === "service") return json(res, 403, { error: LOCAL_ONLY });

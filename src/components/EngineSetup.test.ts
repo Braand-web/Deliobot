@@ -9,7 +9,7 @@ import { StoreProvider, type InstanceInfo } from "@/state/store";
 afterEach(() => vi.unstubAllGlobals());
 
 it("chooses the server installer even when the client has a different OS", () => {
-  vi.stubGlobal("window", { ogb: { platform: "win32" } });
+  vi.stubGlobal("window", { odb: { platform: "win32" } });
   expect(installCommandFor({ platform: "linux", command: { linux: "linux-install", win32: "windows-install" } })).toBe("linux-install");
   expect(installCommandFor({ platform: "linux", command: { win32: "windows-only" } })).toBeNull();
 });
@@ -56,7 +56,7 @@ describe("managed engine setup errors", () => {
   }
 
   function render(engine: InstanceInfo): string {
-    vi.stubGlobal("window", { ogb: { platform: "darwin" } });
+    vi.stubGlobal("window", { odb: { platform: "darwin" } });
     return renderToStaticMarkup(createElement(StoreProvider, null, createElement(EngineSetup, { instance: engine })));
   }
 
@@ -88,7 +88,7 @@ describe("managed engine setup errors", () => {
 
 describe("engines set up with a key in Settings", () => {
   it("opens Settings → API keys instead of offering a terminal command", () => {
-    vi.stubGlobal("window", { ogb: { platform: "darwin" } });
+    vi.stubGlobal("window", { odb: { platform: "darwin" } });
     const engine: InstanceInfo = {
       ...instance({ state: "unavailable", reason: "No API key — open Settings → API keys." }),
       instanceId: "openaiCompat",
@@ -104,7 +104,7 @@ describe("engines set up with a key in Settings", () => {
   });
 
   it("still offers the install when a key engine's own CLI is missing, and the key once it is installed", () => {
-    vi.stubGlobal("window", { ogb: { platform: "darwin" } });
+    vi.stubGlobal("window", { odb: { platform: "darwin" } });
     const dsh = (snapshot: InstanceInfo["snapshot"]): InstanceInfo => ({
       ...instance(snapshot),
       instanceId: "deepseek",
@@ -142,7 +142,7 @@ describe("install from Settings on the server", () => {
     };
   }
   function render(engine: InstanceInfo): string {
-    vi.stubGlobal("window", { ogb: { platform: "linux" } });
+    vi.stubGlobal("window", { odb: { platform: "linux" } });
     return renderToStaticMarkup(createElement(StoreProvider, null, createElement(EngineSetup, { instance: engine })));
   }
 
@@ -156,7 +156,7 @@ describe("install from Settings on the server", () => {
   });
 
   it("keeps a quiet setup's probe reason behind Details, in plain grey, never as an alert", () => {
-    vi.stubGlobal("window", { ogb: { platform: "linux" } });
+    vi.stubGlobal("window", { odb: { platform: "linux" } });
     const reason = "`kimi` isn't installed, or isn't on this app's PATH.";
     const engine = npmEngine({ state: "unavailable", reason });
     const quiet = renderToStaticMarkup(createElement(StoreProvider, null, createElement(EngineSetup, { instance: engine, quiet: true })));
@@ -224,7 +224,7 @@ describe("install from Settings on the server", () => {
       expect(markup).not.toContain(line);
     }
     // A remote client's Settings has no keys, so it names the computer instead of offering the button.
-    vi.stubGlobal("window", { ogb: { platform: "linux", remoteClient: { active: true } } });
+    vi.stubGlobal("window", { odb: { platform: "linux", remoteClient: { active: true } } });
     const remote = renderToStaticMarkup(createElement(StoreProvider, null, createElement(EngineSetup, { instance: appCopy({ state: "available", authenticated: false, version: "1.19.4" }) })));
     expect(remote).toContain("on the computer running Delio");
     expect(remote).not.toContain("Open API keys");
@@ -240,7 +240,7 @@ describe("install from Settings on the server", () => {
 
   it("turns the update notice into a button when the server can update", () => {
     const update = { title: "Kimi update available", message: "Newer models need it.", command: "npm install -g kimi-fixture@latest" };
-    vi.stubGlobal("window", { ogb: { platform: "linux" } });
+    vi.stubGlobal("window", { odb: { platform: "linux" } });
     const withServer = renderToStaticMarkup(createElement(StoreProvider, null, createElement(EngineUpdateNotice, { update, instance: npmEngine({ state: "available", authenticated: true }) })));
     expect(withServer).toContain("Update Kimi here");
     expect(withServer).toContain("Prefer a terminal?");
@@ -252,7 +252,7 @@ describe("install from Settings on the server", () => {
 
 describe("server device-code sign-in", () => {
   it("offers the distinct ChatGPT plan connection without the legacy Codex command", () => {
-    vi.stubGlobal("window", { ogb: { platform: "linux" } });
+    vi.stubGlobal("window", { odb: { platform: "linux" } });
     const engine: InstanceInfo = {
       ...instance({ state: "available", authenticated: false, chatgptPlan: true }),
       instanceId: "chatgpt", displayName: "ChatGPT plan", driverKind: "codex",
@@ -266,7 +266,7 @@ describe("server device-code sign-in", () => {
   });
 
   it("explains unavailable hosted plan auth without offering a broken login or install", () => {
-    vi.stubGlobal("window", { ogb: { platform: "linux" } });
+    vi.stubGlobal("window", { odb: { platform: "linux" } });
     const engine: InstanceInfo = {
       ...instance({ state: "unavailable", authenticated: false, chatgptPlan: true, authenticationUnavailableReason: "Hosted ChatGPT plan access requires approval." }),
       instanceId: "chatgpt", displayName: "ChatGPT plan", driverKind: "codex",
@@ -280,7 +280,7 @@ describe("server device-code sign-in", () => {
   });
 
   it("uses the supported browser sign-in flow instead of asking a remote user to run a command", () => {
-    vi.stubGlobal("window", { ogb: { platform: "linux" } });
+    vi.stubGlobal("window", { odb: { platform: "linux" } });
     const engine: InstanceInfo = {
       ...instance({ state: "available", authenticated: false }),
       instanceId: "codex",
@@ -296,7 +296,7 @@ describe("server device-code sign-in", () => {
   });
 
   it("does not ask to sign in when installing a CLI for local-model injection", () => {
-    vi.stubGlobal("window", { ogb: { platform: "linux" } });
+    vi.stubGlobal("window", { odb: { platform: "linux" } });
     const engine: InstanceInfo = {
       ...instance({ state: "available", authenticated: false }),
       authentication: { method: "device-code" },
@@ -312,8 +312,8 @@ describe("API-key engine setup", () => {
   function keyEngine(driverKind: string, snapshot: InstanceInfo["snapshot"]): InstanceInfo {
     return { ...instance(snapshot), instanceId: driverKind, driverKind, displayName: "Grok (API)", access: "api", install: { docsUrl: "https://console.x.ai" } };
   }
-  const render = (engine: InstanceInfo, ogb: Record<string, unknown> = { platform: "darwin" }) => {
-    vi.stubGlobal("window", { ogb });
+  const render = (engine: InstanceInfo, odb: Record<string, unknown> = { platform: "darwin" }) => {
+    vi.stubGlobal("window", { odb });
     return renderToStaticMarkup(createElement(StoreProvider, null, createElement(EngineSetup, { instance: engine })));
   };
 
@@ -353,7 +353,7 @@ describe("API-key engine setup", () => {
 
 describe("Ollama setup", () => {
   it("says why Ollama can't answer instead of asking for an API key", () => {
-    vi.stubGlobal("window", { ogb: { platform: "darwin" } });
+    vi.stubGlobal("window", { odb: { platform: "darwin" } });
     const reason = "Ollama isn't running at http://127.0.0.1:11434. Open the Ollama app or run `ollama serve`.";
     const ollama: InstanceInfo = {
       instanceId: "openaiCompat", driverKind: "openai-compat", displayName: "Ollama", access: "api", serverKind: "ollama",
@@ -366,7 +366,7 @@ describe("Ollama setup", () => {
   });
 
   it("says it in the app's own words when the engine names the problem, with the command to run", () => {
-    vi.stubGlobal("window", { ogb: { platform: "darwin" } });
+    vi.stubGlobal("window", { odb: { platform: "darwin" } });
     const ollama: InstanceInfo = {
       instanceId: "openaiCompat", driverKind: "openai-compat", displayName: "Ollama", access: "api", serverKind: "ollama",
       models: { default: "", options: [] },

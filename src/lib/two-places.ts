@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 export interface TwoPlacesSuggestion { key: string; name: string; kind: "cloud" | "server" }
 
-const bridge = () => (typeof window === "undefined" || window.ogb?.remoteClient?.active ? undefined : window.ogb?.twoPlaces);
+const bridge = () => (typeof window === "undefined" || window.odb?.remoteClient?.active ? undefined : window.odb?.twoPlaces);
 
 export function useTwoPlaces(): { suggest: TwoPlacesSuggestion | null | undefined; accept(key: string): Promise<void>; dismiss(key: string): void } {
   const [suggest, setSuggest] = useState<TwoPlacesSuggestion | null | undefined>(bridge() ? undefined : null);

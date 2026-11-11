@@ -4,7 +4,7 @@ import { afterAll, describe, expect, it, vi } from "vitest";
 import type { Bot, Group } from "@/state/store";
 
 const fixture = vi.hoisted(() => {
-  vi.stubGlobal("window", { ogb: { speechStart: () => {} } });
+  vi.stubGlobal("window", { odb: { speechStart: () => {} } });
   return { advanced: true };
 });
 vi.mock("@/state/store", async (importOriginal) => {

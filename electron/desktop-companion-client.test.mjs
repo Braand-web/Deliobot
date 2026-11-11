@@ -60,11 +60,11 @@ describe("desktop companion endpoint", () => {
     expect(normalizeTailscaleCompanionEndpoint("http://HOST.example-tailnet.ts.net:9910/")).toBe(
       "http://host.example-tailnet.ts.net:9910",
     );
-    expect(normalizeDesktopCompanionEndpoint(`https://${LABEL}.openopendeliobot.com`)).toBe(
-      `https://${LABEL}.openopendeliobot.com`,
+    expect(normalizeDesktopCompanionEndpoint(`https://${LABEL}.opendeliobot.com`)).toBe(
+      `https://${LABEL}.opendeliobot.com`,
     );
-    expect(normalizeDesktopCompanionEndpoint(`${LABEL}.openopendeliobot.com`)).toBe(
-      `https://${LABEL}.openopendeliobot.com`,
+    expect(normalizeDesktopCompanionEndpoint(`${LABEL}.opendeliobot.com`)).toBe(
+      `https://${LABEL}.opendeliobot.com`,
     );
     // The control plane's second Cloudflare account gives addresses here.
     expect(normalizeDesktopCompanionEndpoint(`https://${LABEL}.opendeliobot.com`)).toBe(
@@ -75,15 +75,15 @@ describe("desktop companion endpoint", () => {
     );
     for (const endpoint of [
       "https://unrelated.example.com",
-      `http://${LABEL}.openopendeliobot.com`,
+      `http://${LABEL}.opendeliobot.com`,
       "http://10.0.0.4:8810",
       "http://host.local:8810",
       "https://10.0.0.4",
       "http://host.example-tailnet.ts.net/path",
-      `https://${LABEL}.openopendeliobot.com/path`,
+      `https://${LABEL}.opendeliobot.com/path`,
       "http://user@host.example-tailnet.ts.net",
       "http://host.example-tailnet.ts.net.evil.test",
-      `https://${LABEL}.openopendeliobot.com.evil.test`,
+      `https://${LABEL}.opendeliobot.com.evil.test`,
       `http://${LABEL}.opendeliobot.com`,
       `https://${LABEL}.opendeliobot.com/path`,
       `https://${LABEL}.opendeliobot.com.evil.test`,
@@ -93,8 +93,8 @@ describe("desktop companion endpoint", () => {
       `https://${LABEL}.evilopendeliobot.com`,
       "https://www.opendeliobot.com",
       "https://app.opendeliobot.com",
-      "https://accounts.openopendeliobot.com",
-      "https://c-opaque.openopendeliobot.com",
+      "https://accounts.opendeliobot.com",
+      "https://c-opaque.opendeliobot.com",
       "https://c-opaque.opendeliobot.com",
       `https://${LABEL.slice(0, -1)}.opendeliobot.com`,
       `https://${LABEL}0.opendeliobot.com`,
@@ -109,7 +109,7 @@ describe("desktop companion endpoint", () => {
   it("accepts one c-<32 hex> label under each listed domain, and only those", () => {
     // The third domain is a one-line change; until the owner names it, nothing new is accepted.
     expect(NEXT_MANAGED_COMPANION_HOST_SUFFIX).toBe("");
-    expect(MANAGED_COMPANION_HOST_SUFFIXES).toEqual(["openopendeliobot.com", "opendeliobot.com"]);
+    expect(MANAGED_COMPANION_HOST_SUFFIXES).toEqual(["opendeliobot.com", "opendeliobot.com"]);
     expect(Object.isFrozen(MANAGED_COMPANION_HOST_SUFFIXES)).toBe(true);
     for (const suffix of MANAGED_COMPANION_HOST_SUFFIXES) {
       expect(suffix).toMatch(/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/);
@@ -133,7 +133,7 @@ describe("desktop companion endpoint", () => {
   });
 
   it("validates, adds, and removes the encrypted credential document field", () => {
-    const hostedAccess = { ...access, endpoint: `https://${LABEL}.openopendeliobot.com` };
+    const hostedAccess = { ...access, endpoint: `https://${LABEL}.opendeliobot.com` };
     expect(desktopCompanionAccess({ [DESKTOP_COMPANION_FIELD]: hostedAccess })).toEqual(
       hostedAccess,
     );
@@ -193,15 +193,15 @@ describe("desktop companion pairing", () => {
       }),
     );
     const paired = await pairDesktopCompanion({
-      endpoint: `https://${LABEL}.openopendeliobot.com`,
+      endpoint: `https://${LABEL}.opendeliobot.com`,
       code: "654321",
       deviceName: "Desktop client",
       requestId: "request-https-01",
       fetchImpl,
     });
-    expect(paired).toEqual({ ...access, endpoint: `https://${LABEL}.openopendeliobot.com` });
+    expect(paired).toEqual({ ...access, endpoint: `https://${LABEL}.opendeliobot.com` });
     expect(fetchImpl).toHaveBeenCalledWith(
-      `https://${LABEL}.openopendeliobot.com/api/pair`,
+      `https://${LABEL}.opendeliobot.com/api/pair`,
       expect.objectContaining({ method: "POST" }),
     );
 

@@ -1466,7 +1466,7 @@
   "settings.runCard.subtitle": "Pokazuj listę poleceń powłoki uruchomionych przez bota dla twojego bieżącego żądania. Wyłącz, aby ukryć kartę i jej skrót do zapisania uruchomienia jako umiejętności.",
   "settings.runCard.show": "Pokaż kartę uruchomienia",
   "settings.pinnedCircles.title": "Przypięte boty jako okręgi",
-  "settings.pinnedCircles.subtitle": "Pokazuj przypięte boty jako duże awatary, jak Grok Bot. Szerszy panel boczny mieści więcej w każdym wierszu.",
+  "settings.pinnedCircles.subtitle": "Pokazuj przypięte boty jako duże awatary. Szerszy panel boczny mieści więcej w każdym wierszu.",
   "settings.universalPins.title": "Uniwersalne przypięcia",
   "settings.universalPins.subtitle": "Przypięte boty z każdej grupy są na górze panelu bocznego, w tym szef grupy. Pozostają tam, gdy reszta listy się przewija.",
   "settings.notificationSounds.title": "Dźwięki powiadomień",

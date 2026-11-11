@@ -41,7 +41,7 @@ let state: CompanionState = {
   tailnetName: "ada-mac.tail1234.ts.net",
   discovery: { advertising: true, name: "Ada's MacBook" },
   ...(e2eOn
-    ? { e2e: { enabled: true, relay: relayOn ? "connected" : "off", node: relayOn ? "relay1.openopendeliobot.com" : null, descriptor: relayOn ? { v: 1, k: K, h: "lz81isB3BuNV6rHgYgG3Wg", r: ["relay1.openopendeliobot.com", "relay2.openopendeliobot.com"] } : { v: 1, k: K } } }
+    ? { e2e: { enabled: true, relay: relayOn ? "connected" : "off", node: relayOn ? "relay1.opendeliobot.com" : null, descriptor: relayOn ? { v: 1, k: K, h: "lz81isB3BuNV6rHgYgG3Wg", r: ["relay1.opendeliobot.com", "relay2.opendeliobot.com"] } : { v: 1, k: K } } }
     : {}),
 };
 const answer = async (next?: Partial<CompanionState>) => {
@@ -62,7 +62,7 @@ const bridge = {
   routes: (id: string, routes: "any" | "local") => answer({ devices: state.devices.map((each) => (each.id === id ? { ...each, routes } : each)) }),
 };
 const account = { state: async () => ({ available: true, status: "ready", email: "ada@example.com" }) };
-(globalThis as unknown as { ogb: unknown }).ogb = { companion: bridge, companionAccount: account };
+(globalThis as unknown as { odb: unknown }).odb = { companion: bridge, companionAccount: account };
 
 const link = phonePairingLink({ address: "192.168.1.20", port: 8810, token: TOKEN, code: e2eOn ? undefined : "482913", name: "Ada's MacBook",
   e2e: state.e2e?.descriptor });

@@ -106,7 +106,7 @@ dump above proves what the model was told, not what a native browser would do.
 ### Last exercised
 
 2026-09-12, isolated macOS fixture on port 21008. A bot on Auto settled with
-`mcpConfig` servers `agents` and `ogb` and no Works-on sentence. The same bot
+`mcpConfig` servers `agents` and `odb` and no Works-on sentence. The same bot
 patched to `computer: "off"` settled with the Works-on-Off sentence in its
 system prompt. A channel send to that bot carried the same sentence in the room
 prompt; an Auto bot mentioned in the same room did not. The fixture and its

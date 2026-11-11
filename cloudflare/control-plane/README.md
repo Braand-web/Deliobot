@@ -329,7 +329,7 @@ limit below the real quota turns a genuine rate limit at that count into a
 ten-minute capacity gate for that account and, with several accounts, makes
 the account look full, so new endpoints go elsewhere while it still has
 room). `wrangler.jsonc` sets `ODB_DNS_RECORD_LIMIT` to 3500 because the
-`openopendeliobot.com` zone is on Pro.
+`opendeliobot.com` zone is on Pro.
 
 `GET /healthz` keeps `ok` and `service` unchanged (desktops gate hosted sign-in
 on them; a full quota must not hide sign-in or recovery) and adds a
@@ -364,7 +364,7 @@ ID):
   "reclaim": { "mode": "on", "pending": 12 },
   "accounts": [
     {
-      "hostSuffix": "openopendeliobot.com",
+      "hostSuffix": "opendeliobot.com",
       "newEndpoints": true,
       "status": "full",
       "checkedAt": 1790000060000,
@@ -521,7 +521,7 @@ Cloudflare. Every such refusal, with one account too, logs
 and `errorCode`; only an operator can fix the token.
 
 **Why `minAppVersion`.** Desktop releases up to 0.1.103 accept only
-`openopendeliobot.com` names for **Remote computer → Desktop companion** pairing
+`opendeliobot.com` names for **Remote computer → Desktop companion** pairing
 (phones, pairing links, and Tailscale have no domain rule). The desktop app
 accepts `opendeliobot.com` from the release that ships this change, and from the
 same release it reports its version with every endpoint request; older apps
@@ -622,7 +622,7 @@ old one; no identifiers) answers:
 - **Usage per day** (`migrations/0014`). `relay_daily` counts installations once per UTC day and kind: `seen` (asked
   for a token), `token` (got one), `e2e` (reported end-to-end phones), `new` (asked for the first time). It holds only
   the day, the kind and a count; `relay_adoption.first_seen_at`, `token_at` and `e2e_at` tell a request whether its
-  installation was already counted today. The stats dashboard (stats.openopendeliobot.com) charts it. A Worker without the
+  installation was already counted today. The stats dashboard (stats.opendeliobot.com) charts it. A Worker without the
   migration keeps minting tokens and writing `relay_adoption`, and logs `relay_daily_schema` once per isolate.
 - **Tunnels.** From `RELAY_CAPABLE_MIN_VERSION`, a desktop at that version or later that the relay can carry (it is
   on, the computer is inside the rollout and not blocked) and that reports `legacyDevices: 0` gets `409 relay_capable`

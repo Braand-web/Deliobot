@@ -46,7 +46,7 @@ const render = () => flushSync(() => root.render(createElement(CallTargetButton,
 
 beforeEach(() => {
   fixture.liveCall = null;
-  window.ogb = { speechStart: vi.fn(), speechStop: vi.fn(async () => {}) } as unknown as NonNullable<Window["ogb"]>;
+  window.odb = { speechStart: vi.fn(), speechStop: vi.fn(async () => {}) } as unknown as NonNullable<Window["odb"]>;
   configureLiveMedia({ getUserMedia: () => new Promise<MediaStream>(() => {}) });
   container = document.createElement("div");
   document.body.append(container);
@@ -60,7 +60,7 @@ afterEach(() => {
   resetLiveMedia();
   endCall();
   onStart.mockClear();
-  delete window.ogb;
+  delete window.odb;
 });
 
 describe("a call started from the composer's + menu", () => {

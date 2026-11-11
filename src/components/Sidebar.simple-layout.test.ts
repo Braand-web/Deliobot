@@ -93,7 +93,7 @@ beforeEach(() => {
     groups: [room],
     sections: ["Work"],
   };
-  vi.stubGlobal("window", Object.assign(new EventTarget(), { innerWidth: 1280, innerHeight: 800, ogb: undefined, setTimeout, clearTimeout }));
+  vi.stubGlobal("window", Object.assign(new EventTarget(), { innerWidth: 1280, innerHeight: 800, odb: undefined, setTimeout, clearTimeout }));
   vi.stubGlobal("document", { body: {} });
   vi.stubGlobal("localStorage", {
     getItem: (key: string) => fixture.storage.get(key) ?? null,

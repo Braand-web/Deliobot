@@ -76,7 +76,7 @@ beforeEach(() => {
     if (patch.onboarding) server = { ...server, onboarding: { ...server.onboarding, ...patch.onboarding } };
     return Promise.resolve().then(() => structuredClone(server));
   });
-  window.ogb = { platform: "darwin", workspaces: { state: vi.fn().mockResolvedValue({ local: false, name: "Studio Cloud" }), menu: vi.fn() } } as unknown as typeof window.ogb;
+  window.odb = { platform: "darwin", workspaces: { state: vi.fn().mockResolvedValue({ local: false, name: "Studio Cloud" }), menu: vi.fn() } } as unknown as typeof window.odb;
   host = document.createElement("div");
   document.body.append(host);
   root = createRoot(host);
@@ -84,7 +84,7 @@ beforeEach(() => {
 afterEach(() => {
   flushSync(() => root.unmount());
   host.remove();
-  delete window.ogb;
+  delete window.odb;
   vi.unstubAllGlobals();
 });
 

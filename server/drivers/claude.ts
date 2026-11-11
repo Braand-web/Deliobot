@@ -1125,13 +1125,13 @@ export const ClaudeDriver: ProviderDriver<ClaudeConfig> = {
       let broker: Awaited<ReturnType<typeof createPermissionBroker>> | undefined;
       const socketPath = permissionSocketPath(threadId, botId);
       if (permissionMode !== "bypassPermissions") {
-        args.push("--permission-prompt-tool", "mcp__ogb__approve");
+        args.push("--permission-prompt-tool", "mcp__odb__approve");
       }
       const permissionEnv = { ...NODE_ENV_FLAG, ...(turn.toolScope !== undefined ? { ODB_PERMISSION_TOOL_SCOPE: JSON.stringify(turn.toolScope) } : {}) };
-      mcpServers.ogb = { command: process.execPath, args: [PERM_PROXY_PATH, socketPath], env: permissionEnv, alwaysLoad: true };
-      allowed.push("mcp__ogb", ...gateQueryTools(mcpServers));
+      mcpServers.odb = { command: process.execPath, args: [PERM_PROXY_PATH, socketPath], env: permissionEnv, alwaysLoad: true };
+      allowed.push("mcp__odb", ...gateQueryTools(mcpServers));
       // A guest pre-allows only harness tools; anything else (the browser can open file:) asks.
-      if (turn.guestConfined) allowed.splice(0, allowed.length, ...allowed.filter((name) => name === "mcp__ogb" || name === "mcp__agents"));
+      if (turn.guestConfined) allowed.splice(0, allowed.length, ...allowed.filter((name) => name === "mcp__odb" || name === "mcp__agents"));
       const env = withEndpointFolder(environment(config.endpointModels ? undefined : turnModel), config, () => retryState.delete(threadId));
       // The MCP config carries credentials and argv is readable via `ps`: a 0600 file, removed at settle.
       let mcpConfigPath: string | null = null;
@@ -1296,7 +1296,7 @@ export const ClaudeDriver: ProviderDriver<ClaudeConfig> = {
             },
           });
           if (broker.socketPath !== socketPath && mcpConfigPath) {
-            mcpServers.ogb = { command: process.execPath, args: [PERM_PROXY_PATH, broker.socketPath], env: permissionEnv, alwaysLoad: true };
+            mcpServers.odb = { command: process.execPath, args: [PERM_PROXY_PATH, broker.socketPath], env: permissionEnv, alwaysLoad: true };
           }
         }
 
@@ -2047,7 +2047,7 @@ export const ClaudeDriver: ProviderDriver<ClaudeConfig> = {
             return cliVersionChecked && cliVersion !== null && claudeCliSupports(cliVersion, "--system-prompt-snapshot");
           },
           localComputerMcp: true,
-          hooks: true, askTool: { kind: "mcp", server: "ogb", name: "ask_user" },
+          hooks: true, askTool: { kind: "mcp", server: "odb", name: "ask_user" },
         },
         sendTurn: (turn) => authRecovery.send(turn, sendTurn),
         steer,

@@ -248,7 +248,7 @@ if (process.versions.electron && process.argv.includes(flag)) {
     await until(() => evaluate("document.body.textContent.includes('No completed cloud backups yet.')"), "eligible company gate");
     assert.equal(createCalls, 0); checks.push("signed-out and no-capability states make no cloud calls; connected user explicitly opts in");
     assert.equal(await evaluate("typeof require"), "undefined");
-    assert.equal(await evaluate("JSON.stringify(window.ogb.companyBackups).includes('fixture-device-capability')"), false);
+    assert.equal(await evaluate("JSON.stringify(window.odb.companyBackups).includes('fixture-device-capability')"), false);
     await click("Back up this installation");
     await until(() => evaluate("Boolean(document.querySelector('dialog[open]'))"), "cancelable native dialog");
     win.webContents.sendInputEvent({ type: "keyDown", keyCode: "Escape" });
@@ -389,8 +389,8 @@ if (process.versions.electron && process.argv.includes(flag)) {
     assert.equal(scheduleTimer, null);
     checks.push("passwordless daily backups require explicit scope consent; start after 24h; production scheduler takes two encrypted snapshots with fresh private preload drafts; a week missed produces one catch-up; disable forgets the schedule");
     const remote = await open(false); await remote.loadURL(url);
-    assert.equal(await remote.webContents.executeJavaScript("typeof window.ogb.companyBackups"), "undefined");
-    assert.equal(await remote.webContents.executeJavaScript("typeof window.ogb.relaunch"), "undefined"); remote.destroy();
+    assert.equal(await remote.webContents.executeJavaScript("typeof window.odb.companyBackups"), "undefined");
+    assert.equal(await remote.webContents.executeJavaScript("typeof window.odb.relaunch"), "undefined"); remote.destroy();
     checks.push("production preload omits company backup and local relaunch bridges from remote-origin windows");
     assert.ok(progressPhases.has("uploading") && progressPhases.has("downloading") && progressPhases.has("preparing"));
     const receipt = { passed: true, checks, createCalls, restoreCalls, restartCalls, deleteCalls, cloudRequests, objectRequests, scheduledRuns,

@@ -55,6 +55,9 @@ const CLOUD_SETS = AIMS.map(aim => buildClouds(LOOK_AROUND, MOUTH_STROKE, aim))
  * placement. */
 const ALL_CLOUDS = CLOUD_SETS.flat()
 
+/** Every body's face size: the one the mascots have always shipped with. */
+const SHIPPED_FACE = 0.791
+
 /** The scale cap. 1.0 reproduces the proportions the expressions were drawn at. */
 const CAP = 1
 
@@ -373,7 +376,7 @@ function emitKotlin(bodies: Baked[]): string {
     })
     .join("\n")
 
-  return `package com.openopendeliobot.companion.ui
+  return `package com.opendeliobot.companion.ui
 
 /**
  * The mascot bodies a bot can wear — the Android half of the same solve that bakes
@@ -441,18 +444,14 @@ function main(): void {
   }
   console.log("")
 
-  const shared = solved.reduce((min, s) => Math.min(min, s.scale), Infinity)
-  if (shared < cursor.scale) {
-    const tighter = solved
-      .filter(s => s.scale < cursor.scale)
-      .map(s => `${s.def.id} (${s.scale})`)
-      .join(", ")
+  const tighter = solved.filter(s => s.scale < SHIPPED_FACE).map(s => `${s.def.id} (${s.scale})`).join(", ")
+  if (tighter) {
     throw new Error(
-      `the shared face scale ${shared} is below ${DEFAULT_ID}'s own ${cursor.scale}: ` +
-        `${tighter} cannot hold the shipped face, so clamping the catalog would shrink ` +
+      `${tighter} cannot hold the shipped face (${SHIPPED_FACE}), so clamping the catalog would shrink ` +
         `the mascot everyone already has. Widen those outlines rather than lowering the floor.`
     )
   }
+  const shared = SHIPPED_FACE
 
   const baked: Baked[] = []
   const clipped: string[] = []
@@ -481,7 +480,7 @@ function main(): void {
     })
   }
 
-  console.log(`shared face scale ${shared} (${DEFAULT_ID}'s own floor is ${cursor.scale})`)
+  console.log(`shared face scale ${shared} (${DEFAULT_ID} could hold ${cursor.scale})`)
   console.log(`${"body".padEnd(width)}  ${"scale".padStart(6)}  ${"clearance".padStart(9)}`)
   for (const body of baked) {
     const scale = body.anchor.scale.toFixed(3).padStart(6)

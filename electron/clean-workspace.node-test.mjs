@@ -274,13 +274,6 @@ test("a clean workspace's first config carries the language and that the setup w
   assert.equal(cleanWorkspaceConfig().language, undefined);
 });
 
-test("nothing pops up to bring bots here beside a line saying they're safe in the Cloud: the hint is the one that popup looks for", () => {
-  const notices = readFileSync(new URL("../src/lib/notices.ts", import.meta.url), "utf8");
-  const popup = /GROK_MOVE_NOTICE = "([^"]+)"/u.exec(notices)?.[1];
-  assert.ok(popup);
-  assert.equal(cleanWorkspaceConfig().onboarding.hintsSeen.includes(popup), true);
-});
-
 test("no lending from the clean workspace: nothing is lent or asked while it runs, and a grant only pauses, so it goes on after", async (t) => {
   const w = computer(t);
   const env = { id: "c", origin: CLOUD, cloud: { id: "c" } };

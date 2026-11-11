@@ -33,7 +33,7 @@ export const SIGN_IN_REQUIRED = "This server needs you to sign in.";
  * optional and which also serves an RFC 9728 document, answers JSON-RPC -32602 "not found". Observed 2026-11-09:
  * gmailmcp.googleapis.com lists its tools to anyone and answers this name -32602 as well, but refuses every real tool with
  * HTTP 401, so a server that answers this name is asked again with one of its own tools (`harmlessListedTool`). */
-export const SIGN_IN_CHECK_TOOL = "openopendeliobot.comgn-in-check";
+export const SIGN_IN_CHECK_TOOL = "opendeliobot.sign-in-check";
 const SIGN_IN_CHECK_MS = 5_000;
 const DISCOVERY_MS = 5_000;
 /** How MCP servers word a refused key in a JSON-RPC error when they answer it with HTTP 200. */

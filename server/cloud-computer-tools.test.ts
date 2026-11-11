@@ -91,9 +91,9 @@ describe("cloud computer tools", () => {
   it("returns native-size screenshots as MCP images", async () => {
     const result = await rpc({ method: "tools/call", params: { name: "screenshot", arguments: {} } }).done;
     expect(result).toEqual({ content: [{ type: "image", mimeType: "image/jpeg", data: Buffer.from(jpeg, "base64").toString("base64") }] });
-    expect(calls[0].body.command).toContain("ogb-panel.jpg.model.jpg");
+    expect(calls[0].body.command).toContain("odb-panel.jpg.model.jpg");
     expect(calls[0].body.command).not.toContain("-resize");
-    expect(calls[1].path).toContain("ogb-panel.jpg.model.jpg");
+    expect(calls[1].path).toContain("odb-panel.jpg.model.jpg");
   });
 
   it.each([

@@ -30,7 +30,7 @@ let cached: DesktopCapabilities | null = null;
 let cacheRevision = 0;
 
 export function initialDesktopCapabilities(): DesktopCapabilities {
-  const platform = typeof window === "undefined" ? undefined : window.ogb?.platform;
+  const platform = typeof window === "undefined" ? undefined : window.odb?.platform;
   if (!platform) return browserCapabilities;
   const isMac = platform === "darwin";
   const fishListening = platform === "win32" || platform === "linux";
@@ -54,11 +54,11 @@ export function initialDesktopCapabilities(): DesktopCapabilities {
 
 export async function loadDesktopCapabilities(): Promise<DesktopCapabilities> {
   if (cached) return cached;
-  if (!window.ogb?.getCapabilities) return browserCapabilities;
+  if (!window.odb?.getCapabilities) return browserCapabilities;
   const revisionAtStart = cacheRevision;
   let loaded: DesktopCapabilities;
   try {
-    loaded = await window.ogb.getCapabilities();
+    loaded = await window.odb.getCapabilities();
   } catch {
     loaded = browserCapabilities;
   }
@@ -81,5 +81,5 @@ export function cacheDesktopCapabilities(capabilities: DesktopCapabilities): Des
 /** The desktop bridge that saves a switch with its approval reset to Ask. A paired desktop has none: its own app runs no
  * server behind that bridge, so the host takes the switch over HTTP. */
 export function askResetBridge() {
-  return typeof window === "undefined" || window.ogb?.remoteClient?.active ? undefined : window.ogb?.approvals;
+  return typeof window === "undefined" || window.odb?.remoteClient?.active ? undefined : window.odb?.approvals;
 }

@@ -12,7 +12,7 @@ let started = false;
 const listeners = new Set<(state: RailState) => void>();
 
 function bridge() {
-  const workspaces = typeof window === "undefined" || window.ogb?.remoteClient?.active ? undefined : window.ogb?.workspaces;
+  const workspaces = typeof window === "undefined" || window.odb?.remoteClient?.active ? undefined : window.odb?.workspaces;
   return workspaces?.places ? workspaces : undefined;
 }
 
@@ -88,7 +88,7 @@ export const railShown = (state: RailState): boolean => state.beside === true ||
 
 /** This computer's circle: This computer, or a workspace of its own (a profile): its own name, else as the app names this
  * computer elsewhere, This Mac or This PC. */
-export function computerName(place: Pick<RailPlace, "profile"> & Partial<Pick<RailPlace, "named" | "name">>, platform: string | undefined = typeof window === "undefined" ? undefined : window.ogb?.platform): string {
+export function computerName(place: Pick<RailPlace, "profile"> & Partial<Pick<RailPlace, "named" | "name">>, platform: string | undefined = typeof window === "undefined" ? undefined : window.odb?.platform): string {
   if (!place.profile) return t("rail.thisComputer");
   if (place.named && place.name) return place.name;
   return t(platform === "darwin" ? "rail.thisMac" : "rail.thisPc");

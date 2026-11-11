@@ -14,7 +14,7 @@ const reset = vi.fn(() => new Promise<void>((resolve) => { answer = resolve; }))
 
 beforeEach(() => {
   reset.mockClear();
-  (window as unknown as { ogb: unknown }).ogb = { credentialStore: { unreadable: async () => true, reset } };
+  (window as unknown as { odb: unknown }).odb = { credentialStore: { unreadable: async () => true, reset } };
   host = document.createElement("div");
   document.body.append(host);
   root = createRoot(host);
@@ -24,7 +24,7 @@ afterEach(async () => {
   await act(async () => { answer?.(); });
   act(() => root.unmount());
   host.remove();
-  delete (window as unknown as { ogb?: unknown }).ogb;
+  delete (window as unknown as { odb?: unknown }).odb;
 });
 
 const show = async (notice?: boolean) => {

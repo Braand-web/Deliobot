@@ -96,7 +96,7 @@ const spinning = () => document.querySelector(".animate-spin") !== null;
 const button = (label: string) => [...document.querySelectorAll("button")].find((candidate) => candidate.textContent?.trim() === label);
 
 beforeAll(() => {
-  vi.stubGlobal("ogb", undefined);
+  vi.stubGlobal("odb", undefined);
 });
 afterEach(() => {
   root?.unmount();

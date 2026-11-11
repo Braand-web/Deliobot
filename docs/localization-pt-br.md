@@ -187,7 +187,7 @@ These stay unchanged in every pt-BR string.
 | Delio Cloud | Product name. `vocabulary.test.ts` requires it verbatim in every translation whose English contains it. Never write `OpenDeliobot Cloud` or `Delio Pro`. Treat it as masculine: “o Delio Cloud”. |
 | Cloud (short for Delio Cloud) | Product name, masculine: “o Cloud”, “no Cloud”. The generic sky-and-servers cloud is `nuvem`: “desktop na nuvem”. |
 | Boat | Name of a third-party provider. Write it only where the English says Boat; the test fails otherwise. |
-| Jev, Delio, Grok Bot | Names of product features or characters. |
+| Jev, Delio | Names of product features or characters. |
 | Claude, Claude Code, ChatGPT, Codex, Grok, Gemini, Cursor, OpenCode, Antigravity, OpenAI, Anthropic, xAI, OpenRouter, Ollama, Groq, Cerebras | Third-party product and company names. |
 | Slack, Discord, Telegram, WhatsApp, Gmail, Notion, GitHub, Chrome, Tailscale, Cloudflare Tunnel, Docker, Podman, Whop, Product Hunt | Third-party product names. |
 | Admin, and labels inside the Admin console | The Admin console is not localized, so pointers keep its English labels. |

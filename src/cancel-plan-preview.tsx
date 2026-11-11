@@ -48,6 +48,6 @@ function Preview() {
   </div>;
 }
 
-window.ogb = { ...window.ogb, cloudAccount: account } as typeof window.ogb;
+window.odb = { ...window.odb, cloudAccount: account } as typeof window.odb;
 await loadLocale(params.get("lang") ?? "en");
 createRoot(document.getElementById("root")!).render(<StrictMode><Preview /></StrictMode>);

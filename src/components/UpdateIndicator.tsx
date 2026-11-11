@@ -135,7 +135,7 @@ export function UpdateCard({
     };
   }, [returnFocusRef]);
 
-  const updater = window.ogb?.updater;
+  const updater = window.odb?.updater;
   const handoff = state.installMode === "handoff";
   const highlights = releaseHighlights(state.releaseNotes);
   const downloading = status === "downloading" || status === "preparing";

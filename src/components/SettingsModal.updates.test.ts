@@ -10,7 +10,7 @@ import { UpdatesRow } from "./AppSettingsRows";
 afterEach(() => vi.unstubAllGlobals());
 function render(state: UpdaterState | null) {
   fixture.state = state;
-  vi.stubGlobal("window", { ogb: { updater: { check: vi.fn(), install: vi.fn(), onState: vi.fn() } } });
+  vi.stubGlobal("window", { odb: { updater: { check: vi.fn(), install: vi.fn(), onState: vi.fn() } } });
   return renderToStaticMarkup(createElement(UpdatesRow));
 }
 

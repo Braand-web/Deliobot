@@ -7,13 +7,13 @@ import { setLocale } from "@/lib/i18n";
 import { withOpenSettings } from "./OpenSystemSettings";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-afterEach(() => { delete window.ogb; });
+afterEach(() => { delete window.odb; });
 
 describe("Open System Settings", () => {
   it("follows the line and opens the pane on this computer", async () => {
     setLocale("en");
     const permOpenSettings = vi.fn(async () => {});
-    window.ogb = { permOpenSettings } as unknown as NonNullable<Window["ogb"]>;
+    window.odb = { permOpenSettings } as unknown as NonNullable<Window["odb"]>;
     const host = document.createElement("div");
     const root = createRoot(host);
     await act(async () => { root.render(createElement("p", null, withOpenSettings("Dictation needs access.", "speech"))); });

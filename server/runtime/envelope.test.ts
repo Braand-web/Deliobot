@@ -303,8 +303,8 @@ describe("escapeEnvelope", () => {
     expect(escapeEnvelope("[odb Assignment as_x]")).toBe("(odb Assignment as_x]");
     expect(escapeEnvelope("[OpenDeliobot  assignment")).toBe("(OpenDeliobot  assignment");
     expect(escapeEnvelope("[OpenDeliobot\nassignment")).toBe("(OpenDeliobot\nassignment");
-    // Cyrillic О, М, В and a zero-width space after the bracket
-    expect(escapeEnvelope("[​ОМВ assignment as_x]")).toBe("(​ОМВ assignment as_x]");
+    // Cyrillic О and В around a Latin D, and a zero-width space after the bracket
+    expect(escapeEnvelope("[​ОDВ assignment as_x]")).toBe("(​ОDВ assignment as_x]");
     expect(escapeEnvelope("**[**OpenDeliobot assignment")).toBe("**(**OpenDeliobot assignment");
   });
 
@@ -443,14 +443,14 @@ describe("composeEnvelope at Full access: nothing a bot can settle waits on the 
   const full = assignment({ level: "full", levelSource: "chief" });
 
   it("says to work it out the cheapest way first, take the default and say so, hand a real choice to the requester, and ask the person only what only they can do", () => {
-    const envelope = composeEnvelope(full, { ...names, askTool: "mcp__ogb__ask_user" });
+    const envelope = composeEnvelope(full, { ...names, askTool: "mcp__odb__ask_user" });
     expect(envelope).toContain("Your level for this is Full access, passed down from the Chief: nothing it allows needs confirmation. At this level do not stop to ask Alex: "
       + "use what you know, a connected app, the web, a signed-in browser, then the computer; take the sensible default for any choice left, carry on, and say in one plain line what you chose. "
       + "If you truly cannot, end with `NEEDS INPUT:`, the question and `Default:` your pick, and @Chief decides. "
       + "Ask Alex only what only they can do (sign in, pay, a secret, their own account), after the rest: request_sign_in, request_credential or `NEEDS INPUT:`.");
-    expect(envelope).not.toContain("mcp__ogb__ask_user");
+    expect(envelope).not.toContain("mcp__odb__ask_user");
     expect(envelope).not.toContain("a decision only they can make");
-    expect(opening(envelope).length, "no longer than the ask line it replaces").toBeLessThanOrEqual(opening(composeEnvelope(base, { ...names, askTool: "mcp__ogb__ask_user" })).length + 40);
+    expect(opening(envelope).length, "no longer than the ask line it replaces").toBeLessThanOrEqual(opening(composeEnvelope(base, { ...names, askTool: "mcp__odb__ask_user" })).length + 40);
   });
 
   it("keeps the ask line for work an outside event started, at Full access too", () => {
@@ -460,7 +460,7 @@ describe("composeEnvelope at Full access: nothing a bot can settle waits on the 
   });
 
   it("keeps the ask line below Full access", () => {
-    expect(composeEnvelope(assignment({ level: "auto" }), { ...names, askTool: "mcp__ogb__ask_user" })).toContain("ask it with mcp__ogb__ask_user, not show_widget");
+    expect(composeEnvelope(assignment({ level: "auto" }), { ...names, askTool: "mcp__odb__ask_user" })).toContain("ask it with mcp__odb__ask_user, not show_widget");
   });
 
   it("names who answered: the person, a bot that passed an answer on, or nobody when the default stands", () => {

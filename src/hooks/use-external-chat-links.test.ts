@@ -33,7 +33,7 @@ describe("useExternalChatLinks", () => {
   it("holds a link that arrives at launch until the bots have loaded, then opens it once", () => {
     let deliver: ((link: string) => void) | undefined;
     const unsubscribe = vi.fn();
-    vi.stubGlobal("window", { ogb: { onChatLink: (cb: (link: string) => void) => { deliver = cb; return unsubscribe; } } });
+    vi.stubGlobal("window", { odb: { onChatLink: (cb: (link: string) => void) => { deliver = cb; return unsubscribe; } } });
     const dispatch = vi.fn();
 
     const [cleanup] = render(loading, dispatch);
@@ -101,7 +101,7 @@ describe("useDesktopNotificationOpens", () => {
   it("holds a click until a page just loaded for it has its bots, then opens that thread once", () => {
     let deliver: ((target: unknown) => void) | undefined;
     const unsubscribe = vi.fn();
-    vi.stubGlobal("window", { ogb: { desktopNotifications: { onOpen: (cb: (target: unknown) => void) => { deliver = cb; return unsubscribe; } } } });
+    vi.stubGlobal("window", { odb: { desktopNotifications: { onOpen: (cb: (target: unknown) => void) => { deliver = cb; return unsubscribe; } } } });
     const dispatch = vi.fn();
     const [cleanup] = opens(loading, dispatch);
     expect(cleanup).toBe(unsubscribe);

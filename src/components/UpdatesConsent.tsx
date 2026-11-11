@@ -12,7 +12,7 @@ const PRIMARY = "inline-flex min-h-10 items-center justify-center gap-1.5 rounde
 const SECONDARY = "inline-flex min-h-10 items-center justify-center rounded-lg px-3 py-2 text-[14px] text-ink-secondary hover:bg-raised hover:text-ink disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
 
 export function updatesConsentBridge(): UpdatesConsentBridge | undefined {
-  return window.ogb?.remoteClient?.active === true ? undefined : window.ogb?.updatesConsent;
+  return window.odb?.remoteClient?.active === true ? undefined : window.odb?.updatesConsent;
 }
 
 function readable(value: unknown): UpdatesConsentState | null {

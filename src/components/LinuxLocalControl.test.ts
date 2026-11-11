@@ -6,7 +6,7 @@ const fixture = vi.hoisted(() => ({
   localComputer: { available: false } as DesktopCapabilities["localComputer"],
   session: "wayland" as DesktopCapabilities["host"]["session"],
 }));
-vi.stubGlobal("window", { ogb: { platform: "linux", localControl: { enable: vi.fn(), disable: vi.fn(), retry: vi.fn() } } });
+vi.stubGlobal("window", { odb: { platform: "linux", localControl: { enable: vi.fn(), disable: vi.fn(), retry: vi.fn() } } });
 vi.mock("./DesktopCapabilities", () => ({
   useDesktopCapabilities: () => ({
     capabilities: { host: { platform: "linux", session: fixture.session, packaged: true }, localComputer: fixture.localComputer },

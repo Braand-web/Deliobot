@@ -4,7 +4,7 @@ export declare const RAIL_OFFER_GRACE_MS: number;
 /** What the page beside the window's rail knows of it: whether this window has one (two places or more) and whether the
  * person hid it. Never the places on it. */
 export interface ChromeRailState { available: boolean; hidden: boolean }
-/** `window.ogb.rail`. The page beside the rail offers the button that hides and shows it: `state()` from a document is
+/** `window.odb.rail`. The page beside the rail offers the button that hides and shows it: `state()` from a document is
  * that offer, and main hides the rail only beside a document that made it. `drawsFrame()` from a document says it draws
  * the window's frame, so main puts the traffic lights in its top bar; `drawsFrame(false)`, that it draws none (the
  * person turned the frame off), so they go back at once. `expand`, `onSkin` and `onFramed` are the rail's

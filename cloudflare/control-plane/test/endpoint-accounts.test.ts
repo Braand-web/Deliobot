@@ -69,14 +69,14 @@ describe("endpoint account configuration", () => {
   });
 
   it("deploys every account's limits at its real Cloudflare quotas", () => {
-    // openopendeliobot.com and opendeliobot.com are both Pro zones (3,500 DNS records;
+    // opendeliobot.com and opendeliobot.com are both Pro zones (3,500 DNS records;
     // opendeliobot.com was Free, 200, until Oct 21). Both accounts allow 1,000 tunnels.
     const production = JSON.parse(env.TEST_PRODUCTION_ENDPOINT_ACCOUNTS) as unknown[];
     const deployed = readConfig(withAccounts(production)).endpointAccounts;
     expect(deployed.map(({ companionHostSuffix, dnsRecordLimit, tunnelLimit }) => (
       { companionHostSuffix, dnsRecordLimit, tunnelLimit }
     ))).toEqual([
-      { companionHostSuffix: "openopendeliobot.com", dnsRecordLimit: 3500, tunnelLimit: 1000 },
+      { companionHostSuffix: "opendeliobot.com", dnsRecordLimit: 3500, tunnelLimit: 1000 },
       { companionHostSuffix: "opendeliobot.com", dnsRecordLimit: 3500, tunnelLimit: 1000 },
     ]);
   });
@@ -154,7 +154,7 @@ describe("endpoint account configuration", () => {
 const PRIMARY: EndpointAccount = {
   accountId: "0c92969a82eb9e173b013a7e7a02333d",
   apiToken: "primary-token-for-pure-tests-only",
-  companionHostSuffix: "openopendeliobot.com",
+  companionHostSuffix: "opendeliobot.com",
   dnsRecordLimit: 1000,
   minAppVersion: null,
   newEndpoints: true,
@@ -214,7 +214,7 @@ describe("endpoint account rules", () => {
   });
 
   it("never chooses an account with no free tunnel or DNS record while another has both", () => {
-    // Production on 2026-10-20: openopendeliobot.com (a Pro zone) had 26 tunnels
+    // Production on 2026-10-20: opendeliobot.com (a Pro zone) had 26 tunnels
     // free and 1,878 dormant endpoints; opendeliobot.com (a Free zone) 770 tunnels
     // free, all 200 DNS records used, and 207 dormant endpoints.
     const primary = { ...PRIMARY, dnsRecordLimit: 3500 };
@@ -288,9 +288,9 @@ describe("endpoint account rules", () => {
     const config = accounts(PRIMARY, SECOND);
     const label = `c-${"0123456789abcdef".repeat(2)}`;
     expect(endpointAccountFor(config, { hostname: `${label}.opendeliobot.com`, provider_account: SECOND.accountId })).toBe(SECOND);
-    expect(endpointAccountFor(config, { hostname: `${label}.openopendeliobot.com`, provider_account: PRIMARY.accountId })).toBe(PRIMARY);
+    expect(endpointAccountFor(config, { hostname: `${label}.opendeliobot.com`, provider_account: PRIMARY.accountId })).toBe(PRIMARY);
     for (const [providerAccount, hostname] of [
-      [SECOND.accountId, `${label}.openopendeliobot.com`],
+      [SECOND.accountId, `${label}.opendeliobot.com`],
       [PRIMARY.accountId, `${label}.opendeliobot.com`],
       ["9".repeat(32), `${label}.opendeliobot.com`],
       [SECOND.accountId, `www.${label}.opendeliobot.com`],
@@ -308,9 +308,9 @@ describe("endpoint account rules", () => {
     const label = (index: number) => `c-${index.toString(16).padStart(32, "0")}`;
     const cases: Array<[string, string]> = [
       [SECOND.accountId, `${label(1)}.opendeliobot.com`],
-      [PRIMARY.accountId, `${label(2)}.openopendeliobot.com`],
+      [PRIMARY.accountId, `${label(2)}.opendeliobot.com`],
       [SECOND.accountId, `c-${"0123456789abcdef".repeat(2)}.opendeliobot.com`],
-      [SECOND.accountId, `${label(3)}.openopendeliobot.com`],
+      [SECOND.accountId, `${label(3)}.opendeliobot.com`],
       [PRIMARY.accountId, `${label(4)}.opendeliobot.com`],
       ["9".repeat(32), `${label(5)}.opendeliobot.com`],
       [SECOND.accountId, `www.${label(6)}.opendeliobot.com`],

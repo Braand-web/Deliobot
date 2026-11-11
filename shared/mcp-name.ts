@@ -1,6 +1,6 @@
 /** Names OpenDeliobot gives its own MCP servers; a custom server may not take one. */
 export const RESERVED_MCP_NAMES: ReadonlySet<string> = new Set([
-  "ogb",
+  "odb",
   "computer",
   "agents",
   "composio",

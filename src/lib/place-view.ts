@@ -94,7 +94,7 @@ export function placeHasIssue(view: PlaceView): boolean {
 }
 
 export function useCloudPlanPaid(): boolean {
-  const bridge = typeof window === "undefined" || window.ogb?.remoteClient?.active ? undefined : window.ogb?.cloudAccount;
+  const bridge = typeof window === "undefined" || window.odb?.remoteClient?.active ? undefined : window.odb?.cloudAccount;
   const [account, setAccount] = useState<CloudAccountState | null>(null);
   useEffect(() => {
     if (!bridge) return;
@@ -133,14 +133,14 @@ export function openPlaceAction(
       return true;
     case "open-team-map": dispatch({ type: "showTeamMap" }); return true;
     case "see-plan": {
-      const desktop = window.ogb?.remoteClient?.active ? undefined : window.ogb?.cloudAccount;
+      const desktop = window.odb?.remoteClient?.active ? undefined : window.odb?.cloudAccount;
       if (desktop) { void desktop.openDashboard().catch(() => {}); return true; }
-      if (window.ogb?.cloudPlan) { void window.ogb.cloudPlan.manage().catch(() => {}); return true; }
+      if (window.odb?.cloudPlan) { void window.odb.cloudPlan.manage().catch(() => {}); return true; }
       appSettings("cloudAccount");
       return true;
     }
     case "open-my-cloud": {
-      const desktop = window.ogb?.remoteClient?.active ? undefined : window.ogb?.cloudAccount;
+      const desktop = window.odb?.remoteClient?.active ? undefined : window.odb?.cloudAccount;
       if (desktop) void desktop.connectHome().catch(() => {});
       else appSettings("cloudAccount");
       return true;

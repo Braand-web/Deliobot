@@ -56,8 +56,8 @@ interface DirectoryCandidate {
 const DIRECTORY_COLORS = ["cyan", "red", "purple", "green", "orange"] as const;
 
 async function openExternal(url: string): Promise<void> {
-  if (window.ogb?.openExternal) {
-    await window.ogb.openExternal(url);
+  if (window.odb?.openExternal) {
+    await window.odb.openExternal(url);
     return;
   }
   const opened = window.open(url, "_blank", "noopener,noreferrer");
@@ -381,7 +381,7 @@ export function TeamLibraryPanel({
   };
 
   const pickScoutFolder = async () => {
-    const chosen = await window.ogb?.pickFolder?.(scoutTarget || undefined);
+    const chosen = await window.odb?.pickFolder?.(scoutTarget || undefined);
     if (!chosen) return;
     setScoutFolder(chosen);
     await runScout(chosen);
@@ -828,7 +828,7 @@ export function TeamLibraryPanel({
                       aria-label={t("templates.projectFolder")}
                       className="min-w-0 flex-1 rounded-xl bg-raised/80 px-3 py-2.5 text-[13px] text-ink placeholder:text-ink-secondary focus:outline-none"
                     />
-                    {Boolean(window.ogb?.pickFolder) && (
+                    {Boolean(window.odb?.pickFolder) && (
                       <button
                         onClick={() => void pickScoutFolder()}
                         disabled={scouting}

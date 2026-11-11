@@ -91,7 +91,7 @@ const press = (label: string, key: string) => {
 };
 
 beforeAll(() => {
-  vi.stubGlobal("ogb", undefined);
+  vi.stubGlobal("odb", undefined);
 });
 beforeEach(() => {
   // The panel remembers each conversation's tab, so one test's click must not choose the next test's tab.

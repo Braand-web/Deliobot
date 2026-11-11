@@ -69,7 +69,7 @@ beforeEach(() => {
     disconnect: vi.fn().mockResolvedValue({ status: "signed-out" }),
     onState: vi.fn(callback => { push = callback; return unsubscribe; }),
   };
-  vi.stubGlobal("window", { ogb: { organization: bridge } });
+  vi.stubGlobal("window", { odb: { organization: bridge } });
   vi.stubGlobal("fetch", vi.fn());
   setLocale("en");
 });
@@ -90,7 +90,7 @@ describe("optional desktop Organisation settings", () => {
   });
 
   it("does not acknowledge local Settings from a companion renderer", async () => {
-    vi.stubGlobal("window", { ogb: { organization: bridge, remoteClient: { active: true } } });
+    vi.stubGlobal("window", { odb: { organization: bridge, remoteClient: { active: true } } });
     render(); fixture.effects[0](); await flush();
     expect(bridge.settingsOpened).not.toHaveBeenCalled();
     expect(bridge.state).not.toHaveBeenCalled();
@@ -106,7 +106,7 @@ describe("optional desktop Organisation settings", () => {
   it("uses the default portal from one sign-in action and keeps custom setup advanced", async () => {
     await ready();
     let view = render();
-    expect(view.html).toContain("https://admin.openopendeliobot.com");
+    expect(view.html).toContain("https://admin.opendeliobot.com");
     expect(view.html).toContain("Sign in with your organization");
     expect(view.html).toContain("<summary");
     expect(view.html).toContain("Advanced");
@@ -116,7 +116,7 @@ describe("optional desktop Organisation settings", () => {
     expect(bridge.begin).not.toHaveBeenCalled();
     const signIn = () => view.nodes.find(node => node.type === "button" && node.props.children === "Sign in with your organization")!.props.onClick!();
     signIn(); signIn(); await flush();
-    expect(bridge.begin).toHaveBeenCalledExactlyOnceWith({ portalOrigin: "https://admin.openopendeliobot.com" });
+    expect(bridge.begin).toHaveBeenCalledExactlyOnceWith({ portalOrigin: "https://admin.opendeliobot.com" });
     expect(fetch).not.toHaveBeenCalled();
     const progress = render().html;
     expect(progress).toContain("Finish signing in through your browser");
@@ -277,7 +277,7 @@ describe("optional desktop Organisation settings", () => {
     expect(render().html).toContain("Sign in with your organization");
   });
 
-  it.each([{}, { ogb: { remoteClient: { active: true } } }])("has no sign-in controls without the local desktop bridge", (windowState) => {
+  it.each([{}, { odb: { remoteClient: { active: true } } }])("has no sign-in controls without the local desktop bridge", (windowState) => {
     vi.stubGlobal("window", windowState);
     expect(render().html).toContain("desktop app on this computer");
     expect(render().html).not.toContain("Sign in with your organization");

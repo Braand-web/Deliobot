@@ -5,7 +5,7 @@ let current: ChromeRailState | null = null;
 let started = false;
 const listeners = new Set<(state: ChromeRailState | null) => void>();
 
-const bridge = () => (typeof window === "undefined" ? undefined : window.ogb?.rail);
+const bridge = () => (typeof window === "undefined" ? undefined : window.odb?.rail);
 
 function publish(next: ChromeRailState | null) {
   current = next;

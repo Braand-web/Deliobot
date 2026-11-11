@@ -41,7 +41,7 @@ export function WorkspaceBackupRestartNotice({ onRetry, serverRestarts = false }
     <Loader2 aria-hidden="true" size={15} className="shrink-0 animate-spin" />
     <div className="flex flex-col gap-2"><p>{t("backup.serverRestarting")}</p>{slow && <p>{t("backup.serverRestartSlow")}</p>}</div>
   </div>;
-  const relaunch = typeof window !== "undefined" && !window.ogb?.remoteClient?.active ? window.ogb?.relaunch : undefined;
+  const relaunch = typeof window !== "undefined" && !window.odb?.remoteClient?.active ? window.odb?.relaunch : undefined;
   const restart = async () => {
     if (!relaunch || lock.current || restarting) return;
     lock.current = true; setRestarting(true); setError(false);

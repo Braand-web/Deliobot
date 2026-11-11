@@ -179,7 +179,7 @@ describe("Boat create idempotency", () => {
     expect(createKeys).toHaveLength(2);
     expect(createKeys[0]).toMatch(/^[0-9a-f-]{36}$/);
     expect(new Set(createKeys).size).toBe(1);
-    expect(renameBodies).toEqual([{ name: expect.stringMatching(/^ogb-[0-9a-f]{12}-lostres-[0-9a-f]{6}$/) }]);
+    expect(renameBodies).toEqual([{ name: expect.stringMatching(/^odb-[0-9a-f]{12}-lostres-[0-9a-f]{6}$/) }]);
   });
 
   it("reuses the durable key after a 5xx and module restart", async () => {
@@ -205,7 +205,7 @@ describe("Boat create idempotency", () => {
     expect(result.boxId).toBe("bx_abcdefgh");
     expect(createKeys).toHaveLength(3);
     expect(new Set(createKeys).size).toBe(1);
-    expect(renameBodies).toEqual([{ name: expect.stringMatching(/^ogb-[0-9a-f]{12}-restart-[0-9a-f]{6}$/) }]);
+    expect(renameBodies).toEqual([{ name: expect.stringMatching(/^odb-[0-9a-f]{12}-restart-[0-9a-f]{6}$/) }]);
   });
 
   it("waits for an in-progress idempotent create and keeps the same key", async () => {

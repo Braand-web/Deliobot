@@ -92,7 +92,7 @@ export function HomeScreen({ bridge, manage }: { bridge: HomeBridge; manage?: ()
   const text = homeScreenText(view);
   const act = (action: () => Promise<unknown>) => { setFailed(false); void action().catch(() => setFailed(true)); };
   // Its checkout's page again when this app keeps it (the Cloud it is buying), else the Cloud page, where it can be paid.
-  const reopen = window.ogb?.cloudAdd?.reopen;
+  const reopen = window.odb?.cloudAdd?.reopen;
   const run: Partial<Record<HomeAction, () => Promise<unknown>>> = {
     retry: () => bridge.retry().then((next) => setView(next)),
     ...(manage ? { manage, buy: manage, card: manage, continue: async () => { if (!(reopen && await reopen().catch(() => false))) await manage(); } } : {}),

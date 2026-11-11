@@ -271,7 +271,7 @@ const SENT_HIGHLIGHT_MS = 1_400;
 export function TeamMapPage() {
   const { state, dispatch } = useStore();
   const { dragProps } = useCaptionChrome();
-  const remoteClient = window.ogb?.remoteClient?.active === true;
+  const remoteClient = window.odb?.remoteClient?.active === true;
   const teamPeople = useTeamPeople();
   const admin = useOwnerOrAdmin();
   const reportsChart = useMapMode() === "people" && teamPeople !== null;

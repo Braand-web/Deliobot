@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { CompanionAccountState } from "../types/ogb";
+import type { CompanionAccountState } from "../types/odb";
 import {
   claimPhonePairingAttempt,
   closePhonePairingIfOwned,
@@ -210,12 +210,12 @@ describe("phone setup flow", () => {
     expect(secureAddressRequestLapsed(account("connecting"), waiting)).toBe(false);
     expect(secureAddressRequestLapsed(account("error"), waiting)).toBe(false);
     expect(secureAddressRequestLapsed(
-      { ...account("ready"), endpoint: "https://c-opaque.openopendeliobot.com" },
+      { ...account("ready"), endpoint: "https://c-opaque.opendeliobot.com" },
       waiting,
     )).toBe(false);
     expect(secureAddressRequestLapsed(account("ready"), {
       enabled: true,
-      endpoints: [{ kind: "hosted", url: "https://c-opaque.openopendeliobot.com", priority: 0 }],
+      endpoints: [{ kind: "hosted", url: "https://c-opaque.opendeliobot.com", priority: 0 }],
     })).toBe(false);
     expect(secureAddressRequestLapsed(account("ready"), { enabled: false })).toBe(false);
     expect(secureAddressRequestLapsed(null, waiting)).toBe(false);

@@ -34,7 +34,7 @@ Nothing here needs a real Delio Cloud account, a payment or the Electron app.
   (Simple: General → Appearance; Advanced: Appearance). Both are there only
   while the window has a rail. The choice is this desktop's (`railHidden` in
   desktop-prefs.json), never a server's or a place's.
-- The page beside the rail offers that button through `window.ogb.rail`
+- The page beside the rail offers that button through `window.odb.rail`
   (`state`, `setHidden`, `onState`; its main frame only, and a server's page
   only from the person's click), and learns only whether there is a rail and
   whether it is hidden. Main hides the rail only beside a document that offered

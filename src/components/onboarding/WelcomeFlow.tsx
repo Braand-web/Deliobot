@@ -17,7 +17,7 @@ type Config = ReturnType<typeof useStore>["state"]["config"];
 /** A genuine first run on this computer's own page names the person after its account, where their profile has none
  * (never on a Cloud, a Team Cloud or a remote page). The name stays theirs to change in Settings. */
 async function nameFromComputer(config: Config, done: (config: NonNullable<Config>) => void): Promise<void> {
-  const bridge = window.ogb;
+  const bridge = window.odb;
   if (!config || config.onboarding?.completedAt || config.profile?.name?.trim() || config.cloudHome || config.team) return;
   if (!localDesktopPage() || bridge?.remoteClient?.active) return;
   const name = await bridge?.desktopProfile?.systemName().catch(() => null);

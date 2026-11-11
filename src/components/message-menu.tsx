@@ -8,7 +8,7 @@ import { useSpeakAction } from "@/components/SpeakButton";
 export type PinAction = { pinned: boolean; onToggle: () => void; hint?: string };
 
 export function roomPin(group: Group, message: Message, dispatch: ReturnType<typeof useStore>["dispatch"]): PinAction | undefined {
-  if (window.ogb?.remoteClient?.active) return undefined;
+  if (window.odb?.remoteClient?.active) return undefined;
   const pinned = group.pinnedMessageId === message.id;
   return {
     pinned,

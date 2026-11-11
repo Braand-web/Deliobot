@@ -44,8 +44,8 @@ export function WorkersAiKeyCard({ failureText }: { failureText: (result: { reas
         applied(await api<ConfigStatus>("/api/config", { method: "PUT", body: JSON.stringify({ decider: { workersAiAccountId: accountId } }) }));
       }
       if (draft || clearing) {
-        applied(window.ogb?.setCredential
-          ? await window.ogb.setCredential("workersAiToken", draft)
+        applied(window.odb?.setCredential
+          ? await window.odb.setCredential("workersAiToken", draft)
           : await api<ConfigStatus>("/api/config", { method: "PUT", body: JSON.stringify({ decider: { workersAiToken: draft } }) }));
       }
       setToken("");

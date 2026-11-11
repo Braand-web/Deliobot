@@ -1536,7 +1536,7 @@
   "settings.runCard.subtitle": "현재 요청에서 봇이 실행한 셸 명령 목록을 보여 줘요. 끄면 이 카드와 실행을 스킬로 저장하는 바로가기가 숨겨져요.",
   "settings.runCard.show": "실행 카드 표시",
   "settings.pinnedCircles.title": "고정된 봇을 동그라미로",
-  "settings.pinnedCircles.subtitle": "고정된 봇을 Grok Bot처럼 큰 아바타로 보여 줘요. 사이드바를 넓히면 한 줄에 더 많이 들어가요.",
+  "settings.pinnedCircles.subtitle": "고정된 봇을 큰 아바타로 보여 줘요. 사이드바를 넓히면 한 줄에 더 많이 들어가요.",
   "settings.universalPins.title": "전체 고정",
   "settings.universalPins.subtitle": "모든 그룹에서 고정한 봇을 그룹의 리더까지 포함해 사이드바 맨 위에 둬요. 나머지 목록을 스크롤해도 그 자리에 있어요.",
   "settings.notificationSounds.title": "알림 소리",

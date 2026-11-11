@@ -21,7 +21,7 @@ describe("cloud computer provisioning cleanup", () => {
   const nameFor = (botId: string) => {
     const prefix = botId.slice(0, 8).toLowerCase().replace(/[^a-z0-9]/g, "");
     const hash = createHash("sha256").update(botId).digest("hex").slice(0, 6);
-    return `ogb-${prefix}-${hash}`;
+    return `odb-${prefix}-${hash}`;
   };
 
   beforeAll(async () => {

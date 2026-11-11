@@ -135,7 +135,7 @@ const handOn = (job: string) => [
   { key: `${job}-L-DONE`, match: [SETTLED, `${job}-JOB`], reply: `${job}-L-DONE: Ledger is done.` },
 ];
 const askWithCard = (job: string) => ({ key: `${job}-B`, match: [`${job}-BRIEF`], timeoutMs: 120_000,
-  steps: [{ server: "ogb", tool: "ask_user", arguments: { question: QUESTION, choices: CHOICES }, capture: { answer: "([\\s\\S]+)" } }],
+  steps: [{ server: "odb", tool: "ask_user", arguments: { question: QUESTION, choices: CHOICES }, capture: { answer: "([\\s\\S]+)" } }],
   reply: `${job}-B: Done with: {{answer}}` });
 
 it("asks Cleo a decision with set answers as a card in Ledger's chat and a copy in her inbox, and a tap there answers Ledger, who carries on", async () => {
@@ -160,7 +160,7 @@ it("asks Cleo a decision with set answers as a card in Ledger's chat and a copy 
   const answered = await team.as(cleo, "POST", `/api/threads/${inbox}/respond`, { requestId: row.card!.requestId, behavior: "answer", message: CHOICES[0] });
   expect(answered.status, JSON.stringify(answered.body)).toBe(200);
   await until(async () => (await messages(work)).some((line) => line.role === "bot" && line.text === `QC1-B: Done with: ${CHOICES[0]}`));
-  expect(told(ledger.id, "QC1-B"), "the envelope offered the card tool for set answers, by the name Claude calls it").toContain("ask it with mcp__ogb__ask_user, not show_widget");
+  expect(told(ledger.id, "QC1-B"), "the envelope offered the card tool for set answers, by the name Claude calls it").toContain("ask it with mcp__odb__ask_user, not show_widget");
   await until(async () => (await messages(inbox)).some((line) => line.text === "QC1-L-DONE: Ledger is done."));
   expect((await messages(work)).find((line) => line.id === row.id)!.card).toMatchObject({ answered: "answer", answeredText: CHOICES[0] });
   expect((await messages(inbox)).find((line) => line.id === copy.id)!.card, "the copy follows").toMatchObject({ answered: "answer" });

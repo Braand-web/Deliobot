@@ -17,7 +17,7 @@ settings() {
   INSTALL_DIR="${ODB_INSTALL_DIR:-/opt/opendeliobot}"
   IMAGE_REPO=braand-web/opendeliobot
   RELEASES_URL=https://api.github.com/repos/Braand-web/Deliobot/releases/latest
-  ADMIN_URL="${DELIO_ADMIN_URL:-https://cloud.openopendeliobot.com}"
+  ADMIN_URL="${DELIO_ADMIN_URL:-https://cloud.opendeliobot.com}"
   SCRIPT_URL=https://raw.githubusercontent.com/Braand-web/Deliobot/main/deploy/install.sh
   # Where the files this installer places come from: this repository at the tag of the version it installs, and at
   # main when that tag does not have them. ODB_INSTALL_SOURCE names one copy to use instead (https://… or file:///…).
@@ -395,8 +395,8 @@ check_outbound() {
     return
   fi
   ok "outbound: the image registries and Let's Encrypt are reachable"
-  if ! reachable https://accounts.openopendeliobot.com/; then
-    note "accounts.openopendeliobot.com is not reachable, so signing in with an emailed code needs a mail server of your own (ODB_SIGNIN_SMTP_URL). Pairing codes work without it."
+  if ! reachable https://accounts.opendeliobot.com/; then
+    note "accounts.opendeliobot.com is not reachable, so signing in with an emailed code needs a mail server of your own (ODB_SIGNIN_SMTP_URL). Pairing codes work without it."
   fi
 }
 

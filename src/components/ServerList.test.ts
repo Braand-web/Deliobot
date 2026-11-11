@@ -38,7 +38,7 @@ beforeEach(() => {
     { id: "mac", state: "signedOut", since: 0, version: "0.1.147", behind: false, install: "npx" },
     { id: "open", state: "insecure", since: 0, version: null, behind: false, install: null },
   ];
-  Object.assign(window, { ogb: { environments, workspaces } });
+  Object.assign(window, { odb: { environments, workspaces } });
   host = document.createElement("div"); document.body.append(host);
 });
 afterEach(async () => { await act(async () => root?.unmount()); root = null; host.remove(); document.body.innerHTML = ""; });

@@ -27,7 +27,7 @@ beforeEach(() => {
     reopen: vi.fn().mockResolvedValue({ status: "connecting" }), cancel: vi.fn().mockResolvedValue({ status: "signed-out" }),
     refresh: vi.fn().mockResolvedValue(free), signOut: vi.fn().mockResolvedValue({ status: "signed-out" }), openDashboard: vi.fn().mockResolvedValue(free),
     connectHome: vi.fn().mockResolvedValue(free), connectHomeForPhone: vi.fn().mockResolvedValue(free), onState: vi.fn(callback => { push = callback; return () => {}; }) };
-  vi.stubGlobal("window", { ogb: { cloudAccount: bridge } }); vi.stubGlobal("fetch", vi.fn()); setLocale("en");
+  vi.stubGlobal("window", { odb: { cloudAccount: bridge } }); vi.stubGlobal("fetch", vi.fn()); setLocale("en");
 });
 afterEach(() => { vi.unstubAllGlobals(); setLocale("en"); });
 async function ready(state: CloudAccountState = { status: "signed-out" }) { vi.mocked(bridge.state).mockResolvedValueOnce(state); render(); const cleanup = f.effects[0](); await flush(); return cleanup; }
@@ -63,7 +63,7 @@ it("sign-out requires confirmation and preserves local and organization wording"
   expect(render().html).toContain("Sign in to your Cloud plan"); expect(fetch).not.toHaveBeenCalled();
 });
 it("never accesses account bridge from remote companion pages", async () => {
-  vi.stubGlobal("window", { ogb: { cloudAccount: bridge, remoteClient: { active: true } } }); render(); f.effects[0](); await flush();
+  vi.stubGlobal("window", { odb: { cloudAccount: bridge, remoteClient: { active: true } } }); render(); f.effects[0](); await flush();
   expect(bridge.state).not.toHaveBeenCalled(); expect(bridge.onState).not.toHaveBeenCalled(); expect(render().html).toContain("local desktop app");
 });
 it("a late initial snapshot cannot replace a newer revoked state", async () => {
@@ -145,7 +145,7 @@ it("a payment being linked says so, with its date, and asks nobody to pay again"
   all(render().html, ["Delio Cloud · payment received", "linking your payment"]); none(render().html, BUY);
 });
 it("where this app can keep another account beside this one, the other email is added, with nothing signed out", async () => {
-  vi.stubGlobal("window", { ogb: { cloudAccount: bridge, accounts: { addCancel: vi.fn(), list: vi.fn(), onChanged: vi.fn() } } });
+  vi.stubGlobal("window", { odb: { cloudAccount: bridge, accounts: { addCancel: vi.fn(), list: vi.fn(), onChanged: vi.fn() } } });
   await ready(free);
   none(render({ onAddCloud: vi.fn() }).html, ["Sign out and use that email"]);
   all(render({ onAddCloud: vi.fn() }).html, ["Bought a plan or joined a team with a different email?"]);
@@ -210,7 +210,7 @@ it("setting up shows the Cloud page's steps, a slow setup and a failed setup's n
 });
 it("on the person's own Cloud, Settings shows the plan read only, with Manage, and Sign in again once this computer's sign-in ended", async () => {
   const plan = { state: vi.fn().mockResolvedValue({ status: "paid", tier: "max" }), manage: vi.fn().mockResolvedValue(undefined), signIn: vi.fn().mockResolvedValue(undefined) };
-  vi.stubGlobal("window", { ogb: { cloudPlan: plan } });
+  vi.stubGlobal("window", { odb: { cloudPlan: plan } });
   const settings = render({ cloudHome: true }).html; expect(settings).not.toContain("local desktop app");
   expect(render().html).toContain("local desktop app"); expect(render().html).not.toContain("Manage in your browser");
   const view = () => { f.index = 0; f.effects = []; let tree: ReactNode; function Capture() { tree = CloudPlanOnCloud({ bridge: plan }); return tree; }
@@ -271,7 +271,7 @@ it.each([
 });
 it("while the bots move to My Cloud, says how the move goes, with nothing to open or switch back to; Open the Cloud comes back after", async () => {
   let move: unknown = { phase: "copy", chats: { done: 3, total: 12 } };
-  vi.stubGlobal("window", { ogb: { cloudAccount: bridge, cloudSendPage: { notice: vi.fn(async () => ({ ready: true, bots: [], move })), onNotice: vi.fn(() => () => {}), dismiss: vi.fn() } } });
+  vi.stubGlobal("window", { odb: { cloudAccount: bridge, cloudSendPage: { notice: vi.fn(async () => ({ ready: true, bots: [], move })), onNotice: vi.fn(() => () => {}), dismiss: vi.fn() } } });
   const moving = async () => { await ready({ ...pro, machine: { status: "ready", origin } }); f.effects[2](); await flush(); return render(); };
   let view = await moving();
   all(view.html, ["Moving your bots to My Cloud… 3 of 12 chats", "data-cloud-moving"]);
@@ -457,7 +457,7 @@ it("on the Cloud itself, opens this Cloud's phone pairing directly; never where 
   view({ onConnectPhone }).nodes.find(node => node.type === "button" && node.props.children === PHONE)!.props.onClick!();
   expect(onConnectPhone).toHaveBeenCalledOnce();
   expect(plan.manage).not.toHaveBeenCalled();
-  vi.stubGlobal("window", { ogb: { cloudPlan: plan } });
+  vi.stubGlobal("window", { odb: { cloudPlan: plan } });
   const onCloud = render({ cloudHome: true, onConnectPhone }).nodes as unknown as Array<ReactElement<{ onConnectPhone?: () => void }>>;
   const card = onCloud.find(node => node.type === CloudPlanOnCloud);
   expect(card!.props.onConnectPhone).toBe(onConnectPhone);
@@ -470,7 +470,7 @@ it("on the Cloud itself, opens this Cloud's phone pairing directly; never where 
 
 it("on a Team Cloud, sends people to the Plan page for its people and plan, never to 'the app on your computer'", () => {
   const plan = { state: vi.fn().mockRejectedValue(new Error("cloud-plan:state is only available in this app's window")), manage: vi.fn() };
-  vi.stubGlobal("window", { ogb: { cloudPlan: plan } });
+  vi.stubGlobal("window", { odb: { cloudPlan: plan } });
   const team = { name: "Acme", cloudPage: "https://cloud.example.com/cloud" };
   const onTeam = render({ cloudHome: true, teamHome: team }).nodes;
   expect(onTeam.some(node => node.type === CloudPlanOnCloud)).toBe(false);

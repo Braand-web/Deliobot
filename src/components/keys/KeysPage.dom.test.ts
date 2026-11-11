@@ -284,7 +284,7 @@ describe("Boat's credit offer on the Boat card", () => {
   afterEach(() => {
     BOAT_OFFER.until = null;
     applyBrand({ brand: DEFAULT_BRAND, source: "default", file: "" });
-    delete (window as unknown as { ogb?: unknown }).ogb;
+    delete (window as unknown as { odb?: unknown }).odb;
     vi.unstubAllGlobals();
   });
 
@@ -309,7 +309,7 @@ describe("Boat's credit offer on the Boat card", () => {
 
   it("Get Boat opens boat.dev and the claim drafts the email to Boat; both stay for a later visit and save nothing", async () => {
     const openExternal = vi.fn(async () => true);
-    (window as unknown as { ogb?: unknown }).ogb = { openExternal };
+    (window as unknown as { odb?: unknown }).odb = { openExternal };
     page(); openComputers();
     flushSync(() => buttons()[0]!.click());
     await vi.waitFor(() => expect(openExternal).toHaveBeenCalledWith("https://boat.dev"));

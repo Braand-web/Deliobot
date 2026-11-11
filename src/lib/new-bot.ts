@@ -50,7 +50,7 @@ export function announceNewBot(dispatch: (action: Action) => void, bot: Bot, war
 /** A paired device may not read the host's New bot defaults: the host applies them to an empty request. Auto on this
  * computer needs the person's own OK, so a bot whose defaults ask for it starts on Ask. */
 async function createNewBot(section: string | undefined, bots: readonly Bot[], team: TeamPeople | null, request: typeof api) {
-  if (typeof window !== "undefined" && window.ogb?.remoteClient?.active) {
+  if (typeof window !== "undefined" && window.odb?.remoteClient?.active) {
     const { bot, paused } = await request<{ bot: Bot; paused?: true }>("/api/bots", { method: "POST", body: JSON.stringify(section === undefined ? {} : { section }) });
     return { bot, warnings: [] as string[], startsOnAsk: false, ...(paused ? { paused } : {}) };
   }

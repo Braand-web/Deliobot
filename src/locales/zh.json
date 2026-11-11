@@ -1653,7 +1653,7 @@
   "settings.runCard.subtitle": "显示机器人为你当前请求运行过的 shell 命令列表。关闭后会隐藏该卡片，以及将它保存为技能的快捷入口。",
   "settings.runCard.show": "显示运行卡片",
   "settings.pinnedCircles.title": "以圆形显示置顶的机器人",
-  "settings.pinnedCircles.subtitle": "把置顶的机器人显示为大头像，就像 Grok Bot 一样。加宽侧栏可让每行容纳更多。",
+  "settings.pinnedCircles.subtitle": "把置顶的机器人显示为大头像。加宽侧栏可让每行容纳更多。",
   "settings.universalPins.title": "全局置顶",
   "settings.universalPins.subtitle": "把各群组中置顶的机器人（包括群组的参谋长）固定显示在侧栏顶部。列表其余部分滚动时，它们始终留在原位。",
   "settings.notificationSounds.title": "通知音效",

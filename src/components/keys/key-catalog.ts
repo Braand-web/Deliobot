@@ -21,8 +21,8 @@ export const KEY_SECTIONS: ReadonlyArray<{ id: KeySectionId; titleKey: LocaleKey
 
 export type TestableProvider = "anthropic" | "openai" | "openrouter" | "openaiCompat" | "xai" | "mistral" | "cerebras" | "groq" | "greenference" | "modelgo" | "meta" | "treg";
 
-export type DesktopSlot = Parameters<NonNullable<NonNullable<Window["ogb"]>["setCredential"]>>[0];
-export type DesktopSlotOptions = NonNullable<Parameters<NonNullable<NonNullable<Window["ogb"]>["setCredential"]>>[2]>;
+export type DesktopSlot = Parameters<NonNullable<NonNullable<Window["odb"]>["setCredential"]>>[0];
+export type DesktopSlotOptions = NonNullable<Parameters<NonNullable<NonNullable<Window["odb"]>["setCredential"]>>[2]>;
 
 export interface SavedState { configured: boolean; last4?: string; included?: boolean }
 

@@ -14,7 +14,7 @@ import type { SidebarMenuItem } from "./SidebarPopoverMenu";
 export type AccountMoveLine = NonNullable<ReturnType<typeof moveLine>>;
 export type AccountMoveKind = AccountMoveLine["kind"];
 
-const pageBridge = () => (!window.ogb?.remoteClient?.active ? window.ogb?.cloudSendPage : undefined);
+const pageBridge = () => (!window.odb?.remoteClient?.active ? window.odb?.cloudSendPage : undefined);
 
 /** The account's words for the move: it needs the person once it has failed for a day, goes quietly meanwhile, and
  * says nothing once done (its menu row says what arrived). `place`: the server of their own it goes to, else My Cloud. */

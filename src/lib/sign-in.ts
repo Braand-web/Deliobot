@@ -6,9 +6,9 @@ export async function answerSignIn(ref: Pick<ComputerHelpRef, "botId" | "threadI
     method: "POST",
     body: JSON.stringify({ threadId: ref.threadId }),
   });
-  if (ref.place === "vm" || ref.place === "cloud") void window.ogb?.desktopViewer?.close(ref.botId).catch(() => false);
+  if (ref.place === "vm" || ref.place === "cloud") void window.odb?.desktopViewer?.close(ref.botId).catch(() => false);
 }
 
 export function signInHostIsHere(): boolean {
-  return Boolean(window.ogb) && window.ogb?.remoteClient?.active !== true;
+  return Boolean(window.odb) && window.odb?.remoteClient?.active !== true;
 }

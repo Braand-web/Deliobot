@@ -323,7 +323,7 @@ describe.each([
 
   it("does not start or read a command on a computer that is being deleted", async () => {
     const processId = await start();
-    journal.prepareBoatDeletion({ boxId: BOX, name: "ogb-0123456789ab-bot-abc123", ownerBotId: null });
+    journal.prepareBoatDeletion({ boxId: BOX, name: "odb-0123456789ab-bot-abc123", ownerBotId: null });
     try {
       calls.length = 0;
       await expect(call("exec", { command: "true", background: true }).done).rejects.toMatchObject({ status: 409 });

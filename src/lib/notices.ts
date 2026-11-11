@@ -15,8 +15,6 @@ export const PRODUCT_HUNT_NOTICE = "product-hunt-launch-2026-10";
 export const PRODUCT_HUNT_URL = "https://www.producthunt.com/products/delio";
 export const PRODUCT_HUNT_UNTIL = Date.UTC(2026, 10, 1);
 export const BOAT_OFFER_NOTICE = "boat-credit-2026-11";
-/** The Move from Grok Bot popup: each person sees it once, first of all, after their welcome. */
-export const GROK_MOVE_NOTICE = "grok-move-2026-11";
 /** The sponsor's card for ModelGo: each person sees it once, on every page but a branded build or a desktop whose organization
  * refuses it, and on the first launch it may show in: first when nothing else is due, else right after the launch's notice. */
 export const MODELGO_OFFER_NOTICE = "modelgo-offer-2026-11";
@@ -28,7 +26,6 @@ export const PHONE_UPDATE_NOTICE = "phone-app-update";
  * come after it there. The rest wait for later launches, in this order.
  */
 export const NOTICES = [
-  GROK_MOVE_NOTICE,
   PHONE_UPDATE_NOTICE,
   SIMPLE_MODE_NOTICE,
   WHATS_NEW_NOTICE,
@@ -52,7 +49,7 @@ export type NoticeFacts = Record<NoticeId, boolean | null>;
 export const FOLLOWERS: readonly NoticeId[] = [UPDATES_CONSENT_NOTICE, MODELGO_OFFER_NOTICE];
 /** Notices the person has to act on. The sponsor's card never goes ahead of one, even one left for a later launch: it waits
  * for that launch and follows it there. */
-export const MUST_ACT: readonly NoticeId[] = [GROK_MOVE_NOTICE, PHONE_UPDATE_NOTICE, CLOUD_TRIAL_NOTICE, CLOUD_NOTICE];
+export const MUST_ACT: readonly NoticeId[] = [PHONE_UPDATE_NOTICE, CLOUD_TRIAL_NOTICE, CLOUD_NOTICE];
 
 /** `launch`: the notice this launch already showed (launchNotice), the only one besides FOLLOWERS that may show again in it.
  * `closed`: that notice was closed in this page, so it doesn't come back however its facts read. The sponsor's card follows

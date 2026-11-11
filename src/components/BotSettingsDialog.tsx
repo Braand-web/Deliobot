@@ -61,7 +61,7 @@ export function BotSettingsDialog({ bot, overlay = false }: {
   const teamName = useTeamName();
   const sections = BOT_SECTIONS
     .filter((entry) => entry.id !== "slack" || slackUrl !== null)
-    .filter((entry) => entry.id !== "visibility" || (!window.ogb && ownerOrAdmin === true && !teamName));
+    .filter((entry) => entry.id !== "visibility" || (!window.odb && ownerOrAdmin === true && !teamName));
   const visibleSections = sections.filter((entry) => sectionMatches(entry, q));
 
   const { overview, overviewError, prompt, promptError } = useBotOverview(bot, {

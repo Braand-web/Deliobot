@@ -7,12 +7,12 @@ import type { UpdaterState } from "@/lib/updater";
 
 const fixture = vi.hoisted(() => ({ state: { status: "idle" } as UpdaterState }));
 // As the real hook: no state without the desktop app's updater bridge.
-vi.mock("@/lib/updater", async (original) => ({ ...(await original<typeof import("@/lib/updater")>()), useUpdaterState: () => (window.ogb?.updater ? fixture.state : null) }));
+vi.mock("@/lib/updater", async (original) => ({ ...(await original<typeof import("@/lib/updater")>()), useUpdaterState: () => (window.odb?.updater ? fixture.state : null) }));
 vi.mock("../lib/brand", () => ({ brand: () => ({ name: "OpenDeliobot" }), productName: () => "Delio" }));
 import { UpdateBanner } from "./UpdateBanner";
 
 afterEach(() => vi.unstubAllGlobals());
-function render(state: UpdaterState, window: object = { ogb: { updater: {} } }, sidebarIndicator = false) {
+function render(state: UpdaterState, window: object = { odb: { updater: {} } }, sidebarIndicator = false) {
   fixture.state = state;
   vi.stubGlobal("window", window);
   return renderToStaticMarkup(createElement(UpdateBanner, { sidebarIndicator }));
@@ -41,16 +41,16 @@ function serverPageBridge(origin: string, answered: boolean) {
 
 describe("UpdateBanner", () => {
   it("shows the ready update and its restart on My Cloud's page", () => {
-    const html = render({ status: "downloaded", version: "0.2.0" }, { location: { origin: CLOUD }, ogb: serverPageBridge(CLOUD, true) });
+    const html = render({ status: "downloaded", version: "0.2.0" }, { location: { origin: CLOUD }, odb: serverPageBridge(CLOUD, true) });
     expect(html).toContain("Delio 0.2.0 is ready");
     expect(html).toContain("Restart to update");
     expect(html).toContain("Later");
   });
 
   it("is absent from another server's page, which never gets the updater", () => {
-    const ogb = serverPageBridge(OTHER, false) as { updater?: unknown };
-    expect(ogb.updater).toBeUndefined();
-    expect(render({ status: "downloaded", version: "0.2.0" }, { location: { origin: OTHER }, ogb })).toBe("");
+    const odb = serverPageBridge(OTHER, false) as { updater?: unknown };
+    expect(odb.updater).toBeUndefined();
+    expect(render({ status: "downloaded", version: "0.2.0" }, { location: { origin: OTHER }, odb })).toBe("");
   });
 
   it.each([

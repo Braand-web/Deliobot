@@ -27,6 +27,7 @@ const EXPRESSIONS = {
   sleeping:  { eyes: 'closed', mouth: 'small', orb: 0.15, z: true },
 };
 const E = { blush: 1, gaze: [0, 0], glow: 1, ...EXPRESSIONS[EXPR] };
+if (q.has('blink')) E.eyes = 'closed';
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
 renderer.setPixelRatio(1);
@@ -242,6 +243,9 @@ if (FRAME === 'icon') {
   x.drawImage(renderer.domElement, 0, 0);
 }
 document.body.appendChild(out);
+const orbScreen = orb.getWorldPosition(new THREE.Vector3()).project(camera);
+const orbEdge = orb.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0.24 * mascot.scale.x, 0, 0)).project(camera);
+window.__orb = { x: (orbScreen.x + 1) / 2 * SIZE, y: (1 - orbScreen.y) / 2 * SIZE, r: Math.abs(orbEdge.x - orbScreen.x) / 2 * SIZE };
 window.__png = out.toDataURL('image/png');
 window.__done = true;
 </script></body></html>

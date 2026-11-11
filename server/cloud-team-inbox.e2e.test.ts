@@ -134,8 +134,8 @@ async function askedOfBen(ask: (requestId: string) => Record<string, unknown>) {
   const sent = await team.as(cleo, "POST", `/api/bots/${reporter.id}/messages`, { text: "Clean the build", threadId: reporter.threadId });
   expect(sent.status, JSON.stringify(sent.body)).toBe(202);
   const socketPath = await expect.poll(() => {
-    try { return JSON.parse(readFileSync(file("dump.json"), "utf8")).mcpConfig?.mcpServers?.ogb?.args?.[1] as string | undefined; } catch { return undefined; }
-  }, { timeout: 20_000 }).toEqual(expect.any(String)).then(() => JSON.parse(readFileSync(file("dump.json"), "utf8")).mcpConfig.mcpServers.ogb.args[1] as string);
+    try { return JSON.parse(readFileSync(file("dump.json"), "utf8")).mcpConfig?.mcpServers?.odb?.args?.[1] as string | undefined; } catch { return undefined; }
+  }, { timeout: 20_000 }).toEqual(expect.any(String)).then(() => JSON.parse(readFileSync(file("dump.json"), "utf8")).mcpConfig.mcpServers.odb.args[1] as string);
   rmSync(file("hang-mode"), { force: true });
   const socket = connect(socketPath);
   sockets.push(socket);

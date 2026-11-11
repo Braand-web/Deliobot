@@ -399,12 +399,12 @@ describe("the chip in the conversation that handed the work on", () => {
 
 describe("askToolName", () => {
   const bot = (toolScope?: BotRecord["toolScope"]) => ({ modelSelection: { instanceId: "claude", model: "m" }, toolScope }) as BotRecord;
-  const claude = () => ({ kind: "mcp" as const, server: "ogb", name: "ask_user" });
+  const claude = () => ({ kind: "mcp" as const, server: "odb", name: "ask_user" });
 
   it("names the engine's question tool as its model calls it, unless the bot's tool selection leaves it out", () => {
-    expect(askToolName(bot(), claude)).toBe("mcp__ogb__ask_user");
+    expect(askToolName(bot(), claude)).toBe("mcp__odb__ask_user");
     expect(askToolName(bot(), () => ({ kind: "native", name: "AskQuestion" }))).toBe("AskQuestion");
-    expect(askToolName(bot({ deny: ["mcp:ogb:ask_user"] }), claude)).toBeUndefined();
+    expect(askToolName(bot({ deny: ["mcp:odb:ask_user"] }), claude)).toBeUndefined();
     expect(askToolName(bot({ allow: ["mcp:agents:*"] }), claude)).toBeUndefined();
     expect(askToolName(bot(), () => undefined)).toBeUndefined();
     expect(askToolName(null, claude)).toBeUndefined();

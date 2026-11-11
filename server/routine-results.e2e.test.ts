@@ -111,7 +111,7 @@ it("reports every run into the bot's main thread while fresh executions, approva
       return JSON.parse(readFileSync(fixture.fixtureDumpPath, "utf8")).mcpConfig?.mcpServers?.agents?.env?.ODB_THREAD_ID === active.threadId;
     }, { timeout: 15_000 }).toBe(true);
     const launched = JSON.parse(readFileSync(fixture.fixtureDumpPath, "utf8"));
-    const socketPath = launched.mcpConfig.mcpServers.ogb.args.at(-1);
+    const socketPath = launched.mcpConfig.mcpServers.odb.args.at(-1);
     broker = connect(socketPath);
     broker.on("error", () => {});
     await new Promise<void>((resolve, reject) => { broker!.once("connect", resolve); broker!.once("error", reject); });

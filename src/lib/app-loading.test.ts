@@ -21,9 +21,9 @@ it("says Updating My Cloud… while the page the window reloaded for its newer v
 });
 
 it("learns from the desktop app that the window reloaded My Cloud's page for its newer version", () => {
-  vi.stubGlobal("window", { ogb: { home: { updating: true } } });
+  vi.stubGlobal("window", { odb: { home: { updating: true } } });
   expect(loadingLine({ connected: false, hydrated: false, developer: false }).text).toBe("app.loading.updating");
-  vi.stubGlobal("window", { ogb: { home: { updating: false } } });
+  vi.stubGlobal("window", { odb: { home: { updating: false } } });
   expect(loadingLine({ connected: false, hydrated: false, developer: false }).text).toBe("app.loading.connecting");
   vi.stubGlobal("window", {});
   expect(loadingLine({ connected: false, hydrated: false, developer: false }).text, "a browser").toBe("app.loading.connecting");

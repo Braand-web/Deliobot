@@ -2113,8 +2113,8 @@
      "k": "BJiFmi3bzpQUayMJErl6eqt24mUOvHEUR6uzutPTHfundIgyZxs3bSzUMydGOfgbWdwQshIyzzlMWqxMkNHnmd0",
      "h": "lz81isB3BuNV6rHgYgG3Wg",
      "r": [
-      "relay1.openopendeliobot.com",
-      "relay2.openopendeliobot.com"
+      "relay1.opendeliobot.com",
+      "relay2.opendeliobot.com"
      ]
     }
    },
@@ -2136,10 +2136,10 @@
      "k": "BJiFmi3bzpQUayMJErl6eqt24mUOvHEUR6uzutPTHfundIgyZxs3bSzUMydGOfgbWdwQshIyzzlMWqxMkNHnmd0",
      "h": "lz81isB3BuNV6rHgYgG3Wg",
      "r": [
-      "relay1.openopendeliobot.com",
-      "relay2.openopendeliobot.com",
-      "relay3.openopendeliobot.com",
-      "relay99.openopendeliobot.com"
+      "relay1.opendeliobot.com",
+      "relay2.opendeliobot.com",
+      "relay3.opendeliobot.com",
+      "relay99.opendeliobot.com"
      ]
     }
    },
@@ -2152,8 +2152,8 @@
      "k": "BJiFmi3bzpQUayMJErl6eqt24mUOvHEUR6uzutPTHfundIgyZxs3bSzUMydGOfgbWdwQshIyzzlMWqxMkNHnmd0",
      "h": "lz81isB3BuNV6rHgYgG3Wg",
      "r": [
-      "relay1.openopendeliobot.com",
-      "relay2.openopendeliobot.com"
+      "relay1.opendeliobot.com",
+      "relay2.opendeliobot.com"
      ]
     }
    },
@@ -2166,8 +2166,8 @@
      "k": "BJiFmi3bzpQUayMJErl6eqt24mUOvHEUR6uzutPTHfundIgyZxs3bSzUMydGOfgbWdwQshIyzzlMWqxMkNHnmd0",
      "h": "lz81isB3BuNV6rHgYgG3Wg",
      "r": [
-      "relay1.openopendeliobot.com",
-      "relay2.openopendeliobot.com"
+      "relay1.opendeliobot.com",
+      "relay2.opendeliobot.com"
      ]
     }
    },
@@ -2190,8 +2190,8 @@
      "k": "BJiFmi3bzpQUayMJErl6eqt24mUOvHEUR6uzutPTHfundIgyZxs3bSzUMydGOfgbWdwQshIyzzlMWqxMkNHnmd0",
      "h": "lz81isB3BuNV6rHgYgG3Wg",
      "r": [
-      "relay1.openopendeliobot.com",
-      "relay2.openopendeliobot.com"
+      "relay1.opendeliobot.com",
+      "relay2.opendeliobot.com"
      ],
      "routes": "any"
     }
@@ -2215,8 +2215,8 @@
      "k": "BJiFmi3bzpQUayMJErl6eqt24mUOvHEUR6uzutPTHfundIgyZxs3bSzUMydGOfgbWdwQshIyzzlMWqxMkNHnmd0",
      "h": "lz81isB3BuNV6rHgYgG3Wg",
      "r": [
-      "relay1.openopendeliobot.com",
-      "relay2.openopendeliobot.com"
+      "relay1.opendeliobot.com",
+      "relay2.opendeliobot.com"
      ],
      "routes": "local"
     }

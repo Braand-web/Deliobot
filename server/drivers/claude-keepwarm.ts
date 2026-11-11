@@ -62,9 +62,9 @@ export function keepWarmArgs(
 
 export function keepWarmMcpServers(mcpServers: Record<string, unknown>, deadSocket: string): Record<string, unknown> {
   const out: Record<string, unknown> = { ...mcpServers };
-  const ogb = out.ogb as { args?: unknown } | undefined;
-  if (ogb && Array.isArray(ogb.args) && ogb.args.length >= 2) {
-    out.ogb = { ...ogb, args: [...ogb.args.slice(0, -1), deadSocket] };
+  const odb = out.odb as { args?: unknown } | undefined;
+  if (odb && Array.isArray(odb.args) && odb.args.length >= 2) {
+    out.odb = { ...odb, args: [...odb.args.slice(0, -1), deadSocket] };
   }
   return out;
 }

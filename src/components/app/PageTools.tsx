@@ -277,7 +277,7 @@ export function PageNotes({ version, point, share, save, room, className }: Pick
     rows.push(
       <div key="refused" role="alert" className="flex items-center gap-2 rounded-2xl bg-inset px-3 py-2 text-[13px] text-ink-secondary">
         <span dir="auto" className="min-w-0 flex-1">{state.text}</span>
-        {state.card?.upgrade && window.ogb?.cloudAccount && !window.ogb.remoteClient?.active && (
+        {state.card?.upgrade && window.odb?.cloudAccount && !window.odb.remoteClient?.active && (
           <button type="button" className={ASK_PRIMARY_BUTTON} onClick={() => dispatch({ type: "openCloudAdd", source: "app_pages" })}>{t("chat.page.morePages")}</button>
         )}
       </div>,

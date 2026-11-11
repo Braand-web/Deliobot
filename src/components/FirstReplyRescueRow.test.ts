@@ -61,7 +61,7 @@ afterEach(() => {
   act(() => root.unmount());
   document.body.innerHTML = "";
   setAdvancedMode(false);
-  delete (window as { ogb?: unknown }).ogb;
+  delete (window as { odb?: unknown }).odb;
   resetAiSwitch();
 });
 
@@ -132,7 +132,7 @@ describe("first-reply rescue row", () => {
   it.each([
     ["a remote client in Advanced mode, whose header has no model chip", () => {
       setAdvancedMode(true);
-      (window as { ogb?: unknown }).ogb = { remoteClient: { active: true } };
+      (window as { odb?: unknown }).odb = { remoteClient: { active: true } };
       render(row());
     }],
     ["a room, whose header has no model chip", () => render(row({ ...rescue, groupId: "room-1" }), { groups: [{ id: "room-1", busyBotId: "bot-1", turnStartedAt: AT - 1 }] })],

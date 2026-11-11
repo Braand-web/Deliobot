@@ -96,7 +96,7 @@ describe("the header's right side", () => {
 
   it("keeps the model, the computer and ⋯ in a remote client's Simple header, whose settings panel has no room for them", () => {
     fixture.advanced = false;
-    window.ogb = { remoteClient: { active: true } } as NonNullable<Window["ogb"]>;
+    window.odb = { remoteClient: { active: true } } as NonNullable<Window["odb"]>;
     try {
       const { markup } = header();
       // The host checks the model against its own catalog, so a paired desktop can change it like the phone can.
@@ -107,7 +107,7 @@ describe("the header's right side", () => {
       const more = fixture.menus.find((menu) => menu.ariaLabel === "More")!;
       expect(more.items.map((item) => item.key)).toEqual(["find", "new-thread", "start-fresh", "copy", "download"]);
     } finally {
-      delete window.ogb;
+      delete window.odb;
       fixture.advanced = true;
     }
   });
@@ -164,13 +164,13 @@ describe("the Simple header", () => {
       for (const gone of ["data-chathead-role", "data-background-activity", "data-chathead-back", 'data-testid="chat-more"']) {
         expect(simple, gone).not.toContain(gone);
       }
-      window.ogb = { remoteClient: { active: true } } as NonNullable<Window["ogb"]>;
+      window.odb = { remoteClient: { active: true } } as NonNullable<Window["odb"]>;
       try {
         const remote = renderToStaticMarkup(createElement(ChatView, { bot: busyElsewhere }));
         expect(remote).not.toContain("data-chathead-elsewhere");
         expect(remote).toContain("data-background-activity");
       } finally {
-        delete window.ogb;
+        delete window.odb;
       }
     } finally {
       fixture.advanced = true;
@@ -382,25 +382,25 @@ describe("thread control placement", () => {
   it("offers trusted modes in the composer without requiring a Full bot default", () => {
     const fullBot = { ...bot, busy: false, approvalMode: "full" as const };
     expect(renderToStaticMarkup(createElement(ChatView, { bot: fullBot }))).not.toContain("Use bot’s Full access for this thread");
-    window.ogb = { approvals: { setMode: vi.fn() } } as unknown as NonNullable<Window["ogb"]>;
+    window.odb = { approvals: { setMode: vi.fn() } } as unknown as NonNullable<Window["odb"]>;
     expect(renderToStaticMarkup(createElement(ChatView, { bot: fullBot }))).not.toContain("Use bot’s Full access for this thread");
     renderToStaticMarkup(createElement(ChatView, { bot }));
     expect(fixture.approval?.trustedModesAvailable).toBe(true);
     fixture.approval!.onSelect("custom");
     expect(fixture.dispatch).toHaveBeenLastCalledWith({ type: "updateTask", botId: "bot", threadId: "selected", patch: { approvalMode: "custom" } });
-    delete window.ogb;
+    delete window.odb;
   });
 
   it("applies Full access from the composer at once, with or without the desktop bridge", () => {
     for (const bridge of [false, true]) {
-      if (bridge) window.ogb = { approvals: { setMode: vi.fn() } } as unknown as NonNullable<Window["ogb"]>;
+      if (bridge) window.odb = { approvals: { setMode: vi.fn() } } as unknown as NonNullable<Window["odb"]>;
       fixture.dispatch.mockClear();
       const markup = renderToStaticMarkup(createElement(ChatView, { bot }));
       expect(fixture.approval?.trustedModesAvailable).toBe(bridge);
       fixture.approval!.onSelect("full");
       expect(fixture.dispatch).toHaveBeenCalledExactlyOnceWith({ type: "updateTask", botId: "bot", threadId: "selected", patch: { approvalMode: "full" } });
       expect(markup).not.toContain('role="alertdialog"');
-      delete window.ogb;
+      delete window.odb;
     }
     fixture.dispatch.mockClear();
     renderToStaticMarkup(createElement(ChatView, { bot }));
@@ -597,7 +597,7 @@ describe("thread control placement", () => {
   it("offers the matching macOS Settings and relaunch actions only for a named CUA permission failure", () => {
     fixture.platform = "darwin";
     fixture.localMessage = "Screen Recording required";
-    window.ogb = { platform: "darwin", permOpenSettings: vi.fn(), relaunch: vi.fn() } as unknown as NonNullable<Window["ogb"]>;
+    window.odb = { platform: "darwin", permOpenSettings: vi.fn(), relaunch: vi.fn() } as unknown as NonNullable<Window["odb"]>;
     const screen = renderToStaticMarkup(createElement(ErrorRow, {
       message: "OpenDeliobot can't use this computer yet — embedded host failed: Screen Recording required. Relaunch OpenDeliobot after granting any missing macOS permission.",
     }));
@@ -619,7 +619,7 @@ describe("thread control placement", () => {
     fixture.localReasonCode = "cua-driver-unavailable";
     fixture.platform = "other";
     fixture.localMessage = "";
-    delete window.ogb;
+    delete window.odb;
   });
   it.each([
     "شغّل الاختبارات\nThen run typecheck\nوبعدها ارفع الفرع",
@@ -675,7 +675,7 @@ describe("thread control placement", () => {
   });
 
   it("offers remote clients the model picker but keeps approval changes on the host", () => {
-    window.ogb = { remoteClient: { active: true } } as NonNullable<Window["ogb"]>;
+    window.odb = { remoteClient: { active: true } } as NonNullable<Window["odb"]>;
     try {
       fixture.model = null;
       const markup = renderToStaticMarkup(createElement(ChatView, { bot }));
@@ -683,7 +683,7 @@ describe("thread control placement", () => {
       expect(fixture.model).toMatchObject({ bot: { id: "bot" }, threadId: "selected" });
       expect(markup).not.toContain("data-test-approval-control");
     } finally {
-      delete window.ogb;
+      delete window.odb;
     }
   });
 

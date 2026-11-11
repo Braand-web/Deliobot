@@ -68,7 +68,7 @@ beforeEach(() => {
     bots: [{ id: "b1", threadId: "t1", name: "Delio" }], routines: [],
     config: { cloudHome: true, onboarding: { ...EMPTY_ONBOARDING } },
   };
-  vi.stubGlobal("window", { ogb: { platform: "darwin" }, addEventListener: vi.fn(), removeEventListener: vi.fn() });
+  vi.stubGlobal("window", { odb: { platform: "darwin" }, addEventListener: vi.fn(), removeEventListener: vi.fn() });
   vi.stubGlobal("localStorage", { getItem: () => null, setItem: () => {} });
   vi.mocked(api).mockImplementation(async (path: string, init?: RequestInit) => {
     if (path === "/api/shared-computers") return { computers: lent };

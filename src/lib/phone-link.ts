@@ -1,4 +1,4 @@
-import type { CompanionAccountState } from "../types/ogb";
+import type { CompanionAccountState } from "../types/odb";
 import type { CompanionState, PhoneDevice } from "./companion-types";
 
 export const olderAppPhones = (state: Pick<CompanionState, "devices"> | null | undefined): PhoneDevice[] =>

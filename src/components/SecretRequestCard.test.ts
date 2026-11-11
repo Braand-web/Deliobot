@@ -95,7 +95,7 @@ describe("SecretRequestCard superseded requests", () => {
 
 describe("SecretRequestCard on a page reached through a desktop paired to another computer", () => {
   const remote = (secret: Record<string, unknown>) => {
-    vi.stubGlobal("window", { ogb: { remoteClient: { active: true } } });
+    vi.stubGlobal("window", { odb: { remoteClient: { active: true } } });
     return view(secret);
   };
 
@@ -291,7 +291,7 @@ describe("SecretRequestCard key analytics", () => {
 
   it("reports a Boat key saved over the desktop bridge once, even when only the resume is retried", async () => {
     const setCredential = vi.fn().mockResolvedValue({ box: { configured: true } });
-    vi.stubGlobal("window", { ogb: { setCredential } });
+    vi.stubGlobal("window", { odb: { setCredential } });
     fixture.api.mockRejectedValueOnce(new Error("resume failed")).mockResolvedValueOnce({ ok: true });
     await submit("boxToken");
     card("boxToken").find((node) => node.type === "form")!.props.onSubmit!({ preventDefault: () => {} });
@@ -303,7 +303,7 @@ describe("SecretRequestCard key analytics", () => {
   });
 
   it("reports a Boat key boat.dev refused as rejected", async () => {
-    vi.stubGlobal("window", { ogb: { setCredential: vi.fn().mockRejectedValue(new Error("Error invoking remote method 'credential:set': KeyRejected: That doesn't look like a Boat API key")) } });
+    vi.stubGlobal("window", { odb: { setCredential: vi.fn().mockRejectedValue(new Error("Error invoking remote method 'credential:set': KeyRejected: That doesn't look like a Boat API key")) } });
     await submit("boxToken");
     expect(fixture.track.mock.calls).toEqual([["api_key_saved", { provider: "boat", via: "chat_request", result: "rejected" }]]);
   });
@@ -312,7 +312,7 @@ describe("SecretRequestCard key analytics", () => {
   // never the bridge's settings-file store: on My Cloud no bridge exists, and the Cloud's Logins is where bots read it.
   it("saves a 1Password token through Logins, never the settings bridge, then resumes the bot", async () => {
     const setCredential = vi.fn();
-    vi.stubGlobal("window", { ogb: { setCredential } });
+    vi.stubGlobal("window", { odb: { setCredential } });
     fixture.api.mockResolvedValueOnce({ onePassword: { connected: true } }).mockResolvedValueOnce({ ok: true });
     await submit("onePasswordToken", "ops_ZZtestSECRET0123456789");
     expect(setCredential).not.toHaveBeenCalled();
@@ -331,7 +331,7 @@ describe("SecretRequestCard key analytics", () => {
 
   it("saves an Anthropic key in the desktop store as Settings does, keeping Claude sign-ins", async () => {
     const setCredential = vi.fn().mockResolvedValue({ anthropic: { configured: true } });
-    vi.stubGlobal("window", { ogb: { setCredential } });
+    vi.stubGlobal("window", { odb: { setCredential } });
     fixture.api.mockResolvedValueOnce({ ok: true });
     await submit("anthropicApiKey", "sk-ant-ZZtestSECRET0123456789");
     expect(setCredential).toHaveBeenCalledExactlyOnceWith("anthropicApiKey", "sk-ant-ZZtestSECRET0123456789", { everyClaudeBot: false });
@@ -341,7 +341,7 @@ describe("SecretRequestCard key analytics", () => {
 
   it("sends a provider key typed on a desktop paired to another computer to that computer's server", async () => {
     const setCredential = vi.fn();
-    vi.stubGlobal("window", { ogb: { setCredential, remoteClient: { active: true } } });
+    vi.stubGlobal("window", { odb: { setCredential, remoteClient: { active: true } } });
     fixture.api.mockResolvedValueOnce({ anthropic: { configured: true } }).mockResolvedValueOnce({ ok: true });
     await submit("anthropicApiKey", "sk-ant-ZZtestSECRET0123456789");
     expect(setCredential).not.toHaveBeenCalled();
@@ -350,7 +350,7 @@ describe("SecretRequestCard key analytics", () => {
 
   it("saves the Composio key in the desktop store's slot, as Settings does", async () => {
     const setCredential = vi.fn().mockResolvedValue({ composio: { configured: true } });
-    vi.stubGlobal("window", { ogb: { setCredential } });
+    vi.stubGlobal("window", { odb: { setCredential } });
     fixture.api.mockResolvedValueOnce({ ok: true });
     await submit("composioApiKey", "ak_ZZtestSECRET0123456789");
     expect(setCredential).toHaveBeenCalledExactlyOnceWith("composioApiKey", "ak_ZZtestSECRET0123456789");
@@ -359,7 +359,7 @@ describe("SecretRequestCard key analytics", () => {
   // A custom secret goes only to its own card's save, which resumes the bot: never Settings, the desktop store or an event.
   it("keeps a custom secret behind its card, with no product event naming it", async () => {
     const setCredential = vi.fn();
-    vi.stubGlobal("window", { ogb: { setCredential } });
+    vi.stubGlobal("window", { odb: { setCredential } });
     fixture.api.mockResolvedValueOnce({ provided: true, resumed: true });
     await submit("customSecret", "sk_live_ZZtestSECRET0123456789", { delivery: "ref", helpUrl: "" });
     expect(setCredential).not.toHaveBeenCalled();

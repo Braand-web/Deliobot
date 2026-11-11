@@ -35,7 +35,7 @@ const underBoat = () => requests.filter((request) => request.path.startsWith("/b
 const underRelay = () => requests.filter((request) => request.path.startsWith("/relay/"));
 
 // The legacy deterministic name findBoat still recognises.
-const machineName = `ogb-${botId.slice(0, 8).toLowerCase().replace(/[^a-z0-9]/g, "")}-${createHash("sha256").update(botId).digest("hex").slice(0, 6)}`;
+const machineName = `odb-${botId.slice(0, 8).toLowerCase().replace(/[^a-z0-9]/g, "")}-${createHash("sha256").update(botId).digest("hex").slice(0, 6)}`;
 
 beforeAll(async () => {
   api = createServer((req, res) => {

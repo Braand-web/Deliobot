@@ -60,7 +60,7 @@ export function useBotSettingsDerived(bot: Bot) {
   const mascotMotion = state.mascotMotion?.botId === bot.id ? state.mascotMotion : null;
   const engine = state.instances.find((instance) => instance.instanceId === bot.modelSelection.instanceId);
   const approvalMode = approvalModeFor(bot);
-  const trustedModesAvailable = Boolean(window.ogb?.approvals && capabilities.host.packaged);
+  const trustedModesAvailable = Boolean(window.odb?.approvals && capabilities.host.packaged);
   const canCoordinate = engine?.capabilities?.agentsMcp === true;
   // Connected apps reach a bot through Composio's MCP or the native Email one; either lets the switch work.
   const canUseConnectedApps = engine?.capabilities?.composioMcp === true || engine?.capabilities?.emailMcp === true;
@@ -69,7 +69,7 @@ export function useBotSettingsDerived(bot: Bot) {
   const connectorGrantState: ConnectorGrantsState = connectorGrantsState(bot);
   const canUseBrowser = engine?.capabilities?.browserMcp === true;
   const desktopBrowser = browserAvailable(state.config);
-  const browserBlockedOnWindows = window.ogb?.platform === "win32" && !desktopBrowser;
+  const browserBlockedOnWindows = window.odb?.platform === "win32" && !desktopBrowser;
   const browserFeature = builtInBrowserEnabled(state.config);
   const browserAllowed = bot.browser !== false;
   const browserEnabled = browserFeature && browserAllowed;

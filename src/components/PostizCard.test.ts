@@ -81,7 +81,7 @@ beforeEach(() => {
   openExternal = vi.fn<(url: string) => Promise<boolean>>(async () => true);
   onConnection = vi.fn<(connected: boolean | null) => void>();
   window.confirm = vi.fn(() => true);
-  (window as unknown as { ogb: unknown }).ogb = { openExternal };
+  (window as unknown as { odb: unknown }).odb = { openExternal };
 });
 afterEach(async () => {
   await act(async () => root.unmount());

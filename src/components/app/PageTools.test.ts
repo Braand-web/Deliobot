@@ -77,7 +77,7 @@ beforeEach(() => {
     return json(200, botHtmlDocument({ messageId: "a1", rev: rev === null ? 0 : Number(rev), html: `<p>${rev === null ? "newest" : `version ${Number(rev) + 1}`}</p>` }));
   });
   vi.stubGlobal("fetch", fetchMock);
-  vi.stubGlobal("ogb", { openExternal });
+  vi.stubGlobal("odb", { openExternal });
   vi.stubGlobal("IntersectionObserver", undefined);
   pool = createAppPool({ limit: 3 });
   forgetAppRows();

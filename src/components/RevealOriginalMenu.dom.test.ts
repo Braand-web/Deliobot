@@ -8,7 +8,7 @@ import { ChatMarkdown } from "./ChatMarkdown";
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 afterEach(() => {
   document.body.innerHTML = "";
-  delete (window as { ogb?: unknown }).ogb;
+  delete (window as { odb?: unknown }).odb;
 });
 
 const ORIGINAL = "/home/me/Reports/q3.pdf";
@@ -30,7 +30,7 @@ const openMenu = (target: Element) => act(async () => {
 const menuButton = () => document.querySelector<HTMLButtonElement>("[role=group] button");
 
 it("gives focus back to the attachment when Escape closes the menu", async () => {
-  (window as { ogb?: unknown }).ogb = { platform: "linux", revealInFolder: vi.fn(async () => "shown") };
+  (window as { odb?: unknown }).odb = { platform: "linux", revealInFolder: vi.fn(async () => "shown") };
   const root = await mount(createElement(Attachment));
   const attachment = document.getElementById("attachment")!;
   attachment.focus();
@@ -44,7 +44,7 @@ it("gives focus back to the attachment when Escape closes the menu", async () =>
 
 it("gives focus back to the attachment after the original was shown", async () => {
   const revealInFolder = vi.fn(async () => "shown");
-  (window as { ogb?: unknown }).ogb = { platform: "linux", revealInFolder };
+  (window as { odb?: unknown }).odb = { platform: "linux", revealInFolder };
   const root = await mount(createElement(Attachment));
   const attachment = document.getElementById("attachment")!;
   attachment.focus();
@@ -58,7 +58,7 @@ it("gives focus back to the attachment after the original was shown", async () =
 
 it("offers the original on a file the reply links inline instead of showing it in the gallery", async () => {
   const revealInFolder = vi.fn(async () => "shown");
-  (window as { ogb?: unknown }).ogb = { platform: "linux", revealInFolder };
+  (window as { odb?: unknown }).odb = { platform: "linux", revealInFolder };
   const copy = "/data/bot/files/q3.pdf";
   const root = await mount(createElement(ChatMarkdown, {
     text: "Here it is: [q3.pdf](/home/me/Reports/q3.pdf)",

@@ -47,7 +47,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   fixture.values = [];
   setLocale("en");
-  vi.stubGlobal("window", { setTimeout, clearTimeout, ogb: { openExternal: fixture.openExternal } });
+  vi.stubGlobal("window", { setTimeout, clearTimeout, odb: { openExternal: fixture.openExternal } });
 });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 

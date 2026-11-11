@@ -13,7 +13,7 @@ function lookUp(): void {
   if (known !== null || looking || !listeners.size) return;
   // A paired desktop reaches the host through its companion, which does not serve the session route; the host already
   // treats that device as its owner, so owner controls such as New bot stay shown.
-  if (typeof window !== "undefined" && window.ogb?.remoteClient?.active === true) {
+  if (typeof window !== "undefined" && window.odb?.remoteClient?.active === true) {
     known = true;
     for (const listener of listeners) listener(true);
     return;

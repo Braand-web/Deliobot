@@ -178,7 +178,7 @@ async function restart(change: () => void) {
   await boot();
 }
 async function cardOf(threadId: string, dump: { mcpConfig: { mcpServers: Record<string, { args: string[] }> } }, tool: string) {
-  const socket = connect(dump.mcpConfig.mcpServers.ogb.args.at(-1)!);
+  const socket = connect(dump.mcpConfig.mcpServers.odb.args.at(-1)!);
   await new Promise<void>((resolve, reject) => { socket.once("connect", resolve); socket.once("error", reject); });
   const requestId = randomUUID();
   socket.write(`${JSON.stringify({ t: "ask", id: requestId, tool, input: {} })}\n`);
@@ -309,7 +309,7 @@ it("gives the owner back a routine their bot made in their chat that an earlier 
 
   const confined = await claudeRun(guests.body.routine.id);
   expect(confined.argv).toContain("--restricted");
-  const socket = connect(confined.mcpConfig.mcpServers.ogb.args.at(-1)!);
+  const socket = connect(confined.mcpConfig.mcpServers.odb.args.at(-1)!);
   await new Promise<void>((resolve, reject) => { socket.once("connect", resolve); socket.once("error", reject); });
   const requestId = randomUUID();
   socket.write(`${JSON.stringify({ t: "ask", id: requestId, tool: "mcp__composio__COMPOSIO_SEARCH_TOOLS", input: { queries: [] } })}\n`);

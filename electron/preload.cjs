@@ -1,4 +1,4 @@
-// contextIsolation stays on: the renderer sees only window.ogb, never Node or ipcRenderer.
+// contextIsolation stays on: the renderer sees only window.odb, never Node or ipcRenderer.
 const { contextBridge, ipcRenderer, webFrame, webUtils } = require("electron");
 
 // Sandboxed preloads get Electron's restricted `require`, which cannot load sibling CommonJS files.
@@ -106,9 +106,9 @@ const remoteKeys = isLocalPage ? REMOTE_SAFE : new Set([...REMOTE_SAFE, ...(upda
 // Keep in parity with shared/workspace-backup-client.ts (a sandboxed preload cannot import it).
 const COMPANY_BACKUP_CLIENT_KEYS = [
   "odb-drafts", "odb-draft-attachments", "odb-draft-send-ids", "odb-draft-channel-modes",
-  "odb-skin", "odb-show-threads", "odb-show-run-card", "odb-send-key", "odb-color-user-bubbles", "odb-chat-width", "openopendeliobot.comdebarDensity",
-  "openopendeliobot.comdebarToolsLayout",
-  "openopendeliobot.comdebarCollapsedSections.v1", "openopendeliobot.comdebarSectionOrder.v1",
+  "odb-skin", "odb-show-threads", "odb-show-run-card", "odb-send-key", "odb-color-user-bubbles", "odb-chat-width", "opendeliobot.sidebarDensity",
+  "opendeliobot.sidebarToolsLayout",
+  "opendeliobot.sidebarCollapsedSections.v1", "opendeliobot.sidebarSectionOrder.v1",
   "odb-analytics-opt-out", "opendeliobot.remote-voice.v1",
 ];
 if (isLocalPage && !desktopRemoteClient && process.argv.includes("--odb-company-desktop=1")) {
@@ -730,6 +730,6 @@ const bridge = {
 };
 
 contextBridge.exposeInMainWorld(
-  "ogb",
+  "odb",
   isLocalPage ? bridge : Object.fromEntries(Object.entries(bridge).filter(([key]) => remoteKeys.has(key))),
 );

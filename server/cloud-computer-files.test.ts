@@ -424,7 +424,7 @@ describe("as cloud computer tools", () => {
   });
 
   it("touches no Boat that is being deleted", async () => {
-    journal.prepareBoatDeletion({ boxId: "bx_3456789a", name: "ogb-bot-abc123", ownerBotId: "bot-1" });
+    journal.prepareBoatDeletion({ boxId: "bx_3456789a", name: "odb-bot-abc123", ownerBotId: "bot-1" });
     writeFileSync(join(folder, "a.txt"), "a");
     try {
       await expect(files.copyFromComputer(own, "bx_3456789a", folder, { path: "/tmp/a" }, signal())).rejects.toThrow(/being deleted/);

@@ -308,7 +308,7 @@ function RemoveLocalRow({ place, onRemoved }: { place: RailPlace; onRemoved: () 
       setAsking(false); setFailed(true);
     });
   };
-  const ask = t(window.ogb?.platform === "win32" ? "rail.localRemoveAskWin" : "rail.localRemoveAsk", { name: computerName(place) });
+  const ask = t(window.odb?.platform === "win32" ? "rail.localRemoveAskWin" : "rail.localRemoveAsk", { name: computerName(place) });
   return <div data-rail-remove className="flex flex-col gap-1.5 border-t border-hairline/50 px-0.5 pt-1.5">
     {asking
       ? <div role="alertdialog" aria-label={t("rail.localRemove")} className="flex flex-col gap-2 px-1.5 pb-1">
@@ -422,9 +422,9 @@ export function PlacesRail({ chrome = false }: { chrome?: boolean }) {
   const going = clicked && clicked.id !== clicked.from ? state.places.find((place) => place.id === clicked.id) ?? null : null;
   const veil = chrome && going?.settling === undefined ? going : null;
   const covering = more || adding || connecting !== null || menu !== null || accounts !== null || veil !== null;
-  useEffect(() => { if (chrome) void window.ogb?.rail?.expand?.(covering)?.catch(() => {}); }, [chrome, covering]);
+  useEffect(() => { if (chrome) void window.odb?.rail?.expand?.(covering)?.catch(() => {}); }, [chrome, covering]);
   if (!state.places.length) return null;
-  const bridge = window.ogb?.workspaces;
+  const bridge = window.odb?.workspaces;
   const open = (place: RailPlace) => {
     if (!place.opens) { if (place.pairs) setConnecting(place.name); return; }
     const onScreen = state.places.find((entry) => entry.active)?.id ?? null;

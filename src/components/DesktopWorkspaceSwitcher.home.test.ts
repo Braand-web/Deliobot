@@ -10,15 +10,15 @@ let host: HTMLDivElement;
 let root: Root;
 const menu = vi.fn(() => Promise.resolve());
 const show = async (state: Record<string, unknown>, props: Record<string, unknown> = {}, plan?: Record<string, unknown>) => {
-  window.ogb = { workspaces: { state: vi.fn().mockResolvedValue(state), menu },
-    ...(plan ? { cloudPlan: { state: vi.fn().mockResolvedValue(plan), manage: vi.fn() } } : {}) } as unknown as typeof window.ogb;
+  window.odb = { workspaces: { state: vi.fn().mockResolvedValue(state), menu },
+    ...(plan ? { cloudPlan: { state: vi.fn().mockResolvedValue(plan), manage: vi.fn() } } : {}) } as unknown as typeof window.odb;
   flushSync(() => root.render(createElement(DesktopWorkspaceSwitcher, props)));
   await vi.waitFor(() => expect(host.innerHTML).not.toBe(""));
   await new Promise((resolve) => setTimeout(resolve, 0));
 };
 
 beforeEach(() => { setLocale("en"); menu.mockClear(); host = document.createElement("div"); document.body.append(host); root = createRoot(host); });
-afterEach(() => { flushSync(() => root.unmount()); host.remove(); delete window.ogb; });
+afterEach(() => { flushSync(() => root.unmount()); host.remove(); delete window.odb; });
 
 it("in a window whose home is My Cloud, names My Cloud with nothing to open: no menu, no This computer", async () => {
   for (const props of [{ cloudHome: true }, { cloudHome: true, inline: true, pill: true }, { cloudHome: true, rail: true }]) {
@@ -55,7 +55,7 @@ it("says always on only when My Cloud's verified plan never sleeps, on its pages
 });
 
 it("in a browser on a team's Cloud names the team, never My Cloud", async () => {
-  delete window.ogb;
+  delete window.odb;
   for (const props of [{ cloudHome: true, place: "Acme Labs" }, { cloudHome: true, inline: true, pill: true, place: "Acme Labs" }]) {
     flushSync(() => root.render(createElement(DesktopWorkspaceSwitcher, props)));
     await vi.waitFor(() => expect(host.querySelector("[data-cloud-home-indicator]")?.textContent).toContain("Acme Labs"));

@@ -252,7 +252,7 @@ const PAIR_FORM = "Boolean(document.querySelector('form input') && /pairing code
   const onTeamPage = () => until(() => page<boolean>("Boolean(document.querySelector('textarea[aria-label^=\"Message\"]'))"), Boolean, 60_000, "the team's page")
     .then(() => expect(new URL(world.window.url).origin).toBe(world.teamOrigin));
   const homeLine = () => page<string | null>("document.querySelector('[data-home-line]')?.textContent ?? null");
-  const bridgeState = () => page<Record<string, unknown>>("window.ogb.workspaces.state()");
+  const bridgeState = () => page<Record<string, unknown>>("window.odb.workspaces.state()");
 
   it("with a team in the session the switcher lists My Cloud and Acme; choosing Acme pairs through the Admin's team route, opens the team's page, and is remembered after a relaunch", async () => {
     await onCloudPage();

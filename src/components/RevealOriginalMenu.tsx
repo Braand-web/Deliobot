@@ -11,14 +11,14 @@ import { MENU_ITEM, MENU_SHEET } from "./menu-recipe";
 const REVEALABLE_PATH = /^(?:\/(?!\/)|[a-zA-Z]:[\\/])/;
 const ITEM_CLASS = `${MENU_ITEM} text-ink hover:bg-menu-hover [&>svg]:text-ink-secondary`;
 
-type Reveal = NonNullable<NonNullable<Window["ogb"]>["revealInFolder"]>;
+type Reveal = NonNullable<NonNullable<Window["odb"]>["revealInFolder"]>;
 
 function revealBridge(): Reveal | undefined {
-  const ogb = typeof window === "undefined" ? undefined : window.ogb;
-  return ogb?.remoteClient?.active ? undefined : ogb?.revealInFolder;
+  const odb = typeof window === "undefined" ? undefined : window.odb;
+  return odb?.remoteClient?.active ? undefined : odb?.revealInFolder;
 }
 
-type OpenFolder = NonNullable<NonNullable<Window["ogb"]>["openFolder"]>;
+type OpenFolder = NonNullable<NonNullable<Window["odb"]>["openFolder"]>;
 
 /** Opens a linked folder in Finder or Explorer on the desktop app that holds it; false lets the caller fall back. */
 export async function openLinkedFolder(folderPath: string, open: OpenFolder | undefined = openFolderBridge()): Promise<boolean> {
@@ -31,8 +31,8 @@ export async function openLinkedFolder(folderPath: string, open: OpenFolder | un
 }
 
 function openFolderBridge(): OpenFolder | undefined {
-  const ogb = typeof window === "undefined" ? undefined : window.ogb;
-  return ogb?.remoteClient?.active ? undefined : ogb?.openFolder;
+  const odb = typeof window === "undefined" ? undefined : window.odb;
+  return odb?.remoteClient?.active ? undefined : odb?.openFolder;
 }
 
 export function canRevealOriginal(source: string | undefined, reveal: Reveal | undefined = revealBridge()): source is string {
@@ -73,7 +73,7 @@ export function useRevealOriginalMenu() {
     return () => { window.removeEventListener("mousedown", close); window.removeEventListener("scroll", close, true); };
   }, [at]);
   const reveal = revealBridge();
-  const label = revealOriginalLabel(typeof window === "undefined" ? undefined : window.ogb?.platform);
+  const label = revealOriginalLabel(typeof window === "undefined" ? undefined : window.odb?.platform);
   const show = async (source: string) => {
     const problem = reveal ? await revealOriginal(source, reveal) : t("attach.revealFailed");
     if (!problem && menuRef.current?.contains(document.activeElement)) return closeAndRestoreFocus();

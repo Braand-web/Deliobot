@@ -244,7 +244,7 @@ function emitKotlin(): string {
       `        ),`,
     ].join("\n")
   })
-  return `package com.openopendeliobot.companion.ui
+  return `package com.opendeliobot.companion.ui
 
 /**
  * The festival bodies a bot can wear — the Android half of \`shared/carved-bodies.ts\`.

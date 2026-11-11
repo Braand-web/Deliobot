@@ -26,7 +26,7 @@ export function NewOrganization({ onBack, onClose }: { onBack: (() => void) | nu
   const [view, setView] = useState<AddCloudView | null>(null);
   const [name, setName] = useState(""), [color, setColor] = useState<CloudSwatch>(DEFAULT_SWATCH);
   const [busy, setBusy] = useState(false), [problem, setProblem] = useState<LocaleKey | null>(null);
-  useEffect(() => { void window.ogb?.cloudAdd?.state().then(setView, () => setView(null)); }, []);
+  useEffect(() => { void window.odb?.cloudAdd?.state().then(setView, () => setView(null)); }, []);
   const facts = view?.signedIn ? view.organizations ?? null : null;
   // Closed for a reason this app doesn't know: the neutral word, never a limit it may not be at.
   const blocked = facts && !facts.canAdd ? facts.blocked ? BLOCKED[facts.blocked] : "rail.orgOff" : null;
@@ -34,7 +34,7 @@ export function NewOrganization({ onBack, onClose }: { onBack: (() => void) | nu
   const create = async () => {
     if (!shown || busy || blocked) return;
     setBusy(true); setProblem(null);
-    const answer = await window.ogb?.cloudAdd?.organization?.(shown, color).catch(() => null) ?? null;
+    const answer = await window.odb?.cloudAdd?.organization?.(shown, color).catch(() => null) ?? null;
     setBusy(false);
     const why = organizationProblem(answer);
     if (why) { setProblem(why); return; }

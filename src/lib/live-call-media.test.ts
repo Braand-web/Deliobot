@@ -50,7 +50,7 @@ const endRequests = () =>
   request.mock.calls.filter(([path]) => path === "/api/live/call/end").map(([, init]) => JSON.parse(String(init.body)).callId);
 
 beforeEach(() => {
-  vi.stubGlobal("window", { ogb: { speechStop: vi.fn(async () => {}) } });
+  vi.stubGlobal("window", { odb: { speechStop: vi.fn(async () => {}) } });
   peer = new FakePeer();
   track = new FakeTrack();
   request = vi.fn(async (path: string) => {
@@ -836,7 +836,7 @@ describe("a blocked microphone", () => {
   it("asks the desktop app through permStatus, and opens the page as a link", async () => {
     const open = vi.fn();
     const permStatus = vi.fn(async () => ({ mic: "granted", pageMic: "refused" }));
-    vi.stubGlobal("window", { ogb: { speechStop: vi.fn(async () => {}), permStatus }, open });
+    vi.stubGlobal("window", { odb: { speechStop: vi.fn(async () => {}), permStatus }, open });
     vi.stubGlobal("location", { href: "https://odb-u-0123456789ab.fly.dev/" });
     configureLiveMedia({
       getUserMedia: async () => { throw new DOMException("denied", "NotAllowedError"); },
@@ -851,7 +851,7 @@ describe("a blocked microphone", () => {
 
   it("treats a desktop app that cannot answer as one that does not say", async () => {
     const permStatus = vi.fn(async () => { throw new Error("no handler"); });
-    vi.stubGlobal("window", { ogb: { speechStop: vi.fn(async () => {}), permStatus } });
+    vi.stubGlobal("window", { odb: { speechStop: vi.fn(async () => {}), permStatus } });
     configureLiveMedia({
       getUserMedia: async () => { throw new DOMException("denied", "NotAllowedError"); },
       capabilities: () => ({ dictation: { available: true, engine: "apple-speech", onDevice: true } }) as DesktopCapabilities,

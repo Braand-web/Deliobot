@@ -3,7 +3,7 @@ import { act, createElement } from "react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { AndroidDeviceStatus, AndroidUsbDevice } from "@/types/ogb";
+import type { AndroidDeviceStatus, AndroidUsbDevice } from "@/types/odb";
 import type { AppState, Bot, InstanceInfo } from "@/state/store";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -102,7 +102,7 @@ const selectedTab = () => [...document.querySelectorAll<HTMLButtonElement>('[dat
 const pendingCheck = () => new Promise<AndroidDeviceStatus>(() => {});
 /** Points the native bridge at an answer and re-renders, restarting the poll. */
 async function check(bot: Bot, status: () => Promise<AndroidDeviceStatus>) {
-  vi.stubGlobal("ogb", {
+  vi.stubGlobal("odb", {
     androidDevice: {
       status,
       frame: async () => ({ serial: "", dataUrl: "" }),
@@ -168,7 +168,7 @@ describe("Computer panel Android tab", () => {
   it("keeps the view a focus effect persisted when the check finishes in the same commit", async () => {
     panelViewStore.current = "android";
     let resolveScan: (status: AndroidDeviceStatus) => void = () => {};
-    vi.stubGlobal("ogb", {
+    vi.stubGlobal("odb", {
       androidDevice: {
         status: () => new Promise<AndroidDeviceStatus>((resolve) => { resolveScan = resolve; }),
         frame: async () => ({ serial: "", dataUrl: "" }),

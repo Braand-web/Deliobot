@@ -8,7 +8,7 @@ import type { RemoteComputerProvider } from "./config.ts";
 import type { RouteContext } from "./table.ts";
 
 const legacyNameFor = (botId: string) =>
-  `ogb-${botId.slice(0, 8).toLowerCase().replace(/[^a-z0-9]/g, "")}-${createHash("sha256").update(botId).digest("hex").slice(0, 6)}`;
+  `odb-${botId.slice(0, 8).toLowerCase().replace(/[^a-z0-9]/g, "")}-${createHash("sha256").update(botId).digest("hex").slice(0, 6)}`;
 
 let api: Server;
 let listStatus = 200;
@@ -107,7 +107,7 @@ describe("GET /api/computers/usage", () => {
     });
     expect(body).toEqual({ cloudComputers: 2, teamComputers: 1 });
     expect(Object.values(body as object).every((value) => Number.isInteger(value))).toBe(true);
-    expect(JSON.stringify(body)).not.toMatch(/bx_|Research|Team box|ogb-|ready|archived/);
+    expect(JSON.stringify(body)).not.toMatch(/bx_|Research|Team box|odb-|ready|archived/);
     expect(requests).toEqual(["GET /api/v1/sandboxes?limit=200"]);
   });
 

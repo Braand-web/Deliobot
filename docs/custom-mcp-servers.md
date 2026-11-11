@@ -495,10 +495,10 @@ engine can mount custom MCP servers gets the enabled tools on its next task.
   relay the agent's own permission asks. Built-ins stay pre-quieted — only
   *your* servers ask.
 - **Reserved names are refused** (`computer`, `agents`, `composio`,
-  `browser`, `phone`, `dweb`, `ogb`, …) so a custom entry can never shadow
+  `browser`, `phone`, `dweb`, `odb`, …) so a custom entry can never shadow
   a built-in tool surface. Names are lowercase letters/digits/`_`/`-`, max
   32 chars, starting with a letter.
-- **Environment names are checked.** `ODB_*` and `OGB_*` are refused: Codex
+- **Environment names are checked.** `ODB_*` names are refused: Codex
   hands MCP children their variables from one shared environment, and those
   names carry OpenDeliobot's own routing and bearers. `ELECTRON_RUN_AS_NODE`
   is accepted as `1` only — the value OpenDeliobot's own proxies use — so a

@@ -222,8 +222,8 @@ export async function runRoomHandoffAgent(argv: string[], planPath: string, prom
       if (plan.gateFile || plan.approve || plan.screenCalls) clearTimeout(timer);
       const mounted = launch ? {} : JSON.parse(readAtLaunch(arg("--mcp-config"))).mcpServers as Record<string, AgentsIntegration>;
       if (plan.approve) {
-        if (!mounted.ogb || !argv.includes("--permission-prompt-tool")) throw new Error("A scripted approval needs Claude's permission-prompt tool");
-        approval = await askPermission(mounted.ogb, plan.approve);
+        if (!mounted.odb || !argv.includes("--permission-prompt-tool")) throw new Error("A scripted approval needs Claude's permission-prompt tool");
+        approval = await askPermission(mounted.odb, plan.approve);
       }
       if (plan.screenCalls) {
         if (!mounted.computer?.env?.ODB_CONTROL_URL) throw new Error("Scripted screen calls need a mounted computer");

@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { activeLocale, t } from "@/lib/i18n";
 import { en, type LocaleKey } from "@/locales";
-import type { UpdaterState } from "@/types/ogb";
+import type { UpdaterState } from "@/types/odb";
 
 export type { UpdaterState };
 
 export function useUpdaterState(): UpdaterState | null {
   const [state, setState] = useState<UpdaterState | null>(null);
-  useEffect(() => window.ogb?.updater?.onState(setState), []);
-  return window.ogb?.updater ? state : null;
+  useEffect(() => window.odb?.updater?.onState(setState), []);
+  return window.odb?.updater ? state : null;
 }
 
 const UPDATE_TEXT: Record<NonNullable<UpdaterState["messageCode"]>, LocaleKey> = {

@@ -98,8 +98,8 @@ async function askedBy(token: string, bot: Bot, threadId: string, card: { questi
   expect(sent.status, JSON.stringify(sent.body)).toBe(202);
   await expect.poll(() => busy(bot.id), { timeout: 20_000 }).toBe(true);
   const socketPath = await expect.poll(() => {
-    try { return JSON.parse(readFileSync(join(team.home, "dump.json"), "utf8")).mcpConfig?.mcpServers?.ogb?.args?.[1] as string | undefined; } catch { return undefined; }
-  }, { timeout: 10_000 }).toEqual(expect.any(String)).then(() => JSON.parse(readFileSync(join(team.home, "dump.json"), "utf8")).mcpConfig.mcpServers.ogb.args[1] as string);
+    try { return JSON.parse(readFileSync(join(team.home, "dump.json"), "utf8")).mcpConfig?.mcpServers?.odb?.args?.[1] as string | undefined; } catch { return undefined; }
+  }, { timeout: 10_000 }).toEqual(expect.any(String)).then(() => JSON.parse(readFileSync(join(team.home, "dump.json"), "utf8")).mcpConfig.mcpServers.odb.args[1] as string);
   const socket = connect(socketPath);
   sockets.push(socket);
   socket.on("error", () => {});

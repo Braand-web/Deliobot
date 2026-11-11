@@ -12,7 +12,7 @@ import { openKeySettings } from "./keys/key-focus";
 
 export function NoEngines() {
   const { state, dispatch, refreshInstances } = useStore();
-  const remoteClient = window.ogb?.remoteClient?.active === true;
+  const remoteClient = window.odb?.remoteClient?.active === true;
   const [rechecking, setRechecking] = useState(false);
   const recheck = async () => {
     setRechecking(true);
@@ -77,7 +77,7 @@ export function NoEngines() {
               <>
                 {subscription.length > 0 && <EngineGroupLabel className="px-1">{t("engines.cloud")}</EngineGroupLabel>}
                 {subscription.map(card)}
-                {api.length > 0 && window.ogb?.remoteClient?.active !== true && (
+                {api.length > 0 && window.odb?.remoteClient?.active !== true && (
                   <button
                     type="button"
                     data-no-engines-api-keys
