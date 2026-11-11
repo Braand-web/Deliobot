@@ -12,12 +12,11 @@ import { fileURLToPath } from "node:url"
 
 import { toPath } from "./mascot-bodies/draw.ts"
 import type { Def, Eyes, Fill } from "./mascot-bodies/carved.ts"
-import { DELIO } from "./mascot-bodies/delio.ts"
 import { DIWALI } from "./mascot-bodies/diwali.ts"
 import { HALLOWEEN } from "./mascot-bodies/halloween.ts"
 
 /** Picker order: each pack's ids, in its drawing order. */
-const PACKS: ReadonlyArray<[string, Def[]]> = [["halloween", HALLOWEEN], ["diwali", DIWALI], ["delio", DELIO]]
+const PACKS: ReadonlyArray<[string, Def[]]> = [["halloween", HALLOWEEN], ["diwali", DIWALI]]
 const DEFS = PACKS.flatMap(([, defs]) => defs)
 
 const quote = (s: string) => JSON.stringify(s)
