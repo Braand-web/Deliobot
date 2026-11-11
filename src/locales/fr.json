@@ -262,12 +262,6 @@
   "star.title": "Vous aimez {app} ?",
   "star.body": "Une étoile sur GitHub aide plus de gens à le découvrir.",
   "star.button": "Mettre une étoile sur GitHub",
-  "boatOffer.title": "50 $ de crédit Boat pour vous",
-  "boatOffer.body": "Boat fait tourner les ordinateurs cloud de Delio. Souscrivez l'offre Boat à 100 $ ou plus, puis dites à Boat que vous venez de la part de Delio : Boat ajoutera 50 $ de crédits à votre compte Boat.",
-  "boatOffer.yourself": "C'est à vous de le réclamer : ce n'est pas automatique.",
-  "boatOffer.get": "Aller sur Boat",
-  "boatOffer.claim": "Je l'ai acheté : réclamer mes 50 $",
-  "boatOffer.mailFailed": "Impossible d'ouvrir votre messagerie. Écrivez plutôt à {address}.",
   "cloudIntro.badge.one": "Gratuit pendant 1 jour",
   "cloudIntro.badge.many": "Gratuit pendant {days} jours",
   "cloudIntro.title": "Vos bots continuent de travailler quand cet ordinateur est éteint",
@@ -3317,5 +3311,8 @@
   "phoneUpdate.open": "Ouvrir Téléphone et appareils",
   "remote.devices.pairAgain": "Appairer à nouveau",
   "remote.devices.retired": "Ce téléphone a une ancienne version de l'app Delio. Mettez l'app à jour, puis ouvrez-la une fois sur le même Wi-Fi que cet ordinateur. S'il ne se reconnecte pas, appairez-le à nouveau ici.",
-  "remote.devices.retiredNotice": "Les téléphones rejoignent maintenant cet ordinateur via Delio Relay, et l'ancien lien sécurisé a été désactivé. Un téléphone avec une ancienne version de l'app Delio ne peut plus se connecter en dehors de votre Wi-Fi. Mettez à jour l'app Delio sur ce téléphone, puis ouvrez-la une fois sur le même Wi-Fi que cet ordinateur. S'il ne se reconnecte pas, appairez-le à nouveau ici."
+  "remote.devices.retiredNotice": "Les téléphones rejoignent maintenant cet ordinateur via Delio Relay, et l'ancien lien sécurisé a été désactivé. Un téléphone avec une ancienne version de l'app Delio ne peut plus se connecter en dehors de votre Wi-Fi. Mettez à jour l'app Delio sur ce téléphone, puis ouvrez-la une fois sur le même Wi-Fi que cet ordinateur. S'il ne se reconnecte pas, appairez-le à nouveau ici.",
+  "openrouterOption.name": "OpenRouter",
+  "openrouterOption.line": "Une seule clé pour des centaines de modèles, dont certains gratuits",
+  "openrouterOption.link": "Obtenir une clé"
 }

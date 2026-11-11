@@ -11,13 +11,6 @@ export const CLOUD_NOTICE = "cloud-notice";
 export const STAR_NOTICE = "github-star-dismissed";
 /** Bots on this computer and on another place of the person's (two-places.ts): dismissed per place, by main. */
 export const TWO_PLACES_NOTICE = "two-places";
-export const PRODUCT_HUNT_NOTICE = "product-hunt-launch-2026-10";
-export const PRODUCT_HUNT_URL = "https://www.producthunt.com/products/delio";
-export const PRODUCT_HUNT_UNTIL = Date.UTC(2026, 10, 1);
-export const BOAT_OFFER_NOTICE = "boat-credit-2026-11";
-/** The sponsor's card for ModelGo: each person sees it once, on every page but a branded build or a desktop whose organization
- * refuses it, and on the first launch it may show in: first when nothing else is due, else right after the launch's notice. */
-export const MODELGO_OFFER_NOTICE = "modelgo-offer-2026-11";
 /** Update Delio on your phone: once per phone with an older app after this computer's secure link ended. */
 export const PHONE_UPDATE_NOTICE = "phone-app-update";
 
@@ -31,12 +24,9 @@ export const NOTICES = [
   WHATS_NEW_NOTICE,
   UPDATES_CONSENT_NOTICE,
   TWO_PLACES_NOTICE,
-  PRODUCT_HUNT_NOTICE,
   CLOUD_INTRO,
   CLOUD_TRIAL_NOTICE,
   CLOUD_NOTICE,
-  MODELGO_OFFER_NOTICE,
-  BOAT_OFFER_NOTICE,
   STAR_NOTICE,
 ] as const;
 
@@ -44,26 +34,15 @@ export type NoticeId = (typeof NOTICES)[number];
 
 export type NoticeFacts = Record<NoticeId, boolean | null>;
 
-/** What may still come in a launch another notice took: the product-updates question, and the sponsor's card, which everyone
- * is to see on the first launch it may show in. Each in its place in NOTICES. */
-export const FOLLOWERS: readonly NoticeId[] = [UPDATES_CONSENT_NOTICE, MODELGO_OFFER_NOTICE];
-/** Notices the person has to act on. The sponsor's card never goes ahead of one, even one left for a later launch: it waits
- * for that launch and follows it there. */
-export const MUST_ACT: readonly NoticeId[] = [PHONE_UPDATE_NOTICE, CLOUD_TRIAL_NOTICE, CLOUD_NOTICE];
+/** What may still come in a launch another notice took: the product-updates question, in its place in NOTICES. */
+export const FOLLOWERS: readonly NoticeId[] = [UPDATES_CONSENT_NOTICE];
 
 /** `launch`: the notice this launch already showed (launchNotice), the only one besides FOLLOWERS that may show again in it.
- * `closed`: that notice was closed in this page, so it doesn't come back however its facts read. The sponsor's card follows
- * only once the launch's notice is gone, so two cards never share the corner. */
+ * `closed`: that notice was closed in this page, so it doesn't come back however its facts read. */
 export function nextNotice(facts: NoticeFacts, seen: (id: NoticeId) => boolean, launch: NoticeId | null = null, closed = false): NoticeId | null {
-  const launchUp = launch !== null && !closed && !seen(launch) && facts[launch] !== false;
-  let held = false;
   for (const id of NOTICES) {
     if (seen(id)) continue;
-    if ((closed || (launch !== null && id !== launch)) && !FOLLOWERS.includes(id)) {
-      if (id !== launch && MUST_ACT.includes(id) && facts[id] !== false) held = true;
-      continue;
-    }
-    if (id === MODELGO_OFFER_NOTICE && id !== launch && (held || launchUp)) continue;
+    if ((closed || (launch !== null && id !== launch)) && !FOLLOWERS.includes(id)) continue;
     if (facts[id] === null) return null;
     if (facts[id]) return id;
   }

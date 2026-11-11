@@ -20,7 +20,6 @@ export interface ConfigStatus {
   cerebras?: SavedKey;
   groq?: SavedKey;
   greenference?: SavedKey;
-  modelgo?: SavedKey;
   deepseek?: SavedKey;
   meta?: SavedKey;
   /** X research comes with Delio Cloud plans: `included` while this server holds the plan's relay credential;

@@ -4,7 +4,6 @@ import { useStore, type ConfigStatus } from "@/state/store";
 import { cn } from "@/lib/cn";
 import { scrollParent, scrollWithin } from "@/lib/scroll-within";
 import { t } from "@/lib/i18n";
-import { BoatOfferPanel } from "../BoatOffer";
 import { LiveProviderSettings } from "../LiveProviderSettings";
 import { VoiceEveryReplySetting } from "../VoiceEveryReplySetting";
 import { BuiltInReplyWait, LmStudioServer, OtherOpenAiCompatServers } from "../OpenAiCompatServers";
@@ -27,7 +26,6 @@ const PANELS: Partial<Record<KeyId, (visible: boolean) => ReactNode>> = {
 const EXTRAS: Partial<Record<KeyId, () => ReactNode>> = {
   anthropic: () => <AnthropicEveryClaudeBot />,
   openaiCompat: () => <><OpenAiCompatUrl /><BuiltInReplyWait /><OtherOpenAiCompatServers /></>,
-  box: () => <BoatOfferPanel />,
   liveKey: () => <LiveProviderSettings />,
 };
 

@@ -247,37 +247,34 @@ describe("connecting an AI on the first screen", () => {
   });
 });
 
-describe("the ModelGo option", () => {
-  const URL_EXACT = "https://modelgo.ai/?utm_source=opendeliobot&utm_medium=sponsorship&utm_content=app&campaign_id=opendeliobot&ad_group_id=app";
-  const option = () => host.querySelector("[data-modelgo-option]");
-  const events = () => vi.mocked(track).mock.calls.filter(([name]) => name === "modelgo_offer").map(([, props]) => props);
-  const provider = (ready = false) => engine("modelgo", "modelgo", "ModelGo (API)", ready);
 
-  it("sits among the other ways, labelled a sponsor, and its link opens exactly the sponsor's address", async () => {
+describe("the OpenRouter option", () => {
+  const option = () => host.querySelector("[data-openrouter-option]");
+  const provider = (ready = false) => ({ ...engine("openrouter", "openai-compat", "OpenRouter", ready), access: "api" as const });
+
+  it("sits among the other ways, once, with no sponsor label, and its link opens OpenRouter's keys page", async () => {
     f.instances.push(provider());
     await show();
-    expect(option()?.textContent).toContain("ModelGo"); expect(option()?.textContent).toContain("Sponsor");
-    expect(option()?.textContent).toContain("One API key, every model.");
-    expect(host.querySelectorAll("[data-modelgo-option]")).toHaveLength(1);
-    expect(events()).toEqual([{ action: "shown", place: "onboarding" }]);
+    expect(option()?.textContent).toContain("OpenRouter");
+    expect(option()?.textContent).toContain("One key for hundreds of models, some of them free");
+    expect(option()?.textContent).not.toContain("Sponsor");
+    expect(host.querySelectorAll("[data-openrouter-option]")).toHaveLength(1);
     const link = [...option()!.querySelectorAll("button")].find(button => button.textContent?.includes("Get a key"))!;
     await act(async () => { link.click(); });
-    expect(f.opened).toEqual([URL_EXACT]);
-    expect(events().at(-1)).toEqual({ action: "get_key", place: "onboarding" });
+    expect(f.opened).toEqual(["https://openrouter.ai/keys"]);
   });
 
-  it("opens to its key field, and counts that as starting to add a key", async () => {
+  it("opens to its key field", async () => {
     f.instances.push(provider());
     await show();
     await act(async () => { option()!.querySelector<HTMLButtonElement>("button[aria-expanded]")!.click(); });
-    expect(option()!.querySelector('[data-engine-setup="modelgo"]')).toBeTruthy();
-    expect(events().at(-1)).toEqual({ action: "add_key", place: "onboarding" });
+    expect(option()!.querySelector('[data-engine-setup="openrouter"]')).toBeTruthy();
   });
 
-  it("is not added on a white-label build, a desktop whose organization refuses it, or a hosted workspace; nor once connected", async () => {
-    f.brand = "file"; await show(); expect(option()).toBeNull();
-    f.brand = "default"; f.config = { managedPolicy: { companyModelsOnly: false, allowedEngines: ["codex"] } }; await show(); expect(option()).toBeNull();
-    f.config = {}; await show({ hosted: true }); expect(option()).toBeNull();
+  it("is not added on a hosted workspace, nor once connected", async () => {
+    f.instances.push(provider());
+    await show({ hosted: true }); expect(option()).toBeNull();
+    f.instances = f.instances.filter(instance => instance.instanceId !== "openrouter");
     f.instances.push(provider(true)); await show(); expect(option()).toBeNull();
   });
 });

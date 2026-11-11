@@ -50,7 +50,6 @@ const escapedText = (text: string) => renderToStaticMarkup(createElement("span",
 
 const localizedTargets = [
   ["greenferenceApiKey", "Roda modelos do Greenference com sua própria chave."],
-  ["modelgoApiKey", "Roda modelos do ModelGo com sua própria chave."],
   ["geminiTtsKey", "Gera respostas faladas, mensagens de voz e a fala das chamadas com o Gemini."],
 ] as const;
 
@@ -96,8 +95,6 @@ describe("credential descriptions from the real producer to the renderer", () =>
   it.each([
     ["greenferenceApiKey", "en"],
     ["greenferenceApiKey", "pt-br"],
-    ["modelgoApiKey", "en"],
-    ["modelgoApiKey", "pt-br"],
     ["geminiTtsKey", "en"],
     ["geminiTtsKey", "pt-br"],
   ] as const)("keeps the raw description of an older %s card in %s", async (target, locale) => {

@@ -305,15 +305,6 @@
   "star.title": "Ti piace {app}?",
   "star.body": "Una stella su GitHub aiuta più persone a trovarlo.",
   "star.button": "Stella su GitHub",
-  "boatOffer.title": "50 $ di credito Boat per te",
-  "boatOffer.body": "Boat gestisce i computer cloud dietro Delio. Acquista il piano Boat da 100 $ o superiore, poi di' a Boat che ti manda Delio e aggiungeranno 50 $ di crediti al tuo account Boat.",
-  "boatOffer.yourself": "Il credito lo richiedi tu: non è automatico.",
-  "boatOffer.get": "Vai su Boat",
-  "boatOffer.claim": "L'ho acquistato: richiedi i miei 50 $",
-  "boatOffer.mailFailed": "Non riesco ad aprire l'app di posta. Scrivi invece a {address}.",
-  "productHunt.title": "Siamo su Product Hunt",
-  "productHunt.body": "Delio è appena uscito. Un voto per noi conta molto.",
-  "productHunt.button": "Vota su Product Hunt",
   "cloudIntro.badge.one": "Gratis per 1 giorno",
   "cloudIntro.badge.many": "Gratis per {days} giorni",
   "cloudIntro.title": "I tuoi bot lavorano anche con questo computer spento",
@@ -6710,5 +6701,8 @@
   "phoneUpdate.open": "Apri Telefono e dispositivi",
   "remote.devices.pairAgain": "Abbina di nuovo",
   "remote.devices.retired": "Questo telefono ha una versione precedente dell'app Delio. Aggiorna l'app, poi aprila una volta sulla stessa Wi-Fi di questo computer. Se non si ricollega, abbinalo di nuovo qui.",
-  "remote.devices.retiredNotice": "Ora i telefoni raggiungono questo computer tramite Delio Relay, e il vecchio collegamento sicuro è stato disattivato. Un telefono con una versione precedente dell'app Delio non può più collegarsi fuori dalla tua Wi-Fi. Aggiorna l'app Delio su quel telefono, poi aprila una volta sulla stessa Wi-Fi di questo computer. Se non si ricollega, abbinalo di nuovo qui."
+  "remote.devices.retiredNotice": "Ora i telefoni raggiungono questo computer tramite Delio Relay, e il vecchio collegamento sicuro è stato disattivato. Un telefono con una versione precedente dell'app Delio non può più collegarsi fuori dalla tua Wi-Fi. Aggiorna l'app Delio su quel telefono, poi aprila una volta sulla stessa Wi-Fi di questo computer. Se non si ricollega, abbinalo di nuovo qui.",
+  "openrouterOption.name": "OpenRouter",
+  "openrouterOption.line": "Una chiave per centinaia di modelli, alcuni gratuiti",
+  "openrouterOption.link": "Ottieni una chiave"
 }

@@ -332,12 +332,6 @@
   "star.title": "Gefällt dir {app}?",
   "star.body": "Ein Stern auf GitHub hilft mehr Menschen, es zu finden.",
   "star.button": "Stern auf GitHub geben",
-  "boatOffer.title": "50 $ Boat-Guthaben für dich",
-  "boatOffer.body": "Boat betreibt die Cloud-Computer hinter Delio. Buch bei Boat den Tarif für 100 $ oder einen größeren und sag Boat dann, dass Delio dich geschickt hat. Dann schreibt Boat deinem Boat-Konto 50 $ Guthaben gut.",
-  "boatOffer.yourself": "Du forderst es selbst an: Es passiert nicht automatisch.",
-  "boatOffer.get": "Zu Boat",
-  "boatOffer.claim": "Gekauft: meine 50 $ anfordern",
-  "boatOffer.mailFailed": "Deine E-Mail-App konnte nicht geöffnet werden. Schreib stattdessen an {address}.",
   "cloudIntro.badge.one": "1 Tag kostenlos",
   "cloudIntro.badge.many": "{days} Tage kostenlos",
   "cloudIntro.title": "Deine Bots arbeiten weiter, auch wenn dieser Computer aus ist",
@@ -3476,5 +3470,8 @@
   "phoneUpdate.open": "Telefon & Geräte öffnen",
   "remote.devices.pairAgain": "Erneut koppeln",
   "remote.devices.retired": "Dieses Telefon hat eine ältere Delio-App. Aktualisieren Sie die App und öffnen Sie sie dann einmal im selben WLAN wie dieser Computer. Wenn es sich dann nicht wieder verbindet, koppeln Sie es hier erneut.",
-  "remote.devices.retiredNotice": "Telefone erreichen diesen Computer jetzt über Delio Relay, und die ältere sichere Verbindung wurde abgeschaltet. Ein Telefon mit einer älteren Delio-App kann sich außerhalb Ihres WLANs nicht mehr verbinden. Aktualisieren Sie die Delio-App auf diesem Telefon und öffnen Sie sie dann einmal im selben WLAN wie dieser Computer. Wenn es sich dann nicht wieder verbindet, koppeln Sie es hier erneut."
+  "remote.devices.retiredNotice": "Telefone erreichen diesen Computer jetzt über Delio Relay, und die ältere sichere Verbindung wurde abgeschaltet. Ein Telefon mit einer älteren Delio-App kann sich außerhalb Ihres WLANs nicht mehr verbinden. Aktualisieren Sie die Delio-App auf diesem Telefon und öffnen Sie sie dann einmal im selben WLAN wie dieser Computer. Wenn es sich dann nicht wieder verbindet, koppeln Sie es hier erneut.",
+  "openrouterOption.name": "OpenRouter",
+  "openrouterOption.line": "Ein Schlüssel für Hunderte Modelle, einige davon kostenlos",
+  "openrouterOption.link": "Schlüssel holen"
 }

@@ -8,7 +8,6 @@ export const WORKSPACE_CREDENTIALS = [
   { section: "cerebras", field: "key", name: "cerebrasApiKey", env: "CEREBRAS_API_KEY" },
   { section: "groq", field: "key", name: "groqApiKey", env: "ODB_GROQ_API_KEY" },
   { section: "greenference", field: "key", name: "greenferenceApiKey", env: "ODB_GREENFERENCE_API_KEY" },
-  { section: "modelgo", field: "key", name: "modelgoApiKey", env: "ODB_MODELGO_API_KEY" },
   { section: "meta", field: "key", name: "metaApiKey", env: "ODB_META_API_KEY" },
   { section: "deepseek", field: "key", name: "deepseekApiKey", env: "ODB_DEEPSEEK_API_KEY" },
   { section: "openaiCompat", field: "key", name: "openaiCompatApiKey", env: "OPENAI_COMPAT_API_KEY" },

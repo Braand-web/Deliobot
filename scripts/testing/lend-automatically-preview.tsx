@@ -4,7 +4,6 @@ import { setAnalyticsEnabled, setEmailGateDone } from "../../src/lib/analytics";
 import { CLOUD_SETUP_HIDDEN, CLOUD_WELCOME_DONE } from "../../src/lib/cloud-setup";
 import { withTourFinished } from "../../src/lib/guided-tour";
 import { setAdvancedMode } from "../../src/lib/interface-mode";
-import { MODELGO_OFFER_NOTICE } from "../../src/lib/notices";
 import { markSimpleModePromptSeen } from "../../src/lib/simple-mode-prompt";
 import { applySkin, type SkinId } from "../../src/lib/skins";
 import "../../src/styles.css";
@@ -18,7 +17,6 @@ const page = params.get("page") === "local" ? "local" : "cloud";
 setAnalyticsEnabled(false);
 setEmailGateDone("skipped");
 markSimpleModePromptSeen();
-localStorage.setItem(MODELGO_OFFER_NOTICE, "1");
 setAdvancedMode(true);
 applySkin((params.get("skin") ?? "midnight") as SkinId);
 

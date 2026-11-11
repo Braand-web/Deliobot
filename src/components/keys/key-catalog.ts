@@ -4,9 +4,7 @@ import type { SavedKey } from "@/state/config-status";
 import type { KeyProvider } from "@/lib/analytics-allowlist";
 import { t } from "@/lib/i18n";
 import type { LocaleKey } from "@/locales";
-import { reportModelgoOffer } from "@/lib/modelgo-offer";
 import type { ProviderIconPreset } from "../../../shared/provider-icon";
-import { MODELGO_URL } from "../../../shared/modelgo";
 
 export type KeySectionId = "ai" | "servers" | "voice" | "computers" | "apps" | "helpers";
 
@@ -19,7 +17,7 @@ export const KEY_SECTIONS: ReadonlyArray<{ id: KeySectionId; titleKey: LocaleKey
   { id: "helpers", titleKey: "keys.section.helpers", purposeKey: "keys.section.helpers.purpose" },
 ];
 
-export type TestableProvider = "anthropic" | "openai" | "openrouter" | "openaiCompat" | "xai" | "mistral" | "cerebras" | "groq" | "greenference" | "modelgo" | "meta" | "treg";
+export type TestableProvider = "anthropic" | "openai" | "openrouter" | "openaiCompat" | "xai" | "mistral" | "cerebras" | "groq" | "greenference" | "meta" | "treg";
 
 export type DesktopSlot = Parameters<NonNullable<NonNullable<Window["odb"]>["setCredential"]>>[0];
 export type DesktopSlotOptions = NonNullable<Parameters<NonNullable<NonNullable<Window["odb"]>["setCredential"]>>[2]>;
@@ -45,7 +43,7 @@ export interface KeyTarget {
 }
 
 export type KeyId =
-  | "openai" | "anthropic" | "xai" | "openrouter" | "mistral" | "cerebras" | "groq" | "greenference" | "modelgo" | "meta" | "deepseek" | "opencodeGo" | "opencodeProviders"
+  | "openai" | "anthropic" | "xai" | "openrouter" | "mistral" | "cerebras" | "groq" | "greenference" | "meta" | "deepseek" | "opencodeGo" | "opencodeProviders"
   | "ollama" | "lmStudio" | "openaiCompat" | "liveCalls" | "liveKey" | "elevenlabs" | "fishAudio" | "geminiTts" | "box" | "vps" | "onePassword" | "composio" | "treg" | "postiz"
   | "jev" | "openrouterHelper" | "workersAi" | "imageOpenai" | "imageGemini" | "imageCustom";
 
@@ -72,7 +70,7 @@ function flag(saved: SavedKey | undefined): SavedState {
   return { configured: saved?.configured === true, ...(saved?.configured && saved.last4 ? { last4: saved.last4 } : {}) };
 }
 
-type TopLevelKey = "openai" | "openrouter" | "xai" | "mistral" | "cerebras" | "groq" | "greenference" | "modelgo" | "meta" | "deepseek" | "treg";
+type TopLevelKey = "openai" | "openrouter" | "xai" | "mistral" | "cerebras" | "groq" | "greenference" | "meta" | "deepseek" | "treg";
 
 function providerKey(name: TopLevelKey, rest: Omit<KeyTarget, "patch" | "saved">): KeyTarget {
   return { patch: (value) => ({ [name]: { key: value } }), saved: (config) => flag(config[name]), ...rest };
@@ -108,10 +106,6 @@ export const KEY_CATALOG: readonly KeyEntry[] = [
   { id: "greenference", section: "ai", labelKey: "keys.greenference.label", purposeKey: "keys.purpose.greenference", name: "Greenference", env: ["ODB_GREENFERENCE_API_KEY"],
     words: ["greenference", "green", "open models"], mark: provider("greenference"), kind: "key",
     target: providerKey("greenference", { slot: "greenferenceApiKey", placeholder: "…", placeholderKey: "keys.greenference.placeholder", href: "https://greenference.com/dashboard/tokens", test: "greenference", analytics: "greenference" }) },
-  { id: "modelgo", section: "ai", labelKey: "keys.modelgo.label", purposeKey: "keys.purpose.modelgo", name: "ModelGo", env: ["ODB_MODELGO_API_KEY"],
-    words: ["modelgo", "model go", "one key", "sponsor"], mark: provider("modelgo"), kind: "key",
-    target: providerKey("modelgo", { slot: "modelgoApiKey", placeholder: "…", placeholderKey: "keys.modelgo.placeholder", href: MODELGO_URL, test: "modelgo", analytics: "modelgo", noteKey: "keys.modelgo.note",
-      settingsEvent: (action) => reportModelgoOffer(action, "settings") }) },
   { id: "meta", section: "ai", labelKey: "keys.meta.label", purposeKey: "keys.purpose.meta", name: "Meta", env: ["ODB_META_API_KEY"],
     words: ["meta", "muse", "llama"], mark: provider("meta", "meta"), kind: "key",
     target: providerKey("meta", { slot: "metaApiKey", placeholder: "LLM|…", href: "https://dev.meta.ai/docs/authentication", test: "meta", analytics: "meta", shape: /^LLM\|/ }) },
@@ -249,7 +243,7 @@ export function looksLikeOtherKey(entry: KeyEntry, value: string): KeyEntry | nu
 
 const INSTANCE_KEYS: Readonly<Record<string, KeyId>> = {
   openai: "openai", claudeApi: "anthropic", xaiApi: "xai", grok: "xai", openrouter: "openrouter", mistral: "mistral", cerebras: "cerebras",
-  groq: "groq", greenference: "greenference", modelgo: "modelgo", meta: "meta", deepseek: "deepseek", opencodeGo: "opencodeGo", openaiCompat: "openaiCompat",
+  groq: "groq", greenference: "greenference", meta: "meta", deepseek: "deepseek", opencodeGo: "opencodeGo", openaiCompat: "openaiCompat",
 };
 
 export function keyForInstance(instanceId: string | undefined): KeyId | undefined {

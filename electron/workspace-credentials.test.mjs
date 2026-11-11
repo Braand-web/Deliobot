@@ -170,7 +170,6 @@ const AI_PROVIDER_KEYS = [
   ["cerebras", "cerebrasApiKey", "CEREBRAS_API_KEY"],
   ["groq", "groqApiKey", "ODB_GROQ_API_KEY"],
   ["greenference", "greenferenceApiKey", "ODB_GREENFERENCE_API_KEY"],
-  ["modelgo", "modelgoApiKey", "ODB_MODELGO_API_KEY"],
   ["meta", "metaApiKey", "ODB_META_API_KEY"],
   ["deepseek", "deepseekApiKey", "ODB_DEEPSEEK_API_KEY"],
   ["openaiCompat", "openaiCompatApiKey", "OPENAI_COMPAT_API_KEY"],

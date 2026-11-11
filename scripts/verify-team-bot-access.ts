@@ -20,10 +20,6 @@ const CHROME = process.env.ODB_CDP_CHROME ?? "/Applications/Google Chrome.app/Co
 const [WIDTH, HEIGHT] = [1280, 800];
 const PHONE = { width: 390, height: 844 };
 const SUBJECT = /^\/api\/(?:bots|threads|groups|routines)\//;
-/** The app's time-limited offer opens over the sidebar; its own Not now closes it. */
-const DISMISS_OFFER = `(() => { const button = [...document.querySelectorAll('[data-notice="boat-offer"] button')].find((entry) => entry.textContent.trim() === "Not now");
-  button?.click(); return Boolean(button); })()`;
-
 const CROWD = ["frank", "gina", "hugo", "iris", "jon", "kim"].map((name) => ({ email: `${name}@acme.test`, role: "member" as const }));
 
 const PEOPLE = {
@@ -91,7 +87,6 @@ async function openChrome(profile: string) {
     },
     async shoot(file: string) {
       await delay(700);
-      if (await evaluate(DISMISS_OFFER)) await delay(500);
       const { data } = await send("Page.captureScreenshot", { format: "png" });
       writeFileSync(file, Buffer.from(data, "base64"));
       console.log(file);

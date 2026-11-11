@@ -266,7 +266,6 @@
               "cerebrasApiKey",
               "groqApiKey",
               "greenferenceApiKey",
-              "modelgoApiKey",
               "metaApiKey",
               "deepseekApiKey",
               "email"

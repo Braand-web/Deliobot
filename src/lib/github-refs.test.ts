@@ -8,7 +8,7 @@ const render = (text: string) => renderToStaticMarkup(createElement(ChatMarkdown
 
 describe("parseGithubUrl", () => {
   it("reads pull requests, issues and commits", () => {
-    expect(parseGithubUrl("https://github.com/Braand-web/Deliobot/pull/2547")).toMatchObject({ kind: "pull", owner: "braand-web", repo: "OpenDeliobot", number: 2547 });
+    expect(parseGithubUrl("https://github.com/Braand-web/Deliobot/pull/2547")).toMatchObject({ kind: "pull", owner: "Braand-web", repo: "Deliobot", number: 2547 });
     expect(parseGithubUrl("https://github.com/Braand-web/Deliobot/issues/12#issuecomment-1")).toMatchObject({ kind: "issue", number: 12 });
     expect(parseGithubUrl("https://github.com/Braand-web/Deliobot/pull/2547/files")).toMatchObject({ kind: "pull", number: 2547 });
     expect(parseGithubUrl("https://github.com/octo-org/sample-app/commit/68189CF0a1")).toMatchObject({ kind: "commit", sha: "68189cf0a1" });

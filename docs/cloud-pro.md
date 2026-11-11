@@ -2105,7 +2105,7 @@ first one due shows, and it takes the launch (`launchNotice`, kept for the
 window's session, so a reload is the same launch). After it, only the
 product-updates question may follow in that launch; every other notice waits for
 a later launch, in the list's order. A new notice is one entry in `NOTICES` and
-its fact in AppNotices. So What's new and Boat's credit offer never share a
+its fact in AppNotices. So What's new and another card never share a
 launch: What's new comes first, and the Boat card waits for a later one.
 
 1. **What's new** (`whats-new/WhatsNewPopup`, campaign id `whats-new-2026-11`):

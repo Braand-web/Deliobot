@@ -3,7 +3,6 @@ import test from "node:test";
 
 import { readFileSync } from "node:fs";
 import { appPermissionAllowed, appPermissionHandlers, emailDraftUrl, externalLinkUrl, externalWebUrl, remoteClipboardWriteAllowed } from "./app-permissions.mjs";
-import { boatClaimMailto } from "../src/lib/boat-offer.ts";
 import { cloudPlanSnapshot, createCloudAccountClient } from "./cloud-account.mjs";
 import { myCloudOrigin, rememberedCloudHome } from "./cloud-home.mjs";
 
@@ -94,10 +93,6 @@ test("an email link opens only as a draft to one address with a subject and a bo
     assert.throws(() => externalLinkUrl(url), /Only web/, url);
   for (const url of [null, 123, "not a url"])
     assert.throws(() => externalLinkUrl(url), /web address/);
-});
-
-test("the app's claim to Boat opens exactly as the app drafts it", () => {
-  assert.equal(externalLinkUrl(boatClaimMailto()), boatClaimMailto());
 });
 
 test("both external-link entry points use the policy and IPC retains the local-origin gate", () => {

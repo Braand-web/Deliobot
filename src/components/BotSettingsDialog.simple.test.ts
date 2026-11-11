@@ -515,7 +515,7 @@ describe("the avatar editor", () => {
     expect(rendered.html).not.toContain(">Halloween<");
     expect(rendered.html).not.toContain(">Diwali<");
     expect(has(rendered, "data-avatar-face", "idle")).toBe(false);
-    expect(find(rendered, "aria-label", "Use the Cursor body").props["aria-pressed"]).toBe(true);
+    expect(find(rendered, "aria-label", "Use the Delio body").props["aria-pressed"]).toBe(true);
     click(find(rendered, "aria-label", "Use the Blob body"));
     expect(patch).toHaveBeenLastCalledWith({ mascotBody: "blob" });
     click(find(rendered, "aria-label", "Use blue mascot color"));

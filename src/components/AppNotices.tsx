@@ -1,18 +1,16 @@
 import { useEffect, useState } from "react";
-import { Rocket, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import type { CloudAccountState } from "../../electron/cloud-account.mjs";
 import type { CloudOffer } from "../../electron/cloud-home.mjs";
 import { api, useStore } from "@/state/store";
 import { APP_REPOSITORY } from "@/lib/app-links";
 import { track } from "@/lib/analytics";
-import { boatOfferRuns } from "@/lib/boat-offer";
-import { modelgoOfferable, reportModelgoOffer } from "@/lib/modelgo-offer";
 import { brandStatus } from "@/lib/brand";
 import { buyOfferAllowed, cloudNoticeKind, cloudPlanView, cloudTrialNotice, cloudTrialView, offerTrialDays } from "@/lib/cloud-plan";
 import { jobRoutine, useCloudIntent } from "@/lib/cloud-intent";
 import { CLOUD_INTENT_GIVEN, cloudSetupStage } from "@/lib/cloud-setup";
 import { cornerPopupWaits, firstChatQuiet, firstReplyPending } from "@/lib/corner-popup";
-import { BOAT_OFFER_NOTICE, CLOUD_INTRO, CLOUD_NOTICE, CLOUD_TRIAL_NOTICE, dismissNotice, dismissNotices, introShown, introStage, launchNotice, markLaunchNotice, MODELGO_OFFER_NOTICE, nextNotice, noticeSeen, PHONE_UPDATE_NOTICE, phoneUpdateHint, PRODUCT_HUNT_NOTICE, PRODUCT_HUNT_UNTIL, PRODUCT_HUNT_URL, SIMPLE_MODE_NOTICE, STAR_NOTICE, TWO_PLACES_NOTICE, UPDATES_CONSENT_NOTICE, usedBefore, WHATS_NEW_NOTICE } from "@/lib/notices";
+import { CLOUD_INTRO, CLOUD_NOTICE, CLOUD_TRIAL_NOTICE, dismissNotice, dismissNotices, introShown, introStage, launchNotice, markLaunchNotice, nextNotice, noticeSeen, PHONE_UPDATE_NOTICE, phoneUpdateHint, SIMPLE_MODE_NOTICE, STAR_NOTICE, TWO_PLACES_NOTICE, UPDATES_CONSENT_NOTICE, usedBefore, WHATS_NEW_NOTICE } from "@/lib/notices";
 import { useTwoPlaces } from "@/lib/two-places";
 import { SIMPLE_ONLY } from "@/lib/simple-only";
 import { useAdvancedBackDue, useNewLookDue } from "@/lib/new-look";
@@ -24,9 +22,7 @@ import { launchDialogShown, markLaunchDialog } from "@/lib/launch-dialogs";
 import { useUpdaterState } from "@/lib/updater";
 import { phonePairingSettingsAction } from "@/lib/phone-pairing";
 import { t } from "@/lib/i18n";
-import { BoatOfferCard, reportBoatOffer, type BoatOfferAction } from "./BoatOffer";
 import { engineReady } from "./EngineLibrary";
-import { ModelgoOfferCard, type ModelgoCardAction } from "./ModelgoOffer";
 import { CLOUD_NOTICE_CARD, cloudNoticeStep, CloudNoticeCard } from "./CloudNotice";
 import { CloudTrialIntroCard } from "./CloudTrialIntro";
 import { useMoveQuiet } from "./CloudSendStrip";
@@ -48,16 +44,6 @@ function StarCard({ onDismiss }: { onDismiss: () => void }) {
     <div className="flex flex-wrap items-center gap-3">
       <LinkButton url={APP_REPOSITORY} label={t("star.button")} onOpened={onDismiss} />
       <NotNowButton onClick={onDismiss} />
-    </div>
-  </NoticeCard>;
-}
-
-function ProductHuntCard({ onDone }: { onDone: (action: "upvote" | "not_now" | "close") => void }) {
-  return <NoticeCard titleId="product-hunt-title" notice="product-hunt" icon={Rocket} title={t("productHunt.title")} onDismiss={() => onDone("close")}>
-    <p className="mb-3 mt-1 text-[13px] text-ink-secondary">{t("productHunt.body")}</p>
-    <div className="flex flex-wrap items-center gap-3">
-      <LinkButton url={PRODUCT_HUNT_URL} label={t("productHunt.button")} onOpened={() => onDone("upvote")} />
-      <NotNowButton onClick={() => onDone("not_now")} />
     </div>
   </NoticeCard>;
 }
@@ -85,8 +71,6 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
   const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [simpleShown, setSimpleShown] = useState(false);
-  const [boatShown, setBoatShown] = useState(false);
-  const [modelgoShown, setModelgoShown] = useState(false);
   const consentHere = (local || viewer?.cloudHome === true) && brandStatus().source !== "file";
   const consent = useUpdatesConsent(consentHere ? updatesConsentBridge() : undefined);
   const [consentDone, setConsentDone] = useState(false);
@@ -153,8 +137,6 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
   const advancedBack = backDue && advanced;
   const simpleDue = SIMPLE_ONLY ? newLookDue : advancedBack || !promptSeen;
   const simpleBlocked = useOtherDialogOpen(simpleDue) || Boolean(state.liveCall && state.liveCall.status !== "ended");
-  const boatHere = boatOfferRuns(now()) && brandStatus().source !== "file";
-  const modelgoHere = modelgoOfferable(state.config?.managedPolicy);
 
   const trial = plan?.trial;
   const key = trial ? trialKey(trial) : null;
@@ -183,19 +165,14 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
   const consentWaits = welcomeFinishedThisLaunch() || firstChat;
   const delioFirst = delio.due;
   const consentNow = consentWaits === true || consentFact === false ? false : consentWaits === null || delioFirst ? null : consentFact;
-  // Everyone, whether or not a bot has answered yet (so not `afterWelcome`, which holds until one has), but never in the launch
-  // the welcome or Delio's card took, or during a live call.
-  const modelgoNow = !modelgoHere || moving || welcomeFinishedThisLaunch() || launchDialogShown() === "delio" || desktopState?.seen.includes(MODELGO_OFFER_NOTICE) ? false
-    : organization === null || moving === null || firstChat === null || delioFirst || (state.liveCall && state.liveCall.status !== "ended") || (desktop && !desktopState) ? null : true;
   const retiredPhones = phonesToTell(linkPhones, record);
   const phoneNow = retiredPhones?.length === 0 ? false
     : retiredPhones === undefined || !viewer || delioFirst || (state.liveCall && state.liveCall.status !== "ended") ? null : true;
   const launch = launchNotice();
-  // After a closed popup only the product-updates question and ModelGo's card may follow in this launch (nextNotice's
-  // FOLLOWERS); nothing else does.
+  // After a closed popup only the product-updates question may follow in this launch (nextNotice's FOLLOWERS).
   const notice = waits ? null
     : firstChatQuiet(state) ? null
-    : cards || whatsNewHere || consentHere || simpleDue || boatHere || modelgoHere || twoFact !== false || phoneNow !== false ? nextNotice({
+    : cards || whatsNewHere || consentHere || simpleDue || twoFact !== false || phoneNow !== false ? nextNotice({
     [PHONE_UPDATE_NOTICE]: phoneNow,
     // As the What's new popup: never in the launch whose welcome just finished, nor over Delio's first-launch card.
     [SIMPLE_MODE_NOTICE]: !simpleDue || afterWelcome === true ? false : afterWelcome === null || delioFirst || simpleBlocked ? null : true,
@@ -203,18 +180,13 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
       : whatsNewDue === null || whatsNewState === "loading" || !viewer || afterWelcome === null || delioFirst || moving === null || whatsNewBlocked ? null : true,
     [UPDATES_CONSENT_NOTICE]: consentNow,
     [TWO_PLACES_NOTICE]: twoFact,
-    [PRODUCT_HUNT_NOTICE]: !cards || moving || firstChat === true || brandStatus().source === "file" || now() >= PRODUCT_HUNT_UNTIL ? false
-      : organization === null || moving === null || firstChat === null ? null : !organization,
     [CLOUD_INTRO]: moving ? false : moving === null ? null : introDue(),
     [CLOUD_TRIAL_NOTICE]: planBridge && plan === null ? null : Boolean(key && (trialDue || trialOpen === key)),
     [CLOUD_NOTICE]: !view ? false : view.kind === "unknown" ? null
       : Boolean(kind && !noticeSeen(record, CLOUD_NOTICE_CARD[kind].dismissed)),
-    [MODELGO_OFFER_NOTICE]: modelgoNow,
-    [BOAT_OFFER_NOTICE]: !boatHere || moving || afterWelcome === true || !usedBefore(state.bots) || desktopState?.seen.includes(BOAT_OFFER_NOTICE) ? false
-      : organization === null || moving === null || afterWelcome === null || delioFirst || (desktop && !desktopState) ? null : !organization,
     [STAR_NOTICE]: !bridge || moving || brandStatus().source === "file" || !usedBefore(state.bots) ? false : moving === null ? null : true,
   }, id => id === CLOUD_INTRO ? stage === "done" && !introOpen
-    : id === STAR_NOTICE || id === PRODUCT_HUNT_NOTICE || id === BOAT_OFFER_NOTICE || id === MODELGO_OFFER_NOTICE ? noticeSeen(record, id) : false, launch, closed) : null;
+    : id === STAR_NOTICE ? noticeSeen(record, id) : false, launch, closed) : null;
 
   const shownKey = notice === CLOUD_TRIAL_NOTICE ? key : notice;
   useEffect(() => {
@@ -234,12 +206,6 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
       setSimpleShown(true);
       if (SIMPLE_ONLY || advancedBack) reportNewLook("shown", advancedBack);
       else reportSimpleModePrompt("shown");
-    } else if (shownKey === BOAT_OFFER_NOTICE && !boatShown) {
-      setBoatShown(true);
-      reportBoatOffer("shown", "card");
-    } else if (shownKey === MODELGO_OFFER_NOTICE && !modelgoShown) {
-      setModelgoShown(true);
-      reportModelgoOffer("shown", "popup");
     }
   }, [shownKey]);
 
@@ -301,23 +267,6 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
     return <TwoPlacesCard key={key} suggest={two.suggest}
       onBring={() => { track("two_places_card", { action: "bring", kind }); return two.accept(key).then(close); }}
       onDismiss={() => { track("two_places_card", { action: "not_now", kind }); two.dismiss(key); close(); }} />;
-  }
-  if (notice === PRODUCT_HUNT_NOTICE) {
-    return <ProductHuntCard onDone={action => { track("product_hunt_card", { action }); close(); save(PRODUCT_HUNT_NOTICE); }} />;
-  }
-  if (notice === BOAT_OFFER_NOTICE) {
-    const done = (action: BoatOfferAction) => {
-      reportBoatOffer(action, "card"); close(); save(BOAT_OFFER_NOTICE);
-      void desktop?.seen(BOAT_OFFER_NOTICE).catch(() => {});
-    };
-    return <BoatOfferCard onDone={done} />;
-  }
-  if (notice === MODELGO_OFFER_NOTICE) {
-    const done = (action: ModelgoCardAction) => {
-      reportModelgoOffer(action, "popup"); close(); save(MODELGO_OFFER_NOTICE);
-      void desktop?.seen(MODELGO_OFFER_NOTICE).catch(() => {});
-    };
-    return <ModelgoOfferCard onDone={done} />;
   }
   if (notice === STAR_NOTICE) return <StarCard onDismiss={() => { close(); save(STAR_NOTICE); }} />;
   return null;
