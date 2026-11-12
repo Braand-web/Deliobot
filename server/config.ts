@@ -7,10 +7,10 @@ import { join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { z } from "zod";
 import type { ImageGenerationConfig } from "../shared/image-generation.ts";
-import { validFalModel } from "./fal.ts";
 import { delioInstanceConfigs } from "./delio-account.ts";
-import { VIDEO_SECONDS_MAX, type VideoGenerationConfig } from "../shared/video-generation.ts";
-import { MUSIC_SECONDS_MAX, type MusicGenerationConfig } from "../shared/music-generation.ts";
+import { mediaGenerationShape } from "./media-config.ts";
+import type { VideoGenerationConfig } from "../shared/video-generation.ts";
+import type { MusicGenerationConfig } from "../shared/music-generation.ts";
 import { imageGenConfigSchema, imageGenPatchSchema, keepKeysOutOfImageModels, type ImageGenCredentialPatch } from "./image-generation-config.ts";
 import { botAvatarUrlSchema } from "../shared/bot-avatar.ts";
 import { writeFileAtomic } from "./atomic.ts";
@@ -307,7 +307,6 @@ const threadsPatchSchema = threadsConfigSchema.extend({
   eventLogMaxBytes: threadsConfigSchema.shape.eventLogMaxBytes.nullable(),
   eventLogRetentionDays: threadsConfigSchema.shape.eventLogRetentionDays.nullable(),
 });
-const falModelSetting = z.string().trim().max(200).refine((value) => !value || value === "auto" || validFalModel(value), "Use a fal.ai model ID, such as fal-ai/flux/schnell, or auto");
 
 const appConfigSchema = z.object({
   /** Set only by the verified domain endpoint, never by a config patch. */
@@ -396,22 +395,7 @@ const appConfigSchema = z.object({
   imageGen: imageGenConfigSchema.optional(),
   /** The model Auto picks for each tier, when the engine's catalog has it; unset tiers are chosen from the catalog. */
   auto: z.object({ light: optionalText, standard: optionalText, power: optionalText }).strict().optional(),
-  /** Music, songs and sound effects bots make on fal.ai with `fal.key`; off unless `enabled`. */
-  musicGen: z.object({
-    enabled: z.boolean().optional(),
-    model: falModelSetting.optional(),
-    maxSeconds: z.number().int().min(1).max(MUSIC_SECONDS_MAX).optional(),
-    maxPerTurn: z.number().int().min(1).max(4).optional(),
-    dailyCap: z.number().int().min(1).max(500).optional(),
-  }).strict().optional(),
-  /** Video clips bots make on fal.ai with `fal.key`; off unless `enabled`. */
-  videoGen: z.object({
-    enabled: z.boolean().optional(),
-    model: falModelSetting.optional(),
-    maxSeconds: z.number().int().min(1).max(VIDEO_SECONDS_MAX).optional(),
-    maxPerTurn: z.number().int().min(1).max(4).optional(),
-    dailyCap: z.number().int().min(1).max(500).optional(),
-  }).strict().optional(),
+  ...mediaGenerationShape,
   /** Non-secret profile details; aboutMe is shared with every bot, and so are everyBotRules, ahead of each bot's own instructions. */
   everyBotRules: z.string().max(24_000).optional(), profile: z.object({ name: optionalText, email: optionalText, aboutMe: z.string().max(24_000).optional(), avatarUrl: z.union([z.literal(""), botAvatarUrlSchema]).optional() }).optional(),
   /** UI language override (BCP-47, lowercase), absent follows the system; what a paired phone calls this computer, "" for the default. */

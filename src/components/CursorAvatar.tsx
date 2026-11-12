@@ -17,6 +17,8 @@ import {
 } from "./cursor-face-data"
 import { GLYPH_EASE_MS, MOTION, VIEW_SPAN, bodyTransform, faceTravelUnits, frameFloorMs, morphUnitsPerMs, nextFrameAt, nextMascotFrame, type BodyMotion } from "./mascot-motion"
 import { mascotClock, usePrefersReducedMotion, type MascotTicket } from "./mascot-clock"
+import { DelioPicture, PictureGlowGradient, type PictureGlow } from "./DelioPicture"
+import { clone, ringCentre, toPath } from "./mascot-rings"
 
 export { MOTION, bodyTransform, type BodyMotion }
 export {
@@ -846,22 +848,6 @@ export const CURSOR_STATES = Object.keys(POOLS).filter(isCursorState)
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v))
 const noTimestamp = (): number | null => null
 
-const toPath = (ring: Ring) =>
-  'M' + ring.map(p => p[0].toFixed(2) + ' ' + p[1].toFixed(2)).join('L') + 'Z'
-
-const clone = (rings: Ring[]): Ring[] =>
-  rings.map(r => r.map((p): [number, number] => [p[0], p[1]]))
-
-const ringCentre = (ring: Ring): [number, number] => {
-  let x = 0
-  let y = 0
-  for (const p of ring) {
-    x += p[0]
-    y += p[1]
-  }
-  return [x / ring.length, y / ring.length]
-}
-
 export function mouthPath(frame: { x: number; y: number; angle: number }, spec: number[]) {
   const ca = Math.cos(frame.angle)
   const sa = Math.sin(frame.angle)
@@ -907,7 +893,7 @@ export interface CursorAvatarProps {
   /** The picture with its eyes shut, shown for a moment every few seconds, even while paused: it is a CSS animation. */
   pictureBlink?: string | null
   /** The picture's glowing antenna tip, in viewBox units, and how fast its light breathes. */
-  pictureGlow?: { x: number; y: number; r: number; tempo: 'fast' | 'slow' | 'off' } | null
+  pictureGlow?: PictureGlow | null
   eyeColor?: string
   title?: string | null
   className?: string
@@ -1259,13 +1245,7 @@ export const CursorAvatar = React.forwardRef<CursorAvatarHandle, CursorAvatarPro
         aria-hidden={label ? undefined : true}
       >
         <defs>
-          {pictureGlow && (
-            <radialGradient id={`${uid}-glow`}>
-              <stop offset="0%" stopColor="#9fb4ff" stopOpacity="0.9" />
-              <stop offset="45%" stopColor="#8a7dff" stopOpacity="0.35" />
-              <stop offset="100%" stopColor="#8a7dff" stopOpacity="0" />
-            </radialGradient>
-          )}
+          {pictureGlow && <PictureGlowGradient uid={uid} />}
           <linearGradient id={`${uid}-grad`} x1="1" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={gradient[0]} />
             <stop offset="55%" stopColor={gradient[1]} />
@@ -1282,19 +1262,9 @@ export const CursorAvatar = React.forwardRef<CursorAvatarHandle, CursorAvatarPro
           <g ref={trailLayer} />
           <g ref={bodyGroup}>
           <g ref={bodyContent}>
-          {picture ? (
-            <g className={paused || reduced ? undefined : 'delio-float'} style={paused || reduced ? undefined : { animationDelay: `${-picturePhase}s` }}>
-              <image href={picture} x="-15" y="-15" width={VIEW_SPAN} height={VIEW_SPAN} preserveAspectRatio="none" />
-              {pictureBlink && !reduced && (
-                <image href={pictureBlink} x="-15" y="-15" width={VIEW_SPAN} height={VIEW_SPAN} preserveAspectRatio="none"
-                  className="delio-blink" style={{ animationDelay: `${-picturePhase}s` }} />
-              )}
-              {pictureGlow && pictureGlow.tempo !== 'off' && (
-                <circle cx={pictureGlow.x} cy={pictureGlow.y} r={Math.min(pictureGlow.r * 2.2, pictureGlow.y + 15)} fill={`url(#${uid}-glow)`}
-                  className={reduced ? undefined : `delio-glow delio-glow-${pictureGlow.tempo}`} style={reduced ? { opacity: 0.55 } : undefined} />
-              )}
-            </g>
-          ) : <g transform={silhouette.fit || undefined} dangerouslySetInnerHTML={{ __html: body }} />}
+          {picture
+            ? <DelioPicture uid={uid} picture={picture} blink={pictureBlink} glow={pictureGlow} phase={picturePhase} paused={Boolean(paused)} reduced={Boolean(reduced)} />
+            : <g transform={silhouette.fit || undefined} dangerouslySetInnerHTML={{ __html: body }} />}
           <g clipPath={`url(#${uid}-clip)`} visibility={picture ? 'hidden' : undefined}>
             <g transform={anchorTransform(silhouette.anchor)}>
               <path ref={eye0} fill={eyeColor} />

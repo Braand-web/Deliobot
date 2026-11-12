@@ -5,7 +5,7 @@
   "delioPlans.computer": "1 ordinateur cloud",
   "delioPlans.computers": "{count} ordinateurs cloud en même temps",
   "delioPlans.byok.keys": "Vos propres clés IA (OpenRouter, fal.ai)",
-  "delioPlans.byok.computer": "Votre propre clé d'ordinateur cloud (Boat)",
+  "delioPlans.byok.computer": "Votre propre clé d'ordinateur cloud",
   "delioPlans.byok.all": "Toutes les fonctions de Deliobot, sans crédits Delio",
   "delioPlans.perYear": "/an",
   "delioPlans.yearMonthly": "Un mois offert · {price} par mois",
