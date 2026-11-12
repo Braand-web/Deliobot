@@ -6,7 +6,7 @@
   "workers_dev": true,
   "preview_urls": false,
   "routes": [
-    { "pattern": "deliobot.fun", "custom_domain": true },
-    { "pattern": "www.deliobot.fun", "custom_domain": true }
+    { "pattern": "deliobot.fun/*", "zone_name": "deliobot.fun" },
+    { "pattern": "www.deliobot.fun/*", "zone_name": "deliobot.fun" }
   ]
 }

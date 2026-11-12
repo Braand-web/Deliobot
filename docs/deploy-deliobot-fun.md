@@ -28,11 +28,10 @@ in the zone's DNS records:
 | A | `admin` | the server's public IPv4 | DNS only |
 | A | `*` | the server's public IPv4 | DNS only |
 
-`DNS only` lets Caddy on the server obtain each certificate itself. The site's
-own records come from the Worker's custom domains, set in
-`cloudflare/site/wrangler.jsonc`: delete any other `A`, `AAAA` or `CNAME`
-record on `deliobot.fun` and `www` first (Hostinger's parking page leaves some),
-then deploy the site again.
+`DNS only` lets Caddy on the server obtain each certificate itself. The site
+answers on `deliobot.fun` and `www` through Worker routes (`cloudflare/site/wrangler.jsonc`),
+which need those two names to have proxied records; any address works behind
+them, since the Worker answers before Cloudflare reaches it.
 
 The site's sign-up buttons stay on "soon" until the portal answers. Then set
 `<html lang="fr" data-portal="https://admin.deliobot.fun">` in
