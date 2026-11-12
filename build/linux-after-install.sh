@@ -162,6 +162,8 @@ install_browser_apparmor_profile() {
   fi
   # Image builders stage policy for the target's next boot, not the host kernel.
   if [ "$TEST_MODE" -eq 0 ] && [ -x /usr/bin/ischroot ] && /usr/bin/ischroot; then return; fi
+  # A Docker or Podman container shares the host's kernel, whose restriction it sees but whose policy it cannot load.
+  if [ "$TEST_MODE" -eq 0 ] && { [ -f /.dockerenv ] || [ -f /run/.containerenv ]; }; then return; fi
   # Installed AppArmor tools do not mean the kernel module is enabled. Keep
   # policy for a future boot, but do not fail installation on an unrestricted
   # host booted with AppArmor disabled. A restricted host still fails closed.
