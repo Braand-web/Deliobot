@@ -12926,7 +12926,8 @@
       "server.notify.openToSignIn": "58b81ea9118501dc773e2b1aa5318f8022cf908bf162d29981c540fad4402e87",
       "about.tagline": "e286b31b1ac500d7b223a3338f8ba34dd7547e6397b64bb50c278765c2cadb6e",
       "native.connect.localNetwork": "c5a2461235fe21620f018c2090c56438b6e50fcc45f668620aedc0c2d2558aab",
-      "sidebar.menu.feedback": "814f4ed2d5bd33e3a1b93f0d555b2224913e418a41390c90368d856c08c87d42"
+      "sidebar.menu.feedback": "814f4ed2d5bd33e3a1b93f0d555b2224913e418a41390c90368d856c08c87d42",
+      "phoneApp.soon": "4f7d64017689437e6d93f5724f3f797054f3935d98a13148025b616b8db8fb2c"
     },
     "hi": {
       "pro.fromPrice": "85f505df24f4f2e0579d706e795d631d8e43f73959b11ee79fd2f58fb414606c",
@@ -34044,7 +34045,8 @@
       "native.dialog.serverFailed.slow": "8aac31a96c04d235de9ea3b4daa3d4404c805985c97421560cd58a3ccafa7620",
       "serverError.secret.localService": "f3c935812d86c5e94f3e372b83e4603876148bc2bd771d877f1a529782bda591",
       "native.screen.windowsHelperBlocked": "ba15ec045f770384ac01eae72f4ad598ed18bea26b9c25aa0f667ecbed9970b3",
-      "sidebar.menu.feedback": "814f4ed2d5bd33e3a1b93f0d555b2224913e418a41390c90368d856c08c87d42"
+      "sidebar.menu.feedback": "814f4ed2d5bd33e3a1b93f0d555b2224913e418a41390c90368d856c08c87d42",
+      "phoneApp.soon": "4f7d64017689437e6d93f5724f3f797054f3935d98a13148025b616b8db8fb2c"
     },
     "zh": {
       "pro.fromPrice": "85f505df24f4f2e0579d706e795d631d8e43f73959b11ee79fd2f58fb414606c",

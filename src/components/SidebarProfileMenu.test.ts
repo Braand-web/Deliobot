@@ -328,10 +328,10 @@ describe("choosing where the phone connects", () => {
 });
 
 describe("Get the phone app", () => {
-  it("offers iPhone and Android with the links the website and Cloud page use", () => {
+  it("offers iPhone and Android as coming soon until Deliobot publishes its own", () => {
     expect(PHONE_APPS.map((app) => [app.id, app.url])).toEqual([["ios", IOS_APP_STORE_URL], ["android", ANDROID_APK_URL]]);
-    expect(IOS_APP_STORE_URL).toBe("https://apps.apple.com/in/app/delio/id6803387923");
-    expect(ANDROID_APK_URL).toBe("https://github.com/Braand-web/Deliobot/releases/download/android-v1.5.0/OpenDeliobot.apk");
+    expect(IOS_APP_STORE_URL).toBeNull();
+    expect(ANDROID_APK_URL).toBeNull();
   });
 
   const render = (connect?: PhoneAppConnect[]) => {
@@ -344,13 +344,13 @@ describe("Get the phone app", () => {
   };
   const to = (key: string, subtitle: string): PhoneAppConnect => ({ key, subtitle, onSelect: () => {} });
 
-  it("draws a code to scan for each, and points on to Connect your phone where this window can pair", () => {
+  it("says each app is coming soon, and points on to Connect your phone where this window can pair", () => {
     const html = render([to("here", "to this computer")]);
     expect(html).toContain('data-phone-app="ios"');
     expect(html).toContain('data-phone-app="android"');
-    expect(html.match(/<svg/g)?.length).toBe(2);
-    expect(html).toContain("Open in the App Store");
-    expect(html).toContain("Download the APK");
+    expect(html.match(/<svg/g)).toBeNull();
+    expect(html.match(/data-phone-app-soon/g)?.length).toBe(2);
+    expect(html).toContain("Coming soon");
     expect(html).toContain("Connect your phone");
     expect(html).toContain("to this computer");
     expect(render()).not.toContain("Connect your phone");

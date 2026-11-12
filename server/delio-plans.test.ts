@@ -23,8 +23,8 @@ describe("Delio's plans in the app", () => {
     const catalog = await plans.load();
     expect(upstream.calls).toEqual(["https://admin.deliobot.test/api/public/plans"]);
     expect(catalog?.plans.map((plan) => plan.id), "malformed entries and markup in names are dropped").toEqual(["pro"]);
-    expect(catalog?.billingUrl).toBe("https://admin.deliobot.test/billing?workspace=studio");
-    expect(delioCheckoutUrl(catalog!.billingUrl, { plan: "pro", cycle: "year" })).toBe("https://admin.deliobot.test/billing?workspace=studio&plan=pro&cycle=year");
+    expect(catalog?.payUrl).toBe("https://admin.deliobot.test/pay?workspace=studio");
+    expect(delioCheckoutUrl(catalog!.payUrl, { plan: "pro", cycle: "year" })).toBe("https://admin.deliobot.test/pay?workspace=studio&plan=pro&cycle=year");
     await plans.load();
     expect(upstream.calls, "kept for a few minutes").toHaveLength(1);
   });

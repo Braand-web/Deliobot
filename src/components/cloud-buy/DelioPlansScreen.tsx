@@ -22,7 +22,7 @@ export const dollars = (usd: number) => `$${usd.toLocaleString("en-US", { minimu
 export const francs = (amount: number) => `≈ ${amount.toLocaleString("fr-FR")} FCFA`;
 
 
-function PlanCard({ plan, cycle, popular, billingUrl }: { plan: DelioPlan; cycle: DelioCycle; popular: boolean; billingUrl: string }) {
+function PlanCard({ plan, cycle, popular, payUrl }: { plan: DelioPlan; cycle: DelioCycle; popular: boolean; payUrl: string }) {
   const yearly = cycle === "year" && plan.usdYear !== null && plan.francsYear !== null;
   const nameId = `delio-plan-${plan.id}`;
   const rows: Array<[LucideIcon, string]> = plan.gateway
@@ -50,7 +50,7 @@ function PlanCard({ plan, cycle, popular, billingUrl }: { plan: DelioPlan; cycle
       </li>)}
     </ul>
     <a data-plan-buy={plan.id} aria-describedby={nameId} className={cn(popular ? PRIMARY_WIDE : QUIET_WIDE, "text-center no-underline")} target="_blank" rel="noreferrer"
-      href={delioCheckoutUrl(billingUrl, { plan: plan.id, cycle })}>{t("delioPlans.choose")}</a>
+      href={delioCheckoutUrl(payUrl, { plan: plan.id, cycle })}>{t("delioPlans.choose")}</a>
   </li>;
 }
 
@@ -79,7 +79,7 @@ export function DelioPlansScreen({ catalog, initialCycle = "month" }: { catalog:
     <section aria-labelledby="delio-plans-heading">
       <h3 id="delio-plans-heading" className="sr-only">{t("cloudBuy.choose")}</h3>
       <ul className={cn("grid gap-3", COLUMNS[plans.length] ?? "md:grid-cols-3")}>
-        {plans.map(plan => <PlanCard key={plan.id} plan={plan} cycle={cycle} popular={plan.id === catalog.recommended} billingUrl={catalog.billingUrl} />)}
+        {plans.map(plan => <PlanCard key={plan.id} plan={plan} cycle={cycle} popular={plan.id === catalog.recommended} payUrl={catalog.payUrl} />)}
       </ul>
     </section>
     {trial && <div data-delio-trial="" className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[12px] bg-ink/[0.04] px-4 py-3">
@@ -88,13 +88,13 @@ export function DelioPlansScreen({ catalog, initialCycle = "month" }: { catalog:
         <span className="text-ink-tertiary">{francs(trial.francs)}</span>
         <span className="block text-ink-secondary">{t("delioPlans.trial.body", { credits: trial.credits.toLocaleString(), hours: trial.computerHours })}</span>
       </p>
-      <a className={cn(QUIET, "no-underline")} target="_blank" rel="noreferrer" href={delioCheckoutUrl(catalog.billingUrl, { plan: trial.id })}>{t("delioPlans.trial.start")}</a>
+      <a className={cn(QUIET, "no-underline")} target="_blank" rel="noreferrer" href={delioCheckoutUrl(catalog.payUrl, { plan: trial.id })}>{t("delioPlans.trial.start")}</a>
     </div>}
     {catalog.topups.length > 0 && <section aria-labelledby="delio-topups" className="flex flex-col gap-2.5">
       <h3 id="delio-topups" className="text-[13px] font-medium leading-[18px] text-ink-secondary">{t("delioPlans.topups")}</h3>
       <ul className="flex flex-wrap gap-2">
         {catalog.topups.map(pack => <li key={pack.id}>
-          <a data-delio-topup={pack.id} target="_blank" rel="noreferrer" href={delioCheckoutUrl(catalog.billingUrl, { topup: pack.id })}
+          <a data-delio-topup={pack.id} target="_blank" rel="noreferrer" href={delioCheckoutUrl(catalog.payUrl, { topup: pack.id })}
             className="flex flex-col rounded-[10px] border-[0.5px] border-ink/15 px-3 py-2 text-[13px] leading-[18px] text-ink no-underline transition-colors hover:bg-ink/[0.04] motion-reduce:transition-none">
             <span>{t("delioPlans.topup", { credits: pack.credits.toLocaleString(), price: dollars(pack.usd) })}</span>
             <small className="text-[12px] leading-4 text-ink-tertiary">{francs(pack.francs)}</small>

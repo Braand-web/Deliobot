@@ -6,7 +6,7 @@ import { ANDROID_APK_URL, IOS_APP_STORE_URL, openExternalLink } from "@/lib/app-
 import { t } from "@/lib/i18n";
 import type { LocaleKey } from "@/locales";
 
-export const PHONE_APPS: ReadonlyArray<{ id: "ios" | "android"; nameKey: LocaleKey; actionKey: LocaleKey; url: string }> = [
+export const PHONE_APPS: ReadonlyArray<{ id: "ios" | "android"; nameKey: LocaleKey; actionKey: LocaleKey; url: string | null }> = [
   { id: "ios", nameKey: "phoneApp.ios", actionKey: "phoneApp.iosAction", url: IOS_APP_STORE_URL },
   { id: "android", nameKey: "phoneApp.android", actionKey: "phoneApp.androidAction", url: ANDROID_APK_URL },
 ];
@@ -54,12 +54,14 @@ export function PhoneAppDialog({ open, onClose, connect = [] }: { open: boolean;
           {PHONE_APPS.map((app) => (
             <li key={app.id} data-phone-app={app.id} className="flex flex-col items-center gap-3 rounded-xl bg-card p-4 text-center">
               <div className="text-[14px] font-medium text-ink">{t(app.nameKey)}</div>
-              <div className="rounded-md bg-white p-2">
-                <QRCodeSVG value={app.url} size={132} level="M" bgColor="#ffffff" fgColor="#111111" title={t(app.actionKey)} />
-              </div>
-              <button type="button" onClick={() => void openExternalLink(app.url)} className="text-[13px] text-accent hover:underline">
-                {t(app.actionKey)}
-              </button>
+              {app.url ? <>
+                <div className="rounded-md bg-white p-2">
+                  <QRCodeSVG value={app.url} size={132} level="M" bgColor="#ffffff" fgColor="#111111" title={t(app.actionKey)} />
+                </div>
+                <button type="button" onClick={() => void openExternalLink(app.url!)} className="text-[13px] text-accent hover:underline">
+                  {t(app.actionKey)}
+                </button>
+              </> : <span data-phone-app-soon className="rounded-full bg-raised px-3 py-1 text-[12px] text-ink-secondary">{t("phoneApp.soon")}</span>}
             </li>
           ))}
         </ul>

@@ -2457,6 +2457,7 @@
   "phoneApp.iosAction": "Open in the App Store",
   "phoneApp.android": "Android",
   "phoneApp.androidAction": "Download the APK",
+  "phoneApp.soon": "Coming soon",
   "phoneApp.next": "Installed? Connect your phone next, and scan the pairing code with the app.",
   "accounts.heading": "Signed in as",
   "accounts.add": "Add another account",

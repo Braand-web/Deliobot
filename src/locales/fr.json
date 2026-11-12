@@ -804,6 +804,7 @@
   "phoneApp.iosAction": "Ouvrir dans l’App Store",
   "phoneApp.android": "Android",
   "phoneApp.androidAction": "Télécharger l’APK",
+  "phoneApp.soon": "Bientôt disponible",
   "phoneApp.next": "Installée ? Connectez ensuite votre téléphone et scannez le code d’association avec l’app.",
   "sidebar.menu.settings": "Paramètres",
   "sidebar.menu.about": "À propos",

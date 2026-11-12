@@ -71,10 +71,10 @@ export function PhonePairingQr({ c, signedIn }: { c: PhoneSetupController; signe
       </p>
       <div className="relative mt-5 flex w-full items-center justify-between px-2">
         <button onClick={copy} className="text-[12px] text-ink-secondary hover:text-ink">{t("phone.code.e2e.copyLink")}</button>
-        <button onClick={() => setStoreOpen((open) => !open)} aria-expanded={storeOpen} className="text-[12px] text-ink-secondary hover:text-ink">
+        {IOS_APP_STORE_URL && ANDROID_APK_URL && <button onClick={() => setStoreOpen((open) => !open)} aria-expanded={storeOpen} className="text-[12px] text-ink-secondary hover:text-ink">
           {t("phone.code.e2e.getApp")}
-        </button>
-        {storeOpen && (
+        </button>}
+        {storeOpen && IOS_APP_STORE_URL && ANDROID_APK_URL && (
           <div className="absolute bottom-8 right-0 z-10 rounded-xl border border-hairline/40 bg-card p-4 shadow-lg">
             <div className="flex gap-4">
               {[["App Store", IOS_APP_STORE_URL], ["Android", ANDROID_APK_URL]].map(([label, url]) => (

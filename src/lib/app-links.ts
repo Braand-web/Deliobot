@@ -15,8 +15,9 @@ export function withSource(url: string, source: string): string {
   return target.href;
 }
 export const LICENSE_URL = `${APP_REPOSITORY}/blob/main/LICENSE`;
-export const IOS_APP_STORE_URL = "https://apps.apple.com/in/app/delio/id6803387923";
-export const ANDROID_APK_URL = `${APP_REPOSITORY}/releases/download/android-v1.5.0/OpenDeliobot.apk`;
+/** Deliobot's own phone apps; null until they are published, and the app says they are coming soon. */
+export const IOS_APP_STORE_URL: string | null = null;
+export const ANDROID_APK_URL: string | null = null;
 
 export function appVersion(): string {
   return typeof __APP_VERSION__ === "string" ? __APP_VERSION__ : "dev";

@@ -23,7 +23,7 @@ export function createDelioPlans(deps: { config: () => Pick<AppConfig, "delio">;
 
   async function load(): Promise<DelioCatalog | null> {
     const { portal, workspace } = delioBillingTarget(deps.config(), deps.env ?? process.env);
-    const billingUrl = `${portal}/billing${workspace ? `?workspace=${encodeURIComponent(workspace)}` : ""}`;
+    const payUrl = `${portal}/pay${workspace ? `?workspace=${encodeURIComponent(workspace)}` : ""}`;
     if (!cached || cached.portal !== portal || now() >= cached.until) {
       let body: unknown = null;
       try {
@@ -35,7 +35,7 @@ export function createDelioPlans(deps: { config: () => Pick<AppConfig, "delio">;
       }
       cached = { portal, until: now() + (body ? TTL_MS : RETRY_MS), body };
     }
-    return parseDelioCatalog(cached.body, billingUrl);
+    return parseDelioCatalog(cached.body, payUrl);
   }
 
   const routes: RouteHandler = async ({ res, path, method, json }) => {

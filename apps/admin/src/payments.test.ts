@@ -212,6 +212,23 @@ describe("plans paid through SasPay", () => {
     expect((await target.account()).credits).toBe(4500);
   });
 
+  it("opens SasPay's checkout in one click from the site or the app, signing in first and making a newcomer's workspace", async () => {
+    const clock = { now: Date.now() };
+    const saspay = fakeSasPay();
+    const target = await portal(saspay, clock);
+    const own = await target.get("/pay?workspace=acme&plan=pro&cycle=year");
+    expect(own.status).toBe(303);
+    expect(own.headers.get("location")).toBe("https://pay.saspay.me/checkout/cs_1");
+    expect(saspay.calls.at(-1)!.body).toMatchObject({ currency: "XOF", metadata: { workspace: "acme" } });
+    expect((await target.get("/pay?topup=small")).headers.get("location")).toBe("https://pay.saspay.me/checkout/cs_2");
+
+    await target.signIn("new@delio.test");
+    const fresh = await target.get("/pay?plan=trial");
+    expect(fresh.headers.get("location")).toBe("https://pay.saspay.me/checkout/cs_3");
+    expect(saspay.calls.at(-1)!.body).toMatchObject({ customer_email: "new@delio.test", metadata: { workspace: expect.stringMatching(/^me-/) } });
+    expect(saspay.calls.at(-1)!.body, "no country is imposed: SasPay offers every country it serves").not.toHaveProperty("country");
+  });
+
   it("publishes the catalog in dollars with its franc prices; only Starter, Pro and Max are listed for the site", async () => {
     const clock = { now: Date.now() };
     const target = await portal(fakeSasPay(), clock);

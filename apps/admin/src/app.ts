@@ -166,6 +166,46 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   const html = (res: ServerResponse, status: number, input: Parameters<typeof page>[0], headers: Record<string, string | string[]> = {}) =>
     send(res, status, page({ ...input, brand: operatorConsole ? "Delio Admin" : "Delio" }), "text/html; charset=utf-8", headers);
 
+  /** Opens SasPay's checkout for a plan or a top-up of this workspace, or shows the billing page with what stopped it. */
+  async function openCheckout(res: ServerResponse, user: Account, workspace: Workspace, input: { kind: string; plan: string; topup: string; cycle: string }): Promise<void> {
+    const fail = (status: number, error: string) => html(res, status, { title: "Billing", email: user.email, body: billing(workspace, user, { error }) });
+    if (!saspay) return fail(503, "Payments are not set up on this Delio deployment yet.");
+    const kind = input.kind;
+    const plan = input.plan as PlanId;
+    const topup = input.topup as TopupId;
+    const cycle: Cycle = input.cycle === "year" ? "year" : "month";
+    if (kind === "plan" && !Object.hasOwn(PLANS, plan)) return fail(400, "Choose a plan.");
+    if (kind === "topup" && !TOPUPS.some((pack) => pack.id === topup)) return fail(400, "Choose a top-up.");
+    if (kind !== "plan" && kind !== "topup") return fail(400, "Choose a plan or a top-up.");
+    if (kind === "plan" && plan === "trial" && plans.trialUsed(user.email, workspace.slug)) return fail(409, "The trial was already used for this account or workspace.");
+    const order = kind === "plan"
+      ? plans.createOrder({ workspace: workspace.slug, email: user.email, kind, plan, cycle }, currency, options.payments?.xofPerUsd)
+      : plans.createOrder({ workspace: workspace.slug, email: user.email, kind, topup }, currency, options.payments?.xofPerUsd);
+    const description = kind === "plan"
+      ? `Delio ${PLANS[plan].name} · ${plan === "trial" ? `${TRIAL_DAYS} days` : order.cycle === "year" ? "1 year" : "1 month"}`
+      : `Delio credits · ${order.credits}`;
+    try {
+      const session = await saspay.createCheckout({ amount: order.amount, currency, description, email: user.email, name: user.email,
+        returnUrl: new URL(`/billing/return?order=${order.id}`, publicUrl).href, metadata: { order: order.id, workspace: workspace.slug } });
+      plans.attachSession(order.id, session.id, session.checkoutUrl);
+      store.audit(workspace.slug, user.email, "billing.checkout", `${order.id}:${order.amount} ${currency}`);
+      res.statusCode = 303;
+      res.setHeader("cache-control", "no-store");
+      res.setHeader("location", session.checkoutUrl);
+      return void res.end();
+    } catch (error) {
+      plans.markFailed(order.id);
+      return fail(502, `The payment page could not be opened (${error instanceof Error ? error.message : "error"}). Try again in a moment.`);
+    }
+  }
+
+  /** The person's own workspace, for an app or a payment that needs one before they made any. */
+  function personalWorkspace(user: Account): Workspace {
+    const slug = `me-${token(6).toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 8).padEnd(8, "x")}`;
+    store.createWorkspace({ slug, name: `${user.email} (personal)`, tenantUrl: publicUrl.origin, ownerEmail: user.email }, user.email);
+    return store.workspace(slug)!;
+  }
+
   function redirect(res: ServerResponse, location: string, cookies: string[] = []): void {
     res.statusCode = 303;
     res.setHeader("cache-control", "no-store");
@@ -552,8 +592,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       }
       let slug = text(body, "workspace", 64);
       if (slug === "personal") {
-        slug = `me-${token(6).toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 8).padEnd(8, "x")}`;
-        store.createWorkspace({ slug, name: `${user.email} (personal)`, tenantUrl: publicUrl.origin, ownerEmail: user.email }, user.email);
+        slug = personalWorkspace(user).slug;
       } else if (!admin.some((item) => item.slug === slug)) {
         return again(403, "Choose a workspace you administer.");
       }
@@ -566,35 +605,15 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     if (method === "POST" && path === "/billing/checkout") {
       const body = await readBody(req);
       const workspace = requireWorkspaceAdmin(user, text(body, "workspace", 64));
-      const fail = (status: number, error: string) => html(res, status, { title: "Billing", email: user.email, body: billing(workspace, user, { error }) });
-      if (!saspay) return fail(503, "Payments are not set up on this Delio deployment yet.");
-      const kind = text(body, "kind", 8);
-      const plan = text(body, "plan", 16) as PlanId;
-      const topup = text(body, "topup", 16) as TopupId;
-      const cycle: Cycle = text(body, "cycle", 8) === "year" ? "year" : "month";
-      if (kind === "plan" && !Object.hasOwn(PLANS, plan)) return fail(400, "Choose a plan.");
-      if (kind === "topup" && !TOPUPS.some((pack) => pack.id === topup)) return fail(400, "Choose a top-up.");
-      if (kind !== "plan" && kind !== "topup") return fail(400, "Choose a plan or a top-up.");
-      if (kind === "plan" && plan === "trial" && plans.trialUsed(user.email, workspace.slug)) return fail(409, "The trial was already used for this account or workspace.");
-      const order = kind === "plan"
-        ? plans.createOrder({ workspace: workspace.slug, email: user.email, kind, plan, cycle }, currency, options.payments?.xofPerUsd)
-        : plans.createOrder({ workspace: workspace.slug, email: user.email, kind, topup }, currency, options.payments?.xofPerUsd);
-      const description = kind === "plan"
-        ? `Delio ${PLANS[plan].name} · ${plan === "trial" ? `${TRIAL_DAYS} days` : order.cycle === "year" ? "1 year" : "1 month"}`
-        : `Delio credits · ${order.credits}`;
-      try {
-        const session = await saspay.createCheckout({ amount: order.amount, currency, description, email: user.email, name: user.email,
-          returnUrl: new URL(`/billing/return?order=${order.id}`, publicUrl).href, metadata: { order: order.id, workspace: workspace.slug } });
-        plans.attachSession(order.id, session.id, session.checkoutUrl);
-        store.audit(workspace.slug, user.email, "billing.checkout", `${order.id}:${order.amount} ${currency}`);
-        res.statusCode = 303;
-        res.setHeader("cache-control", "no-store");
-        res.setHeader("location", session.checkoutUrl);
-        return void res.end();
-      } catch (error) {
-        plans.markFailed(order.id);
-        return fail(502, `The payment page could not be opened (${error instanceof Error ? error.message : "error"}). Try again in a moment.`);
-      }
+      return openCheckout(res, user, workspace, { kind: text(body, "kind", 8), plan: text(body, "plan", 16), topup: text(body, "topup", 16), cycle: text(body, "cycle", 8) });
+    }
+    // One click from the site or the app: straight to SasPay's checkout, the person's own workspace made if needed.
+    if (method === "GET" && path === "/pay") {
+      const asked = url.searchParams.get("workspace");
+      const workspace = asked ? requireWorkspaceAdmin(user, asked) : store.workspacesOf(user.id).find((item) => item.role === "admin") ?? personalWorkspace(user);
+      const pick = (name: string, max: number) => (url.searchParams.get(name) ?? "").slice(0, max);
+      const topup = pick("topup", 16);
+      return openCheckout(res, user, workspace, { kind: topup ? "topup" : "plan", plan: pick("plan", 16), topup, cycle: pick("cycle", 8) });
     }
     if (method === "GET" && path === "/billing/return") {
       const order = plans.order(url.searchParams.get("order") ?? "");

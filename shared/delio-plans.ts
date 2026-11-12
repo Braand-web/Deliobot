@@ -22,18 +22,18 @@ export interface DelioPlan {
 
 export interface DelioTopup { id: string; credits: number; usd: number; francs: number }
 
-/** `GET /api/delio/plans`: the catalog, and the portal page where an admin pays for one of its entries. */
+/** `GET /api/delio/plans`: the catalog, and the portal address that opens SasPay's checkout for one of its entries. */
 export interface DelioCatalog {
   trialDays: number;
   recommended: string;
   plans: DelioPlan[];
   topups: DelioTopup[];
-  billingUrl: string;
+  payUrl: string;
 }
 
-/** Where Choose leads: the portal's Billing page with the plan or top-up picked, where the admin signs in and pays. */
-export function delioCheckoutUrl(billingUrl: string, pick: Record<string, string>): string {
-  const url = new URL(billingUrl);
+/** Where Choose leads: the portal signs the person in if needed, then opens SasPay's checkout for the plan or top-up picked. */
+export function delioCheckoutUrl(payUrl: string, pick: Record<string, string>): string {
+  const url = new URL(payUrl);
   for (const [key, value] of Object.entries(pick)) url.searchParams.set(key, value);
   return url.href;
 }
@@ -63,12 +63,12 @@ function topup(input: unknown): DelioTopup | null {
 }
 
 /** The portal's catalog as the apps trust it: unknown or malformed entries are dropped, and nothing is left without a plan. */
-export function parseDelioCatalog(input: unknown, billingUrl: string): DelioCatalog | null {
+export function parseDelioCatalog(input: unknown, payUrl: string): DelioCatalog | null {
   if (!record(input)) return null;
   const plans = (Array.isArray(input.plans) ? input.plans.slice(0, 12) : []).map(plan).filter((item): item is DelioPlan => item !== null);
   if (!plans.length) return null;
   const topups = (Array.isArray(input.topups) ? input.topups.slice(0, 6) : []).map(topup).filter((item): item is DelioTopup => item !== null);
   const recommended = typeof input.recommended === "string" && plans.some((item) => item.id === input.recommended) ? input.recommended : plans[0]!.id;
   const trialDays = whole(input.trialDays) && input.trialDays >= 1 && input.trialDays <= 30 ? input.trialDays : 3;
-  return { trialDays, recommended, plans, topups, billingUrl };
+  return { trialDays, recommended, plans, topups, payUrl };
 }
