@@ -526,7 +526,7 @@ export function HiddenEngines() {
 export function EnginesSettings({ simple = false, more }: { simple?: boolean; more?: { id: string; open: boolean; onToggle: () => void } }) {
   const { state } = useStore();
   const locked = ownAiLocked(useDelioAccount());
-  // Leaving Settings ends the "now uses the copy OpenDeliobot installed" lines.
+  // Leaving Settings ends the "now uses the copy Deliobot installed" lines.
   useEffect(() => forgetAppCopySwitches, []);
   const listed = state.instances.filter((i) => (!locked || i.instanceId === DELIO_INSTANCE_ID)).filter((i) => i.readOnly || i.cli !== undefined || i.cliDefault !== undefined || i.snapshot.state === "unavailable" || isApiKeyEngine(i) || i.claudeEndpoint !== undefined || i.claudeBedrock !== undefined || i.codexEndpoint !== undefined);
   // A provider's accounts share one card, which takes the place of its first account.

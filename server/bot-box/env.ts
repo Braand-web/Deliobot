@@ -2,7 +2,7 @@
 // the workspace credentials and every ODB_CLOUD_ setting before a spawn (server/config.ts stripWorkspaceCredentialEnv);
 // this is the second gate, applied at the box boundary, so a name a driver forgot never reaches a bot's shell.
 
-/** Names a bot's engine, its tools and the proxies OpenDeliobot starts inside the box may read. */
+/** Names a bot's engine, its tools and the proxies Deliobot starts inside the box may read. */
 export const BOX_ENV_NAMES: ReadonlySet<string> = new Set([
   "PATH", "HOME", "USER", "LOGNAME", "SHELL", "HOSTNAME", "PWD",
   "LANG", "LANGUAGE", "TZ", "TERM", "COLORTERM", "TMPDIR", "NO_COLOR", "FORCE_COLOR", "CI", "DEBUG",
@@ -13,7 +13,7 @@ export const BOX_ENV_NAMES: ReadonlySet<string> = new Set([
   "GIT_AUTHOR_NAME", "GIT_AUTHOR_EMAIL", "GIT_COMMITTER_NAME", "GIT_COMMITTER_EMAIL",
 ]);
 
-/** OpenDeliobot's own variables a boxed process reads: what the harness sets for a bot's engine, its hooks and the MCP
+/** Deliobot's own variables a boxed process reads: what the harness sets for a bot's engine, its hooks and the MCP
  * proxies it starts. Security: no other `ODB_` name passes, whatever the operator set on the server (an SMTP URL, a
  * token); env.test.ts lists every `ODB_` name the server knows, so a new one needs a decision. */
 export const BOX_ENV_ODB_NAMES: ReadonlySet<string> = new Set([
@@ -54,7 +54,7 @@ export const BOX_ENV_NEVER_PREFIXES: readonly string[] = ["ODB_CLOUD_"];
 
 /** `allow` is what one spawn vouches for: the keys the person saved for its engine, under whatever name that engine reads
  * (NANO_GPT_API_KEY, OPENCODE_API_KEY). Security: it lifts the allow-list and `deny` for that process only, and never for
- * a name of OpenDeliobot's own (`ODB_`) or one on the never-list. */
+ * a name of Deliobot's own (`ODB_`) or one on the never-list. */
 export function boxEnvironmentAllows(name: string, deny: ReadonlySet<string> = new Set(), allow: ReadonlySet<string> = new Set()): boolean {
   if (BOX_ENV_NEVER.has(name) || BOX_ENV_NEVER_PREFIXES.some((prefix) => name.startsWith(prefix))) return false;
   if (allow.has(name) && !name.startsWith("ODB_")) return true;

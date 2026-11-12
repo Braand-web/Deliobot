@@ -4,8 +4,8 @@
 
 /** The server did not answer the check, or answered something that is not "busy": nobody is using the computer. */
 export function screenCheckFailedText(detail) {
-  return `OpenDeliobot on this computer could not check whether its screen is free (${detail}), so this call was not performed. ` +
-    "This is not a person using the computer. Try again in a few seconds; if it keeps happening, tell the person to quit and reopen OpenDeliobot on that computer.";
+  return `Deliobot on this computer could not check whether its screen is free (${detail}), so this call was not performed. ` +
+    "This is not a person using the computer. Try again in a few seconds; if it keeps happening, tell the person to quit and reopen Deliobot on that computer.";
 }
 
 async function refusal(response) {

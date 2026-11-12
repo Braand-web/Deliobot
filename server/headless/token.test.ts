@@ -107,7 +107,7 @@ describe("token", () => {
     const file = join(dir, "old-token");
     const made = await run(["token", "create", "CI", "--out", file]);
     expect(made.code).toBe(5);
-    expect(made.err[0]).toBe("error: this OpenDeliobot server cannot make access tokens");
+    expect(made.err[0]).toBe("error: this Deliobot server cannot make access tokens");
     expect(registry.list()).toEqual([]);
     expect(() => readFileSync(file)).toThrow();
   });

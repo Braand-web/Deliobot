@@ -34,7 +34,7 @@ export interface CloudAccountState {
   addCloud?: { canAdd: true } | { canAdd: false; blocked: CloudAddBlock };
   /** With `clouds`, for the account a Team plan with organizations is billed to: whether ＋ may add one to it now. */
   organizations?: import("./cloud-list.mjs").CloudOrganizations;
-  /** The newest OpenDeliobot release the Admin knows, while it follows releases (with `clouds`); absent otherwise. */
+  /** The newest Deliobot release the Admin knows, while it follows releases (with `clouds`); absent otherwise. */
   latestVersion?: string;
   /** Another Cloud this app is buying (in the last 24 hours): its id, name, swatch and plan, when its checkout opened,
    * whether main keeps that page (`link`), and `done` once it was opened or announced. */

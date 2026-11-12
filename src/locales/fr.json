@@ -1601,7 +1601,7 @@
   "phone.code.expired": "Ce code a expiré",
   "phone.code.title": "Scannez ou saisissez le code",
   "phone.code.expiredDetail": "Créez un nouveau code quand l’autre appareil est prêt.",
-  "phone.code.detail": "Scannez ce code dans OpenDelio sur iPhone, ou saisissez l’adresse et le code des détails d’appairage dans une autre application de bureau.",
+  "phone.code.detail": "Scannez ce code dans Delio sur iPhone, ou saisissez l’adresse et le code des détails d’appairage dans une autre application de bureau.",
   "phone.code.qrAria": "QR code d’appairage de l’appareil",
   "phone.code.createNew": "Créer un nouveau code",
   "phone.code.trouble": "Un souci ?",

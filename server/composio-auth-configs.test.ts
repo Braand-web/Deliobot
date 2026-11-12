@@ -382,7 +382,7 @@ describe("custom auth configs made in the Composio dashboard", () => {
     const failed = await callTool(cfg, "BUFFER_LIST_POSTS");
     expect(failed.result.content[0]!.text).toContain(NO_MANAGED_AUTH("buffer"));
     expect(failed.result.content[1]!.text).toBe(
-      "OpenDeliobot note: buffer has no Composio-managed sign-in. buffer connects with the person's own Composio auth config "
+      "Deliobot note: buffer has no Composio-managed sign-in. buffer connects with the person's own Composio auth config "
       + 'ac_buffer_new. Call COMPOSIO_MANAGE_CONNECTIONS with toolkits ["buffer"] to show the person a card that connects '
       + "it, then end the turn. Do not retry this call before that.",
     );
@@ -412,17 +412,17 @@ describe("custom auth configs made in the Composio dashboard", () => {
 
     await expect(authorizeService(cfg, "xero")).rejects.toMatchObject({
       status: 409,
-      message: "OpenDeliobot could not turn on Tool Router for your xero auth config ac_xero_scoped, which Composio needs before "
+      message: "Deliobot could not turn on Tool Router for your xero auth config ac_xero_scoped, which Composio needs before "
         + "it uses it. Check that your Composio project key may edit auth configs. Composio said: This API key may not edit auth configs",
     });
     const reply = await callTool(cfg, "XERO_LIST_INVOICES");
-    expect(reply.result.content[1]!.text).toMatch(/^OpenDeliobot note: OpenDeliobot could not turn on Tool Router for your xero auth config/);
+    expect(reply.result.content[1]!.text).toMatch(/^Deliobot note: Deliobot could not turn on Tool Router for your xero auth config/);
   });
 });
 
-describe("OpenDeliobot's managed connected apps", () => {
+describe("Deliobot's managed connected apps", () => {
   const managed = {} as AppConfig;
-  const plainLine = "xero needs your own OAuth app. Add your Composio project key in Settings → API keys; OpenDeliobot then "
+  const plainLine = "xero needs your own OAuth app. Add your Composio project key in Settings → API keys; Deliobot then "
     + "uses your xero auth config from that project. Connect again.";
 
   it("answers a toolkit that needs the person's own OAuth app with one plain line instead of Composio's error", async () => {
@@ -436,8 +436,8 @@ describe("OpenDeliobot's managed connected apps", () => {
     expect(calls.slice(before)).toEqual([]);
 
     const reply = await callTool(managed, "XERO_LIST_INVOICES");
-    expect(reply.result.content[1]!.text).toContain("OpenDeliobot's built-in connected apps cannot use. Tell the person: add their own Composio project key in Settings → API keys");
-    expect(reply.result.content[1]!.text).toContain("OpenDeliobot then picks that auth config up on its own");
+    expect(reply.result.content[1]!.text).toContain("Deliobot's built-in connected apps cannot use. Tell the person: add their own Composio project key in Settings → API keys");
+    expect(reply.result.content[1]!.text).toContain("Deliobot then picks that auth config up on its own");
     expect(calls.slice(before).some((call) => call.path.startsWith("/api/"))).toBe(false);
   });
 });

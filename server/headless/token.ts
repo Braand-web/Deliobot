@@ -35,7 +35,7 @@ async function create(ctx: VerbContext): Promise<VerbOutcome> {
   if (session.token !== true) {
     // A server from before tokens opened an ordinary session that renews itself: end it rather than hand it out.
     if (typeof session.id === "string") await client.json(`/api/auth/sessions/${encodeURIComponent(session.id)}`, { method: "DELETE" }).catch(() => undefined);
-    throw new HeadlessError("this OpenDeliobot server cannot make access tokens", EXIT.unreachable, "update OpenDeliobot on the server, or use opendeliobot connect");
+    throw new HeadlessError("this Deliobot server cannot make access tokens", EXIT.unreachable, "update Deliobot on the server, or use opendeliobot connect");
   }
   writeTokenFile(out, paired.token, ctx.flags.force === true);
   return {

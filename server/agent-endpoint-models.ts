@@ -61,7 +61,7 @@ export async function discoverAgentEndpointModels(entry: InstanceConfig, fetchIm
   // Same rule as checkProviderKey: the key goes out only over HTTPS, or over plain HTTP to this computer.
   const target = new URL(modelsUrl);
   if (target.protocol !== "https:" && !(target.protocol === "http:" && isLoopback(target.hostname))) {
-    throw failure(`OpenDeliobot reads a model list only over HTTPS or from this computer, so your key is not sent in the clear.${TYPE_MODEL}`);
+    throw failure(`Deliobot reads a model list only over HTTPS or from this computer, so your key is not sent in the clear.${TYPE_MODEL}`);
   }
   let response: Response;
   try {
@@ -72,9 +72,9 @@ export async function discoverAgentEndpointModels(entry: InstanceConfig, fetchIm
   } catch (error) {
     const timeout = error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
     const localHint = isLoopback(new URL(modelsUrl).hostname)
-      ? " localhost refers to OpenDeliobot's server or container. If both apps run on this computer, try 127.0.0.1; otherwise use an address reachable from that server."
-      : " Check that the gateway address is reachable from OpenDeliobot's server.";
-    throw failure((timeout ? "The request timed out." : "OpenDeliobot's server could not reach the gateway.") + localHint);
+      ? " localhost refers to Deliobot's server or container. If both apps run on this computer, try 127.0.0.1; otherwise use an address reachable from that server."
+      : " Check that the gateway address is reachable from Deliobot's server.";
+    throw failure((timeout ? "The request timed out." : "Deliobot's server could not reach the gateway.") + localHint);
   }
   if (!response.ok) await response.body?.cancel().catch(() => {});
   if (response.status === 401 || response.status === 403) {

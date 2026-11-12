@@ -1,6 +1,6 @@
 const TOKEN = /^[0-9a-f]{64}$/;
 
-/** OpenDeliobot's connected-apps service (cloudflare/composio-broker): the packaged desktop app and a Cloud home use it. */
+/** Deliobot's connected-apps service (cloudflare/composio-broker): the packaged desktop app and a Cloud home use it. */
 export const DEFAULT_MANAGED_COMPOSIO_BROKER_URL = "https://apps.deliobot.fun";
 
 /** ODB_COMPOSIO_BROKER=off: nothing reaches the managed service, whatever else is set. */

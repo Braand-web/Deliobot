@@ -156,7 +156,7 @@ describe("ChatGPT plan accounts over isolated HTTP", () => {
     ] as const) {
       const refused = await api("POST", "/api/instances/chatgpt/auth/start", {}, { ...owner, [header]: value });
       expect(refused.status).toBe(403);
-      expect(refused.body.error).toContain("computer running OpenDeliobot");
+      expect(refused.body.error).toContain("computer running Deliobot");
       expect(refused.body).not.toHaveProperty("auth");
     }
   });

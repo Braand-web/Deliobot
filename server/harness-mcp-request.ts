@@ -1,4 +1,4 @@
-// One MCP request to OpenDeliobot's own browser, computer, data, Email or phone tools, made with a turn's capability: the
+// One MCP request to Deliobot's own browser, computer, data, Email or phone tools, made with a turn's capability: the
 // stdio proxy an engine starts and the HTTP endpoint an engine reaches both answer through it.
 import { DATA_INSTRUCTIONS } from "./data/instructions.ts";
 import { EMAIL_INSTRUCTIONS } from "./email/instructions.ts";
@@ -29,10 +29,10 @@ export function parseHarnessMcpKind(value: unknown): HarnessMcpKind | null {
 function unansweredText(error: unknown, name: string, timeoutMs: number): string {
   const code = (error as { cause?: { code?: unknown } } | null)?.cause?.code;
   const call = `this ${name.toLowerCase()} call`;
-  if (code === "ECONNREFUSED") return `OpenDeliobot is restarting, so ${call} did not reach it and did not run. Wait a few seconds, then make it again.`;
-  if (code === "ECONNRESET" || code === "UND_ERR_SOCKET") return `OpenDeliobot restarted while ${call} was running, so it may or may not have taken effect. Check its result before repeating it.`;
+  if (code === "ECONNREFUSED") return `Deliobot is restarting, so ${call} did not reach it and did not run. Wait a few seconds, then make it again.`;
+  if (code === "ECONNRESET" || code === "UND_ERR_SOCKET") return `Deliobot restarted while ${call} was running, so it may or may not have taken effect. Check its result before repeating it.`;
   if ((error as { name?: unknown } | null)?.name === "TimeoutError") {
-    return `OpenDeliobot did not answer ${call} within ${timeoutMs / 1_000} seconds. It may still be running, or it may already have taken effect. Do not repeat it until its result is checked.`;
+    return `Deliobot did not answer ${call} within ${timeoutMs / 1_000} seconds. It may still be running, or it may already have taken effect. Do not repeat it until its result is checked.`;
   }
   return error instanceof Error && !/fetch failed|abort|timeout|terminated/i.test(error.message)
     ? error.message : `${name} connection was interrupted. Do not repeat the action until its state is checked.`;
@@ -83,7 +83,7 @@ export async function harnessMcpRequest(
   try {
     const url = new URL(connection.url);
     if (!connection.token || url.protocol !== "http:" || !["127.0.0.1", "localhost", "[::1]"].includes(url.hostname) || url.username || url.password || url.pathname !== "/" || url.search || url.hash) {
-      throw new Error(`${name} connection is not configured. Start a new bot turn from OpenDeliobot.`);
+      throw new Error(`${name} connection is not configured. Start a new bot turn from Deliobot.`);
     }
     const body = JSON.stringify({ method: message.method, params: message.params ?? {} });
     if (Buffer.byteLength(body) > MAX_INPUT_BYTES) throw new Error(`${name} request exceeded the size limit.`);

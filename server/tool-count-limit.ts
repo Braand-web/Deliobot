@@ -6,7 +6,7 @@ import { CHAT_TOOL_LIMIT } from "../shared/tool-budget.ts";
 
 /** The most tools one MCP server lists for this turn, in the environment of each server the turn hands an engine. */
 export const TOOL_LIMIT_ENV = "ODB_TOOL_LIMIT";
-/** The same on OpenDeliobot's own MCP endpoints, reached over HTTP. */
+/** The same on Deliobot's own MCP endpoints, reached over HTTP. */
 export const TOOL_LIMIT_HEADER = "x-odb-tool-limit";
 
 export function parseToolLimit(value: unknown): number | undefined {

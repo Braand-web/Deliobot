@@ -599,23 +599,23 @@ describe("thread control placement", () => {
     fixture.localMessage = "Screen Recording required";
     window.odb = { platform: "darwin", permOpenSettings: vi.fn(), relaunch: vi.fn() } as unknown as NonNullable<Window["odb"]>;
     const screen = renderToStaticMarkup(createElement(ErrorRow, {
-      message: "OpenDeliobot can't use this computer yet — embedded host failed: Screen Recording required. Relaunch OpenDeliobot after granting any missing macOS permission.",
+      message: "Deliobot can't use this computer yet — embedded host failed: Screen Recording required. Relaunch Deliobot after granting any missing macOS permission.",
     }));
     expect(screen).toContain("Open Screen Recording Settings");
-    expect(screen).toContain("Relaunch OpenDeliobot");
+    expect(screen).toContain("Relaunch Deliobot");
     expect(screen).not.toContain("Open Accessibility Settings");
     fixture.localMessage = "Accessibility required";
     const accessibility = renderToStaticMarkup(createElement(ErrorRow, {
-      message: "OpenDeliobot can't use this computer yet — Accessibility required",
+      message: "Deliobot can't use this computer yet — Accessibility required",
     }));
     expect(accessibility).toContain("Open Accessibility Settings");
     expect(accessibility).not.toContain("Open Screen Recording Settings");
     expect(renderToStaticMarkup(createElement(ErrorRow, {
-      message: "OpenDeliobot can't use this computer yet — Screen Recording required",
+      message: "Deliobot can't use this computer yet — Screen Recording required",
     }))).not.toContain("Open Screen Recording Settings");
     expect(renderToStaticMarkup(createElement(ErrorRow, { message: "Network timeout" }))).not.toContain("Open Screen Recording Settings");
     fixture.localReasonCode = "remote-server";
-    expect(renderToStaticMarkup(createElement(ErrorRow, { message: "OpenDeliobot can't use this computer yet — Screen Recording required" }))).not.toContain("Open Screen Recording Settings");
+    expect(renderToStaticMarkup(createElement(ErrorRow, { message: "Deliobot can't use this computer yet — Screen Recording required" }))).not.toContain("Open Screen Recording Settings");
     fixture.localReasonCode = "cua-driver-unavailable";
     fixture.platform = "other";
     fixture.localMessage = "";

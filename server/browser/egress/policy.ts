@@ -1,5 +1,5 @@
 // What a bot's browser may connect to: every address a destination resolves to gets a class, and the host
-// OpenDeliobot runs on decides which classes pass.
+// Deliobot runs on decides which classes pass.
 import { BlockList, isIP } from "node:net";
 import { z } from "zod";
 
@@ -15,7 +15,7 @@ export type Refusal = "odb" | "this-computer" | "local-network" | "link-local" |
 
 /** How a refusal reads in the page-health line. */
 export const REFUSAL_TEXT: Record<Refusal, string> = {
-  odb: "OpenDeliobot's own service",
+  odb: "Deliobot's own service",
   "this-computer": "a service on this computer that no bot started",
   "local-network": "the local network",
   "link-local": "a link-local address",
@@ -41,13 +41,13 @@ export function namesThisMachine(host: string): boolean {
 /** `browserEngine.egress` in config.json. */
 export const browserEgressConfigSchema = z.object({
   /** Self-hosted servers only: local-network or this-computer destinations bots' browsers may reach, as
-   * `10.0.0.5`, `192.168.1.0/24`, `10.0.0.5:8080`, `fd12::/48` or `[fd12::1]:443`. OpenDeliobot's own ports,
+   * `10.0.0.5`, `192.168.1.0/24`, `10.0.0.5:8080`, `fd12::/48` or `[fd12::1]:443`. Deliobot's own ports,
    * cloud metadata and link-local addresses stay closed. Delio Cloud ignores it. */
   allow: z.array(z.string().trim().max(64).refine((entry) => parseAllowEntry(entry) !== null, {
     message: "must be an IP address or CIDR range, with an optional :port",
   })).max(64).optional(),
   /** Desktop: false keeps bots' browsers off the local network (the default lets them reach it). Self-hosted
-   * servers: true lets them open this server's own sites and its local network (off by default); OpenDeliobot's
+   * servers: true lets them open this server's own sites and its local network (off by default); Deliobot's
    * own ports, cloud metadata and link-local addresses stay closed. Delio Cloud ignores it. */
   localNetwork: z.boolean().optional(),
 });
@@ -90,7 +90,7 @@ export function allowList(entries: readonly string[] | undefined): (address: str
 
 export interface EgressRules {
   host: EgressHost;
-  /** A port one of OpenDeliobot's own listeners holds on this machine. */
+  /** A port one of Deliobot's own listeners holds on this machine. */
   ownPort(port: number): boolean;
   /** Whether every listener on this loopback port belongs to a bot's processes. */
   botPort(port: number): Promise<boolean>;
@@ -115,7 +115,7 @@ export async function refusalFor(
     let kind = addressClass(address, own);
     // On the desktop these come from the person's own proxy: the local network, unless this computer holds the address.
     if (kind === "reserved" && rules.host === "desktop" && listed(FAKE_IP, address)) {
-      // The proxy picks the real destination, which may be this computer: never let it reach OpenDeliobot's own ports.
+      // The proxy picks the real destination, which may be this computer: never let it reach Deliobot's own ports.
       if (rules.ownPort(port)) return "odb";
       kind = listed(own, address) ? "this-machine" : "private";
     }
@@ -123,7 +123,7 @@ export async function refusalFor(
     if (kind === "metadata" || kind === "link-local" || kind === "reserved") return kind;
     if (kind === "private") {
       if (rules.host === "desktop" ? rules.localNetwork : rules.host === "server" && rules.allowed(address, port)) continue;
-      // The owner's switch opens the local network, but never OpenDeliobot's own ports through it (a Docker host's gateway).
+      // The owner's switch opens the local network, but never Deliobot's own ports through it (a Docker host's gateway).
       if (rules.host === "server" && rules.localNetwork) {
         if (rules.ownPort(port)) return "odb";
         continue;

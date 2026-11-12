@@ -40,7 +40,7 @@ describe("a lent screen's answers carry the fix", () => {
     expect(JSON.stringify(quarantined)).not.toContain("Ana");
     expect(texts(lentScreenResult(call("click"), failed("Computer-control transport closed")))[0]).toMatch(/^Computer control stopped on this computer because .*try the action once more/);
     expect(texts(lentScreenResult(call("click"), failed("Computer control is unavailable. Enable it in the local app and grant OS permissions first.")))[0]).toMatch(/^Computer control is not running on this computer\./);
-    expect(texts(lentScreenResult(call("click"), failed("fetch failed")))[0]).toMatch(/restart OpenDeliobot on that computer/);
+    expect(texts(lentScreenResult(call("click"), failed("fetch failed")))[0]).toMatch(/restart Deliobot on that computer/);
   });
   it("answers a click that was sent but whose after-check failed as sent; the same words from typing stay a failure", () => {
     const after = failed("foreground_unavailable: exact target HWND 0x30a5c or a verified same-process post-action window was not foreground after the click (actual foreground HWND 0x1f00)");

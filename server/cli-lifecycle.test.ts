@@ -328,7 +328,7 @@ describe("CLI startup lifecycle", () => {
     expect(output).toContain(`Link           ${pairingUrl}`);
     expect(output).toMatch(/[▀▄█]/);
     expect(output).toContain(`Or open ${origin}/pair on your phone and enter the code.`);
-    expect(output).toContain("On Android, open the OpenDeliobot app and scan the QR with its pairing scanner.");
+    expect(output).toContain("On Android, open the Deliobot app and scan the QR with its pairing scanner.");
     expect(output).toContain(qrToString(inviteUrl));
     expect(output).not.toContain(qrToString(pairingUrl));
     expect(output).toContain("client access: chat and approvals, not settings or pairing administration");

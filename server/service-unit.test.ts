@@ -24,7 +24,7 @@ describe("service units", () => {
 
   it("renders a systemd unit that restarts, runs as the user, and grants low ports only for --domain", () => {
     const unit = systemdUnit(spec);
-    expect(unit).toContain("Description=OpenDeliobot (agentada)");
+    expect(unit).toContain("Description=Deliobot (agentada)");
     expect(unit).toContain("User=delio");
     expect(unit).toContain("Environment=ODB_DATA_DIR=/home/delio/.opendeliobot");
     expect(unit).toContain("ExecStart=/usr/bin/node /usr/lib/node_modules/opendeliobot/cli.js serve --port 8799 --data-dir /home/delio/.opendeliobot --domain delio.example.com --no-pair");

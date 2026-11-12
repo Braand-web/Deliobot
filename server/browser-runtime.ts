@@ -912,7 +912,7 @@ export class BrowserRuntime {
     gate.closing = true;
     this.changed(gate);
     try {
-      if (!await closeBrowser()) throw new Error("The browser could not be closed. Ask the person to press Restart in the Browser panel of OpenDeliobot on their computer, or to restart OpenDeliobot.");
+      if (!await closeBrowser()) throw new Error("The browser could not be closed. Ask the person to press Restart in the Browser panel of Deliobot on their computer, or to restart Deliobot.");
       this.steps?.forget(session);
       this.launch?.stopped(session);
       await this.clients.get(session)?.client.stop();

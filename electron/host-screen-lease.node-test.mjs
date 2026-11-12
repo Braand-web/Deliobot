@@ -28,7 +28,7 @@ test("a screen check that fails says so, and never that a person is using the co
   for (const [fetch, detail] of cases) {
     const said = await refusal(fetch);
     assert.match(said, detail);
-    assert.match(said, /^OpenDeliobot on this computer could not check whether its screen is free \(.*\), so this call was not performed\. This is not a person using the computer\./);
+    assert.match(said, /^Deliobot on this computer could not check whether its screen is free \(.*\), so this call was not performed\. This is not a person using the computer\./);
     assert.doesNotMatch(said, /held by a person|in use locally/);
   }
   assert.match(screenCheckFailedText("x"), /quit and reopen OpenDeliobot/);

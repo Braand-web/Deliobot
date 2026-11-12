@@ -33,7 +33,7 @@ async function setup(extra: NodeJS.ProcessEnv) {
     const cli = (...args: string[]) => runControlOdb(args, { env: { OPENDELIOBOT_URL: url } }) as Promise<any>;
     const bot = (await cli("new-bot", "--name", "Warm summary probe")).bot;
     const thread = bot.activeTaskId as string;
-    // A 1M-window model, as on the trial: OpenDeliobot's own fold would wait for 180k, so Claude Code's comes first.
+    // A 1M-window model, as on the trial: Deliobot's own fold would wait for 180k, so Claude Code's comes first.
     await cli("set-model", "--bot", bot.id, "--instance", "claude", "--model", "claude-opus-5-5");
     const task = () => JSON.parse(readFileSync(join(session.info.dataDir, "bots.json"), "utf8"))
       .find((b: any) => b.id === bot.id).tasks.find((t: any) => t.threadId === thread);

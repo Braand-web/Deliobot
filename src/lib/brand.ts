@@ -15,7 +15,7 @@ export interface BrandStatus {
 }
 
 export const DEFAULT_BRAND: Brand = { name: "OpenDeliobot" };
-/** The product's name wherever a person reads it. OpenDeliobot names only the open-source project and its repository. */
+/** The product's name wherever a person reads it. Deliobot names only the open-source project and its repository. */
 export const PRODUCT_NAME = "Delio";
 
 let current: BrandStatus = { brand: DEFAULT_BRAND, source: "default", file: "" };

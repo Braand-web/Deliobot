@@ -98,8 +98,8 @@ test("a new language redraws main's menu, both trays, the window title and the b
 
   text.set("pt-br");
   context.applyNativeLanguage();
-  assert.deepEqual(calls, [["menu", "Servidor"], ["title", "OpenDeliobot — Hospedado: Office (office.example.test)"], ["badge", "Nenhuma conversa não lida"]]);
-  assert.deepEqual(said(trays[0]), ["Abrir o OpenDelio Bot", "Sair do OpenDelio Bot"]);
+  assert.deepEqual(calls, [["menu", "Servidor"], ["title", "Deliobot — Hospedado: Office (office.example.test)"], ["badge", "Nenhuma conversa não lida"]]);
+  assert.deepEqual(said(trays[0]), ["Abrir o Deliobot", "Sair do Deliobot"]);
   assert.deepEqual(said(trays[1]), ["My Cloud com acesso a este PC", "Pausar", "Permitir que os Clouds executem comandos neste PC", "Ver atividade"]);
-  assert.equal(trays[1].tip, "OpenDeliobot: My Cloud com acesso a este PC");
+  assert.equal(trays[1].tip, "Deliobot: My Cloud com acesso a este PC");
 });

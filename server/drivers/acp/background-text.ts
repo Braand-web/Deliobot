@@ -30,7 +30,7 @@ export interface AcpOneShotInput {
   timeoutMs?: number;
 }
 
-const REFUSAL = "OpenDeliobot background text allows no tools, files, terminals or approvals.";
+const REFUSAL = "Deliobot background text allows no tools, files, terminals or approvals.";
 
 export function runAcpOneShot(input: AcpOneShotInput): Promise<string> {
   const { signal, onUsage } = input.options ?? {};

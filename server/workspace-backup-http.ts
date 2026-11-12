@@ -117,7 +117,7 @@ export function createWorkspaceBackupRoutes(options: {
       if (method === "POST" && path === `${PREFIX}/client-state`) {
         const body = z.object({ restoreId: z.string().uuid() }).parse(await options.readBody(req));
         check(req, auth);
-        if (!options.restored.restored || body.restoreId !== options.restored.id) throw failure("This restore has not completed. Restart OpenDeliobot first.", 409);
+        if (!options.restored.restored || body.restoreId !== options.restored.id) throw failure("This restore has not completed. Restart Deliobot first.", 409);
         json(res, 200, { clientState: options.restored.clientState ?? {} });
         return true;
       }

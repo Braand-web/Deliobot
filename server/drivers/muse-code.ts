@@ -571,7 +571,7 @@ export const MuseCodeDriver: ProviderDriver<MuseConfig> = {
       attach(state, host);
       if (servers.length && !host.grantedMcp) {
         emit({ type: "runtime.notice", threadId: state.threadId, turnId,
-          message: "This Muse Code cannot take OpenDeliobot's tools (browser, teammates, apps). Update Muse Code to use them." });
+          message: "This Muse Code cannot take Deliobot's tools (browser, teammates, apps). Update Muse Code to use them." });
       }
       const config = servers.length && host.grantedMcp ? { config: { mcpServers } } : {};
       const resumeId = cursor ?? state.sessionId;

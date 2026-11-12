@@ -1649,7 +1649,7 @@
   "phone.code.expired": "Dieser Code ist abgelaufen",
   "phone.code.title": "Code scannen oder eingeben",
   "phone.code.expiredDetail": "Erstell einen neuen Code, wenn das andere Gerät bereit ist.",
-  "phone.code.detail": "Scanne diesen Code in OpenDelio auf dem iPhone, oder gib Adresse und Code aus den Kopplungsdetails in einer anderen Desktop-App ein.",
+  "phone.code.detail": "Scanne diesen Code in Delio auf dem iPhone, oder gib Adresse und Code aus den Kopplungsdetails in einer anderen Desktop-App ein.",
   "phone.code.qrAria": "QR-Code zur Gerätekopplung",
   "phone.code.createNew": "Neuen Code erstellen",
   "phone.code.trouble": "Probleme?",

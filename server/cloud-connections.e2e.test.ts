@@ -1,6 +1,6 @@
 // A move to the person's own Cloud carries this computer's connections, end to end: this computer's server and a Cloud
 // home (scripts/testing/cloud-send-fixture.ts), main's own functions between them (electron/cloud-connections.mjs) over
-// the private port and the owner session, OpenDeliobot's connected-apps service with a fake Composio behind it, a fake
+// the private port and the owner session, Deliobot's connected-apps service with a fake Composio behind it, a fake
 // sign-in server for an MCP server's own account. Disposable homes; no network.
 import { createHash, randomBytes } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
@@ -131,7 +131,7 @@ it("moves the MCP servers with their secrets and sign-ins, the keys and the conn
   expect(servers.find((server) => server.name === "notes")).toMatchObject({ enabled: true, runsOn: collected.computer });
   expect(servers.find((server) => server.name === "easy"), "a mail connector stays with its accounts, whatever programs My Cloud has").toMatchObject({ enabled: true, runsOn: collected.computer });
   const notesTest = await onCloud("POST", "/api/mcp/servers/notes/test");
-  expect(notesTest).toMatchObject({ status: 409, body: { error: `notes runs on ${collected.computer.label}, which isn't lent to My Cloud: it works once OpenDeliobot is open on that computer and signed in to My Cloud.` } });
+  expect(notesTest).toMatchObject({ status: 409, body: { error: `notes runs on ${collected.computer.label}, which isn't lent to My Cloud: it works once Deliobot is open on that computer and signed in to My Cloud.` } });
 
   // The sign-in moved: My Cloud refreshes it with the refresh token and the app's secret that came over...
   await onCloud("POST", "/api/mcp/servers/linear/test");

@@ -1,7 +1,7 @@
 import { noticeSummary, type ChatNoticeKey } from "../chat-notices.ts";
 // The phone integration's per-turn pieces: the mount, the prompt part and the internal MCP handler (owner check, per-bot
 // verdict, decision rows, the phone job, write activity). A send waits on the person's Send tap on the phone, never on a
-// card of OpenDeliobot's own.
+// card of Deliobot's own.
 import { isOutboundTool } from "../../shared/outbound.ts";
 import { PHONE_MCP_SERVER, phoneToolCapability, type PhoneCapability, type PhoneToolName } from "../../shared/phone-apps.ts";
 import { appendDecision } from "../decision-log.ts";

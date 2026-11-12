@@ -37,9 +37,9 @@ async function doctorOnce(ctx: VerbContext): Promise<VerbOutcome> {
   const problems: string[] = [];
   const warnings: string[] = [];
   const isOdb = health.app === "opendeliobot";
-  if (!isOdb) problems.push(`${client.baseUrl} answered, but it is not OpenDeliobot`);
+  if (!isOdb) problems.push(`${client.baseUrl} answered, but it is not Deliobot`);
   const tooOld = Boolean(server) && server!.capabilities?.jobs !== true;
-  if (tooOld) problems.push(`OpenDeliobot ${server!.version ?? "(unknown version)"} is too old for the headless commands: it cannot report a conversation's job`);
+  if (tooOld) problems.push(`Deliobot ${server!.version ?? "(unknown version)"} is too old for the headless commands: it cannot report a conversation's job`);
   if (isOdb && !availableCount) problems.push("no engine is available: set one up with `opendeliobot engine set KIND --key-env VAR`");
   if (session?.kind === "session" && typeof session.expiresAt === "number" && session.expiresAt - Date.now() < 14 * DAY) {
     warnings.push(`this session expires in ${Math.max(0, Math.floor((session.expiresAt - Date.now()) / DAY))} days: get a new one with opendeliobot connect`);
@@ -60,7 +60,7 @@ async function doctorOnce(ctx: VerbContext): Promise<VerbOutcome> {
     },
     exitCode: ok ? EXIT.done : isOdb && !tooOld ? EXIT.failed : EXIT.unreachable,
     human: [
-      `${server ? `OpenDeliobot ${server.version} ("${server.label}")` : "OpenDeliobot"} at ${client.baseUrl}: ${ok ? "ready" : "not ready"}`,
+      `${server ? `Deliobot ${server.version} ("${server.label}")` : "OpenDeliobot"} at ${client.baseUrl}: ${ok ? "ready" : "not ready"}`,
       `You are: ${who}`,
       `Engines available: ${availableEngines.length ? availableEngines.join(", ") : availableCount ? `${availableCount} (which ones needs a session)` : "none"}`,
       ...(browser ? [`Bots' browser: ${browser.kind === "engine" ? `installed${browser.version ? ` (${browser.version})` : ""}` : "not available"}`] : []),

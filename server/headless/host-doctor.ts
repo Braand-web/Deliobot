@@ -75,7 +75,7 @@ function systemCheck(probe: HostProbe): HostCheck {
 function archCheck(probe: HostProbe): HostCheck {
   if (probe.arch === "x64") return ok("arch", "x86_64");
   if (probe.arch === "arm64") return warn("arch", "arm64: the server runs here, but a self-hosted Team server is supported on x86_64 only");
-  return fail("arch", `${probe.arch}: OpenDeliobot's images are built for x86_64 and arm64 only`, "use an x86_64 server");
+  return fail("arch", `${probe.arch}: Deliobot's images are built for x86_64 and arm64 only`, "use an x86_64 server");
 }
 
 async function containerCheck(probe: HostProbe): Promise<HostCheck> {
@@ -213,7 +213,7 @@ async function portChecks(probe: HostProbe, options: HostOptions): Promise<HostC
   const taken = listeningPorts(probe);
   const ours = taken.has(options.port) && await probe.serverAnswers(options.port);
   const server = !taken.has(options.port) ? ok("port", `Port ${options.port} is free for the server`)
-    : ours ? ok("port", `OpenDeliobot already answers on port ${options.port}`)
+    : ours ? ok("port", `Deliobot already answers on port ${options.port}`)
       : fail("port", `Port ${options.port} is taken by another program`, `stop it (sudo ss -ltnp 'sport = :${options.port}' names it), or run the server with --port N`);
   const web = [80, 443].filter((port) => taken.has(port));
   if (!web.length) return [server, ok("web-ports", "Ports 80 and 443 are free")];
@@ -242,7 +242,7 @@ async function clockCheck(probe: HostProbe): Promise<HostCheck> {
 export async function checkHost(probe: HostProbe, options: HostOptions): Promise<HostCheck[]> {
   if (probe.platform !== "linux") {
     const name = probe.platform === "darwin" ? "macOS" : probe.platform === "win32" ? "Windows" : probe.platform;
-    return [fail("platform", `doctor --host checks a Linux server, and this is ${name}`, "run it on the Linux server that will host OpenDeliobot")];
+    return [fail("platform", `doctor --host checks a Linux server, and this is ${name}`, "run it on the Linux server that will host Deliobot")];
   }
   const [containers, ports, clock, connector] = await Promise.all([containerCheck(probe), portChecks(probe, options), clockCheck(probe), connectorReport(probe)]);
   return [systemCheck(probe), archCheck(probe), containers, userNamespaceCheck(probe, connector), seccompCheck(probe), cgroupCheck(probe),

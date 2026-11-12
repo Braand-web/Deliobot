@@ -50,7 +50,7 @@ export function agentUnit(spec: { node: string; script: string; operator: string
   return [
     "# Written by `opendeliobot fleet init`. The operator workspace creates and manages workspaces through this.",
     "[Unit]",
-    "Description=OpenDeliobot fleet agent",
+    "Description=Deliobot fleet agent",
     "After=network-online.target",
     "Wants=network-online.target",
     "",
@@ -148,7 +148,7 @@ export function templateUnit(spec: { node: string; script: string; layout?: Flee
   return [
     "# Written by `opendeliobot fleet init`. One unit for every workspace: %i is the slug.",
     "[Unit]",
-    "Description=OpenDeliobot workspace %i",
+    "Description=Deliobot workspace %i",
     "After=network-online.target opendeliobot-fence.service",
     "Wants=network-online.target",
     "Requires=opendeliobot-fence.service",
@@ -183,7 +183,7 @@ export function fenceUnit(layout = fleetLayout()): string {
   return [
     "# Written by `opendeliobot fleet init`: keeps each workspace's loopback ports to its own user.",
     "[Unit]",
-    "Description=OpenDeliobot per-workspace loopback fence",
+    "Description=Deliobot per-workspace loopback fence",
     "",
     "[Service]",
     "Type=oneshot",

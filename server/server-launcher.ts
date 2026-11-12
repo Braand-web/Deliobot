@@ -33,7 +33,7 @@ export function superviseServer(start: () => ChildProcess, options: { signals?: 
       child.once("error", () => finish(1));
       child.once("exit", (code, signal) => {
         if (policy.again(code, stopping)) {
-          console.log("OpenDeliobot is starting again to finish installing a copy from the desktop app…");
+          console.log("Deliobot is starting again to finish installing a copy from the desktop app…");
           run();
           return;
         }

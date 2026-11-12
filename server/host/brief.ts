@@ -138,7 +138,7 @@ export interface PresenceAnswer {
 
 export const WATCH_FAILURE = {
   "brief.row.watchUnreadable": "The watch's answer could not be read, so nothing was posted. Its emails and meetings wait for the next check.",
-  "brief.row.watchRestarted": "OpenDeliobot restarted before this run's answer was read; its emails and meetings wait for the next check.",
+  "brief.row.watchRestarted": "Deliobot restarted before this run's answer was read; its emails and meetings wait for the next check.",
 } as const;
 const watchFailureWords = (note: string): { note?: WidgetText } => {
   const key = (Object.keys(WATCH_FAILURE) as Array<keyof typeof WATCH_FAILURE>)

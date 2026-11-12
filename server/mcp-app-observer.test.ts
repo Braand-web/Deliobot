@@ -216,7 +216,7 @@ describe("the observer in a process", () => {
     expect(JSON.parse(proxy.env!.ODB_REMOTE_MCP_APPS!)).toEqual(mountFor("draw"));
     const { ask } = start(proxy);
     await ask(1, "initialize", { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "gemini", version: "1" } });
-    expect(fake.initializes).toEqual([{ protocolVersion: "2025-06-18", capabilities: { extensions: { [APP_EXTENSION_KEY]: { mimeTypes: [APP_MIME] } } }, clientInfo: { name: "OpenDeliobot tool proxy", version: "1" } }]);
+    expect(fake.initializes).toEqual([{ protocolVersion: "2025-06-18", capabilities: { extensions: { [APP_EXTENSION_KEY]: { mimeTypes: [APP_MIME] } } }, clientInfo: { name: "Deliobot tool proxy", version: "1" } }]);
     expect((await ask(2, "tools/list")).result.tools.map((tool: { name: string }) => tool.name)).toEqual(["create_view", "list_notes"]);
     expect((await ask(3, "tools/call", { name: "save_checkpoint", arguments: {} })).error).toEqual({ code: -32602, message: APP_ONLY_REFUSAL });
     expect((await ask(4, "tools/call", { name: "create_view", arguments: { elements: "[]" } })).result.structuredContent).toEqual({ elements: 2 });
@@ -236,7 +236,7 @@ describe("the observer in a process", () => {
     const { ask } = start(mcpStdioServer({ type: "http", url: fake.url, headers: {} }, { apps: mountFor("strict") })!);
     expect((await ask(1, "initialize", {})).result.serverInfo.name).toBe("fake-http-mcp");
     expect((await ask(2, "tools/list")).result.tools).toHaveLength(2);
-    const plain = { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "OpenDeliobot tool proxy", version: "1" } };
+    const plain = { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "Deliobot tool proxy", version: "1" } };
     expect(fake.initializes).toEqual([{ ...plain, capabilities: { extensions: { [APP_EXTENSION_KEY]: { mimeTypes: [APP_MIME] } } } }, plain]);
   }, 30_000);
 
@@ -244,7 +244,7 @@ describe("the observer in a process", () => {
     fake = await startFakeHttpMcp({ tools: HTTP_TOOLS });
     const plain = start(mcpStdioServer({ type: "http", url: fake.url, headers: {} })!);
     await plain.ask(1, "initialize", {});
-    expect(fake.initializes).toEqual([{ protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "OpenDeliobot tool proxy", version: "1" } }]);
+    expect(fake.initializes).toEqual([{ protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "Deliobot tool proxy", version: "1" } }]);
     expect((await plain.ask(2, "tools/list")).result.tools.map((tool: { name: string }) => tool.name)).toEqual(["create_view", "list_notes"]);
     const closed = once(child!, "close"); child!.kill(); await closed;
     const searched = start(mcpStdioServer({ type: "http", url: fake.url, headers: {} }, { directory: { name: "draw" } })!);

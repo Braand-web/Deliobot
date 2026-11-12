@@ -180,12 +180,12 @@ describe("setupSystemPrompt connected apps", () => {
     );
   });
 
-  it("says in one sentence where connected apps are set up when this OpenDeliobot has none", () => {
+  it("says in one sentence where connected apps are set up when this Deliobot has none", () => {
     expect(prompt({ state: "not-configured", host: "server" })).toContain(
       "Connected apps are not set up here, so you cannot connect an app such as Gmail yourself. If the job needs one, say so in one sentence: they are set up by adding a Composio project key in Settings → API keys, under Self-host connected apps.",
     );
     expect(prompt({ state: "not-configured", host: "desktop" })).toContain(
-      "restarting OpenDeliobot usually brings them back, or they can add their own Composio project key in Settings → API keys, under Self-host connected apps.",
+      "restarting Deliobot usually brings them back, or they can add their own Composio project key in Settings → API keys, under Self-host connected apps.",
     );
     const cloud = prompt({ state: "not-configured", host: "cloud" });
     expect(cloud).toContain("Connected apps come with their Delio Cloud plan but are not answering right now");

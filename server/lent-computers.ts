@@ -118,10 +118,10 @@ export class LentComputers {
   }
 }
 
-/** What makes a lent computer lend its apps and screen: OpenDeliobot on it lends them by itself once computer control works there. */
+/** What makes a lent computer lend its apps and screen: Deliobot on it lends them by itself once computer control works there. */
 export const lendScreenSteps = (device: "PC" | "Mac" | "computer") => device === "Mac"
-  ? "OpenDeliobot on that Mac lends them by itself once macOS allows it Accessibility and Screen Recording: tell the person in one sentence to allow both for OpenDeliobot in System Settings → Privacy & Security on that Mac, and to update OpenDeliobot there if it is an older version."
-  : `OpenDeliobot on that ${device} lends them by itself once its computer control works: tell the person in one sentence to check computer control in OpenDeliobot on that ${device}, and to update OpenDeliobot there if it is an older version.`;
+  ? "Deliobot on that Mac lends them by itself once macOS allows it Accessibility and Screen Recording: tell the person in one sentence to allow both for Deliobot in System Settings → Privacy & Security on that Mac, and to update Deliobot there if it is an older version."
+  : `Deliobot on that ${device} lends them by itself once its computer control works: tell the person in one sentence to check computer control in Deliobot on that ${device}, and to update Deliobot there if it is an older version.`;
 
 const dateText = (at: number) => new Date(at).toISOString().slice(0, 16).replace("T", " ") + " UTC";
 
@@ -151,7 +151,7 @@ export function awayNotice(known: LentComputer[], online: ReadonlySet<string>, a
   const device = deviceWord(latest.platform);
   const ask = askTool ? ` If the request needs it, call ${askTool}: it asks them with a one-tap Turn on, and you carry on once it's on. Don't explain the fix in chat.` : null;
   const say = latest.stoppedAt === null
-    ? `Their ${device} ${latest.name} is shared with the Cloud but offline (last online ${dateText(latest.lastSeenAt)}): OpenDeliobot on it is closed, or the ${device} is asleep or off.${ask ?? ` Ask them to open OpenDeliobot on that ${device}; it reconnects by itself.`}`
-    : `Their ${device} ${latest.name} no longer shares itself with the Cloud: OpenDeliobot on it is paused, or signed out of Delio Cloud.${ask ?? ` Ask them to choose Resume from OpenDeliobot's icon in the ${device === "Mac" ? "menu bar" : "taskbar"} on that ${device}, or sign in there again.`}`;
+    ? `Their ${device} ${latest.name} is shared with the Cloud but offline (last online ${dateText(latest.lastSeenAt)}): Deliobot on it is closed, or the ${device} is asleep or off.${ask ?? ` Ask them to open Deliobot on that ${device}; it reconnects by itself.`}`
+    : `Their ${device} ${latest.name} no longer shares itself with the Cloud: Deliobot on it is paused, or signed out of Delio Cloud.${ask ?? ` Ask them to choose Resume from Deliobot's icon in the ${device === "Mac" ? "menu bar" : "taskbar"} on that ${device}, or sign in there again.`}`;
   return { offline, say };
 }

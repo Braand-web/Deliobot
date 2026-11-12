@@ -50,8 +50,8 @@ const press = (label: string, Component = ProSettingsCard) => {
 it("for someone who may buy: what Cloud does, the Admin's lowest price and money-back; Start free trial and Compare plans both open the sheet, never the website", async () => {
   const html = await card(signedOut);
   for (const text of ["Delio Cloud", "Keeps your bots and routines running 24/7, even when this computer is off.", "Delio Cloud plans from $15/month + tax.",
-    "14-day money-back on every plan.", "OpenDeliobot on this computer stays free and open source.", "Compare plans", "Start free trial", "Sign in to your Cloud plan"]) expect(html).toContain(text);
-  for (const gone of ["ODB", "$89", "launch price", "New features first", "Get Pro", "OpenDeliobot Pro", "OpenDeliobot Cloud"]) expect(html).not.toContain(gone);
+    "14-day money-back on every plan.", "Deliobot on this computer stays yours.", "Compare plans", "Start free trial", "Sign in to your Cloud plan"]) expect(html).toContain(text);
+  for (const gone of ["ODB", "$89", "launch price", "New features first", "Get Pro", "Deliobot Pro", "Deliobot Cloud"]) expect(html).not.toContain(gone);
   press("Start free trial");
   expect(f.dispatch).toHaveBeenCalledWith({ type: "openCloudAdd", source: "app_settings" });
   f.dispatch.mockClear();

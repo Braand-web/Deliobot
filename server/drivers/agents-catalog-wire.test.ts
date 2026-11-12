@@ -116,7 +116,7 @@ const RPC_PREFIX = '{"jsonrpc":"2.0","id":1,"result":';
 
 /** One tools/list `result` from a fresh proxy, sliced out of the raw stdout line, never re-serialized. */
 async function toolsListWire(entry: string, env: Record<string, string>): Promise<string> {
-  // A developer shell or an OpenDeliobot turn can carry ODB_* switches; the profile must be the only source.
+  // A developer shell or an Deliobot turn can carry ODB_* switches; the profile must be the only source.
   const inherited = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith("ODB_")));
   const child = spawn(process.execPath, [entry], {
     env: { ...inherited, ODB_HARNESS_URL: "http://127.0.0.1:9", ODB_BOT_ID: "bot-golden", ODB_THREAD_ID: "thread-golden", ODB_COMMS_TOKEN: "unused", ODB_TURN_DEPTH: "0", ...env },

@@ -1,4 +1,4 @@
-// The AWS SDK inside Claude Code resolves a profile's SSO or credential_process itself; OpenDeliobot stores no AWS secret.
+// The AWS SDK inside Claude Code resolves a profile's SSO or credential_process itself; Deliobot stores no AWS secret.
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import { z } from "zod";

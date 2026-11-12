@@ -35,7 +35,7 @@ describe("botSettingsFor", () => {
     expect(botSettingsFor(file, thread, {})).toEqual(settings);
   });
 
-  it("leaves behind every other field, and each entry Claude Code would refuse, so OpenDeliobot's own settings still load", () => {
+  it("leaves behind every other field, and each entry Claude Code would refuse, so Deliobot's own settings still load", () => {
     const { file, thread } = folders({
       model: 123, statusLine: "x", outputStyle: 5, apiKeyHelper: "echo key", cleanupPeriodDays: "30", disableAllHooks: true,
       hooks: { PreToolUse: [guard, { matcher: 5, hooks: "x" }, { hooks: [{ command: "no type" }] }], Stop: "nope" },
@@ -88,7 +88,7 @@ describe("botSettingsFor", () => {
 });
 
 describe("withBotSettings", () => {
-  it("merges as Claude Code merges a project's settings under --settings: lists join, OpenDeliobot's own values win", () => {
+  it("merges as Claude Code merges a project's settings under --settings: lists join, Deliobot's own values win", () => {
     const odbStop = { matcher: "", hooks: [{ type: "command", command: "odb-hook", timeout: 5 }] };
     const botStop = { hooks: [{ type: "command", command: "/opt/notify.sh" }] };
     expect(withBotSettings(

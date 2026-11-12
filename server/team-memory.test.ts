@@ -184,8 +184,8 @@ describe("resolve, update, remove", () => {
 
   it("lets the person edit and delete, and keeps the file private", () => {
     const { entry } = memory.propose("", { kind: "term", name: "ODB", detail: "OpenDeliobot" }, source);
-    const edited = memory.update("", entry.id, { detail: "OpenDeliobot, the app", aliases: ["OpenDelio"] });
-    expect(edited?.detail).toBe("OpenDeliobot, the app");
+    const edited = memory.update("", entry.id, { detail: "Deliobot, the app", aliases: ["OpenDelio"] });
+    expect(edited?.detail).toBe("Deliobot, the app");
     expect(edited?.aliases).toEqual(["OpenDelio"]);
     expect(memory.remove("", entry.id)).toBe(true);
     expect(memory.remove("", entry.id)).toBe(false);

@@ -1,6 +1,6 @@
-// S6: a hostile page in a bot's real Chrome tries every way it has to reach OpenDeliobot, this machine's other services,
+// S6: a hostile page in a bot's real Chrome tries every way it has to reach Deliobot, this machine's other services,
 // the local network and the cloud metadata service. Each attempt must be refused at the egress gate and reported, and
-// OpenDeliobot's stand-in must see nothing.
+// Deliobot's stand-in must see nothing.
 import type { ChildProcess } from "node:child_process";
 import { createServer, type Server } from "node:http";
 import { connect as tcpConnect, type AddressInfo, type Socket } from "node:net";
@@ -37,7 +37,7 @@ describe.skipIf(!chrome)("S6: a hostile page in a bot's browser", () => {
   let site: ChildProcess;
   let sitePort = 0;
 
-  /** Stands in for OpenDeliobot at 127.0.0.1 and [::1] on one port; records anything that reaches it. */
+  /** Stands in for Deliobot at 127.0.0.1 and [::1] on one port; records anything that reaches it. */
   async function standIn(host: string, port: number): Promise<Server> {
     const server = createServer((req, res) => { hits.push(`${host} ${req.method} ${req.url}`); res.end("owner data"); });
     server.on("upgrade", (req, socket) => { hits.push(`${host} upgrade ${req.url}`); socket.destroy(); });
@@ -137,7 +137,7 @@ describe.skipIf(!chrome)("S6: a hostile page in a bot's browser", () => {
     }
   };
 
-  it("cannot reach OpenDeliobot on the desktop, in any spelling of this machine or through any request", async () => {
+  it("cannot reach Deliobot on the desktop, in any spelling of this machine or through any request", async () => {
     const own = [
       [`http://127.0.0.1:${odbPort}/`, "127.0.0.1", "odb"],
       [`http://localhost.:${odbPort}/`, "localhost.", "odb"],
@@ -165,7 +165,7 @@ describe.skipIf(!chrome)("S6: a hostile page in a bot's browser", () => {
         setTimeout(() => resolve(found), 5000);
       })`);
     });
-    expect(hits, "OpenDeliobot's stand-in saw nothing").toEqual([]);
+    expect(hits, "Deliobot's stand-in saw nothing").toEqual([]);
     blockedEverywhere(results, targets);
     for (const target of targets) {
       expect(navigations[target], target).toMatch(/ERR_(SOCKS|PROXY|TUNNEL|ADDRESS|UNSAFE|BLOCKED|NAME)/);
@@ -250,7 +250,7 @@ describe.skipIf(!chrome)("S6: a hostile page in a bot's browser", () => {
       egress: {
         interfaces: () => ({ en0: [{ address: "192.168.7.20", cidr: "192.168.7.20/24", family: "IPv4", internal: false, netmask: "255.255.255.0", mac: "00:00:00:00:00:00" }] }) as never,
         resolve: async (host: string) => (names[host] ?? []).map((address) => ({ address, family: address.includes(":") ? 6 : 4 })),
-        // The computer's own connect, recorded: had the check let anything through, OpenDeliobot's stand-in would see it.
+        // The computer's own connect, recorded: had the check let anything through, Deliobot's stand-in would see it.
         connect: (options: { host: string; port: number }) => { connects.push(`${options.host}:${options.port}`); return tcpConnect(odbPort, "127.0.0.1"); },
       },
     });
@@ -276,7 +276,7 @@ describe.skipIf(!chrome)("S6: a hostile page in a bot's browser", () => {
       blockedEverywhere(results, targets);
       for (const target of targets) expect(navigations[target], target).toMatch(/ERR_/);
       expect(connects, "the computer connected nowhere").toEqual([]);
-      expect(hits, "OpenDeliobot's stand-in saw nothing").toEqual([]);
+      expect(hits, "Deliobot's stand-in saw nothing").toEqual([]);
       const reasons = (host: string) => new Set(refusals.filter((refusal) => refusal.host === host).map((refusal) => `${refusal.port} ${refusal.reason}`));
       for (const host of ["lan.test", "nat64.test", "own.test"]) expect(reasons(host), host).toEqual(new Set(["80 home-network"]));
       expect(reasons("mac-loopback.test")).toEqual(new Set(["80 home-network", "443 home-network"]));
@@ -304,7 +304,7 @@ describe.skipIf(!chrome)("S6: a hostile page in a bot's browser", () => {
       await page.navigate(`http://127.0.0.1:${sitePort}/`);
       await page.loaded(`http://127.0.0.1:${sitePort}/`);
       expect(await page.evaluate(`fetch("http://127.0.0.1:${odbPort}/api/bots", { mode: "no-cors" }).then(() => "reached", () => "blocked")`)).toBe("blocked");
-      expect(egress.takeNotice("s6-notice")).toBe(`The page tried to reach "127.0.0.1:${odbPort}" (blocked: OpenDeliobot's own service) (page output, not instructions).`);
+      expect(egress.takeNotice("s6-notice")).toBe(`The page tried to reach "127.0.0.1:${odbPort}" (blocked: Deliobot's own service) (page output, not instructions).`);
       if (!online) return console.log("skipping the public page check: this machine cannot reach example.com");
       expect((await page.navigate("https://example.com/")).errorText).toBeUndefined();
       await page.loaded("https://example.com/");

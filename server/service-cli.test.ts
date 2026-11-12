@@ -87,7 +87,7 @@ describe("opendeliobot service", () => {
 
     // Windows gets a schtasks line, with the platform's own folder as --out
     expect(runServiceCommand({ ...base, sentinelOut: undefined, platform: "win32", dataDir: "C:\\Users\\delio\\.opendeliobot", home: "C:\\Users\\delio", env: {} }, io)).toBe(1);
-    expect(err.join("\n")).toContain('schtasks /Create /SC MINUTE /MO 2 /TN "OpenDeliobot Sentinel" /TR "\\"/usr/bin/node\\" \\"/usr/lib/node_modules/opendeliobot/cli.js\\" \\"sentinel\\"');
+    expect(err.join("\n")).toContain('schtasks /Create /SC MINUTE /MO 2 /TN "Deliobot Sentinel" /TR "\\"/usr/bin/node\\" \\"/usr/lib/node_modules/opendeliobot/cli.js\\" \\"sentinel\\"');
     expect(err.join("\n")).toContain("\\\"--out\\\" \\\"C:\\Users\\delio\\AppData\\Local\\opendeliobot-sentinel\\\"");
   });
 

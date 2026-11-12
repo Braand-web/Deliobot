@@ -21,7 +21,7 @@ export interface SetupImportRouteDeps {
 }
 
 export const SETUP_IMPORT_PATH = "/api/setup-import";
-const LOCAL_ONLY = "Only the desktop app on the computer running OpenDeliobot can bring in that computer's skills and tools.";
+const LOCAL_ONLY = "Only the desktop app on the computer running Deliobot can bring in that computer's skills and tools.";
 const requestSchema = z.object({ skills: z.boolean().optional(), tools: z.boolean().optional() }).strict();
 
 /** GET finds what is new here; POST brings in the chosen kinds. Only the owner's own loopback, never a paired device,

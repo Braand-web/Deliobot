@@ -348,7 +348,7 @@ export class McpOAuthManager {
       const expected = new URL(flow.redirectUri);
       if (!flow.server && expected.host === host?.trim().toLowerCase() && sameSecret(state, flow.state)) match = flow;
     }
-    if (!match) return { status: 400, text: "Invalid sign-in callback. Return to OpenDeliobot and try again." };
+    if (!match) return { status: 400, text: "Invalid sign-in callback. Return to Deliobot and try again." };
     return this.answer(match, new URL(`${new URL(match.redirectUri).origin}${CALLBACK_PATH}${search.startsWith("?") ? search : ""}`));
   }
 
@@ -490,7 +490,7 @@ export class McpOAuthManager {
     });
     const body = await response.json().catch(() => ({})) as { client_id?: unknown };
     if (!response.ok || typeof body.client_id !== "string" || !body.client_id) {
-      throw new RegistrationRefused("This server would not register OpenDeliobot for sign-in. Try again later.");
+      throw new RegistrationRefused("This server would not register Deliobot for sign-in. Try again later.");
     }
     return body.client_id;
   }
@@ -584,12 +584,12 @@ export class McpOAuthManager {
       if (request.headers.host !== expected.host || !request.url?.startsWith("/")) throw new Error("host");
       callback = new URL(request.url, flow.redirectUri);
     } catch {
-      response.writeHead(400).end("Invalid sign-in callback. Return to OpenDeliobot and try again.");
+      response.writeHead(400).end("Invalid sign-in callback. Return to Deliobot and try again.");
       return;
     }
     const answer = request.method === "GET"
       ? await this.answer(flow, callback)
-      : { status: 400, text: "Invalid or expired sign-in. Return to OpenDeliobot and try again." };
+      : { status: 400, text: "Invalid or expired sign-in. Return to Deliobot and try again." };
     response.writeHead(answer.status).end(answer.text);
   }
 
@@ -599,9 +599,9 @@ export class McpOAuthManager {
       await this.acceptCallback(flow, callback);
       return flow.status.phase === "failed"
         ? { status: 400, text: `${flow.status.message} You can close this tab.` }
-        : { status: 200, text: "Signed in. You can close this tab and return to OpenDeliobot." };
+        : { status: 200, text: "Signed in. You can close this tab and return to Deliobot." };
     } catch (error) {
-      return { status: error instanceof McpSignInError ? error.status : 400, text: "Invalid or expired sign-in. Return to OpenDeliobot and try again." };
+      return { status: error instanceof McpSignInError ? error.status : 400, text: "Invalid or expired sign-in. Return to Deliobot and try again." };
     }
   }
 

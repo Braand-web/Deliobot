@@ -348,7 +348,7 @@ describe("memory_update", () => {
     const work = readMemoryTopic(bot, "work.md")!;
     expect(work).toContain("aliases: [job, short answers]");
     expect(work).not.toContain("wants short answers");
-    expect(work).toContain("The person works on OpenDeliobot");
+    expect(work).toContain("The person works on Deliobot");
     expect(profile.aboutMe).toBe("I live in Pune.");
     expect(isForgotten("The person likes short answers")).toBe(true);
 

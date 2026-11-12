@@ -129,7 +129,7 @@ await import(${JSON.stringify(pathToFileURL(join(SERVER_DIR, "testing", "fake-cl
 }, 30_000);
 
 async function ownerPairing(): Promise<string> {
-  const body = JSON.stringify({ label: "OpenDeliobot app (Cloud)", ttlSeconds: 300 });
+  const body = JSON.stringify({ label: "Deliobot app (Cloud)", ttlSeconds: 300 });
   const timestamp = String(Math.floor(Date.now() / 1000)), nonce = randomBytes(16).toString("base64url");
   const granted = await api("POST", "/api/cloud/pairing", { remote: true, headers: {
     "content-type": "application/json", "x-odb-cloud-timestamp": timestamp, "x-odb-cloud-nonce": nonce,
@@ -171,7 +171,7 @@ it("offers the included computers, voice and decisions with no key, and never sh
 });
 
 it("pairs the app on a signed request and tells it its first run is the engine sign-in; no gateway models are served", async () => {
-  const body = JSON.stringify({ label: "OpenDeliobot app (Cloud)", ttlSeconds: 300 });
+  const body = JSON.stringify({ label: "Deliobot app (Cloud)", ttlSeconds: 300 });
   const timestamp = String(Math.floor(Date.now() / 1000)), nonce = randomBytes(16).toString("base64url");
   const granted = await api("POST", "/api/cloud/pairing", { remote: true, headers: {
     "content-type": "application/json", "x-odb-cloud-timestamp": timestamp, "x-odb-cloud-nonce": nonce,

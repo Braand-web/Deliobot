@@ -387,7 +387,7 @@ export function createMeetings(deps: MeetingDeps) {
       for (const record of records.values()) {
         if (record.phase === "ended" || !before.has(record.id)) continue;
         if (record.boxId) follow(record);
-        else end(record, "join_failed", "OpenDeliobot restarted before the meeting started.");
+        else end(record, "join_failed", "Deliobot restarted before the meeting started.");
       }
     },
     close(): void { closed = true; },

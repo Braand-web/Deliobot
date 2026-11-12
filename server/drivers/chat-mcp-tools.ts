@@ -52,7 +52,7 @@ export interface ChatToolSession {
   /** Lists the turn's tools again within `limit`, after a provider refused that many; started servers keep running. */
   refit(limit: number): Promise<void>;
   validate(name: string, args: unknown): void;
-  /** Directory reads and OpenDeliobot's own agents server need no card; call_tool shows the tool it runs. */
+  /** Directory reads and Deliobot's own agents server need no card; call_tool shows the tool it runs. */
   view(name: string, args: Record<string, unknown>): ChatToolCallView;
   execute(name: string, args: Record<string, unknown>, signal: AbortSignal): Promise<ChatToolResult>;
   close(): Promise<void>;

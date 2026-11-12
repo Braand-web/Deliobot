@@ -9,7 +9,7 @@ export { importedMcpServerName } from "../shared/mcp-name.ts";
 /** The computer a server runs on when its program, files or address are that computer's own: kept with its entry so a
  * bot can reach it through that computer, and never started anywhere else. */
 export interface McpRunsOn {
-  /** That computer's OpenDeliobot environment id. */
+  /** That computer's Deliobot environment id. */
   environmentId: string;
   /** Its name, as the person knows it. */
   label: string;
@@ -129,8 +129,8 @@ function environmentEntryError(name: string, value: string): string | null {
   if (!ENV_NAME.test(name)) return `Environment variable “${name}” is not valid.`;
   if (isReservedMcpEnvEntry(name, value)) {
     return name === "ELECTRON_RUN_AS_NODE"
-      ? `Environment variable “${name}” is reserved by OpenDeliobot; a custom server may set it to “1” only.`
-      : `Environment variable “${name}” is reserved by OpenDeliobot.`;
+      ? `Environment variable “${name}” is reserved by Deliobot; a custom server may set it to “1” only.`
+      : `Environment variable “${name}” is reserved by Deliobot.`;
   }
   return null;
 }
@@ -244,7 +244,7 @@ export function mcpServerNameError(name: string): string | null {
   if (!MCP_NAME.test(name)) {
     return "Use 1–32 lowercase letters, numbers, underscores, or hyphens, starting with a letter.";
   }
-  if (RESERVED_MCP_NAMES.has(name)) return "That name is reserved by OpenDeliobot.";
+  if (RESERVED_MCP_NAMES.has(name)) return "That name is reserved by Deliobot.";
   return null;
 }
 

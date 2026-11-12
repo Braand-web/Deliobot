@@ -1,4 +1,4 @@
-// Email sign-in codes sent through the server's own mail server (ODB_SIGNIN_SMTP_URL) instead of the OpenDeliobot account
+// Email sign-in codes sent through the server's own mail server (ODB_SIGNIN_SMTP_URL) instead of the Deliobot account
 // service. A code is 8 digits, works once for ten minutes and for five tries, and only its hash is kept, in memory.
 import { createHash, randomInt, timingSafeEqual } from "node:crypto";
 

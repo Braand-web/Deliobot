@@ -20,7 +20,7 @@ export function createSystemTray({ Tray, Menu, nativeImage, iconPath, getWindow,
     { type: "separator" },
     { label: t("native.tray.quit"), click: onQuit },
   ]));
-  tray.setToolTip("OpenDelio Bot");
+  tray.setToolTip("Deliobot");
   label();
   tray.on("click", show);
   tray.on("double-click", show);

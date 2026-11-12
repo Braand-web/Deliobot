@@ -120,7 +120,7 @@ describe("strict initialize fixture", () => {
     expect((await ask(1, "initialize", handshake)).result.serverInfo.name).toBe("fake-http-mcp");
     child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })}\n`);
     expect((await ask(2, "tools/list")).result.tools.map((tool: { name: string }) => tool.name)).toEqual(["report", "campaigns"]);
-    expect(fake.initializes).toEqual([{ protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "OpenDeliobot tool proxy", version: "1" } }]);
+    expect(fake.initializes).toEqual([{ protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "Deliobot tool proxy", version: "1" } }]);
   });
 
   it.each([
@@ -131,7 +131,7 @@ describe("strict initialize fixture", () => {
     const ask = startProxy(mcpStdioServer({ type: "http", url: fake.url, headers })!);
     const message = (await ask(1, "initialize", CODEX)).error?.message;
     expect(message).toBe("This MCP server refused its credentials (HTTP 401). If it uses a sign-in, send the message again: "
-      + "OpenDeliobot refreshes sign-ins when a message starts. If it still fails, open Plugins → MCP servers and sign in to it again, "
+      + "Deliobot refreshes sign-ins when a message starts. If it still fails, open Plugins → MCP servers and sign in to it again, "
       + "or check its header values.");
     expect(message).not.toContain(fake.url);
     // not Codex's own sign-in: codexSignInRefused reads "please sign in again"

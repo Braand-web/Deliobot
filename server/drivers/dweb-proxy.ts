@@ -25,7 +25,7 @@ const TOOLS = [
   {
     name: "dweb_repo_status",
     description:
-      "Report the state of the OpenDeliobot repository the dweb daemon is tracking: repo name, checked-out branch, last commit, file count, and checkout path.",
+      "Report the state of the Deliobot repository the dweb daemon is tracking: repo name, checked-out branch, last commit, file count, and checkout path.",
     inputSchema: { type: "object", properties: {} },
   },
   {

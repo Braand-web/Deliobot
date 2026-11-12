@@ -160,7 +160,7 @@ async function createProjectSession(apiKey: string, userId: string, authConfigs:
 /** Pages of connected accounts read when looking for an earlier installation's user, which bounds how long setup waits. */
 const EARLIER_USER_PAGES = 4;
 
-/** The one OpenDeliobot Composio user in this project, when it still has a live connection, so a fresh installation (a
+/** The one Deliobot Composio user in this project, when it still has a live connection, so a fresh installation (a
  * reinstall, another computer) gets that installation's apps back; null when there is none, more than one (even with
  * only expired connections, since it can't tell whose is whose), or Composio can't say. */
 async function earlierInstallationUser(apiKey: string): Promise<string | null> {

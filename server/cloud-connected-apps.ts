@@ -1,4 +1,4 @@
-// A Cloud home's own installation on OpenDeliobot's connected-apps service, which its plan includes. The server registers
+// A Cloud home's own installation on Deliobot's connected-apps service, which its plan includes. The server registers
 // it the way the desktop app registers itself (electron/managed-composio.mjs), keeps the token in a 0600 file on the
 // volume that no backup carries, and hands it to the one managed path (composio.setManagedBrokerAccess). A Composio
 // project key the owner saves still wins: composio.connectionMode checks it first.
@@ -202,7 +202,7 @@ export function startCloudConnectedApps(options: CloudConnectedAppsOptions): Clo
 }
 
 let cloudHome: CloudConnectedApps | null = null;
-/** The connected-apps service a Cloud home and a Team Cloud's members register with: the built server uses OpenDeliobot's;
+/** The connected-apps service a Cloud home and a Team Cloud's members register with: the built server uses Deliobot's;
  * from source (development, tests) only an explicit ODB_COMPOSIO_BROKER_URL. "" for none. */
 export const cloudConnectedAppsBrokerUrl = (): string => managedComposioBrokerUrl(process.env.ODB_COMPOSIO_BROKER_URL, !import.meta.url.endsWith(".ts"));
 

@@ -1,4 +1,4 @@
-// Only the desktop app's own server may use this computer. A second OpenDeliobot server on the same computer (a copy run
+// Only the desktop app's own server may use this computer. A second Deliobot server on the same computer (a copy run
 // from source, a demo) finds the app's driver record on disk, in the folder the app keeps it in, and still never mounts
 // this computer or drives it; the app's own server, which hears the record over its parent port, still can.
 import { spawn, type ChildProcess } from "node:child_process";
@@ -12,7 +12,7 @@ import { freePortBlock } from "./testing/ports.ts";
 import { removeTempDir, waitForExit } from "./testing/cleanup.ts";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
-const NOT_THE_APP = "Only the OpenDeliobot app on this computer can let a bot use it.";
+const NOT_THE_APP = "Only the Deliobot app on this computer can let a bot use it.";
 
 describe("this computer belongs to the desktop app's own server", () => {
   let home = "";

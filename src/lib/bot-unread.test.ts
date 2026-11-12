@@ -21,8 +21,8 @@ describe("browser unread indicator", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("prefixes the title with the count, replaces an older count, and drops it at zero", () => {
-    expect(titleWithUnread("OpenDeliobot", 3)).toBe("(3) OpenDeliobot");
-    expect(titleWithUnread("(3) OpenDeliobot", 5)).toBe("(5) OpenDeliobot");
+    expect(titleWithUnread("OpenDeliobot", 3)).toBe("(3) Deliobot");
+    expect(titleWithUnread("(3) Deliobot", 5)).toBe("(5) Deliobot");
     expect(titleWithUnread("(5) Acme", 0)).toBe("Acme");
     expect(titleWithUnread("Acme", 0)).toBe("Acme");
   });
@@ -35,7 +35,7 @@ describe("browser unread indicator", () => {
     vi.stubGlobal("navigator", { setAppBadge, clearAppBadge });
 
     showBrowserUnread(2);
-    expect(doc.title).toBe("(2) OpenDeliobot");
+    expect(doc.title).toBe("(2) Deliobot");
     expect(setAppBadge).toHaveBeenCalledWith(2);
 
     showBrowserUnread(0);
@@ -58,10 +58,10 @@ describe("browser unread indicator", () => {
     vi.stubGlobal("document", doc);
     vi.stubGlobal("navigator", {});
     showBrowserUnread(1);
-    expect(doc.title).toBe("(1) OpenDeliobot");
+    expect(doc.title).toBe("(1) Deliobot");
 
     vi.stubGlobal("navigator", { setAppBadge: () => Promise.reject(new Error("NotAllowedError")) });
     showBrowserUnread(4);
-    expect(doc.title).toBe("(4) OpenDeliobot");
+    expect(doc.title).toBe("(4) Deliobot");
   });
 });

@@ -98,7 +98,7 @@ describe("filterTasks", () => {
 
   const tasks = [
     { title: "Clean up" },
-    { title: "OpenDeliobot Update" },
+    { title: "Deliobot Update" },
     { title: "Investment report" },
     { title: "Report drafts" },
   ];
@@ -109,7 +109,7 @@ describe("filterTasks", () => {
   });
 
   it("matches titles case-insensitively", () => {
-    expect(filterTasks(tasks, "opendelio").map((task) => task.title)).toEqual(["OpenDeliobot Update"]);
+    expect(filterTasks(tasks, "opendelio").map((task) => task.title)).toEqual(["Deliobot Update"]);
   });
 
   it("ranks prefix hits ahead of substring hits, keeping input order in each tier", () => {

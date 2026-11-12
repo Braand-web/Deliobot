@@ -115,7 +115,7 @@ describe("control-odb command mapping", () => {
     });
   });
 
-  it("rejects an available engine when the endpoint is not OpenDeliobot", async () => {
+  it("rejects an available engine when the endpoint is not Deliobot", async () => {
     const callTool = vi.fn(async (name: string) => name === "get_system_health"
       ? { status: "connected", app: "another-app" }
       : { instances: [{ instanceId: "ready", snapshot: { state: "available" } }] });
@@ -132,7 +132,7 @@ describe("control-odb command mapping", () => {
       callTool: vi.fn() as any,
       env: {},
     })).rejects.toMatchObject({
-      message: "mutating commands require an explicit OpenDeliobot instance",
+      message: "mutating commands require an explicit Deliobot instance",
     });
   });
 
@@ -184,7 +184,7 @@ describe("control-odb command mapping", () => {
       callTool: vi.fn() as any,
       env: {},
     })).rejects.toMatchObject({
-      message: "mutating commands require an explicit OpenDeliobot instance",
+      message: "mutating commands require an explicit Deliobot instance",
     });
   });
 
@@ -230,7 +230,7 @@ describe("control-odb command mapping", () => {
     });
     await expect(runControlOdb(["set-model", "--bot", "bot-1", "--instance", "claude", "--model", "model-b"], {
       callTool: callTool as any, env: {},
-    })).rejects.toThrow("explicit OpenDeliobot instance");
+    })).rejects.toThrow("explicit Deliobot instance");
   });
 });
 

@@ -222,7 +222,7 @@ export function sentinelSystemdService(spec: SentinelServiceSpec): string {
   return [
     "# Written by `opendeliobot service install --sentinel`. Started by its timer.",
     "[Unit]",
-    "Description=OpenDeliobot Sentinel health scan",
+    "Description=Deliobot Sentinel health scan",
     "",
     "[Service]",
     "Type=oneshot",
@@ -239,7 +239,7 @@ export function sentinelSystemdTimer(): string {
   return [
     "# Written by `opendeliobot service install --sentinel`.",
     "[Unit]",
-    "Description=Run the OpenDeliobot Sentinel health scan every two minutes",
+    "Description=Run the Deliobot Sentinel health scan every two minutes",
     "",
     "[Timer]",
     `OnBootSec=${SENTINEL_INTERVAL_SECONDS}s`,

@@ -181,7 +181,7 @@ describe("connector MCP bridge", () => {
     const lines = start({ ODB_HARNESS_URL: harness, ODB_CONNECTOR_TOKEN: "bridge-secret", ODB_BOT_ID: "bot-1", ODB_THREAD_ID: "thread-1" });
     child!.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "COMPOSIO_MANAGE_CONNECTIONS", arguments: { toolkits: ["xero"] } } })}\n`);
     expect((await nextJson(lines)).result.content[0].text).toBe(
-      "OpenDeliobot showed the user a secure connection card for xero. xero connects with the person's own Composio auth config "
+      "Deliobot showed the user a secure connection card for xero. xero connects with the person's own Composio auth config "
       + "ac_xero1234, the most recently created of their 2 enabled ones. End this turn now. The app will continue the task "
       + "automatically after the connection finishes.",
     );
@@ -371,7 +371,7 @@ describe("connector MCP bridge", () => {
     const [search, page] = (await nextJson(lines)).result.tools;
     expect(search).toEqual(tools[0]);
     expect(schemaBytes(page.inputSchema)).toBeLessThanOrEqual(12_000);
-    expect(page.description).toContain("OpenDeliobot shortened this tool's parameters to fit Kimi's size limit");
+    expect(page.description).toContain("Deliobot shortened this tool's parameters to fit Kimi's size limit");
   });
 
   it("lists no more connected-app tools than its share of the model's tool limit", async () => {
@@ -683,7 +683,7 @@ describe("connected-app tools by name", () => {
     const searched = await nextJson(lines);
     expect(calls.at(-1).params.arguments).toEqual({ queries: [{ use_case: "generate an image" }] });
     expect(searched.result.content[0].text).toContain("GEMINI_GENERATE_IMAGE");
-    expect(searched.result.content[1].text).toBe('OpenDeliobot note: COMPOSIO_SEARCH_TOOLS\'s arguments were read with job as queries, queries as [{"use_case": …}]. Send them in that shape next time.');
+    expect(searched.result.content[1].text).toBe('Deliobot note: COMPOSIO_SEARCH_TOOLS\'s arguments were read with job as queries, queries as [{"use_case": …}]. Send them in that shape next time.');
 
     child!.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "COMPOSIO_REMOTE_WORKBENCH", arguments: { script: "print(1)", note: "x" } } })}\n`);
     const refused = await nextJson(lines);

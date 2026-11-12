@@ -124,7 +124,7 @@ describe("UpdateBanner", () => {
 
   it("shows the failure cause as well as the required restart without offering a retry", () => {
     const html = render({ status: "error", retryable: false,
-      message: "Not enough disk space to prepare the update. Free some space, then try again. Quit and reopen OpenDeliobot before trying the update again.",
+      message: "Not enough disk space to prepare the update. Free some space, then try again. Quit and reopen Deliobot before trying the update again.",
     });
     expect(html).toContain("Free some space");
     expect(html).toContain("Quit and reopen Delio");

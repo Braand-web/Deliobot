@@ -133,7 +133,7 @@ describe("doctor --host", () => {
     expect(byId(await checkHost(probe(taken), { ...OPTIONS, domain: "delio.example.com" }), "web-ports"))
       .toMatchObject({ status: "FAIL", message: "Ports 80 and 443 are taken, and --domain delio.example.com needs 80 and 443" });
     const ours = await checkHost(probe({ ...taken, serverAnswers: async () => true }), { ...OPTIONS, domain: "delio.example.com" });
-    expect(byId(ours, "port")).toMatchObject({ status: "ok", message: "OpenDeliobot already answers on port 8799" });
+    expect(byId(ours, "port")).toMatchObject({ status: "ok", message: "Deliobot already answers on port 8799" });
     expect(byId(ours, "web-ports")!.status).toBe("warn");
   });
 

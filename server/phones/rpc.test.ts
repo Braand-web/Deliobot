@@ -1,5 +1,5 @@
 // The device kind's MCP entry: tools/list follows the phone's apps and the bot's grant, a call becomes a job that a
-// scripted phone leases and answers, a send goes to the phone with no card of OpenDeliobot's own (the person taps Send
+// scripted phone leases and answers, a send goes to the phone with no card of Deliobot's own (the person taps Send
 // there), and only the owner's own turns reach a phone.
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -180,7 +180,7 @@ describe("phone MCP host", () => {
     ]);
   });
 
-  it("a send goes straight to the phone: no card of OpenDeliobot's own, the person taps Send there", async () => {
+  it("a send goes straight to the phone: no card of Deliobot's own, the person taps Send there", async () => {
     expect(PHONE_TOOL_NAMES.filter((name) => isOutboundTool(name))).toEqual(["PHONE_RESPOND_TO_INVITE", "PHONE_SEND_MESSAGE", "PHONE_SEND_WHATSAPP"]);
     const h = harness();
     h.registry.register(IPHONE, OWNER, registration("Omkar's iPhone", { calendar: "full", messages: "send" }));
@@ -221,7 +221,7 @@ describe("phone MCP host", () => {
     const request = vi.spyOn(h.jobs, "request");
     const result = await h.handle(call("PHONE_SEND_MESSAGE", { to: "Mom", text: "On my way" })) as PhoneToolResult;
     expect(result).toMatchObject({ isError: true, structuredContent: { code: "refused" } });
-    expect(text(result)).toBe("OpenDeliobot did not run this: Phone Messages is read-only for Scout, and Send message would write to it. Ask the user before trying again.");
+    expect(text(result)).toBe("Deliobot did not run this: Phone Messages is read-only for Scout, and Send message would write to it. Ask the user before trying again.");
     expect(request).not.toHaveBeenCalled();
     expect(h.messages).toEqual([]);
     expect((await h.rows()).map((row) => [row.decision, row.rule])).toEqual([["auto-denied", "scope:phone:messages:write"]]);

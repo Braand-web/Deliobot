@@ -82,7 +82,7 @@ export async function openClient(flags: Flags, deps: ClientDeps, mutating: boole
     baseUrl = `http://127.0.0.1:${port}`;
   } else {
     if (mutating && deps.requireExplicitForMutations) {
-      throw usageError("mutating commands require an explicit OpenDeliobot instance", "start `control-odb launch`, then pass its URL with --url");
+      throw usageError("mutating commands require an explicit Deliobot instance", "start `control-odb launch`, then pass its URL with --url");
     }
     if (token) {
       throw usageError("a token needs a named server, so it is never sent while looking for one",
@@ -91,7 +91,7 @@ export async function openClient(flags: Flags, deps: ClientDeps, mutating: boole
     try {
       baseUrl = await mcp.probeBaseUrls(DISCOVERY_PORTS.map((port) => `http://127.0.0.1:${port}`));
     } catch {
-      throw new HeadlessError(`no OpenDeliobot server answered on 127.0.0.1 ports ${DISCOVERY_PORTS.join(", ")}`, EXIT.unreachable,
+      throw new HeadlessError(`no Deliobot server answered on 127.0.0.1 ports ${DISCOVERY_PORTS.join(", ")}`, EXIT.unreachable,
         "start one with `opendeliobot serve`, or name one with --url or OPENDELIOBOT_URL");
     }
   }
@@ -119,7 +119,7 @@ export async function openClient(flags: Flags, deps: ClientDeps, mutating: boole
 }
 
 export function serverWords(message: string): string {
-  const body = /^OpenDeliobot API error \(\d+\): ([\s\S]*)$/.exec(message)?.[1];
+  const body = /^Deliobot API error \(\d+\): ([\s\S]*)$/.exec(message)?.[1];
   if (body === undefined) return message;
   try {
     const said = (JSON.parse(body) as { error?: unknown }).error;
@@ -146,11 +146,11 @@ export async function explain(error: unknown, baseUrl?: string): Promise<Headles
   if (status === 404 && /^no such (bot|channel|conversation|task|message)\b/i.test(message)) {
     return usageError(message, "opendeliobot bots and opendeliobot channels list the ids");
   }
-  if (/cannot report a conversation's job/.test(message)) return new HeadlessError(message, EXIT.unreachable, "update OpenDeliobot on the server");
+  if (/cannot report a conversation's job/.test(message)) return new HeadlessError(message, EXIT.unreachable, "update Deliobot on the server");
   const cause = (error as { cause?: { code?: unknown } })?.cause?.code;
   if ((error instanceof TypeError && /fetch failed/i.test(message)) || cause === "ECONNREFUSED" || cause === "ENOTFOUND"
     || (error instanceof Error && (error.name === "TimeoutError" || /timed out|aborted due to timeout/i.test(message)))) {
-    return new HeadlessError(`cannot reach OpenDeliobot${baseUrl ? ` at ${baseUrl}` : ""}`, EXIT.unreachable,
+    return new HeadlessError(`cannot reach Deliobot${baseUrl ? ` at ${baseUrl}` : ""}`, EXIT.unreachable,
       "check the server is running and the address is right (opendeliobot doctor)");
   }
   if (error instanceof Error && error.name === "AbortError") return new HeadlessError("stopped", EXIT.interrupted);
@@ -164,7 +164,7 @@ export async function readJob(client: HeadlessClient, threadId: string, query: R
     const status = (error as { status?: number }).status;
     const message = error instanceof Error ? error.message : String(error);
     if (status === 404 && !/no such conversation/.test(message)) {
-      throw new HeadlessError("this OpenDeliobot server cannot report a conversation's job", EXIT.unreachable, "update OpenDeliobot on the server");
+      throw new HeadlessError("this Deliobot server cannot report a conversation's job", EXIT.unreachable, "update Deliobot on the server");
     }
     throw error;
   }

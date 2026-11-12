@@ -406,8 +406,8 @@ test("a missing or quarantined driver says how to restore it, and names no path"
 test("computer control that never started gives its reason as a fix the person can make", async t => {
   for (const [reason, expected] of [
     ["cua-driver binary not found", helperMissing()],
-    ["embedded host failed: Packaged background CUA driver is missing; reinstall OpenDeliobot", helperMissing()],
-    ["Accessibility and Screen Recording required; grant access in System Settings and restart OpenDeliobot", /allow Accessibility and Screen Recording/],
+    ["embedded host failed: Packaged background CUA driver is missing; reinstall Deliobot", helperMissing()],
+    ["Accessibility and Screen Recording required; grant access in System Settings and restart Deliobot", /allow Accessibility and Screen Recording/],
     ["no running cua-driver daemon", /Computer control is not running on this computer/],
   ]) {
     const dir = await scratch(t);

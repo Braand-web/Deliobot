@@ -91,12 +91,12 @@ describe("failed turn text", () => {
 });
 
 describe("a failed turn the server words as a notice", () => {
-  const restarted = { name: "error: turn interrupted — OpenDeliobot restarted", ok: false as const, nameCode: "chat.notice.restartInterrupted" };
+  const restarted = { name: "error: turn interrupted — Deliobot restarted", ok: false as const, nameCode: "chat.notice.restartInterrupted" };
   it("previews in the person's language with its code, and in English without one", () => {
     setLocale("pt-br");
     try {
-      expect(activityPreview(restarted, undefined)).toBe("Sessão interrompida: o OpenDeliobot reiniciou.");
-      expect(activityPreview({ name: restarted.name, ok: false }, undefined)).toBe("turn interrupted — OpenDeliobot restarted");
+      expect(activityPreview(restarted, undefined)).toBe("Sessão interrompida: o Deliobot reiniciou.");
+      expect(activityPreview({ name: restarted.name, ok: false }, undefined)).toBe("turn interrupted — Deliobot restarted");
     } finally {
       setLocale("en");
     }

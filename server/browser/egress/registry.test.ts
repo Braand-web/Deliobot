@@ -10,7 +10,7 @@ import type { ListenerOwnership } from "./ownership.ts";
 
 const noScans = { streamPorts: () => [], devToolsPorts: () => [] };
 
-describe("OpenDeliobot's own listeners", () => {
+describe("Deliobot's own listeners", () => {
   it("lists the default ports everywhere, and a server's edge, Caddy admin and fleet ports on servers", () => {
     const desktop = staticOwnPorts("desktop", {});
     for (const port of [8799, 18799, 28799, 8800, 8798, 18798, 28798, 8810, 8811, 8812, 5199, 6080]) expect(desktop.has(port), String(port)).toBe(true);
@@ -80,7 +80,7 @@ describe("one gate per browser session", () => {
     await expect(new BrowserEgress().open("bot-1")).rejects.toThrow(/not set up/);
   });
 
-  it("keeps one port per session, which is OpenDeliobot's own", async () => {
+  it("keeps one port per session, which is Deliobot's own", async () => {
     const value = egress();
     try {
       const first = await value.open("bot-1");
@@ -195,7 +195,7 @@ describe("one gate per browser session", () => {
       expect(cloud.takeNotice("bot-1"), "a site that loads from My Cloud anyway: nothing to say").toBeNull();
       await socksCode(port, "www.instagram.com", 443);
       expect(cloud.takeNotice("bot-1")).toBe(UNSHARED_NOTICE);
-      expect(UNSHARED_NOTICE).toContain("these sites open through their own computer's internet connection while OpenDeliobot is open on it, signed in to Delio Cloud");
+      expect(UNSHARED_NOTICE).toContain("these sites open through their own computer's internet connection while Deliobot is open on it, signed in to Delio Cloud");
       expect(UNSHARED_NOTICE).not.toContain("use-my-computer");
       await socksCode(port, "www.instagram.com", 443);
       expect(cloud.takeNotice("bot-1"), "said once while none shares").toBeNull();

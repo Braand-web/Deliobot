@@ -35,7 +35,7 @@ describe("this computer, only for the desktop app's own server", () => {
       expect(desktop.unavailableReason(), platform).toBeNull();
     }
     expect(thisComputerNotReady(createDesktopComputer())).toBe(
-      "Only the OpenDeliobot app on this computer can let a bot use it. Open the app here, or let the bot work in its own browser or on a cloud desktop instead.",
+      "Only the Deliobot app on this computer can let a bot use it. Open the app here, or let the bot work in its own browser or on a cloud desktop instead.",
     );
   });
 
@@ -43,17 +43,17 @@ describe("this computer, only for the desktop app's own server", () => {
     const desktop = createDesktopComputer({ platform: "darwin" });
     expect(desktop.receive({ type: DESKTOP_COMPUTER_GRANT, connection: READY })).toBe(true);
     expect(desktop.connection()).toEqual({ command: "/fixture/cua-driver", args: ["mcp"], env: {}, platform: "darwin", scope: "local-computer" });
-    const reason = "embedded host failed: Screen Recording required; grant access in System Settings and restart OpenDeliobot";
+    const reason = "embedded host failed: Screen Recording required; grant access in System Settings and restart Deliobot";
     expect(desktop.receive({ type: DESKTOP_COMPUTER_GRANT, connection: { mode: "unavailable", reason } })).toBe(true);
     expect(desktop.connection()).toBeNull();
     expect(desktop.unavailableReason()).toBe(reason);
     expect(thisComputerNotReady(desktop, "darwin")).toBe(
-      `OpenDeliobot can't use this computer yet — ${reason}. Relaunch OpenDeliobot after granting the missing macOS permission.`,
+      `Deliobot can't use this computer yet — ${reason}. Relaunch Deliobot after granting the missing macOS permission.`,
     );
     expect(desktop.receive({ type: DESKTOP_COMPUTER_GRANT, connection: null })).toBe(true);
     expect(desktop.connection()).toBeNull();
     expect(desktop.granted()).toBe(true);
-    expect(thisComputerNotReady(desktop)).toBe("OpenDeliobot can't use this computer yet — make sure OpenDeliobot has the permissions it asks for, then restart it");
+    expect(thisComputerNotReady(desktop)).toBe("Deliobot can't use this computer yet — make sure Deliobot has the permissions it asks for, then restart it");
   });
 
   it("decodes again on every use, so a Linux driver that stopped is no longer used", () => {

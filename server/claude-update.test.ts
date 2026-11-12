@@ -51,7 +51,7 @@ describe("updateClaudeCli", () => {
     };
 
     await expect(updateClaudeCli("claude", {}, execute, noAppCopy)).rejects.toThrow(
-      "Claude finished updating, but OpenDeliobot could not verify",
+      "Claude finished updating, but Deliobot could not verify",
     );
   });
 

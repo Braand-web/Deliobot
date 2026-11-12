@@ -79,7 +79,7 @@ export interface PlaceFacts {
   place: Place | "auto" | "off";
   server: ServerKind;
   bot: string;
-  /** Desktop only: signed in to a paid OpenDeliobot Cloud plan (the desktop bridge). */
+  /** Desktop only: signed in to a paid Deliobot Cloud plan (the desktop bridge). */
   plan?: boolean;
   /** Where cloud computers come from here: the plan's, the person's own Boat key, or nowhere. */
   boat: "included" | "own-key" | "none";

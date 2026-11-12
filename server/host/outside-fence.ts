@@ -1,5 +1,5 @@
-// Security invariant: a confined turn acts on words nobody here wrote, and every engine pre-allows OpenDeliobot's own tools
-// (only the harness can tell them apart). So of OpenDeliobot's own routes it reaches only what this list names, and a route
+// Security invariant: a confined turn acts on words nobody here wrote, and every engine pre-allows Deliobot's own tools
+// (only the harness can tell them apart). So of Deliobot's own routes it reaches only what this list names, and a route
 // nobody listed is refused:
 // - reads of this conversation's own work and what the bot may see;
 // - what waits on a person's card (asks, proposed changes, a tool the engine asks about first);

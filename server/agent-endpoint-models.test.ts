@@ -32,7 +32,7 @@ it.each([
   expect(entry.config).toMatchObject({ endpoint: { models: ["old"] } });
 });
 it.each([
-  ["http://localhost:8317/v1", "localhost refers to OpenDeliobot's server or container"],
+  ["http://localhost:8317/v1", "localhost refers to Deliobot's server or container"],
   ["https://gateway.example/v1", "could not reach the gateway"],
 ])("explains network failures for %s without exposing raw exceptions", async (url, detail) => {
   const failure = await discoverAgentEndpointModels(endpoint(true, url), vi.fn<typeof fetch>().mockRejectedValue(new Error("fixture-secret"))).catch(error => error);

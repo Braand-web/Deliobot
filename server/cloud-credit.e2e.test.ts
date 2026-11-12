@@ -159,7 +159,7 @@ await import(${JSON.stringify(pathToFileURL(join(SERVER_DIR, "testing", "fake-cl
   writeFileSync(join(home, "web", "index.html"), "<!doctype html><title>OpenDeliobot</title>");
   relayUrl = relay;
   await boot();
-  const body = JSON.stringify({ label: "OpenDeliobot app (Cloud)", ttlSeconds: 300 });
+  const body = JSON.stringify({ label: "Deliobot app (Cloud)", ttlSeconds: 300 });
   const timestamp = String(Math.floor(Date.now() / 1000)), nonce = randomBytes(16).toString("base64url");
   const granted = await api("POST", "/api/cloud/pairing", { remote: true, headers: {
     "content-type": "application/json", "x-odb-cloud-timestamp": timestamp, "x-odb-cloud-nonce": nonce,
@@ -211,7 +211,7 @@ describe("the free trial's Claude credit on a Cloud home", { timeout: 90_000 }, 
     expect(relayed).toContainEqual(expect.objectContaining({ method: "GET", path: `${RELAY_PATH}/v1/models`, bearer: `Bearer ${TOKEN}` }));
   });
 
-  it("answers on Sonnet through the relay's chat completions, on OpenDeliobot's own chat engine: never Claude Code, never an Anthropic route", async () => {
+  it("answers on Sonnet through the relay's chat completions, on Deliobot's own chat engine: never Claude Code, never an Anthropic route", async () => {
     const settled = await turn("hello");
     expect(answered(settled)).toBe(true);
     expect(completions().at(-1)).toMatchObject({ method: "POST", path: `${RELAY_PATH}/v1/chat/completions`, bearer: `Bearer ${TOKEN}`, model: "claude-sonnet-5" });

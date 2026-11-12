@@ -279,7 +279,7 @@ export function buildDiagnosticsReport({
   now = new Date().toISOString(),
 } = {}) {
   const lines = [];
-  lines.push("OpenDeliobot diagnostics");
+  lines.push("Deliobot diagnostics");
   lines.push(`Generated: ${now}`);
   lines.push("");
   lines.push("## App");
