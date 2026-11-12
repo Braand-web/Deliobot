@@ -36,7 +36,7 @@ export function socketFleet(socketPath: string, request: typeof fleetRequest = f
 
 /** Slugs a customer may not take: the portal's own host names and words people would trust. */
 export const RESERVED_SLUGS = new Set(["admin", "www", "api", "app", "mail", "smtp", "imap", "pop", "ns1", "ns2", "help", "support", "status", "docs", "blog",
-  "cdn", "static", "assets", "dev", "staging", "test", "portal", "billing", "login", "signup", "account", "accounts", "delio", "deliobot", "root", "security"]);
+  "cdn", "static", "assets", "dev", "staging", "test", "portal", "billing", "login", "signup", "account", "accounts", "compte", "console", "delio", "deliobot", "root", "security"]);
 
 const MAX_ATTEMPTS = 4;
 const RETRY_MS = 5 * 60_000;

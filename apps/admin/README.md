@@ -35,7 +35,7 @@ Open http://localhost:8790. In development, sign-in codes and invitation links a
 
 | Variable | Meaning |
 | --- | --- |
-| `DELIO_ADMIN_URL` | The portal's public origin, such as `https://admin.deliobot.fun`. An `https` origin switches on production checks. |
+| `DELIO_ADMIN_URL` | The portal's public origin, such as `https://compte.deliobot.fun`. An `https` origin switches on production checks. |
 | `DELIO_ADMIN_SECRET` | At least 32 random characters. Required in production. Keys the HMAC of codes and rate-limit buckets. |
 | `DELIO_ADMIN_OPERATORS` | Comma-separated emails allowed to create workspaces. |
 | `DELIO_ADMIN_DB` | SQLite file path. Default: `data/delio-admin.db`. |
@@ -51,6 +51,7 @@ Open http://localhost:8790. In development, sign-in codes and invitation links a
 | `DELIO_ADMIN_SASPAY_WEBHOOK_SECRET` | The signing secret SasPay shows once when the webhook is created in its dashboard. |
 | `DELIO_ADMIN_CURRENCY` | What SasPay charges: `XOF` (default), `XAF` or `USD`. Prices are set in dollars. |
 | `DELIO_ADMIN_XOF_PER_USD` | CFA francs per dollar, used to charge and to show the franc price under each dollar price. Default: `600`; follow the market rate. |
+| `DELIO_ADMIN_CONSOLE_PORT` | The operators' console's port, on `127.0.0.1` only. Default: `PORT` + 1. |
 | `DELIO_ADMIN_WORKSPACE_DOMAIN` | Turns on self-serve sign-up: a customer's workspace lives at `https://<slug>.<domain>` (for example `deliobot.fun`). The fleet agent must serve that domain. |
 | `DELIO_ADMIN_WORKSPACE_MODELS` | The OpenRouter models a new workspace may use through the gateway, separated by commas. Default: Gemini 2.5 Flash and Pro, GPT-5 mini and GPT-5, Claude Sonnet 4.5 and Opus 4.1. |
 | `ODB_FLEET_SOCKET` | The fleet agent's socket. Default: `/run/opendeliobot/fleet.sock`; the portal's Unix user must be the fleet's `--operator`. |
@@ -64,7 +65,7 @@ Put the portal behind a TLS-terminating proxy.
 2. Start that workspace's server with:
 
    ```sh
-   ODB_ADMIN_URL=https://admin.deliobot.fun
+   ODB_ADMIN_URL=https://compte.deliobot.fun
    ODB_ADMIN_WORKSPACE=acme
    ODB_PUBLIC_URL=https://acme.deliobot.fun
    ODB_ADMIN_MEMBERSHIP=portal
@@ -77,7 +78,7 @@ From then on, anyone who opens the workspace address goes through the portal to 
 Hosted workspaces use Delio's own provider keys through the portal, paying with
 prepaid **credits** kept per workspace.
 
-- **Workspace token.** An operator issues it on the workspace's **Billing** page
+- **Workspace token.** An operator issues it on the workspace's **Billing** page in the operators' console
   (shown once; a new one revokes the old). The workspace's server gets it as
   `ODB_HOSTED_MODEL_TOKEN` and, for fal.ai, `ODB_FAL_KEY` with
   `ODB_FAL_URL=https://<portal>/api/gateway/<slug>/fal`.
@@ -94,7 +95,7 @@ prepaid **credits** kept per workspace.
 - **Isolation.** A fal.ai job is reachable only through the workspace that
   started it. Provider keys never leave the portal.
 - **Billing page.** Balance, this month's use and the history for workspace
-  admins; operators add credits (or take some back) and issue the token.
+  admins; in the operators' console, operators add credits (or take some back) and issue the token.
   Paid plans and top-ups come with Stripe.
 - **Account.** `GET /api/workspace/<slug>/account` (with the token) answers the
   balance; the workspace shows it under **Settings → Usage**.
@@ -118,6 +119,21 @@ prepaid **credits** kept per workspace.
 
 Claude and Codex company engines are not offered through the gateway yet:
 Claude, GPT and the other models are reached through OpenRouter.
+
+## Customers' portal and operators' console
+
+One process serves two separate sites over the same database:
+
+- **The customers' portal** at `DELIO_ADMIN_URL`: sign-up, sign-in, each
+  workspace's people, billing and connected apps, the AI gateway, SasPay's
+  webhook and the device flow. Nobody has operator powers there, the operators
+  included: no list of other workspaces, no credits added by hand, no tokens.
+- **The operators' console** on `127.0.0.1:DELIO_ADMIN_CONSOLE_PORT`: every
+  workspace, creating one by hand, adding or taking back credits, issuing
+  workspace tokens, retrying a failed creation. It has no public address; reach
+  it through an SSH tunnel. It sends sign-in codes only to `DELIO_ADMIN_OPERATORS`
+  (anyone else sees the same page, and no code), and answers 404 for everything
+  the customers' portal does.
 
 ## Self-serve sign-up
 

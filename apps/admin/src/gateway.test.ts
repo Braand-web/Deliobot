@@ -12,6 +12,7 @@ import { createBoatRelay } from "./boat-relay.ts";
 import { falUnits, openrouterCost } from "./gateway.ts";
 import type { MailMessage } from "./mail.ts";
 import { AdminStore } from "./store.ts";
+import { operatorConsole } from "./test-console.ts";
 import { MICRO, Wallet } from "./wallet.ts";
 
 const cleanups: Array<() => void | Promise<void>> = [];
@@ -80,17 +81,9 @@ async function portal(upstream: ReturnType<typeof upstreams>, clock: { now: numb
     now: () => clock.now,
   });
   server.on("request", app);
-  let cookie = "";
-  const post = async (path: string, form: Record<string, string>) => {
-    const response = await fetch(new URL(path, origin), { method: "POST", redirect: "manual", body: new URLSearchParams(form).toString(),
-      headers: { origin, "content-type": "application/x-www-form-urlencoded", ...(cookie ? { cookie } : {}) } });
-    const set = response.headers.getSetCookie()[0];
-    if (set) cookie = set.split(";")[0]!;
-    return response;
-  };
-  await post("/login", { email: "ops@delio.test", next: "/" });
-  const code = /code is (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
-  await post("/login/verify", { email: "ops@delio.test", code: code[1]! + code[2]!, next: "/" });
+  const ops = await operatorConsole({ store, operators: new Set(["ops@delio.test"]), mailer: { send: async (message) => void mail.push(message) }, now: () => clock.now }, mail);
+  cleanups.push(ops.close);
+  const post = ops.post;
   const workspace = async (slug: string, credits: number) => {
     await post("/workspaces", { slug, name: slug, tenantUrl: `https://${slug}.example.test`, ownerEmail: "ops@delio.test" });
     const page = await (await post("/billing/token", { workspace: slug })).text();
@@ -101,7 +94,7 @@ async function portal(upstream: ReturnType<typeof upstreams>, clock: { now: numb
   const gateway = (slug: string, path: string, token: string, init: RequestInit = {}) =>
     fetch(new URL(`/api/gateway/${slug}/${path}`, origin), { ...init, headers: { authorization: `Bearer ${token}`, "content-type": "application/json", ...init.headers as Record<string, string> } });
   const account = async (slug: string, token: string) => (await fetch(new URL(`/api/workspace/${slug}/account`, origin), { headers: { authorization: `Bearer ${token}` } })).json() as Promise<{ credits: number; usedThisMonth: number }>;
-  return { origin, workspace, gateway, account, page: (path: string) => fetch(new URL(path, origin), { headers: { cookie } }), sweep: () => app.sweep() };
+  return { origin, workspace, gateway, account, page: (path: string) => ops.get(path), sweep: () => app.sweep() };
 }
 
 describe("cost and length readers", () => {

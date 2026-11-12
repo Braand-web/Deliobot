@@ -8,7 +8,7 @@ export const DELIO_INSTANCE = "delio";
 export const DELIO_TOKEN_ENV = "ODB_DELIO_TOKEN";
 const DEVICE_TOKEN = /^odb_device_[A-Za-z0-9_-]{43}$/;
 const SLUG = /^[a-z][a-z0-9-]{1,30}$/;
-export const DEFAULT_DELIO_PORTAL = "https://admin.deliobot.fun";
+export const DEFAULT_DELIO_PORTAL = "https://compte.deliobot.fun";
 
 export interface DelioConnection { portal: string; workspace: string; token: string; gateway: string }
 

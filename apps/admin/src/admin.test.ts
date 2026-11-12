@@ -29,23 +29,26 @@ async function portal(options: { fetchImpl?: typeof fetch; now?: () => number } 
   const mail: MailMessage[] = [];
   const server = createServer();
   const origin = await listen(server);
-  server.on("request", createAdminApp({ store, publicUrl: new URL(origin), operators: new Set(["ops@delio.test"]), mailer: { send: async (message) => void mail.push(message) },
-    fetchImpl: options.fetchImpl, now: options.now, allowHttpProviders: true }));
-  return { origin, store, mail };
+  const shared = { store, operators: new Set(["ops@delio.test"]), mailer: { send: async (message: MailMessage) => void mail.push(message) }, fetchImpl: options.fetchImpl, now: options.now };
+  server.on("request", createAdminApp({ ...shared, publicUrl: new URL(origin), allowHttpProviders: true }));
+  const consoleServer = createServer();
+  const consoleOrigin = await listen(consoleServer);
+  consoleServer.on("request", createAdminApp({ ...shared, publicUrl: new URL(consoleOrigin), console: true }));
+  return { origin, consoleOrigin, store, mail };
 }
 
 type Portal = Awaited<ReturnType<typeof portal>>;
 
 /** A browser: one cookie jar, forms posted from the portal's own origin, redirects left for the test to follow. */
-function browser(target: Portal) {
+function browser(target: Portal, at = target.origin) {
   let cookie = "";
   async function go(path: string, init: RequestInit = {}) {
-    const response = await fetch(new URL(path, target.origin), { ...init, redirect: "manual", headers: { ...(cookie ? { cookie } : {}), ...init.headers as Record<string, string> } });
+    const response = await fetch(new URL(path, at), { ...init, redirect: "manual", headers: { ...(cookie ? { cookie } : {}), ...init.headers as Record<string, string> } });
     const set = response.headers.getSetCookie()[0];
     if (set) cookie = set.split(";")[0]!.endsWith("=") ? "" : set.split(";")[0]!;
     return response;
   }
-  const post = (path: string, form: Record<string, string>, origin = target.origin) =>
+  const post = (path: string, form: Record<string, string>, origin = at) =>
     go(path, { method: "POST", headers: { origin, "content-type": "application/x-www-form-urlencoded" }, body: new URLSearchParams(form).toString() });
   async function signIn(email: string) {
     await post("/login", { email, next: "/" });
@@ -63,7 +66,7 @@ async function backchannel(target: Portal, path: string, body: Record<string, un
 }
 
 async function workspaceWithAdmin(target: Portal) {
-  const ops = browser(target);
+  const ops = browser(target, target.consoleOrigin);
   await ops.signIn("ops@delio.test");
   const created = await ops.post("/workspaces", { slug: "acme", name: "Acme", tenantUrl: TENANT, ownerEmail: "boss@acme.test" });
   expect(created.status).toBe(303);
@@ -121,13 +124,35 @@ describe("Delio Admin accounts", () => {
     const target = await portal();
     const stranger = browser(target);
     await stranger.signIn("stranger@acme.test");
-    expect((await stranger.post("/workspaces", { slug: "acme", name: "Acme", tenantUrl: TENANT, ownerEmail: "stranger@acme.test" })).status).toBe(403);
+    expect((await stranger.post("/workspaces", { slug: "acme", name: "Acme", tenantUrl: TENANT, ownerEmail: "stranger@acme.test" })).status).toBe(404);
     const boss = await workspaceWithAdmin(target);
     expect((await boss.go("/people?workspace=acme")).status).toBe(200);
     expect((await stranger.go("/people?workspace=acme")).status).toBe(403);
     const member = await invite(target, boss, "dev@acme.test", "member");
     expect((await member.go("/people?workspace=acme")).status).toBe(403);
     expect((await member.post("/people/invite", { workspace: "acme", email: "x@acme.test", role: "admin" })).status).toBe(403);
+  });
+
+  it("keeps the operators' console apart: customers never reach it, and operators have no powers on the customers' portal", async () => {
+    const target = await portal();
+    const boss = await workspaceWithAdmin(target);
+    const intruder = browser(target, target.consoleOrigin);
+    const sent = target.mail.length;
+    expect(await (await intruder.post("/login", { email: "boss@acme.test", next: "/" })).text(), "same answer as for the team").toContain("Check your email");
+    expect(target.mail.length, "no code is sent to a customer").toBe(sent);
+    await intruder.post("/login/verify", { email: "boss@acme.test", code: "12345678", next: "/" });
+    expect((await intruder.go("/")).status).toBe(303);
+    for (const path of ["/signup", "/device", "/connect", "/invite", "/api/public/plans", "/api/gateway/acme/openrouter/v1/models", "/api/device/start"]) {
+      expect((await intruder.go(path)).status, `${path} does not exist on the console`).toBe(404);
+    }
+
+    const ops = browser(target);
+    await ops.signIn("ops@delio.test");
+    expect(await (await ops.go("/")).text(), "the customers' portal shows an operator no other workspace").not.toContain("All workspaces");
+    expect((await ops.post("/workspaces", { slug: "other", name: "Other", tenantUrl: "https://other.example.test", ownerEmail: "ops@delio.test" })).status).toBe(404);
+    expect((await ops.post("/billing/credit", { workspace: "acme", credits: "1000" })).status).toBe(403);
+    expect((await ops.go("/billing?workspace=acme")).status, "nor any customer's billing").toBe(403);
+    expect(await (await boss.go("/")).text()).not.toContain("Delio Admin");
   });
 
   it("accepts an invitation only for the invited address, and always keeps one admin", async () => {

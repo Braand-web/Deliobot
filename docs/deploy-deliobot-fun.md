@@ -6,7 +6,19 @@ runs the Delio Admin portal and every customer's workspace.
 | Address | What answers | Where |
 | --- | --- | --- |
 | `deliobot.fun`, `www.deliobot.fun` | the public site (`cloudflare/site`) | Cloudflare Worker `deliobot` |
-| `admin.deliobot.fun` | Delio Admin: sign-up, sign-in, billing, AI gateway | the server, port 8790 behind Caddy |
+| `compte.deliobot.fun` | customers' portal: sign-up, sign-in, billing, AI gateway | the server, port 8790 behind Caddy |
+| none | the operators' console (every workspace, credits, tokens) | the server, `127.0.0.1:8791` only |
+
+Customers never reach the operators' console: it has no public address and no
+DNS name, it listens on the server's loopback only, and it lets in only the
+`DELIO_ADMIN_OPERATORS` addresses. The customers' portal grants nobody operator
+powers, the operators included. To open the console from your computer:
+
+```sh
+ssh -L 8791:127.0.0.1:8791 root@<server IP>
+```
+
+then browse to `http://127.0.0.1:8791` and sign in with your operator address.
 | `<slug>.deliobot.fun` | one customer's workspace | the server, created by the fleet agent |
 
 ## 1. DNS
@@ -25,7 +37,7 @@ in the zone's DNS records:
 
 | Type | Name | Content | Proxy |
 | --- | --- | --- | --- |
-| A | `admin` | the server's public IPv4 | DNS only |
+| A | `compte` | the server's public IPv4 | DNS only |
 | A | `*` | the server's public IPv4 | DNS only |
 
 `DNS only` lets Caddy on the server obtain each certificate itself. The site
@@ -34,9 +46,9 @@ which need those two names to have proxied records; any address works behind
 them, since the Worker answers before Cloudflare reaches it.
 
 The site's sign-up buttons stay on "soon" until the portal answers. Then set
-`<html lang="fr" data-portal="https://admin.deliobot.fun">` in
+`<html lang="fr" data-portal="https://compte.deliobot.fun">` in
 `cloudflare/site/public/index.html` and deploy it again: every plan and trial
-button then leads to `https://admin.deliobot.fun/signup`.
+button then leads to `https://compte.deliobot.fun/signup`.
 
 ## 2. The server
 
@@ -59,7 +71,7 @@ customers. As root:
    add to `/etc/caddy/Caddyfile`:
 
    ```
-   admin.deliobot.fun {
+   compte.deliobot.fun {
      reverse_proxy 127.0.0.1:8790
    }
    ```
@@ -68,7 +80,7 @@ customers. As root:
 
 | Variable | Value |
 | --- | --- |
-| `DELIO_ADMIN_URL` | `https://admin.deliobot.fun` |
+| `DELIO_ADMIN_URL` | `https://compte.deliobot.fun` |
 | `DELIO_ADMIN_SECRET` | 48 random characters (`openssl rand -base64 48`) |
 | `DELIO_ADMIN_DB` | `/home/delio/data/delio-admin.db` |
 | `DELIO_ADMIN_OPERATORS` | your own email address |
@@ -80,13 +92,13 @@ customers. As root:
 
 Keep the keys in a root-owned file (`EnvironmentFile=` with mode 600), never in
 the repository. In SasPay's dashboard, point the webhook at
-`https://admin.deliobot.fun/api/saspay/webhook` for `transaction.success`.
+`https://compte.deliobot.fun/api/saspay/webhook` for `transaction.success`.
 
 ## 4. Check it
 
-1. `https://admin.deliobot.fun/api/health` answers `ok`, and
-   `https://admin.deliobot.fun/api/public/plans` lists the plans.
-2. Sign up at `https://admin.deliobot.fun/signup` with a test address, pay the
+1. `https://compte.deliobot.fun/api/health` answers `ok`, and
+   `https://compte.deliobot.fun/api/public/plans` lists the plans.
+2. Sign up at `https://compte.deliobot.fun/signup` with a test address, pay the
    trial with SasPay in test mode, and watch **Billing** go from *Being created*
    to *Ready*; `https://<slug>.deliobot.fun` then asks for a sign-in code.
 3. `node --experimental-strip-types /opt/deliobot/server/cli.ts fleet list` (as root) shows the workspace running; the audit

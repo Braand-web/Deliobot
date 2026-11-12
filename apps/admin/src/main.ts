@@ -16,7 +16,7 @@ function fail(message: string): never {
 const env = process.env;
 const publicUrl = new URL(env.DELIO_ADMIN_URL ?? "http://localhost:8790");
 const production = publicUrl.protocol === "https:";
-if (publicUrl.pathname !== "/" || publicUrl.search) fail("DELIO_ADMIN_URL must be an origin, such as https://admin.deliobot.fun");
+if (publicUrl.pathname !== "/" || publicUrl.search) fail("DELIO_ADMIN_URL must be an origin, such as https://compte.deliobot.fun");
 
 const secretText = env.DELIO_ADMIN_SECRET;
 if (production && (!secretText || secretText.length < 32)) fail("set DELIO_ADMIN_SECRET to at least 32 random characters (openssl rand -base64 48)");
@@ -37,7 +37,7 @@ const file = resolve(env.DELIO_ADMIN_DB ?? "data/delio-admin.db");
 mkdirSync(dirname(file), { recursive: true });
 const store = new AdminStore({ file, secret });
 const operators = new Set((env.DELIO_ADMIN_OPERATORS ?? "").split(",").map(normalizeEmail).filter(Boolean));
-if (operators.size === 0) console.warn("delio-admin: no DELIO_ADMIN_OPERATORS, so nobody can create workspaces");
+if (operators.size === 0) console.warn("delio-admin: no DELIO_ADMIN_OPERATORS, so nobody can open the operators' console");
 
 const port = Number(env.PORT ?? 8790);
 const host = env.HOST ?? (production ? "0.0.0.0" : "127.0.0.1");
@@ -69,8 +69,16 @@ const hosting = workspaceDomain
 const app = createAdminApp({ store, publicUrl, operators, mailer, gateway, payments, ...(hosting ? { hosting } : {}) });
 const server = createServer(app);
 const sweeper = setInterval(() => void app.sweep().catch((error: unknown) => console.error("delio-admin: billing sweep failed", error)), 60_000);
-server.listen(port, host, () => console.log(`delio-admin: listening on http://${host}:${port}, public at ${publicUrl.origin}`));
+server.listen(port, host, () => console.log(`delio-admin: customers' portal on http://${host}:${port}, public at ${publicUrl.origin}`));
+
+// Security: the operators' console listens on loopback only, never on a public address; operators reach it through an
+// SSH tunnel, and it still lets in only DELIO_ADMIN_OPERATORS.
+const consolePort = Number(env.DELIO_ADMIN_CONSOLE_PORT ?? port + 1);
+if (!Number.isInteger(consolePort) || consolePort < 1 || consolePort > 65535 || consolePort === port) fail("DELIO_ADMIN_CONSOLE_PORT must be a free port other than PORT");
+const consoleUrl = new URL(`http://127.0.0.1:${consolePort}`);
+const consoleServer = createServer(createAdminApp({ store, publicUrl: consoleUrl, operators, mailer, payments, console: true }));
+consoleServer.listen(consolePort, "127.0.0.1", () => console.log(`delio-admin: operators' console on ${consoleUrl.origin} (loopback only)`));
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
-  process.on(signal, () => { clearInterval(sweeper); server.close(() => { store.close(); process.exit(0); }); });
+  process.on(signal, () => { clearInterval(sweeper); consoleServer.close(); server.close(() => { store.close(); process.exit(0); }); });
 }

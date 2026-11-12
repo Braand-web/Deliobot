@@ -43,11 +43,13 @@ code{font-family:"Geist Mono",ui-monospace,Menlo,monospace;font-size:13px;overfl
 .mascot{display:block;width:88px;height:88px;margin:8px auto 16px}.center{text-align:center}.narrow{max-width:400px;margin:0 auto}
 `;
 
-export function page(input: { title: string; body: Html; email?: string | null; mascot?: "idle" | "happy" | "sad" | "curious" }): string {
+/** `brand`: "Delio" for customers, "Delio Admin" on the operators' console. */
+export function page(input: { title: string; body: Html; email?: string | null; mascot?: "idle" | "happy" | "sad" | "curious"; brand?: string }): string {
+  const brand = input.brand ?? "Delio";
   const mascot = input.mascot ? h`<img class="mascot" src="/assets/delio-${input.mascot}.webp" alt="">` : raw("");
   return `<!doctype html>${h`<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${input.title} · Delio Admin</title><link rel="icon" href="/assets/delio-idle.webp"><style>${raw(STYLE)}</style></head><body>
-<header><img src="/assets/delio-idle.webp" alt=""><b>Delio Admin</b><nav>${input.email ? h`<span>${input.email}</span>
+<title>${input.title} · ${brand}</title><link rel="icon" href="/assets/delio-idle.webp"><style>${raw(STYLE)}</style></head><body>
+<header><img src="/assets/delio-idle.webp" alt=""><b>${brand}</b><nav>${input.email ? h`<span>${input.email}</span>
 <form class="inline" method="post" action="/logout"><button>Sign out</button></form>` : ""}</nav></header>
 <main>${mascot}${input.body}</main></body></html>`.html}`;
 }

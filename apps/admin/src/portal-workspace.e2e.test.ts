@@ -13,6 +13,7 @@ import { freePortBlock } from "../../../server/testing/ports.ts";
 import { createAdminApp } from "./app.ts";
 import type { MailMessage } from "./mail.ts";
 import { AdminStore } from "./store.ts";
+import { operatorConsole } from "./test-console.ts";
 
 const ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 const HOST = "acme.example.test";
@@ -123,12 +124,13 @@ afterAll(async () => {
 });
 
 describe("Delio Admin portal with a real workspace server", () => {
-  const ops = person(), boss = person(), dev = person();
+  const boss = person(), dev = person();
   let devId: string;
 
   it("creates a workspace, and its admin signs in to it through the portal", async () => {
-    await ops.signIn("ops@delio.test");
+    const ops = await operatorConsole({ store, operators: new Set(["ops@delio.test"]), mailer: { send: async (message) => void mail.push(message) } }, mail);
     expect((await ops.post("/workspaces", { slug: "acme", name: "Acme", tenantUrl: `https://${HOST}`, ownerEmail: "boss@acme.test" })).status).toBe(303);
+    await ops.close();
     await boss.signIn("boss@acme.test");
     const cookie = await boss.openWorkspace();
     expect((await workspace("/api/auth/session", { cookie })).body).toMatchObject({ scopes: ["admin", "client"], hosted: true });

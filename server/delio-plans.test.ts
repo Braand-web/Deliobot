@@ -31,7 +31,7 @@ describe("Delio's plans in the app", () => {
 
   it("without an account, falls back to the operator's portal or Delio's own, never to a plain-HTTP remote address", () => {
     expect(delioBillingTarget({}, { ODB_DELIO_ADMIN_URL: "http://127.0.0.1:8790" })).toEqual({ portal: "http://127.0.0.1:8790", workspace: null });
-    expect(delioBillingTarget({}, { ODB_DELIO_ADMIN_URL: "http://evil.example" })).toEqual({ portal: "https://admin.deliobot.fun", workspace: null });
+    expect(delioBillingTarget({}, { ODB_DELIO_ADMIN_URL: "http://evil.example" })).toEqual({ portal: "https://compte.deliobot.fun", workspace: null });
   });
 
   it("has nothing to show when the portal answers with no plan", async () => {

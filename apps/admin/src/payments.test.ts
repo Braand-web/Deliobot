@@ -11,6 +11,7 @@ import type { MailMessage } from "./mail.ts";
 import { priceIn } from "./plans.ts";
 import { verifySasPayWebhook } from "./saspay.ts";
 import { AdminStore } from "./store.ts";
+import { operatorConsole } from "./test-console.ts";
 
 const SECRET = "whsec_test_secret";
 const DAY = 24 * 60 * 60_000;
@@ -66,9 +67,10 @@ async function portal(saspay: ReturnType<typeof fakeSasPay>, clock: { now: numbe
     const code = /code is (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
     await post("/login/verify", { email, code: code[1]! + code[2]!, next: "/" });
   };
-  await signIn("ops@delio.test");
-  await post("/workspaces", { slug: "acme", name: "Acme", tenantUrl: "https://acme.example.test", ownerEmail: "boss@acme.test" });
-  const token = /odb_workspace_[A-Za-z0-9_-]{43}/.exec(await (await post("/billing/token", { workspace: "acme" })).text())![0];
+  const ops = await operatorConsole({ store, operators: new Set(["ops@delio.test"]), mailer: { send: async (message) => void mail.push(message) }, now: () => clock.now }, mail);
+  cleanups.push(ops.close);
+  await ops.post("/workspaces", { slug: "acme", name: "Acme", tenantUrl: "https://acme.example.test", ownerEmail: "boss@acme.test" });
+  const token = /odb_workspace_[A-Za-z0-9_-]{43}/.exec(await (await ops.post("/billing/token", { workspace: "acme" })).text())![0];
   await signIn("boss@acme.test");
   const webhook = (event: unknown, options: { secret?: string; age?: number } = {}) => {
     const body = JSON.stringify(event);

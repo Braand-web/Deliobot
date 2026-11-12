@@ -17,8 +17,10 @@ export interface AdminAppOptions {
   store: AdminStore;
   /** The portal's own public origin; https in production. */
   publicUrl: URL;
-  /** Addresses allowed to create workspaces. */
+  /** The Delio team: the only addresses the operators' console lets in; also who is told when a workspace cannot be created. */
   operators: ReadonlySet<string>;
+  /** The operators' console: every workspace, credits and tokens, for the team only. Customers' portal otherwise, where nobody is an operator. */
+  console?: boolean;
   mailer: Mailer;
   fetchImpl?: typeof fetch;
   now?: () => number;
@@ -31,6 +33,9 @@ export interface AdminAppOptions {
   /** Self-serve sign-up: workspaces at https://<slug>.<domain>, created through the fleet agent once paid, with these OpenRouter models. */
   hosting?: { domain: string; models: string[]; fleet?: Fleet; fleetSocket?: string };
 }
+
+/** What the operators' console serves; everything else there is 404, customer pages and public APIs included. */
+const CONSOLE_PATHS = new Set(["/", "/login", "/login/verify", "/logout", "/workspaces", "/billing", "/billing/credit", "/billing/token", "/billing/hosting/retry", "/people"]);
 
 /** Self-serve workspaces may own this many; more takes an operator. */
 const SELF_SERVE_LIMIT = 3;
@@ -119,6 +124,9 @@ export type AdminApp = ((req: IncomingMessage, res: ServerResponse) => Promise<v
 
 export function createAdminApp(options: AdminAppOptions): AdminApp {
   const { store, publicUrl, operators, mailer } = options;
+  const operatorConsole = options.console === true;
+  /** Operator powers exist only on the console, whatever the address: a customer's portal never grants them. */
+  const isOperator = (user: Account) => operatorConsole && operators.has(user.email);
   const fetchImpl = options.fetchImpl ?? fetch;
   const now = options.now ?? Date.now;
   const secure = publicUrl.protocol === "https:";
@@ -156,7 +164,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   const json = (res: ServerResponse, status: number, body: unknown, headers: Record<string, string> = {}) =>
     send(res, status, JSON.stringify(body), "application/json; charset=utf-8", headers);
   const html = (res: ServerResponse, status: number, input: Parameters<typeof page>[0], headers: Record<string, string | string[]> = {}) =>
-    send(res, status, page(input), "text/html; charset=utf-8", headers);
+    send(res, status, page({ ...input, brand: operatorConsole ? "Delio Admin" : "Delio" }), "text/html; charset=utf-8", headers);
 
   function redirect(res: ServerResponse, location: string, cookies: string[] = []): void {
     res.statusCode = 303;
@@ -185,7 +193,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   function requireWorkspaceAdmin(user: Account, slug: string): Workspace {
     const workspace = validSlug(slug) ? store.workspace(slug) : null;
     if (!workspace) throw new HttpError(404, "No such workspace.");
-    if (store.role(slug, user.id) !== "admin" && !operators.has(user.email)) throw new HttpError(403, "Only this workspace's administrators can do that.");
+    if (store.role(slug, user.id) !== "admin" && !isOperator(user)) throw new HttpError(403, "Only this workspace's administrators can do that.");
     return workspace;
   }
 
@@ -265,6 +273,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       return;
     }
     if (path === "/api/health") return json(res, 200, { ok: true, service: "delio-admin", ...HOSTED_CONTRACT_METADATA });
+    if (operatorConsole && !CONSOLE_PATHS.has(path) && !path.startsWith("/people/")) throw new HttpError(404, "Not found.");
     if (await gateway.handle(req, res, url)) return;
     if (path === "/api/public/plans") {
       if (method !== "GET") return json(res, 405, { error: "method not allowed" });
@@ -318,8 +327,10 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       const email = normalizeEmail(text(body, "email", 320)), next = localPath(text(body, "next", 2048));
       if (!validEmail(email)) return html(res, 400, { title: "Sign in", body: loginPage(next, "Enter a valid email address."), mascot: "sad" });
       const domain = email.slice(email.lastIndexOf("@") + 1);
-      const sso = store.ssoForDomain(domain)[0];
+      const sso = operatorConsole ? undefined : store.ssoForDomain(domain)[0];
       if (sso) return startSso(res, sso.workspace, next);
+      // The console sends codes to the team only, and says the same thing to anyone else so no address is revealed.
+      if (operatorConsole && !operators.has(email)) return html(res, 200, { title: "Check your email", body: codePage(email, next), mascot: "curious" });
       if (!store.allow(`otp-ip:${clientAddress(req)}`, 20, 15 * 60_000) || !store.allow(`otp-email:${email}`, 5, 15 * 60_000)) {
         return html(res, 429, { title: "Sign in", body: loginPage(next, "Too many codes were requested. Wait a few minutes and try again."), mascot: "sad" });
       }
@@ -391,6 +402,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       if (method === "GET") return redirect(res, `/login?next=${encodeURIComponent(path + url.search)}`);
       throw new HttpError(401, "Sign in first.");
     }
+    if (operatorConsole && !isOperator(user)) throw new HttpError(404, "Not found.");
 
     if (method === "POST" && path === "/invite/accept") {
       const body = await readBody(req);
@@ -403,8 +415,8 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     }
 
     if (method === "GET" && path === "/") {
-      return html(res, 200, { title: "Workspaces", email: user.email, body: homePage({ workspaces: store.workspacesOf(user.id), operator: operators.has(user.email), signup: Boolean(selfServe),
-        all: operators.has(user.email) ? store.allWorkspaces() : [], message: url.searchParams.get("created") ? "Workspace created." : undefined }) });
+      return html(res, 200, { title: "Workspaces", email: user.email, body: homePage({ workspaces: store.workspacesOf(user.id), operator: isOperator(user), signup: Boolean(selfServe) && !operatorConsole,
+        all: isOperator(user) ? store.allWorkspaces() : [], message: url.searchParams.get("created") ? "Workspace created." : undefined }) });
     }
     if (selfServe && (path === "/signup")) {
       const form = method === "POST" ? await readBody(req) : null;
@@ -420,7 +432,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       const error = !name ? "Give the workspace a name."
         : !validSlug(slug) ? "The address must be 2–31 lowercase letters, digits or dashes, starting with a letter."
         : RESERVED_SLUGS.has(slug) || store.workspace(slug) ? "That address is taken. Try another one."
-        : owned >= SELF_SERVE_LIMIT && !operators.has(user.email) ? `You already have ${SELF_SERVE_LIMIT} workspaces. Write to the Delio team for more.` : null;
+        : owned >= SELF_SERVE_LIMIT ? `You already have ${SELF_SERVE_LIMIT} workspaces. Write to the Delio team for more.` : null;
       if (error) return show(400, { name, slug, error });
       if (!store.allow(`signup:${user.id}`, 10, 60 * 60_000)) return show(429, { name, slug, error: "Too many workspaces in a short time. Wait an hour and try again." });
       store.createWorkspace({ slug, name, tenantUrl: `https://${slug}.${selfServe.domain}`, ownerEmail: user.email }, user.email);
@@ -439,7 +451,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       return redirect(res, `/billing?workspace=${workspace.slug}`);
     }
     if (method === "POST" && path === "/workspaces") {
-      if (!operators.has(user.email)) throw new HttpError(403, "Only operators can create workspaces.");
+      if (!isOperator(user)) throw new HttpError(404, "Not found.");
       const body = await readBody(req);
       const slug = text(body, "slug", 64), name = text(body, "name", 80), tenant = tenantOrigin(text(body, "tenantUrl", 512)), owner = normalizeEmail(text(body, "ownerEmail", 320));
       const error = !validSlug(slug) ? "The slug must be 2–31 lowercase letters, digits or dashes, starting with a letter." : !name ? "Give the workspace a name."
@@ -619,7 +631,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     if (method === "POST" && (path === "/billing/credit" || path === "/billing/token")) {
       const body = await readBody(req);
       const workspace = requireWorkspaceAdmin(user, text(body, "workspace", 64));
-      if (!operators.has(user.email)) throw new HttpError(403, "Only operators can add credits or issue workspace tokens.");
+      if (!isOperator(user)) throw new HttpError(404, "Not found.");
       if (path === "/billing/token") {
         const issued = wallet.issueToken(workspace.slug);
         store.audit(workspace.slug, user.email, "gateway.token", null);
@@ -643,7 +655,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   }
 
   function billing(workspace: Workspace, user: Account, extra: { message?: string; error?: string; token?: string; chosen?: PlanId; cycle?: Cycle }): Html {
-    return billingPage({ workspace, operator: operators.has(user.email), balance: wallet.balance(workspace.slug) / MICRO,
+    return billingPage({ workspace, operator: isOperator(user), balance: wallet.balance(workspace.slug) / MICRO,
       subscription: plans.subscription(workspace.slug), orders: plans.orders(workspace.slug, 10), payments: Boolean(saspay), currency,
       trialAvailable: !plans.trialUsed(user.email, workspace.slug), catalog: catalog(options.payments?.xofPerUsd),
       hosting: hostingView(workspace.slug),
