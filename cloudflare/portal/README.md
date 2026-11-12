@@ -41,3 +41,10 @@ In SasPay's dashboard, point the webhook at `https://compte.deliobot.fun/api/sas
 only the addresses in `DELIO_ADMIN_OPERATORS` (a Worker secret, which wins over the setup page's value), sends a code
 to nobody else while answering everyone the same, and answers 404 for every customer page. Its session cookie is
 `__Host-` and so never shared with `compte.deliobot.fun`.
+
+## Checking the provider keys
+
+With the Worker secret `DIAG_TOKEN` (64 random hex characters) set, `GET /__diagnostics` with
+`Authorization: Bearer <DIAG_TOKEN>` makes one small call to SasPay, OpenRouter, fal.ai, Boat and Resend with the saved
+keys and answers each status, never a key. It also lists the latest orders and the newest SasPay session. Without the
+secret the path answers like any other page.

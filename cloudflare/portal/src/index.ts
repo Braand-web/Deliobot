@@ -8,6 +8,7 @@ import { createAdminApp, type AdminApp } from "../../../apps/admin/src/app.ts";
 import { portalSettings } from "../../../apps/admin/src/env-config.ts";
 import { serveFetch } from "../../../apps/admin/src/fetch-adapter.ts";
 import { catalog } from "../../../apps/admin/src/plans.ts";
+import { diagnose, diagnosticsAllowed } from "./diagnostics.ts";
 import { handleSetup, SETTINGS_KEY, SETUP_DONE_KEY, tokenDigest } from "./setup.ts";
 import { durableObjectDatabase } from "../../../apps/admin/src/sql.ts";
 import { AdminStore } from "../../../apps/admin/src/store.ts";
@@ -81,6 +82,12 @@ export class Portal extends DurableObject<Env> {
   }
 
   async fetch(request: Request): Promise<Response> {
+    if (new URL(request.url).pathname === "/__diagnostics" && diagnosticsAllowed(request, this.env.DIAG_TOKEN)) {
+      const orders = [...this.ctx.storage.sql.exec("SELECT id, kind, plan, cycle, amount, currency, status, session_id IS NOT NULL AS has_session, substr(checkout_url, 1, 30) AS checkout_host, created_at, paid_at FROM orders ORDER BY created_at DESC LIMIT 15")];
+      const settings = { ...this.baseEnv(), ...this.stored };
+      const latest = [...this.ctx.storage.sql.exec<{ session_id: string; checkout_url: string }>("SELECT session_id, checkout_url FROM orders WHERE session_id IS NOT NULL ORDER BY created_at DESC LIMIT 1")][0];
+      return Response.json({ ...await diagnose(settings, String(this.env.DELIO_ADMIN_URL ?? ""), latest), orders }, { headers: { "cache-control": "no-store" } });
+    }
     const host = new URL(request.url).host;
     if (host === consoleHost(this.env)) {
       if (!this.operatorsConsole) return new Response("Not found.", { status: 404 });
