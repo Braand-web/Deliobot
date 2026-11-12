@@ -67,11 +67,11 @@ describe("desktop companion endpoint", () => {
       `https://${LABEL}.opendeliobot.com`,
     );
     // The control plane's second Cloudflare account gives addresses here.
-    expect(normalizeDesktopCompanionEndpoint(`https://${LABEL}.opendeliobot.com`)).toBe(
-      `https://${LABEL}.opendeliobot.com`,
+    expect(normalizeDesktopCompanionEndpoint(`https://${LABEL}.deliobot.fun`)).toBe(
+      `https://${LABEL}.deliobot.fun`,
     );
-    expect(normalizeDesktopCompanionEndpoint(` ${LABEL.toUpperCase()}.OpenDeliobot.COM/ `)).toBe(
-      `https://${LABEL}.opendeliobot.com`,
+    expect(normalizeDesktopCompanionEndpoint(` ${LABEL.toUpperCase()}.Deliobot.fun/ `)).toBe(
+      `https://${LABEL}.deliobot.fun`,
     );
     for (const endpoint of [
       "https://unrelated.example.com",
@@ -84,23 +84,23 @@ describe("desktop companion endpoint", () => {
       "http://user@host.example-tailnet.ts.net",
       "http://host.example-tailnet.ts.net.evil.test",
       `https://${LABEL}.opendeliobot.com.evil.test`,
-      `http://${LABEL}.opendeliobot.com`,
-      `https://${LABEL}.opendeliobot.com/path`,
-      `https://${LABEL}.opendeliobot.com.evil.test`,
-      "https://opendeliobot.com",
-      "opendeliobot.com",
+      `http://${LABEL}.deliobot.fun`,
+      `https://${LABEL}.deliobot.fun/path`,
+      `https://${LABEL}.deliobot.fun.evil.test`,
+      "https://deliobot.fun",
+      "deliobot.fun",
       "https://evilopendeliobot.com",
       `https://${LABEL}.evilopendeliobot.com`,
-      "https://www.opendeliobot.com",
-      "https://app.opendeliobot.com",
+      "https://www.deliobot.fun",
+      "https://app.deliobot.fun",
       "https://accounts.opendeliobot.com",
       "https://c-opaque.opendeliobot.com",
-      "https://c-opaque.opendeliobot.com",
-      `https://${LABEL.slice(0, -1)}.opendeliobot.com`,
-      `https://${LABEL}0.opendeliobot.com`,
-      `https://${LABEL.replace("c-", "d-")}.opendeliobot.com`,
-      `https://${LABEL}.extra.opendeliobot.com`,
-      `https://www.${LABEL}.opendeliobot.com`,
+      "https://c-opaque.deliobot.fun",
+      `https://${LABEL.slice(0, -1)}.deliobot.fun`,
+      `https://${LABEL}0.deliobot.fun`,
+      `https://${LABEL.replace("c-", "d-")}.deliobot.fun`,
+      `https://${LABEL}.extra.deliobot.fun`,
+      `https://www.${LABEL}.deliobot.fun`,
     ]) {
       expect(normalizeDesktopCompanionEndpoint(endpoint), endpoint).toBe("");
     }
@@ -109,7 +109,7 @@ describe("desktop companion endpoint", () => {
   it("accepts one c-<32 hex> label under each listed domain, and only those", () => {
     // The third domain is a one-line change; until the owner names it, nothing new is accepted.
     expect(NEXT_MANAGED_COMPANION_HOST_SUFFIX).toBe("");
-    expect(MANAGED_COMPANION_HOST_SUFFIXES).toEqual(["opendeliobot.com"]);
+    expect(MANAGED_COMPANION_HOST_SUFFIXES).toEqual(["opendeliobot.com", "deliobot.fun"]);
     expect(Object.isFrozen(MANAGED_COMPANION_HOST_SUFFIXES)).toBe(true);
     for (const suffix of MANAGED_COMPANION_HOST_SUFFIXES) {
       expect(suffix).toMatch(/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/);
@@ -137,12 +137,12 @@ describe("desktop companion endpoint", () => {
     expect(desktopCompanionAccess({ [DESKTOP_COMPANION_FIELD]: hostedAccess })).toEqual(
       hostedAccess,
     );
-    const secondDomain = { ...access, endpoint: `https://${LABEL}.opendeliobot.com` };
+    const secondDomain = { ...access, endpoint: `https://${LABEL}.deliobot.fun` };
     expect(desktopCompanionAccess({ [DESKTOP_COMPANION_FIELD]: secondDomain })).toEqual(
       secondDomain,
     );
     expect(
-      desktopCompanionAccess({ [DESKTOP_COMPANION_FIELD]: { ...access, endpoint: "https://app.opendeliobot.com" } }),
+      desktopCompanionAccess({ [DESKTOP_COMPANION_FIELD]: { ...access, endpoint: "https://app.deliobot.fun" } }),
     ).toBeNull();
 
     expect(desktopCompanionAccess({ [DESKTOP_COMPANION_FIELD]: access })).toEqual(access);
@@ -206,21 +206,21 @@ describe("desktop companion pairing", () => {
     );
 
     const secondDomain = await pairDesktopCompanion({
-      endpoint: `${LABEL}.opendeliobot.com`,
+      endpoint: `${LABEL}.deliobot.fun`,
       code: "654321",
       deviceName: "Desktop client",
       requestId: "request-https-02",
       fetchImpl,
     });
-    expect(secondDomain).toEqual({ ...access, endpoint: `https://${LABEL}.opendeliobot.com` });
+    expect(secondDomain).toEqual({ ...access, endpoint: `https://${LABEL}.deliobot.fun` });
     expect(fetchImpl).toHaveBeenLastCalledWith(
-      `https://${LABEL}.opendeliobot.com/api/pair`,
+      `https://${LABEL}.deliobot.fun/api/pair`,
       expect.objectContaining({ method: "POST" }),
     );
 
     await expect(
       pairDesktopCompanion({
-        endpoint: "https://app.opendeliobot.com",
+        endpoint: "https://app.deliobot.fun",
         code: "654321",
         deviceName: "Desktop client",
         requestId: "request-https-03",

@@ -36,9 +36,9 @@ describe("body builders", () => {
     }
   });
 
-  it("keeps the cursor outline byte-identical to the shipped artwork", () => {
+  it("keeps the cursor outline byte-identical to Delio's shipped artwork", () => {
     const cursor = BODY_DEFS.find(s => s.id === "cursor");
-    expect(cursor.d.startsWith("M0 0 C1.12815992 0.94880479")).toBe(true);
-    expect(cursor.d.trimEnd().endsWith("-21.34867451 -18.24899383 0 0 Z")).toBe(true);
+    expect(cursor.d.startsWith("M155.5 9.49 C148.42 11.14 142.4 16.48 136 19.78")).toBe(true);
+    expect(cursor.d.trimEnd().endsWith("C189.4 30.38 175.95 4.73 155.5 9.49 Z")).toBe(true);
   });
 });

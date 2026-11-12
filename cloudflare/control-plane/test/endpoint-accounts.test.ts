@@ -21,7 +21,7 @@ const TOKEN = "test-only-delio-si-api-token-with-no-real-access";
 const SECOND_ENTRY = {
   accountId: "2B".repeat(16),
   zoneId: "3c".repeat(16),
-  companionHostSuffix: "opendeliobot.com",
+  companionHostSuffix: "deliobot.fun",
   apiTokenSecret: TOKEN_SECRET,
 };
 
@@ -55,7 +55,7 @@ describe("endpoint account configuration", () => {
     expect(configured.endpointAccountIssues).toEqual([]);
     expect(configured.endpointAccounts.slice(1).map(({ apiToken: _token, ...account }) => account)).toEqual([{
       accountId: "bbb5305f06e28a6f2abaac299f3b09dc",
-      companionHostSuffix: "opendeliobot.com",
+      companionHostSuffix: "deliobot.fun",
       dnsRecordLimit: 3500,
       minAppVersion: "0.1.104",
       newEndpoints: true,
@@ -69,15 +69,15 @@ describe("endpoint account configuration", () => {
   });
 
   it("deploys every account's limits at its real Cloudflare quotas", () => {
-    // opendeliobot.com and opendeliobot.com are both Pro zones (3,500 DNS records;
-    // opendeliobot.com was Free, 200, until Oct 21). Both accounts allow 1,000 tunnels.
+    // opendeliobot.com and deliobot.fun are both Pro zones (3,500 DNS records;
+    // deliobot.fun was Free, 200, until Oct 21). Both accounts allow 1,000 tunnels.
     const production = JSON.parse(env.TEST_PRODUCTION_ENDPOINT_ACCOUNTS) as unknown[];
     const deployed = readConfig(withAccounts(production)).endpointAccounts;
     expect(deployed.map(({ companionHostSuffix, dnsRecordLimit, tunnelLimit }) => (
       { companionHostSuffix, dnsRecordLimit, tunnelLimit }
     ))).toEqual([
       { companionHostSuffix: "opendeliobot.com", dnsRecordLimit: 3500, tunnelLimit: 1000 },
-      { companionHostSuffix: "opendeliobot.com", dnsRecordLimit: 3500, tunnelLimit: 1000 },
+      { companionHostSuffix: "deliobot.fun", dnsRecordLimit: 3500, tunnelLimit: 1000 },
     ]);
   });
 
@@ -89,7 +89,7 @@ describe("endpoint account configuration", () => {
       expect(config.endpointAccounts).toEqual([config.cloudflare, {
         accountId: "2b".repeat(16),
         apiToken: TOKEN,
-        companionHostSuffix: "opendeliobot.com",
+        companionHostSuffix: "deliobot.fun",
         dnsRecordLimit: 200,
         minAppVersion: "0.1.103",
         newEndpoints: true,
@@ -110,7 +110,7 @@ describe("endpoint account configuration", () => {
     // Closed to new endpoints, keeping the ones it holds.
     const closed = readConfig(withAccounts([{ ...SECOND_ENTRY, newEndpoints: false }]));
     expect(closed.endpointAccountIssues).toEqual([]);
-    expect(closed.endpointAccounts[1]).toMatchObject({ companionHostSuffix: "opendeliobot.com", newEndpoints: false });
+    expect(closed.endpointAccounts[1]).toMatchObject({ companionHostSuffix: "deliobot.fun", newEndpoints: false });
   });
 
   it("drops a bad entry with a redacted issue code and never throws", () => {
@@ -131,7 +131,7 @@ describe("endpoint account configuration", () => {
       { value: [{ ...SECOND_ENTRY, apiTokenSecret: "BETTER_AUTH_SECRET" }], accounts: 1, issues: ["entry_1_shape"] },
       { value: [SECOND_ENTRY], secrets: {}, accounts: 1, issues: ["entry_1_token"] },
       { value: [SECOND_ENTRY], secrets: { [TOKEN_SECRET]: "short" }, accounts: 1, issues: ["entry_1_token"] },
-      { value: [{ ...SECOND_ENTRY, companionHostSuffix: "Delio.si" }], accounts: 1, issues: ["entry_1_suffix"] },
+      { value: [{ ...SECOND_ENTRY, companionHostSuffix: "Deliobot.fun" }], accounts: 1, issues: ["entry_1_suffix"] },
       { value: [{ ...SECOND_ENTRY, companionHostSuffix: "si" }], accounts: 1, issues: ["entry_1_suffix"] },
       { value: [{ ...SECOND_ENTRY, accountId: "not-an-account" }], accounts: 1, issues: ["entry_1_shape"] },
       { value: [{ ...SECOND_ENTRY, minAppVersion: "0.1" }], accounts: 1, issues: ["entry_1_shape"] },
@@ -164,7 +164,7 @@ const PRIMARY: EndpointAccount = {
 const SECOND: EndpointAccount = {
   accountId: "2b".repeat(16),
   apiToken: "second-token-for-pure-tests-only",
-  companionHostSuffix: "opendeliobot.com",
+  companionHostSuffix: "deliobot.fun",
   dnsRecordLimit: 200,
   minAppVersion: null,
   newEndpoints: true,
@@ -215,7 +215,7 @@ describe("endpoint account rules", () => {
 
   it("never chooses an account with no free tunnel or DNS record while another has both", () => {
     // Production on 2026-10-20: opendeliobot.com (a Pro zone) had 26 tunnels
-    // free and 1,878 dormant endpoints; opendeliobot.com (a Free zone) 770 tunnels
+    // free and 1,878 dormant endpoints; deliobot.fun (a Free zone) 770 tunnels
     // free, all 200 DNS records used, and 207 dormant endpoints.
     const primary = { ...PRIMARY, dnsRecordLimit: 3500 };
     const config = accounts(primary, SECOND);
@@ -287,17 +287,17 @@ describe("endpoint account rules", () => {
   it("ties a row to its own configured account and that account's suffix only", () => {
     const config = accounts(PRIMARY, SECOND);
     const label = `c-${"0123456789abcdef".repeat(2)}`;
-    expect(endpointAccountFor(config, { hostname: `${label}.opendeliobot.com`, provider_account: SECOND.accountId })).toBe(SECOND);
+    expect(endpointAccountFor(config, { hostname: `${label}.deliobot.fun`, provider_account: SECOND.accountId })).toBe(SECOND);
     expect(endpointAccountFor(config, { hostname: `${label}.opendeliobot.com`, provider_account: PRIMARY.accountId })).toBe(PRIMARY);
     for (const [providerAccount, hostname] of [
       [SECOND.accountId, `${label}.opendeliobot.com`],
-      [PRIMARY.accountId, `${label}.opendeliobot.com`],
-      ["9".repeat(32), `${label}.opendeliobot.com`],
-      [SECOND.accountId, `www.${label}.opendeliobot.com`],
-      [SECOND.accountId, `${label.toUpperCase()}.opendeliobot.com`],
-      [SECOND.accountId, "c-abc.opendeliobot.com"],
-      [SECOND.accountId, `${label}.evilopendeliobot.com`],
-      [SECOND.accountId, "opendeliobot.com"],
+      [PRIMARY.accountId, `${label}.deliobot.fun`],
+      ["9".repeat(32), `${label}.deliobot.fun`],
+      [SECOND.accountId, `www.${label}.deliobot.fun`],
+      [SECOND.accountId, `${label.toUpperCase()}.deliobot.fun`],
+      [SECOND.accountId, "c-abc.deliobot.fun"],
+      [SECOND.accountId, `${label}.evildeliobot.fun`],
+      [SECOND.accountId, "deliobot.fun"],
     ]) {
       expect(endpointAccountFor(config, { hostname, provider_account: providerAccount }), hostname).toBeNull();
     }
@@ -307,23 +307,23 @@ describe("endpoint account rules", () => {
     const config = accounts(PRIMARY, SECOND);
     const label = (index: number) => `c-${index.toString(16).padStart(32, "0")}`;
     const cases: Array<[string, string]> = [
-      [SECOND.accountId, `${label(1)}.opendeliobot.com`],
+      [SECOND.accountId, `${label(1)}.deliobot.fun`],
       [PRIMARY.accountId, `${label(2)}.opendeliobot.com`],
-      [SECOND.accountId, `c-${"0123456789abcdef".repeat(2)}.opendeliobot.com`],
+      [SECOND.accountId, `c-${"0123456789abcdef".repeat(2)}.deliobot.fun`],
       [SECOND.accountId, `${label(3)}.opendeliobot.com`],
-      [PRIMARY.accountId, `${label(4)}.opendeliobot.com`],
-      ["9".repeat(32), `${label(5)}.opendeliobot.com`],
-      [SECOND.accountId, `www.${label(6)}.opendeliobot.com`],
-      [SECOND.accountId, `${label(7).toUpperCase()}.opendeliobot.com`],
-      [SECOND.accountId, `c-${"0123456789abcdeg".repeat(2)}.opendeliobot.com`],
-      [SECOND.accountId, "c-abc.opendeliobot.com"],
-      [SECOND.accountId, `${label(8)}0.opendeliobot.com`],
-      [SECOND.accountId, `${label(9)}.evilopendeliobot.com`],
-      [SECOND.accountId, `${label(10)}.opendeliobot.com.evil.test`],
-      [SECOND.accountId, `${label(11)}.opendeliobot.com.`],
-      [SECOND.accountId, `d-${"0".repeat(31)}c.opendeliobot.com`],
-      [SECOND.accountId, `${label(12)}opendeliobot.com`],
-      [SECOND.accountId, "opendeliobot.com"],
+      [PRIMARY.accountId, `${label(4)}.deliobot.fun`],
+      ["9".repeat(32), `${label(5)}.deliobot.fun`],
+      [SECOND.accountId, `www.${label(6)}.deliobot.fun`],
+      [SECOND.accountId, `${label(7).toUpperCase()}.deliobot.fun`],
+      [SECOND.accountId, `c-${"0123456789abcdeg".repeat(2)}.deliobot.fun`],
+      [SECOND.accountId, "c-abc.deliobot.fun"],
+      [SECOND.accountId, `${label(8)}0.deliobot.fun`],
+      [SECOND.accountId, `${label(9)}.evildeliobot.fun`],
+      [SECOND.accountId, `${label(10)}.deliobot.fun.evil.test`],
+      [SECOND.accountId, `${label(11)}.deliobot.fun.`],
+      [SECOND.accountId, `d-${"0".repeat(31)}c.deliobot.fun`],
+      [SECOND.accountId, `${label(12)}deliobot.fun`],
+      [SECOND.accountId, "deliobot.fun"],
     ];
     const now = Date.now();
     await env.DB.batch(cases.map(([providerAccount, hostname], index) => env.DB.prepare(

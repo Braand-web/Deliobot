@@ -55,7 +55,7 @@ function admin(roster: Record<string, string | null>, options: { status?: number
 describe("a Team Cloud's roster check", () => {
   it("signs as opendelio-cloud's server/cloud-team-roster.ts does", () => {
     // The same vector is pinned in opendelio-cloud tests/cloud-team-join.test.ts.
-    expect(teamRosterSignature(SECRET, "cm-test-home", "1792670400", "nonce-nonce-nonce-1", '{"v":1,"emails":["ada@acme.test"]}')).toBe("WvlpjOna5b6fkOkqkNZgLdv0c913uLp8ufS_2gFEI3Y");
+    expect(teamRosterSignature(SECRET, "cm-test-home", "1792670400", "nonce-nonce-nonce-1", '{"v":1,"emails":["ada@acme.test"]}')).toBe("GZQQEUREBPFq1bZIuHy1pzSCH9bBysTWqWJ5N6FZiNg");
   });
 
   it("keeps a member's browser and phone signed in while they use them, with no desktop pairing again, and across a restart", async () => {

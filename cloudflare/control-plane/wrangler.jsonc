@@ -30,15 +30,15 @@
     // is listed in secrets.required below (as is this JSON when it is a
     // secret) so every deploy keeps it. To stop new endpoints going to an
     // account and keep its own, set its "newEndpoints": false.
-    // Braand-web account, zone opendeliobot.com. dnsRecordLimit 3500 is the Pro (upgraded Oct 21; was 200 on Free)
+    // Braand-web account, zone deliobot.fun. dnsRecordLimit 3500 is the Pro (upgraded Oct 21; was 200 on Free)
     // plan's record quota for a zone added after Sep 2024; on Pro it is 3,500
     // (set it here once the zone is on Pro), and the tunnel quota (1,000)
-    // binds first. Desktop apps accept opendeliobot.com hostnames from 0.1.104 (#2582).
+    // binds first. Desktop apps accept deliobot.fun hostnames from 0.1.104 (#2582).
     "CLOUDFLARE_ENDPOINT_ACCOUNTS": [
       {
         "accountId": "bbb5305f06e28a6f2abaac299f3b09dc",
         "zoneId": "4ded3da43e7b2c3a5f27b0fb33e5bd7a",
-        "companionHostSuffix": "opendeliobot.com",
+        "companionHostSuffix": "deliobot.fun",
         "apiTokenSecret": "CLOUDFLARE_API_TOKEN_DELIO_SI",
         "tunnelLimit": 1000,
         "dnsRecordLimit": 3500,

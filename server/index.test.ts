@@ -1704,12 +1704,12 @@ describe("harness HTTP API", () => {
     expect(await statusWithHeaders({ origin: `http://[::1]:${PORT}` })).toBe(200);
   });
 
-  it("keeps the fleet screen behind the admin entitlement on the open-source edition", async () => {
+  it("answers the fleet screen with the missing agent when this server runs none", async () => {
     const fleet = await api("GET", "/api/fleet");
-    expect(fleet.status).toBe(403);
-    expect(fleet.body.error).toContain("enterprise");
-    expect((await api("POST", "/api/fleet/workspaces", { slug: "acme", admins: ["a@b.test"] })).status).toBe(403);
-    expect((await api("DELETE", "/api/fleet/workspaces/acme")).status).toBe(403);
+    expect(fleet.status).toBe(404);
+    expect(fleet.body.error).toContain("No fleet agent");
+    expect((await api("POST", "/api/fleet/workspaces", { slug: "acme", admins: ["a@b.test"] })).status).toBe(404);
+    expect((await api("DELETE", "/api/fleet/workspaces/acme")).status).toBe(404);
   });
 
   it("identifies itself on /api/health", async () => {
@@ -12839,7 +12839,8 @@ describe("harness HTTP API", () => {
       expect(saved.body.imageGen).toEqual({ provider: "custom", configured: true, model: "local/image",
         primary: { provider: "custom", model: "local/image", configured: true }, fallback: null, ready: true, maxPerTurn: 4,
         customUrl: "http://127.0.0.1:4321/v1", customModel: "local/image",
-        openaiConfigured: true, xaiConfigured: false, customKeyConfigured: true, geminiConfigured: false, openrouterConfigured: false });
+        openaiConfigured: true, xaiConfigured: false, customKeyConfigured: true, geminiConfigured: false, openrouterConfigured: false,
+        falConfigured: false });
       for (const secret of ["openai-avatar-fixture", "custom-avatar-fixture"]) {
         expect(JSON.stringify(saved.body)).not.toContain(secret);
         expect(readFileSync(join(home, ".opendeliobot", "config.json"), "utf8")).not.toContain(secret);

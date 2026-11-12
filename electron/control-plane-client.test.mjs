@@ -252,7 +252,7 @@ describe("control-plane desktop client", () => {
   it("reports the app's release with an endpoint request only when it is a printable version", async () => {
     const connectorToken = `eyJ${"x".repeat(80)}`;
     const fetchImpl = vi.fn(async () =>
-      jsonResponse({ endpoint: { url: "https://c-opaque.opendeliobot.com" }, connectorToken }),
+      jsonResponse({ endpoint: { url: "https://c-opaque.deliobot.fun" }, connectorToken }),
     );
     const client = createControlPlaneClient({ baseURL: "https://accounts.opendeliobot.com", fetchImpl });
     const sent = () => {
@@ -261,7 +261,7 @@ describe("control-plane desktop client", () => {
     };
 
     await expect(client.ensureEndpoint(INSTALL, { appVersion: " 0.1.104 " })).resolves.toEqual({
-      endpoint: { url: "https://c-opaque.opendeliobot.com" },
+      endpoint: { url: "https://c-opaque.deliobot.fun" },
       connectorToken,
     });
     expect(sent()).toEqual({ body: JSON.stringify({ appVersion: "0.1.104" }), contentType: "application/json" });
@@ -278,7 +278,7 @@ describe("control-plane desktop client", () => {
     const fetchImpl = vi.fn(async (url) => {
       const path = new URL(url).pathname;
       if (path === "/v1/installations" ) return jsonResponse({ installation: { id: INSTALL_ID, clientInstanceId: "server-1", name: "vps", platform: "linux" }, credential: INSTALL }, { status: 201 });
-      if (path === "/v1/installations/self/endpoint") return jsonResponse({ endpoint: { url: "https://c-opaque.opendeliobot.com" }, connectorToken: `eyJ${"x".repeat(80)}` });
+      if (path === "/v1/installations/self/endpoint") return jsonResponse({ endpoint: { url: "https://c-opaque.deliobot.fun" }, connectorToken: `eyJ${"x".repeat(80)}` });
       return jsonResponse({ token: "a.b", hostId: "h", nodes: [], expiresAt: 1, refreshAfter: 1 });
     });
     const client = createControlPlaneClient({ baseURL: "https://accounts.opendeliobot.com", fetchImpl });
@@ -307,7 +307,7 @@ describe("control-plane desktop client", () => {
       bodies.push(init.body === undefined ? undefined : JSON.parse(init.body));
       const next = answers.shift() ?? 200;
       return next === 200
-        ? jsonResponse({ endpoint: { url: "https://c-opaque.opendeliobot.com" }, connectorToken: `eyJ${"x".repeat(80)}`, token: "a.b" })
+        ? jsonResponse({ endpoint: { url: "https://c-opaque.deliobot.fun" }, connectorToken: `eyJ${"x".repeat(80)}`, token: "a.b" })
         : jsonResponse({ error: next === 400 ? "invalid_request" : "rate_limited" }, { status: next });
     });
     const client = createControlPlaneClient({ baseURL: "https://accounts.opendeliobot.com", fetchImpl });

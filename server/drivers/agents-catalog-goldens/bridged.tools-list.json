@@ -262,6 +262,7 @@
               "openaiApiKey",
               "anthropicApiKey",
               "openrouterApiKey",
+              "falApiKey",
               "mistralApiKey",
               "cerebrasApiKey",
               "groqApiKey",

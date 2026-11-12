@@ -124,11 +124,11 @@ describe("committed live scenarios", () => {
 
 describe("judge prompts", () => {
   it("verify the manifest checksum and refuse unknown versions", () => {
-    const prompt = loadJudgePrompt("open-ended-v1");
+    const prompt = loadJudgePrompt("open-ended-v2");
     expect(prompt.text).toContain("{{task}}");
     expect(prompt.text).toContain("{{reply}}");
     expect(() => loadJudgePrompt("missing-v9")).toThrow(/no judge prompt version/);
-    expect(loadJudgePrompt("reply-habits-v1").text).toContain("{{reply}}");
+    expect(loadJudgePrompt("reply-habits-v2").text).toContain("{{reply}}");
   });
 
   it("parses strict verdicts from plain, fenced, or prose-wrapped replies", () => {

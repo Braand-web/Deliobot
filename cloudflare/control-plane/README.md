@@ -374,7 +374,7 @@ ID):
       "reclaimPending": 12
     },
     {
-      "hostSuffix": "opendeliobot.com",
+      "hostSuffix": "deliobot.fun",
       "newEndpoints": true,
       "status": "ok",
       "checkedAt": 1790000000000,
@@ -418,8 +418,8 @@ repository:
 [
   {
     "accountId": "<32-hex Cloudflare account ID>",
-    "zoneId": "<32-hex zone ID of opendeliobot.com in that account>",
-    "companionHostSuffix": "opendeliobot.com",
+    "zoneId": "<32-hex zone ID of deliobot.fun in that account>",
+    "companionHostSuffix": "deliobot.fun",
     "apiTokenSecret": "CLOUDFLARE_API_TOKEN_DELIO_SI",
     "tunnelLimit": 1000,
     "dnsRecordLimit": 200,
@@ -523,7 +523,7 @@ and `errorCode`; only an operator can fix the token.
 **Why `minAppVersion`.** Desktop releases up to 0.1.103 accept only
 `opendeliobot.com` names for **Remote computer → Desktop companion** pairing
 (phones, pairing links, and Tailscale have no domain rule). The desktop app
-accepts `opendeliobot.com` from the release that ships this change, and from the
+accepts `deliobot.fun` from the release that ships this change, and from the
 same release it reports its version with every endpoint request; older apps
 are judged by the version they registered with. Set `minAppVersion` to that
 release so a computer on an older release keeps an address every desktop can
