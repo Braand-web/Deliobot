@@ -1,5 +1,6 @@
 import type { Invitation, Member, Role, SsoConfig, Workspace } from "./store.ts";
 import type { DeviceRow } from "./devices.ts";
+import type { HostingState } from "./hosting.ts";
 import { PLANS, TRIAL_DAYS, type Catalog, type Cycle, type Order, type PlanId, type Subscription } from "./plans.ts";
 import type { LedgerRow } from "./wallet.ts";
 
@@ -35,8 +36,8 @@ form.inline{display:inline-flex;gap:6px;align-items:center;margin:0}
 label{display:block;font-size:13px;color:var(--ink-2);margin:10px 0 4px}
 input,select{font:inherit;color:var(--ink);background:var(--canvas);border:1px solid var(--hairline);border-radius:8px;padding:8px 10px;width:100%}
 form.inline input,form.inline select{width:auto}
-button{font:inherit;font-size:14px;border:1px solid var(--hairline);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer}
-button.primary{background:var(--accent);border-color:var(--accent);color:#fff}button.danger{color:var(--danger)}
+button,a.button{text-decoration:none;display:inline-block;font:inherit;font-size:14px;border:1px solid var(--hairline);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer}
+button.primary,a.button.primary{background:var(--accent);border-color:var(--accent);color:#fff}button.danger{color:var(--danger)}
 .notice{border-left:3px solid var(--accent);padding:8px 12px;background:var(--surface);border-radius:6px;margin:12px 0}.notice.error{border-color:var(--danger)}
 code{font-family:"Geist Mono",ui-monospace,Menlo,monospace;font-size:13px;overflow-wrap:anywhere}
 .mascot{display:block;width:88px;height:88px;margin:8px auto 16px}.center{text-align:center}.narrow{max-width:400px;margin:0 auto}
@@ -60,6 +61,19 @@ ${notice(error, "error")}<form method="post" action="/login" class="card"><input
 <p><button class="primary" style="width:100%">Continue</button></p></form></div>`;
 }
 
+/** A customer names a workspace; it is created on the server once its plan is paid. */
+export function signupPage(input: { domain: string; plan: string; cycle: string; name?: string; slug?: string; error?: string }): Html {
+  return h`<div class="narrow"><h1 class="center">Create your workspace</h1>
+<p class="muted center">Your bots and your team live there. You pay for a plan next, then it is ready in a few minutes.</p>
+${notice(input.error, "error")}<form method="post" action="/signup" class="card">
+<input type="hidden" name="plan" value="${input.plan}"><input type="hidden" name="cycle" value="${input.cycle}">
+<label for="name">Name</label><input id="name" name="name" required maxlength="80" placeholder="Acme" value="${input.name ?? ""}" autofocus>
+<label for="slug">Address</label><div class="row" style="gap:6px"><input id="slug" name="slug" required pattern="[a-z][a-z0-9-]{1,30}" maxlength="31" placeholder="acme" value="${input.slug ?? ""}" style="flex:1">
+<span class="muted">.${input.domain}</span></div>
+<p class="muted" style="font-size:12px">Lowercase letters, digits and dashes. It cannot be changed later.</p>
+<p><button class="primary" style="width:100%">Continue to payment</button></p></form></div>`;
+}
+
 export function codePage(email: string, next: string, error?: string): Html {
   return h`<div class="narrow"><h1 class="center">Check your email</h1><p class="muted center">We sent an 8-digit code to <b>${email}</b>. It expires in 10 minutes.</p>
 ${notice(error, "error")}<form method="post" action="/login/verify" class="card"><input type="hidden" name="email" value="${email}"><input type="hidden" name="next" value="${next}">
@@ -67,9 +81,9 @@ ${notice(error, "error")}<form method="post" action="/login/verify" class="card"
 <p><button class="primary" style="width:100%">Sign in</button></p></form><p class="center muted"><a href="/login?next=${encodeURIComponent(next)}">Use another address</a></p></div>`;
 }
 
-export function homePage(input: { workspaces: Array<Workspace & { role: Role }>; operator: boolean; all: Workspace[]; message?: string; error?: string }): Html {
+export function homePage(input: { workspaces: Array<Workspace & { role: Role }>; operator: boolean; all: Workspace[]; signup?: boolean; message?: string; error?: string }): Html {
   const mine = input.workspaces.length === 0
-    ? h`<p class="muted">You are not in any workspace yet. Ask an administrator for an invitation.</p>`
+    ? h`<p class="muted">You are not in any workspace yet. ${input.signup ? h`<a href="/signup">Create one</a>, or ask` : "Ask"} an administrator for an invitation.</p>`
     : input.workspaces.map((workspace) => h`<div class="row"><div class="grow"><b>${workspace.name}</b><div class="muted">${workspace.slug} · ${workspace.role}</div></div>
 <a href="${workspace.tenantUrl}">Open</a>${workspace.role === "admin" ? h` <a href="/people?workspace=${workspace.slug}">People</a> <a href="/sso?workspace=${workspace.slug}">SSO</a> <a href="/billing?workspace=${workspace.slug}">Billing</a>` : ""}</div>`);
   const operator = input.operator ? h`<h2>All workspaces</h2><div class="card">${input.all.length === 0 ? h`<p class="muted">None yet.</p>`
@@ -80,7 +94,8 @@ export function homePage(input: { workspaces: Array<Workspace & { role: Role }>;
 <label for="tenant">Workspace address</label><input id="tenant" name="tenantUrl" type="url" required placeholder="https://acme.deliobot.com">
 <label for="owner">First administrator's email</label><input id="owner" name="ownerEmail" type="email" required>
 <p><button class="primary">Create workspace</button></p></form>` : raw("");
-  return h`<h1>Your workspaces</h1>${notice(input.message)}${notice(input.error, "error")}<div class="card">${mine}</div>${operator}`;
+  return h`<h1>Your workspaces</h1>${notice(input.message)}${notice(input.error, "error")}<div class="card">${mine}</div>
+${input.signup && input.workspaces.length ? h`<p><a href="/signup">Create another workspace</a></p>` : ""}${operator}`;
 }
 
 export function peoplePage(input: { workspace: Workspace; members: Member[]; invitations: Invitation[]; self: string; inviteLink?: string; message?: string; error?: string;
@@ -136,6 +151,20 @@ export function messagePage(title: string, text: string, link?: { href: string; 
 
 const credits = (value: number) => value.toLocaleString("en-US", { maximumFractionDigits: 1 });
 
+function hostingCard(workspace: Workspace, hosting: { state: HostingState; error: string | null; retry: boolean }): Html {
+  const line: Record<HostingState, string> = {
+    waiting: "Choose a plan below: the workspace is created as soon as it is paid.",
+    creating: "Being created. This takes a few minutes; you get an email when it is ready.",
+    ready: "Ready.",
+    failed: "Creating it did not work yet. It is tried again automatically, and the Delio team is told if it keeps failing.",
+    suspended: "Paused because its plan has ended. Renew it below: your bots and data are kept.",
+  };
+  return h`<h2>Workspace</h2><div class="card" data-hosting="${hosting.state}"><div class="row"><div class="grow"><b>${workspace.tenantUrl}</b><div class="muted">${line[hosting.state]}</div>
+${hosting.error ? h`<div class="muted" style="font-size:12px">${hosting.error}</div>` : ""}</div>
+${hosting.state === "ready" ? h`<a class="button primary" href="${workspace.tenantUrl}">Open</a>` : ""}
+${hosting.retry ? h`<form class="inline" method="post" action="/billing/hosting/retry"><input type="hidden" name="workspace" value="${workspace.slug}"><button>Try again now</button></form>` : ""}</div></div>`;
+}
+
 /** A dollar price as the site shows it, with the francs a payer is charged in small type beneath. */
 function price(usd: number, francs: number, per: string): Html {
   const dollars = `$${usd.toLocaleString("en-US", { minimumFractionDigits: Number.isInteger(usd) ? 0 : 2, maximumFractionDigits: 2 })}`;
@@ -145,7 +174,7 @@ function price(usd: number, francs: number, per: string): Html {
 
 export function billingPage(input: { workspace: Workspace; operator: boolean; balance: number; usedThisMonth: number; hasToken: boolean; ledger: LedgerRow[];
   gatewayUrl: string; devices: DeviceRow[]; subscription: Subscription; orders: Order[]; payments: boolean; currency: string; trialAvailable: boolean;
-  catalog: Catalog; chosen?: PlanId; cycle?: Cycle; token?: string; message?: string; error?: string }): Html {
+  catalog: Catalog; chosen?: PlanId; cycle?: Cycle; hosting?: { state: HostingState; error: string | null; retry: boolean } | null; token?: string; message?: string; error?: string }): Html {
   const slug = input.workspace.slug;
   const sub = input.subscription;
   const cycle = input.cycle ?? "month";
@@ -189,6 +218,7 @@ ${input.operator ? h`<h2>Add credits</h2><form method="post" action="/billing/cr
 <h2>Workspace token</h2><div class="card"><p class="muted">The workspace's server uses this token to reach Delio's AI gateway at <code>${input.gatewayUrl}</code>. Issuing a new one revokes the old one.</p>
 ${input.token ? h`<div class="notice">Copy it now, it is shown only once: <code>${input.token}</code></div>` : input.hasToken ? h`<p>A token is active.</p>` : h`<p>No token yet.</p>`}
 <form method="post" action="/billing/token"><input type="hidden" name="workspace" value="${slug}"><button>${input.hasToken ? "Issue a new token" : "Issue a token"}</button></form></div>` : ""}
+${input.hosting ? hostingCard(input.workspace, input.hosting) : ""}
 <h2>Plan</h2><div class="card"><b>${status}</b>${!input.payments ? h`<p class="muted">Payments are not set up on this deployment yet.</p>` : ""}</div>
 ${input.trialAvailable && sub.status === "none" ? h`<form method="post" action="/billing/checkout" class="card">${hidden({ workspace: slug, kind: "plan", plan: "trial" })}
 <div class="row"><div class="grow"><b>Try Delio for ${TRIAL_DAYS} days</b><div class="muted">${trial.credits} AI credits · ${trial.computerHours} cloud computer hours</div></div>

@@ -4,6 +4,7 @@ import { createServer } from "node:http";
 import { dirname, resolve } from "node:path";
 
 import { createAdminApp } from "./app.ts";
+import { DEFAULT_WORKSPACE_MODELS } from "./hosting.ts";
 import { consoleMailer, httpMailer, type Mailer } from "./mail.ts";
 import { normalizeEmail, AdminStore } from "./store.ts";
 
@@ -15,7 +16,7 @@ function fail(message: string): never {
 const env = process.env;
 const publicUrl = new URL(env.DELIO_ADMIN_URL ?? "http://localhost:8790");
 const production = publicUrl.protocol === "https:";
-if (publicUrl.pathname !== "/" || publicUrl.search) fail("DELIO_ADMIN_URL must be an origin, such as https://admin.deliobot.com");
+if (publicUrl.pathname !== "/" || publicUrl.search) fail("DELIO_ADMIN_URL must be an origin, such as https://admin.deliobot.fun");
 
 const secretText = env.DELIO_ADMIN_SECRET;
 if (production && (!secretText || secretText.length < 32)) fail("set DELIO_ADMIN_SECRET to at least 32 random characters (openssl rand -base64 48)");
@@ -23,7 +24,7 @@ const secret = secretText ? Buffer.from(secretText) : randomBytes(32);
 
 let mailer: Mailer;
 if (env.DELIO_ADMIN_MAIL_API_KEY) {
-  if (!env.DELIO_ADMIN_MAIL_FROM) fail("set DELIO_ADMIN_MAIL_FROM, such as Delio <signin@deliobot.com>");
+  if (!env.DELIO_ADMIN_MAIL_FROM) fail("set DELIO_ADMIN_MAIL_FROM, such as Delio <signin@deliobot.fun>");
   mailer = httpMailer({ endpoint: env.DELIO_ADMIN_MAIL_ENDPOINT ?? "https://api.resend.com/emails", apiKey: env.DELIO_ADMIN_MAIL_API_KEY, from: env.DELIO_ADMIN_MAIL_FROM });
 } else if (!production || env.DELIO_ADMIN_MAIL === "console") {
   mailer = consoleMailer;
@@ -57,7 +58,15 @@ if (saspayKey && !env.DELIO_ADMIN_SASPAY_WEBHOOK_SECRET?.trim()) fail("set DELIO
 if (production && saspayKey?.startsWith("sk_test_")) console.warn("delio-admin: SasPay is in test mode, so no real payment is taken");
 if (!saspayKey) console.warn("delio-admin: no DELIO_ADMIN_SASPAY_KEY, so plans and top-ups cannot be paid");
 const payments = { saspayKey, webhookSecret: env.DELIO_ADMIN_SASPAY_WEBHOOK_SECRET?.trim(), currency, xofPerUsd };
-const app = createAdminApp({ store, publicUrl, operators, mailer, gateway, payments });
+const workspaceDomain = env.DELIO_ADMIN_WORKSPACE_DOMAIN?.trim().toLowerCase() || undefined;
+if (workspaceDomain && !/^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(workspaceDomain)) fail("DELIO_ADMIN_WORKSPACE_DOMAIN must be a domain, such as deliobot.fun");
+const workspaceModels = (env.DELIO_ADMIN_WORKSPACE_MODELS ?? "").split(",").map((id) => id.trim()).filter(Boolean);
+if (workspaceModels.some((id) => !/^[A-Za-z0-9][A-Za-z0-9._-]*\/[A-Za-z0-9][A-Za-z0-9._:/+-]*$/.test(id))) fail("DELIO_ADMIN_WORKSPACE_MODELS must be OpenRouter model IDs separated by commas");
+if (!workspaceDomain) console.warn("delio-admin: no DELIO_ADMIN_WORKSPACE_DOMAIN, so self-serve sign-up is off and only operators create workspaces");
+const hosting = workspaceDomain
+  ? { domain: workspaceDomain, models: workspaceModels.length ? workspaceModels : DEFAULT_WORKSPACE_MODELS, fleetSocket: env.ODB_FLEET_SOCKET?.trim() || undefined }
+  : undefined;
+const app = createAdminApp({ store, publicUrl, operators, mailer, gateway, payments, ...(hosting ? { hosting } : {}) });
 const server = createServer(app);
 const sweeper = setInterval(() => void app.sweep().catch((error: unknown) => console.error("delio-admin: billing sweep failed", error)), 60_000);
 server.listen(port, host, () => console.log(`delio-admin: listening on http://${host}:${port}, public at ${publicUrl.origin}`));

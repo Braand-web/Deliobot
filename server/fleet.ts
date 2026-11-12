@@ -232,7 +232,7 @@ export function caddyImportLine(layout = fleetLayout()): string {
   return `import ${layout.caddyDir}/*.caddy`;
 }
 
-export function instanceEnv(input: { workspace: FleetWorkspace; dataDir: string; licenseKey?: string; portalUrl?: string }): string {
+export function instanceEnv(input: { workspace: FleetWorkspace; dataDir: string; licenseKey?: string; portalUrl?: string; delio?: DelioSeed }): string {
   const lines = [
     `ODB_DATA_DIR=${input.dataDir}`,
     `ODB_PORT=${input.workspace.port}`,
@@ -241,8 +241,30 @@ export function instanceEnv(input: { workspace: FleetWorkspace; dataDir: string;
   ];
   if (input.licenseKey) lines.push(`ODB_LICENSE_KEY=${input.licenseKey}`);
   if (input.portalUrl) lines.push(`ODB_ADMIN_URL=${input.portalUrl}`, `ODB_ADMIN_WORKSPACE=${input.workspace.slug}`);
+  if (input.portalUrl && input.delio) {
+    const gateway = `${input.portalUrl}/api/gateway/${input.workspace.slug}`;
+    // systemd's EnvironmentFile strips double quotes it finds in a value; single quotes keep the JSON whole.
+    const catalog = JSON.stringify({ anthropic: [], openai: [], openrouter: input.delio.models });
+    lines.push(
+      "ODB_ADMIN_MEMBERSHIP=portal",
+      `ODB_HOSTED_MODEL_TOKEN=${input.delio.token}`,
+      `ODB_HOSTED_MODELS='${catalog}'`,
+      `ODB_FAL_KEY=${input.delio.token}`,
+      `ODB_FAL_URL=${gateway}/fal`,
+      `ODB_CLOUD_BOAT_URL=${gateway}/boat/v1`,
+      `ODB_CLOUD_BOAT_TOKEN=${input.delio.token}`,
+    );
+  }
   return lines.join("\n") + "\n";
 }
+
+/** A workspace that spends Delio credits: its portal token, and the OpenRouter models the gateway may route to. */
+export interface DelioSeed {
+  token: string;
+  models: string[];
+}
+
+export const DELIO_WORKSPACE_TOKEN = /^odb_workspace_[A-Za-z0-9_-]{43}$/;
 
 export interface WorkspaceSeed {
   admins: string[];
@@ -255,6 +277,8 @@ export interface WorkspaceSeed {
   openrouterDefault?: boolean;
   /** Root-owned hosted portal address; never configurable by a tenant. */
   portalUrl?: string;
+  /** With portalUrl: AI, media and cloud computers through the portal's gateway, members through the portal. */
+  delio?: DelioSeed;
   monthlyCapUsd?: number;
   brandJson?: string;
 }
@@ -337,6 +361,11 @@ export function createPlan(input: {
     if (portal.hostname === `${input.slug}.${input.registry.domain}`) throw new Error("this workspace name is reserved for the admin portal");
     if (input.seed.anthropicUrl && input.seed.anthropicUrl !== `${portal.origin}/api/gateway/${input.slug}/anthropic`) throw new Error("managed provider URL must belong to this workspace's portal gateway");
   } else if (input.seed.anthropicUrl) throw new Error("a managed provider URL requires portalUrl");
+  if (input.seed.delio) {
+    if (!input.seed.portalUrl) throw new Error("a Delio workspace requires portalUrl");
+    if (!DELIO_WORKSPACE_TOKEN.test(input.seed.delio.token)) throw new Error("a Delio workspace requires its portal workspace token");
+    if (!openRouterModelIds(input.seed.delio.models).length) throw new Error("a Delio workspace requires at least one OpenRouter model");
+  }
   if (input.seed.openrouterKey !== undefined || input.seed.openrouterUrl !== undefined || input.seed.openrouterModels !== undefined || input.seed.openrouterDefault) {
     if (!input.seed.portalUrl || input.seed.openrouterUrl !== `${input.seed.portalUrl}/api/gateway/${input.slug}/openrouter/v1`) throw new Error("managed OpenRouter URL must belong to this workspace's portal gateway");
     if (!input.seed.openrouterKey || !/^[!-~]+$/.test(input.seed.openrouterKey)) throw new Error("managed OpenRouter requires a non-empty workspace credential without whitespace");
@@ -382,7 +411,7 @@ export function createPlan(input: {
       } } }, null, 2)}\n` },
     ] : []),
     ...(input.seed.brandJson ? [{ kind: "write" as const, path: join(dataDir, "brand.json"), content: input.seed.brandJson, mode: 0o600, owner: user }] : []),
-    { kind: "write", path: join(layout.instancesDir, `${workspace.slug}.env`), content: instanceEnv({ workspace, dataDir, licenseKey: input.licenseKey, portalUrl: input.seed.portalUrl }), mode: 0o600 },
+    { kind: "write", path: join(layout.instancesDir, `${workspace.slug}.env`), content: instanceEnv({ workspace, dataDir, licenseKey: input.licenseKey, portalUrl: input.seed.portalUrl, ...(input.seed.delio ? { delio: input.seed.delio } : {}) }), mode: 0o600 },
     ...(input.memoryMax
       ? [
           { kind: "mkdir" as const, path: join(layout.unitFile.replace(/opendeliobot@\.service$/, ""), `opendeliobot@${workspace.slug}.service.d`), mode: 0o755 },

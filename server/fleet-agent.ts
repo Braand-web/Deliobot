@@ -156,6 +156,7 @@ export function createFleetAgent(options: FleetAgentOptions): Server {
           portalUrl: text(body.portalUrl), anthropicUrl: text(body.anthropicUrl),
           openrouterKey: text(body.openrouterKey), openrouterUrl: text(body.openrouterUrl),
           openrouterModels: body.openrouterModels === undefined ? undefined : models(body.openrouterModels), openrouterDefault: body.openrouterDefault === true,
+          delioToken: text(body.delioToken), delioModels: body.delioModels === undefined ? undefined : models(body.delioModels),
         });
         return send(result.status, result.body);
       }

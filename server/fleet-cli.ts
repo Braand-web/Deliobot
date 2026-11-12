@@ -47,6 +47,8 @@ export interface FleetInput {
   openrouterModels?: string[];
   openrouterDefault?: boolean;
   portalUrl?: string;
+  delioToken?: string;
+  delioModels?: string[];
   cap?: number;
   licenseKey?: string;
   memory?: string;
@@ -332,7 +334,8 @@ export function planFleetAction(input: FleetInput, deps: FleetDeps): FleetStep[]
       return createPlan({
         registry,
         slug: input.slug,
-        seed: { admins: input.admins, members: input.members, ...(anthropicKey ? { anthropicKey } : {}), ...(input.anthropicUrl ? { anthropicUrl: input.anthropicUrl } : {}), ...(input.portalUrl ? { portalUrl: input.portalUrl } : {}), ...(input.cap !== undefined ? { monthlyCapUsd: input.cap } : {}), ...(brandJson ? { brandJson } : {}), openrouterKey: input.openrouterKey, openrouterUrl: input.openrouterUrl, openrouterModels: input.openrouterModels, openrouterDefault: input.openrouterDefault },
+        seed: { admins: input.admins, members: input.members, ...(anthropicKey ? { anthropicKey } : {}), ...(input.anthropicUrl ? { anthropicUrl: input.anthropicUrl } : {}), ...(input.portalUrl ? { portalUrl: input.portalUrl } : {}), ...(input.cap !== undefined ? { monthlyCapUsd: input.cap } : {}), ...(brandJson ? { brandJson } : {}), openrouterKey: input.openrouterKey, openrouterUrl: input.openrouterUrl, openrouterModels: input.openrouterModels, openrouterDefault: input.openrouterDefault,
+          ...(input.delioToken ? { delio: { token: input.delioToken, models: input.delioModels ?? [] } } : {}) },
         ...(input.licenseKey ? { licenseKey: input.licenseKey } : {}),
         ...(input.memory ? { memoryMax: input.memory } : {}),
         layout,

@@ -6,10 +6,11 @@ import type { Mailer } from "./mail.ts";
 import { discover, exchangeCode, pkceChallenge, verifyIdToken } from "./oidc.ts";
 import { createGateway, type GatewayOptions } from "./gateway.ts";
 import { DEVICE_POLL_SECONDS, Devices } from "./devices.ts";
+import { Hosting, hostingRunner, RESERVED_SLUGS, socketFleet, type Fleet } from "./hosting.ts";
 import { Billing, catalog, PLANS, reconcileOrders, TOPUPS, TRIAL_DAYS, type Cycle, type PlanId, type TopupId } from "./plans.ts";
 import { createSasPay, verifySasPayWebhook } from "./saspay.ts";
 import { MICRO, Wallet } from "./wallet.ts";
-import { billingPage, codePage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, slackPage, ssoPage, type Html } from "./pages.ts";
+import { billingPage, codePage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, signupPage, slackPage, ssoPage, type Html } from "./pages.ts";
 import { normalizeEmail, token, validEmail, validSlug, type Account, type AdminStore, type Role, type Workspace } from "./store.ts";
 
 export interface AdminAppOptions {
@@ -27,7 +28,12 @@ export interface AdminAppOptions {
   gateway?: Omit<GatewayOptions, "store" | "wallet" | "publicUrl" | "fetchImpl" | "now" | "allowance" | "deviceToken"> & { creditUsd?: number };
   /** SasPay: the secret key, the webhook signing secret, and the currency checkouts are priced in (XOF by default). */
   payments?: { saspayKey?: string; webhookSecret?: string; currency?: string; xofPerUsd?: number; apiUrl?: string };
+  /** Self-serve sign-up: workspaces at https://<slug>.<domain>, created through the fleet agent once paid, with these OpenRouter models. */
+  hosting?: { domain: string; models: string[]; fleet?: Fleet; fleetSocket?: string };
 }
+
+/** Self-serve workspaces may own this many; more takes an operator. */
+const SELF_SERVE_LIMIT = 3;
 
 const MAX_BODY = 16 * 1024;
 const CHALLENGE = /^[A-Za-z0-9_-]{43}$/;
@@ -123,6 +129,11 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   const plans = new Billing(wallet, now);
   const saspay = options.payments?.saspayKey ? createSasPay({ key: options.payments.saspayKey, apiUrl: options.payments.apiUrl, fetchImpl }) : null;
   const currency = options.payments?.currency ?? "XOF";
+  const hosting = new Hosting(store.db, now);
+  const selfServe = options.hosting ?? null;
+  const runHosting = selfServe ? hostingRunner({ hosting, billing: plans, wallet, store, mailer, operators, now, portalUrl: publicUrl.origin, models: selfServe.models,
+    fleet: selfServe.fleet ?? socketFleet(selfServe.fleetSocket ?? "/run/opendeliobot/fleet.sock") }) : null;
+  const startHosting = () => { void runHosting?.().catch((error: unknown) => console.error("delio-admin: hosting pass failed", error)); };
   const gateway = createGateway({ ...options.gateway, store, wallet, publicUrl, fetchImpl, now, deviceToken: (value, slug) => devices.check(value, slug),
     allowance: (slug) => plans.allowance(slug) });
 
@@ -270,7 +281,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       try { event = JSON.parse(raw.toString("utf8")) as typeof event; } catch { return json(res, 400, { error: "invalid JSON" }); }
       const id = `${String(event.event)}:${String(event.data?.id ?? "")}:${header("x-webhook-timestamp")}`;
       // The event names a transaction, not our order: every pending order is checked against SasPay itself.
-      if (plans.firstSeen(id) && event.event === "transaction.success" && saspay) await reconcileOrders(plans, saspay);
+      if (plans.firstSeen(id) && event.event === "transaction.success" && saspay && (await reconcileOrders(plans, saspay)).length) startHosting();
       return json(res, 200, { ok: true });
     }
     if (path === "/api/device/start" || path === "/api/device/token") {
@@ -392,8 +403,40 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     }
 
     if (method === "GET" && path === "/") {
-      return html(res, 200, { title: "Workspaces", email: user.email, body: homePage({ workspaces: store.workspacesOf(user.id), operator: operators.has(user.email),
+      return html(res, 200, { title: "Workspaces", email: user.email, body: homePage({ workspaces: store.workspacesOf(user.id), operator: operators.has(user.email), signup: Boolean(selfServe),
         all: operators.has(user.email) ? store.allWorkspaces() : [], message: url.searchParams.get("created") ? "Workspace created." : undefined }) });
+    }
+    if (selfServe && (path === "/signup")) {
+      const form = method === "POST" ? await readBody(req) : null;
+      const pick = (name: string, max: number) => (form ? text(form, name, max) : url.searchParams.get(name) ?? "").slice(0, max);
+      const plan = Object.hasOwn(PLANS, pick("plan", 16)) ? pick("plan", 16) : "";
+      const cycle = pick("cycle", 8) === "year" ? "year" : "month";
+      const show = (status: number, extra: { name?: string; slug?: string; error?: string } = {}) =>
+        html(res, status, { title: "Create your workspace", email: user.email, mascot: "happy", body: signupPage({ domain: selfServe.domain, plan, cycle, ...extra }) });
+      if (method === "GET") return show(200);
+      if (method !== "POST") throw new HttpError(405, "Method not allowed.");
+      const name = pick("name", 80), slug = pick("slug", 64).toLowerCase();
+      const owned = store.workspacesOf(user.id).filter((item) => item.role === "admin" && hosting.get(item.slug)).length;
+      const error = !name ? "Give the workspace a name."
+        : !validSlug(slug) ? "The address must be 2–31 lowercase letters, digits or dashes, starting with a letter."
+        : RESERVED_SLUGS.has(slug) || store.workspace(slug) ? "That address is taken. Try another one."
+        : owned >= SELF_SERVE_LIMIT && !operators.has(user.email) ? `You already have ${SELF_SERVE_LIMIT} workspaces. Write to the Delio team for more.` : null;
+      if (error) return show(400, { name, slug, error });
+      if (!store.allow(`signup:${user.id}`, 10, 60 * 60_000)) return show(429, { name, slug, error: "Too many workspaces in a short time. Wait an hour and try again." });
+      store.createWorkspace({ slug, name, tenantUrl: `https://${slug}.${selfServe.domain}`, ownerEmail: user.email }, user.email);
+      hosting.request(slug);
+      return redirect(res, `/billing?workspace=${slug}${plan ? `&plan=${plan}&cycle=${cycle}` : ""}`);
+    }
+    if (method === "POST" && path === "/billing/hosting/retry") {
+      const body = await readBody(req);
+      const workspace = requireWorkspaceAdmin(user, text(body, "workspace", 64));
+      const row = hosting.get(workspace.slug);
+      if (row?.state === "failed") {
+        hosting.set(workspace.slug, { state: "waiting", attempts: 0, nextTryAt: 0, error: null });
+        store.audit(workspace.slug, user.email, "hosting.retry", null);
+        startHosting();
+      }
+      return redirect(res, `/billing?workspace=${workspace.slug}`);
     }
     if (method === "POST" && path === "/workspaces") {
       if (!operators.has(user.email)) throw new HttpError(403, "Only operators can create workspaces.");
@@ -544,7 +587,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       const order = plans.order(url.searchParams.get("order") ?? "");
       if (!order) throw new HttpError(404, "No such payment.");
       const workspace = requireWorkspaceAdmin(user, order.workspace);
-      if (order.status === "pending" && saspay) await reconcileOrders(plans, saspay, order.id);
+      if (order.status === "pending" && saspay && (await reconcileOrders(plans, saspay, order.id)).length) startHosting();
       const latest = plans.order(order.id)!;
       return html(res, 200, { title: "Billing", email: user.email, body: billing(workspace, user,
         latest.status === "paid" ? { message: "Payment received: thank you. Your credits are added." }
@@ -603,8 +646,14 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     return billingPage({ workspace, operator: operators.has(user.email), balance: wallet.balance(workspace.slug) / MICRO,
       subscription: plans.subscription(workspace.slug), orders: plans.orders(workspace.slug, 10), payments: Boolean(saspay), currency,
       trialAvailable: !plans.trialUsed(user.email, workspace.slug), catalog: catalog(options.payments?.xofPerUsd),
+      hosting: hostingView(workspace.slug),
       usedThisMonth: wallet.usedThisMonth(workspace.slug) / MICRO, hasToken: wallet.hasToken(workspace.slug), ledger: wallet.ledger(workspace.slug, 30),
       gatewayUrl: new URL(`/api/gateway/${workspace.slug}`, publicUrl).href, devices: devices.list(workspace.slug), ...extra });
+  }
+
+  function hostingView(slug: string) {
+    const row = hosting.get(slug);
+    return row ? { state: row.state, error: row.state === "failed" ? "The last attempt failed." : null, retry: row.state === "failed" } : null;
   }
 
   function people(workspace: Workspace, user: Account, extra: { message?: string; error?: string; inviteLink?: string }): Html {
@@ -628,6 +677,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     await gateway.sweep();
     if (saspay) await reconcileOrders(plans, saspay);
     plans.grantDue();
+    if (runHosting) await runHosting();
     for (const due of plans.dueReminders()) {
       const workspace = store.workspace(due.workspace);
       if (!workspace) continue;

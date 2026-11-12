@@ -35,7 +35,7 @@ Open http://localhost:8790. In development, sign-in codes and invitation links a
 
 | Variable | Meaning |
 | --- | --- |
-| `DELIO_ADMIN_URL` | The portal's public origin, such as `https://admin.deliobot.com`. An `https` origin switches on production checks. |
+| `DELIO_ADMIN_URL` | The portal's public origin, such as `https://admin.deliobot.fun`. An `https` origin switches on production checks. |
 | `DELIO_ADMIN_SECRET` | At least 32 random characters. Required in production. Keys the HMAC of codes and rate-limit buckets. |
 | `DELIO_ADMIN_OPERATORS` | Comma-separated emails allowed to create workspaces. |
 | `DELIO_ADMIN_DB` | SQLite file path. Default: `data/delio-admin.db`. |
@@ -51,19 +51,22 @@ Open http://localhost:8790. In development, sign-in codes and invitation links a
 | `DELIO_ADMIN_SASPAY_WEBHOOK_SECRET` | The signing secret SasPay shows once when the webhook is created in its dashboard. |
 | `DELIO_ADMIN_CURRENCY` | What SasPay charges: `XOF` (default), `XAF` or `USD`. Prices are set in dollars. |
 | `DELIO_ADMIN_XOF_PER_USD` | CFA francs per dollar, used to charge and to show the franc price under each dollar price. Default: `600`; follow the market rate. |
+| `DELIO_ADMIN_WORKSPACE_DOMAIN` | Turns on self-serve sign-up: a customer's workspace lives at `https://<slug>.<domain>` (for example `deliobot.fun`). The fleet agent must serve that domain. |
+| `DELIO_ADMIN_WORKSPACE_MODELS` | The OpenRouter models a new workspace may use through the gateway, separated by commas. Default: Gemini 2.5 Flash and Pro, GPT-5 mini and GPT-5, Claude Sonnet 4.5 and Opus 4.1. |
+| `ODB_FLEET_SOCKET` | The fleet agent's socket. Default: `/run/opendeliobot/fleet.sock`; the portal's Unix user must be the fleet's `--operator`. |
 | `PORT`, `HOST` | Listening address. Default: `8790`. Binds `127.0.0.1` in development and `0.0.0.0` in production. |
 
 Put the portal behind a TLS-terminating proxy.
 
 ## Connect a workspace
 
-1. Create the workspace in the portal, giving its address (for example `https://acme.deliobot.com`) and its first admin.
+1. Create the workspace in the portal, giving its address (for example `https://acme.deliobot.fun`) and its first admin.
 2. Start that workspace's server with:
 
    ```sh
-   ODB_ADMIN_URL=https://admin.deliobot.com
+   ODB_ADMIN_URL=https://admin.deliobot.fun
    ODB_ADMIN_WORKSPACE=acme
-   ODB_PUBLIC_URL=https://acme.deliobot.com
+   ODB_PUBLIC_URL=https://acme.deliobot.fun
    ODB_ADMIN_MEMBERSHIP=portal
    ```
 
@@ -115,6 +118,31 @@ prepaid **credits** kept per workspace.
 
 Claude and Codex company engines are not offered through the gateway yet:
 Claude, GPT and the other models are reached through OpenRouter.
+
+## Self-serve sign-up
+
+With `DELIO_ADMIN_WORKSPACE_DOMAIN` set, anyone can sign up at `/signup`
+(the site's plan buttons link there with `?plan=…&cycle=month|year`):
+
+1. They sign in with an emailed code, name the workspace and pick its address
+   (`<slug>.<domain>`; reserved words such as `admin` or `www` are refused, and
+   one account may own 3 such workspaces).
+2. They pay the trial or a plan on **Billing**.
+3. Once the payment is confirmed, the portal issues the workspace token and asks
+   the fleet agent to create the workspace: its own Unix user, data, systemd
+   service, HTTPS site, members through the portal, and AI, images, video,
+   music and cloud computers through the gateway (`ODB_HOSTED_MODEL_TOKEN`,
+   `ODB_HOSTED_MODELS`, `ODB_FAL_KEY`/`ODB_FAL_URL`, `ODB_CLOUD_BOAT_URL`/`ODB_CLOUD_BOAT_TOKEN`).
+   A BYOK workspace gets none of these and uses its own keys. The admins get an
+   email when it is ready.
+4. A failed creation is retried after 5, 10 and 20 minutes; after the fourth
+   failure the operators get an email, and an admin can retry from **Billing**.
+5. When a plan has ended past its grace week, the workspace is suspended; paying
+   again resumes it. Nothing is ever deleted automatically: an operator deletes a
+   workspace with `opendeliobot fleet delete`.
+
+Switching an existing workspace between BYOK and a credit plan is not automatic:
+an operator recreates its environment.
 
 ## Plans and payments (SasPay)
 

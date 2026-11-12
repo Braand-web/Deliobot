@@ -217,6 +217,25 @@ describe("plans", () => {
     expect(() => createPlan({ registry, slug: "admin", seed, layout })).toThrow("reserved for the admin portal");
   });
 
+  it("seeds a Delio workspace with the portal's token for AI, media and cloud computers, and its members from the portal", () => {
+    const registry = emptyRegistry("deliobot.test");
+    const token = `odb_workspace_${"a".repeat(43)}`;
+    const seed = { admins: ["owner@example.test"], members: [], portalUrl: "https://admin.deliobot.test", delio: { token, models: ["google/gemini-2.5-flash", "anthropic/claude-sonnet-4.5"] } };
+    const plan = createPlan({ registry, slug: "acme", seed, now, layout });
+    const env = plan.steps.find((step) => step.kind === "write" && step.path.endsWith("/acme.env"));
+    const lines = env?.kind === "write" ? env.content.trim().split("\n") : [];
+    const gateway = "https://admin.deliobot.test/api/gateway/acme";
+    expect(lines).toEqual(expect.arrayContaining(["ODB_ADMIN_MEMBERSHIP=portal", `ODB_HOSTED_MODEL_TOKEN=${token}`, `ODB_FAL_KEY=${token}`,
+      `ODB_FAL_URL=${gateway}/fal`, `ODB_CLOUD_BOAT_URL=${gateway}/boat/v1`, `ODB_CLOUD_BOAT_TOKEN=${token}`]));
+    const catalog = lines.find((line) => line.startsWith("ODB_HOSTED_MODELS="))!;
+    expect(catalog, "single-quoted, as systemd's EnvironmentFile keeps it").toMatch(/^ODB_HOSTED_MODELS='[^']+'$/);
+    expect(JSON.parse(catalog.slice("ODB_HOSTED_MODELS='".length, -1))).toEqual({ anthropic: [], openai: [], openrouter: seed.delio.models });
+    expect(() => createPlan({ registry, slug: "acme", seed: { ...seed, portalUrl: undefined }, layout })).toThrow("requires portalUrl");
+    expect(() => createPlan({ registry, slug: "acme", seed: { ...seed, delio: { ...seed.delio, token: "odb_workspace_short" } }, layout })).toThrow("workspace token");
+    expect(() => createPlan({ registry, slug: "acme", seed: { ...seed, delio: { ...seed.delio, models: [] } }, layout })).toThrow("at least one OpenRouter model");
+    expect(() => createPlan({ registry, slug: "acme", seed: { ...seed, delio: { ...seed.delio, models: ["it's"] } }, layout })).toThrow("valid model IDs");
+  });
+
   it("renders privileged steps but never recommends root writes through tenant paths", () => {
     const lines = describeSteps([
       { kind: "mkdir", path: "/var/lib/opendeliobot/acme/.opendeliobot", mode: 0o700, owner: "odb-acme" },

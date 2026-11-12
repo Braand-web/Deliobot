@@ -91,7 +91,7 @@ export function hostedModelPolicy(dataDirectory: string, env: NodeJS.ProcessEnv 
         environment: { OPENDELIOBOT_COMPANY_API_KEY: token, CODEX_HOME: home("codex") },
       };
       if (catalog.openrouter.length) configs.opencode = {
-        driver: "openai-compat", displayName: "Company · OpenRouter",
+        driver: "openai-compat", displayName: "Delio",
         config: { url: `${base}/openrouter/v1`, apiKeyEnv: "OPENDELIOBOT_COMPANY_API_KEY", provider: "", model: catalog.openrouter[0], managedModels: catalog.openrouter },
         environment: { OPENDELIOBOT_COMPANY_API_KEY: token },
       };
