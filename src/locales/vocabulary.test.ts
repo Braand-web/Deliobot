@@ -10,7 +10,7 @@ import { locales } from "./index";
 
 const RETIRED: ReadonlyArray<readonly [string, RegExp, string]> = [
   ["ODB Cloud", /ODB Cloud/i, "Delio Cloud"],
-  ["Deliobot Cloud", /OpenDeliobot Cloud/i, "Delio Cloud"],
+  ["Deliobot Cloud", /(?:Open)?Deliobot Cloud/i, "Delio Cloud"],
   ["Delio Pro", /(?:Delio|Deliobot) Pro\b/, "Delio Cloud"],
   // \b before "_" fails, so environment names such as ODB_PUBLIC_IPV4 pass.
   ["ODB", /\bODB\b/, "Delio"],
