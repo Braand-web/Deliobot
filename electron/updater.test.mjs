@@ -1,5 +1,5 @@
 import { EventEmitter } from "node:events";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import vm from "node:vm";
@@ -19,13 +19,20 @@ const OWN = "https://odb-c-a.fly.dev";
 const fixture = vi.hoisted(() => ({ autoUpdater: null, handlers: new Map(), home: "" }));
 
 vi.mock("electron", () => ({
-  app: { isPackaged: true, getPath: () => fixture.home, getVersion: () => "1.0.0", hide: vi.fn() },
+  app: { isPackaged: true, getPath: () => fixture.home, getVersion: () => "1.0.0", getName: () => "OpenDeliobot", hide: vi.fn() },
   clipboard: { writeText: vi.fn() },
   ipcMain: { handle: (name, handler) => fixture.handlers.set(name, handler) },
 }));
 vi.mock("node:module", () => ({
   createRequire: () => () => ({ autoUpdater: fixture.autoUpdater }),
 }));
+
+function installedCopy(install) {
+  const resources = join(install, "resources");
+  mkdirSync(resources);
+  writeFileSync(join(install, "Uninstall OpenDeliobot.exe"), "");
+  return resources;
+}
 
 function page(origin) {
   const mainFrame = { url: `${origin}/` };
@@ -221,7 +228,8 @@ it("a downloaded update installs when the app quits, except a system package, wh
   const platform = Object.getOwnPropertyDescriptor(process, "platform");
   const resourcesPath = process.resourcesPath;
   const appImage = process.env.APPIMAGE;
-  const resources = mkdtempSync(join(tmpdir(), "odb-updater-package-"));
+  const install = mkdtempSync(join(tmpdir(), "odb-updater-package-"));
+  const resources = installedCopy(install);
   try {
     for (const [os, marker, image, installsOnQuit] of [
       ["darwin", null, null, true],
@@ -246,7 +254,27 @@ it("a downloaded update installs when the app quits, except a system package, wh
     process.resourcesPath = resourcesPath;
     if (appImage === undefined) delete process.env.APPIMAGE;
     else process.env.APPIMAGE = appImage;
-    rmSync(resources, { recursive: true, force: true });
+    rmSync(install, { recursive: true, force: true });
+  }
+});
+
+it("a Windows copy unpacked from the ZIP never updates itself: NSIS would install a second copy", async () => {
+  const platform = Object.getOwnPropertyDescriptor(process, "platform");
+  const resourcesPath = process.resourcesPath;
+  const unpacked = mkdtempSync(join(tmpdir(), "odb-updater-zip-"));
+  try {
+    Object.defineProperty(process, "platform", { ...platform, value: "win32" });
+    process.resourcesPath = join(unpacked, "resources");
+    mkdirSync(process.resourcesPath);
+    const { updater, autoUpdater, handlers } = await load(() => true);
+    updater.startUpdater();
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(autoUpdater.checkForUpdates).not.toHaveBeenCalled();
+    expect((await handlers.get("update:get-state")({})).status).toBe("idle");
+  } finally {
+    Object.defineProperty(process, "platform", platform);
+    process.resourcesPath = resourcesPath;
+    rmSync(unpacked, { recursive: true, force: true });
   }
 });
 
@@ -254,7 +282,8 @@ it("a downloaded update installs by itself at a quiet moment on macOS and Window
   const platform = Object.getOwnPropertyDescriptor(process, "platform");
   const resourcesPath = process.resourcesPath;
   const appImage = process.env.APPIMAGE;
-  const resources = mkdtempSync(join(tmpdir(), "odb-updater-quiet-"));
+  const install = mkdtempSync(join(tmpdir(), "odb-updater-quiet-"));
+  const resources = installedCopy(install);
   const quiet = { locked: () => true, idleMs: () => 0, typedAt: () => 0, shown: () => true, busy: () => null, work: async () => null, watch: () => {} };
   try {
     for (const [os, marker, image, installs] of [
@@ -285,7 +314,7 @@ it("a downloaded update installs by itself at a quiet moment on macOS and Window
     process.resourcesPath = resourcesPath;
     if (appImage === undefined) delete process.env.APPIMAGE;
     else process.env.APPIMAGE = appImage;
-    rmSync(resources, { recursive: true, force: true });
+    rmSync(install, { recursive: true, force: true });
   }
 });
 

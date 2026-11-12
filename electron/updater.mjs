@@ -146,9 +146,15 @@ export function attachUpdaterWindow(mainWindow) {
   win = mainWindow;
 }
 
+/** A Windows copy unpacked from the ZIP: NSIS writes `Uninstall <productName>.exe` beside every copy it installs, and an
+ * update through NSIS would install a second copy elsewhere instead of replacing this one. */
+function unpackedWindowsCopy() {
+  return process.platform === "win32" && !existsSync(join(process.resourcesPath, "..", `Uninstall ${app.getName()}.exe`));
+}
+
 /** `signals` (quietSignals): what tells a quiet moment; without them a downloaded update installs only on Restart or quit. */
 export function startUpdater(signals = null) {
-  if (!app.isPackaged) {
+  if (!app.isPackaged || unpackedWindowsCopy()) {
     updaterCoordinator = null;
     setState({ status: "idle" });
     return;
