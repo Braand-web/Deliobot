@@ -39,11 +39,6 @@ on:
         required: false
         type: boolean
         default: false
-  push:
-    branches:
-      - main
-    paths:
-      - package.json
 
 permissions:
   contents: read
