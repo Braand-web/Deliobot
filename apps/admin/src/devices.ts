@@ -2,7 +2,7 @@
 // the person approves it signed in on the portal, choosing the workspace whose credits the app spends. The app then
 // holds its own revocable device token for the gateway.
 import { randomInt } from "node:crypto";
-import type { DatabaseSync } from "node:sqlite";
+import type { SqlDatabase } from "./sql.ts";
 
 import { sha256, token } from "./store.ts";
 
@@ -19,10 +19,10 @@ export type DevicePoll =
   | { status: "denied" | "expired" };
 
 export class Devices {
-  private readonly db: DatabaseSync;
+  private readonly db: SqlDatabase;
   private readonly now: () => number;
 
-  constructor(db: DatabaseSync, now: () => number = Date.now) {
+  constructor(db: SqlDatabase, now: () => number = Date.now) {
     this.db = db;
     this.now = now;
     this.db.exec(`

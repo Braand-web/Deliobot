@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 import { HOSTED_CONTRACT_HEADER, HOSTED_CONTRACT_METADATA, HOSTED_CONTRACT_MISMATCH, HOSTED_CONTRACT_VERSION, hostedContractCompatible } from "../../../server/hosted-contract.ts";
@@ -28,10 +27,14 @@ export interface AdminAppOptions {
   allowHttpProviders?: boolean;
   /** The operator's provider keys and upstreams for the paid gateway; a provider without a key is refused there. */
   gateway?: Omit<GatewayOptions, "store" | "wallet" | "publicUrl" | "fetchImpl" | "now" | "allowance" | "deviceToken"> & { creditUsd?: number };
+  /** The mascot pictures pages show, by path (`/assets/delio-idle.webp`…). */
+  assets?: ReadonlyMap<string, Uint8Array>;
   /** SasPay: the secret key, the webhook signing secret, and the currency checkouts are priced in (XOF by default). */
   payments?: { saspayKey?: string; webhookSecret?: string; currency?: string; xofPerUsd?: number; apiUrl?: string };
   /** Self-serve sign-up: workspaces at https://<slug>.<domain>, created through the fleet agent once paid, with these OpenRouter models. */
   hosting?: { domain: string; models: string[]; fleet?: Fleet; fleetSocket?: string };
+  /** Self-serve sign-up without hosting: customers pay here and use the desktop app, downloaded from `downloadUrl`. */
+  signup?: { downloadUrl: string };
 }
 
 /** What the operators' console serves; everything else there is 404, customer pages and public APIs included. */
@@ -49,10 +52,6 @@ const CALLBACK_PATH = "/api/auth/hosted/callback";
 const SSO_CALLBACK_PATH = "/sso/callback";
 const ROLES: readonly Role[] = ["admin", "member"];
 
-const ASSETS = new Map<string, Buffer>(["idle", "happy", "sad", "curious"].map((expression) => {
-  const file = expression === "idle" ? "cursor-88.webp" : `cursor.${expression}-88.webp`;
-  return [`/assets/delio-${expression}.webp`, readFileSync(new URL(`../../../src/assets/delio-steel/${file}`, import.meta.url))] as const;
-}));
 
 class HttpError extends Error {
   readonly status: number;
@@ -139,6 +138,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   const currency = options.payments?.currency ?? "XOF";
   const hosting = new Hosting(store.db, now);
   const selfServe = options.hosting ?? null;
+  const signupOpen = Boolean(selfServe || options.signup);
   const runHosting = selfServe ? hostingRunner({ hosting, billing: plans, wallet, store, mailer, operators, now, portalUrl: publicUrl.origin, models: selfServe.models,
     fleet: selfServe.fleet ?? socketFleet(selfServe.fleetSocket ?? "/run/opendeliobot/fleet.sock") }) : null;
   const startHosting = () => { void runHosting?.().catch((error: unknown) => console.error("delio-admin: hosting pass failed", error)); };
@@ -266,10 +266,11 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     const method = req.method ?? "GET";
     const path = url.pathname;
 
-    if (method === "GET" && ASSETS.has(path)) {
+    const asset = method === "GET" ? options.assets?.get(path) : undefined;
+    if (asset) {
       res.setHeader("cache-control", "public, max-age=86400");
       res.setHeader("content-type", "image/webp");
-      res.end(ASSETS.get(path));
+      res.end(asset);
       return;
     }
     if (path === "/api/health") return json(res, 200, { ok: true, service: "delio-admin", ...HOSTED_CONTRACT_METADATA });
@@ -415,16 +416,16 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     }
 
     if (method === "GET" && path === "/") {
-      return html(res, 200, { title: "Workspaces", email: user.email, body: homePage({ workspaces: store.workspacesOf(user.id), operator: isOperator(user), signup: Boolean(selfServe) && !operatorConsole,
+      return html(res, 200, { title: "Workspaces", email: user.email, body: homePage({ workspaces: store.workspacesOf(user.id), operator: isOperator(user), signup: signupOpen && !operatorConsole,
         all: isOperator(user) ? store.allWorkspaces() : [], message: url.searchParams.get("created") ? "Workspace created." : undefined }) });
     }
-    if (selfServe && (path === "/signup")) {
+    if (signupOpen && path === "/signup") {
       const form = method === "POST" ? await readBody(req) : null;
       const pick = (name: string, max: number) => (form ? text(form, name, max) : url.searchParams.get(name) ?? "").slice(0, max);
       const plan = Object.hasOwn(PLANS, pick("plan", 16)) ? pick("plan", 16) : "";
       const cycle = pick("cycle", 8) === "year" ? "year" : "month";
       const show = (status: number, extra: { name?: string; slug?: string; error?: string } = {}) =>
-        html(res, status, { title: "Create your workspace", email: user.email, mascot: "happy", body: signupPage({ domain: selfServe.domain, plan, cycle, ...extra }) });
+        html(res, status, { title: "Create your workspace", email: user.email, mascot: "happy", body: signupPage({ domain: selfServe?.domain, plan, cycle, ...extra }) });
       if (method === "GET") return show(200);
       if (method !== "POST") throw new HttpError(405, "Method not allowed.");
       const name = pick("name", 80), slug = pick("slug", 64).toLowerCase();
@@ -435,8 +436,8 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
         : owned >= SELF_SERVE_LIMIT ? `You already have ${SELF_SERVE_LIMIT} workspaces. Write to the Delio team for more.` : null;
       if (error) return show(400, { name, slug, error });
       if (!store.allow(`signup:${user.id}`, 10, 60 * 60_000)) return show(429, { name, slug, error: "Too many workspaces in a short time. Wait an hour and try again." });
-      store.createWorkspace({ slug, name, tenantUrl: `https://${slug}.${selfServe.domain}`, ownerEmail: user.email }, user.email);
-      hosting.request(slug);
+      store.createWorkspace({ slug, name, tenantUrl: selfServe ? `https://${slug}.${selfServe.domain}` : options.signup!.downloadUrl, ownerEmail: user.email }, user.email);
+      if (selfServe) hosting.request(slug);
       return redirect(res, `/billing?workspace=${slug}${plan ? `&plan=${plan}&cycle=${cycle}` : ""}`);
     }
     if (method === "POST" && path === "/billing/hosting/retry") {

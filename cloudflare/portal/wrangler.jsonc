@@ -1,0 +1,21 @@
+{
+  "$schema": "../control-plane/node_modules/wrangler/config-schema.json",
+  "name": "deliobot-portal",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-25",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{ "pattern": "compte.deliobot.fun", "custom_domain": true }],
+  "durable_objects": { "bindings": [{ "name": "PORTAL", "class_name": "Portal" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Portal"] }],
+  "rules": [{ "type": "Data", "globs": ["**/*.webp"], "fallthrough": true }],
+  // Settings anyone may read; the keys are Worker secrets set in Cloudflare's dashboard (see README.md).
+  "vars": {
+    "DELIO_ADMIN_URL": "https://compte.deliobot.fun",
+    "DELIO_ADMIN_DOWNLOAD_URL": "https://deliobot.fun/#telecharger",
+    "DELIO_ADMIN_CURRENCY": "XOF",
+    "DELIO_ADMIN_XOF_PER_USD": "600"
+  },
+  "observability": { "enabled": true }
+}

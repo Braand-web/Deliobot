@@ -1,8 +1,8 @@
 // Self-serve workspaces get their own server from the fleet agent once their first plan is paid, are suspended when the
 // plan has ended past its grace, and resumed when it is paid again. Nothing here deletes a workspace or its data.
-import type { DatabaseSync } from "node:sqlite";
+import type { SqlDatabase } from "./sql.ts";
 
-import { fleetRequest } from "../../../server/fleet-client.ts";
+import type { fleetRequest } from "../../../server/fleet-client.ts";
 import type { Mailer } from "./mail.ts";
 import { PLANS, type Billing } from "./plans.ts";
 import type { AdminStore } from "./store.ts";
@@ -18,9 +18,11 @@ export interface Fleet {
   resume(slug: string): Promise<void>;
 }
 
-export function socketFleet(socketPath: string, request: typeof fleetRequest = fleetRequest): Fleet {
+/** The fleet agent on its Unix socket; the client loads only when a call is made, so a Worker never needs node:http. */
+export function socketFleet(socketPath: string, request?: typeof fleetRequest): Fleet {
   const call = async (method: string, path: string, body?: unknown) => {
-    const reply = await request(socketPath, method, path, body);
+    const send = request ?? (await import("../../../server/fleet-client.ts")).fleetRequest;
+    const reply = await send(socketPath, method, path, body);
     if (reply.status !== 200) {
       const error = (reply.body as { error?: unknown } | null)?.error;
       throw new Error(typeof error === "string" ? error.slice(0, 300) : `the fleet agent answered ${reply.status}`);
@@ -42,10 +44,10 @@ const MAX_ATTEMPTS = 4;
 const RETRY_MS = 5 * 60_000;
 
 export class Hosting {
-  private readonly db: DatabaseSync;
+  private readonly db: SqlDatabase;
   private readonly now: () => number;
 
-  constructor(db: DatabaseSync, now: () => number = Date.now) {
+  constructor(db: SqlDatabase, now: () => number = Date.now) {
     this.db = db;
     this.now = now;
     db.exec(`CREATE TABLE IF NOT EXISTS hosting (workspace TEXT PRIMARY KEY REFERENCES workspaces(slug) ON DELETE CASCADE, state TEXT NOT NULL,

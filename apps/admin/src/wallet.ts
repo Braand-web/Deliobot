@@ -1,7 +1,7 @@
 // A workspace's prepaid credits. Amounts are integer micro-credits (1 credit = 1,000,000), so no rounding ever drifts.
 // A request first holds an estimate, which leaves the balance at once; settling it charges the real cost and returns
 // the rest. Every movement is a ledger row that is never edited.
-import type { DatabaseSync } from "node:sqlite";
+import type { SqlDatabase } from "./sql.ts";
 
 import { sha256, token } from "./store.ts";
 
@@ -30,11 +30,11 @@ CREATE TABLE IF NOT EXISTS fal_jobs (request_id TEXT PRIMARY KEY, workspace TEXT
 const HOLD_TTL_MS = 30 * 60_000;
 
 export class Wallet {
-  readonly db: DatabaseSync;
+  readonly db: SqlDatabase;
   private readonly now: () => number;
   readonly creditUsd: number;
 
-  constructor(db: DatabaseSync, options: { now?: () => number; creditUsd?: number } = {}) {
+  constructor(db: SqlDatabase, options: { now?: () => number; creditUsd?: number } = {}) {
     this.db = db;
     this.now = options.now ?? Date.now;
     this.creditUsd = options.creditUsd ?? DEFAULT_CREDIT_USD;
@@ -168,8 +168,6 @@ export class Wallet {
   }
 
   private transaction(run: () => void): void {
-    if (this.db.isTransaction) return run();
-    this.db.exec("BEGIN IMMEDIATE");
-    try { run(); this.db.exec("COMMIT"); } catch (error) { this.db.exec("ROLLBACK"); throw error; }
+    this.db.transaction(run);
   }
 }

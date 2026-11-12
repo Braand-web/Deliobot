@@ -10,6 +10,7 @@ import { HOSTED_CONTRACT_MISMATCH } from "../../../server/hosted-contract.ts";
 import { createAdminApp } from "./app.ts";
 import type { MailMessage } from "./mail.ts";
 import { AdminStore } from "./store.ts";
+import { nodeDatabase } from "./sql-node.ts";
 
 const TENANT = "https://acme.example.test";
 const CALLBACK = `${TENANT}/api/auth/hosted/callback`;
@@ -24,7 +25,7 @@ async function listen(server: Server): Promise<string> {
 
 async function portal(options: { fetchImpl?: typeof fetch; now?: () => number } = {}) {
   const dir = mkdtempSync(join(tmpdir(), "delio-admin-"));
-  const store = new AdminStore({ file: join(dir, "admin.db"), secret: randomBytes(32), now: options.now });
+  const store = new AdminStore({ db: nodeDatabase(join(dir, "admin.db")), secret: randomBytes(32), now: options.now });
   cleanups.push(() => { store.close(); rmSync(dir, { recursive: true, force: true }); });
   const mail: MailMessage[] = [];
   const server = createServer();

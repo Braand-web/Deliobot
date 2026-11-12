@@ -10,6 +10,7 @@ import { createAdminApp } from "./app.ts";
 import type { Fleet } from "./hosting.ts";
 import type { MailMessage } from "./mail.ts";
 import { AdminStore } from "./store.ts";
+import { nodeDatabase } from "./sql-node.ts";
 
 const DAY = 24 * 60 * 60_000;
 const cleanups: Array<() => void | Promise<void>> = [];
@@ -46,7 +47,7 @@ function fakeSasPay() {
 async function portal() {
   const clock = { now: Date.now() };
   const dir = mkdtempSync(join(tmpdir(), "delio-hosting-"));
-  const store = new AdminStore({ file: join(dir, "admin.db"), secret: randomBytes(32), now: () => clock.now });
+  const store = new AdminStore({ db: nodeDatabase(join(dir, "admin.db")), secret: randomBytes(32), now: () => clock.now });
   const mail: MailMessage[] = [];
   const fleet = fakeFleet();
   const saspay = fakeSasPay();

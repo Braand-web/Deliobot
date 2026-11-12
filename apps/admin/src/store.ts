@@ -1,5 +1,5 @@
 import { createHash, createHmac, randomBytes, randomInt, timingSafeEqual } from "node:crypto";
-import { DatabaseSync } from "node:sqlite";
+import type { SqlDatabase } from "./sql.ts";
 
 export type Role = "admin" | "member";
 
@@ -50,13 +50,12 @@ CREATE TABLE IF NOT EXISTS audit (id INTEGER PRIMARY KEY AUTOINCREMENT, workspac
 export type OtpResult = { ok: true; account: Account } | { ok: false; reason: "invalid" | "expired" | "locked" };
 
 export class AdminStore {
-  readonly db: DatabaseSync;
+  readonly db: SqlDatabase;
   private readonly secret: Buffer;
   private readonly now: () => number;
 
-  constructor(options: { file: string; secret: Buffer; now?: () => number }) {
-    this.db = new DatabaseSync(options.file);
-    this.db.exec("PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;");
+  constructor(options: { db: SqlDatabase; secret: Buffer; now?: () => number }) {
+    this.db = options.db;
     this.db.exec(SCHEMA);
     this.secret = options.secret;
     this.now = options.now ?? Date.now;
@@ -300,7 +299,6 @@ export class AdminStore {
   }
 
   private transaction(run: () => void): void {
-    this.db.exec("BEGIN IMMEDIATE");
-    try { run(); this.db.exec("COMMIT"); } catch (error) { this.db.exec("ROLLBACK"); throw error; }
+    this.db.transaction(run);
   }
 }

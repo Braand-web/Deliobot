@@ -11,13 +11,14 @@ import { createDelioAccount, delioConnection, delioInstanceConfigs, withDelioMed
 import { createAdminApp } from "./app.ts";
 import type { MailMessage } from "./mail.ts";
 import { AdminStore } from "./store.ts";
+import { nodeDatabase } from "./sql-node.ts";
 
 const cleanups: Array<() => void | Promise<void>> = [];
 afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) await cleanup(); });
 
 async function portal() {
   const dir = mkdtempSync(join(tmpdir(), "delio-devices-"));
-  const store = new AdminStore({ file: join(dir, "admin.db"), secret: randomBytes(32) });
+  const store = new AdminStore({ db: nodeDatabase(join(dir, "admin.db")), secret: randomBytes(32) });
   const mail: MailMessage[] = [];
   const server: Server = createServer();
   await new Promise<void>((done) => server.listen(0, "127.0.0.1", done));

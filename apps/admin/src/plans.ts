@@ -2,7 +2,7 @@
 // is a prepaid period, a month or a year: paying grants the first month's credits and moves the end date, a yearly plan
 // grants the next months' credits every 30 days; a reminder with a payment link goes out before the period ends; after
 // a short grace the gateway stops spending Delio credits for the workspace.
-import type { DatabaseSync } from "node:sqlite";
+import type { SqlDatabase } from "./sql.ts";
 
 import type { SasPay } from "./saspay.ts";
 import { token } from "./store.ts";
@@ -99,7 +99,7 @@ export function catalog(xofPerUsd = DEFAULT_XOF_PER_USD): Catalog {
 const ORDER_COLUMNS = `id, workspace, email, kind, plan, cycle, credits, usd, amount, currency, session_id AS sessionId, checkout_url AS checkoutUrl, status, created_at AS createdAt`;
 
 export class Billing {
-  private readonly db: DatabaseSync;
+  private readonly db: SqlDatabase;
   private readonly wallet: Wallet;
   private readonly now: () => number;
 
@@ -182,18 +182,13 @@ CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT N
   fulfil(orderId: string): boolean {
     const order = this.order(orderId);
     if (!order || order.status !== "pending") return false;
-    this.db.exec("BEGIN IMMEDIATE");
-    try {
+    return this.db.transaction(() => {
       const claimed = this.db.prepare("UPDATE orders SET status = 'paid', paid_at = ? WHERE id = ? AND status = 'pending'").run(this.now(), orderId);
-      if (Number(claimed.changes) !== 1) { this.db.exec("ROLLBACK"); return false; }
+      if (Number(claimed.changes) !== 1) return false;
       if (order.kind === "plan" && order.plan) this.startPeriod(order);
       else if (order.credits > 0) this.wallet.credit(order.workspace, order.credits * MICRO, "topup", `Top-up · ${order.id}`);
-      this.db.exec("COMMIT");
       return true;
-    } catch (error) {
-      this.db.exec("ROLLBACK");
-      throw error;
-    }
+    });
   }
 
   /** A plan's period starts now, or after the current one when the same plan is renewed early; a month's credits come at its start. */

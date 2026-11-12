@@ -12,6 +12,7 @@ import { createBoatRelay } from "./boat-relay.ts";
 import { falUnits, openrouterCost } from "./gateway.ts";
 import type { MailMessage } from "./mail.ts";
 import { AdminStore } from "./store.ts";
+import { nodeDatabase } from "./sql-node.ts";
 import { operatorConsole } from "./test-console.ts";
 import { MICRO, Wallet } from "./wallet.ts";
 
@@ -68,7 +69,7 @@ function upstreams(options: { cost?: number; falUnit?: string; falPrice?: number
 
 async function portal(upstream: ReturnType<typeof upstreams>, clock: { now: number } = { now: Date.now() }) {
   const dir = mkdtempSync(join(tmpdir(), "delio-gateway-"));
-  const store = new AdminStore({ file: join(dir, "admin.db"), secret: randomBytes(32) });
+  const store = new AdminStore({ db: nodeDatabase(join(dir, "admin.db")), secret: randomBytes(32) });
   const mail: MailMessage[] = [];
   const server: Server = createServer();
   await new Promise<void>((done) => server.listen(0, "127.0.0.1", done));
@@ -202,7 +203,7 @@ describe("Delio Boat relay", () => {
 describe("a plan's included cloud computer hours", () => {
   it("leaves awake minutes free up to the plan's hours each month, then charges them in credits", async () => {
     const dir = mkdtempSync(join(tmpdir(), "delio-included-"));
-    const store = new AdminStore({ file: join(dir, "admin.db"), secret: randomBytes(32) });
+    const store = new AdminStore({ db: nodeDatabase(join(dir, "admin.db")), secret: randomBytes(32) });
     cleanups.push(() => { store.close(); rmSync(dir, { recursive: true, force: true }); });
     store.createWorkspace({ slug: "acme", name: "Acme", tenantUrl: "https://acme.example.test", ownerEmail: "boss@acme.test" }, "ops@delio.test");
     const clock = { now: Date.UTC(2026, 10, 1, 8) };

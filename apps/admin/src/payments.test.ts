@@ -11,6 +11,7 @@ import type { MailMessage } from "./mail.ts";
 import { priceIn } from "./plans.ts";
 import { verifySasPayWebhook } from "./saspay.ts";
 import { AdminStore } from "./store.ts";
+import { nodeDatabase } from "./sql-node.ts";
 import { operatorConsole } from "./test-console.ts";
 
 const SECRET = "whsec_test_secret";
@@ -41,7 +42,7 @@ function fakeSasPay() {
 
 async function portal(saspay: ReturnType<typeof fakeSasPay>, clock: { now: number }) {
   const dir = mkdtempSync(join(tmpdir(), "delio-payments-"));
-  const store = new AdminStore({ file: join(dir, "admin.db"), secret: randomBytes(32), now: () => clock.now });
+  const store = new AdminStore({ db: nodeDatabase(join(dir, "admin.db")), secret: randomBytes(32), now: () => clock.now });
   const mail: MailMessage[] = [];
   const server: Server = createServer();
   await new Promise<void>((done) => server.listen(0, "127.0.0.1", done));

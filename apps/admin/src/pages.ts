@@ -64,14 +64,15 @@ ${notice(error, "error")}<form method="post" action="/login" class="card"><input
 }
 
 /** A customer names a workspace; it is created on the server once its plan is paid. */
-export function signupPage(input: { domain: string; plan: string; cycle: string; name?: string; slug?: string; error?: string }): Html {
+/** Without `domain` the workspace is an account for the desktop app, and the slug is only its short name. */
+export function signupPage(input: { domain?: string; plan: string; cycle: string; name?: string; slug?: string; error?: string }): Html {
   return h`<div class="narrow"><h1 class="center">Create your workspace</h1>
-<p class="muted center">Your bots and your team live there. You pay for a plan next, then it is ready in a few minutes.</p>
+<p class="muted center">${input.domain ? "Your bots and your team live there. You pay for a plan next, then it is ready in a few minutes." : "Your plan, your credits and your team. You pay for a plan next, then connect the Deliobot app to it."}</p>
 ${notice(input.error, "error")}<form method="post" action="/signup" class="card">
 <input type="hidden" name="plan" value="${input.plan}"><input type="hidden" name="cycle" value="${input.cycle}">
 <label for="name">Name</label><input id="name" name="name" required maxlength="80" placeholder="Acme" value="${input.name ?? ""}" autofocus>
-<label for="slug">Address</label><div class="row" style="gap:6px"><input id="slug" name="slug" required pattern="[a-z][a-z0-9-]{1,30}" maxlength="31" placeholder="acme" value="${input.slug ?? ""}" style="flex:1">
-<span class="muted">.${input.domain}</span></div>
+<label for="slug">${input.domain ? "Address" : "Short name"}</label><div class="row" style="gap:6px"><input id="slug" name="slug" required pattern="[a-z][a-z0-9-]{1,30}" maxlength="31" placeholder="acme" value="${input.slug ?? ""}" style="flex:1">
+${input.domain ? h`<span class="muted">.${input.domain}</span>` : ""}</div>
 <p class="muted" style="font-size:12px">Lowercase letters, digits and dashes. It cannot be changed later.</p>
 <p><button class="primary" style="width:100%">Continue to payment</button></p></form></div>`;
 }

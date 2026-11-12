@@ -13,6 +13,7 @@ import { freePortBlock } from "../../../server/testing/ports.ts";
 import { createAdminApp } from "./app.ts";
 import type { MailMessage } from "./mail.ts";
 import { AdminStore } from "./store.ts";
+import { nodeDatabase } from "./sql-node.ts";
 import { operatorConsole } from "./test-console.ts";
 
 const ROOT = fileURLToPath(new URL("../../../", import.meta.url));
@@ -78,7 +79,7 @@ function person() {
 
 beforeAll(async () => {
   home = mkdtempSync(join(tmpdir(), "delio-portal-e2e-"));
-  store = new AdminStore({ file: join(home, "admin.db"), secret: Buffer.alloc(32, 7) });
+  store = new AdminStore({ db: nodeDatabase(join(home, "admin.db")), secret: Buffer.alloc(32, 7) });
   portalServer = createServer();
   await new Promise<void>((done) => portalServer.listen(0, "127.0.0.1", done));
   portalOrigin = `http://127.0.0.1:${(portalServer.address() as AddressInfo).port}`;
