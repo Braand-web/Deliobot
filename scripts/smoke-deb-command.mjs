@@ -6,7 +6,7 @@
 //
 // Needs a container runtime.
 import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, writeSync } from "node:fs";
 import path from "node:path";
 
 import { packageInstallCommand } from "../electron/package-install-command.mjs";
@@ -46,8 +46,8 @@ function inContainer(script, { expectFailure = false } = {}) {
     return output;
   } catch (error) {
     if (expectFailure) return String(error.stdout ?? "") + String(error.stderr ?? "");
-    console.error(String(error.stdout ?? ""));
-    console.error(String(error.stderr ?? ""));
+    // Written synchronously: the throw below exits before an asynchronous pipe write drains, losing apt's last lines.
+    writeSync(2, `${String(error.stdout ?? "").split("\n").slice(-80).join("\n")}\n${String(error.stderr ?? "")}\n`);
     throw error;
   }
 }

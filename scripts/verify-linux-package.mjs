@@ -72,8 +72,8 @@ function requireUpdaterTarget(resources, label) {
   const updateFile = path.join(resources, "app-update.yml");
   requireFile(updateFile);
   const update = readFileSync(updateFile, "utf8");
-  if (!/^owner: braand-web$/m.test(update) || !/^repo: Deliobot$/m.test(update)) {
-    fail(`${label} app-update.yml does not point at Braand-web/Deliobot`);
+  if (!/^provider: generic$/m.test(update) || !/^url: https:\/\/deliobot\.fun\/download\/latest$/m.test(update)) {
+    fail(`${label} app-update.yml does not point at https://deliobot.fun/download/latest`);
   }
 }
 

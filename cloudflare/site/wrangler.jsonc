@@ -5,6 +5,7 @@
   "compatibility_date": "2026-08-25",
   "workers_dev": true,
   "preview_urls": false,
+  "r2_buckets": [{ "binding": "DOWNLOADS", "bucket_name": "deliobot-downloads" }],
   "routes": [
     { "pattern": "deliobot.fun/*", "zone_name": "deliobot.fun" },
     { "pattern": "www.deliobot.fun/*", "zone_name": "deliobot.fun" }

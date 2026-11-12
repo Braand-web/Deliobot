@@ -6,17 +6,16 @@ protocols:
   - name: OpenDeliobot package install
     schemes: [opendeliobot]
 
-# In-app auto-update reads latest-mac.yml + the .zip (macOS) or latest.yml +
-# the NSIS .exe (Windows) from the PUBLIC releases in this source repo.
-# Public → no token on users' machines. Baked into
-# app-update.yml; both metadata files are emitted here even with
-# --publish never, and must be uploaded to the GitHub release alongside the
-# artifacts — a release missing latest.yml leaves every Windows install
+# In-app auto-update reads latest-mac.yml + the .zip (macOS), latest.yml +
+# the NSIS .exe (Windows) or latest-linux.yml + the AppImage from
+# https://deliobot.fun/download/latest (Cloudflare R2, served by
+# cloudflare/site). Baked into app-update.yml; the metadata files are emitted
+# here even with --publish never, and must be uploaded to that folder alongside
+# the artifacts: a folder missing latest.yml leaves every Windows install
 # stranded on its installed version.
 publish:
-  - provider: github
-    owner: braand-web
-    repo: Deliobot
+  - provider: generic
+    url: https://deliobot.fun/download/latest
 
 directories:
   buildResources: build
