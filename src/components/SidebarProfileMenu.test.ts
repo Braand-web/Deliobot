@@ -198,13 +198,13 @@ describe("updateNoteworthy", () => {
 });
 
 describe("outward links", () => {
-  it("sends Help Center to the docs the website also links to", () => {
-    expect(HELP_CENTER_URL).toBe(DOCS_URL);
+  it("sends Help Center to the guides on deliobot.fun", () => {
+    expect(HELP_CENTER_URL).toBe("https://deliobot.fun/guides");
     expect(DOCS_URL).toBe("https://github.com/Braand-web/Deliobot/tree/main/docs");
   });
 
-  it("sends Send Feedback to the Discord community", () => {
-    expect(FEEDBACK_URL).toBe("https://discord.gg/9Wb8MEpXRs");
+  it("sends Contact support to an email to support@deliobot.fun", () => {
+    expect(FEEDBACK_URL).toBe("mailto:support@deliobot.fun");
   });
 });
 

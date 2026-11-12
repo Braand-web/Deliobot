@@ -810,7 +810,7 @@
   "about.version": "Version {version}",
   "about.connectedTo": "Connecté à {name} · version {version}",
   "sidebar.menu.help": "Centre d'aide",
-  "sidebar.menu.feedback": "Envoyer un retour",
+  "sidebar.menu.feedback": "Contacter le support",
   "sidebar.update.startingDownload": "Démarrage du téléchargement…",
   "sidebar.update.downloading": "Téléchargement… {percent} %",
   "sidebar.update.installing": "Redémarrage pour mettre à jour…",

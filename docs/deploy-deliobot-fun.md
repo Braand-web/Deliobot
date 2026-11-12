@@ -85,7 +85,7 @@ customers. As root:
 | `DELIO_ADMIN_DB` | `/home/delio/data/delio-admin.db` |
 | `DELIO_ADMIN_OPERATORS` | your own email address |
 | `DELIO_ADMIN_WORKSPACE_DOMAIN` | `deliobot.fun` |
-| `DELIO_ADMIN_MAIL_API_KEY`, `DELIO_ADMIN_MAIL_FROM` | a Resend key and `Delio <hello@deliobot.fun>` (the domain verified at Resend) |
+| `DELIO_ADMIN_MAIL_API_KEY`, `DELIO_ADMIN_MAIL_FROM` | a Resend key and `Delio <support@deliobot.fun>` (the domain verified at Resend) |
 | `DELIO_ADMIN_OPENROUTER_KEY`, `DELIO_ADMIN_FAL_KEY`, `DELIO_ADMIN_BOAT_KEY` | the operator's provider keys |
 | `DELIO_ADMIN_SASPAY_KEY`, `DELIO_ADMIN_SASPAY_WEBHOOK_SECRET` | SasPay's secret key and the webhook's signing secret |
 | `DELIO_ADMIN_XOF_PER_USD` | today's rate, for example `600` |

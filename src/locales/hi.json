@@ -781,7 +781,6 @@
   "about.version": "संस्करण {version}",
   "about.connectedTo": "{name} से कनेक्टेड · संस्करण {version}",
   "sidebar.menu.help": "सहायता केंद्र",
-  "sidebar.menu.feedback": "प्रतिक्रिया भेजें",
   "sidebar.update.startingDownload": "डाउनलोड शुरू हो रहा है…",
   "sidebar.update.downloading": "डाउनलोड हो रहा है… {percent}%",
   "sidebar.update.installing": "अपडेट के लिए पुनः आरंभ…",

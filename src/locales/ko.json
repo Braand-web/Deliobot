@@ -2101,7 +2101,6 @@
   "sidebar.menu.shortcuts": "키보드 단축키",
   "sidebar.menu.support": "도움말 및 지원",
   "sidebar.menu.help": "도움말 센터",
-  "sidebar.menu.feedback": "피드백 보내기",
   "sidebar.menu.usageUsed": "{percent}% 사용",
   "sidebar.menu.weeklyUsage": "주간 사용량",
   "sidebar.menu.resets": "{when} 초기화",

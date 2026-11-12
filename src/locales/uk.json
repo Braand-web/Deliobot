@@ -900,7 +900,6 @@
   "about.version": "Версія {version}",
   "about.connectedTo": "Підключено до {name} · версія {version}",
   "sidebar.menu.help": "Довідковий центр",
-  "sidebar.menu.feedback": "Надіслати відгук",
   "sidebar.update.startingDownload": "Починаємо завантаження…",
   "sidebar.update.downloading": "Завантаження… {percent}%",
   "sidebar.update.installing": "Перезапуск для оновлення…",

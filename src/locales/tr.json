@@ -1534,7 +1534,6 @@
   "sidebar.menu.shortcuts": "Klavye kısayolları",
   "sidebar.menu.support": "Yardım ve destek",
   "sidebar.menu.help": "Yardım Merkezi",
-  "sidebar.menu.feedback": "Geri Bildirim Gönder",
   "sidebar.update.startingDownload": "İndirme başlatılıyor…",
   "sidebar.update.downloading": "İndiriliyor… %{percent}",
   "sidebar.update.installing": "Güncellemek için yeniden başlatılıyor…",

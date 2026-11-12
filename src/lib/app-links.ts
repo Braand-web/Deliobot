@@ -1,13 +1,14 @@
 export const APP_NAME = "OpenDeliobot";
 export const APP_REPOSITORY = "https://github.com/Braand-web/Deliobot";
 export const DOCS_URL = `${APP_REPOSITORY}/tree/main/docs`;
-export const HELP_CENTER_URL = DOCS_URL;
+export const SUPPORT_EMAIL = "support@deliobot.fun";
+export const HELP_CENTER_URL = "https://deliobot.fun/guides";
 export const APPROVAL_LEVELS_URL = `${APP_REPOSITORY}/blob/main/docs/approval-levels.md`;
-export const PASSKEY_HELP_URL = "https://docs.opendeliobot.com/docs/troubleshooting/google-sign-in-cloud-browser";
-export const FEEDBACK_URL = "https://discord.gg/9Wb8MEpXRs";
+export const PASSKEY_HELP_URL = HELP_CENTER_URL;
+export const FEEDBACK_URL = `mailto:${SUPPORT_EMAIL}`;
 export const RELEASES_URL = `${APP_REPOSITORY}/releases`;
-export const PRICING_URL = "https://www.opendeliobot.com/pricing";
-export const CLOUD_PLAN_URL = "https://cloud.opendeliobot.com/cloud";
+export const PRICING_URL = "https://deliobot.fun/#tarifs";
+export const CLOUD_PLAN_URL = "https://compte.deliobot.fun/billing";
 export function withSource(url: string, source: string): string {
   const target = new URL(url);
   target.searchParams.set("src", source);

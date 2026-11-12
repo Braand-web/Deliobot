@@ -2386,7 +2386,6 @@
   "sidebar.menu.shortcuts": "鍵盤快速鍵",
   "sidebar.menu.support": "說明與支援",
   "sidebar.menu.help": "說明中心",
-  "sidebar.menu.feedback": "傳送意見回饋",
   "sidebar.menu.usageUsed": "已使用 {percent}%",
   "sidebar.menu.weeklyUsage": "每週用量",
   "sidebar.menu.resets": "{when} 重設",

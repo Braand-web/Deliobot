@@ -2238,7 +2238,6 @@
   "sidebar.menu.shortcuts": "键盘快捷键",
   "sidebar.menu.support": "帮助与支持",
   "sidebar.menu.help": "帮助中心",
-  "sidebar.menu.feedback": "发送反馈",
   "sidebar.menu.usageUsed": "已用 {percent}%",
   "sidebar.menu.weeklyUsage": "每周用量",
   "sidebar.menu.resets": "距重置 {when}",

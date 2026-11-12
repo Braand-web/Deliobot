@@ -41,7 +41,11 @@ button.primary,a.button.primary{background:var(--accent);border-color:var(--acce
 .notice{border-left:3px solid var(--accent);padding:8px 12px;background:var(--surface);border-radius:6px;margin:12px 0}.notice.error{border-color:var(--danger)}
 code{font-family:"Geist Mono",ui-monospace,Menlo,monospace;font-size:13px;overflow-wrap:anywhere}
 .mascot{display:block;width:88px;height:88px;margin:8px auto 16px}.center{text-align:center}.narrow{max-width:400px;margin:0 auto}
+footer.help{max-width:720px;margin:0 auto;padding:8px 20px 32px;font-size:13px;color:var(--ink-2);text-align:center}footer.help a{color:var(--accent-text)}
 `;
+
+/** Where customers write for help; the sign-in emails name it too. */
+export const SUPPORT_EMAIL = "support@deliobot.fun";
 
 /** `brand`: "Delio" for customers, "Delio Admin" on the operators' console. */
 export function page(input: { title: string; body: Html; email?: string | null; mascot?: "idle" | "happy" | "sad" | "curious"; brand?: string }): string {
@@ -51,7 +55,8 @@ export function page(input: { title: string; body: Html; email?: string | null; 
 <title>${input.title} · ${brand}</title><link rel="icon" href="/assets/delio-idle.webp"><style>${raw(STYLE)}</style></head><body>
 <header><img src="/assets/delio-idle.webp" alt=""><b>${brand}</b><nav>${input.email ? h`<span>${input.email}</span>
 <form class="inline" method="post" action="/logout"><button>Sign out</button></form>` : ""}</nav></header>
-<main>${mascot}${input.body}</main></body></html>`.html}`;
+<main>${mascot}${input.body}</main>
+<footer class="help">Need help? <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></footer></body></html>`.html}`;
 }
 
 export const notice = (text: string | null | undefined, kind: "info" | "error" = "info") => text ? h`<div class="notice ${kind}">${text}</div>` : raw("");

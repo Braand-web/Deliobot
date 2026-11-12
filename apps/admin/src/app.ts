@@ -9,7 +9,7 @@ import { Hosting, hostingRunner, RESERVED_SLUGS, socketFleet, type Fleet } from 
 import { Billing, catalog, PLANS, reconcileOrders, TOPUPS, TRIAL_DAYS, type Cycle, type PlanId, type TopupId } from "./plans.ts";
 import { createSasPay, verifySasPayWebhook } from "./saspay.ts";
 import { MICRO, Wallet } from "./wallet.ts";
-import { billingPage, codePage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, signupPage, slackPage, ssoPage, type Html } from "./pages.ts";
+import { billingPage, codePage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, signupPage, slackPage, ssoPage, SUPPORT_EMAIL, type Html } from "./pages.ts";
 import { normalizeEmail, token, validEmail, validSlug, type Account, type AdminStore, type Role, type Workspace } from "./store.ts";
 
 export interface AdminAppOptions {
@@ -337,7 +337,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       }
       const code = store.issueOtp(email);
       await mailer.send({ to: email, subject: `${code.slice(0, 4)} ${code.slice(4)} is your Delio sign-in code`,
-        text: `Your Delio sign-in code is ${code.slice(0, 4)} ${code.slice(4)}.\n\nIt expires in 10 minutes. If you did not ask for it, ignore this email.` })
+        text: `Your Delio sign-in code is ${code.slice(0, 4)} ${code.slice(4)}.\n\nIt expires in 10 minutes. If you did not ask for it, ignore this email.\n\nNeed help? Write to ${SUPPORT_EMAIL}.` })
         .catch((error: unknown) => console.error(`delio-admin: sign-in email could not be sent (${error instanceof Error ? error.name : "error"})`));
       return html(res, 200, { title: "Check your email", body: codePage(email, next), mascot: "curious" });
     }

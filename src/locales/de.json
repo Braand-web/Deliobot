@@ -932,7 +932,6 @@
   "about.version": "Version {version}",
   "about.connectedTo": "Verbunden mit {name} · Version {version}",
   "sidebar.menu.help": "Hilfecenter",
-  "sidebar.menu.feedback": "Feedback senden",
   "sidebar.update.startingDownload": "Download startet…",
   "sidebar.update.downloading": "Lade… {percent}%",
   "sidebar.update.installing": "Neustart zum Aktualisieren…",

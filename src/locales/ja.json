@@ -2210,7 +2210,6 @@
   "sidebar.menu.shortcuts": "キーボードショートカット",
   "sidebar.menu.support": "ヘルプとサポート",
   "sidebar.menu.help": "ヘルプセンター",
-  "sidebar.menu.feedback": "フィードバックを送る",
   "sidebar.menu.usageUsed": "{percent}% 使用",
   "sidebar.menu.weeklyUsage": "週の使用量",
   "sidebar.menu.resets": "{when} にリセット",
