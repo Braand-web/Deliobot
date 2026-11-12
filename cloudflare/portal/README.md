@@ -11,6 +11,13 @@ pnpm --dir ../control-plane exec wrangler deploy --config ../portal/wrangler.jso
 
 Until its settings are complete the portal answers "Bientôt disponible".
 
+## First setup
+
+`SETUP_TOKEN` (a Worker secret, 64 hex characters) opens `https://compte.deliobot.fun/setup?token=<it>` once: the
+operator pastes the keys below there, they are kept in the Durable Object's storage on top of the Worker's own
+settings, and the page closes for good. To change keys later, set them as Worker secrets, or put a new
+`SETUP_TOKEN` and clear the `setup-done` flag.
+
 ## Secrets
 
 Set them in Cloudflare's dashboard (Workers & Pages → deliobot-portal → Settings → Variables and Secrets → Add,

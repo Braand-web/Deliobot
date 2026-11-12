@@ -6,6 +6,7 @@ import { createAdminApp, type AdminApp } from "../../../apps/admin/src/app.ts";
 import { portalSettings } from "../../../apps/admin/src/env-config.ts";
 import { serveFetch } from "../../../apps/admin/src/fetch-adapter.ts";
 import { catalog } from "../../../apps/admin/src/plans.ts";
+import { handleSetup, SETTINGS_KEY, SETUP_DONE_KEY } from "./setup.ts";
 import { durableObjectDatabase } from "../../../apps/admin/src/sql.ts";
 import { AdminStore } from "../../../apps/admin/src/store.ts";
 import curious from "../../../src/assets/delio-steel/cursor.curious-88.webp";
@@ -30,25 +31,51 @@ const unavailable = () => new Response(
   { status: 503, headers: { "content-type": "text/html; charset=utf-8", "retry-after": "3600" } });
 
 export class Portal extends DurableObject<Env> {
-  private readonly app: AdminApp | null;
+  private app: AdminApp | null = null;
+  private stored: Record<string, string> = {};
+  private setupDone = false;
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
-    let app: AdminApp | null = null;
+    void ctx.blockConcurrencyWhile(async () => {
+      this.stored = (await ctx.storage.get<Record<string, string>>(SETTINGS_KEY)) ?? {};
+      this.setupDone = (await ctx.storage.get<boolean>(SETUP_DONE_KEY)) === true;
+      this.start();
+      if (this.app && !(await ctx.storage.getAlarm())) await ctx.storage.setAlarm(Date.now() + SWEEP_MS);
+    });
+  }
+
+  private baseEnv(): Record<string, string> {
+    return Object.fromEntries(Object.entries(this.env).filter(([name, value]) => typeof value === "string" && name !== "SETUP_TOKEN")) as Record<string, string>;
+  }
+
+  /** Builds the portal from the Worker's settings, with those saved by the setup page on top. */
+  private start(): void {
     try {
-      const settings = portalSettings(Object.fromEntries(Object.entries(env).filter(([, value]) => typeof value === "string")) as Record<string, string>);
+      const settings = portalSettings({ ...this.baseEnv(), ...this.stored });
       for (const warning of settings.warnings) console.warn(`delio-admin: ${warning}`);
-      const store = new AdminStore({ db: durableObjectDatabase(ctx.storage), secret: Buffer.from(settings.secret ?? "") });
-      app = createAdminApp({ store, publicUrl: settings.publicUrl, operators: settings.operators, mailer: settings.mailer, gateway: settings.gateway,
+      const store = new AdminStore({ db: durableObjectDatabase(this.ctx.storage), secret: Buffer.from(settings.secret ?? "") });
+      this.app = createAdminApp({ store, publicUrl: settings.publicUrl, operators: settings.operators, mailer: settings.mailer, gateway: settings.gateway,
         payments: settings.payments, assets: ASSETS, ...(settings.signup ? { signup: settings.signup } : {}) });
     } catch (error) {
+      this.app = null;
       console.error(`delio-admin: not configured: ${error instanceof Error ? error.message : String(error)}`);
     }
-    this.app = app;
-    if (app) void ctx.blockConcurrencyWhile(async () => { if (!(await ctx.storage.getAlarm())) await ctx.storage.setAlarm(Date.now() + SWEEP_MS); });
   }
 
   async fetch(request: Request): Promise<Response> {
+    const setup = await handleSetup(request, {
+      setupToken: typeof this.env.SETUP_TOKEN === "string" ? this.env.SETUP_TOKEN : undefined, done: this.setupDone, stored: this.stored, baseEnv: this.baseEnv(),
+      save: async (settings) => {
+        await this.ctx.storage.put(SETTINGS_KEY, settings);
+        await this.ctx.storage.put(SETUP_DONE_KEY, true);
+        this.stored = settings;
+        this.setupDone = true;
+        this.start();
+        if (this.app && !(await this.ctx.storage.getAlarm())) await this.ctx.storage.setAlarm(Date.now() + SWEEP_MS);
+      },
+    });
+    if (setup) return setup;
     if (!this.app && new URL(request.url).pathname === "/api/public/plans") {
       const rate = Number(this.env.DELIO_ADMIN_XOF_PER_USD);
       return Response.json(catalog(rate > 0 ? rate : undefined), { headers: { "access-control-allow-origin": "*", "cache-control": "public, max-age=300" } });
