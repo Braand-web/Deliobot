@@ -20,7 +20,8 @@ const SECURITY = { "x-content-type-options": "nosniff", "referrer-policy": "stri
 export default {
   fetch(request) {
     const path = new URL(request.url).pathname;
-    const file = FILES[path === "/" ? "/index.html" : path];
+    const clean = path.length > 1 ? path.replace(/\/+$/, "") : path;
+    const file = FILES[clean === "/" ? "/index.html" : clean] ?? FILES[clean + ".html"] ?? FILES[clean + "/index.html"];
     if (!file) return new Response(bytes(FILES["/404.html"].body), { status: 404, headers: { "content-type": "text/html; charset=utf-8", ...SECURITY } });
     const cache = file.type.startsWith("image/") ? "public, max-age=86400" : "public, max-age=300";
     return new Response(bytes(file.body), { headers: { "content-type": file.type, "cache-control": cache, ...SECURITY } });
