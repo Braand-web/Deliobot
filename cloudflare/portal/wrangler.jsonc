@@ -8,6 +8,7 @@
   "preview_urls": false,
   "routes": [{ "pattern": "compte.deliobot.fun", "custom_domain": true }],
   "durable_objects": { "bindings": [{ "name": "PORTAL", "class_name": "Portal" }] },
+  "services": [{ "binding": "COMPOSIO_SWEEP", "service": "deliobot-composio", "entrypoint": "HourlySweep" }],
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Portal"] }],
   "rules": [{ "type": "Data", "globs": ["**/*.webp"], "fallthrough": true }],
   // Settings anyone may read; the keys are Worker secrets set in Cloudflare's dashboard (see README.md).

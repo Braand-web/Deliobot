@@ -8,12 +8,19 @@ MCP traffic, and returns short-lived Connect Links to the local app.
 The desktop never receives the project key. Authorization links are returned
 only on demand and are never persisted in chat messages.
 
-Deployment for this repository:
+Deployment for this repository (`https://apps.deliobot.fun`):
 
 1. `pnpm broker:types`
-2. `pnpm exec wrangler d1 migrations apply opendeliobot-composio --remote --config cloudflare/composio-broker/wrangler.jsonc`
-3. For an existing Worker, run `pnpm exec wrangler secret put COMPOSIO_API_KEY --config cloudflare/composio-broker/wrangler.jsonc`, then `pnpm broker:deploy`.
-4. For the very first deploy, put `COMPOSIO_API_KEY=...` in the ignored `.dev.vars.production` file and run `pnpm exec wrangler deploy --config cloudflare/composio-broker/wrangler.jsonc --secrets-file .dev.vars.production`. Delete the file immediately afterward.
+2. `pnpm exec wrangler d1 migrations apply deliobot-composio --remote --config cloudflare/composio-broker/wrangler.jsonc`
+3. `pnpm broker:deploy`
+4. The Composio project key: either a Worker secret `COMPOSIO_API_KEY`, or the one-time page
+   `https://apps.deliobot.fun/setup?token=<SETUP_TOKEN>` after `wrangler secret put SETUP_TOKEN` (64 random hex
+   characters). The page saves the key in D1 and closes; a new `SETUP_TOKEN` opens it again. A Worker secret of the
+   same name wins over what the page saved.
+
+The account's free cron slots are taken, so the Worker declares no cron: `deliobot-portal` calls its `HourlySweep`
+entrypoint once an hour through a service binding. A deployment with a free slot can put `"23 * * * *"` back in
+`triggers.crons` instead.
 
 Forks should create their own D1 database and rate-limit namespaces, replace
 the IDs in `wrangler.jsonc`, deploy under their own Worker name, and set
@@ -51,7 +58,7 @@ Composio --signed POST--> /v1/composio/webhook --> D1 queue per installation <--
 | `POST /v1/installation/adopt` `{code}` | installation token | Redeems a code minted for this installation: from then on it acts as that Composio user (`shared_user_id`). Refused with 409 `has_connections` while it has active connected accounts of its own, which stay reachable. The code is spent either way. |
 | `DELETE /v1/installation` | installation token | Erases the installation and what it created at Composio. See [Erasing an installation](#erasing-an-installation-and-what-the-broker-keeps). |
 | `GET /v1/stats/app-events?days=<1-90>` | `Bearer STATS_TOKEN` | Fleet totals per day (queued, delivered, duplicates, drops, expired, unrouted) and current counts. Counts only, never event contents or installation ids. |
-| cron `23 * * * *` | | Expires events not collected within 7 days, disables at Composio the triggers of installations that have not polled for 14 days (re-enabled on their next poll), keeps daily counts for 90 days. |
+| hourly sweep (`HourlySweep.run()` or cron) | service binding | Expires events not collected within 7 days, disables at Composio the triggers of installations that have not polled for 14 days (re-enabled on their next poll), keeps daily counts for 90 days. |
 
 ### One person's desktop and Cloud
 
@@ -130,7 +137,7 @@ changes nothing.
 
 1. Apply the migration before deploying the code (the old code ignores the
    new tables and columns):
-   `pnpm exec wrangler d1 migrations apply opendeliobot-composio --remote --config cloudflare/composio-broker/wrangler.jsonc`
+   `pnpm exec wrangler d1 migrations apply deliobot-composio --remote --config cloudflare/composio-broker/wrangler.jsonc`
 2. Deploy as usual (`wrangler versions upload --preview-alias <name>`, check,
    then `wrangler versions deploy`). Until step 4 the webhook route answers
    503 and no client calls the new routes.
@@ -142,7 +149,7 @@ changes nothing.
    curl -sS https://backend.composio.dev/api/v3.1/webhook_subscriptions -H "x-api-key: $COMPOSIO_API_KEY"
    curl -sS -X POST https://backend.composio.dev/api/v3.1/webhook_subscriptions \
      -H "x-api-key: $COMPOSIO_API_KEY" -H "content-type: application/json" \
-     -d '{"webhook_url":"https://opendeliobot-composio.alexsoni201.workers.dev/v1/composio/webhook","enabled_events":["composio.trigger.message","composio.trigger.disabled","composio.connected_account.expired"],"version":"V3"}'
+     -d '{"webhook_url":"https://apps.deliobot.fun/v1/composio/webhook","enabled_events":["composio.trigger.message","composio.trigger.disabled","composio.connected_account.expired"],"version":"V3"}'
    ```
 
    If Composio refuses `composio.trigger.disabled`, leave it out: the server's

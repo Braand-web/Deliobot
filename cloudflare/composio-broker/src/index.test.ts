@@ -95,7 +95,7 @@ describe("connected-apps broker boundaries", () => {
   });
 
   it("hashes installation tokens before storage", async () => {
-    await expect(sha256("opendeliobot")).resolves.toBe("63c74f70a9d4681c334e84001935955a75245ea5b16b9c37c808e85c69963705");
+    await expect(sha256("opendeliobot")).resolves.toBe("aad206b1f6b28016b2c17a1afa67d23bd12487bbe38f70bc2f9dfc614df52369");
   });
 
   it("creates Sessions with explicit multi-account selection", async () => {

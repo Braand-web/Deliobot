@@ -20,6 +20,7 @@ import {
 import { eraseInstallation } from "./erase";
 import { adoptSharedUser, me, shareUser } from "./sharing";
 import { createTrigger, deleteTrigger, getTriggerType, listTriggers, listTriggerTypes, updateTrigger } from "./triggers";
+import { handleSetup, withSavedKeys } from "./setup";
 
 interface ComposioSession {
   sessionId: string;
@@ -752,7 +753,9 @@ async function route(request: Request, env: Env, ctx: ExecutionContext) {
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     try {
-      return await route(request, env, ctx);
+      const setup = await handleSetup(request, env);
+      if (setup) return setup;
+      return await route(request, await withSavedKeys(env), ctx);
     } catch (error) {
       if (error instanceof Response) return error;
       console.error(JSON.stringify({ message: "request failed", path: new URL(request.url).pathname, error: error instanceof Error ? error.message : String(error) }));
@@ -760,7 +763,7 @@ export default {
     }
   },
   async scheduled(controller: ScheduledController, env: Env) {
-    await runHourly(env, controller.scheduledTime);
+    await runHourly(await withSavedKeys(env), controller.scheduledTime);
   },
 } satisfies ExportedHandler<Env>;
 

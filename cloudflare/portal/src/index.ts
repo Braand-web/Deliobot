@@ -1,5 +1,5 @@
 // Delio's customers' portal on Cloudflare: one Durable Object holds the portal and its SQLite database, every request
-// goes through it, and an alarm runs the once-a-minute billing sweep.
+// goes through it, and an alarm runs the once-a-minute billing sweep and the Composio broker's hourly one.
 import { DurableObject } from "cloudflare:workers";
 
 import "./fetch-redirects.ts";
@@ -18,9 +18,12 @@ import sad from "../../../src/assets/delio-steel/cursor.sad-88.webp";
 
 interface Env extends Record<string, unknown> {
   PORTAL: DurableObjectNamespace<Portal>;
+  COMPOSIO_SWEEP?: { run(): Promise<void> };
 }
 
 const SWEEP_MS = 60_000;
+const COMPOSIO_SWEEP_MS = 3_600_000;
+const COMPOSIO_SWEPT_KEY = "composio-swept-at";
 const ASSETS = new Map<string, Uint8Array>([
   ["/assets/delio-idle.webp", new Uint8Array(idle)], ["/assets/delio-happy.webp", new Uint8Array(happy)],
   ["/assets/delio-sad.webp", new Uint8Array(sad)], ["/assets/delio-curious.webp", new Uint8Array(curious)],
@@ -89,7 +92,15 @@ export class Portal extends DurableObject<Env> {
 
   async alarm(): Promise<void> {
     try { await this.app?.sweep(); } catch (error) { console.error("delio-admin: billing sweep failed", error); }
+    await this.sweepComposio();
     await this.ctx.storage.setAlarm(Date.now() + SWEEP_MS);
+  }
+
+  private async sweepComposio(): Promise<void> {
+    const now = Date.now();
+    if (!this.env.COMPOSIO_SWEEP || now - ((await this.ctx.storage.get<number>(COMPOSIO_SWEPT_KEY)) ?? 0) < COMPOSIO_SWEEP_MS) return;
+    await this.ctx.storage.put(COMPOSIO_SWEPT_KEY, now);
+    try { await this.env.COMPOSIO_SWEEP.run(); } catch (error) { console.error("delio-apps: hourly sweep failed", error); }
   }
 }
 

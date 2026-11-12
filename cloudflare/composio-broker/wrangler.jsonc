@@ -1,21 +1,21 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
-  "name": "opendeliobot-composio",
-  "main": "src/index.ts",
+  "name": "deliobot-composio",
+  "main": "src/worker.ts",
   "compatibility_date": "2026-08-18",
   "compatibility_flags": ["nodejs_compat"],
-  "workers_dev": true,
+  "workers_dev": false,
+  "routes": [{ "pattern": "apps.deliobot.fun", "custom_domain": true }],
   "vars": {
     "COMPOSIO_API_BASE": "https://backend.composio.dev/api/v3.1",
     "COMPOSIO_TOOLKIT_BASE": "https://backend.composio.dev/api/v3",
     "REGISTRATION_MODE": "open"
   },
-  "secrets": { "required": ["COMPOSIO_API_KEY"] },
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "opendeliobot-composio",
-      "database_id": "435bcde1-c017-416f-b041-7ffc508e9d88",
+      "database_name": "deliobot-composio",
+      "database_id": "b734b4c2-6d78-4134-b08e-7924c1b035e3",
       "migrations_dir": "migrations"
     }
   ],
@@ -24,8 +24,8 @@
     { "name": "SESSION_LIMITER", "namespace_id": "8261702", "simple": { "limit": 120, "period": 60 } },
     { "name": "EVENTS_LIMITER", "namespace_id": "8261703", "simple": { "limit": 60, "period": 60 } }
   ],
-  // Hourly: expire app events older than 7 days, pause the triggers of installations idle for 14 days.
-  "triggers": { "crons": ["23 * * * *"] },
+  // No cron: the account's free slots are taken, so deliobot-portal calls the HourlySweep entrypoint every hour.
+  "triggers": { "crons": [] },
   "observability": {
     "enabled": true,
     "logs": { "enabled": true, "head_sampling_rate": 1 },
