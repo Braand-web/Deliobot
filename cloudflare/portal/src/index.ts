@@ -35,8 +35,14 @@ const unavailable = () => new Response(
   "<p>Les inscriptions ouvrent très prochainement. <a href='https://deliobot.fun'>Retour à deliobot.fun</a></p></div>",
   { status: 503, headers: { "content-type": "text/html; charset=utf-8", "retry-after": "3600" } });
 
+/** The operators' console answers only on its own host, a customer's portal never serves it. */
+function consoleHost(env: Env): string | null {
+  return typeof env.DELIO_ADMIN_CONSOLE_URL === "string" && env.DELIO_ADMIN_CONSOLE_URL ? new URL(env.DELIO_ADMIN_CONSOLE_URL).host : null;
+}
+
 export class Portal extends DurableObject<Env> {
   private app: AdminApp | null = null;
+  private operatorsConsole: { host: string; app: AdminApp } | null = null;
   private stored: Record<string, string> = {};
   private setupDone = false;
 
@@ -58,18 +64,28 @@ export class Portal extends DurableObject<Env> {
   /** Builds the portal from the Worker's settings, with those saved by the setup page on top. */
   private start(): void {
     try {
-      const settings = portalSettings({ ...this.baseEnv(), ...this.stored });
+      const base = this.baseEnv();
+      const settings = portalSettings({ ...base, ...this.stored, ...(base.DELIO_ADMIN_OPERATORS ? { DELIO_ADMIN_OPERATORS: base.DELIO_ADMIN_OPERATORS } : {}) });
       for (const warning of settings.warnings) console.warn(`delio-admin: ${warning}`);
       const store = new AdminStore({ db: durableObjectDatabase(this.ctx.storage), secret: Buffer.from(settings.secret ?? "") });
       this.app = createAdminApp({ store, publicUrl: settings.publicUrl, operators: settings.operators, mailer: settings.mailer, gateway: settings.gateway,
         payments: settings.payments, assets: ASSETS, ...(settings.signup ? { signup: settings.signup } : {}) });
+      const consoleUrl = base.DELIO_ADMIN_CONSOLE_URL ? new URL(base.DELIO_ADMIN_CONSOLE_URL) : null;
+      this.operatorsConsole = consoleUrl && settings.operators.size > 0 ? { host: consoleUrl.host, app: createAdminApp({ store, publicUrl: consoleUrl,
+        operators: settings.operators, mailer: settings.mailer, payments: settings.payments, assets: ASSETS, console: true }) } : null;
     } catch (error) {
       this.app = null;
+      this.operatorsConsole = null;
       console.error(`delio-admin: not configured: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
   async fetch(request: Request): Promise<Response> {
+    const host = new URL(request.url).host;
+    if (host === consoleHost(this.env)) {
+      if (!this.operatorsConsole) return new Response("Not found.", { status: 404 });
+      return serveFetch(this.operatorsConsole.app, request, request.headers.get("cf-connecting-ip") ?? "unknown");
+    }
     const setup = await handleSetup(request, {
       setupToken: typeof this.env.SETUP_TOKEN === "string" ? this.env.SETUP_TOKEN : undefined, done: this.setupDone, stored: this.stored, baseEnv: this.baseEnv(),
       save: async (settings) => {

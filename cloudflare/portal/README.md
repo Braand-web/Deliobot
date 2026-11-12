@@ -35,4 +35,9 @@ type **Secret**), never in this repository:
 In SasPay's dashboard, point the webhook at `https://compte.deliobot.fun/api/saspay/webhook` for
 `transaction.success`. The other settings are in `wrangler.jsonc`.
 
-The operators' console is not served here.
+## Operators' console
+
+`https://admin.deliobot.fun` serves the operators' console from the same Durable Object, on its own host: it signs in
+only the addresses in `DELIO_ADMIN_OPERATORS` (a Worker secret, which wins over the setup page's value), sends a code
+to nobody else while answering everyone the same, and answers 404 for every customer page. Its session cookie is
+`__Host-` and so never shared with `compte.deliobot.fun`.

@@ -6,7 +6,7 @@
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": false,
   "preview_urls": false,
-  "routes": [{ "pattern": "compte.deliobot.fun", "custom_domain": true }],
+  "routes": [{ "pattern": "compte.deliobot.fun", "custom_domain": true }, { "pattern": "admin.deliobot.fun", "custom_domain": true }],
   "durable_objects": { "bindings": [{ "name": "PORTAL", "class_name": "Portal" }] },
   "services": [{ "binding": "COMPOSIO_SWEEP", "service": "deliobot-composio", "entrypoint": "HourlySweep" }],
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Portal"] }],
@@ -14,6 +14,7 @@
   // Settings anyone may read; the keys are Worker secrets set in Cloudflare's dashboard (see README.md).
   "vars": {
     "DELIO_ADMIN_URL": "https://compte.deliobot.fun",
+    "DELIO_ADMIN_CONSOLE_URL": "https://admin.deliobot.fun",
     "DELIO_ADMIN_DOWNLOAD_URL": "https://deliobot.fun/#telecharger",
     "DELIO_ADMIN_CURRENCY": "XOF",
     "DELIO_ADMIN_XOF_PER_USD": "600"
