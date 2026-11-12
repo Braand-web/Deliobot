@@ -1,8 +1,5 @@
 # Local environments (switchable setups)
 
-Design: [local environments design](../superpowers/specs/2026-10-07-local-environments-design.md);
-summary: [plan](../plans/local-environments.md).
-
 Creating and switching named local environments is packaged-desktop
 behavior: the control surface cannot drive it, and an unpackaged dev run
 returns `dev` for create and switch (the "Environments on this computer"

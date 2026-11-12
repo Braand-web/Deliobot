@@ -38,12 +38,11 @@ const featureRouteModules = ["data/routes.ts", "workspace-backup-http.ts", "clou
 const serverSource = [join(ROOT, "server", "index.ts"), ...routeModules, ...featureRouteModules]
   .map((file) => readFileSync(file, "utf8")).join("\n");
 const hooksSource = readFileSync(join(ROOT, "server", "webhook-ingress.ts"), "utf8");
-const hostedSource = readFileSync(join(ROOT, "enterprise", "server", "workspace-access.ts"), "utf8");
-// Only constants named in the public handler's accepted-path guard are routes.
-// Outbound post("/api/handoff/...") calls belong to the identity service, not us.
-const hostedConstants = new Map([...hostedSource.matchAll(/const ([A-Z_]+) = "(\/api\/[^"\n]+)";/g)].map(match => [match[1]!, match[2]!]));
-const hostedPublicRoutes = new Set((hostedSource.match(/!\[([^\]]+)\]\.includes\(path\)/)?.[1] ?? "")
-  .split(",").map(name => hostedConstants.get(name.trim())).filter((path): path is string => path !== undefined));
+const hostedSource = readFileSync(join(ROOT, "server", "workspace-access.ts"), "utf8");
+// Only the paths the hosted handler serves are routes; outbound post("/api/handoff/...") calls belong to the identity service.
+const hostedPublicRoutes = new Set([...hostedSource.matchAll(/export const HOSTED_[A-Z_]+_PATH = "(\/api\/[^"\n]+)";/g)].map(match => match[1]!));
+// The public edition ships without enterprise/; docs may still cite its files for licensed builds.
+const enterpriseShipped = existsSync(join(ROOT, "enterprise"));
 // server/index.ts matches routes two ways: `path === "/api/x"` and
 // `path.match(/^\/api\/x\/(a|b)$/)`. Collect the regex form too.
 const routePatterns = [...serverSource.matchAll(/\/(\^\\\/api\\\/(?:\[(?:[^\]\\]|\\.)*\]|[^/\\\n[]|\\.)*)\/[a-z]*/g)].map((match) => new RegExp(match[1]!));
@@ -64,13 +63,13 @@ describe("docs/verification recipes cite things that exist", () => {
   it("cite source files that exist", () => {
     const refs = cited(/(?<![\w/.-])((?:scripts|server|src|shared|electron|companion|enterprise)\/[\w./-]+\.(?:ts|tsx|mjs|cjs|py))(?![\w/])/g);
     expect(refs.length).toBeGreaterThan(50);
-    expect([...new Set(refs.filter((hit) => !existsSync(join(ROOT, target(hit)))))]).toEqual([]);
+    expect([...new Set(refs.filter((hit) => !existsSync(join(ROOT, target(hit))) && (enterpriseShipped || !target(hit).startsWith("enterprise/"))))]).toEqual([]);
   });
 
   it("cite test files that exist", () => {
     const refs = cited(/(?<![\w/.-])([\w./-]+\.test\.(?:ts|mjs))(?![\w/])/g);
     expect(refs.length).toBeGreaterThan(20);
-    expect([...new Set(refs.filter((hit) => !existsSync(join(ROOT, target(hit)))))]).toEqual([]);
+    expect([...new Set(refs.filter((hit) => !existsSync(join(ROOT, target(hit))) && (enterpriseShipped || !target(hit).startsWith("enterprise/"))))]).toEqual([]);
   });
 
   it("cite API routes the server registers", () => {

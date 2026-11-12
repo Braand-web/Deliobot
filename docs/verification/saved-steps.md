@@ -1,8 +1,7 @@
 # Saved steps: repeating a computer task without AI
 
 A bot that did a task on this computer once repeats it with no AI call when the
-person sends the same words again (design:
-[saved steps](../superpowers/specs/2026-10-27-saved-steps-design.md)).
+person sends the same words again.
 
 ## What it proves
 
