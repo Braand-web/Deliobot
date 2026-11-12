@@ -30,7 +30,7 @@ code,.prompt{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:1
 .prompt{display:block;background:var(--card);border-left:3px solid var(--accent);border-radius:10px;padding:12px 14px;margin:10px 0;color:var(--ink);white-space:pre-wrap}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:28px}
 .card{display:block;background:var(--card);border-radius:22px;padding:22px;text-decoration:none}
-.card img{width:56px;height:56px}
+.card img{display:block;width:56px;height:56px;margin-bottom:6px}
 .card small{color:var(--ink-2)}
 .card b{display:block;font-size:18px;margin:8px 0 4px}
 .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:36px}
