@@ -5,6 +5,7 @@ import { DurableObject } from "cloudflare:workers";
 import { createAdminApp, type AdminApp } from "../../../apps/admin/src/app.ts";
 import { portalSettings } from "../../../apps/admin/src/env-config.ts";
 import { serveFetch } from "../../../apps/admin/src/fetch-adapter.ts";
+import { catalog } from "../../../apps/admin/src/plans.ts";
 import { durableObjectDatabase } from "../../../apps/admin/src/sql.ts";
 import { AdminStore } from "../../../apps/admin/src/store.ts";
 import curious from "../../../src/assets/delio-steel/cursor.curious-88.webp";
@@ -48,6 +49,10 @@ export class Portal extends DurableObject<Env> {
   }
 
   async fetch(request: Request): Promise<Response> {
+    if (!this.app && new URL(request.url).pathname === "/api/public/plans") {
+      const rate = Number(this.env.DELIO_ADMIN_XOF_PER_USD);
+      return Response.json(catalog(rate > 0 ? rate : undefined), { headers: { "access-control-allow-origin": "*", "cache-control": "public, max-age=300" } });
+    }
     if (!this.app) return unavailable();
     return serveFetch(this.app, request, request.headers.get("cf-connecting-ip") ?? "unknown");
   }
