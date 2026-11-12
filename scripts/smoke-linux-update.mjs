@@ -97,7 +97,18 @@ async function main() {
   }
 
   console.log("[smoke-linux-update] checking the real release feed…");
-  const result = await updater.checkForUpdates();
+  let result;
+  try {
+    result = await updater.checkForUpdates();
+  } catch (error) {
+    // Before the first Linux release is published the feed has no latest-linux.yml: there is nothing to update from.
+    if (/\b404\b/.test(String(error?.message ?? error))) {
+      console.log("[smoke-linux-update] no Linux release is published yet (the feed answers 404): nothing to update from, skipped");
+      app.exit(0);
+      return;
+    }
+    throw error;
+  }
   if (!result?.updateInfo?.version) throw new Error("the feed returned no update");
   // A feed response alone is not an offer: a version comparison that decided
   // "not available" still carries updateInfo, and reading only that would let
