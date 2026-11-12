@@ -229,6 +229,22 @@ describe("plans paid through SasPay", () => {
     expect(saspay.calls.at(-1)!.body, "no country is imposed: SasPay offers every country it serves").not.toHaveProperty("country");
   });
 
+  it("tells someone signed in with another address whose workspace it is, and switches address back to the same page", async () => {
+    const clock = { now: Date.now() };
+    const target = await portal(fakeSasPay(), clock);
+    await target.signIn("someone-else@delio.test");
+    for (const path of ["/billing?workspace=acme&plan=trial", "/pay?workspace=acme&plan=pro"]) {
+      const answer = await target.get(path);
+      expect(answer.status).toBe(403);
+      const html = await answer.text();
+      expect(html).toContain("This workspace belongs to another address");
+      expect(html).toContain("someone-else@delio.test");
+    }
+    const out = await target.post("/logout", { next: "/billing?workspace=acme&plan=trial" });
+    expect(out.headers.get("location")).toBe(`/login?next=${encodeURIComponent("/billing?workspace=acme&plan=trial")}`);
+    expect((await target.post("/logout", {})).headers.get("location")).toBe("/login");
+  });
+
   it("publishes the catalog in dollars with its franc prices; only Starter, Pro and Max are listed for the site", async () => {
     const clock = { now: Date.now() };
     const target = await portal(fakeSasPay(), clock);

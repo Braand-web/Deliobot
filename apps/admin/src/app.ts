@@ -9,7 +9,7 @@ import { Hosting, hostingRunner, RESERVED_SLUGS, socketFleet, type Fleet } from 
 import { Billing, catalog, PLANS, reconcileOrders, TOPUPS, TRIAL_DAYS, type Cycle, type PlanId, type TopupId } from "./plans.ts";
 import { createSasPay, verifySasPayWebhook } from "./saspay.ts";
 import { MICRO, Wallet } from "./wallet.ts";
-import { billingPage, codePage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, signupPage, slackPage, ssoPage, SUPPORT_EMAIL, type Html } from "./pages.ts";
+import { billingPage, codePage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, otherAccountPage, signupPage, slackPage, ssoPage, SUPPORT_EMAIL, type Html } from "./pages.ts";
 import { normalizeEmail, token, validEmail, validSlug, type Account, type AdminStore, type Role, type Workspace } from "./store.ts";
 
 export interface AdminAppOptions {
@@ -230,6 +230,15 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     return req.headers["sec-fetch-site"] === "same-origin";
   }
 
+  /** Whether this person may run this existing workspace's billing; an unknown workspace answers 404 further on. */
+  function administers(user: Account, slug: string): boolean {
+    return !validSlug(slug) || !store.workspace(slug) || store.role(slug, user.id) === "admin" || isOperator(user);
+  }
+
+  function otherAccount(res: ServerResponse, user: Account, next: string): void {
+    return html(res, 403, { title: "Another address", email: user.email, mascot: "curious", body: otherAccountPage(user.email, next) });
+  }
+
   function requireWorkspaceAdmin(user: Account, slug: string): Workspace {
     const workspace = validSlug(slug) ? store.workspace(slug) : null;
     if (!workspace) throw new HttpError(404, "No such workspace.");
@@ -398,7 +407,8 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     if (method === "POST" && path === "/logout") {
       const value = parseCookies(req.headers.cookie).get(cookieName);
       if (value) store.endSession(value);
-      return redirect(res, "/login", [sessionCookie("", 0)]);
+      const next = localPath(text(await readBody(req).catch(() => ({})), "next", 2048));
+      return redirect(res, next === "/" ? "/login" : `/login?next=${encodeURIComponent(next)}`, [sessionCookie("", 0)]);
     }
     if (method === "GET" && path === "/connect") return connect(res, url, user);
 
@@ -610,6 +620,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     // One click from the site or the app: straight to SasPay's checkout, the person's own workspace made if needed.
     if (method === "GET" && path === "/pay") {
       const asked = url.searchParams.get("workspace");
+      if (asked && !administers(user, asked)) return otherAccount(res, user, path + url.search);
       const workspace = asked ? requireWorkspaceAdmin(user, asked) : store.workspacesOf(user.id).find((item) => item.role === "admin") ?? personalWorkspace(user);
       const pick = (name: string, max: number) => (url.searchParams.get(name) ?? "").slice(0, max);
       const topup = pick("topup", 16);
@@ -644,6 +655,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
         next.set("workspace", first.slug);
         return redirect(res, `/billing?${next}`);
       }
+      if (!administers(user, asked)) return otherAccount(res, user, path + url.search);
       const workspace = requireWorkspaceAdmin(user, asked);
       const chosen = url.searchParams.get("plan");
       return html(res, 200, { title: "Billing", email: user.email, body: billing(workspace, user, { message: url.searchParams.get("done") ? "Saved." : undefined,

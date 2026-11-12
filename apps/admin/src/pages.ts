@@ -157,6 +157,14 @@ export function messagePage(title: string, text: string, link?: { href: string; 
   return h`<div class="narrow center"><h1>${title}</h1><p class="muted">${text}</p>${link ? h`<p><a href="${link.href}">${link.label}</a></p>` : ""}</div>`;
 }
 
+/** A workspace link opened while signed in with another address: say so, and offer to switch address and come back. */
+export function otherAccountPage(email: string, next: string): Html {
+  return h`<div class="narrow center"><h1>This workspace belongs to another address</h1>
+<p class="muted">You are signed in as <b>${email}</b>. Sign in with the address you used in the Deliobot app to continue.</p>
+<form method="post" action="/logout"><input type="hidden" name="next" value="${next}"><button class="primary" style="width:100%">Use another address</button></form>
+<p><a href="/">Stay as ${email}</a></p></div>`;
+}
+
 const credits = (value: number) => value.toLocaleString("en-US", { maximumFractionDigits: 1 });
 
 function hostingCard(workspace: Workspace, hosting: { state: HostingState; error: string | null; retry: boolean }): Html {
