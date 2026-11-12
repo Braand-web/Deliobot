@@ -6,7 +6,7 @@ import { createAdminApp, type AdminApp } from "../../../apps/admin/src/app.ts";
 import { portalSettings } from "../../../apps/admin/src/env-config.ts";
 import { serveFetch } from "../../../apps/admin/src/fetch-adapter.ts";
 import { catalog } from "../../../apps/admin/src/plans.ts";
-import { handleSetup, SETTINGS_KEY, SETUP_DONE_KEY } from "./setup.ts";
+import { handleSetup, SETTINGS_KEY, SETUP_DONE_KEY, tokenDigest } from "./setup.ts";
 import { durableObjectDatabase } from "../../../apps/admin/src/sql.ts";
 import { AdminStore } from "../../../apps/admin/src/store.ts";
 import curious from "../../../src/assets/delio-steel/cursor.curious-88.webp";
@@ -39,7 +39,8 @@ export class Portal extends DurableObject<Env> {
     super(ctx, env);
     void ctx.blockConcurrencyWhile(async () => {
       this.stored = (await ctx.storage.get<Record<string, string>>(SETTINGS_KEY)) ?? {};
-      this.setupDone = (await ctx.storage.get<boolean>(SETUP_DONE_KEY)) === true;
+      const token = typeof env.SETUP_TOKEN === "string" ? env.SETUP_TOKEN : "";
+      this.setupDone = Boolean(token) && (await ctx.storage.get<string>(SETUP_DONE_KEY)) === await tokenDigest(token);
       this.start();
       if (this.app && !(await ctx.storage.getAlarm())) await ctx.storage.setAlarm(Date.now() + SWEEP_MS);
     });
@@ -68,7 +69,7 @@ export class Portal extends DurableObject<Env> {
       setupToken: typeof this.env.SETUP_TOKEN === "string" ? this.env.SETUP_TOKEN : undefined, done: this.setupDone, stored: this.stored, baseEnv: this.baseEnv(),
       save: async (settings) => {
         await this.ctx.storage.put(SETTINGS_KEY, settings);
-        await this.ctx.storage.put(SETUP_DONE_KEY, true);
+        await this.ctx.storage.put(SETUP_DONE_KEY, await tokenDigest(String(this.env.SETUP_TOKEN)));
         this.stored = settings;
         this.setupDone = true;
         this.start();

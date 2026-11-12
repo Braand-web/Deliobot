@@ -1,6 +1,6 @@
 // The portal's one-time setup page: the operator pastes the provider keys into a form on the portal itself, so they
 // travel from the operator's browser to the Durable Object's storage and nowhere else. It answers only with the
-// SETUP_TOKEN secret, and closes for good once the settings are saved.
+// SETUP_TOKEN secret, and closes once the settings are saved with it: a new SETUP_TOKEN opens it again.
 import { portalSettings } from "../../../apps/admin/src/env-config.ts";
 
 /** The settings the form takes, in the order it shows them; empty fields keep what is already set. */
@@ -17,6 +17,12 @@ export const SETUP_FIELDS = [
 
 export const SETTINGS_KEY = "settings";
 export const SETUP_DONE_KEY = "setup-done";
+
+/** What the storage keeps of the token a setup was saved with: its SHA-256, never the token. */
+export async function tokenDigest(token: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
 
 const escape = (text: string) => text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
@@ -38,7 +44,7 @@ function form(token: string, current: Record<string, string>, error?: string): R
 autocomplete="off" spellcheck="false" placeholder="${escape(placeholder)}" value="${field.secret ? "" : escape(current[field.name] ?? "")}">`;
   }).join("\n");
   return page(`<h1>Installer le portail Delio</h1>
-<p class="muted">Ces clés vont directement de votre navigateur à votre portail sur Cloudflare. Personne d'autre ne les voit. Cette page se ferme définitivement après l'enregistrement.</p>
+<p class="muted">Ces clés vont directement de votre navigateur à votre portail sur Cloudflare. Personne d'autre ne les voit. Cette page se ferme après l'enregistrement. Un champ laissé vide garde la valeur déjà enregistrée, et vous pourrez compléter plus tard avec un nouveau lien.</p>
 ${error ? `<p class="error">${escape(error)}</p>` : ""}
 <form method="post" action="/setup"><input type="hidden" name="token" value="${escape(token)}">${fields}
 <button>Enregistrer et ouvrir le portail</button></form>`, error ? 400 : 200);
@@ -81,5 +87,5 @@ export async function handleSetup(request: Request, deps: {
   }
   await deps.save(next);
   return page(`<h1>C'est enregistré</h1><p class="ok">Le portail est ouvert : <a href="/">compte.deliobot.fun</a>.</p>
-<p class="muted">Cette page d'installation est maintenant fermée.</p>`);
+<p class="muted">Cette page d'installation est maintenant fermée. Pour ajouter d'autres clés plus tard, demandez un nouveau lien.</p>`);
 }

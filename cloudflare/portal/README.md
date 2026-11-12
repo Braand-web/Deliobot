@@ -15,8 +15,8 @@ Until its settings are complete the portal answers "Bientôt disponible".
 
 `SETUP_TOKEN` (a Worker secret, 64 hex characters) opens `https://compte.deliobot.fun/setup?token=<it>` once: the
 operator pastes the keys below there, they are kept in the Durable Object's storage on top of the Worker's own
-settings, and the page closes for good. To change keys later, set them as Worker secrets, or put a new
-`SETUP_TOKEN` and clear the `setup-done` flag.
+settings, and the page closes. Empty fields keep what is saved. To change keys later, put a new `SETUP_TOKEN`:
+the page opens again for it.
 
 ## Secrets
 
