@@ -46,7 +46,7 @@ export const personWho = (name: string, role?: string): string => {
 export const relayedWho = (name: string | undefined): string => `${name?.trim() || "someone"} (person, relayed by another app)`;
 export const botWho = (name: string): string => `@${name} (bot)`;
 export const API_WHO = "an app, through the API";
-export const HARNESS_WHO = "OpenDeliobot";
+export const HARNESS_WHO = "Deliobot";
 export const routineWho = (name: string | undefined): string => name?.trim() ? `routine ${JSON.stringify(name.trim())}` : "a routine";
 export const webhookWho = (name: string | undefined): string => name?.trim() ? `webhook ${JSON.stringify(name.trim())}` : "a webhook";
 export const appEventWho = (app: string, event?: string): string => `${app}${event ? ` (${event})` : ""}, a connected app's event`;

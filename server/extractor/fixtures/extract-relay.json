@@ -35,7 +35,7 @@
         }
       },
       "input": {
-        "text": "OpenDeliobot is checking that an extraction-model key works."
+        "text": "Deliobot is checking that an extraction-model key works."
       }
     },
     "inboxTriage": {
@@ -95,7 +95,7 @@
           }
         },
         "input": {
-          "text": "OpenDeliobot is checking that an extraction-model key works."
+          "text": "Deliobot is checking that an extraction-model key works."
         }
       }
     },

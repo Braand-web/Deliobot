@@ -188,10 +188,10 @@ describe("the card after the update", () => {
     expect(track).toHaveBeenCalledWith("cloud_card_shown", { variant: "free" });
   });
 
-  it("needs a trial: without one it waits (the star may show), and without money-back from the Admin it says none", async () => {
+  it("needs a trial: without one it waits (no other card shows), and without money-back from the Admin it says none", async () => {
     returning(); offer = { ...PLAIN_OFFER };
     let html = await launch();
-    expect(html).not.toContain(INTRO); expect(html).toContain(STAR);
+    expect(html).not.toContain(INTRO); expect(html).toBe("");
     expect(storage.get(`${CLOUD_INTRO}:days`)).toBeUndefined();
     offer = null; expect(await relaunch()).not.toContain(INTRO);
     offer = { ...TRIAL_OFFER, refundDays: undefined, creditUsd: undefined };
@@ -212,7 +212,7 @@ describe("the card after the update", () => {
     f.brand = "default";
     (window.odb as Record<string, unknown>).organization = { state: async () => ({ status: "connected", organization: { id: "o", name: "Acme" } }), onState: () => () => {} };
     const org = await launch();
-    expect(org).not.toContain(INTRO); expect(org).toContain(STAR);
+    expect(org).not.toContain(INTRO); expect(org).toBe("");
   });
 
   it("Start free trial opens the Add a Cloud dialog from the card, and the card is done for good", async () => {
@@ -259,7 +259,7 @@ describe("the card after the update", () => {
     for (let day = 0; day < 3; day++) { now = NOW + day * DAY; expect(await relaunch(), `day ${day}`).toContain(INTRO); }
     now = NOW + 3 * DAY;
     const after = await relaunch();
-    expect(after).not.toContain(INTRO); expect(after).toContain(STAR);
+    expect(after).not.toContain(INTRO); expect(after).toBe("");
     storage.clear(); launchCardsSeen(); f.state.config.onboarding.hintsSeen = [...withTourFinished(undefined), "pro-introduction-dismissed-v3"];
     now = NOW + 10 * DAY; expect(await relaunch()).toContain(INTRO);
     now = NOW + 11 * DAY; expect(await relaunch()).not.toContain(INTRO);
@@ -272,7 +272,7 @@ describe("the card after the update", () => {
       for (let day = 0; day < 3; day++) {
         now = NOW + day * DAY;
         const html = await launch();
-        expect(html, `${state.status} day ${day}`).not.toContain(INTRO); expect(html, `${state.status} day ${day}`).toContain(STAR);
+        expect(html, `${state.status} day ${day}`).not.toContain(INTRO); expect(html, `${state.status} day ${day}`).toBe("");
       }
     }
     expect(storage.get(`${CLOUD_INTRO}:days`)).toBeUndefined();
@@ -353,16 +353,14 @@ describe("the first conversation after meeting the Chief", () => {
   });
 });
 
-describe("This computer's Cloud sign-in card and the star", () => {
-  it("an ended sign-in on a paid plan asks to sign in again; the star comes last and is for good", async () => {
+describe("This computer's Cloud sign-in card", () => {
+  it("an ended sign-in on a paid plan asks to sign in again; nothing follows it", async () => {
     account = { status: "reauth-required", message: "expired", lastPlan: { tier: "pro", active: true } }; returning();
     expect(await launch()).toContain("Sign in again to reach the Cloud");
     press("Sign in again"); await flush();
     expect(bridges.cloud.signInAgain).toHaveBeenCalledOnce();
     account = { ...free }; offer = { ...PLAIN_OFFER };
-    expect(await relaunch()).toContain(STAR);
-    press("Not now");
-    expect(storage.get(STAR_NOTICE)).toBe("1"); expect(await relaunch()).toBe("");
+    expect(await relaunch()).toBe("");
   });
 });
 
@@ -479,10 +477,10 @@ describe("What's new after the update", () => {
     expect(on(proOnly)).toBe("pro"); expect(proOnly).not.toContain(TEAM); expect(proOnly).not.toContain(">Next<");
     account = paid();
     const nothing = await relaunch();
-    expect(on(nothing)).toBeNull(); expect(nothing).toContain(STAR);
+    expect(on(nothing)).toBeNull(); expect(nothing).toBe("");
     account = signedOut; offer = null;
     const offline = await relaunch();
-    expect(on(offline)).toBeNull(); expect(offline).toContain(STAR);
+    expect(on(offline)).toBeNull(); expect(offline).toBe("");
     account = { status: "unavailable" }; offer = teamOffer;
     expect(on(await relaunch())).toBeNull();
     expect(seenOnDesktop()).toEqual([]);
@@ -721,7 +719,7 @@ describe("no Use my Mac popup", () => {
     desk.handlers.set("cloud-lending:due", async () => true);
     desk.handlers.set("cloud-lending:ask", (_event: unknown, language: unknown) => { asked.push(language); return Promise.resolve(); });
     returning(); storage.set(CLOUD_INTRO, "1");
-    expect(await launch()).toContain(STAR);
+    expect(await launch()).toBe("");
     snapshot = { status: "none" }; viewer = { hosted: false, canSave: true, cloudHome: true }; f.state.config.cloudHome = true;
     f.state.config.onboarding.hintsSeen = [...withTourFinished(undefined), "cloud-setup-hidden"]; showWindow(MY_CLOUD);
     await launch();

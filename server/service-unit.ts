@@ -37,7 +37,7 @@ export function systemdUnit(spec: ServiceSpec): string {
   const lines = [
     "# Written by `opendeliobot service install`. Re-run it to change the options.",
     "[Unit]",
-    `Description=OpenDeliobot${spec.label ? ` (${spec.label})` : ""}`,
+    `Description=Deliobot${spec.label ? ` (${spec.label})` : ""}`,
     "After=network-online.target",
     "Wants=network-online.target",
     "",

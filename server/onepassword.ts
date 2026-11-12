@@ -78,7 +78,7 @@ export function onePasswordUnavailable(error: unknown, log: (line: string) => vo
 }
 
 export async function sdkOnePasswordClient(sdk: OnePasswordSdk, token: string, version: string): Promise<OnePasswordClient> {
-  const client = await sdk.createClient({ auth: token, integrationName: "OpenDeliobot", integrationVersion: version });
+  const client = await sdk.createClient({ auth: token, integrationName: "Deliobot", integrationVersion: version });
   return {
     vaults: async () => (await client.vaults.list()).map((vault) => ({ id: vault.id, title: vault.title })),
     items: async (vaultId) => (await client.items.list(vaultId))

@@ -23,7 +23,7 @@
   "seams": {
     "keyCheck": {
       "state": {
-        "purpose": "OpenDeliobot is checking that a decision-model key works."
+        "purpose": "Deliobot is checking that a decision-model key works."
       },
       "question": "Is this a connection check?"
     },
@@ -74,7 +74,7 @@
       "accepts": true,
       "body": {
         "state": {
-          "purpose": "OpenDeliobot is checking that a decision-model key works."
+          "purpose": "Deliobot is checking that a decision-model key works."
         },
         "model": "jev-latest",
         "questions": {

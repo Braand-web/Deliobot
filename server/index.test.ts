@@ -13788,7 +13788,7 @@ describe("bot memory API", () => {
         id: "persona",
         label: "Identity",
         text: "You are Kiwi, a personal bot in Deliobot. Role: Tracker. About: Files bugs.",
-        bytes: 79,
+        bytes: 75,
       });
       expect(before.body.sections.map((s: { id: string }) => s.id)).not.toContain("soul");
       expect(before.body.sections.map((s: { id: string }) => s.id)).toContain("memory");

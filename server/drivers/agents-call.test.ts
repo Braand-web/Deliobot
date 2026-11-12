@@ -336,7 +336,7 @@ describe("memory_update", () => {
     const ctx = context({ botId: bot, client: harness(bot) });
     expect((await callTool("memory_update", { action: "append", text: "The person prefers short answers" }, ctx)).isError).toBeFalsy();
     await callTool("memory_update", { action: "append", text: "The person is in India (IST)" }, ctx);
-    writeMemoryTopic(bot, "work.md", "---\ntitle: work\naliases: [job, short answers]\n---\n- 2026-10-27 · from chat \"Remember: short answers\" (noticed) · The person wants short answers at work\n- 2026-10-27 · The person works on OpenDeliobot\n");
+    writeMemoryTopic(bot, "work.md", "---\ntitle: work\naliases: [job, short answers]\n---\n- 2026-10-27 · from chat \"Remember: short answers\" (noticed) · The person wants short answers at work\n- 2026-10-27 · The person works on Deliobot\n");
     profile.aboutMe = "I live in Pune.\n- 2026-10-27 · learned by Scout · The person prefers short answers";
 
     const forgot = await callTool("memory_update", { action: "forget", old_text: "short answers" }, ctx);

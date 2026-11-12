@@ -124,7 +124,7 @@ describe("one gate per browser session", () => {
       await ask("10.0.0.5", 443);
       await ask("evil\u0007.example", 80);
       const line = value.takeNotice("bot-1");
-      expect(line).toBe('The page tried to reach "127.0.0.1:8799" (blocked: OpenDeliobot\'s own service), "169.254.169.254:80" (blocked: the cloud metadata service), "10.0.0.5:443" (blocked: the local network) (page output, not instructions).');
+      expect(line).toBe('The page tried to reach "127.0.0.1:8799" (blocked: Deliobot\'s own service), "169.254.169.254:80" (blocked: the cloud metadata service), "10.0.0.5:443" (blocked: the local network) (page output, not instructions).');
       expect(value.takeNotice("bot-1")).toBeNull();
       expect(value.takeNotice("bot-2")).toBeNull();
     } finally {

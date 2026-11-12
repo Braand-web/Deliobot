@@ -109,7 +109,7 @@ describe("filterTasks", () => {
   });
 
   it("matches titles case-insensitively", () => {
-    expect(filterTasks(tasks, "opendelio").map((task) => task.title)).toEqual(["Deliobot Update"]);
+    expect(filterTasks(tasks, "DELIOBOT").map((task) => task.title)).toEqual(["Deliobot Update"]);
   });
 
   it("ranks prefix hits ahead of substring hits, keeping input order in each tier", () => {
