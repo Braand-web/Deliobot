@@ -73,7 +73,7 @@ import {
 import { avatarImageStatus } from "./avatar-image.ts";
 import { imageGenerationReady } from "./image-generation.ts";
 import { withAutoModel } from "./auto-model.ts";
-import { createDelioAccount, delioConnection, withDelioMedia } from "./delio-account.ts";
+import { createDelioAccount, delioConnection, delioPlanTurnsFor, withDelioMedia } from "./delio-account.ts";
 import { createDelioAccountRoutes } from "./routes/delio-account.ts";
 import { videoGenerationReady } from "./video-generation.ts";
 import { createMediaToolRoutes, type MediaKind } from "./routes/media-tools.ts";
@@ -2851,6 +2851,7 @@ const delioAccount = createDelioAccount({ config: () => cfg, label: () => `Delio
     broadcast({ kind: "config", ...configStatus() });
     void reloadProviders(before).catch((error: unknown) => console.warn(`delio: engines did not reload: ${error instanceof Error ? error.message : String(error)}`));
   } });
+const delioPlanTurns = delioPlanTurnsFor({ account: delioAccount, bot: (id, thread) => store.projectBotForTask(id, thread), useDelio: (id, selection) => registry.get(selection.instanceId) ? store.applyModelDefault(id, selection) : null });
 const imageTools = createImageToolRoutes({ config: () => withDelioMedia(cfg), dataDir: DATA_DIR, liveTurn: (threadId) => liveTurnByThread.get(threadId), key: turnAttachmentKey, images: (key) => (turnAttachmentsByTurn.get(key) ?? []).filter((item) => item.kind === "image").length, park: (key, image) => { const saved = saveImage(image.bytes, image.mime); turnAttachmentsByTurn.set(key, [...turnAttachmentsByTurn.get(key) ?? [], { kind: "image", path: saved.path, mime: saved.mime }]); },
   made: (image, by) => void bookMediaUsage(by, { ...image, kind: "image" }) });
 const VIDEO_EXTENSIONS: Record<string, string> = { "video/mp4": "mp4", "video/webm": "webm", "video/quicktime": "mov" };
@@ -7613,6 +7614,7 @@ async function beginTurn(
   }
   healThreadModel(botId, threadId);
   limitFailovers.restore(botId, threadId);
+  await delioPlanTurns.before(botId, threadId);
   const bot = store.projectBotForTask(botId, threadId);
   if (!bot) throw Object.assign(new Error("no such task"), { status: 404 });
   if (bot.approvalGrant) {
@@ -9796,6 +9798,7 @@ async function runClaimedGroupMemberTurn(
   const reportDispatchError = (message: string) => { roomFailure = message; onDispatchError?.(message); };
   try {
   assertWithinBudget(cfg, DATA_DIR);
+  await delioAccount.assertOwnAi(bot.modelSelection.instanceId);
   assertModelVariantSupported(preparedSelection, instance.adapter.capabilities);
   const integrations: NonNullable<Parameters<typeof instance.adapter.sendTurn>[0]["integrations"]> = {};
   const skillAuthoring =

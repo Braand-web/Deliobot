@@ -31,7 +31,7 @@ mkdirSync(SCRIPTS, { recursive: true });
 const WAIT_SECONDS = Math.max(10, Number(options.wait) || 120);
 const DEVTOOLS_PORT = 9339;
 const STARTED = new Date();
-const APP = "OpenDeliobot.exe";
+const APP = "Deliobot.exe";
 const DRIVER = "cua-driver-background.exe";
 const DEFENDER_EVENTS = [1006, 1007, 1008, 1015, 1116, 1117];
 const MPCMDRUN = path.join(process.env.ProgramFiles ?? "C:\\Program Files", "Windows Defender", "MpCmdRun.exe");
@@ -287,7 +287,7 @@ if (-not $exited) { Stop-Process -Id $process.Id -Force -ErrorAction SilentlyCon
 
 const installedFiles = (folder) => ps(String.raw`
 $root = ${quote(folder)}
-$names = @('OpenDeliobot.exe', 'resources\cua-driver-background.exe', 'resources\cua-driver.exe')
+$names = @('Deliobot.exe', 'resources\cua-driver-background.exe', 'resources\cua-driver.exe')
 $sdk = Join-Path $root 'resources\cua-sdk'
 if (Test-Path -LiteralPath $sdk) {
   $names += @(Get-ChildItem -LiteralPath $sdk -Recurse -File | Where-Object { $_.Extension -in '.exe', '.node', '.dll' } | ForEach-Object { $_.FullName.Substring($root.Length + 1) })

@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { OwnAiLocked } from "@/components/OwnAiLocked";
+import { ownAiLocked, useDelioAccount } from "@/lib/delio-account";
 import { Check, Loader2, RefreshCw, TriangleAlert } from "lucide-react";
 
 import { api, useStore, type InstanceInfo } from "@/state/store";
@@ -417,6 +419,9 @@ function EngineRow({ instance, bare = false }: { instance: InstanceInfo; bare?: 
   );
 }
 
+/** The engine a Delio account brings, which every plan keeps. */
+const DELIO_INSTANCE_ID = "delio";
+
 function simpleStatus(instance: InstanceInfo, ready: boolean): string {
   if (ready) return instance.snapshot.authenticated === true && instance.snapshot.account?.email ? instance.snapshot.account.email : t("onboarding.engines.ready");
   if (instance.snapshot.ollama) return ollamaShortStatus(instance.snapshot.ollama);
@@ -520,9 +525,10 @@ export function HiddenEngines() {
 
 export function EnginesSettings({ simple = false, more }: { simple?: boolean; more?: { id: string; open: boolean; onToggle: () => void } }) {
   const { state } = useStore();
+  const locked = ownAiLocked(useDelioAccount());
   // Leaving Settings ends the "now uses the copy OpenDeliobot installed" lines.
   useEffect(() => forgetAppCopySwitches, []);
-  const listed = state.instances.filter((i) => i.readOnly || i.cli !== undefined || i.cliDefault !== undefined || i.snapshot.state === "unavailable" || isApiKeyEngine(i) || i.claudeEndpoint !== undefined || i.claudeBedrock !== undefined || i.codexEndpoint !== undefined);
+  const listed = state.instances.filter((i) => (!locked || i.instanceId === DELIO_INSTANCE_ID)).filter((i) => i.readOnly || i.cli !== undefined || i.cliDefault !== undefined || i.snapshot.state === "unavailable" || isApiKeyEngine(i) || i.claudeEndpoint !== undefined || i.claudeBedrock !== undefined || i.codexEndpoint !== undefined);
   // A provider's accounts share one card, which takes the place of its first account.
   const groups = new Map<AccountGroup, InstanceInfo[]>();
   for (const instance of listed) {
@@ -548,6 +554,11 @@ export function EnginesSettings({ simple = false, more }: { simple?: boolean; mo
       : <EngineRow instance={instance} bare={bare} />;
   };
 
+  if (locked) return <div className="flex min-w-0 flex-col gap-3">
+    {rows.length > 0 && (simple && more ? <SimpleEngines rows={rows} isReady={isReady} renderEngine={renderEngine} more={more} />
+      : <EngineSections instances={rows} isReady={isReady} renderEngine={renderEngine} />)}
+    <OwnAiLocked />
+  </div>;
   if (simple && more) return <>
     <SimpleEngines rows={rows} isReady={isReady} renderEngine={renderEngine} more={more} />
     {orphanEndpoints && <div className="px-4"><ClaudeEndpoints /><ClaudeBedrockEndpoints /></div>}

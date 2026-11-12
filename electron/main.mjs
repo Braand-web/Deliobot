@@ -1122,6 +1122,7 @@ async function startServerOn(port, dataDir = runningDataDir ?? startupEnvironmen
     ODB_PORT: String(port),
     ODB_APP_VERSION: app.getVersion(),
     ODB_USER_DATA: app.getPath("userData"),
+    ...(app.isPackaged ? { ODB_DELIO_PLAN_GATE: "1" } : {}),
     ...(secureCredentials.composioApiKey
       ? { COMPOSIO_API_KEY: secureCredentials.composioApiKey }
       : {}),

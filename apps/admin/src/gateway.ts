@@ -23,7 +23,7 @@ export interface GatewayOptions {
   boatUrl?: string;
   boatUsdPerHour?: number;
   /** What the workspace's plan allows: spending Delio credits, and cloud computers awake at once. */
-  allowance?: (workspace: string) => { gateway: boolean; computers: number; computerHours?: number; reason?: string };
+  allowance?: (workspace: string) => { gateway: boolean; computers: number; computerHours?: number; plan?: string | null; ownAi?: boolean; reason?: string };
   now?: () => number;
 }
 
@@ -289,7 +289,8 @@ export function createGateway(options: GatewayOptions) {
       }
       const allowed = options.allowance?.(workspace) ?? { gateway: true, computers: 1 };
       if (account) {
-        send(res, 200, { workspace, credits: wallet.balance(workspace) / MICRO, usedThisMonth: wallet.usedThisMonth(workspace) / MICRO, creditUsd: wallet.creditUsd, gateway: allowed.gateway });
+        send(res, 200, { workspace, credits: wallet.balance(workspace) / MICRO, usedThisMonth: wallet.usedThisMonth(workspace) / MICRO, creditUsd: wallet.creditUsd, gateway: allowed.gateway,
+          plan: allowed.plan ?? null, ownAi: allowed.ownAi ?? false });
         return true;
       }
       if (!allowed.gateway) {

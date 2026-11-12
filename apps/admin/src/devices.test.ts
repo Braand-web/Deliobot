@@ -73,7 +73,7 @@ describe("connecting a desktop app to a Delio account", () => {
       config: { url: `${target.origin}/api/gateway/${connection.workspace}/openrouter/v1`, model: "auto" } });
     expect(withDelioMedia(app.config).fal).toEqual({ key: connection.token, url: `${target.origin}/api/gateway/${connection.workspace}/fal` });
     expect(withDelioMedia({ ...app.config, fal: { key: "own-fal-key" } }).fal, "the person's own key wins").toEqual({ key: "own-fal-key" });
-    expect(await app.account.balance()).toEqual({ credits: 0, usedThisMonth: 0 });
+    expect(await app.account.balance()).toEqual({ credits: 0, usedThisMonth: 0, plan: null, ownAi: false });
 
     await target.signIn("ana@acme.test");
     const billing = await (await target.request(`/billing?workspace=${connection.workspace}`)).text();

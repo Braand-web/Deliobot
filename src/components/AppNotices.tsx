@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
-import { Star } from "lucide-react";
 import type { CloudAccountState } from "../../electron/cloud-account.mjs";
 import type { CloudOffer } from "../../electron/cloud-home.mjs";
 import { api, useStore } from "@/state/store";
-import { APP_REPOSITORY } from "@/lib/app-links";
 import { track } from "@/lib/analytics";
 import { brandStatus } from "@/lib/brand";
 import { buyOfferAllowed, cloudNoticeKind, cloudPlanView, cloudTrialNotice, cloudTrialView, offerTrialDays } from "@/lib/cloud-plan";
@@ -27,7 +25,7 @@ import { CLOUD_NOTICE_CARD, cloudNoticeStep, CloudNoticeCard } from "./CloudNoti
 import { CloudTrialIntroCard } from "./CloudTrialIntro";
 import { useMoveQuiet } from "./CloudSendStrip";
 import { CloudTrialNoticeCard, useCloudPlanSnapshot } from "./CloudTrialNotice";
-import { LinkButton, NoticeCard, NoticeToast, NotNowButton } from "./NoticeCard";
+import { NoticeToast } from "./NoticeCard";
 import { useDesktopNotices, useOtherDialogOpen } from "./notice-dialogs";
 import { localDesktopPage } from "./onboarding/WelcomeGate";
 import { UpdatesConsentDialog, updatesConsentBridge, useUpdatesConsent } from "./UpdatesConsent";
@@ -37,16 +35,6 @@ import { PhoneUpdateCard, phonesToTell, useRetiredLinkPhones } from "./PhoneUpda
 import { reportSimpleModePrompt, SimpleModePrompt } from "./SimpleModePrompt";
 import { TwoPlacesCard } from "./TwoPlacesCard";
 import { WhatsNewPopup } from "./whats-new/WhatsNewPopup";
-
-function StarCard({ onDismiss }: { onDismiss: () => void }) {
-  return <NoticeCard titleId="github-star-title" notice="github-star" icon={Star} title={t("star.title")} onDismiss={onDismiss}>
-    <p className="mb-3 mt-1 text-[13px] text-ink-secondary">{t("star.body")}</p>
-    <div className="flex flex-wrap items-center gap-3">
-      <LinkButton url={APP_REPOSITORY} label={t("star.button")} onOpened={onDismiss} />
-      <NotNowButton onClick={onDismiss} />
-    </div>
-  </NoticeCard>;
-}
 
 const trialKey = (trial: { state: string; endsAt: number }) => `${trial.state}:${trial.endsAt}`;
 
@@ -184,7 +172,7 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
     [CLOUD_TRIAL_NOTICE]: planBridge && plan === null ? null : Boolean(key && (trialDue || trialOpen === key)),
     [CLOUD_NOTICE]: !view ? false : view.kind === "unknown" ? null
       : Boolean(kind && !noticeSeen(record, CLOUD_NOTICE_CARD[kind].dismissed)),
-    [STAR_NOTICE]: !bridge || moving || brandStatus().source === "file" || !usedBefore(state.bots) ? false : moving === null ? null : true,
+    [STAR_NOTICE]: false,
   }, id => id === CLOUD_INTRO ? stage === "done" && !introOpen
     : id === STAR_NOTICE ? noticeSeen(record, id) : false, launch, closed) : null;
 
@@ -268,6 +256,5 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
       onBring={() => { track("two_places_card", { action: "bring", kind }); return two.accept(key).then(close); }}
       onDismiss={() => { track("two_places_card", { action: "not_now", kind }); two.dismiss(key); close(); }} />;
   }
-  if (notice === STAR_NOTICE) return <StarCard onDismiss={() => { close(); save(STAR_NOTICE); }} />;
   return null;
 }

@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { ChevronRight, Search } from "lucide-react";
 import { useStore, type ConfigStatus } from "@/state/store";
 import { cn } from "@/lib/cn";
+import { OwnAiLocked } from "@/components/OwnAiLocked";
 import { scrollParent, scrollWithin } from "@/lib/scroll-within";
 import { t } from "@/lib/i18n";
 import { LiveProviderSettings } from "../LiveProviderSettings";
@@ -121,7 +122,8 @@ function landOn(page: HTMLElement | null, request: KeyFocusRequest, section: Key
   return true;
 }
 
-export function KeysPage() {
+/** `ownAiLocked`: the plan does not include the person's own AI, so the AI providers' keys give way to the plans. */
+export function KeysPage({ ownAiLocked: locked = false }: { ownAiLocked?: boolean } = {}) {
   const { state } = useStore();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<ReadonlySet<KeySectionId>>(() => new Set(
@@ -180,7 +182,7 @@ export function KeysPage() {
       </div>
       {sections.length === 0 ? (
         <p data-keys-empty className="px-1 text-[13px] leading-[18px] text-ink-secondary">{t("keys.search.none", { query: query.trim() })}</p>
-      ) : sections.map(({ id, rows: sectionRows }) => (
+      ) : sections.map(({ id, rows: sectionRows }) => id === "ai" && locked ? <OwnAiLocked key={id} /> : (
         <KeySection
           key={id}
           id={id}

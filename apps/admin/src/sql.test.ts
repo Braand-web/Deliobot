@@ -52,5 +52,9 @@ describe("the portal on a Durable Object's SQLite", () => {
 
     expect(() => db.transaction(() => { wallet.credit("acme", 100 * MICRO, "grant", null); throw new Error("stop"); })).toThrow("stop");
     expect(wallet.balance("acme") / MICRO, "a failed transaction leaves nothing behind").toBe(5500);
+    expect(billing.allowance("acme"), "Pro pays for Delio's AI, not the customer's own").toMatchObject({ gateway: true, plan: "pro", ownAi: false });
+    const max = billing.createOrder({ workspace: "acme", email: "boss@acme.test", kind: "plan", plan: "max", cycle: "month" }, "XOF");
+    billing.fulfil(max.id);
+    expect(billing.allowance("acme")).toMatchObject({ plan: "max", ownAi: true });
   });
 });

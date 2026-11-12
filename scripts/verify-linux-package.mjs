@@ -470,7 +470,7 @@ try {
   requireFile(scalableIcon);
   const desktop = readFileSync(desktopFile, "utf8");
   for (const expected of [
-    "Name=OpenDeliobot",
+    "Name=Deliobot",
     "Exec=/opt/OpenDeliobot/opendeliobot %U",
     "Icon=opendeliobot",
     "StartupWMClass=com.opendeliobot.app",

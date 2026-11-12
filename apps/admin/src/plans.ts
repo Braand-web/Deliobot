@@ -37,6 +37,9 @@ export const PLANS: Record<PlanId, Plan> = {
   max: { id: "max", name: "Max", usd: 99, usdYear: 1089, credits: 13500, computerHours: 180, computers: 5, gateway: true, listed: true },
   byok: { id: "byok", name: "BYOK", usd: 12, usdYear: 132, credits: 0, computerHours: 0, computers: 0, gateway: false, listed: false },
 };
+/** The plans whose apps may also run on the customer's own AI: their keys and their Claude, ChatGPT or other sign-ins. */
+export const OWN_AI_PLANS: ReadonlySet<PlanId> = new Set<PlanId>(["max", "byok"]);
+
 export const TRIAL_DAYS = 3;
 export const RECOMMENDED: PlanId = "pro";
 
@@ -127,13 +130,14 @@ CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT N
   }
 
   /** What the gateway may do for a workspace: spend Delio credits, keep how many computers awake, with how many free hours a month. */
-  allowance(workspace: string): { gateway: boolean; computers: number; computerHours: number; reason?: string } {
+  allowance(workspace: string): { gateway: boolean; computers: number; computerHours: number; plan: PlanId | null; ownAi: boolean; reason?: string } {
     const subscription = this.subscription(workspace);
-    if (subscription.status === "none") return { gateway: true, computers: 1, computerHours: 0 };
-    if (subscription.status === "expired") return { gateway: false, computers: 0, computerHours: 0, reason: "This workspace's plan has ended. An admin can renew it in Delio Admin → Billing." };
+    if (subscription.status === "none") return { gateway: true, computers: 1, computerHours: 0, plan: null, ownAi: false };
+    if (subscription.status === "expired") return { gateway: false, computers: 0, computerHours: 0, plan: null, ownAi: false, reason: "This workspace's plan has ended. An admin can renew it in Delio Admin → Billing." };
     const plan = PLANS[subscription.plan];
-    if (!plan.gateway) return { gateway: false, computers: 0, computerHours: 0, reason: "This workspace's plan uses its own AI keys, not Delio credits." };
-    return { gateway: true, computers: plan.computers, computerHours: plan.computerHours };
+    const ownAi = OWN_AI_PLANS.has(subscription.plan);
+    if (!plan.gateway) return { gateway: false, computers: 0, computerHours: 0, plan: subscription.plan, ownAi, reason: "This workspace's plan uses its own AI keys, not Delio credits." };
+    return { gateway: true, computers: plan.computers, computerHours: plan.computerHours, plan: subscription.plan, ownAi };
   }
 
   trialUsed(email: string, workspace: string): boolean {

@@ -163,6 +163,9 @@ dmg:
       path: /Applications
 
 win:
+  # The program people see; productName stays OpenDeliobot, which names the install folder, the data folder and the
+  # uninstaller of copies already installed.
+  executableName: Deliobot
   target:
     - target: nsis
       arch: x64
@@ -196,7 +199,8 @@ win:
 nsis:
   oneClick: true
   perMachine: false
-  shortcutName: OpenDeliobot
+  shortcutName: Deliobot
+  uninstallDisplayName: Deliobot
   # Versioned, like the .dmg. The README's /latest/download/ button needs a
   # STABLE filename, so ship a second copy named OpenDeliobot-setup.exe on the
   # release — the same trick as OpenDeliobot.dmg beside OpenDeliobot-${version}.dmg.
@@ -216,7 +220,7 @@ linux:
   synopsis: Your own team of AI bots, in a chat app
   description: A local-first chat app for running a team of AI agents.
   maintainer: Braand-web <braand-web@users.noreply.github.com>
-  vendor: OpenDeliobot
+  vendor: Deliobot
   syncDesktopName: true
   # The reviewed x64 CLI runtime is staged before packaging and remains
   # outside ASAR so executable modes and adjacent sidecars are preserved.
@@ -233,7 +237,7 @@ linux:
       to: opendeliobot-browser.apparmor
   desktop:
     entry:
-      Name: OpenDeliobot
+      Name: Deliobot
       Comment: Your own team of AI bots, in a chat app
       Keywords: AI;Agents;Chat;Productivity;
 

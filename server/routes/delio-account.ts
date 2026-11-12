@@ -5,7 +5,7 @@ import { PASS, type RouteHandler } from "./table.ts";
 
 /** Settings' Delio account card: connect with a device code, see the credits left, disconnect. */
 export function createDelioAccountRoutes(account: ReturnType<typeof createDelioAccount>, config: () => AppConfig): RouteHandler {
-  return async ({ req, res, path, method, json, readBody }) => {
+  return async ({ req, res, path, method, json, readBody, url }) => {
     if (path !== "/api/delio/account" && path !== "/api/delio/connect") return PASS;
     res.setHeader("cache-control", "no-store");
     if (path === "/api/delio/connect" && method === "POST") {
@@ -23,7 +23,11 @@ export function createDelioAccountRoutes(account: ReturnType<typeof createDelioA
     }
     if (path === "/api/delio/account" && method === "GET") {
       const connection = delioConnection(config());
-      return json(res, 200, connection ? { connected: true, workspace: connection.workspace, portal: connection.portal, billingUrl: portalBillingUrl(connection.portal, connection.workspace), ...(await account.balance()) } : { connected: false });
+      const view = await account.balance({ fresh: url.searchParams.get("fresh") === "1" });
+      const gate = { planGate: account.planGate, ownAi: await account.ownAiAllowed() };
+      return json(res, 200, connection
+        ? { connected: true, workspace: connection.workspace, portal: connection.portal, billingUrl: portalBillingUrl(connection.portal, connection.workspace), ...view, ...gate }
+        : { connected: false, ...gate });
     }
     return json(res, 405, { error: "method not allowed" });
   };

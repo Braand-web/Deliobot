@@ -48,6 +48,8 @@ import { WindowCaptionButtons } from "@/components/WindowCaptionButtons";
 import { WindowFrameBar } from "@/components/WindowFrameBar";
 import { cn } from "@/lib/cn";
 import { NoEngines } from "@/components/NoEngines";
+import { DelioStart, delioStartStep } from "@/components/DelioStart";
+import { useDelioAccount } from "@/lib/delio-account";
 import { CloudEngineSignIn } from "@/components/CloudEngineSignIn";
 import { CloudIntent } from "@/components/CloudIntent";
 import { cloudIntentDue, cloudIntentShown, useCloudIntent } from "@/lib/cloud-intent";
@@ -172,6 +174,7 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
   const welcome = useCloudWelcome();
   const welcomeOnScreen = cloudWelcomeVisible({ viewer, connected: state.connected, enginesKnown: state.instances.length > 0, onboarding: state.config?.onboarding }, welcome)
     && state.activeView === "chat" && !(!remoteClient && localVmWorkspaceBotId);
+  const delioStep = delioStartStep(useDelioAccount());
   const firstRun = cloudFirstRun({ welcome: welcomeOnScreen, intent: cloudAsk, signIn: cloudSignIn || cloudJobWaiting });
   const team = state.config?.team ?? null;
   const teamWelcomeRecord = useTeamWelcomeRecord(team && viewer?.canSave === false ? team.id : null);
@@ -382,6 +385,8 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
           onClose={() => setLocalVmWorkspaceBotId(null)}
           onOpenComputer={openComputerFromWorkspace}
         />
+      ) : delioStep && state.activeView === "chat" ? (
+        <DelioStart step={delioStep} />
       ) : teamWelcomeOn && team ? (
         <TeamWelcome team={team} invitedBy={teamWelcomeRecord?.invitedBy ?? null} />
       ) : firstRun === "welcome" ? (

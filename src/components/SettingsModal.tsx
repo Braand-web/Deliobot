@@ -5,6 +5,7 @@ import { skillsLibraryEnabled } from "@/lib/feature-flags";
 import { type LocaleKey } from "@/locales";
 import { t } from "@/lib/i18n";
 import { AdminOnly } from "./AdminOnly";
+import { ownAiLocked, useDelioAccount } from "@/lib/delio-account";
 import { DelioAccountCard } from "./keys/DelioAccountCard";
 import { KeysPage } from "./keys/KeysPage";
 import { KEY_CATALOG, keyMatches, keySection, type KeyEntry } from "./keys/key-catalog";
@@ -182,6 +183,11 @@ export function keySearchResults(query: string): KeyEntry[] {
 }
 
 export const openKeyResult = (entry: KeyEntry) => entry.uses ? openKeySettings(entry.uses, entry.id) : openKeySettings(entry.id);
+
+function AccountAndKeys() {
+  const locked = ownAiLocked(useDelioAccount());
+  return <div className="flex flex-col gap-4"><DelioAccountCard /><KeysPage ownAiLocked={locked} /></div>;
+}
 
 export function SettingsModal() {
   return <Layer modal><SettingsDialog /></Layer>;
@@ -424,7 +430,7 @@ function SettingsDialog() {
       case "experimental":
         return <ExperimentalFeaturesRow />;
       case "connections":
-        return <AdminOnly><div className="flex flex-col gap-4"><DelioAccountCard /><KeysPage /></div></AdminOnly>;
+        return <AdminOnly><AccountAndKeys /></AdminOnly>;
       case "decisionModel": return <AdminOnly><DecisionModelSettings /></AdminOnly>;
       case "imageGeneration": return <AdminOnly><ImageGenerationSettings /></AdminOnly>;
       case "engines": return <AdminOnly><EnginesSettings /></AdminOnly>;

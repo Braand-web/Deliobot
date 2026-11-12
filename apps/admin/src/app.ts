@@ -619,6 +619,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       const asked = url.searchParams.get("workspace");
       if (!asked) {
         const first = store.workspacesOf(user.id).find((item) => item.role === "admin");
+        if (!first && signupOpen) return redirect(res, `/signup?${new URLSearchParams([...url.searchParams].filter(([name]) => name === "plan" || name === "cycle"))}`);
         if (!first) return html(res, 200, { title: "Billing", email: user.email, body: messagePage("No workspace yet", "Plans are bought for a workspace you administer. Ask its administrator, or create one first.", { href: "/", label: "Back" }) });
         const next = new URLSearchParams(url.searchParams);
         next.set("workspace", first.slug);

@@ -1,11 +1,18 @@
 // A desktop app connected to a Delio account: it spends that account's credits through the Delio gateway for text
 // (a "Delio" engine on OpenRouter's catalog) and, without a fal.ai key of its own, for images, video and music.
 // Connecting is RFC 8628's device flow against Delio Admin: the app shows a code, the person approves it there.
+import type { ModelSelection } from "../shared/wire.ts";
 import type { AppConfig } from "./config.ts";
 import type { InstanceConfigMap } from "./contracts.ts";
 
 export const DELIO_INSTANCE = "delio";
 export const DELIO_TOKEN_ENV = "ODB_DELIO_TOKEN";
+/** Set by the packaged desktop app: the customer's own AI (their keys, their Claude, ChatGPT or other sign-ins) then
+ * needs a Max or BYOK plan. */
+export const DELIO_PLAN_GATE_ENV = "ODB_DELIO_PLAN_GATE";
+export const OWN_AI_REFUSAL = "Your own AI accounts and keys come with the Max and BYOK plans. Choose a plan in Settings → Plans and top-ups, or use Delio.";
+
+export interface DelioAccountView { credits: number; usedThisMonth: number; plan: string | null; ownAi: boolean }
 const DEVICE_TOKEN = /^odb_device_[A-Za-z0-9_-]{43}$/;
 const SLUG = /^[a-z][a-z0-9-]{1,30}$/;
 export const DEFAULT_DELIO_PORTAL = "https://compte.deliobot.fun";
@@ -65,7 +72,8 @@ export function createDelioAccount(deps: {
   const fetchImpl = deps.fetchImpl ?? fetch;
   const now = deps.now ?? Date.now;
   let pending: PendingFlow | null = null;
-  let credits: { at: number; view: { credits: number; usedThisMonth: number } | null } | null = null;
+  let credits: { at: number; view: DelioAccountView | null } | null = null;
+  const planGate = (deps.env ?? process.env)[DELIO_PLAN_GATE_ENV] === "1";
 
   async function post(url: string, body: unknown): Promise<{ status: number; body: Record<string, unknown> }> {
     const response = await fetchImpl(url, {
@@ -113,24 +121,56 @@ export function createDelioAccount(deps: {
     return { state: "waiting", userCode: pending.userCode, verification: pending.verification };
   }
 
-  async function balance(): Promise<{ credits: number; usedThisMonth: number } | null> {
+  /** `fresh`: the person is back in the app, perhaps from paying, so a reading older than a few seconds is read again. */
+  async function balance({ fresh = false }: { fresh?: boolean } = {}): Promise<DelioAccountView | null> {
     const connection = delioConnection(deps.config());
     if (!connection) return null;
-    if (credits && now() - credits.at < 60_000) return credits.view;
-    let view: { credits: number; usedThisMonth: number } | null = null;
+    if (credits && now() - credits.at < (fresh ? 5_000 : 60_000)) return credits.view;
+    let view: DelioAccountView | null = null;
     try {
       const response = await fetchImpl(`${connection.portal}/api/workspace/${connection.workspace}/account`, {
         headers: { authorization: `Bearer ${connection.token}`, accept: "application/json" }, redirect: "error", signal: AbortSignal.timeout(5_000),
       });
-      const body = response.ok ? await response.json() as { credits?: unknown; usedThisMonth?: unknown } : null;
-      if (body && typeof body.credits === "number" && typeof body.usedThisMonth === "number") view = { credits: body.credits, usedThisMonth: body.usedThisMonth };
+      const body = response.ok ? await response.json() as { credits?: unknown; usedThisMonth?: unknown; plan?: unknown; ownAi?: unknown } : null;
+      if (body && typeof body.credits === "number" && typeof body.usedThisMonth === "number") {
+        view = { credits: body.credits, usedThisMonth: body.usedThisMonth, plan: typeof body.plan === "string" ? body.plan : null, ownAi: body.ownAi === true };
+      }
     } catch { view = null; }
     credits = { at: now(), view };
     return view;
   }
 
+  /** Whether this app may run AI other than Delio's: always without the plan gate, else only on a Max or BYOK plan. */
+  async function ownAiAllowed(): Promise<boolean> {
+    if (!planGate) return true;
+    return (await balance())?.ownAi === true;
+  }
+
+  /** Refuses a turn on an engine other than Delio's when the plan does not include the customer's own AI. */
+  async function assertOwnAi(instanceId: string): Promise<void> {
+    if (instanceId === DELIO_INSTANCE || await ownAiAllowed()) return;
+    throw Object.assign(new Error(OWN_AI_REFUSAL), { status: 402, code: "plan_required" });
+  }
+
   return {
-    start, status, balance,
+    start, status, balance, ownAiAllowed, assertOwnAi, planGate,
     disconnect() { pending = null; credits = null; deps.save(null); },
+  };
+}
+
+/** Before a turn on a plan without the customer's own AI: a bot on another engine moves to Delio's, the engine the plan
+ * pays for, and a turn that still names another engine is refused. */
+export function delioPlanTurnsFor(deps: {
+  account: Pick<ReturnType<typeof createDelioAccount>, "ownAiAllowed" | "assertOwnAi">;
+  bot: (botId: string, threadId: string) => { modelSelection: ModelSelection } | null | undefined;
+  useDelio: (botId: string, selection: ModelSelection) => unknown;
+}) {
+  return {
+    async before(botId: string, threadId: string): Promise<void> {
+      const current = deps.bot(botId, threadId);
+      if (!current || current.modelSelection.instanceId === DELIO_INSTANCE || await deps.account.ownAiAllowed()) return;
+      deps.useDelio(botId, { instanceId: DELIO_INSTANCE, model: "auto" });
+      await deps.account.assertOwnAi(deps.bot(botId, threadId)?.modelSelection.instanceId ?? current.modelSelection.instanceId);
+    },
   };
 }
