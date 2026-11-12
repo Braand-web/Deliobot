@@ -2,6 +2,8 @@
 // goes through it, and an alarm runs the once-a-minute billing sweep.
 import { DurableObject } from "cloudflare:workers";
 
+import "./fetch-redirects.ts";
+
 import { createAdminApp, type AdminApp } from "../../../apps/admin/src/app.ts";
 import { portalSettings } from "../../../apps/admin/src/env-config.ts";
 import { serveFetch } from "../../../apps/admin/src/fetch-adapter.ts";
