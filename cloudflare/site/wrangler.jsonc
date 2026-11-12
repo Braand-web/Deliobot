@@ -4,5 +4,9 @@
   "main": "dist/worker.js",
   "compatibility_date": "2026-08-25",
   "workers_dev": true,
-  "preview_urls": false
+  "preview_urls": false,
+  "routes": [
+    { "pattern": "deliobot.fun", "custom_domain": true },
+    { "pattern": "www.deliobot.fun", "custom_domain": true }
+  ]
 }

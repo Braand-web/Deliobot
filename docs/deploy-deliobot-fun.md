@@ -29,16 +29,15 @@ in the zone's DNS records:
 | A | `*` | the server's public IPv4 | DNS only |
 
 `DNS only` lets Caddy on the server obtain each certificate itself. The site's
-own records are created by the Worker's custom domains: add
+own records come from the Worker's custom domains, set in
+`cloudflare/site/wrangler.jsonc`: delete any other `A`, `AAAA` or `CNAME`
+record on `deliobot.fun` and `www` first (Hostinger's parking page leaves some),
+then deploy the site again.
 
-```jsonc
-"routes": [
-  { "pattern": "deliobot.fun", "custom_domain": true },
-  { "pattern": "www.deliobot.fun", "custom_domain": true }
-]
-```
-
-to `cloudflare/site/wrangler.jsonc` and deploy it again.
+The site's sign-up buttons stay on "soon" until the portal answers. Then set
+`<html lang="fr" data-portal="https://admin.deliobot.fun">` in
+`cloudflare/site/public/index.html` and deploy it again: every plan and trial
+button then leads to `https://admin.deliobot.fun/signup`.
 
 ## 2. The server
 
