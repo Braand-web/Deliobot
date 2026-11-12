@@ -17,7 +17,7 @@ const files = {};
 writeFileSync(new URL("./dist/worker.js", import.meta.url), `const FILES = ${JSON.stringify(files)};
 const bytes = (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
 const SECURITY = { "x-content-type-options": "nosniff", "referrer-policy": "strict-origin-when-cross-origin", "x-frame-options": "DENY" };
-const DOWNLOAD_TYPES = { exe: "application/vnd.microsoft.portable-executable", deb: "application/vnd.debian.binary-package", AppImage: "application/octet-stream",
+const DOWNLOAD_TYPES = { exe: "application/vnd.microsoft.portable-executable", deb: "application/vnd.debian.binary-package", AppImage: "application/octet-stream", zip: "application/zip",
   yml: "text/yaml; charset=utf-8", blockmap: "application/octet-stream", sha256: "text/plain; charset=utf-8" };
 
 /** Installers and vendored binaries live in R2; a Range request (the app's differential updates) gets just that part. */
@@ -38,9 +38,47 @@ async function download(request, env, key) {
   return new Response(request.method === "HEAD" ? null : object.body, { headers: { ...headers, "content-length": String(object.size) } });
 }
 
+function sameText(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i += 1) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+/**
+ * Puts a release file into R2 in parts, for files over wrangler's upload limit: POST ?start, PUT ?id=&part=N per part,
+ * POST ?id= with the parts' list. Answers only the Bearer UPLOAD_TOKEN secret; without one the route does not exist.
+ */
+async function upload(request, env, key) {
+  const token = env.UPLOAD_TOKEN ?? "";
+  const presented = /^Bearer (\\S+)$/.exec(request.headers.get("authorization") ?? "")?.[1] ?? "";
+  if (token.length < 32 || !sameText(presented, token)) return new Response("not found", { status: 404 });
+  if (!/^(download|vendor)\\/[A-Za-z0-9._\\/-]+$/.test(key) || key.includes("..")) return new Response("bad key", { status: 400 });
+  const url = new URL(request.url);
+  const id = url.searchParams.get("id");
+  if (request.method === "POST" && url.searchParams.has("start")) {
+    const created = await env.DOWNLOADS.createMultipartUpload(key);
+    return Response.json({ id: created.uploadId });
+  }
+  if (!id) return new Response("missing id", { status: 400 });
+  const pending = env.DOWNLOADS.resumeMultipartUpload(key, id);
+  if (request.method === "PUT") {
+    const part = Number(url.searchParams.get("part"));
+    if (!Number.isInteger(part) || part < 1 || part > 10000 || !request.body) return new Response("bad part", { status: 400 });
+    return Response.json(await pending.uploadPart(part, request.body));
+  }
+  if (request.method === "POST") {
+    const object = await pending.complete(await request.json());
+    return Response.json({ key: object.key, size: object.size, etag: object.httpEtag });
+  }
+  if (request.method === "DELETE") { await pending.abort(); return new Response(null, { status: 204 }); }
+  return new Response("method not allowed", { status: 405 });
+}
+
 export default {
   async fetch(request, env) {
     const path = new URL(request.url).pathname;
+    if (env.DOWNLOADS && path.startsWith("/__upload/")) return upload(request, env, decodeURIComponent(path.slice("/__upload/".length)));
     if (env.DOWNLOADS && (path.startsWith("/download/") || path.startsWith("/vendor/"))) return download(request, env, decodeURIComponent(path.slice(1)));
     const clean = path.length > 1 ? path.replace(/\\/+$/, "") : path;
     const file = FILES[clean === "/" ? "/index.html" : clean] ?? FILES[clean + ".html"] ?? FILES[clean + "/index.html"];

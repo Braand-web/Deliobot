@@ -187,6 +187,10 @@ export const VITEST_SUBSETS = {
  * server reads their "server." lines: a change to English runs every Linux test,
  * and one to another language runs every test that reads it (the locale tests). */
 export const SRC_OUTSIDE_RENDERER = [
+  "src/assets/delio-steel/cursor-88.webp",
+  "src/assets/delio-steel/cursor.curious-88.webp",
+  "src/assets/delio-steel/cursor.happy-88.webp",
+  "src/assets/delio-steel/cursor.sad-88.webp",
   "src/components/app/app-frame-host.ts",
   "src/lib/citations.ts",
   "src/lib/composer-attachments.ts",

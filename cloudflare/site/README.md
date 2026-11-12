@@ -9,3 +9,10 @@ node build-worker.mjs
 ```
 
 Deploying needs `CLOUDFLARE_API_TOKEN` with the "Edit Cloudflare Workers" permission. The site goes live at `https://deliobot.novacore629.workers.dev`.
+
+## Downloads
+
+Installers live in the R2 bucket `deliobot-downloads` and are served under `/download/` and `/vendor/`. A file over
+wrangler's 300 MiB upload limit goes up in parts through `/__upload/<key>`, which answers only the Worker secret
+`UPLOAD_TOKEN` (`POST ?start`, then `PUT ?id=…&part=N` for each part of at most 100 MB, then `POST ?id=…` with the
+parts' list). Without that secret the route answers 404.
