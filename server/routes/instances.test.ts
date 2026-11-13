@@ -358,3 +358,16 @@ describe("looking for Ollama", () => {
     expect((await fetch(`${hosted.base}/api/instances/ollama`)).status).toBe(403);
   });
 });
+
+describe("engines listed for a plan without the customer's own AI", () => {
+  it("lists only Delio's engine until the plan includes the customer's own AI", async () => {
+    let allowed = false;
+    const { call } = await serve({
+      describeInstances: async () => [{ instanceId: "delio" }, { instanceId: "claude" }, { instanceId: "codex" }],
+      ownAiAllowed: async () => allowed,
+    });
+    expect((await call("GET", "/api/instances")).instances.map((instance: { instanceId: string }) => instance.instanceId)).toEqual(["delio"]);
+    allowed = true;
+    expect((await call("GET", "/api/instances")).instances.map((instance: { instanceId: string }) => instance.instanceId)).toEqual(["delio", "claude", "codex"]);
+  });
+});
