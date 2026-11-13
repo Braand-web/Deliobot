@@ -164,7 +164,7 @@ interface UpdateEntry {
 export function simpleUpdateTop(entry: Pick<UpdateEntry, "phase" | "source" | "installMode"> | null): { label: string; action: string } | null {
   const ready = () => t("sidebar.update.readyShort");
   if (entry?.source === "desktop") {
-    if (entry.phase === "downloaded") return { label: ready(), action: t(entry.installMode === "handoff" ? "sidebar.update.installAction" : "sidebar.update.restartAction") };
+    if (entry.phase === "downloaded") return { label: ready(), action: t(entry.installMode === "download" ? "update.download.action" : entry.installMode === "handoff" ? "sidebar.update.installAction" : "sidebar.update.restartAction") };
     if (entry.phase === "error") return { label: t("sidebar.update.failedShort"), action: t("sidebar.update.retryAction") };
   }
   if (entry?.source === "server") {

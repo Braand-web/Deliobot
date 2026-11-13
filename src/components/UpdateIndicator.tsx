@@ -162,7 +162,7 @@ export function UpdateCard({
         ? percent == null ? t("update.card.downloadingStart") : t("update.card.downloading", { percent })
         : failed
           ? t("update.card.tryAgain")
-          : handoff ? t("settings.updates.install") : t("update.card.restart");
+          : state.installMode === "download" ? t("update.download.action") : handoff ? t("settings.updates.install") : t("update.card.restart");
   const primaryIcon = installing || (downloading && percent == null) || status === "preparing"
     ? <Loader2 size={14} className="animate-spin" aria-hidden />
     : downloading

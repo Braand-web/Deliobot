@@ -1,6 +1,6 @@
 // macOS auto-update requires a signed app, so this runs only when packaged. electron-updater is vendored
 // because the packaged app ships no node_modules.
-import { app, clipboard, ipcMain } from "electron";
+import { app, clipboard, ipcMain, net, shell } from "electron";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join } from "node:path";
@@ -16,6 +16,7 @@ import { openBlankTerminal } from "./terminal-launch.mjs";
 import { UPDATE_TEXT } from "./update-errors.mjs";
 import { createUpdaterCoordinator } from "./updater-coordinator.mjs";
 import { createQuietInstall, installFailed, launchAfter, LOOK_EVERY_MS, updateSeen } from "./update-when-quiet.mjs";
+import { createZipUpdateCheck } from "./zip-update.mjs";
 
 export { quietSignals } from "./update-when-quiet-main.mjs";
 
@@ -30,6 +31,9 @@ let quiet = null;
 let launch = null;
 /** Where these updaters install without asking anything: Squirrel.Mac, and the per-user NSIS installer run silently. */
 const QUIET_PLATFORMS = new Set(["darwin", "win32"]);
+/** The update feed electron-builder.yml publishes to, and the ZIP a copy unpacked from it downloads again. */
+const ZIP_FEED = "https://deliobot.fun/download/latest";
+const ZIP_DOWNLOAD = "https://deliobot.fun/download/Deliobot-Windows.zip";
 
 function quietRecord() {
   const file = join(app.getPath("userData"), "update-when-quiet.json");
@@ -155,9 +159,16 @@ function unpackedWindowsCopy() {
 
 /** `signals` (quietSignals): what tells a quiet moment; without them a downloaded update installs only on Restart or quit. */
 export function startUpdater(signals = null) {
-  if (!app.isPackaged || unpackedWindowsCopy()) {
+  if (!app.isPackaged) {
     updaterCoordinator = null;
     setState({ status: "idle" });
+    return;
+  }
+  if (unpackedWindowsCopy()) {
+    updaterCoordinator = createZipUpdateCheck({ fetchImpl: (url, init) => net.fetch(url, init), currentVersion: app.getVersion(),
+      feedUrl: `${ZIP_FEED}/latest.yml`, downloadUrl: ZIP_DOWNLOAD, setState, openExternal: (url) => shell.openExternal(url) });
+    setTimeout(() => void updaterCoordinator?.check(), 15_000).unref?.();
+    setInterval(() => void updaterCoordinator?.check(), 60 * 60 * 1000).unref?.();
     return;
   }
   try {

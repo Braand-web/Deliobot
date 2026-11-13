@@ -137,5 +137,6 @@ jobs:
             release/OpenDeliobot-amd64.deb
             release/OpenDeliobot.AppImage
             release/SHA256SUMS-ubuntu-x64.txt
+            release/latest-linux.yml
           if-no-files-found: error
           retention-days: 14

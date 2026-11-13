@@ -69,9 +69,10 @@ export function UpdateBanner({ sidebarIndicator = false }: UpdateBannerProps) {
   // Ubuntu system packages can't be swapped under a running app: the command is copied and a terminal opens.
   const handoff = s.installMode === "handoff";
 
+  const download = s.installMode === "download";
   const title =
     s.status === "downloaded"
-      ? t("update.banner.ready", { app: productName(), version: s.version ?? "" })
+      ? t(download ? "update.download.title" : "update.banner.ready", { app: productName(), version: s.version ?? "" })
       : installing
         ? handoff
           ? t("settings.updates.openingTerminal")
@@ -81,7 +82,9 @@ export function UpdateBanner({ sidebarIndicator = false }: UpdateBannerProps) {
           : t("update.banner.failed");
   const subtitle =
     s.status === "downloaded"
-      ? handoff
+      ? download
+        ? t("update.download.body")
+        : handoff
         ? t("update.banner.copyCommand")
         : s.installsByItself
           ? t("update.card.idleNote", { app: productName() })
@@ -150,6 +153,10 @@ export function UpdateBanner({ sidebarIndicator = false }: UpdateBannerProps) {
               {pending === "install" ? (
                 <>
                   <Loader2 size={13} className="animate-spin" /> {t(handoff ? "settings.updates.opening" : "settings.updates.restartingShort")}
+                </>
+              ) : download ? (
+                <>
+                  <PackageOpen size={13} /> {t("update.download.action")}
                 </>
               ) : handoff ? (
                 <>

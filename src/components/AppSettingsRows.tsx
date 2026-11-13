@@ -38,7 +38,9 @@ export function UpdatesRow({ title = t("settings.updates.title") }: { title?: st
         : s.status === "preparing"
           ? t("settings.updates.preparing")
           : s.status === "downloaded"
-            ? s.installMode === "handoff"
+            ? s.installMode === "download"
+              ? t("update.download.title", { app: productName(), version: s.version ?? "" })
+              : s.installMode === "handoff"
               ? t("settings.updates.readyInstall", { app: productName(), version: s.version ?? "" })
               : t("settings.updates.ready", { app: productName(), version: s.version ?? "" })
             : s.status === "installing"
@@ -67,7 +69,9 @@ export function UpdatesRow({ title = t("settings.updates.title") }: { title?: st
         {s.retryable === false
           ? t("settings.updates.quitReopen")
           : s.status === "downloaded"
-            ? s.installMode === "handoff"
+            ? s.installMode === "download"
+              ? t("update.download.action")
+              : s.installMode === "handoff"
               ? t("settings.updates.install")
               : t("settings.updates.restart")
             : s.status === "preparing"

@@ -518,9 +518,10 @@ export interface UpdaterState {
    * Ubuntu .deb asks for the password once, installs and reopens);
    * "handoff" copies the install command and opens a terminal so the user
    * can finish — rpm/pacman builds, and a .deb where no password prompt
-   * can be shown, use this.
+   * can be shown, use this. "download": a Windows copy unpacked from the ZIP,
+   * which opens the new ZIP's download instead of replacing itself.
    */
-  installMode?: "restart" | "handoff";
+  installMode?: "restart" | "handoff" | "download";
   /** hand-off only: the install command, already on the clipboard */
   command?: string;
   /** hand-off only: whether a terminal was opened to paste it into */
