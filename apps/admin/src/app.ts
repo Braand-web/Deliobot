@@ -42,6 +42,9 @@ export interface AdminAppOptions {
 /** What the operators' console serves; everything else there is 404, customer pages and public APIs included. */
 const CONSOLE_PATHS = new Set(["/login", "/login/verify", "/logout", "/workspaces", "/billing", "/billing/credit", "/billing/token", "/billing/hosting/retry", "/people"]);
 
+/** Chromium applies form-action to a form's redirects too: a plan's form answers with SasPay's checkout page, so it is allowed. */
+const CHECKOUT_ORIGINS = "https://*.saspay.me";
+
 /** Self-serve workspaces may own this many; more takes an operator. */
 const SELF_SERVE_LIMIT = 3;
 
@@ -155,22 +158,25 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     return `${cookieName}=${value}; Path=/; Max-Age=${maxAgeSeconds}; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}`;
   }
 
-  function send(res: ServerResponse, status: number, body: string, type: string, headers: Record<string, string | string[]> = {}): void {
+  /** `scriptNonce`: the nonce of the page's own script; without it the page runs no script at all. */
+  function send(res: ServerResponse, status: number, body: string, type: string, headers: Record<string, string | string[]> = {}, scriptNonce?: string): void {
     res.statusCode = status;
     res.setHeader("content-type", type);
     res.setHeader("cache-control", "no-store");
     res.setHeader("x-content-type-options", "nosniff");
     // Chromium sends `Origin: null` on form posts from a no-referrer page, which the same-origin check would refuse.
     res.setHeader("referrer-policy", "same-origin");
-    res.setHeader("content-security-policy", "default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'");
+    res.setHeader("content-security-policy", `default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; ${scriptNonce ? `script-src 'nonce-${scriptNonce}'; ` : ""}form-action 'self' ${CHECKOUT_ORIGINS}; frame-ancestors 'none'; base-uri 'none'`);
     for (const [name, value] of Object.entries(headers)) res.setHeader(name, value);
     res.end(body);
   }
 
   const json = (res: ServerResponse, status: number, body: unknown, headers: Record<string, string> = {}) =>
     send(res, status, JSON.stringify(body), "application/json; charset=utf-8", headers);
-  const html = (res: ServerResponse, status: number, input: Parameters<typeof page>[0], headers: Record<string, string | string[]> = {}) =>
-    send(res, status, page({ ...input, brand: operatorConsole ? "Delio Admin" : "Delio" }), "text/html; charset=utf-8", headers);
+  const html = (res: ServerResponse, status: number, input: Parameters<typeof page>[0], headers: Record<string, string | string[]> = {}) => {
+    const nonce = token(16);
+    send(res, status, page({ ...input, nonce, brand: operatorConsole ? "Delio Admin" : "Delio" }), "text/html; charset=utf-8", headers, nonce);
+  };
 
   /** Opens SasPay's checkout for a plan or a top-up of this workspace, or shows the billing page with what stopped it. */
   async function openCheckout(res: ServerResponse, user: Account, workspace: Workspace, input: { kind: string; plan: string; topup: string; cycle: string }): Promise<void> {

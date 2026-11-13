@@ -44,11 +44,16 @@ code{font-family:"Geist Mono",ui-monospace,Menlo,monospace;font-size:13px;overfl
 footer.help{max-width:720px;margin:0 auto;padding:8px 20px 32px;font-size:13px;color:var(--ink-2);text-align:center}footer.help a{color:var(--accent-text)}
 `;
 
+/** A submitted form's button says the request is on its way, so a payment page that takes seconds to open never looks dead. */
+const PENDING_SCRIPT = `document.addEventListener("submit",function(e){var b=e.submitter||e.target.querySelector("button");if(!b)return;setTimeout(function(){b.disabled=true;b.dataset.label=b.textContent;b.textContent="Patientez…"},0)});
+window.addEventListener("pageshow",function(){document.querySelectorAll("button[data-label]").forEach(function(b){b.disabled=false;b.textContent=b.dataset.label;delete b.dataset.label})});`;
+
 /** Where customers write for help; the sign-in emails name it too. */
 export const SUPPORT_EMAIL = "support@deliobot.fun";
 
 /** `brand`: "Delio" for customers, "Delio Admin" on the operators' console. */
-export function page(input: { title: string; body: Html; email?: string | null; mascot?: "idle" | "happy" | "sad" | "curious"; brand?: string }): string {
+/** `nonce`: the page's script nonce, for the one script that shows a form is on its way. */
+export function page(input: { title: string; body: Html; email?: string | null; mascot?: "idle" | "happy" | "sad" | "curious"; brand?: string; nonce?: string }): string {
   const brand = input.brand ?? "Delio";
   const mascot = input.mascot ? h`<img class="mascot" src="/assets/delio-${input.mascot}.webp" alt="">` : raw("");
   return `<!doctype html>${h`<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -56,7 +61,7 @@ export function page(input: { title: string; body: Html; email?: string | null; 
 <header><img src="/assets/delio-idle.webp" alt=""><b>${brand}</b><nav>${input.email ? h`<span>${input.email}</span>
 <form class="inline" method="post" action="/logout"><button>Se déconnecter</button></form>` : ""}</nav></header>
 <main>${mascot}${input.body}</main>
-<footer class="help">Besoin d'aide ? <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></footer></body></html>`.html}`;
+<footer class="help">Besoin d'aide ? <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></footer>${input.nonce ? h`<script nonce="${input.nonce}">${raw(PENDING_SCRIPT)}</script>` : ""}</body></html>`.html}`;
 }
 
 export const notice = (text: string | null | undefined, kind: "info" | "error" = "info") => text ? h`<div class="notice ${kind}">${text}</div>` : raw("");

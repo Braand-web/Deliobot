@@ -148,6 +148,15 @@ describe("plans paid through SasPay", () => {
       .toContain(`jusqu&#39;au ${new Date(clock.now + 60 * DAY).toISOString().slice(0, 10)}`);
   });
 
+  it("lets the billing page's forms land on SasPay's checkout, and shows a pending button with its own script only", async () => {
+    const target = await portal(fakeSasPay(), { now: Date.now() });
+    const response = await target.get("/billing?workspace=acme");
+    const policy = response.headers.get("content-security-policy") ?? "";
+    expect(policy, "Chromium applies form-action to the redirect to the checkout").toContain("form-action 'self' https://*.saspay.me;");
+    const nonce = /script-src 'nonce-([A-Za-z0-9_-]+)'/.exec(policy)?.[1];
+    expect(await response.text()).toContain(`<script nonce="${nonce}">`);
+  });
+
   it("sells a year for the price of eleven months and grants its credits month by month", async () => {
     const clock = { now: Date.now() };
     const saspay = fakeSasPay();
