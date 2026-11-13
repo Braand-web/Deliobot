@@ -77,7 +77,11 @@ h1 .face{width:1.02em;height:1.02em;flex:none;animation:bob 4s ease-in-out infin
 @media (max-width:640px){.film{border-radius:18px}.film-sound{left:10px;bottom:10px;padding:7px 12px;font-size:12px;gap:7px}.film-sound svg{width:10px;height:10px}}
 .film-dl{display:inline-block;margin-top:14px;font-size:14px;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px}
 .video{margin-top:120px;border-radius:30px;aspect-ratio:16/9;position:relative;overflow:hidden;background:#09090c}
-.video video{position:absolute;inset:0;width:100%;height:100%;display:block}
+.video video{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover}
+.film-mute{position:absolute;right:18px;bottom:18px;z-index:1;width:44px;height:44px;border:0;border-radius:50%;display:grid;place-items:center;color:#fff;background:rgba(20,20,24,.55);backdrop-filter:blur(10px);cursor:pointer}
+.film-mute:hover{background:rgba(20,20,24,.75)}.film-mute svg{width:20px;height:20px}
+.film-mute .on{display:none}.film-mute[aria-pressed=true] .on{display:inline}.film-mute[aria-pressed=true] .off{display:none}
+@media (max-width:640px){.film-mute{right:10px;bottom:10px;width:36px;height:36px}.film-mute svg{width:16px;height:16px}}
 .fav div.on{background:#2a2a2d;color:var(--app-ink)}
 .fav .bot{width:58px;height:58px}
 .thread .bot{width:38px;height:38px;flex:none}
@@ -412,9 +416,8 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
       <span class="bot" style="--c:#ec4fa6;--src:url(/assets/delio-sleeping.webp)"><img src="/assets/delio-sleeping.webp" alt=""></span>
     </div>
     <div class="video reveal">
-      <video data-film controls playsinline preload="none" poster="/media/deliobot-film.jpg" aria-label="Deliobot en 90 secondes">
-        <source src="/media/deliobot-film.mp4" type="video/mp4">
-      </video>
+      <video data-film muted loop playsinline preload="none" poster="/media/deliobot-film.jpg" aria-label="Deliobot en 90 secondes" data-src="/media/deliobot-film.mp4"></video>
+      <button class="film-mute" type="button" data-film-mute aria-label="Activer le son" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="on" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/><path class="off" d="m16 9 6 6M22 9l-6 6"/></svg></button>
     </div>
   </div>
 </section>
@@ -741,11 +744,18 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
   const wait = (ms) => new Promise((r) => setTimeout(r, reduce ? 0 : ms));
   const loop = document.querySelector("[data-film-loop]"), film = document.querySelector("[data-film]");
   if (reduce) { loop.removeAttribute("autoplay"); loop.pause(); }
+  const mute = document.querySelector("[data-film-mute]");
+  const load = () => { if (!film.src) film.src = film.dataset.src; };
+  const sound = (on) => { film.muted = !on; mute.setAttribute("aria-pressed", String(on)); mute.setAttribute("aria-label", on ? "Couper le son" : "Activer le son"); };
+  const withSound = () => { load(); sound(true); film.currentTime = 0; void film.play().catch(() => {}); };
+  new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting) { load(); if (!reduce || !film.muted) void film.play().catch(() => {}); }
+    else film.pause();
+  }, { rootMargin: "200px 0px", threshold: .35 }).observe(film);
+  mute.addEventListener("click", () => { if (film.muted) withSound(); else sound(false); });
   document.querySelector("[data-film-open]").addEventListener("click", () => {
-    film.currentTime = 0;
-    film.muted = false;
-    void film.play().catch(() => {});
-    (film.requestFullscreen ?? film.webkitEnterFullscreen)?.call(film)?.catch?.(() => {});
+    film.closest(".video").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+    withSound();
   });
 
   const picks = [["Auto", "choisit le bon modèle pour chaque message"], ["Claude", "pour un long texte bien écrit"], ["GPT", "pour analyser un tableau"],
