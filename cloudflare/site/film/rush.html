@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Deliobot — film rythmé</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#050507;--ink:#f7f7fa;--ink2:#a9a9b6;--line:#2a2a33;--blue:#3b8bff;--violet:#8b5cff;--mint:#3ef0b0;--coral:#ff5a5f;--sun:#ffc24b}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:var(--bg);color:var(--ink);font-family:Geist,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+#cam{position:absolute;inset:0;transform-origin:50% 50%}
+.scene{position:absolute;inset:0;overflow:hidden;will-change:transform,filter,opacity}
+.abs{position:absolute}
+.mega{font-weight:900;letter-spacing:-.055em;line-height:.88;text-transform:uppercase}
+.outline{color:transparent;-webkit-text-stroke:3px rgba(255,255,255,.9)}
+.grad{background:linear-gradient(100deg,#7fb6ff 0%,#a98bff 45%,#3ef0b0 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.card{background:#111117;border:1px solid var(--line);border-radius:30px;box-shadow:0 50px 140px -40px rgba(0,0,0,.95)}
+.pill{display:inline-flex;align-items:center;gap:14px;border-radius:999px;padding:18px 34px;font-size:34px;font-weight:600}
+.notif{width:520px;padding:26px 30px;border-radius:26px;background:#14141b;border:1px solid #33333d;display:flex;gap:20px;align-items:center}
+.notif .ic{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;font-size:32px;flex:none}
+.notif b{display:block;font-size:44px;font-weight:800;letter-spacing:-.03em}
+.notif span{font-size:24px;color:var(--ink2)}
+.badge{position:absolute;top:-14px;right:-14px;min-width:54px;height:54px;border-radius:27px;background:var(--coral);color:#fff;font-weight:800;font-size:24px;display:grid;place-items:center;padding:0 12px;box-shadow:0 0 30px rgba(255,90,95,.7)}
+.win{width:1360px;height:760px;display:grid;grid-template-columns:300px 1fr;overflow:hidden}
+.side{background:#0c0c11;border-right:1px solid var(--line);padding:30px 22px;display:flex;flex-direction:column;gap:12px;font-size:22px}
+.side div{display:flex;align-items:center;gap:14px;padding:12px;border-radius:14px}
+.side img{width:44px;height:44px}
+.chat{padding:38px 48px;display:flex;flex-direction:column;gap:24px;position:relative}
+.me{align-self:flex-end;background:var(--blue);color:#fff;border-radius:26px 26px 6px 26px;padding:22px 28px;font-size:28px;font-weight:500}
+.step{display:flex;align-items:center;gap:18px;font-size:27px;color:var(--ink2)}
+.tick{width:36px;height:36px;border-radius:50%;border:3px solid #33333d;display:grid;place-items:center;flex:none}
+.tick svg{width:20px;height:20px}
+.rep{position:absolute;right:46px;bottom:40px;width:520px;padding:28px}
+.rep .bars{display:flex;align-items:flex-end;gap:14px;height:170px;margin-top:20px}
+.rep .bars i{flex:1;border-radius:10px 10px 4px 4px;background:linear-gradient(180deg,#7fb6ff,#2f6ff0)}
+.stamp{position:absolute;right:560px;top:600px;border:6px solid var(--mint);color:var(--mint);border-radius:18px;padding:10px 26px;font-size:56px;font-weight:900;letter-spacing:.02em;transform:rotate(-12deg)}
+.word{font-size:300px}
+.chip{position:absolute;padding:22px 34px;border-radius:999px;background:#15151c;border:1px solid #33333d;font-size:34px;font-weight:600;display:flex;align-items:center;gap:16px;white-space:nowrap;transform:translate(-50%,-50%)}
+.chip i{width:16px;height:16px;border-radius:50%}
+.bubble{position:absolute;padding:22px 30px;border-radius:28px;font-size:30px;max-width:640px}
+.tile{position:absolute;width:360px;height:440px;border-radius:32px;overflow:hidden;display:flex;align-items:flex-end;padding:28px;font-size:40px;font-weight:800}
+.phone{position:absolute;width:500px;height:980px;border-radius:76px;border:12px solid #2c2c34;background:#0d0d12;padding:90px 28px 30px}
+.ask{background:#1a1a22;border:1px solid var(--line);border-radius:32px;padding:30px;display:flex;flex-direction:column;gap:20px;font-size:30px}
+.ask .btns{display:flex;gap:14px}.ask .btns span{flex:1;text-align:center;padding:20px;border-radius:20px;font-weight:700}
+.tap{position:absolute;width:110px;height:110px;border-radius:50%;border:5px solid #fff;transform:translate(-50%,-50%)}
+.ticket{width:900px;padding:56px 64px;border-radius:40px;background:linear-gradient(135deg,#1b2a5c,#3a1f74 55%,#0e4f43);box-shadow:0 60px 160px -40px rgba(80,90,255,.6);position:relative;overflow:hidden}
+.fx{position:absolute;inset:0;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="cam"></div>
+<div class="fx" id="leak" style="mix-blend-mode:screen"></div>
+<div class="fx" id="flash" style="background:#fff;opacity:0"></div>
+<div class="fx" style="background:radial-gradient(130% 100% at 50% 50%,transparent 55%,rgba(0,0,0,.65) 100%)"></div>
+<script>
+const ASSETS = "../public/assets/";
+const T = window.TIMELINE ?? (() => { const beat = 60 / 124, bar = beat * 4, bars = { hook: 2, pain: 3, reveal: 3, proof: 4, blitz: 5, offer: 3, cta: 3 }; let s = 0;
+  return { beat, scenes: Object.entries(bars).map(([id, n]) => { const r = { id, start: s, length: n * bar, bars: n }; s += n * bar; return r; }), get total() { return s; } }; })();
+const BEAT = T.beat, BAR = BEAT * 4;
+
+const clamp = (x) => Math.max(0, Math.min(1, x));
+const p = (u, a, b) => clamp((u - a) / (b - a));
+const eo = (x) => 1 - Math.pow(1 - x, 3);
+const eo5 = (x) => 1 - Math.pow(1 - x, 5);
+const eio = (x) => (x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const back = (x, s = 2.2) => 1 + (s + 1) * Math.pow(x - 1, 3) + s * Math.pow(x - 1, 2);
+const lerp = (a, b, x) => a + (b - a) * x;
+/** 1 on a beat, falling to 0 within `width` seconds after it. */
+const hit = (u, at, width = .18) => (u >= at ? Math.exp(-(u - at) / width * 3) : 0);
+const el = (tag, cls, style, parent, html) => { const n = document.createElement(tag); if (cls) n.className = cls; if (style) n.style.cssText = style; if (html !== undefined) n.innerHTML = html; parent?.appendChild(n); return n; };
+const set = (n, { o, x = 0, y = 0, z = 0, s = 1, sx, sy, r = 0, rx = 0, ry = 0, blur = 0 } = {}) => {
+  if (o !== undefined) n.style.opacity = o;
+  n.style.transform = `${n.dataset.base ?? ""} translate3d(${x}px,${y}px,${z}px) rotateX(${rx}deg) rotateY(${ry}deg) rotate(${r}deg) scale(${sx ?? s},${sy ?? s})`;
+  n.style.filter = blur > .2 ? `blur(${blur}px)` : "";
+};
+const check = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+/** A word that slams in on a beat: from big and blurred to its size, with a red/blue split that settles. */
+function slam(text, cls, style, parent) {
+  const box = el("div", "abs", style, parent);
+  const red = el("div", cls, "position:absolute;inset:0;color:#ff2d55;mix-blend-mode:screen;opacity:.0", box, text);
+  const blue = el("div", cls, "position:absolute;inset:0;color:#2da8ff;mix-blend-mode:screen;opacity:.0", box, text);
+  const main = el("div", cls, "position:relative", box, text);
+  return (u, at, out = Infinity) => {
+    const k = eo5(p(u, at, at + .16)), h = hit(u, at, .22), gone = out === Infinity ? 0 : eio(p(u, out, out + .2));
+    set(box, { o: (u >= at ? 1 : 0) * (1 - gone), s: lerp(2.4, 1, k) * (1 + gone * .6), blur: (1 - k) * 18 + gone * 16 });
+    set(red, { x: -18 * h, o: .9 * h }); set(blue, { x: 18 * h, o: .9 * h });
+    return h;
+  };
+}
+
+const cam = document.getElementById("cam");
+const scenes = {};
+
+/* 1. Hook: three words on three beats. */
+scenes.hook = (() => {
+  const root = el("div", "scene", "background:#050507", cam);
+  const rays = el("div", "abs", "left:960px;top:540px;width:2600px;height:2600px;margin:-1300px;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(255,90,95,.12) 0deg 6deg,transparent 6deg 18deg);opacity:0", root);
+  const w1 = slam("Trop", "mega word", "left:0;right:0;top:170px;text-align:center", root);
+  const w2 = slam("de", "mega word outline", "left:0;right:0;top:430px;text-align:center;font-size:200px", root);
+  const w3 = slam("travail&nbsp;<span style='color:var(--coral)'>?</span>", "mega word", "left:0;right:0;top:620px;text-align:center", root);
+  return { root, transition: "zoom", draw(u) {
+    set(rays, { o: p(u, BEAT * 2, BEAT * 2.4) * .9, r: u * 22, s: 1 + hit(u, BEAT * 2, .3) * .15 });
+    const h = Math.max(w1(u, 0), w2(u, BEAT), w3(u, BEAT * 2));
+    return { shake: h * 22, flash: h * .22 };
+  } };
+})();
+
+/* 2. Pain: counters fly in on every beat, the marquee says it never stops. */
+scenes.pain = (() => {
+  const root = el("div", "scene", "background:radial-gradient(90% 80% at 50% 50%,#1a0b10,#050507)", cam);
+  const marquee = el("div", "abs mega outline", "top:400px;left:0;white-space:nowrap;font-size:230px;opacity:.35", root, "ça ne s'arrête jamais · ça ne s'arrête jamais · ça ne s'arrête jamais ·");
+  const items = [["✉️", "#3b2416", 247, "e-mails non lus", 140, 120, -5], ["🧾", "#3b3216", 38, "devis à envoyer", 1270, 150, 4], ["📊", "#16343b", 12, "rapports à rendre", 180, 690, 3],
+    ["🎧", "#2a1640", 96, "demandes clients", 1240, 690, -4], ["📅", "#162a3b", 9, "réunions aujourd'hui", 700, 410, 2]];
+  const cards = items.map(([icon, tint, value, label, x, y, r], i) => {
+    const card = el("div", "notif abs", `left:${x}px;top:${y}px`, root, `<div class="ic" style="background:${tint}">${icon}</div><div><b>0</b><span>${label}</span></div><div class="badge">!</div>`);
+    return { card, value, r, num: card.querySelector("b"), side: i % 2 ? 1 : -1 };
+  });
+  return { root, draw(u, L) {
+    set(marquee, { x: -((u * 520) % 2100) });
+    let h = 0;
+    cards.forEach(({ card, value, r, num, side }, i) => {
+      const at = i * BEAT * 1.25, k = eo5(p(u, at, at + .2));
+      h = Math.max(h, hit(u, at, .2));
+      set(card, { o: p(u, at, at + .05), x: (1 - k) * 900 * side, r: r + (1 - k) * 18 * side, s: 1 + hit(u, at, .25) * .08 + Math.sin(u * 30 + i) * .004 * p(u, L * .5, L) });
+      num.textContent = String(Math.round(value * eo(p(u, at, at + 1.2))));
+    });
+    return { shake: h * 10 + p(u, L - BAR, L) * 6, flash: 0 };
+  } };
+})();
+
+/* 3. Reveal: "Alors déléguez." then Delio drops and the name lights up. */
+scenes.reveal = (() => {
+  const root = el("div", "scene", "background:#050507", cam);
+  const rays = el("div", "abs", "left:960px;top:470px;width:3000px;height:3000px;margin:-1500px;background:repeating-conic-gradient(from 0deg,rgba(127,182,255,.10) 0deg 4deg,transparent 4deg 14deg);border-radius:50%", root);
+  const glow = el("div", "abs", "left:960px;top:470px;width:900px;height:900px;margin:-450px;border-radius:50%;background:radial-gradient(circle,rgba(110,140,255,.55),transparent 62%)", root);
+  const say = slam("Alors déléguez.", "mega", "left:0;right:0;top:420px;text-align:center;font-size:170px", root);
+  const rings = [0, 1, 2].map(() => el("div", "abs", "left:960px;top:400px;width:300px;height:300px;margin:-150px;border-radius:50%;border:4px solid rgba(255,255,255,.8)", root));
+  const face = el("img", "", "position:absolute;left:960px;top:400px;width:300px;height:300px;margin:-150px", root);
+  face.src = `${ASSETS}delio-happy.webp`;
+  const name = el("div", "abs mega grad", "left:0;right:0;top:600px;text-align:center;font-size:250px;letter-spacing:-.06em;text-transform:none", root, "Deliobot");
+  const sweep = el("div", "abs", "top:0;bottom:0;width:420px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);mix-blend-mode:overlay", root);
+  return { root, draw(u, L) {
+    const drop = BAR * 1.25;
+    say(u, .05, drop - .25);
+    const k = p(u, drop, drop + .32);
+    const fall = k < 1 ? -900 * Math.pow(1 - k, 2) : 0;
+    const squash = hit(u, drop + .32, .25);
+    set(face, { o: u > drop ? 1 : 0, y: fall + Math.sin(u * 3) * 6 * p(u, drop + .6, drop + 1), sx: 1 + squash * .25, sy: 1 - squash * .2 });
+    rings.forEach((ring, i) => { const t = p(u, drop + .32 + i * .12, drop + 1.3 + i * .12); set(ring, { o: (1 - t) * (t > 0 ? 1 : 0), s: 1 + t * 4 }); });
+    set(glow, { o: p(u, drop, drop + .4) * (.85 + .15 * Math.sin(u * 4)) });
+    set(rays, { o: p(u, drop + .3, drop + .8), r: u * 14 });
+    const nk = eo5(p(u, drop + BEAT * 2, drop + BEAT * 2 + .3));
+    set(name, { o: nk, s: lerp(1.6, 1, nk), blur: (1 - nk) * 20, y: (1 - nk) * 40 });
+    sweep.style.left = `${lerp(-500, 2300, eio(p(u, drop + BEAT * 2.4, drop + BEAT * 4.4)))}px`;
+    const h = Math.max(hit(u, drop + .32, .25), hit(u, drop + BEAT * 2, .2));
+    return { shake: h * 18, flash: hit(u, drop + .32, .2) * .5 };
+  } };
+})();
+
+/* 4. Proof: a tilted app does the report, one step per beat. */
+scenes.proof = (() => {
+  const root = el("div", "scene", "background:radial-gradient(80% 70% at 60% 40%,#0f1a3a,#050507);perspective:1800px", cam);
+  const label = el("div", "abs mega", "left:110px;top:70px;font-size:96px;text-transform:none;letter-spacing:-.045em", root, "Vous demandez.<br><span class='grad'>Delio termine.</span>");
+  const win = el("div", "card win abs", "left:470px;top:240px;transform-style:preserve-3d", root);
+  win.innerHTML = `<div class="side"><div style="background:#191922"><img src="${ASSETS}delio-working.webp">Delio</div><div><img src="${ASSETS}delio-curious.webp">Commercial</div><div><img src="${ASSETS}delio-listening.webp">Support</div><div><img src="${ASSETS}delio-proud.webp">Marketing</div></div>
+    <div class="chat"><div class="me"></div><div class="steps" style="display:flex;flex-direction:column;gap:18px;margin-top:8px"></div>
+    <div class="card rep"><b style="font-size:28px">Rapport des ventes · semaine 46</b><div style="font-size:21px;color:var(--ink2);margin-top:6px">Analyse, graphique et recommandations</div><div class="bars">${"<i></i>".repeat(7)}</div></div></div>`;
+  const me = win.querySelector(".me"), stepsBox = win.querySelector(".steps"), rep = win.querySelector(".rep"), bars = [...rep.querySelectorAll("i")];
+  const ask = "Fais-moi le rapport des ventes de la semaine.";
+  const steps = ["Cherche les ventes", "Compare à la semaine dernière", "Analyse et rédige", "Crée le graphique"].map((text) => el("div", "step", "", stepsBox, `<span class="tick"></span><span>${text}</span>`));
+  const stamp = el("div", "stamp abs", "", root, "TERMINÉ");
+  const heights = [42, 58, 50, 67, 74, 63, 92];
+  return { root, draw(u, L) {
+    const k = eo(p(u, 0, .7));
+    set(label, { o: eo5(p(u, .05, .3)), x: (1 - eo5(p(u, .05, .3))) * -120 });
+    set(win, { o: k, ry: lerp(-28, -12, eio(p(u, 0, L))), rx: lerp(14, 6, eio(p(u, 0, L))), x: (1 - k) * 300, s: lerp(.92, 1.02, eio(p(u, 0, L))) });
+    me.textContent = ask.slice(0, Math.floor(ask.length * p(u, .25, BEAT * 3)));
+    set(me, { o: p(u, .2, .3) });
+    let h = 0;
+    steps.forEach((row, i) => {
+      const at = BEAT * (4 + i * 1.5);
+      const done = u >= at;
+      const tick = row.firstElementChild;
+      tick.innerHTML = done ? check : "";
+      tick.style.background = done ? "var(--mint)" : "transparent";
+      tick.style.borderColor = done ? "var(--mint)" : "#33333d";
+      row.style.color = done ? "var(--ink)" : "var(--ink2)";
+      set(tick, { s: 1 + hit(u, at, .2) * .5 });
+      set(row, { o: p(u, BEAT * 3, BEAT * 3.3), x: (1 - eo5(p(u, BEAT * 3 + i * .08, BEAT * 3.3 + i * .08))) * 60 });
+      h = Math.max(h, hit(u, at, .15) * .5);
+    });
+    const shown = BEAT * 10;
+    const rk = back(p(u, shown, shown + .35));
+    set(rep, { o: p(u, shown, shown + .1), s: lerp(.7, 1, rk), y: (1 - rk) * 120 });
+    bars.forEach((bar, i) => { bar.style.height = `${heights[i] * eo(p(u, shown + .1 + i * .05, shown + .6 + i * .05))}%`; });
+    const sk = eo5(p(u, BEAT * 12, BEAT * 12 + .15));
+    set(stamp, { o: sk, s: lerp(3, 1, sk), r: -12 });
+    h = Math.max(h, hit(u, BEAT * 12, .25));
+    return { shake: h * 16, flash: hit(u, BEAT * 12, .2) * .3 };
+  } };
+})();
+
+/* 5. Blitz: one bar each, hard cuts on the downbeat. */
+scenes.blitz = (() => {
+  const root = el("div", "scene", "background:#050507", cam);
+  const parts = [];
+  const part = (bg) => { const box = el("div", "abs", `inset:0;background:${bg}`, root); parts.push(box); return box; };
+  const word = (box, text, color) => el("div", "abs mega", `left:90px;bottom:60px;font-size:260px;color:${color}`, box, text);
+
+  const sell = part("radial-gradient(80% 80% at 70% 40%,#0d2a66,#050507)");
+  const sellWord = word(sell, "Vend.", "#7fb6ff");
+  const deals = ["Acme · devis envoyé", "Nova · rendez-vous calé", "Kora · relance faite", "Baobab · contrat signé"].map((text, i) =>
+    el("div", "notif abs", `left:${1020 + (i % 2) * 60}px;top:${110 + i * 170}px;width:720px`, sell, `<div class="ic" style="background:#16305e">💼</div><div><b style="font-size:34px">${text}</b><span>Bot commercial</span></div>`));
+
+  const reply = part("radial-gradient(80% 80% at 30% 40%,#0b3b2e,#050507)");
+  const replyWord = word(reply, "Répond.", "#3ef0b0");
+  const bubbles = [["Bonjour, ma commande n'est pas arrivée.", 980, 120, "#1b1b24"], ["Elle arrive demain avant midi, voici le suivi 📦", 1080, 300, "#0f6e52"],
+    ["Parfait, merci !", 1260, 480, "#1b1b24"], ["Avec plaisir 😊", 1300, 640, "#0f6e52"]].map(([text, x, y, bg]) => el("div", "bubble", `left:${x}px;top:${y}px;background:${bg}`, reply, text));
+
+  const create = part("radial-gradient(80% 80% at 60% 50%,#3a1460,#050507)");
+  const createWord = word(create, "Crée.", "#c9a8ff");
+  const tiles = [["Image", "linear-gradient(150deg,#ff6fae,#7a2bd6)", 820], ["Vidéo", "linear-gradient(150deg,#ffb03d,#d6492b)", 1210], ["Musique", "linear-gradient(150deg,#5fd9a6,#0f8f74)", 1600]]
+    .map(([text, bg, x]) => el("div", "tile", `left:${x - 180}px;top:150px;background:${bg}`, create, text));
+
+  const tools = part("radial-gradient(80% 80% at 50% 50%,#0e2c3b,#050507)");
+  const toolsWord = el("div", "abs mega", "left:0;right:0;top:470px;text-align:center;font-size:126px;text-transform:none", tools, "Branché sur <span class='grad'>vos outils</span>");
+  const chips = ["Messagerie", "Agenda", "Documents", "Tableurs", "CRM", "Messagerie d'équipe", "Réseaux sociaux", "Factures"].map((text, i) => {
+    const angle = i / 8 * Math.PI * 2 + Math.PI / 8, x = 960 + Math.cos(angle) * 690, y = 530 + Math.sin(angle) * 400;
+    const color = ["#ff8a3d", "#3b8bff", "#3ef0b0", "#2fd0c2", "#ff6fae", "#8b5cff", "#ffc24b", "#7fb6ff"][i];
+    return { chip: el("div", "chip", `left:${x}px;top:${y}px`, tools, `<i style="background:${color}"></i>${text}`), x, y };
+  });
+
+  const ok = part("radial-gradient(80% 80% at 70% 50%,#14243f,#050507)");
+  const okWord = el("div", "abs mega", "left:110px;top:330px;font-size:190px;text-transform:none", ok, "Vous<br><span class='grad'>validez.</span>");
+  const phone = el("div", "phone", "left:1220px;top:50px", ok, `<div class="ask"><div style="display:flex;align-items:center;gap:14px;color:var(--ink2);font-size:24px"><img src="${ASSETS}delio-curious.webp" style="width:50px;height:50px">Delio · Commercial</div>
+    <div>Devis Acme prêt : 4 800 €. Je l'envoie&nbsp;?</div><div class="btns"><span class="go" style="background:var(--blue)">Valider</span><span style="background:#26262e">Modifier</span></div></div>`);
+  const go = phone.querySelector(".go");
+  const tap = el("div", "tap", "", ok);
+
+  return { root, draw(u) {
+    const index = Math.min(4, Math.floor(u / BAR));
+    parts.forEach((box, i) => { box.style.display = i === index ? "" : "none"; });
+    const v = u - index * BAR;
+    const enter = eo5(p(v, 0, .2));
+    const punch = hit(v, 0, .2);
+    if (index === 0) {
+      set(sellWord, { o: enter, x: (1 - enter) * -300, blur: (1 - enter) * 20 });
+      deals.forEach((card, i) => { const k = eo5(p(v, BEAT * i * .6 + .1, BEAT * i * .6 + .35)); set(card, { o: k, x: (1 - k) * 500 }); });
+    } else if (index === 1) {
+      set(replyWord, { o: enter, y: (1 - enter) * 200, blur: (1 - enter) * 20 });
+      bubbles.forEach((bubble, i) => { const k = back(p(v, i * BEAT * .7 + .1, i * BEAT * .7 + .4)); set(bubble, { o: p(v, i * BEAT * .7 + .1, i * BEAT * .7 + .15), s: k }); });
+    } else if (index === 2) {
+      set(createWord, { o: enter, s: lerp(1.5, 1, enter), blur: (1 - enter) * 20 });
+      tiles.forEach((tile, i) => { const k = back(p(v, i * BEAT * .5 + .1, i * BEAT * .5 + .45)); set(tile, { o: p(v, i * BEAT * .5 + .1, i * BEAT * .5 + .15), y: (1 - k) * 500, r: (1 - k) * (i - 1) * 20 + (i - 1) * 4 }); });
+    } else if (index === 3) {
+      set(toolsWord, { o: enter, s: lerp(.7, 1, enter) * (1 + punch * .04) });
+      chips.forEach(({ chip }, i) => { const k = back(p(v, .1 + i * .07, .45 + i * .07)); set(chip, { o: p(v, .1 + i * .07, .15 + i * .07), s: k, x: (1 - k) * (960 - parseFloat(chip.style.left)), y: (1 - k) * (540 - parseFloat(chip.style.top)) }); });
+    } else {
+      set(okWord, { o: enter, x: (1 - enter) * -260, blur: (1 - enter) * 20 });
+      set(phone, { o: enter, y: (1 - enter) * 300 });
+      const at = BEAT * 2;
+      const press = hit(v, at, .15);
+      tap.style.left = "1400px"; tap.style.top = "512px";
+      set(tap, { o: p(v, at - .4, at - .15) * (1 - p(v, at + .1, at + .4)), s: 1.5 - press * .6 });
+      go.textContent = v >= at ? "Envoyé ✓" : "Valider";
+      go.style.background = v >= at ? "#18b37e" : "var(--blue)";
+      set(go, { s: 1 + press * .12 });
+    }
+    return { shake: punch * 20, flash: punch * .35, zoom: punch * .06 };
+  } };
+})();
+
+/* 6. Offer: the price slams. */
+scenes.offer = (() => {
+  const root = el("div", "scene", "background:radial-gradient(80% 80% at 50% 45%,#1d1648,#050507)", cam);
+  const rays = el("div", "abs", "left:960px;top:540px;width:3000px;height:3000px;margin:-1500px;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(201,168,255,.10) 0deg 5deg,transparent 5deg 15deg)", root);
+  const top = slam("Essai 3 jours", "mega", "left:0;right:0;top:120px;text-align:center;font-size:140px;text-transform:none", root);
+  const ticket = el("div", "ticket abs", "left:510px;top:330px", root, `<div style="font-size:40px;font-weight:600;color:#cfd8ff">Tout Deliobot, pour</div>
+    <div class="price" style="font-size:300px;font-weight:900;letter-spacing:-.06em;line-height:.9;margin-top:10px">5&nbsp;$</div>
+    <div style="font-size:30px;color:#cfd8ff;margin-top:14px">environ 3 000 FCFA · Mobile Money ou carte</div>
+    <div class="shine" style="position:absolute;top:-40%;bottom:-40%;width:180px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg)"></div>`);
+  const shine = ticket.querySelector(".shine"), price = ticket.querySelector(".price");
+  const free = el("div", "pill abs", "left:960px;top:900px;background:#fff;color:#0b0b0c", root, "Sans engagement · aucun prélèvement automatique");
+  free.dataset.base = "translateX(-50%)";
+  return { root, draw(u) {
+    set(rays, { r: u * 16, o: .9 });
+    const h1 = top(u, .05);
+    const tk = back(p(u, BEAT * 2, BEAT * 2 + .4), 1.6);
+    set(ticket, { o: p(u, BEAT * 2, BEAT * 2 + .08), s: lerp(.5, 1, tk), r: lerp(-8, -2, tk) });
+    set(price, { s: 1 + hit(u, BEAT * 4, .2) * .12 + hit(u, BEAT * 6, .2) * .12 });
+    shine.style.left = `${lerp(-300, 1100, eio(p(u, BEAT * 3, BEAT * 5)))}px`;
+    const fk = eo5(p(u, BEAT * 6, BEAT * 6 + .25));
+    set(free, { o: fk, y: (1 - fk) * 60 });
+    const h = Math.max(h1, hit(u, BEAT * 2, .22));
+    return { shake: h * 16, flash: hit(u, BEAT * 2, .2) * .4 };
+  } };
+})();
+
+/* 7. Call to action. */
+scenes.cta = (() => {
+  const root = el("div", "scene", "background:radial-gradient(80% 80% at 50% 40%,#0e1d44,#050507)", cam);
+  const glow = el("div", "abs", "left:960px;top:300px;width:800px;height:800px;margin:-400px;border-radius:50%;background:radial-gradient(circle,rgba(110,140,255,.5),transparent 62%)", root);
+  const face = el("img", "", "position:absolute;left:960px;top:290px;width:260px;height:260px;margin:-130px", root);
+  face.src = `${ASSETS}delio-happy.webp`;
+  const name = el("div", "abs mega grad", "left:0;right:0;top:450px;text-align:center;font-size:190px;letter-spacing:-.06em;text-transform:none", root, "Deliobot");
+  const tag = el("div", "abs", "left:0;right:0;top:640px;text-align:center;font-size:42px;color:var(--ink2);font-weight:500", root, "Des collègues IA qui terminent le travail.");
+  const button = el("div", "pill abs", "left:960px;top:760px;background:#fff;color:#0b0b0c;font-size:44px;padding:26px 54px;box-shadow:0 0 80px rgba(127,182,255,.55)", root, "Commencer sur <b style='font-weight:800'>&nbsp;deliobot.fun</b>");
+  button.dataset.base = "translateX(-50%)";
+  const cursor = el("div", "abs", "left:0;top:0;width:58px;height:58px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.6))", root,
+    '<svg viewBox="0 0 24 24" width="58" height="58"><path d="M4 2.5l15 8.6-6.4 1.6 3.8 7.2-2.9 1.5-3.8-7.2-4.7 4.5z" fill="#fff" stroke="#0b0b0c" stroke-width="1.3" stroke-linejoin="round"/></svg>');
+  const black = el("div", "abs", "inset:0;background:#000;opacity:0", root);
+  return { root, draw(u, L) {
+    const k = back(p(u, .05, .45));
+    set(face, { o: p(u, .05, .12), s: k, y: Math.sin(u * 3) * 6 });
+    set(glow, { o: .8 + .2 * Math.sin(u * 4) });
+    const nk = eo5(p(u, BEAT, BEAT + .25));
+    set(name, { o: nk, s: lerp(1.5, 1, nk), blur: (1 - nk) * 18 });
+    set(tag, { o: eo(p(u, BEAT * 2, BEAT * 2.6)) });
+    const bk = back(p(u, BEAT * 3, BEAT * 3 + .4));
+    const click = BEAT * 6;
+    set(button, { o: p(u, BEAT * 3, BEAT * 3 + .08), s: bk * (1 + .04 * Math.sin(u * Math.PI * 2 / BEAT)) * (1 - hit(u, click, .15) * .08) });
+    const ck = eio(p(u, BEAT * 4, click));
+    set(cursor, { o: p(u, BEAT * 4, BEAT * 4.3) * (1 - p(u, click + .6, click + .9)), x: lerp(1500, 1262, ck), y: lerp(1000, 800, ck) });
+    black.style.opacity = p(u, L - .45, L);
+    return { shake: hit(u, BEAT, .2) * 12, flash: hit(u, click, .15) * .25 };
+  } };
+})();
+
+const leak = document.getElementById("leak"), flash = document.getElementById("flash");
+const WHIP = .12;
+/** Draws the film at `t` seconds; every frame depends on `t` alone. */
+window.seek = (t) => {
+  let shake = 0, flashAmount = 0, zoom = 0;
+  for (const scene of T.scenes) {
+    const draw = scenes[scene.id];
+    const u = t - scene.start;
+    const visible = u > -WHIP && u < scene.length + WHIP;
+    draw.root.style.display = visible ? "" : "none";
+    if (!visible) continue;
+    const effects = draw.draw(Math.max(0, Math.min(scene.length, u)), scene.length) ?? {};
+    const inScene = u >= 0 && u < scene.length;
+    if (inScene) { shake = Math.max(shake, effects.shake ?? 0); flashAmount = Math.max(flashAmount, effects.flash ?? 0); zoom = Math.max(zoom, effects.zoom ?? 0); }
+    const first = scene === T.scenes[0], last = scene === T.scenes.at(-1);
+    const enter = first ? 1 : eo5(p(u, -WHIP, WHIP)), exit = last ? 0 : eio(p(u, scene.length - WHIP, scene.length + WHIP));
+    if (draw.transition === "zoom" && exit > 0) set(draw.root, { o: 1 - exit, s: 1 + exit * 2.2, blur: exit * 22 });
+    else set(draw.root, { o: 1, x: (1 - enter) * 1400 - exit * 1400, blur: (1 - enter) * 40 + exit * 40, s: 1 + (1 - enter) * .08 });
+    flashAmount = Math.max(flashAmount, hit(u, 0, .12) * (first ? 0 : .35));
+  }
+  const beatPhase = ((t % BEAT) + BEAT) % BEAT;
+  const pulse = Math.exp(-beatPhase / BEAT * 5);
+  set(cam, { x: Math.sin(t * 61) * shake, y: Math.cos(t * 47) * shake * .7, s: 1 + pulse * .008 + zoom, r: Math.sin(t * 37) * shake * .02 });
+  flash.style.opacity = Math.min(.6, flashAmount);
+  leak.style.background = `radial-gradient(40% 50% at ${50 + 40 * Math.sin(t * .4)}% ${30 + 20 * Math.cos(t * .3)}%,rgba(120,90,255,.22),transparent 70%),radial-gradient(35% 45% at ${50 + 45 * Math.cos(t * .33)}% ${70 + 15 * Math.sin(t * .5)}%,rgba(62,240,176,.14),transparent 70%)`;
+};
+window.filmLength = T.total;
+window.seek(0);
+</script>
+</body>
+</html>
