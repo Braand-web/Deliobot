@@ -22,7 +22,7 @@ afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) awai
 interface UpstreamCall { url: string; method: string; auth: string | null; body: unknown }
 
 /** OpenRouter and fal.ai stand-ins reached through the portal's fetch: they record what the gateway sent them. */
-function upstreams(options: { cost?: number; falUnit?: string; falPrice?: number } = {}) {
+function upstreams(options: { cost?: number; falUnit?: string; falPrice?: number; textPricing?: { prompt: string; completion: string }; duringChat?: () => Promise<void> } = {}) {
   const boats: Array<{ id: string; state: string }> = [{ id: "bx_zzzz9999", state: "idle" }];
   let nextBoat = 0;
   const calls: UpstreamCall[] = [];
@@ -32,6 +32,7 @@ function upstreams(options: { cost?: number; falUnit?: string; falPrice?: number
     const body = init?.body ? JSON.parse(String(init.body)) : undefined;
     calls.push({ url: url.href, method: init?.method ?? "GET", auth: new Headers(init?.headers).get("authorization"), body });
     if (url.host === "openrouter.test" && url.pathname === "/api/v1/chat/completions") {
+      await options.duringChat?.();
       const events = [
         { choices: [{ delta: { content: "Bon" } }] },
         { choices: [{ delta: { content: "jour" } }] },
@@ -54,7 +55,7 @@ function upstreams(options: { cost?: number; falUnit?: string; falPrice?: number
       if (action === "resume") boat.state = "idle";
       return Response.json({ sandbox: boat });
     }
-    if (url.host === "openrouter.test" && url.pathname === "/api/v1/models") return Response.json({ data: [{ id: "openai/gpt-5" }] });
+    if (url.host === "openrouter.test" && url.pathname === "/api/v1/models") return Response.json({ data: [{ id: "openai/gpt-5", ...(options.textPricing ? { pricing: options.textPricing } : {}) }] });
     if (url.host === "api.fal.test") return Response.json({ prices: [{ endpoint_id: url.searchParams.get("endpoint_id"), unit_price: options.falPrice ?? 0.07, unit: options.falUnit ?? "second", currency: "USD" }] });
     if (url.host === "queue.fal.test" && init?.method === "POST") {
       const base = "https://queue.fal.test/fal-ai/veo3/requests/req-123";
@@ -152,6 +153,20 @@ describe("Delio AI gateway", () => {
     await answered.text();
     expect((await target.account("low", low)).credits, "a cost above the balance is charged, then the wallet refuses").toBeLessThan(0);
     expect((await target.gateway("low", "openrouter/v1/chat/completions", low, { method: "POST", body: "{}" })).status).toBe(402);
+  });
+
+  it("holds what a text request can cost at the model's price while it runs, and gives back what it did not use", async () => {
+    let during = Number.NaN;
+    let target: Awaited<ReturnType<typeof portal>>, token = "";
+    const upstream = upstreams({ cost: 0.01, textPricing: { prompt: "0", completion: "0.0001" }, duringChat: async () => { during = (await target.account("priced", token)).credits; } });
+    target = await portal(upstream);
+    token = await target.workspace("priced", 1000);
+    const before = (await target.account("priced", token)).credits;
+    const answered = await target.gateway("priced", "openrouter/v1/chat/completions", token, { method: "POST", body: JSON.stringify({ model: "openai/gpt-5", max_tokens: 10_000, messages: [] }) });
+    await answered.text();
+    const after = (await target.account("priced", token)).credits;
+    expect(before - during, "10 000 answer tokens at $0.0001 are held, far above the flat minimum").toBeGreaterThan((before - after) * 50);
+    expect(before - after, "only the real cost is charged").toBeGreaterThan(0);
   });
 
   it("runs a fal.ai job for the workspace's own client: queue URLs on the portal, priced per second, out of other workspaces' reach", async () => {

@@ -1,0 +1,15 @@
+{
+  "voice": "Charlotte",
+  "voiceSettings": { "stability": 0.35, "similarity_boost": 0.8, "style": 0.45, "speed": 1.08 },
+  "music": "High-energy modern tech commercial, 124 BPM, punchy four-on-the-floor drums, deep sub bass, bright synth stabs, riser into a big drop after a short intro, confident and exciting, steady tempo, instrumental, clean ending",
+  "musicSeconds": 60,
+  "scenes": [
+    { "id": "hook", "minBars": 2, "text": "Trop de travail ?" },
+    { "id": "pain", "minBars": 3, "text": "Les e-mails, les devis, les rapports… ça ne s'arrête jamais." },
+    { "id": "reveal", "minBars": 3, "text": "Alors déléguez. Voici Deliobot." },
+    { "id": "proof", "minBars": 4, "text": "Demandez un rapport : Delio cherche, analyse, et vous le rend terminé." },
+    { "id": "blitz", "minBars": 5, "text": "Une équipe qui vend, répond, crée et publie… branchée sur vos outils. Et vous validez d'un geste." },
+    { "id": "offer", "minBars": 3, "text": "Essayez trois jours pour cinq dollars. Sans engagement." },
+    { "id": "cta", "minBars": 3, "text": "Deliobot. Rendez-vous sur deliobot point fun." }
+  ]
+}

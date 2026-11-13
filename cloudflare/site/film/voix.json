@@ -1,0 +1,14 @@
+{
+  "voice": "Charlotte",
+  "music": "Modern upbeat corporate tech launch music, warm synth pads, light plucked arpeggios, soft electronic drums, optimistic and confident, gentle build, clean ending",
+  "scenes": [
+    { "id": "intro", "min": 6, "text": "Voici Delio." },
+    { "id": "chaos", "min": 8, "text": "Les e-mails s'accumulent, les tâches débordent… et la journée n'a que vingt-quatre heures." },
+    { "id": "task", "min": 13, "text": "Avec Deliobot, vous confiez du vrai travail à des bots. Demandez le rapport des ventes de la semaine : Delio rassemble les chiffres, rédige l'analyse, et vous rend le rapport terminé." },
+    { "id": "team", "min": 11, "text": "Montez toute une équipe : un bot commercial, un bot support, un bot marketing. Ils avancent en parallèle, et leurs routines tournent chaque matin, sans que vous y pensiez." },
+    { "id": "tools", "min": 9, "text": "Ils se branchent sur vos outils : votre messagerie, votre agenda, vos documents et les conversations de votre équipe." },
+    { "id": "models", "min": 11, "text": "Pour chaque tâche, Delio choisit la bonne intelligence artificielle : texte, images, vidéo ou musique. Et avec Max ou BYOK, utilisez aussi vos comptes Claude ou ChatGPT." },
+    { "id": "approve", "min": 9, "text": "Et vous gardez toujours la main : avant tout envoi important, Delio vous demande votre accord, directement sur votre téléphone." },
+    { "id": "outro", "min": 9, "text": "Deliobot. Essayez-le trois jours pour cinq dollars, sur deliobot point fun." }
+  ]
+}

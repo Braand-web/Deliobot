@@ -16,7 +16,7 @@ const CLOUD = "https://home-7f3k2.fly.dev";
 const OTHER = "https://bots.example.test";
 const OWN = "https://odb-c-a.fly.dev";
 
-const fixture = vi.hoisted(() => ({ autoUpdater: null, handlers: new Map(), home: "", appName: "opendeliobot", fetch: vi.fn(), openExternal: vi.fn() }));
+const fixture = vi.hoisted(() => ({ autoUpdater: null, handlers: new Map(), home: "", feed: "", appName: "opendeliobot", fetch: vi.fn(), openExternal: vi.fn() }));
 
 vi.mock("electron", () => ({
   app: { isPackaged: true, getPath: () => fixture.home, getVersion: () => "1.0.0", getName: () => fixture.appName, hide: vi.fn() },
@@ -156,7 +156,8 @@ const settle = async () => {
 
 beforeEach(() => {
   fixture.home = mkdtempSync(join(tmpdir(), "odb-updater-home-"));
-  fixture.fetch.mockReset().mockImplementation(async () => new Response("version: 1.0.0\n"));
+  fixture.feed = "version: 1.0.0\n";
+  fixture.fetch.mockReset().mockImplementation(async () => new Response(fixture.feed, { status: fixture.feed ? 200 : 503 }));
   fixture.openExternal.mockReset();
   localOriginModule.setLocalOrigin(LOCAL);
   vi.useFakeTimers();
@@ -288,7 +289,7 @@ it("a downloaded update installs when the app quits, except a system package, wh
   }
 });
 
-it("a Windows copy unpacked from the ZIP never updates itself: NSIS would install a second copy", async () => {
+it("a Windows copy unpacked from the ZIP never updates itself: it reads the feed and offers the new ZIP to download", async () => {
   const platform = Object.getOwnPropertyDescriptor(process, "platform");
   const resourcesPath = process.resourcesPath;
   const unpacked = mkdtempSync(join(tmpdir(), "odb-updater-zip-"));
@@ -296,12 +297,14 @@ it("a Windows copy unpacked from the ZIP never updates itself: NSIS would instal
     Object.defineProperty(process, "platform", { ...platform, value: "win32" });
     process.resourcesPath = join(unpacked, "resources");
     mkdirSync(process.resourcesPath);
+    fixture.feed = "version: 1.0.1\n";
     const { updater, autoUpdater, handlers } = await load(() => true);
     updater.startUpdater();
     await vi.advanceTimersByTimeAsync(15_000);
     expect(autoUpdater.checkForUpdates).not.toHaveBeenCalled();
-    expect((await handlers.get("update:get-state")({})).status).toBe("idle");
+    expect(await handlers.get("update:get-state")({})).toMatchObject({ status: "downloaded", version: "1.0.1", installMode: "download" });
   } finally {
+    fixture.feed = "";
     Object.defineProperty(process, "platform", platform);
     process.resourcesPath = resourcesPath;
     rmSync(unpacked, { recursive: true, force: true });

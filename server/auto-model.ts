@@ -15,6 +15,10 @@ const TIER_FAMILIES: Record<AutoTier, readonly RegExp[]> = {
 };
 const UNSUITED = /image|audio|tts|embed|moderation|:free|preview|-exp|guard/i;
 const WORK = /\b(r[ée]sum\w*|summari[sz]\w*|r[ée]dige\w*|write|draft|traduis\w*|tradui\w*|translate|explique\w*|explain\w*|compare\w*|propose\w*|corrige\w*|rewrite|r[ée][ée]cri\w*|liste\w*|list)\b/i;
+/** Work done with tools: acting on a site, an app, a file or an inbox takes a model that plans and recovers. */
+const ACTION = /\b(publi\w*|post\w*|envoi\w*|envoy\w*|send|r[ée]pond\w*|reply|commente\w*|comment|partage\w*|share|connecte\w*|sign in|log ?in|ouvr\w*|open|navig\w*|browse|va sur|go to|cherche\w*|recherche\w*|search|find|trouve\w*|t[ée]l[ée]charge\w*|download|upload|remplis\w*|fill|r[ée]serve\w*|book|ach[eè]te\w*|buy|programme\w*|planifie\w*|schedule|cr[ée]e\w*|create|g[ée]n[èe]re\w*|generate|pr[ée]pare\w*|prepare|[ée]cri\w*|fais\w*|make|build|installe\w*|install|lance\w*|run|supprime\w*|delete|modifie\w*|update|edit|v[ée]rifie\w*|check|surveille\w*|monitor|rapport|report|facture|invoice|devis|quote|e-?mail|mail|agenda|calendar|facebook|instagram|linkedin|tiktok|twitter|youtube|whatsapp|telegram|reddit|pinterest|snapchat|discord|slack|notion|gmail|drive|sheets?|excel)\b|https?:\/\/|\b[\w-]+\.(com|fr|io|net|org|app|ai|co)\b/i;
+/** A go-ahead that continues the work before it, so it runs on that work's model. */
+const GO_AHEAD = /^\W*(oui|ok(ay)?|d'accord|vas[- ]y|allez|go|continue\w*|poursuis|fais[- ]le|encore|r[ée]essa\w*|suivant|la suite|yes|yep|sure|do it|go ahead|proceed|carry on|keep going|retry|try again|next)\b/i;
 const HEAVY = /\b(code|coding|debug|bug|refactor|architect\w*|algorithm\w*|analy[sz]\w*|strat[eé]g\w*|contrat|contract|legal|juridique|proof|prove|d[ée]montr\w*|optimi[sz]\w*|step by step|[ée]tape par [ée]tape|think (hard|carefully)|r[ée]fl[ée]chis)\b/i;
 
 function version(id: string): number[] {
@@ -30,13 +34,41 @@ function newer(a: string, b: string): number {
   return a.localeCompare(b);
 }
 
-/** How demanding a message looks: short and plain is light, code or analysis is power, everything else standard. */
-export function autoTier(input: { text: string; images?: number; transcriptChars?: number }): AutoTier {
+const RANK: Record<AutoTier, number> = { light: 0, standard: 1, power: 2 };
+
+/** The tier a message's complexity calls for: nothing to work out is light, several steps or hard reasoning is power, the rest standard.
+ * `previous` is the tier of the thread's turn before it. */
+export function autoTier(input: { text: string; images?: number; transcriptChars?: number; previous?: AutoTier }): AutoTier {
   const text = input.text.trim();
+  const rated = ratedTier({ ...input, text });
+  const previous = input.previous;
+  return previous && RANK[previous] > RANK[rated] && text.length <= 80 && GO_AHEAD.test(text) ? previous : rated;
+}
+
+/** Words that chain steps or name several deliverables: each one is a step the model has to plan and keep track of. */
+const STEP = /\b(puis|ensuite|apr[eè]s (?:ça|cela|quoi)|enfin|d'abord|premi[eè]rement|deuxi[eè]mement|et aussi|ainsi que|pour chaque|chacun\w*|tous les|toutes les|then|after that|afterwards|next|finally|first|second(?:ly)?|and also|as well as|for each|every)\b/gi;
+const LIST_ITEM = /^\s*(?:[-*•]|\d+[.)])\s+\S/gm;
+/** Work that takes judgement rather than execution, whatever its length. */
+const JUDGEMENT = /\b(compar\w*|[ée]value\w*|evaluat\w*|recommand\w*|recommend\w*|d[ée]cid\w*|decide|arbitr\w*|trade-?offs?|avantages et inconv[ée]nients|pros and cons|pourquoi|why|risques?|risks?|plan d'action|business plan|roadmap|feuille de route|n[ée]goci\w*|negotiat\w*|diagnos\w*|audit\w*|pr[ée]vision\w*|forecast\w*|budget\w*|sc[ée]nario\w*)\b/gi;
+
+/** How much a message asks for: its steps, its deliverables, the judgement and the tools it takes, and what it carries. */
+export function complexity(input: { text: string; images?: number; transcriptChars?: number }): number {
+  const text = input.text.trim();
+  const steps = (text.match(STEP)?.length ?? 0) + Math.max(0, (text.match(LIST_ITEM)?.length ?? 0) - 1);
   const code = /```|^\s{4}\S/m.test(text);
-  const heavy = HEAVY.test(text);
-  if (text.length > 2500 || (code && heavy) || (heavy && text.length > 600)) return "power";
-  if (!code && !heavy && !WORK.test(text) && !input.images && text.length <= 220 && (input.transcriptChars ?? 0) <= 6000) return "light";
+  return Math.min(steps, 4)
+    + (ACTION.test(text) ? 1 : 0) + (WORK.test(text) ? 1 : 0) + (HEAVY.test(text) ? 2 : 0) + Math.min(text.match(JUDGEMENT)?.length ?? 0, 3) + (code ? 2 : 0)
+    + (text.length > 2500 ? 4 : text.length > 1200 ? 2 : text.length > 400 ? 1 : 0)
+    + ((input.images ?? 0) > 2 ? 1 : 0) + ((input.transcriptChars ?? 0) > 60_000 ? 1 : 0);
+}
+
+const POWER_AT = 4;
+
+function ratedTier(input: { text: string; images?: number; transcriptChars?: number }): AutoTier {
+  const { text } = input;
+  const score = complexity(input);
+  if (score >= POWER_AT) return "power";
+  if (score === 0 && !input.images && text.length <= 220 && (input.transcriptChars ?? 0) <= 6000) return "light";
   return "standard";
 }
 
@@ -66,10 +98,17 @@ export function withAutoCatalog(catalog: ModelCatalog): ModelCatalog {
 
 const transcriptChars = (input: SendTurnInput) => (input.transcript ?? []).reduce((total, line) => total + line.text.length, 0);
 const NEXT: Record<AutoTier, AutoTier | null> = { light: "standard", standard: "power", power: null };
+const REMEMBERED_THREADS = 2000;
 
 /** Adds Auto to an engine. A turn on Auto runs on the tier's model; when that model refuses before starting, the next tier up is tried once. */
 export function withAutoModel(instance: ProviderInstance, options: { tiers?: () => AutoTierModels; onChoice?: (choice: { threadId: string; tier: AutoTier; model: string }) => void } = {}): ProviderInstance {
   const pick = (tier: AutoTier) => autoModelFor(tier, instance.models, options.tiers?.());
+  const lastTier = new Map<string, AutoTier>();
+  const remember = (threadId: string, tier: AutoTier) => {
+    lastTier.delete(threadId);
+    lastTier.set(threadId, tier);
+    if (lastTier.size > REMEMBERED_THREADS) lastTier.delete(lastTier.keys().next().value!);
+  };
   const decorated: ProviderInstance = Object.create(instance, {
     models: { get: () => withAutoCatalog(instance.models), enumerable: true },
     adapter: {
@@ -77,9 +116,10 @@ export function withAutoModel(instance: ProviderInstance, options: { tiers?: () 
         ...instance.adapter,
         sendTurn: async (input: SendTurnInput) => {
           if (input.model !== AUTO_MODEL) return instance.adapter.sendTurn(input);
-          let tier = autoTier({ text: input.text, images: input.images?.length, transcriptChars: transcriptChars(input) });
+          let tier = autoTier({ text: input.text, images: input.images?.length, transcriptChars: transcriptChars(input), previous: lastTier.get(input.threadId) });
           for (;;) {
             const model = pick(tier);
+            remember(input.threadId, tier);
             options.onChoice?.({ threadId: input.threadId, tier, model });
             try {
               return await instance.adapter.sendTurn({ ...input, model, variant: undefined, effort: undefined });

@@ -1,5 +1,8 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { closeSync, existsSync, mkdtempSync, openSync, readFileSync, readSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { basename, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { runInNewContext } from "node:vm";
 import { beforeAll, expect, it } from "vitest";
@@ -79,4 +82,64 @@ it("shows and links each platform's actual published version", async () => {
   expect(links[0]?.small.textContent).toContain("v0.1.157");
   expect(label.textContent).toContain("Windows · Version 0.1.157");
   expect(badge.hidden).toBe(false);
+});
+
+it("publishes a release through the Worker while stable links still select the previous feed", async () => {
+  const folder = mkdtempSync(join(tmpdir(), "delio-publish-fixture-"));
+  try {
+    const version = "0.0.2";
+    const files = [`OpenDeliobot-${version}-setup.exe`, `OpenDeliobot-${version}-setup.exe.blockmap`, `OpenDeliobot-${version}-x64.zip`,
+      `OpenDeliobot-${version}-x86_64.AppImage`, `OpenDeliobot-${version}-amd64.deb`, "SHA256SUMS-ubuntu-x64.txt"];
+    for (const file of files) writeFileSync(join(folder, file), `fixture ${file}`);
+    for (const file of ["latest.yml", "latest-linux.yml"]) writeFileSync(join(folder, file), `version: ${version}\n`);
+    const objects = new Map<string, Buffer>();
+    for (const file of ["latest.yml", "latest-linux.yml"]) objects.set(`download/latest/${file}`, Buffer.from("version: 0.0.1\n"));
+    for (const suffix of ["setup.exe", "x64.zip", "amd64.deb", "x86_64.AppImage"]) objects.set(`download/latest/OpenDeliobot-0.0.1-${suffix}`, Buffer.from("old fixture"));
+    const uploads = new Map<string, Map<number, Buffer>>();
+    const objectAt = (key: string, options: { range?: { offset: number; length?: number } } = {}) => {
+      const data = objects.get(key);
+      if (!data) return null;
+      const range = options.range;
+      return { key, size: data.length, httpEtag: `"${createHash("sha256").update(data).digest("hex")}"`, text: async () => data.toString(),
+        body: range ? data.subarray(range.offset, range.length ? range.offset + range.length : undefined) : data,
+        ...(range ? { range: { offset: range.offset, length: range.length ?? data.length - range.offset } } : {}) };
+    };
+    const bucket = {
+      head: async (key: string) => objectAt(key),
+      get: async (key: string, options?: { range?: { offset: number; length?: number } }) => objectAt(key, options),
+      createMultipartUpload: async (key: string) => { uploads.set(key, new Map()); return { uploadId: key }; },
+      resumeMultipartUpload: (key: string, id: string) => {
+        expect(id).toBe(key);
+        return {
+          uploadPart: async (partNumber: number, body: BodyInit) => {
+            uploads.get(key)!.set(partNumber, Buffer.from(await new Response(body).arrayBuffer()));
+            return { partNumber, etag: `part-${partNumber}` };
+          },
+          complete: async (parts: Array<{ partNumber: number }>) => {
+            objects.set(key, Buffer.concat(parts.map(part => uploads.get(key)!.get(part.partNumber)!)));
+            return objectAt(key);
+          },
+        };
+      },
+    };
+    const token = "fixture-upload-token-".repeat(3);
+    const lines: string[] = [];
+    const source = readFileSync(new URL("./publish-downloads.mjs", import.meta.url), "utf8").replace(/^import[^\n]+;\r?\n/gm, "");
+    expect(source).not.toMatch(/^import /m);
+    await runInNewContext(`(async () => { ${source} })()`, {
+      process: { argv: ["node", "publish-downloads.mjs", folder], env: { DELIO_UPLOAD_TOKEN: token } },
+      createHash, closeSync, existsSync, openSync, readFileSync, readSync, statSync, basename, join, Buffer,
+      console: { log: (line: string) => lines.push(line) }, setTimeout,
+      fetch: async (url: string, init?: RequestInit) => {
+        expect(new URL(url).origin).toBe("https://deliobot.fun");
+        return worker.fetch(new Request(url, init), { DOWNLOADS: bucket, UPLOAD_TOKEN: token }, {});
+      },
+    });
+    expect(objects.get(`download/latest/OpenDeliobot-${version}-x64.zip`)).toEqual(readFileSync(join(folder, `OpenDeliobot-${version}-x64.zip`)));
+    expect(objects.get("download/latest/latest.yml")?.toString()).toBe("version: 0.0.2\n");
+    expect(objects.get("download/latest/latest-linux.yml")?.toString()).toBe("version: 0.0.2\n");
+    expect(lines.at(-1)).toBe("deliobot.fun now offers 0.0.2");
+  } finally {
+    rmSync(folder, { recursive: true, force: true });
+  }
 });

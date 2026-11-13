@@ -18,8 +18,9 @@ wrangler's 300 MiB upload limit goes up in parts through `/__upload/<key>`, whic
 parts' list). Without that secret the route answers 404.
 
 Every validated release must update the landing's download buttons. Publish the
-versioned artifacts and stable links, verify their public digests, then publish
-the matching update feed. Windows uses `download/Deliobot-Setup.exe`,
+versioned artifacts and stable objects, verify the versioned files' public digests,
+then publish the matching update feed and verify the stable links it selects.
+Windows uses `download/Deliobot-Setup.exe`,
 `download/Deliobot-Windows.zip`, and `download/latest/latest.yml`; Linux keeps
 its latest validated build until a newer Linux build is available. Never put
 another platform's version number on an older binary.

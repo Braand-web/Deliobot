@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Deliobot — film</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#09090c;--ink:#f6f6f8;--ink2:#a7a7b2;--ink3:#6c6c78;--card:#141419;--card2:#1c1c23;--line:#2a2a33;--blue:#3b8bff;--green:#34c58a;--orange:#ff8a3d;--violet:#9b7bff;--pink:#ff6fae}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:var(--bg);color:var(--ink);font-family:Geist,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.frame{position:absolute;inset:0;overflow:hidden}
+.bg{position:absolute;inset:-200px;filter:blur(90px);opacity:.55}
+.blob{position:absolute;border-radius:50%}
+.scene{position:absolute;inset:0;opacity:0}
+.abs{position:absolute}
+.center{left:50%;top:50%}
+h1{font-weight:600;letter-spacing:-.035em;line-height:1.02}
+.kicker{font-size:30px;color:var(--ink2);letter-spacing:-.01em}
+.headline{font-size:96px;font-weight:600;letter-spacing:-.04em;line-height:1}
+.card{background:var(--card);border:1px solid var(--line);border-radius:28px;box-shadow:0 40px 120px -40px rgba(0,0,0,.8)}
+.pill{display:inline-flex;align-items:center;gap:12px;border-radius:999px;padding:14px 26px;font-size:28px;font-weight:500}
+.notif{width:430px;padding:22px 24px;border-radius:22px;background:#17171d;border:1px solid var(--line);display:flex;gap:16px;align-items:flex-start;box-shadow:0 30px 70px -30px rgba(0,0,0,.9)}
+.notif .dot{width:46px;height:46px;border-radius:14px;flex:none;display:grid;place-items:center;font-size:24px}
+.notif b{display:block;font-size:22px;font-weight:600;margin-bottom:4px}
+.notif span{font-size:19px;color:var(--ink2)}
+.win{width:1500px;height:820px;display:grid;grid-template-columns:330px 1fr;overflow:hidden}
+.side{background:#101015;border-right:1px solid var(--line);padding:30px 22px;display:flex;flex-direction:column;gap:10px}
+.side .bot{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:16px;font-size:21px}
+.side .bot img{width:42px;height:42px}
+.side .bot.on{background:#1d1d25}
+.chat{padding:40px 54px;display:flex;flex-direction:column;gap:22px;position:relative}
+.msg-me{align-self:flex-end;background:var(--blue);color:#fff;border-radius:24px 24px 6px 24px;padding:20px 26px;font-size:26px;max-width:760px}
+.msg-bot{display:flex;gap:16px;align-items:flex-start}
+.msg-bot img{width:52px;height:52px;flex:none}
+.steps{background:#17171d;border:1px solid var(--line);border-radius:22px;padding:20px 24px;display:flex;flex-direction:column;gap:14px;width:640px}
+.step{display:flex;align-items:center;gap:16px;font-size:23px;color:var(--ink2)}
+.tick{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--line);display:grid;place-items:center;flex:none;position:relative}
+.tick svg{width:18px;height:18px}
+.report{position:absolute;right:54px;bottom:46px;width:560px;padding:28px 30px}
+.report h3{font-size:26px;font-weight:600}
+.report .sub{font-size:19px;color:var(--ink2);margin-top:4px}
+.bars{display:flex;align-items:flex-end;gap:16px;height:190px;margin-top:22px}
+.bars i{flex:1;border-radius:10px 10px 4px 4px;background:linear-gradient(180deg,var(--blue),#2a5fd0);transform-origin:bottom}
+.big{font-size:54px;font-weight:600;letter-spacing:-.03em;color:var(--green)}
+.teamcard{width:470px;padding:30px;display:flex;flex-direction:column;gap:18px}
+.teamcard .top{display:flex;align-items:center;gap:18px}
+.teamcard img{width:84px;height:84px}
+.teamcard b{font-size:30px;font-weight:600;display:block}
+.teamcard small{font-size:20px;color:var(--ink2)}
+.bar{height:12px;border-radius:999px;background:#24242c;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px}
+.line{font-size:22px;color:var(--ink2);height:30px;position:relative}
+.routine{width:1290px;padding:24px 32px;display:flex;align-items:center;gap:26px;font-size:24px}
+.chip{position:absolute;padding:18px 28px;border-radius:999px;background:#17171d;border:1px solid var(--line);font-size:28px;font-weight:500;display:flex;align-items:center;gap:14px;white-space:nowrap;transform:translate(-50%,-50%)}
+.chip i{width:14px;height:14px;border-radius:50%}
+.tile{width:300px;height:300px;border-radius:28px;padding:26px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+.tile b{font-size:30px;font-weight:600;position:relative}
+.tile small{font-size:19px;color:rgba(255,255,255,.75);position:relative}
+.phone{width:470px;height:930px;border-radius:70px;border:10px solid #2b2b33;background:#0f0f14;padding:70px 26px 30px;box-shadow:0 60px 140px -40px rgba(0,0,0,.9)}
+.ask{background:#1b1b22;border:1px solid var(--line);border-radius:30px;padding:28px;display:flex;flex-direction:column;gap:18px}
+.ask .who{display:flex;align-items:center;gap:14px;font-size:22px;color:var(--ink2)}
+.ask .who img{width:46px;height:46px}
+.ask p{font-size:27px;line-height:1.3}
+.ask .btns{display:flex;gap:14px}
+.ask .btns span{flex:1;text-align:center;padding:18px;border-radius:18px;font-size:24px;font-weight:600}
+.tap{position:absolute;width:90px;height:90px;border-radius:50%;border:4px solid rgba(255,255,255,.85);transform:translate(-50%,-50%)}
+</style>
+</head>
+<body>
+<div class="frame" id="frame">
+  <div class="bg" id="bg">
+    <div class="blob" id="b1" style="width:900px;height:900px;background:#2a4fd6"></div>
+    <div class="blob" id="b2" style="width:800px;height:800px;background:#6b3fd4"></div>
+    <div class="blob" id="b3" style="width:700px;height:700px;background:#0f8f74"></div>
+  </div>
+</div>
+<script>
+const ASSETS = "../public/assets/";
+const DEFAULT = [["intro", 6], ["chaos", 8], ["task", 13], ["team", 11], ["tools", 9], ["models", 11], ["approve", 9], ["outro", 9]];
+const timeline = window.TIMELINE ?? (() => { let s = 0; return { scenes: DEFAULT.map(([id, length]) => { const r = { id, start: s, length }; s += length; return r; }), total: s }; })();
+
+const clamp = (x) => Math.max(0, Math.min(1, x));
+const p = (u, a, b) => clamp((u - a) / (b - a));
+const eo = (x) => 1 - Math.pow(1 - x, 3);
+const eio = (x) => (x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const back = (x) => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const lerp = (a, b, x) => a + (b - a) * x;
+const el = (tag, attrs = {}, parent) => { const node = document.createElement(tag); Object.assign(node, attrs); if (attrs.style) node.style.cssText = attrs.style; parent?.appendChild(node); return node; };
+const set = (node, { o, x = 0, y = 0, s = 1, r = 0, blur = 0 } = {}) => {
+  if (o !== undefined) node.style.opacity = o;
+  node.style.transform = `${node.dataset.base ?? ""} translate(${x}px,${y}px) scale(${s}) rotate(${r}deg)`;
+  node.style.filter = blur ? `blur(${blur}px)` : "";
+};
+const img = (name, style, parent) => el("img", { src: `${ASSETS}delio-${name}.webp`, style }, parent);
+const check = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+/** Words that rise one after another: the film's titles. */
+function title(text, style, parent) {
+  const box = el("div", { className: "abs headline", style }, parent);
+  const words = text.split(" ").map((word) => { const w = el("span", { style: "display:inline-block;margin-right:.24em" }, box); w.textContent = word; return w; });
+  return (u, at = 0, out = Infinity) => words.forEach((w, i) => {
+    const k = eo(p(u, at + i * .09, at + i * .09 + .6)), gone = out === Infinity ? 0 : p(u, out, out + .45);
+    set(w, { o: k * (1 - gone), y: (1 - k) * 46 - gone * 30, blur: (1 - k) * 8 });
+  });
+}
+
+const frame = document.getElementById("frame");
+const scenes = {};
+
+/* 1. Delio appears */
+scenes.intro = (() => {
+  const root = el("div", { className: "scene" }, frame);
+  const halo = el("div", { className: "abs", style: "left:960px;top:430px;width:520px;height:520px;margin:-260px;border-radius:50%;background:radial-gradient(circle,rgba(91,140,255,.55),rgba(91,140,255,0) 65%)" }, root);
+  const ring = el("div", { className: "abs", style: "left:960px;top:430px;width:360px;height:360px;margin:-180px;border-radius:50%;border:2px solid rgba(255,255,255,.35)" }, root);
+  const idle = img("idle", "position:absolute;left:960px;top:430px;width:300px;height:300px;margin:-150px", root);
+  const happy = img("happy", "position:absolute;left:960px;top:430px;width:300px;height:300px;margin:-150px;opacity:0", root);
+  const hello = title("Voici Delio.", "left:0;right:0;top:640px;text-align:center;font-size:120px", root);
+  const sub = el("div", { className: "abs kicker", style: "left:0;right:0;top:800px;text-align:center;font-size:36px", textContent: "Vos collègues IA, prêts à travailler." }, root);
+  return { root, draw(u) {
+    const k = back(p(u, .2, 1.1));
+    set(idle, { o: p(u, .2, .5) * (1 - p(u, 2.6, 2.9)), s: k, y: Math.sin(u * 2.2) * 8 });
+    set(happy, { o: p(u, 2.6, 2.9), s: 1 + .06 * Math.sin(p(u, 2.6, 3.4) * Math.PI), y: Math.sin(u * 2.2) * 8 });
+    set(halo, { o: p(u, .3, 1.2) * (.8 + .2 * Math.sin(u * 3)), s: .7 + .3 * eo(p(u, .3, 1.5)) });
+    const pulse = (u * .8) % 1;
+    set(ring, { o: p(u, 1, 1.3) * (1 - pulse) * .7, s: 1 + pulse * .8 });
+    hello(u, 1.2);
+    set(sub, { o: eo(p(u, 2.3, 3)), y: (1 - eo(p(u, 2.3, 3))) * 24 });
+  } };
+})();
+
+/* 2. Too much work */
+scenes.chaos = (() => {
+  const root = el("div", { className: "scene" }, frame);
+  const items = [
+    ["✉️", "#3b2a14", "Relance facture n° 2318", "Le client attend toujours"], ["📅", "#14283b", "Réunion à 14 h", "Préparer la présentation"], ["⚠️", "#3b1414", "Devis urgent — Acme", "À envoyer avant midi"],
+    ["💬", "#1d143b", "12 messages non lus", "Équipe commerciale"], ["📊", "#143b2a", "Rapport des ventes", "Attendu ce soir"], ["🧾", "#3b3214", "3 factures à saisir", "Comptabilité"],
+    ["📣", "#3b1430", "Publier sur les réseaux", "Campagne de printemps"], ["🎧", "#14353b", "23 demandes clients", "Support"], ["✉️", "#2a143b", "Proposition partenaire", "Répondre aujourd'hui"],
+  ];
+  const spots = [[260, 230, -6], [1380, 190, 5], [820, 120, -2], [300, 640, 4], [1450, 610, -5], [880, 760, 3], [560, 410, -3], [1200, 410, 6], [1560, 870, -4]];
+  const cards = items.map(([icon, tint, b, s], i) => {
+    const card = el("div", { className: "notif abs", style: `left:${spots[i][0] - 215}px;top:${spots[i][1] - 50}px` }, root);
+    card.innerHTML = `<div class="dot" style="background:${tint}">${icon}</div><div><b>${b}</b><span>${s}</span></div>`;
+    return card;
+  });
+  const t1 = title("Trop de travail.", "left:0;right:0;top:470px;text-align:center;font-size:110px", root);
+  const t2 = title("Pas assez de mains.", "left:0;right:0;top:470px;text-align:center;font-size:110px;color:var(--ink2)", root);
+  return { root, draw(u, L) {
+    const gather = eio(p(u, L - 2.4, L - .9));
+    cards.forEach((card, i) => {
+      const k = back(p(u, .2 + i * .28, .7 + i * .28));
+      const shake = Math.sin(u * 18 + i) * 3 * p(u, 2, 3) * (1 - gather);
+      const [x, y, r] = spots[i];
+      set(card, { o: p(u, .2 + i * .28, .45 + i * .28) * (1 - p(u, L - 1.3, L - .9)), s: lerp(k, .25, gather), r: lerp(r, 0, gather) + shake,
+        x: lerp(0, 960 - x, gather), y: lerp(0, 540 - y, gather) });
+    });
+    t1(u, 2.6, L - 3.3);
+    t2(u, L - 2.9);
+  } };
+})();
+
+/* 3. A real task, done */
+scenes.task = (() => {
+  const root = el("div", { className: "scene" }, frame);
+  const win = el("div", { className: "card win abs", style: "left:210px;top:150px" }, root);
+  const side = el("div", { className: "side" }, win);
+  side.innerHTML = `<div style="font-size:20px;color:var(--ink3);padding:4px 14px 10px">Vos bots</div>
+    <div class="bot on"><img src="${ASSETS}delio-working.webp">Delio</div><div class="bot"><img src="${ASSETS}delio-curious.webp">Commercial</div>
+    <div class="bot"><img src="${ASSETS}delio-listening.webp">Support</div><div class="bot"><img src="${ASSETS}delio-proud.webp">Marketing</div>`;
+  const chat = el("div", { className: "chat" }, win);
+  const me = el("div", { className: "msg-me" }, chat);
+  const ask = "Prépare le rapport des ventes de la semaine.";
+  const reply = el("div", { className: "msg-bot" }, chat);
+  reply.innerHTML = `<img src="${ASSETS}delio-working.webp">`;
+  const steps = el("div", { className: "steps" }, reply);
+  const labels = ["Lire les ventes dans le tableur", "Comparer avec la semaine dernière", "Rédiger l'analyse", "Créer le graphique"];
+  const rows = labels.map((label) => { const row = el("div", { className: "step" }, steps); row.innerHTML = `<span class="tick"></span><span>${label}</span>`; return row; });
+  const report = el("div", { className: "card report" }, chat);
+  report.innerHTML = `<h3>Rapport des ventes · semaine 46</h3><div class="sub">Prêt à partager</div>
+    <div style="display:flex;align-items:baseline;gap:16px;margin-top:14px"><span class="big">+18 %</span><span style="font-size:20px;color:var(--ink2)">par rapport à la semaine dernière</span></div>
+    <div class="bars">${[40, 55, 48, 66, 72, 61, 88].map(() => "<i></i>").join("")}</div>`;
+  const bars = [...report.querySelectorAll(".bars i")];
+  const heights = [40, 55, 48, 66, 72, 61, 88];
+  const big = report.querySelector(".big");
+  const t = title("Confiez du vrai travail.", "left:210px;top:40px;font-size:64px", root);
+  return { root, draw(u, L) {
+    t(u, .1);
+    set(win, { o: eo(p(u, 0, .7)), y: (1 - eo(p(u, 0, .9))) * 80, s: lerp(.96, 1, eo(p(u, 0, 1))) });
+    const typed = Math.floor(ask.length * p(u, .9, 3));
+    me.textContent = ask.slice(0, typed) + (u < 3.2 && Math.floor(u * 2.5) % 2 ? "|" : "");
+    set(me, { o: p(u, .8, 1) });
+    set(reply, { o: eo(p(u, 3.3, 3.8)), y: (1 - eo(p(u, 3.3, 3.8))) * 20 });
+    const span = Math.max(1.1, (L - 8) / 4);
+    rows.forEach((row, i) => {
+      const at = 4 + i * span, done = u > at + span * .75;
+      const tick = row.firstElementChild;
+      tick.innerHTML = done ? check : "";
+      tick.style.background = done ? "var(--green)" : "transparent";
+      tick.style.borderColor = done ? "var(--green)" : u > at ? "var(--blue)" : "var(--line)";
+      tick.style.transform = u > at && !done ? `rotate(${u * 360}deg)` : "";
+      tick.style.borderTopColor = u > at && !done ? "transparent" : "";
+      row.style.color = done ? "var(--ink)" : "var(--ink2)";
+      set(row, { o: p(u, at - .3, at) * .6 + .4 });
+    });
+    const shown = 4 + 4 * span;
+    set(report, { o: eo(p(u, shown, shown + .6)), y: (1 - eo(p(u, shown, shown + .8))) * 60, s: lerp(.92, 1, back(p(u, shown, shown + .8))) });
+    bars.forEach((bar, i) => { bar.style.height = `${heights[i] * eo(p(u, shown + .3 + i * .08, shown + 1.1 + i * .08))}%`; });
+    big.textContent = `+${Math.round(18 * eo(p(u, shown + .3, shown + 1.6)))} %`;
+  } };
+})();
+
+/* 4. A whole team */
+scenes.team = (() => {
+  const root = el("div", { className: "scene" }, frame);
+  const t = title("Toute une équipe, en parallèle.", "left:0;right:0;top:90px;text-align:center;font-size:76px", root);
+  const team = [["curious", "Commercial", "var(--blue)", ["Relance 8 prospects", "Prépare 3 devis", "Met à jour le CRM"], 1.0],
+    ["listening", "Support", "var(--green)", ["Répond à 23 demandes", "Classe les tickets", "Rédige la FAQ"], .8], ["proud", "Marketing", "var(--violet)", ["Programme 5 publications", "Écrit la newsletter", "Analyse la campagne"], 1.2]];
+  const cards = team.map(([face, name, color, lines], i) => {
+    const card = el("div", { className: "card teamcard abs", style: `left:${165 + i * 540}px;top:270px` }, root);
+    card.innerHTML = `<div class="top"><img src="${ASSETS}delio-${face}.webp"><div><b>${name}</b><small>au travail</small></div></div>
+      <div class="bar"><i style="background:${color}"></i></div><div class="line"></div>`;
+    return { card, fill: card.querySelector(".bar i"), line: card.querySelector(".line"), lines, speed: team[i][4], face: card.querySelector("img") };
+  });
+  const routine = el("div", { className: "card routine abs", style: "left:315px;top:720px" }, root);
+  routine.innerHTML = `<span style="font-size:40px">⏰</span><div style="flex:1"><b style="font-size:28px;font-weight:600">Routines</b><div style="color:var(--ink2);font-size:21px;margin-top:4px">Chaque matin à 8 h : point des ventes, tickets urgents, agenda du jour</div></div>
+    <span class="pill" style="background:#17321f;color:#5fd9a6;font-size:22px;padding:10px 20px">Actif</span>`;
+  return { root, draw(u, L) {
+    t(u, .1);
+    cards.forEach(({ card, fill, line, lines, speed, face }, i) => {
+      const k = back(p(u, .5 + i * .2, 1.2 + i * .2));
+      set(card, { o: p(u, .5 + i * .2, .9 + i * .2), y: (1 - k) * 90, s: lerp(.9, 1, k) });
+      fill.style.width = `${Math.min(100, 8 + ((u - 1.2) * speed * 16) % 100)}%`;
+      const which = Math.floor(Math.max(0, u - 1.2) * speed / 2.2) % lines.length;
+      line.textContent = `→ ${lines[which]}`;
+      set(face, { y: Math.sin(u * 3 + i) * 4 });
+    });
+    set(routine, { o: eo(p(u, L * .45, L * .45 + .6)), y: (1 - eo(p(u, L * .45, L * .45 + .8))) * 50 });
+  } };
+})();
+
+/* 5. Your tools */
+scenes.tools = (() => {
+  const root = el("div", { className: "scene" }, frame);
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width", "1920"); svg.setAttribute("height", "1080"); svg.style.position = "absolute";
+  root.appendChild(svg);
+  const hub = img("happy", "position:absolute;left:960px;top:560px;width:230px;height:230px;margin:-115px", root);
+  const glow = el("div", { className: "abs", style: "left:960px;top:560px;width:460px;height:460px;margin:-230px;border-radius:50%;background:radial-gradient(circle,rgba(52,197,138,.4),transparent 65%)" }, root);
+  const tools = [["Messagerie", "var(--orange)"], ["Agenda", "var(--blue)"], ["Documents", "var(--green)"], ["Tableurs", "#2fd0c2"], ["Conversations d'équipe", "var(--violet)"], ["CRM", "var(--pink)"]];
+  const chips = tools.map(([name, color], i) => {
+    const angle = -Math.PI / 2 + i * (Math.PI * 2 / tools.length);
+    const x = 960 + Math.cos(angle) * 610, y = 560 + Math.sin(angle) * 330;
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", `M960 560 L${x} ${y}`); path.setAttribute("stroke", "rgba(255,255,255,.22)"); path.setAttribute("stroke-width", "2.5"); path.setAttribute("fill", "none");
+    svg.appendChild(path);
+    const pulse = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    pulse.setAttribute("r", "7"); pulse.setAttribute("fill", color.startsWith("var") ? getComputedStyle(document.documentElement).getPropertyValue(color.slice(4, -1)).trim() : color);
+    svg.appendChild(pulse);
+    const chip = el("div", { className: "chip", style: `left:${x}px;top:${y}px` }, root);
+    chip.innerHTML = `<i style="background:${color}"></i>${name}`;
+    return { chip, path, pulse, x, y, length: Math.hypot(x - 960, y - 560) };
+  });
+  const t = title("Branché sur vos outils.", "left:0;right:0;top:60px;text-align:center;font-size:76px", root);
+  return { root, draw(u) {
+    t(u, .1);
+    set(hub, { o: p(u, .1, .5), s: back(p(u, .1, .9)), y: Math.sin(u * 2.4) * 6 });
+    set(glow, { o: p(u, .3, 1) * (.75 + .25 * Math.sin(u * 3)) });
+    chips.forEach(({ chip, path, pulse, x, y, length }, i) => {
+      const at = .8 + i * .3;
+      path.setAttribute("stroke-dasharray", `${length}`);
+      path.setAttribute("stroke-dashoffset", `${length * (1 - eo(p(u, at, at + .7)))}`);
+      const k = back(p(u, at + .4, at + 1));
+      set(chip, { o: p(u, at + .4, at + .7), s: k });
+      const travel = ((u - at - 1) * .55 + i * .17) % 1;
+      const toward = Math.floor((u - at - 1) * .55 + i * .17) % 2 === 0;
+      const f = toward ? travel : 1 - travel;
+      pulse.setAttribute("cx", `${lerp(960, x, f)}`); pulse.setAttribute("cy", `${lerp(560, y, f)}`);
+      pulse.setAttribute("opacity", `${u > at + 1 ? .95 : 0}`);
+    });
+  } };
+})();
+
+/* 6. The right AI for each task */
+scenes.models = (() => {
+  const root = el("div", { className: "scene" }, frame);
+  const t = title("La bonne IA, à chaque fois.", "left:0;right:0;top:80px;text-align:center;font-size:76px", root);
+  const auto = el("div", { className: "pill abs", style: "left:960px;top:235px;background:#16213a;color:#8cbcff;border:1px solid #2c4372" }, root);
+  auto.dataset.base = "translateX(-50%)";
+  auto.innerHTML = `<img src="${ASSETS}delio-thinking.webp" style="width:44px;height:44px">Delio · Auto choisit pour vous`;
+  const kinds = [["Texte", "Rédiger, résumer, répondre", "linear-gradient(140deg,#1f3b8f,#3b8bff)"], ["Images", "Visuels et illustrations", "linear-gradient(140deg,#7a2bd6,#ff6fae)"],
+    ["Vidéo", "Clips et animations", "linear-gradient(140deg,#d6492b,#ffb03d)"], ["Musique", "Jingles et ambiances", "linear-gradient(140deg,#0f8f74,#5fd9a6)"]];
+  const tiles = kinds.map(([name, desc, bg], i) => {
+    const tile = el("div", { className: "tile abs", style: `left:${300 + i * 340}px;top:350px;background:${bg}` }, root);
+    tile.innerHTML = `<div class="art" style="position:absolute;inset:0"></div><b>${name}</b><small>${desc}</small>`;
+    return tile;
+  });
+  const wave = el("div", { className: "abs", style: "left:1340px;top:420px;width:240px;height:110px;display:flex;align-items:center;gap:7px" }, root);
+  const sticks = Array.from({ length: 16 }, () => el("i", { style: "flex:1;background:rgba(255,255,255,.9);border-radius:6px" }, wave));
+  const play = el("div", { className: "abs", style: "left:1000px;top:410px;width:220px;height:130px;border-radius:16px;background:rgba(0,0,0,.25);display:grid;place-items:center;font-size:52px" }, root);
+  play.textContent = "▶";
+  const own = el("div", { className: "card abs", style: "left:960px;top:760px;padding:28px 40px;display:flex;align-items:center;gap:26px;font-size:30px" }, root);
+  own.dataset.base = "translateX(-50%)";
+  own.innerHTML = `<span class="lock" style="font-size:44px">🔒</span><div><b style="font-weight:600">Vos comptes Claude et ChatGPT</b><div style="color:var(--ink2);font-size:22px;margin-top:4px">et vos clés : inclus avec Max et BYOK</div></div>`;
+  const lock = own.querySelector(".lock");
+  return { root, draw(u, L) {
+    t(u, .1);
+    set(auto, { o: p(u, .7, 1.1), y: (1 - eo(p(u, .7, 1.2))) * 20 });
+    tiles.forEach((tile, i) => {
+      const at = 1.3 + i * .35, k = back(p(u, at, at + .7));
+      const pick = Math.floor(Math.max(0, u - 3.4) / .9) % 4 === i && u > 3.4 && u < L * .62;
+      set(tile, { o: p(u, at, at + .3), y: (1 - k) * 80, s: k * (pick ? 1.05 : 1) });
+      tile.style.boxShadow = pick ? "0 0 0 4px #fff, 0 30px 80px -20px rgba(0,0,0,.8)" : "0 30px 80px -30px rgba(0,0,0,.8)";
+    });
+    sticks.forEach((stick, i) => { stick.style.height = `${18 + 80 * Math.abs(Math.sin(u * 4 + i * .7))}%`; });
+    set(wave, { o: p(u, 2.4, 2.8) });
+    set(play, { o: p(u, 2.1, 2.5) * .9, s: 1 + .05 * Math.sin(u * 4) });
+    const at = L * .58;
+    set(own, { o: eo(p(u, at, at + .6)), y: (1 - eo(p(u, at, at + .8))) * 40 });
+    lock.textContent = u > at + 1.4 ? "🔓" : "🔒";
+    set(lock, { s: 1 + .25 * Math.sin(p(u, at + 1.2, at + 1.7) * Math.PI) });
+  } };
+})();
+
+/* 7. You stay in control */
+scenes.approve = (() => {
+  const root = el("div", { className: "scene" }, frame);
+  const t = title("Vous gardez la main.", "left:180px;top:380px;font-size:96px;width:760px", root);
+  const sub = el("div", { className: "abs kicker", style: "left:180px;top:610px;width:720px;font-size:32px;line-height:1.35", textContent: "Avant tout envoi important, Delio vous demande votre accord." }, root);
+  const phone = el("div", { className: "phone abs", style: "left:1200px;top:75px" }, root);
+  phone.innerHTML = `<div style="font-size:22px;color:var(--ink3);text-align:center;margin-bottom:28px">Aujourd'hui · 11:42</div>
+    <div class="ask"><div class="who"><img src="${ASSETS}delio-curious.webp">Delio · Commercial</div>
+    <p>J'ai préparé le devis pour Acme (4 800 €). Je l'envoie ?</p>
+    <div class="btns"><span class="ok" style="background:var(--blue);color:#fff">Valider</span><span style="background:#26262e">Modifier</span></div></div>
+    <div class="sent" style="margin-top:22px;display:flex;align-items:center;gap:14px;font-size:24px;color:#5fd9a6;padding:0 6px"><span class="tick" style="background:var(--green);border-color:var(--green);width:36px;height:36px">${check}</span>Devis envoyé à Acme</div>`;
+  const ok = phone.querySelector(".ok"), sent = phone.querySelector(".sent"), card = phone.querySelector(".ask");
+  const tap = el("div", { className: "tap" }, root);
+  return { root, draw(u, L) {
+    t(u, .1);
+    set(sub, { o: eo(p(u, 1, 1.6)), y: (1 - eo(p(u, 1, 1.6))) * 20 });
+    set(phone, { o: p(u, .3, .8), y: (1 - eo(p(u, .3, 1.2))) * 140 });
+    set(card, { o: p(u, 1.3, 1.7), s: back(p(u, 1.3, 2)) });
+    const at = Math.min(L - 3, 5);
+    const press = p(u, at, at + .25) * (1 - p(u, at + .25, at + .5));
+    set(ok, { s: 1 - press * .08 });
+    ok.textContent = u > at + .3 ? "Validé ✓" : "Valider";
+    ok.style.background = u > at + .3 ? "var(--green)" : "var(--blue)";
+    tap.style.left = "1365px"; tap.style.top = "640px";
+    set(tap, { o: p(u, at - .6, at - .3) * (1 - p(u, at + .2, at + .6)), s: 1.4 - press * .5 });
+    set(sent, { o: eo(p(u, at + .6, at + 1.1)), y: (1 - eo(p(u, at + .6, at + 1.1))) * 18 });
+  } };
+})();
+
+/* 8. Try it */
+scenes.outro = (() => {
+  const root = el("div", { className: "scene" }, frame);
+  const face = img("happy", "position:absolute;left:960px;top:280px;width:220px;height:220px;margin:-110px", root);
+  const name = title("Deliobot", "left:0;right:0;top:420px;text-align:center;font-size:150px", root);
+  const tag = el("div", { className: "abs kicker", style: "left:0;right:0;top:610px;text-align:center;font-size:38px", textContent: "Des collègues IA qui terminent le travail." }, root);
+  const cta = el("div", { className: "abs", style: "left:0;right:0;top:720px;display:flex;justify-content:center;gap:22px" }, root);
+  cta.innerHTML = `<span class="pill" style="background:#fff;color:#0b0b0c">Essai 3 jours · 5 $</span><span class="pill" style="background:#1c1c23;border:1px solid var(--line)">⬇ Télécharger l'application</span>`;
+  const url = el("div", { className: "abs", style: "left:0;right:0;top:860px;text-align:center;font-size:46px;font-weight:600;letter-spacing:-.02em;color:#8cbcff", textContent: "deliobot.fun" }, root);
+  const black = el("div", { className: "abs", style: "inset:0;background:#000;opacity:0" }, root);
+  return { root, draw(u, L) {
+    set(face, { o: p(u, .1, .4), s: back(p(u, .1, .9)), y: Math.sin(u * 2.4) * 6 });
+    name(u, .5);
+    set(tag, { o: eo(p(u, 1.3, 1.9)), y: (1 - eo(p(u, 1.3, 1.9))) * 20 });
+    set(cta, { o: eo(p(u, 2, 2.6)), y: (1 - eo(p(u, 2, 2.6))) * 30 });
+    set(url, { o: eo(p(u, 2.6, 3.2)), s: 1 + .03 * Math.sin(u * 3) });
+    black.style.opacity = p(u, L - 1, L);
+  } };
+})();
+
+const b = ["b1", "b2", "b3"].map((id) => document.getElementById(id));
+/** Draws the film at `t` seconds; every frame depends on `t` alone. */
+window.seek = (t) => {
+  set(b[0], { x: 300 + Math.sin(t * .13) * 260, y: 100 + Math.cos(t * .11) * 160 });
+  set(b[1], { x: 1100 + Math.cos(t * .09) * 300, y: 500 + Math.sin(t * .12) * 200 });
+  set(b[2], { x: 700 + Math.sin(t * .07 + 2) * 400, y: 750 + Math.cos(t * .1) * 150 });
+  for (const scene of timeline.scenes) {
+    const draw = scenes[scene.id];
+    const u = t - scene.start;
+    const visible = u > -.05 && u < scene.length + .05;
+    draw.root.style.display = visible ? "" : "none";
+    if (!visible) continue;
+    const first = scene === timeline.scenes[0], last = scene === timeline.scenes.at(-1);
+    draw.root.style.opacity = (first ? 1 : eo(p(u, 0, .45))) * (last ? 1 : 1 - p(u, scene.length - .4, scene.length));
+    draw.draw(u, scene.length);
+  }
+};
+window.filmLength = timeline.total;
+window.seek(0);
+</script>
+</body>
+</html>

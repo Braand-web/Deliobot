@@ -8,11 +8,19 @@ simple message and a strong model when the work needs it.
 An engine whose catalog spans several vendors (OpenRouter, or a Delio-hosted
 gateway) offers **Auto** first in the model picker. A turn on Auto is rated:
 
-| Tier | When | Picked from the catalog |
+Each message gets a complexity score (`complexity` in `server/auto-model.ts`): one point per chained step ("puis",
+"ensuite", "then", a list item) up to four, one for work with a tool (post, send, open, search, a site or an app by
+name), one for a piece of writing (summarise, draft, translate), two for hard reasoning (code, analysis, strategy,
+legal), two for a code block, up to three for judgement (compare, recommend, risks, budget), and up to four for length.
+
+| Tier | Score | Picked from the catalog |
 | --- | --- | --- |
-| light | short and plain: no code, no picture, no work verb (summarise, draft, translate, explain…), short conversation | newest Gemini Flash, GPT mini, Claude Haiku… |
-| standard | everything else, a picture, a long conversation | newest Claude Sonnet, GPT, Gemini Pro… |
-| power | code with a hard task, analysis or strategy at length, very long messages | newest Claude Opus, GPT Pro, Gemini Pro… |
+| light | 0, with no picture and a short conversation | newest Gemini Flash, GPT mini, Claude Haiku… |
+| standard | 1 to 3, or a picture, or a long conversation | newest Claude Sonnet, GPT, Gemini Pro… |
+| power | 4 and more: several chained steps, hard reasoning with code, judgement on top of the work, very long messages | newest Claude Opus, GPT Pro, Gemini Pro… |
+
+A short go-ahead ("oui vas-y", "ok", "continue") runs on the tier of the turn before it in that thread, so
+the model that started a piece of work is the one that carries it on.
 
 The model is the newest of the first family the catalog carries; free, preview,
 image and audio variants are skipped. An operator can pin a model per tier in

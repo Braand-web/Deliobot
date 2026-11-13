@@ -10,6 +10,7 @@ import type { AppConfig } from "../../../server/config.ts";
 import { createDelioAccount, delioConnection, delioInstanceConfigs, withDelioMedia } from "../../../server/delio-account.ts";
 import { createAdminApp } from "./app.ts";
 import type { MailMessage } from "./mail.ts";
+import { Devices } from "./devices.ts";
 import { AdminStore } from "./store.ts";
 import { nodeDatabase } from "./sql-node.ts";
 import { Billing } from "./plans.ts";
@@ -168,5 +169,26 @@ describe("connecting a desktop app to a Delio account", () => {
     await target.request("/device", { code: started.userCode, decision: "deny" });
     expect(await app.account.status()).toEqual({ state: "disconnected", reason: "denied" });
     expect(delioConnection(app.config)).toBeNull();
+  });
+});
+
+describe("a device token and the account behind it", () => {
+  it("stops working once that account no longer administers the workspace", () => {
+    const dir = mkdtempSync(join(tmpdir(), "delio-devices-"));
+    const store = new AdminStore({ db: nodeDatabase(join(dir, "admin.db")), secret: randomBytes(32) });
+    cleanups.push(() => { store.close(); rmSync(dir, { recursive: true, force: true }); });
+    store.createWorkspace({ slug: "acme", name: "Acme", tenantUrl: "https://acme.example.test", ownerEmail: "owner@acme.test" }, "owner@acme.test");
+    const second = store.ensureAccount("second@acme.test");
+    store.addMember("acme", second.id, "admin", "owner@acme.test");
+    const devices = new Devices(store.db);
+    const flow = devices.start("Laptop");
+    expect(devices.decide(flow.userCode, { workspace: "acme", accountId: second.id })).toBe(true);
+    const polled = devices.poll(flow.deviceCode);
+    if (polled.status !== "approved") throw new Error("the flow was approved");
+    expect(devices.check(polled.token, "acme")).toBe(true);
+    expect(store.setRole("acme", second.id, "member", "owner@acme.test")).toBe("ok");
+    expect(devices.check(polled.token, "acme"), "a demoted admin's app").toBe(false);
+    expect(store.removeMember("acme", second.id, "owner@acme.test")).toBe("ok");
+    expect(devices.check(polled.token, "acme"), "a removed member's app").toBe(false);
   });
 });

@@ -77,6 +77,8 @@ beforeEach(() => {
   fx.section = "engines";
   fx.config = { composio: { configured: false }, box: { configured: false }, vps: { configured: false, sshAlias: "" } };
   fx.dispatch.mockReset();
+  fx.api.mockReset();
+  fx.api.mockReturnValue(new Promise(() => {}));
   fx.dispatch.mockImplementation((action: { type: string; section?: AppSettingsSection; config?: Record<string, unknown> }) => {
     if (action.type === "toggleAppSettings" && action.section) fx.section = action.section;
     if (action.type === "configStatus") fx.config = action.config!;

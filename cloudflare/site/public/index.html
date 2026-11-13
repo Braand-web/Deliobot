@@ -78,10 +78,7 @@ h1 .face{width:1.02em;height:1.02em;flex:none;animation:bob 4s ease-in-out infin
 .circle{width:36px;height:36px;border-radius:50%;border:1px solid var(--app-line);display:grid;place-items:center;color:var(--app-ink-2)}
 .fav{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:14px 0 10px}
 .fav div{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;border-radius:14px;font-size:13px;color:var(--app-ink-2);text-align:center;line-height:1.2}
-.fav div.on{background:#2a2a2d;color:var(--app-ink)}
-.fav .bot{width:58px;height:58px}
 .thread{display:flex;gap:12px;align-items:center;padding:10px 6px;border-radius:12px}
-.thread .bot{width:38px;height:38px;flex:none}
 .thread b{display:block;font-weight:500;font-size:15px}
 .thread span{display:block;font-size:13px;color:var(--app-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px}
 .me{margin-top:auto;display:flex;align-items:center;gap:10px;font-size:14px;padding:6px}
@@ -89,14 +86,9 @@ h1 .face{width:1.02em;height:1.02em;flex:none;animation:bob 4s ease-in-out infin
 .chat{display:flex;flex-direction:column;background:var(--app-2);min-width:0}
 .chat-top{height:58px;display:flex;align-items:center;justify-content:center;position:relative}
 .chip{display:inline-flex;align-items:center;gap:8px;background:#2c2c2f;border-radius:999px;padding:5px 12px 5px 6px;font-size:14px;font-weight:500}
-.chip .bot{width:22px;height:22px}
 .share{position:absolute;right:16px;font-size:14px;border:1px solid var(--app-line);border-radius:999px;padding:5px 14px}
 .msgs{flex:1;overflow:hidden;padding:8px 26px;display:flex;flex-direction:column;gap:14px;justify-content:flex-end}
 .when{align-self:center;font-size:13px;color:var(--app-ink-2)}
-.m{max-width:74%;padding:11px 16px;border-radius:20px;font-size:15px;line-height:1.45;animation:pop .35s ease both}
-.m.bot-m{background:#2e2e31;align-self:flex-start;border-top-left-radius:8px}
-.m.user{background:#f2f2f2;color:#111;align-self:flex-end;border-top-right-radius:8px}
-.m .at{color:#7fb6ff}
 .status{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--app-ink-2);animation:pop .3s ease both}
 .status .ring{width:30px;height:30px;border-radius:50%;border:1px solid var(--app-line);display:grid;place-items:center}
 .status .ring i{width:10px;height:10px;border-radius:50%;background:#38d591;box-shadow:0 0 0 0 rgba(56,213,145,.6);animation:ping 1.4s infinite}
@@ -107,15 +99,30 @@ h1 .face{width:1.02em;height:1.02em;flex:none;animation:bob 4s ease-in-out infin
 .compose .plus{width:34px;height:34px;border-radius:50%;background:#2c2c2f;display:grid;place-items:center}
 .compose .mic{margin-left:auto;width:34px;height:34px;border-radius:50%;background:#f2f2f2;color:#111;display:grid;place-items:center}
 .approve{position:absolute;width:300px;background:#fff;color:#111;border-radius:18px;padding:14px 16px;box-shadow:0 24px 60px -20px rgba(0,0,0,.45);font-family:system-ui,-apple-system,sans-serif;font-size:14px;text-align:left;opacity:0;transform:translateY(12px);transition:opacity .5s,transform .5s}
-.approve.show{opacity:1;transform:none}
 .approve small{display:flex;align-items:center;gap:6px;color:#b26b00;font-weight:600;font-size:12px}
 .approve small::before{content:"";width:7px;height:7px;border-radius:50%;background:#f5a623}
 .approve b{display:block;margin:6px 0 2px;font-weight:600}
 .approve p{margin:0 0 12px;color:#666}
+.ap1{right:-34px;top:120px}.ap2{left:-40px;bottom:90px;transition-delay:.25s}
+.video{margin-top:120px;border-radius:30px;aspect-ratio:16/9;position:relative;overflow:hidden;background:#09090c}
+.video video{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover}
+.film-mute{position:absolute;right:18px;bottom:18px;z-index:1;width:44px;height:44px;border:0;border-radius:50%;display:grid;place-items:center;color:#fff;background:rgba(20,20,24,.55);backdrop-filter:blur(10px);cursor:pointer}
+.film-mute:hover{background:rgba(20,20,24,.75)}.film-mute svg{width:20px;height:20px}
+.film-mute .on{display:none}.film-mute[aria-pressed=true] .on{display:inline}.film-mute[aria-pressed=true] .off{display:none}
+@media (max-width:640px){.film-mute{right:10px;bottom:10px;width:36px;height:36px}.film-mute svg{width:16px;height:16px}}
+.fav div.on{background:#2a2a2d;color:var(--app-ink)}
+.fav .bot{width:58px;height:58px}
+.thread .bot{width:38px;height:38px;flex:none}
+.chip .bot{width:22px;height:22px}
+.m{max-width:74%;padding:11px 16px;border-radius:20px;font-size:15px;line-height:1.45;animation:pop .35s ease both}
+.m.bot-m{background:#2e2e31;align-self:flex-start;border-top-left-radius:8px}
+.m.user{background:#f2f2f2;color:#111;align-self:flex-end;border-top-right-radius:8px}
+.m .at{color:#7fb6ff}
+.approve.show{opacity:1;transform:none}
 .approve .row{display:flex;gap:8px}
 .approve .row span{flex:1;text-align:center;padding:7px;border-radius:999px;background:#111;color:#fff;font-weight:500}
 .approve .row span+span{background:#f0f0f0;color:#111}
-.ap1{right:-34px;top:120px}.ap2{left:-40px;bottom:90px;transition-delay:.25s}
+@media (max-width:1100px){.ap1,.ap2{display:none}}
 @keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes ping{70%{box-shadow:0 0 0 10px rgba(56,213,145,0)}100%{box-shadow:0 0 0 0 rgba(56,213,145,0)}}
 @keyframes sh{to{background-position:-200% 0}}
@@ -137,12 +144,6 @@ h2.c{text-align:center}
 .troupe .bot{width:clamp(56px,10vw,150px);aspect-ratio:1;transition:transform .35s cubic-bezier(.3,1.6,.5,1);animation:bob 5s ease-in-out infinite}
 .troupe .bot:nth-child(2n){animation-delay:-1.2s}.troupe .bot:nth-child(3n){animation-delay:-2.4s}
 .troupe .bot:hover{transform:translateY(-14px) scale(1.08) rotate(-4deg)}
-.video{margin-top:120px;border-radius:30px;aspect-ratio:16/8;position:relative;overflow:hidden;background:radial-gradient(120% 90% at 50% 120%,#5b3df5 0%,#2a1a7a 45%,#140c3a 100%);display:flex;align-items:flex-start;padding:7% 6%;color:#fff}
-.video::after{content:"";position:absolute;left:50%;bottom:-62%;width:80%;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle at 50% 30%,rgba(140,110,255,.35),rgba(20,12,58,0) 60%)}
-.video .play{display:flex;align-items:center;gap:18px;font-size:clamp(34px,5vw,64px);font-weight:500;letter-spacing:-.03em;position:relative;z-index:1}
-.video .play svg{width:.55em;height:.55em}
-.video .soon{position:absolute;z-index:1;left:6%;bottom:9%;font-size:15px;color:#cfc5ff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:6px 14px}
-.video img{position:absolute;z-index:1;right:9%;bottom:-6%;width:30%;opacity:.95;filter:drop-shadow(0 30px 60px rgba(0,0,0,.45));animation:bob 6s ease-in-out infinite}
 
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:72px}
 .feat{background:var(--card);border-radius:30px;padding:32px 32px 0;overflow:hidden;min-height:440px;display:flex;flex-direction:column}
@@ -341,7 +342,6 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
 .reveal{opacity:0;transform:translateY(24px);transition:opacity .8s ease,transform .8s ease}
 .reveal.in{opacity:1;transform:none}
 
-@media (max-width:1100px){.ap1,.ap2{display:none}}
 @media (max-width:900px){
   nav.main{display:none}.burger{display:grid;place-items:center}
   header.open nav.main{display:flex;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:var(--bg);padding:16px 24px 24px;gap:16px;border-bottom:1px solid var(--line)}
@@ -458,10 +458,9 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
       <span class="bot" style="--c:#8357ff;--src:url(/assets/delio-surprised.webp)"><img src="/assets/delio-surprised.webp" alt=""></span>
       <span class="bot" style="--c:#ec4fa6;--src:url(/assets/delio-sleeping.webp)"><img src="/assets/delio-sleeping.webp" alt=""></span>
     </div>
-    <div class="video reveal" role="img" aria-label="Vidéo de démonstration, bientôt disponible">
-      <div class="play"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M4 2.8v14.4L17 10z"/></svg>Démo</div>
-      <span class="soon">La vidéo de démonstration arrive bientôt</span>
-      <img src="/assets/delio-working.webp" alt="">
+    <div class="video reveal">
+      <video data-film muted loop playsinline preload="none" poster="/media/deliobot-film.jpg" aria-label="Deliobot en 90 secondes" data-src="/media/deliobot-film.mp4"></video>
+      <button class="film-mute" type="button" data-film-mute aria-label="Activer le son" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="on" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/><path class="off" d="m16 9 6 6M22 9l-6 6"/></svg></button>
     </div>
   </div>
 </section>
@@ -477,7 +476,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
         <div class="ill">
           <div class="brief">
             <div class="brief-card">
-              <div class="brief-h"><span class="bot" style="--c:#2fb67c;--src:url(/assets/delio-happy.webp)"><img src="/assets/delio-happy.webp" alt=""></span><b>Briefing du matin</b><span>7:30</span></div>
+              <div class="brief-h"><span class="bot" style="--c:#2fb67c;--src:url(/assets/delio-happy.webp)"><img loading="lazy" decoding="async" src="/assets/delio-happy.webp" alt=""></span><b>Briefing du matin</b><span>7:30</span></div>
               <ul>
                 <li class="ok"><i></i><span>Deux devis relancés</span><em>Fait</em></li>
                 <li class="ok"><i></i><span>Paiement reçu · 145 000 FCFA</span><em>Classé</em></li>
@@ -501,7 +500,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
                 <label>Livraison<span class="f">Jeudi</span></label>
                 <span class="desk-pay">Payer</span>
               </div>
-              <span class="desk-cursor" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M2 1l11 6.5-5 1.2L5.5 14z" fill="#0b0b0c" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/></svg><span class="bot" style="--c:#7b5cff;--src:url(/assets/delio-working.webp)"><img src="/assets/delio-working.webp" alt=""></span></span>
+              <span class="desk-cursor" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M2 1l11 6.5-5 1.2L5.5 14z" fill="#0b0b0c" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/></svg><span class="bot" style="--c:#7b5cff;--src:url(/assets/delio-working.webp)"><img loading="lazy" decoding="async" src="/assets/delio-working.webp" alt=""></span></span>
             </div>
             <div class="desk-ask"><b>Payer 89 500 FCFA ?</b><span class="y">Autoriser</span><span class="n">Refuser</span></div>
           </div>
@@ -533,7 +532,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
             <div class="call-h"><span class="live"></span>Point hebdo<span>12:04</span></div>
             <div class="call-row">
               <span class="who" style="--h:#e9b949">A</span><span class="who" style="--h:#6aa5ff">K</span><span class="who" style="--h:#f0857a">F</span>
-              <span class="call-delio"><span class="bot plain" style="--c:#ffffff;--src:url(/assets/delio-listening.webp)"><img src="/assets/delio-listening.webp" alt=""></span></span>
+              <span class="call-delio"><span class="bot plain" style="--c:#ffffff;--src:url(/assets/delio-listening.webp)"><img loading="lazy" decoding="async" src="/assets/delio-listening.webp" alt=""></span></span>
               <span class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
             </div>
             <div class="call-note"><b>Delio a noté</b>Awa envoie le devis vendredi. Fatou relance le fournisseur.</div>
@@ -546,10 +545,10 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
         <p>Personnes et bots collaborent dans un même salon, ou dans Slack. Un bot fait appel à un autre quand il a besoin d'aide, et votre équipe voit chaque étape.</p>
         <div class="ill">
           <div class="room">
-            <div class="room-h"><b>Factures</b><span class="room-who"><span class="bot" style="--c:#3d86ff;--src:url(/assets/delio-working.webp)"><img src="/assets/delio-working.webp" alt=""></span><span class="bot" style="--c:#f07a33;--src:url(/assets/delio-thinking.webp)"><img src="/assets/delio-thinking.webp" alt=""></span><i>A</i></span></div>
-            <div class="room-m"><span class="bot" style="--c:#3d86ff;--src:url(/assets/delio-working.webp)"><img src="/assets/delio-working.webp" alt=""></span><div><b style="color:#3d86ff">Factures</b><p>Trois factures sont arrivées. <span class="at">@Comptable</span>, tu peux les rapprocher des bons de commande ?</p></div></div>
+            <div class="room-h"><b>Factures</b><span class="room-who"><span class="bot" style="--c:#3d86ff;--src:url(/assets/delio-working.webp)"><img loading="lazy" decoding="async" src="/assets/delio-working.webp" alt=""></span><span class="bot" style="--c:#f07a33;--src:url(/assets/delio-thinking.webp)"><img loading="lazy" decoding="async" src="/assets/delio-thinking.webp" alt=""></span><i>A</i></span></div>
+            <div class="room-m"><span class="bot" style="--c:#3d86ff;--src:url(/assets/delio-working.webp)"><img loading="lazy" decoding="async" src="/assets/delio-working.webp" alt=""></span><div><b style="color:#3d86ff">Factures</b><p>Trois factures sont arrivées. <span class="at">@Comptable</span>, tu peux les rapprocher des bons de commande ?</p></div></div>
             <div class="room-pass"><span>Factures</span><svg viewBox="0 0 24 8"><path d="M0 4h21m-4-3 4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg><span>Comptable</span><em>3 documents</em></div>
-            <div class="room-m"><span class="bot" style="--c:#f07a33;--src:url(/assets/delio-thinking.webp)"><img src="/assets/delio-thinking.webp" alt=""></span><div><b style="color:#e0692a">Comptable</b><p>Rapprochement en cours</p><span class="room-bar"><i></i></span></div></div>
+            <div class="room-m"><span class="bot" style="--c:#f07a33;--src:url(/assets/delio-thinking.webp)"><img loading="lazy" decoding="async" src="/assets/delio-thinking.webp" alt=""></span><div><b style="color:#e0692a">Comptable</b><p>Rapprochement en cours</p><span class="room-bar"><i></i></span></div></div>
           </div>
         </div>
       </article>
@@ -688,9 +687,9 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
     <h2 class="c reveal">Guides Deliobot</h2>
     <p class="lede c reveal">Comment les équipes produit, marketing et commerciales utilisent Deliobot au quotidien.</p>
     <div class="guides">
-      <a class="guide reveal" href="/guides/marketing"><div class="th" style="background:linear-gradient(135deg,#ffd9c2,#ff9a6b)"><span class="bot" style="--c:#f07a33;--src:url(/assets/delio-curious.webp)"><img src="/assets/delio-curious.webp" alt=""></span></div><div class="tx"><small>Marketing</small><p>Six bots marketing qui analysent la concurrence, rédigent le positionnement, préparent les campagnes et mettent à jour le site.</p></div></a>
-      <a class="guide reveal" href="/guides/produit"><div class="th" style="background:linear-gradient(135deg,#d6e4ff,#7ea7ff)"><span class="bot" style="--c:#3d86ff;--src:url(/assets/delio-working.webp)"><img src="/assets/delio-working.webp" alt=""></span></div><div class="tx"><small>Produit</small><p>Connectez votre outil de tickets à Deliobot pour analyser les problèmes, planifier le travail et coordonner les agents de code.</p></div></a>
-      <a class="guide reveal" href="/guides/ventes"><div class="th" style="background:linear-gradient(135deg,#d9f5e4,#6ed39a)"><span class="bot" style="--c:#4cc77a;--src:url(/assets/delio-proud.webp)"><img src="/assets/delio-proud.webp" alt=""></span></div><div class="tx"><small>Ventes</small><p>Vendre en tant que fondateur avec Deliobot : recherche de cibles, prospection, préparation des appels et prévisions.</p></div></a>
+      <a class="guide reveal" href="/guides/marketing"><div class="th" style="background:linear-gradient(135deg,#ffd9c2,#ff9a6b)"><span class="bot" style="--c:#f07a33;--src:url(/assets/delio-curious.webp)"><img loading="lazy" decoding="async" src="/assets/delio-curious.webp" alt=""></span></div><div class="tx"><small>Marketing</small><p>Six bots marketing qui analysent la concurrence, rédigent le positionnement, préparent les campagnes et mettent à jour le site.</p></div></a>
+      <a class="guide reveal" href="/guides/produit"><div class="th" style="background:linear-gradient(135deg,#d6e4ff,#7ea7ff)"><span class="bot" style="--c:#3d86ff;--src:url(/assets/delio-working.webp)"><img loading="lazy" decoding="async" src="/assets/delio-working.webp" alt=""></span></div><div class="tx"><small>Produit</small><p>Connectez votre outil de tickets à Deliobot pour analyser les problèmes, planifier le travail et coordonner les agents de code.</p></div></a>
+      <a class="guide reveal" href="/guides/ventes"><div class="th" style="background:linear-gradient(135deg,#d9f5e4,#6ed39a)"><span class="bot" style="--c:#4cc77a;--src:url(/assets/delio-proud.webp)"><img loading="lazy" decoding="async" src="/assets/delio-proud.webp" alt=""></span></div><div class="tx"><small>Ventes</small><p>Vendre en tant que fondateur avec Deliobot : recherche de cibles, prospection, préparation des appels et prévisions.</p></div></a>
     </div>
     <div class="center reveal"><a class="pill soft" href="/guides">Lire les guides</a></div>
   </div>
@@ -716,7 +715,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
     <h2 class="c reveal">Rencontrez votre premier bot</h2>
     <p class="lede c reveal">Un collègue IA de confiance pour faire avancer le travail.</p>
     <div class="cta reveal"><a class="pill dark lg" href="https://compte.deliobot.fun/pay?plan=trial" data-portal-path="/pay?plan=trial">Essayer 3 jours pour 5 $</a><a class="pill soft lg" href="#telecharger">Télécharger</a></div>
-    <div class="big" aria-hidden="true"><img src="/assets/delio-idle.webp" alt=""></div>
+    <div class="big" aria-hidden="true"><img loading="lazy" decoding="async" src="/assets/delio-idle.webp" alt=""></div>
   </div>
 </section>
 </main>
@@ -724,7 +723,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
 <footer>
   <div class="wrap">
     <div class="fcols">
-      <div><a class="brand" href="/"><img src="/assets/delio-idle.webp" alt="">Deliobot</a><p style="margin:14px 0 0;max-width:260px">Des collègues IA qui terminent le travail.</p></div>
+      <div><a class="brand" href="/"><img loading="lazy" decoding="async" src="/assets/delio-idle.webp" alt="">Deliobot</a><p style="margin:14px 0 0;max-width:260px">Des collègues IA qui terminent le travail.</p></div>
       <div><h4>Produit</h4><a href="#fonctions">Fonctions</a><a href="#metiers">Solutions</a><a href="#tarifs">Tarifs</a><a href="#telecharger">Télécharger</a></div>
       <div><h4>Ressources</h4><a href="/guides">Guides</a><a href="#faq">Questions</a></div>
       <div><h4>Entreprise</h4><a href="mailto:support@deliobot.fun">Support</a><a href="https://compte.deliobot.fun/login">Se connecter</a></div>
@@ -820,6 +819,16 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
   }
   const stage = document.querySelector(".stage");
   new IntersectionObserver((e, o) => { if (e[0].isIntersecting) { o.disconnect(); heroChat(); } }, { threshold: .25 }).observe(stage);
+  const film = document.querySelector("[data-film]");
+  const mute = document.querySelector("[data-film-mute]");
+  const load = () => { if (!film.src) film.src = film.dataset.src; };
+  const sound = (on) => { film.muted = !on; mute.setAttribute("aria-pressed", String(on)); mute.setAttribute("aria-label", on ? "Couper le son" : "Activer le son"); };
+  const withSound = () => { load(); sound(true); film.currentTime = 0; void film.play().catch(() => {}); };
+  new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting) { load(); if (!reduce || !film.muted) void film.play().catch(() => {}); }
+    else film.pause();
+  }, { rootMargin: "200px 0px", threshold: .35 }).observe(film);
+  mute.addEventListener("click", () => { if (film.muted) withSound(); else sound(false); });
 
   const picks = [["Auto", "choisit le bon modèle pour chaque message"], ["Claude", "pour un long texte bien écrit"], ["GPT", "pour analyser un tableau"],
     ["Gemini", "pour lire un document de 200 pages"], ["Grok", "pour suivre l'actualité"], ["DeepSeek", "pour un calcul rapide et économique"],
@@ -849,7 +858,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
       feed: [["b", "Acme utilise 40 % de licences en moins depuis un mois. Renouvellement dans 45 jours. Je propose un point avec leur responsable."], ["u", "prépare l'e-mail"], ["b", "Brouillon prêt dans vos e-mails, avec les chiffres d'usage en pièce jointe."]] },
   ];
   const chips = document.getElementById("chips"), desc = document.getElementById("jobdesc"), feed = document.getElementById("feed"), phtop = document.getElementById("phtop");
-  const botTag = (j, size) => `<span class="bot" style="--c:${j.c};--src:url(/assets/delio-${j.img}.webp);width:${size}px;height:${size}px"><img src="/assets/delio-${j.img}.webp" alt=""></span>`;
+  const botTag = (j, size) => `<span class="bot" style="--c:${j.c};--src:url(/assets/delio-${j.img}.webp);width:${size}px;height:${size}px"><img loading="lazy" decoding="async" src="/assets/delio-${j.img}.webp" alt=""></span>`;
   let run = 0;
   async function show(i) {
     const id = ++run, j = jobs[i];

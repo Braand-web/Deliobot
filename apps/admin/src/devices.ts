@@ -75,11 +75,13 @@ CREATE TABLE IF NOT EXISTS device_tokens (id TEXT PRIMARY KEY, token_hash TEXT N
     return { status: "approved", token: value, workspace: row.workspace };
   }
 
-  /** True when the token is a live device token of this workspace; its last use is noted. */
+  /** True when the token is a live device token of this workspace, connected by someone who still administers it; its last use is noted. */
   check(value: string, workspace: string): boolean {
     if (!DEVICE_TOKEN.test(value)) return false;
+    // Security: a token lives only as long as its account administers the workspace, so removing or demoting someone ends their apps' access to its credits.
     const found = this.db.prepare(`SELECT id FROM device_tokens WHERE token_hash = ? AND workspace = ?
-      AND account_id NOT IN (SELECT account_id FROM blocked_accounts)`).get(sha256(value), workspace) as { id: string } | undefined;
+      AND account_id NOT IN (SELECT account_id FROM blocked_accounts)
+      AND account_id IN (SELECT account_id FROM members WHERE workspace = device_tokens.workspace AND role = 'admin')`).get(sha256(value), workspace) as { id: string } | undefined;
     if (found) this.db.prepare("UPDATE device_tokens SET last_used_at = ? WHERE id = ?").run(this.now(), found.id);
     return Boolean(found);
   }
