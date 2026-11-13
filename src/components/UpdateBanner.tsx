@@ -18,6 +18,9 @@ function friendlyError(message?: string): string {
   return message.split("\n")[0].slice(0, 140);
 }
 
+/** A ready update put off with Later is offered again after this long: many people never look for the sidebar's update button. */
+export const REMIND_AFTER_MS = 3 * 60 * 60_000;
+
 type UpdateBannerProps = {
   sidebarIndicator?: boolean;
 };
@@ -44,6 +47,11 @@ function UpdatedLine({ version, onSeen }: { version: string; onSeen: () => void 
 export function UpdateBanner({ sidebarIndicator = false }: UpdateBannerProps) {
   const s = useUpdaterState();
   const [dismissed, setDismissed] = useState<string | null>(null);
+  useEffect(() => {
+    if (!dismissed?.startsWith("downloaded:")) return;
+    const timer = window.setTimeout(() => setDismissed(null), REMIND_AFTER_MS);
+    return () => window.clearTimeout(timer);
+  }, [dismissed]);
   const [pending, setPending] = useState<"install" | "check" | null>(null);
   const status = s?.status;
   useEffect(() => setPending(null), [status]);
@@ -52,7 +60,7 @@ export function UpdateBanner({ sidebarIndicator = false }: UpdateBannerProps) {
     return <UpdatedLine version={s.updated} onSeen={() => void window.odb?.updater?.seen?.().catch(() => {})} />;
   }
   if (!s || s.status === "idle" || s.status === "checking" || s.status === "downloading" || s.status === "preparing") return null;
-  if (sidebarIndicator && (s.status === "downloaded" || s.status === "installing")) return null;
+  if (sidebarIndicator && s.status === "installing") return null;
   const key = `${s.status}:${s.version ?? ""}`;
   if (dismissed === key) return null;
   const updater = window.odb!.updater!;

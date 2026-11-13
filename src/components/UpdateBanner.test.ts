@@ -131,8 +131,8 @@ describe("UpdateBanner", () => {
     expect(html).not.toContain("Try again</button>");
   });
 
-  it("leaves the ready update to the sidebar's update button while the sidebar is in view", () => {
-    expect(render({ status: "downloaded", version: "1.2.3", installMode: "restart" }, undefined, true)).toBe("");
+  it("offers a ready update with a Restart button even while the sidebar's update button is in view", () => {
+    expect(render({ status: "downloaded", version: "1.2.3", installMode: "restart" }, undefined, true)).toContain("Restart to update");
     expect(render({ status: "installing", version: "1.2.3" }, undefined, true)).toBe("");
     expect(render({ status: "downloaded", version: "1.2.3", installMode: "restart" }, undefined, false)).toContain("Restart");
     expect(render({ status: "handed-off", version: "1.2.3", installMode: "handoff", command: "sudo apt install ./x.deb" }, undefined, true)).toContain("Finish in a terminal");
