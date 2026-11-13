@@ -10,9 +10,12 @@ gateway) offers **Auto** first in the model picker. A turn on Auto is rated:
 
 | Tier | When | Picked from the catalog |
 | --- | --- | --- |
-| light | short and plain: no code, no picture, no work verb (summarise, draft, translate, explain…), short conversation | newest Gemini Flash, GPT mini, Claude Haiku… |
+| light | short and plain: no code, no picture, no work verb (summarise, draft, translate, explain…), nothing to do with a tool (post, send, open, search, book, a site or an app by name, a web address), short conversation | newest Gemini Flash, GPT mini, Claude Haiku… |
 | standard | everything else, a picture, a long conversation | newest Claude Sonnet, GPT, Gemini Pro… |
 | power | code with a hard task, analysis or strategy at length, very long messages | newest Claude Opus, GPT Pro, Gemini Pro… |
+
+A short go-ahead ("oui vas-y", "ok", "continue") runs on the tier of the turn before it in that thread, so
+the model that started a piece of work is the one that carries it on.
 
 The model is the newest of the first family the catalog carries; free, preview,
 image and audio variants are skipped. An operator can pin a model per tier in

@@ -22,6 +22,11 @@ describe("Auto for text", () => {
     expect(autoTier({ text: "ok", transcriptChars: 20_000 }), "a long conversation needs more context").toBe("standard");
     expect(autoTier({ text: "Debug this:\n```ts\nconst x = y.z;\n```" })).toBe("power");
     expect(autoTier({ text: "x".repeat(3000) })).toBe("power");
+    expect(autoTier({ text: "Publie ce post sur LinkedIn" }), "acting on a site takes a model that plans").toBe("standard");
+    expect(autoTier({ text: "va sur deliobot.fun" })).toBe("standard");
+    expect(autoTier({ text: "oui vas-y", previous: "power" }), "a go-ahead continues the work before it").toBe("power");
+    expect(autoTier({ text: "ok", previous: "standard" })).toBe("standard");
+    expect(autoTier({ text: "Merci, à demain !", previous: "power" }), "small talk stays light").toBe("light");
   });
 
   it("picks the newest model of the tier's family the catalog carries, never a free or image variant", () => {

@@ -193,7 +193,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.static.outputs.vitest_matrix) }}
-    runs-on: ${{ matrix.os }}
+    # GitHub's ubuntu-latest is Ubuntu 26.04 since 2026-11-12, where the bot box's bubblewrap tests fail; the box is
+    # supported on 24.04, the release the server installer and the packaged builds run on.
+    runs-on: ${{ matrix.os == 'ubuntu-latest' && 'ubuntu-24.04' || matrix.os }}
     # scripts/testing/duration-sequencer.ts splits each platform's files by
     # their recorded seconds on that platform, about 6 minutes a Linux shard
     # (four files at once); a Windows shard runs two files at once. The cap

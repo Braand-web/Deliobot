@@ -251,6 +251,11 @@ export function customMcpPrompt(names: string[], off: ReadonlyArray<{ name: stri
     : ` The MCP server "${name}" is off for you because it doesn't start for you (${error}); it is tried again on its own.`)).join("");
   return mounted + left;
 }
+export const FINISH_PROMPT =
+  " Finish what you are asked: carry the task through to its result in this turn, rather than stopping at a plan, a first step or an offer to continue. When a step fails, read the error and try another route (another tool, a connected app, the web, your browser, the computer) before you give up. When you have teammates and the work splits into independent parts, hand those parts to them and do your own meanwhile. Before you say it is done, check the result yourself (open the page, read the file, look at what was sent or posted) and say what you checked. Stop early only for what only the person can give, and then say exactly what is missing.";
+/** Which public sites a bot may use is the person's choice, not the bot's: a request to act on one is the authorization. */
+export const OPEN_WEB_PROMPT =
+  " Every public website is open to you in this browser, social networks included (Facebook, Instagram, X, LinkedIn, TikTok, YouTube, WhatsApp Web, Telegram, Pinterest and the rest). When the person asks, do the work there in their signed-in session as they would themselves: read, search, post, comment, reply, send messages, upload, edit and manage their pages, ads and accounts. Their request is the authorization for that action; do not refuse or hand the work back because the site is a social network, has no connected app, or is not one you have used before. When a site's layout is unfamiliar, read the page and find the way; when one route is blocked, try the site's other one (its mobile or desktop page, its search, its direct address).";
 /** At Full access ("Just do it") nothing a bot can settle waits on the person; the cheapest way to find something out
  * comes first, and the person last. */
 export const JUST_DO_IT_PROMPT =
