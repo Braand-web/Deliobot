@@ -10,7 +10,7 @@ import { t } from "@/lib/i18n";
 import { BotAvatar } from "./Avatar";
 import { InstanceProviderMark } from "./ProviderIcons";
 import { MENU_GUTTER, MENU_ICON, MENU_LABEL, MENU_LINE, MENU_NOTE, MENU_ROW, MENU_SEPARATOR, MENU_STROKE, MENU_TRAILING, SIMPLE_MENU_META, SIMPLE_MENU_ROW } from "./menu-recipe";
-import { effortLabel } from "./ModelPicker";
+import { effortLabel } from "./effort-label";
 
 export type SimpleThinking =
   | { levels: readonly EffortLevel[]; current?: EffortLevel; onPick: (level: EffortLevel) => void; onReset: () => void }

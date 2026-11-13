@@ -11,7 +11,7 @@ import { BrowserProfilesManager } from "./BrowserProfilesManager";
 import { NewBrowserSettings } from "./BrowserSettingsRows";
 import { Card, SettingRow, Switch } from "./SettingsPrimitives";
 import { LearnedSkillsSettings } from "./ShareLearnedSkillsSettings";
-import { effortLabel } from "./ModelPicker";
+import { effortLabel } from "./effort-label";
 import { EFFORT_LEVELS, isEffortLevel } from "../../shared/wire";
 import { setColorUserBubbles, useColorUserBubbles } from "@/lib/user-bubble-preference";
 import { setShowThreads, useShowThreadsChoice } from "@/lib/thread-preferences";

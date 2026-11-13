@@ -26,7 +26,7 @@ import { saveAccess } from "./bot-access/access";
 import { useTeamName } from "./bot-access/ShareBotButton";
 import { approvalModeOptions } from "./ApprovalModeSelector";
 import { LocalComputerAutoWarning } from "./LocalComputerAutoWarning";
-import { effortLabel } from "./ModelPicker";
+import { effortLabel } from "./effort-label";
 import { Select } from "./Select";
 
 type Tab = "approval" | "model" | "access";

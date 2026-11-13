@@ -1,5 +1,6 @@
 import { Lock } from "lucide-react";
 
+import { ownAiLocked, useDelioAccount } from "@/lib/delio-account";
 import { t } from "@/lib/i18n";
 import { useStore } from "@/state/store";
 
@@ -17,5 +18,25 @@ export function OwnAiLocked() {
         {t("ownAi.locked.action")}
       </button>
     </section>
+  );
+}
+
+/** Whether this app's plan leaves out the customer's own AI. */
+export function useOwnAiLocked(): boolean {
+  return ownAiLocked(useDelioAccount());
+}
+
+/** The model picker's row in place of local models and API keys, on plans without the customer's own AI. */
+export function OwnAiLockedRow({ onOpen }: { onOpen: () => void }) {
+  return (
+    <button type="button" data-own-ai-locked onClick={onOpen}
+      className="flex w-full shrink-0 items-start gap-2.5 border-t-[0.5px] border-ink/10 px-3.5 py-2.5 text-left hover:bg-ink/[0.06]">
+      <Lock size={14} aria-hidden="true" className="mt-0.5 shrink-0 text-ink-secondary" />
+      <span className="flex min-w-0 flex-col gap-0.5">
+        <span className="text-[13px] leading-[18px] text-ink">{t("ownAi.locked.title")}</span>
+        <span className="text-[12px] leading-4 text-ink-secondary">{t("ownAi.locked.body")}</span>
+        <span className="text-[12px] leading-4 text-accent">{t("ownAi.locked.action")}</span>
+      </span>
+    </button>
   );
 }

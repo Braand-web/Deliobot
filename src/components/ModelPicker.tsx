@@ -2,8 +2,8 @@ import { engineDisplayName } from "@/lib/engine-rail";
 import { modelLabel, modelProvider } from "@/lib/model-label";
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, KeyRound, Loader2, Lock, RefreshCw, X } from "lucide-react";
-import { ownAiLocked, useDelioAccount } from "@/lib/delio-account";
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, KeyRound, Loader2, RefreshCw, X } from "lucide-react";
+import { OwnAiLockedRow, useOwnAiLocked } from "./OwnAiLocked";
 import { useStore, currentTaskBot, type Bot, type InstanceInfo, type ModelSelection } from "@/state/store";
 import type { EffortLevel } from "../../shared/wire";
 import { filterCustomModels, partitionCustomModels, suggestedModels } from "@/lib/custom-models";
@@ -43,10 +43,7 @@ import { Select } from "./Select";
 
 const COMPACT_MODEL_COUNT = 5;
 
-
-export function effortLabel(level: EffortLevel): string {
-  return t(`model.effort.${level}` as Parameters<typeof t>[0]);
-}
+import { effortLabel } from "./effort-label";
 
 /**
  * Default (undefined) sends nothing and lets the engine decide; `none` is a level the engine is told to use. Only pi
@@ -523,7 +520,7 @@ export function ModelPicker({
     </div>
   );
   const remote = window.odb?.remoteClient?.active === true;
-  const aiLocked = ownAiLocked(useDelioAccount());
+  const aiLocked = useOwnAiLocked();
 
   const levels = active?.capabilities?.effortLevels ?? [];
   const writeEffort = (effort: EffortLevel | undefined) => {
@@ -921,17 +918,7 @@ export function ModelPicker({
           ) : (
             <div className="px-3.5 py-5 text-[13px] leading-[18px] text-ink-secondary">{t("model.noProviders")}</div>
           )}
-          {aiLocked && (
-            <button type="button" data-own-ai-locked onClick={() => { setOpen(false); storeDispatch({ type: "openCloudAdd", source: "app_settings" }); }}
-              className="flex w-full shrink-0 items-start gap-2.5 border-t-[0.5px] border-ink/10 px-3.5 py-2.5 text-left hover:bg-ink/[0.06]">
-              <Lock size={14} strokeWidth={MENU_STROKE} aria-hidden="true" className="mt-0.5 shrink-0 text-ink-secondary" />
-              <span className="flex min-w-0 flex-col gap-0.5">
-                <span className="text-[13px] leading-[18px] text-ink">{t("ownAi.locked.title")}</span>
-                <span className="text-[12px] leading-4 text-ink-secondary">{t("ownAi.locked.body")}</span>
-                <span className="text-[12px] leading-4 text-accent">{t("ownAi.locked.action")}</span>
-              </span>
-            </button>
-          )}
+          {aiLocked && <OwnAiLockedRow onOpen={() => { setOpen(false); storeDispatch({ type: "openCloudAdd", source: "app_settings" }); }} />}
           {!remote && !aiLocked && (
             <div className="flex h-9 shrink-0 items-center gap-1 border-t-[0.5px] border-ink/10 px-1.5">
               <button type="button" onClick={openEngines}
