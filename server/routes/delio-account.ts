@@ -18,7 +18,7 @@ export function createDelioAccountRoutes(account: ReturnType<typeof createDelioA
     }
     if (path === "/api/delio/connect" && method === "GET") return json(res, 200, await account.status());
     if (path === "/api/delio/account" && method === "DELETE") {
-      account.disconnect();
+      await account.disconnect();
       return json(res, 200, { state: "disconnected" });
     }
     if (path === "/api/delio/account" && method === "GET") {

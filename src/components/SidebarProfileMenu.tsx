@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 
 import { accountMenuItems, AccountsSheet, cloudRowLabel, useAccounts } from "./AccountMenu";
+import { delioMenuItems } from "./DelioAccountMenu";
+import { useDelioAccount, useDelioConnect } from "@/lib/delio-account";
 import { AccountMoveStatus, useAccountMove, type AccountMoveKind } from "./AccountMove";
 import { InitialsAvatar } from "./Avatar";
 import { DiscordIcon } from "./DiscordIcon";
@@ -590,6 +592,14 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
   const openCloudAccount = () => dispatch({ type: "toggleAppSettings", open: true, section: "cloudAccount" });
   const move = useAccountMove(state.config?.cloudHome === true, { onOpen: openCloudAccount, onPairPhone: () => dispatch(phonePairingSettingsAction()) });
   const accounts = useAccounts();
+  const delio = useDelioAccount();
+  const delioConnect = useDelioConnect();
+  const delioRows = delioMenuItems(delio, {
+    signIn: () => void delioConnect.connect(),
+    manage: () => { if (delio?.connected && delio.billingUrl) void openExternalLink(delio.billingUrl); },
+    switchAccount: () => void delioConnect.disconnect().then(() => delioConnect.connect()),
+    signOut: () => void delioConnect.disconnect(),
+  });
 
   const items = profileMenuItems({
     phone: simple
@@ -605,8 +615,8 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     update: update?.item ?? null,
     updateTop: simple ? simpleUpdateTop(update) : null,
     move: move.items,
-    account: cloudAccount ? cloudRowLabel(accounts.view) : null,
-    accounts: accountMenuItems(accounts),
+    account: delio ? null : cloudAccount ? cloudRowLabel(accounts.view) : null,
+    accounts: delio ? delioRows : accountMenuItems(accounts),
     ...(account ? { simple: {
       tools: toolMenuItems({
         activeView: state.activeView,

@@ -12,6 +12,10 @@ export interface GatewayOptions {
   wallet: Wallet;
   /** A connected desktop app's token, accepted beside the workspace token. */
   deviceToken?: (token: string, workspace: string) => boolean;
+  /** The address that connected a device token, shown in the app as who is signed in. */
+  deviceEmail?: (token: string, workspace: string) => string | null;
+  /** Revokes a device token when its app signs out. */
+  revokeDevice?: (token: string, workspace: string) => void;
   publicUrl: URL;
   openrouterKey?: string;
   falKey?: string;
@@ -288,8 +292,13 @@ export function createGateway(options: GatewayOptions) {
         return true;
       }
       const allowed = options.allowance?.(workspace) ?? { gateway: true, computers: 1 };
+      if (account && req.method === "DELETE") {
+        options.revokeDevice?.(presented, workspace);
+        send(res, 200, { revoked: true });
+        return true;
+      }
       if (account) {
-        send(res, 200, { workspace, credits: wallet.balance(workspace) / MICRO, usedThisMonth: wallet.usedThisMonth(workspace) / MICRO, creditUsd: wallet.creditUsd, gateway: allowed.gateway,
+        send(res, 200, { email: options.deviceEmail?.(presented, workspace) ?? null, workspace, credits: wallet.balance(workspace) / MICRO, usedThisMonth: wallet.usedThisMonth(workspace) / MICRO, creditUsd: wallet.creditUsd, gateway: allowed.gateway,
           plan: allowed.plan ?? null, ownAi: allowed.ownAi ?? false });
         return true;
       }

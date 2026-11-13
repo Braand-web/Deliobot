@@ -255,12 +255,15 @@ ${input.orders.length ? h`<h2>Paiements</h2><div class="card">${input.orders.map
 <span class="muted">${new Date(row.at).toISOString().replace("T", " ").slice(0, 16)}</span></div>`)}</div>`;
 }
 
-export function devicePage(input: { code: string; label: string | null; workspaces: Array<Workspace & { role: Role }>; error?: string }): Html {
+/** `email`: who is signed in, with a way to switch address and come back to this same code. */
+export function devicePage(input: { code: string; email: string; label: string | null; workspaces: Array<Workspace & { role: Role }>; error?: string }): Html {
   return h`<div class="narrow"><h1 class="center">Connecter une application</h1>
 <p class="muted center">${input.label ? `« ${input.label} » demande à utiliser vos crédits Delio.` : "Entrez le code affiché par votre application."} Vérifiez que le code correspond à celui de votre écran.</p>
 ${notice(input.error, "error")}<form method="post" action="/device" class="card">
 <label for="code">Code</label><input id="code" name="code" value="${input.code}" required autocomplete="off" placeholder="BCDF-GHJK" style="font-size:20px;letter-spacing:.12em;text-transform:uppercase">
 <label for="workspace">Utiliser les crédits de</label><select id="workspace" name="workspace">
 ${input.workspaces.map((workspace) => h`<option value="${workspace.slug}">${workspace.name}</option>`)}<option value="personal">Un nouvel espace personnel</option></select>
-<p style="display:flex;gap:8px"><button class="primary" name="decision" value="allow" style="flex:1">Connecter</button><button name="decision" value="deny">Refuser</button></p></form></div>`;
+<p style="display:flex;gap:8px"><button class="primary" name="decision" value="allow" style="flex:1">Connecter</button><button name="decision" value="deny">Refuser</button></p></form>
+<form method="post" action="/logout" class="center muted"><input type="hidden" name="next" value="/device?code=${encodeURIComponent(input.code)}">
+Connecté en tant que <b>${input.email}</b>. Pas vous ? <button>Utiliser une autre adresse</button></form></div>`;
 }

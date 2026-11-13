@@ -84,6 +84,19 @@ CREATE TABLE IF NOT EXISTS device_tokens (id TEXT PRIMARY KEY, token_hash TEXT N
     return Boolean(found);
   }
 
+  /** The address of the account that connected this device token; null when the token is not a live one of this workspace. */
+  ownerEmail(value: string, workspace: string): string | null {
+    if (!DEVICE_TOKEN.test(value)) return null;
+    const row = this.db.prepare(`SELECT a.email FROM device_tokens d JOIN accounts a ON a.id = d.account_id WHERE d.token_hash = ? AND d.workspace = ?`)
+      .get(sha256(value), workspace) as { email: string } | undefined;
+    return row?.email ?? null;
+  }
+
+  /** A device signing itself out: its own token stops working. */
+  revokeToken(value: string, workspace: string): void {
+    if (DEVICE_TOKEN.test(value)) this.db.prepare("DELETE FROM device_tokens WHERE token_hash = ? AND workspace = ?").run(sha256(value), workspace);
+  }
+
   list(workspace: string): DeviceRow[] {
     return this.db.prepare("SELECT id, workspace, label, created_at AS createdAt, last_used_at AS lastUsedAt FROM device_tokens WHERE workspace = ? ORDER BY created_at DESC")
       .all(workspace) as unknown as DeviceRow[];

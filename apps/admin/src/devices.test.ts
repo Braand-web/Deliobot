@@ -61,7 +61,9 @@ describe("connecting a desktop app to a Delio account", () => {
     expect(await app.account.status()).toMatchObject({ state: "waiting", userCode: started.userCode });
 
     await target.signIn("ana@acme.test");
-    expect(await (await target.request(`/device?code=${started.userCode}`)).text()).toContain("Deliobot on test-mac");
+    const approval = await (await target.request(`/device?code=${started.userCode}`)).text();
+    expect(approval).toContain("Deliobot on test-mac");
+    expect(approval, "another address can sign in and come back to the same code").toContain(`name="next" value="/device?code=${started.userCode}"`);
     const approved = await target.request("/device", { code: started.userCode.toLowerCase().replace("-", " "), workspace: "personal", decision: "allow" });
     expect(approved.status).toBe(200);
 
@@ -73,7 +75,7 @@ describe("connecting a desktop app to a Delio account", () => {
       config: { url: `${target.origin}/api/gateway/${connection.workspace}/openrouter/v1`, model: "auto" } });
     expect(withDelioMedia(app.config).fal).toEqual({ key: connection.token, url: `${target.origin}/api/gateway/${connection.workspace}/fal` });
     expect(withDelioMedia({ ...app.config, fal: { key: "own-fal-key" } }).fal, "the person's own key wins").toEqual({ key: "own-fal-key" });
-    expect(await app.account.balance()).toEqual({ credits: 0, usedThisMonth: 0, plan: null, ownAi: false });
+    expect(await app.account.balance()).toEqual({ email: "ana@acme.test", credits: 0, usedThisMonth: 0, plan: null, ownAi: false });
 
     await target.signIn("ana@acme.test");
     const billing = await (await target.request(`/billing?workspace=${connection.workspace}`)).text();
@@ -82,6 +84,20 @@ describe("connecting a desktop app to a Delio account", () => {
     await target.request("/billing/device", { workspace: connection.workspace, device });
     const refused = await fetch(`${target.origin}/api/workspace/${connection.workspace}/account`, { headers: { authorization: `Bearer ${connection.token}` } });
     expect(refused.status, "a disconnected app's token no longer works").toBe(401);
+  });
+
+  it("revokes the app's token on the portal when the app signs out", async () => {
+    const target = await portal();
+    const app = desktop(target.origin);
+    const started = await app.start();
+    await target.signIn("ana@acme.test");
+    await target.request("/device", { code: started.userCode, workspace: "personal", decision: "allow" });
+    await app.account.status();
+    const connection = delioConnection(app.config)!;
+    await app.account.disconnect();
+    expect(delioConnection(app.config)).toBeNull();
+    const refused = await fetch(`${target.origin}/api/workspace/${connection.workspace}/account`, { headers: { authorization: `Bearer ${connection.token}` } });
+    expect(refused.status, "the signed-out app's token no longer works").toBe(401);
   });
 
   it("tells the app when the person refuses, and only an administrator's workspace can be chosen", async () => {

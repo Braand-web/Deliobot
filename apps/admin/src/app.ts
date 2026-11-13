@@ -148,6 +148,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   const startHosting = () => { void runHosting?.().catch((error: unknown) => console.error("delio-admin: hosting pass failed", error)); };
   const traffic = new Traffic(store.db, now);
   const gateway = createGateway({ ...options.gateway, store, wallet, publicUrl, fetchImpl, now, deviceToken: (value, slug) => devices.check(value, slug),
+    deviceEmail: (value, slug) => devices.ownerEmail(value, slug), revokeDevice: (value, slug) => devices.revokeToken(value, slug),
     allowance: (slug) => plans.allowance(slug) });
 
   function sessionCookie(value: string, maxAgeSeconds: number): string {
@@ -597,13 +598,13 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
 
     if (method === "GET" && path === "/device") {
       return html(res, 200, { title: "Connecter une application", email: user.email, mascot: "curious",
-        body: devicePage({ code: url.searchParams.get("code") ?? "", label: devices.pendingLabel(url.searchParams.get("code") ?? ""), workspaces: store.workspacesOf(user.id).filter((item) => item.role === "admin") }) });
+        body: devicePage({ code: url.searchParams.get("code") ?? "", email: user.email, label: devices.pendingLabel(url.searchParams.get("code") ?? ""), workspaces: store.workspacesOf(user.id).filter((item) => item.role === "admin") }) });
     }
     if (method === "POST" && path === "/device") {
       const body = await readBody(req);
       const code = text(body, "code", 16);
       const admin = store.workspacesOf(user.id).filter((item) => item.role === "admin");
-      const again = (status: number, error: string) => html(res, status, { title: "Connecter une application", email: user.email, mascot: "sad", body: devicePage({ code, label: devices.pendingLabel(code), workspaces: admin, error }) });
+      const again = (status: number, error: string) => html(res, status, { title: "Connecter une application", email: user.email, mascot: "sad", body: devicePage({ code, email: user.email, label: devices.pendingLabel(code), workspaces: admin, error }) });
       if (!devices.pendingLabel(code)) return again(400, "Ce code a expiré ou a déjà servi. Recommencez depuis l'application.");
       if (text(body, "decision", 8) === "deny") {
         devices.decide(code, "deny");

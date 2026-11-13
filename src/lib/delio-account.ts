@@ -6,7 +6,7 @@ import { api } from "@/state/store";
 export type DelioAccount = {
   planGate: boolean;
   ownAi: boolean;
-} & ({ connected: false } | { connected: true; workspace: string; portal: string; billingUrl?: string; credits?: number; usedThisMonth?: number; plan?: string | null });
+} & ({ connected: false } | { connected: true; workspace: string; portal: string; billingUrl?: string; email?: string | null; credits?: number; usedThisMonth?: number; plan?: string | null });
 
 export type DelioConnectFlow = { state: "connected"; workspace: string } | { state: "waiting"; userCode: string; verification: string }
   | { state: "disconnected"; reason?: "denied" | "expired" };
@@ -49,7 +49,22 @@ export function useDelioConnect() {
   const [error, setError] = useState<string | null>(null);
   const polling = useRef<number | null>(null);
   const stop = () => { if (polling.current) window.clearInterval(polling.current); polling.current = null; };
-  useEffect(() => stop, []);
+  const follow = () => {
+    stop();
+    polling.current = window.setInterval(async () => {
+      const next = await api<DelioConnectFlow>("/api/delio/connect", { background: true }).catch(() => null);
+      if (!next) return;
+      setFlow(next);
+      if (next.state !== "waiting") { stop(); delioAccountChanged(); }
+    }, 2000);
+  };
+  useEffect(() => {
+    let alive = true;
+    void api<DelioConnectFlow>("/api/delio/connect", { background: true }).then((current) => {
+      if (alive && current?.state === "waiting") { setFlow(current); follow(); }
+    }, () => undefined);
+    return () => { alive = false; stop(); };
+  }, []);
 
   const connect = async () => {
     setBusy(true);
@@ -58,13 +73,7 @@ export function useDelioConnect() {
       const started = await api<{ userCode: string; verification: string }>("/api/delio/connect", { method: "POST", body: "{}" });
       setFlow({ state: "waiting", ...started });
       window.open(started.verification, "_blank", "noopener");
-      stop();
-      polling.current = window.setInterval(async () => {
-        const next = await api<DelioConnectFlow>("/api/delio/connect", { background: true }).catch(() => null);
-        if (!next) return;
-        setFlow(next);
-        if (next.state !== "waiting") { stop(); delioAccountChanged(); }
-      }, 2000);
+      follow();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally {

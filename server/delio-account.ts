@@ -12,7 +12,7 @@ export const DELIO_TOKEN_ENV = "ODB_DELIO_TOKEN";
 export const DELIO_PLAN_GATE_ENV = "ODB_DELIO_PLAN_GATE";
 export const OWN_AI_REFUSAL = "Your own AI accounts and keys come with the Max and BYOK plans. Choose a plan in Settings → Plans and top-ups, or use Delio.";
 
-export interface DelioAccountView { credits: number; usedThisMonth: number; plan: string | null; ownAi: boolean }
+export interface DelioAccountView { email: string | null; credits: number; usedThisMonth: number; plan: string | null; ownAi: boolean }
 const DEVICE_TOKEN = /^odb_device_[A-Za-z0-9_-]{43}$/;
 const SLUG = /^[a-z][a-z0-9-]{1,30}$/;
 export const DEFAULT_DELIO_PORTAL = "https://compte.deliobot.fun";
@@ -131,9 +131,9 @@ export function createDelioAccount(deps: {
       const response = await fetchImpl(`${connection.portal}/api/workspace/${connection.workspace}/account`, {
         headers: { authorization: `Bearer ${connection.token}`, accept: "application/json" }, redirect: "error", signal: AbortSignal.timeout(5_000),
       });
-      const body = response.ok ? await response.json() as { credits?: unknown; usedThisMonth?: unknown; plan?: unknown; ownAi?: unknown } : null;
+      const body = response.ok ? await response.json() as { email?: unknown; credits?: unknown; usedThisMonth?: unknown; plan?: unknown; ownAi?: unknown } : null;
       if (body && typeof body.credits === "number" && typeof body.usedThisMonth === "number") {
-        view = { credits: body.credits, usedThisMonth: body.usedThisMonth, plan: typeof body.plan === "string" ? body.plan : null, ownAi: body.ownAi === true };
+        view = { email: typeof body.email === "string" ? body.email : null, credits: body.credits, usedThisMonth: body.usedThisMonth, plan: typeof body.plan === "string" ? body.plan : null, ownAi: body.ownAi === true };
       }
     } catch { view = null; }
     credits = { at: now(), view };
@@ -154,7 +154,17 @@ export function createDelioAccount(deps: {
 
   return {
     start, status, balance, ownAiAllowed, assertOwnAi, planGate,
-    disconnect() { pending = null; credits = null; deps.save(null); },
+    /** Forgets the account here and revokes this app's token on the portal, so a copied token stops working too. */
+    async disconnect() {
+      const connection = delioConnection(deps.config());
+      pending = null;
+      credits = null;
+      deps.save(null);
+      if (!connection) return;
+      await fetchImpl(`${connection.portal}/api/workspace/${connection.workspace}/account`, {
+        method: "DELETE", headers: { authorization: `Bearer ${connection.token}` }, redirect: "error", signal: AbortSignal.timeout(5_000),
+      }).catch(() => undefined);
+    },
   };
 }
 
