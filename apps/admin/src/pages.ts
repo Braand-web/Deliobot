@@ -5,7 +5,7 @@ import { PLANS, TRIAL_DAYS, type Catalog, type Cycle, type Order, type PlanId, t
 import type { LedgerRow } from "./wallet.ts";
 
 export type Html = { readonly html: string };
-const raw = (html: string): Html => ({ html });
+export const raw = (html: string): Html => ({ html });
 
 export function esc(value: unknown): string {
   return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]!);
@@ -51,106 +51,106 @@ export const SUPPORT_EMAIL = "support@deliobot.fun";
 export function page(input: { title: string; body: Html; email?: string | null; mascot?: "idle" | "happy" | "sad" | "curious"; brand?: string }): string {
   const brand = input.brand ?? "Delio";
   const mascot = input.mascot ? h`<img class="mascot" src="/assets/delio-${input.mascot}.webp" alt="">` : raw("");
-  return `<!doctype html>${h`<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  return `<!doctype html>${h`<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${input.title} · ${brand}</title><link rel="icon" href="/assets/delio-idle.webp"><style>${raw(STYLE)}</style></head><body>
 <header><img src="/assets/delio-idle.webp" alt=""><b>${brand}</b><nav>${input.email ? h`<span>${input.email}</span>
-<form class="inline" method="post" action="/logout"><button>Sign out</button></form>` : ""}</nav></header>
+<form class="inline" method="post" action="/logout"><button>Se déconnecter</button></form>` : ""}</nav></header>
 <main>${mascot}${input.body}</main>
-<footer class="help">Need help? <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></footer></body></html>`.html}`;
+<footer class="help">Besoin d'aide ? <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></footer></body></html>`.html}`;
 }
 
 export const notice = (text: string | null | undefined, kind: "info" | "error" = "info") => text ? h`<div class="notice ${kind}">${text}</div>` : raw("");
 
 export function loginPage(next: string, error?: string): Html {
-  return h`<div class="narrow"><h1 class="center">Sign in to Delio</h1><p class="muted center">We email you a one-time code. Company accounts continue with single sign-on.</p>
+  return h`<div class="narrow"><h1 class="center">Connexion à Delio</h1><p class="muted center">Nous vous envoyons un code à usage unique par e-mail. Les comptes d'entreprise passent par la connexion unique (SSO).</p>
 ${notice(error, "error")}<form method="post" action="/login" class="card"><input type="hidden" name="next" value="${next}">
-<label for="email">Work email</label><input id="email" name="email" type="email" autocomplete="email" required autofocus>
-<p><button class="primary" style="width:100%">Continue</button></p></form></div>`;
+<label for="email">Adresse e-mail</label><input id="email" name="email" type="email" autocomplete="email" required autofocus>
+<p><button class="primary" style="width:100%">Continuer</button></p></form></div>`;
 }
 
 /** A customer names a workspace; it is created on the server once its plan is paid. */
 /** Without `domain` the workspace is an account for the desktop app, and the slug is only its short name. */
 export function signupPage(input: { domain?: string; plan: string; cycle: string; name?: string; slug?: string; error?: string }): Html {
-  return h`<div class="narrow"><h1 class="center">Create your workspace</h1>
-<p class="muted center">${input.domain ? "Your bots and your team live there. You pay for a plan next, then it is ready in a few minutes." : "Your plan, your credits and your team. You pay for a plan next, then connect the Deliobot app to it."}</p>
+  return h`<div class="narrow"><h1 class="center">Créer votre espace</h1>
+<p class="muted center">${input.domain ? "Vos bots et votre équipe y vivent. Vous choisissez ensuite un forfait, puis l'espace est prêt en quelques minutes." : "Votre forfait, vos crédits et votre équipe. Vous choisissez ensuite un forfait, puis vous y connectez l'application Deliobot."}</p>
 ${notice(input.error, "error")}<form method="post" action="/signup" class="card">
 <input type="hidden" name="plan" value="${input.plan}"><input type="hidden" name="cycle" value="${input.cycle}">
-<label for="name">Name</label><input id="name" name="name" required maxlength="80" placeholder="Acme" value="${input.name ?? ""}" autofocus>
-<label for="slug">${input.domain ? "Address" : "Short name"}</label><div class="row" style="gap:6px"><input id="slug" name="slug" required pattern="[a-z][a-z0-9-]{1,30}" maxlength="31" placeholder="acme" value="${input.slug ?? ""}" style="flex:1">
+<label for="name">Nom</label><input id="name" name="name" required maxlength="80" placeholder="Acme" value="${input.name ?? ""}" autofocus>
+<label for="slug">${input.domain ? "Adresse" : "Identifiant"}</label><div class="row" style="gap:6px"><input id="slug" name="slug" required pattern="[a-z][a-z0-9-]{1,30}" maxlength="31" placeholder="acme" value="${input.slug ?? ""}" style="flex:1">
 ${input.domain ? h`<span class="muted">.${input.domain}</span>` : ""}</div>
-<p class="muted" style="font-size:12px">Lowercase letters, digits and dashes. It cannot be changed later.</p>
-<p><button class="primary" style="width:100%">Continue to payment</button></p></form></div>`;
+<p class="muted" style="font-size:12px">Lettres minuscules, chiffres et tirets. Il ne pourra plus être changé.</p>
+<p><button class="primary" style="width:100%">Continuer vers le paiement</button></p></form></div>`;
 }
 
 export function codePage(email: string, next: string, error?: string): Html {
-  return h`<div class="narrow"><h1 class="center">Check your email</h1><p class="muted center">We sent an 8-digit code to <b>${email}</b>. It expires in 10 minutes.</p>
+  return h`<div class="narrow"><h1 class="center">Vérifiez vos e-mails</h1><p class="muted center">Nous avons envoyé un code à 8 chiffres à <b>${email}</b>. Il expire dans 10 minutes.</p>
 ${notice(error, "error")}<form method="post" action="/login/verify" class="card"><input type="hidden" name="email" value="${email}"><input type="hidden" name="next" value="${next}">
 <label for="code">Code</label><input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{8,9}" required autofocus>
-<p><button class="primary" style="width:100%">Sign in</button></p></form><p class="center muted"><a href="/login?next=${encodeURIComponent(next)}">Use another address</a></p></div>`;
+<p><button class="primary" style="width:100%">Se connecter</button></p></form><p class="center muted"><a href="/login?next=${encodeURIComponent(next)}">Utiliser une autre adresse</a></p></div>`;
 }
 
 export function homePage(input: { workspaces: Array<Workspace & { role: Role }>; operator: boolean; all: Workspace[]; signup?: boolean; message?: string; error?: string }): Html {
   const mine = input.workspaces.length === 0
-    ? h`<p class="muted">You are not in any workspace yet. ${input.signup ? h`<a href="/signup">Create one</a>, or ask` : "Ask"} an administrator for an invitation.</p>`
-    : input.workspaces.map((workspace) => h`<div class="row"><div class="grow"><b>${workspace.name}</b><div class="muted">${workspace.slug} · ${workspace.role}</div></div>
-<a href="${workspace.tenantUrl}">Open</a>${workspace.role === "admin" ? h` <a href="/people?workspace=${workspace.slug}">People</a> <a href="/sso?workspace=${workspace.slug}">SSO</a> <a href="/billing?workspace=${workspace.slug}">Billing</a>` : ""}</div>`);
-  const operator = input.operator ? h`<h2>All workspaces</h2><div class="card">${input.all.length === 0 ? h`<p class="muted">None yet.</p>`
-    : input.all.map((workspace) => h`<div class="row"><div class="grow"><b>${workspace.slug}</b><div class="muted">${workspace.tenantUrl}</div></div><a href="/people?workspace=${workspace.slug}">People</a> <a href="/billing?workspace=${workspace.slug}">Billing</a></div>`)}</div>
-<h2>New workspace</h2><form method="post" action="/workspaces" class="card">
-<label for="slug">Slug</label><input id="slug" name="slug" pattern="[a-z][a-z0-9-]{1,30}" required placeholder="acme">
-<label for="name">Name</label><input id="name" name="name" required maxlength="80" placeholder="Acme">
-<label for="tenant">Workspace address</label><input id="tenant" name="tenantUrl" type="url" required placeholder="https://acme.deliobot.com">
-<label for="owner">First administrator's email</label><input id="owner" name="ownerEmail" type="email" required>
-<p><button class="primary">Create workspace</button></p></form>` : raw("");
-  return h`<h1>Your workspaces</h1>${notice(input.message)}${notice(input.error, "error")}<div class="card">${mine}</div>
-${input.signup && input.workspaces.length ? h`<p><a href="/signup">Create another workspace</a></p>` : ""}${operator}`;
+    ? h`<p class="muted">Vous n'êtes encore dans aucun espace. ${input.signup ? h`<a href="/signup">Créez-en un</a>, ou demandez` : "Demandez"} une invitation à un administrateur.</p>`
+    : input.workspaces.map((workspace) => h`<div class="row"><div class="grow"><b>${workspace.name}</b><div class="muted">${workspace.slug} · ${workspace.role === "admin" ? "administrateur" : "membre"}</div></div>
+<a href="${workspace.tenantUrl}">Ouvrir</a>${workspace.role === "admin" ? h` <a href="/people?workspace=${workspace.slug}">Membres</a> <a href="/sso?workspace=${workspace.slug}">SSO</a> <a href="/billing?workspace=${workspace.slug}">Facturation</a>` : ""}</div>`);
+  const operator = input.operator ? h`<h2>Tous les espaces</h2><div class="card">${input.all.length === 0 ? h`<p class="muted">Aucun pour l'instant.</p>`
+    : input.all.map((workspace) => h`<div class="row"><div class="grow"><b>${workspace.slug}</b><div class="muted">${workspace.tenantUrl}</div></div><a href="/people?workspace=${workspace.slug}">Membres</a> <a href="/billing?workspace=${workspace.slug}">Facturation</a></div>`)}</div>
+<h2>Nouvel espace</h2><form method="post" action="/workspaces" class="card">
+<label for="slug">Identifiant</label><input id="slug" name="slug" pattern="[a-z][a-z0-9-]{1,30}" required placeholder="acme">
+<label for="name">Nom</label><input id="name" name="name" required maxlength="80" placeholder="Acme">
+<label for="tenant">Adresse de l'espace</label><input id="tenant" name="tenantUrl" type="url" required placeholder="https://acme.deliobot.com">
+<label for="owner">E-mail du premier administrateur</label><input id="owner" name="ownerEmail" type="email" required>
+<p><button class="primary">Créer l'espace</button></p></form>` : raw("");
+  return h`<h1>Vos espaces</h1>${notice(input.message)}${notice(input.error, "error")}<div class="card">${mine}</div>
+${input.signup && input.workspaces.length ? h`<p><a href="/signup">Créer un autre espace</a></p>` : ""}${operator}`;
 }
 
 export function peoplePage(input: { workspace: Workspace; members: Member[]; invitations: Invitation[]; self: string; inviteLink?: string; message?: string; error?: string;
   audit: Array<{ actor: string | null; action: string; target: string | null; at: number }> }): Html {
   const slug = input.workspace.slug;
-  const roleSelect = (role: Role) => h`<select name="role" aria-label="Role"><option value="member"${role === "member" ? raw(" selected") : ""}>Member</option><option value="admin"${role === "admin" ? raw(" selected") : ""}>Admin</option></select>`;
-  return h`<h1>${input.workspace.name}</h1><p class="muted">People who can sign in to <a href="${input.workspace.tenantUrl}">${input.workspace.tenantUrl}</a>.
-Removing someone or changing their role reaches their open sessions within 15 seconds.</p>
+  const roleSelect = (role: Role) => h`<select name="role" aria-label="Rôle"><option value="member"${role === "member" ? raw(" selected") : ""}>Membre</option><option value="admin"${role === "admin" ? raw(" selected") : ""}>Administrateur</option></select>`;
+  return h`<h1>${input.workspace.name}</h1><p class="muted">Les personnes qui peuvent se connecter à <a href="${input.workspace.tenantUrl}">${input.workspace.tenantUrl}</a>.
+Retirer quelqu'un ou changer son rôle s'applique à ses sessions ouvertes en moins de 15 secondes.</p>
 ${notice(input.message)}${notice(input.error, "error")}
-${input.inviteLink ? h`<div class="notice">Invitation link (also emailed): <code>${input.inviteLink}</code></div>` : ""}
-<h2>Members</h2><div class="card">${input.members.map((member) => h`<div class="row"><div class="grow">${member.email}${member.accountId === input.self ? h` <span class="muted">(you)</span>` : ""}</div>
-<form class="inline" method="post" action="/people/role"><input type="hidden" name="workspace" value="${slug}"><input type="hidden" name="account" value="${member.accountId}">${roleSelect(member.role)}<button>Save</button></form>
-<form class="inline" method="post" action="/people/remove"><input type="hidden" name="workspace" value="${slug}"><input type="hidden" name="account" value="${member.accountId}"><button class="danger">Remove</button></form></div>`)}</div>
-<h2>Invite</h2><form method="post" action="/people/invite" class="card"><input type="hidden" name="workspace" value="${slug}">
-<label for="invite-email">Email</label><input id="invite-email" name="email" type="email" required><label for="invite-role">Role</label>${roleSelect("member")}
-<p><button class="primary">Send invitation</button></p></form>
-${input.invitations.length ? h`<h2>Pending invitations</h2><div class="card">${input.invitations.map((invitation) => h`<div class="row"><div class="grow">${invitation.email}<div class="muted">${invitation.role} · expires ${new Date(invitation.expiresAt).toISOString().slice(0, 10)}</div></div>
-<form class="inline" method="post" action="/people/cancel"><input type="hidden" name="workspace" value="${slug}"><input type="hidden" name="invitation" value="${invitation.id}"><button>Cancel</button></form></div>`)}</div>` : ""}
-<h2>Recent activity</h2><div class="card">${input.audit.length === 0 ? h`<p class="muted">Nothing yet.</p>` : input.audit.map((entry) => h`<div class="row"><div class="grow"><code>${entry.action}</code> <span class="muted">${entry.target ?? ""}</span></div><span class="muted">${entry.actor ?? "system"} · ${new Date(entry.at).toISOString().replace("T", " ").slice(0, 16)}</span></div>`)}</div>`;
+${input.inviteLink ? h`<div class="notice">Lien d'invitation (aussi envoyé par e-mail) : <code>${input.inviteLink}</code></div>` : ""}
+<h2>Membres</h2><div class="card">${input.members.map((member) => h`<div class="row"><div class="grow">${member.email}${member.accountId === input.self ? h` <span class="muted">(vous)</span>` : ""}</div>
+<form class="inline" method="post" action="/people/role"><input type="hidden" name="workspace" value="${slug}"><input type="hidden" name="account" value="${member.accountId}">${roleSelect(member.role)}<button>Enregistrer</button></form>
+<form class="inline" method="post" action="/people/remove"><input type="hidden" name="workspace" value="${slug}"><input type="hidden" name="account" value="${member.accountId}"><button class="danger">Retirer</button></form></div>`)}</div>
+<h2>Inviter</h2><form method="post" action="/people/invite" class="card"><input type="hidden" name="workspace" value="${slug}">
+<label for="invite-email">E-mail</label><input id="invite-email" name="email" type="email" required><label for="invite-role">Rôle</label>${roleSelect("member")}
+<p><button class="primary">Envoyer l'invitation</button></p></form>
+${input.invitations.length ? h`<h2>Invitations en attente</h2><div class="card">${input.invitations.map((invitation) => h`<div class="row"><div class="grow">${invitation.email}<div class="muted">${invitation.role === "admin" ? "administrateur" : "membre"} · expire le ${new Date(invitation.expiresAt).toISOString().slice(0, 10)}</div></div>
+<form class="inline" method="post" action="/people/cancel"><input type="hidden" name="workspace" value="${slug}"><input type="hidden" name="invitation" value="${invitation.id}"><button>Annuler</button></form></div>`)}</div>` : ""}
+<h2>Activité récente</h2><div class="card">${input.audit.length === 0 ? h`<p class="muted">Rien pour l'instant.</p>` : input.audit.map((entry) => h`<div class="row"><div class="grow"><code>${entry.action}</code> <span class="muted">${entry.target ?? ""}</span></div><span class="muted">${entry.actor ?? "système"} · ${new Date(entry.at).toISOString().replace("T", " ").slice(0, 16)}</span></div>`)}</div>`;
 }
 
 export function invitePage(input: { invitation: Invitation; workspace: Workspace; token: string; email: string | null }): Html {
   const matches = input.email === input.invitation.email;
-  return h`<div class="narrow center"><h1>Join ${input.workspace.name}</h1><p class="muted">Invitation for <b>${input.invitation.email}</b> as ${input.invitation.role}.</p>
-${!input.email ? h`<p><a href="/login?next=${encodeURIComponent(`/invite?token=${input.token}`)}">Sign in as ${input.invitation.email} to accept</a></p>`
-    : matches ? h`<form method="post" action="/invite/accept"><input type="hidden" name="token" value="${input.token}"><button class="primary">Accept invitation</button></form>`
-    : h`${notice(`You are signed in as ${input.email}. Sign out, then sign in as ${input.invitation.email} to accept.`, "error")}`}</div>`;
+  return h`<div class="narrow center"><h1>Rejoindre ${input.workspace.name}</h1><p class="muted">Invitation pour <b>${input.invitation.email}</b> en tant que ${input.invitation.role === "admin" ? "administrateur" : "membre"}.</p>
+${!input.email ? h`<p><a href="/login?next=${encodeURIComponent(`/invite?token=${input.token}`)}">Connectez-vous en tant que ${input.invitation.email} pour accepter</a></p>`
+    : matches ? h`<form method="post" action="/invite/accept"><input type="hidden" name="token" value="${input.token}"><button class="primary">Accepter l'invitation</button></form>`
+    : h`${notice(`Vous êtes connecté en tant que ${input.email}. Déconnectez-vous, puis connectez-vous en tant que ${input.invitation.email} pour accepter.`, "error")}`}</div>`;
 }
 
 export function ssoPage(input: { workspace: Workspace; sso: SsoConfig | null; redirectUri: string; message?: string; error?: string }): Html {
   const sso = input.sso;
-  return h`<h1>Single sign-on · ${input.workspace.name}</h1><p class="muted">Connect an OpenID Connect provider (Google Workspace, Microsoft Entra ID, Okta, Auth0…).
-People whose verified email ends with the domain below sign in through it instead of email codes.</p>
+  return h`<h1>Connexion unique · ${input.workspace.name}</h1><p class="muted">Connectez un fournisseur OpenID Connect (Google Workspace, Microsoft Entra ID, Okta, Auth0…).
+Les personnes dont l'e-mail vérifié se termine par le domaine ci-dessous se connectent par lui au lieu des codes par e-mail.</p>
 ${notice(input.message)}${notice(input.error, "error")}
-<div class="card"><label>Redirect URI to register with your provider</label><code>${input.redirectUri}</code></div>
+<div class="card"><label>URI de redirection à déclarer chez votre fournisseur</label><code>${input.redirectUri}</code></div>
 <form method="post" action="/sso" class="card"><input type="hidden" name="workspace" value="${input.workspace.slug}">
-<label for="issuer">Issuer URL</label><input id="issuer" name="issuer" type="url" required value="${sso?.issuer ?? ""}" placeholder="https://accounts.google.com">
-<label for="client">Client ID</label><input id="client" name="clientId" required value="${sso?.clientId ?? ""}">
-<label for="secret">Client secret</label><input id="secret" name="clientSecret" type="password" ${sso ? "" : raw("required")} placeholder="${sso ? "Unchanged" : ""}" autocomplete="off">
-<label for="domain">Email domain</label><input id="domain" name="domain" required value="${sso?.domain ?? ""}" placeholder="acme.com">
-<label><input type="checkbox" name="autoJoin" value="1" style="width:auto"${sso?.autoJoin ? raw(" checked") : ""}> Add people from this domain as members on their first sign-in</label>
-<p><button class="primary">Save</button></p></form>
-${sso ? h`<form method="post" action="/sso/remove"><input type="hidden" name="workspace" value="${input.workspace.slug}"><button class="danger">Turn off single sign-on</button></form>` : ""}`;
+<label for="issuer">URL de l'émetteur</label><input id="issuer" name="issuer" type="url" required value="${sso?.issuer ?? ""}" placeholder="https://accounts.google.com">
+<label for="client">Identifiant client</label><input id="client" name="clientId" required value="${sso?.clientId ?? ""}">
+<label for="secret">Secret client</label><input id="secret" name="clientSecret" type="password" ${sso ? "" : raw("required")} placeholder="${sso ? "Inchangé" : ""}" autocomplete="off">
+<label for="domain">Domaine e-mail</label><input id="domain" name="domain" required value="${sso?.domain ?? ""}" placeholder="acme.com">
+<label><input type="checkbox" name="autoJoin" value="1" style="width:auto"${sso?.autoJoin ? raw(" checked") : ""}> Ajouter les personnes de ce domaine comme membres à leur première connexion</label>
+<p><button class="primary">Enregistrer</button></p></form>
+${sso ? h`<form method="post" action="/sso/remove"><input type="hidden" name="workspace" value="${input.workspace.slug}"><button class="danger">Désactiver la connexion unique</button></form>` : ""}`;
 }
 
 export function slackPage(workspace: Workspace): Html {
-  return h`<h1>Slack · ${workspace.name}</h1><p class="muted">Slack is connected from the workspace itself: open <a href="${workspace.tenantUrl}">${workspace.tenantUrl}</a> and add Slack to a bot from its settings.</p>`;
+  return h`<h1>Slack · ${workspace.name}</h1><p class="muted">Slack se connecte depuis l'espace lui-même : ouvrez <a href="${workspace.tenantUrl}">${workspace.tenantUrl}</a> et ajoutez Slack à un bot depuis ses réglages.</p>`;
 }
 
 export function messagePage(title: string, text: string, link?: { href: string; label: string }): Html {
@@ -159,31 +159,31 @@ export function messagePage(title: string, text: string, link?: { href: string; 
 
 /** A workspace link opened while signed in with another address: say so, and offer to switch address and come back. */
 export function otherAccountPage(email: string, next: string): Html {
-  return h`<div class="narrow center"><h1>This workspace belongs to another address</h1>
-<p class="muted">You are signed in as <b>${email}</b>. Sign in with the address you used in the Deliobot app to continue.</p>
-<form method="post" action="/logout"><input type="hidden" name="next" value="${next}"><button class="primary" style="width:100%">Use another address</button></form>
-<p><a href="/">Stay as ${email}</a></p></div>`;
+  return h`<div class="narrow center"><h1>Cet espace appartient à une autre adresse</h1>
+<p class="muted">Vous êtes connecté en tant que <b>${email}</b>. Connectez-vous avec l'adresse utilisée dans l'application Deliobot pour continuer.</p>
+<form method="post" action="/logout"><input type="hidden" name="next" value="${next}"><button class="primary" style="width:100%">Utiliser une autre adresse</button></form>
+<p><a href="/">Rester avec ${email}</a></p></div>`;
 }
 
-const credits = (value: number) => value.toLocaleString("en-US", { maximumFractionDigits: 1 });
+const credits = (value: number) => value.toLocaleString("fr-FR", { maximumFractionDigits: 1 });
 
 function hostingCard(workspace: Workspace, hosting: { state: HostingState; error: string | null; retry: boolean }): Html {
   const line: Record<HostingState, string> = {
-    waiting: "Choose a plan below: the workspace is created as soon as it is paid.",
-    creating: "Being created. This takes a few minutes; you get an email when it is ready.",
-    ready: "Ready.",
-    failed: "Creating it did not work yet. It is tried again automatically, and the Delio team is told if it keeps failing.",
-    suspended: "Paused because its plan has ended. Renew it below: your bots and data are kept.",
+    waiting: "Choisissez un forfait ci-dessous : l'espace est créé dès qu'il est payé.",
+    creating: "En cours de création. Cela prend quelques minutes ; vous recevrez un e-mail quand il sera prêt.",
+    ready: "Prêt.",
+    failed: "La création n'a pas encore abouti. Elle est relancée automatiquement, et l'équipe Delio est prévenue si l'échec persiste.",
+    suspended: "En pause car son forfait est terminé. Renouvelez-le ci-dessous : vos bots et vos données sont conservés.",
   };
-  return h`<h2>Workspace</h2><div class="card" data-hosting="${hosting.state}"><div class="row"><div class="grow"><b>${workspace.tenantUrl}</b><div class="muted">${line[hosting.state]}</div>
+  return h`<h2>Espace</h2><div class="card" data-hosting="${hosting.state}"><div class="row"><div class="grow"><b>${workspace.tenantUrl}</b><div class="muted">${line[hosting.state]}</div>
 ${hosting.error ? h`<div class="muted" style="font-size:12px">${hosting.error}</div>` : ""}</div>
-${hosting.state === "ready" ? h`<a class="button primary" href="${workspace.tenantUrl}">Open</a>` : ""}
-${hosting.retry ? h`<form class="inline" method="post" action="/billing/hosting/retry"><input type="hidden" name="workspace" value="${workspace.slug}"><button>Try again now</button></form>` : ""}</div></div>`;
+${hosting.state === "ready" ? h`<a class="button primary" href="${workspace.tenantUrl}">Ouvrir</a>` : ""}
+${hosting.retry ? h`<form class="inline" method="post" action="/billing/hosting/retry"><input type="hidden" name="workspace" value="${workspace.slug}"><button>Réessayer maintenant</button></form>` : ""}</div></div>`;
 }
 
 /** A dollar price as the site shows it, with the francs a payer is charged in small type beneath. */
 function price(usd: number, francs: number, per: string): Html {
-  const dollars = `$${usd.toLocaleString("en-US", { minimumFractionDigits: Number.isInteger(usd) ? 0 : 2, maximumFractionDigits: 2 })}`;
+  const dollars = `${usd.toLocaleString("fr-FR", { minimumFractionDigits: Number.isInteger(usd) ? 0 : 2, maximumFractionDigits: 2 })} $`;
   return h`<div><span style="font-size:24px;font-weight:600">${dollars}</span> <span class="muted">${per}</span></div>
 <div class="muted" style="font-size:12px">≈ ${francs.toLocaleString("fr-FR")} FCFA</div>`;
 }
@@ -197,11 +197,11 @@ export function billingPage(input: { workspace: Workspace; operator: boolean; ba
   const francs = input.currency === "XOF" || input.currency === "XAF";
   const money = (amount: string) => `${Number(amount).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} ${francs ? "FCFA" : input.currency}`;
   const day = (at: number) => new Date(at).toISOString().slice(0, 10);
-  const status = sub.status === "none" ? "No plan yet"
-    : sub.status === "trialing" ? `Trial until ${day(sub.periodEnd)}`
-    : sub.status === "active" ? `${PLANS[sub.plan].name} · ${sub.cycle === "year" ? "yearly" : "monthly"} · until ${day(sub.periodEnd)}`
-    : sub.status === "grace" ? `${PLANS[sub.plan].name} ended on ${day(sub.periodEnd)}: renew before ${day(sub.periodEnd + 7 * 24 * 60 * 60_000)}`
-    : `${PLANS[sub.plan].name} ended on ${day(sub.periodEnd)}`;
+  const status = sub.status === "none" ? "Pas encore de forfait"
+    : sub.status === "trialing" ? `Essai jusqu'au ${day(sub.periodEnd)}`
+    : sub.status === "active" ? `${PLANS[sub.plan].name} · ${sub.cycle === "year" ? "annuel" : "mensuel"} · jusqu'au ${day(sub.periodEnd)}`
+    : sub.status === "grace" ? `${PLANS[sub.plan].name} terminé le ${day(sub.periodEnd)} : renouvelez avant le ${day(sub.periodEnd + 7 * 24 * 60 * 60_000)}`
+    : `${PLANS[sub.plan].name} terminé le ${day(sub.periodEnd)}`;
   const disabled = input.payments ? "" : raw(" disabled");
   const hidden = (fields: Record<string, string>) => Object.entries(fields).map(([name, value]) => h`<input type="hidden" name="${name}" value="${value}">`);
   const cycleLink = (value: Cycle, label: string) => value === cycle
@@ -213,54 +213,54 @@ export function billingPage(input: { workspace: Workspace; operator: boolean; ba
     const highlight = input.chosen === plan.id || (!input.chosen && plan.id === input.catalog.recommended);
     return h`<form method="post" action="/billing/checkout" class="card" style="margin:0${highlight ? ";outline:2px solid #0a84ff" : ""}">
 ${hidden({ workspace: slug, kind: "plan", plan: plan.id, cycle })}
-<div class="row"><b class="grow">${plan.name}</b>${plan.id === input.catalog.recommended ? h`<span class="muted" style="font-size:12px">Most popular</span>` : ""}</div>
-${yearly ? price(plan.usdYear!, plan.francsYear!, "/year") : price(plan.usd, plan.francs, "/month")}
-${yearly ? h`<div class="muted" style="font-size:12px">One month free · $${(plan.usdYear! / 12).toFixed(2)} a month</div>` : ""}
+<div class="row"><b class="grow">${plan.name}</b>${plan.id === input.catalog.recommended ? h`<span class="muted" style="font-size:12px">Le plus choisi</span>` : ""}</div>
+${yearly ? price(plan.usdYear!, plan.francsYear!, "/an") : price(plan.usd, plan.francs, "/mois")}
+${yearly ? h`<div class="muted" style="font-size:12px">Un mois offert · ${(plan.usdYear! / 12).toFixed(2).replace(".", ",")} $ par mois</div>` : ""}
 <ul class="muted" style="padding-left:18px;margin:10px 0">${plan.gateway
-      ? h`<li>${plan.credits.toLocaleString("en-US")} AI credits a month</li><li>${plan.computerHours} cloud computer hours a month</li><li>${plan.computers === 1 ? "1 cloud computer" : `${plan.computers} cloud computers at once`}</li>`
-      : h`<li>Your own AI keys (OpenRouter, fal.ai)</li><li>Your own cloud computer key (Boat)</li><li>Every Deliobot feature</li>`}</ul>
-<p><button class="primary"${disabled}>${current ? "Renew" : "Choose"}</button></p></form>`;
+      ? h`<li>${plan.credits.toLocaleString("fr-FR")} crédits IA par mois</li><li>${plan.computerHours} heures d'ordinateur cloud par mois</li><li>${plan.computers === 1 ? "1 ordinateur cloud" : `${plan.computers} ordinateurs cloud en même temps`}</li>`
+      : h`<li>Vos propres clés IA (OpenRouter, fal.ai)</li><li>Votre propre clé d'ordinateur cloud (Boat)</li><li>Toutes les fonctionnalités de Deliobot</li>`}</ul>
+<p><button class="primary"${disabled}>${current ? "Renouveler" : "Choisir"}</button></p></form>`;
   };
   const trial = input.catalog.plans.find((plan) => plan.id === "trial")!;
   const sold = input.catalog.plans.filter((plan) => plan.id !== "trial");
-  return h`<h1>Billing · ${input.workspace.name}</h1><p class="muted">Delio credits pay for the AI this workspace uses through Delio's own keys: text, images, video and music.</p>
+  return h`<h1>Facturation · ${input.workspace.name}</h1><p class="muted">Les crédits Delio paient l'IA que cet espace utilise avec les clés de Delio : texte, images, vidéo et musique.</p>
 ${notice(input.message)}${notice(input.error, "error")}
-<div class="card"><div class="row"><div class="grow"><div class="muted">Balance</div><div style="font-size:28px;font-weight:600">${credits(input.balance)} credits</div></div>
-<div class="grow"><div class="muted">Used this month</div><div style="font-size:20px">${credits(input.usedThisMonth)} credits</div></div></div></div>
-${input.operator ? h`<h2>Add credits</h2><form method="post" action="/billing/credit" class="card"><input type="hidden" name="workspace" value="${slug}">
-<label for="credits">Credits (a negative number takes some back)</label><input id="credits" name="credits" inputmode="decimal" required placeholder="2000">
-<label for="note">Note</label><input id="note" name="note" maxlength="200" placeholder="Monthly Pro credits">
-<p><button class="primary">Add</button></p></form>
-<h2>Workspace token</h2><div class="card"><p class="muted">The workspace's server uses this token to reach Delio's AI gateway at <code>${input.gatewayUrl}</code>. Issuing a new one revokes the old one.</p>
-${input.token ? h`<div class="notice">Copy it now, it is shown only once: <code>${input.token}</code></div>` : input.hasToken ? h`<p>A token is active.</p>` : h`<p>No token yet.</p>`}
-<form method="post" action="/billing/token"><input type="hidden" name="workspace" value="${slug}"><button>${input.hasToken ? "Issue a new token" : "Issue a token"}</button></form></div>` : ""}
+<div class="card"><div class="row"><div class="grow"><div class="muted">Solde</div><div style="font-size:28px;font-weight:600">${credits(input.balance)} crédits</div></div>
+<div class="grow"><div class="muted">Utilisés ce mois-ci</div><div style="font-size:20px">${credits(input.usedThisMonth)} crédits</div></div></div></div>
+${input.operator ? h`<h2>Ajouter des crédits</h2><form method="post" action="/billing/credit" class="card"><input type="hidden" name="workspace" value="${slug}">
+<label for="credits">Crédits (un nombre négatif en retire)</label><input id="credits" name="credits" inputmode="decimal" required placeholder="2000">
+<label for="note">Note</label><input id="note" name="note" maxlength="200" placeholder="Crédits Pro du mois">
+<p><button class="primary">Ajouter</button></p></form>
+<h2>Jeton de l'espace</h2><div class="card"><p class="muted">Le serveur de l'espace utilise ce jeton pour joindre la passerelle IA de Delio à <code>${input.gatewayUrl}</code>. En créer un nouveau révoque l'ancien.</p>
+${input.token ? h`<div class="notice">Copiez-le maintenant, il n'est affiché qu'une fois : <code>${input.token}</code></div>` : input.hasToken ? h`<p>Un jeton est actif.</p>` : h`<p>Pas encore de jeton.</p>`}
+<form method="post" action="/billing/token"><input type="hidden" name="workspace" value="${slug}"><button>${input.hasToken ? "Créer un nouveau jeton" : "Créer un jeton"}</button></form></div>` : ""}
 ${input.hosting ? hostingCard(input.workspace, input.hosting) : ""}
-<h2>Plan</h2><div class="card"><b>${status}</b>${!input.payments ? h`<p class="muted">Payments are not set up on this deployment yet.</p>` : ""}</div>
+<h2>Forfait</h2><div class="card"><b>${status}</b>${!input.payments ? h`<p class="muted">Les paiements ne sont pas encore activés.</p>` : ""}</div>
 ${input.trialAvailable && sub.status === "none" ? h`<form method="post" action="/billing/checkout" class="card">${hidden({ workspace: slug, kind: "plan", plan: "trial" })}
-<div class="row"><div class="grow"><b>Try Delio for ${TRIAL_DAYS} days</b><div class="muted">${trial.credits} AI credits · ${trial.computerHours} cloud computer hours</div></div>
-<div style="text-align:right">${price(trial.usd, trial.francs, `for ${TRIAL_DAYS} days`)}</div></div>
-<p><button class="primary"${disabled}>Start the trial</button></p></form>` : ""}
-<div class="row" style="margin:8px 0 12px">${cycleLink("month", "Monthly")}${cycleLink("year", "Yearly · 1 month free")}</div>
+<div class="row"><div class="grow"><b>Essayez Delio pendant ${TRIAL_DAYS} jours</b><div class="muted">${trial.credits} crédits IA · ${trial.computerHours} heures d'ordinateur cloud</div></div>
+<div style="text-align:right">${price(trial.usd, trial.francs, `pour ${TRIAL_DAYS} jours`)}</div></div>
+<p><button class="primary"${disabled}>Commencer l'essai</button></p></form>` : ""}
+<div class="row" style="margin:8px 0 12px">${cycleLink("month", "Mensuel")}${cycleLink("year", "Annuel · 1 mois offert")}</div>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">${sold.map(planCard)}</div>
-<h2>Top up credits</h2><div class="card"><div style="display:flex;flex-wrap:wrap;gap:8px">${input.catalog.topups.map((pack) => h`<form class="inline" method="post" action="/billing/checkout">
-${hidden({ workspace: slug, kind: "topup", topup: pack.id })}<button${disabled} style="text-align:left;line-height:1.35">${pack.credits.toLocaleString("en-US")} credits · $${pack.usd}<br><small class="muted">≈ ${pack.francs.toLocaleString("fr-FR")} FCFA</small></button></form>`)}</div>
-<p class="muted">Paid with mobile money or card through SasPay, in CFA francs. Credits from top-ups stay until used.</p></div>
-${input.orders.length ? h`<h2>Payments</h2><div class="card">${input.orders.map((order) => h`<div class="row"><div class="grow">${order.kind === "plan" && order.plan ? `${PLANS[order.plan].name}${order.plan === "trial" ? "" : order.cycle === "year" ? " · yearly" : " · monthly"}` : "Top-up"} · ${order.credits.toLocaleString("en-US")} credits</div>
-<span class="muted">${money(order.amount)}</span><code>${order.status}</code><span class="muted">${day(order.createdAt)}</span></div>`)}</div>` : ""}
-<h2>Connected apps</h2><div class="card">${input.devices.length === 0 ? h`<p class="muted">No desktop app is connected. In the app: Settings → API keys → Delio account.</p>`
-  : input.devices.map((device) => h`<div class="row"><div class="grow">${device.label}<div class="muted">connected ${new Date(device.createdAt).toISOString().slice(0, 10)}${device.lastUsedAt ? ` · last used ${new Date(device.lastUsedAt).toISOString().slice(0, 10)}` : ""}</div></div>
-<form class="inline" method="post" action="/billing/device"><input type="hidden" name="workspace" value="${slug}"><input type="hidden" name="device" value="${device.id}"><button class="danger">Disconnect</button></form></div>`)}</div>
-<h2>History</h2><div class="card">${input.ledger.length === 0 ? h`<p class="muted">Nothing yet.</p>` : input.ledger.map((row) => h`<div class="row"><div class="grow"><code>${row.kind}</code> <span class="muted">${row.model ?? row.note ?? ""}</span></div>
+<h2>Recharger des crédits</h2><div class="card"><div style="display:flex;flex-wrap:wrap;gap:8px">${input.catalog.topups.map((pack) => h`<form class="inline" method="post" action="/billing/checkout">
+${hidden({ workspace: slug, kind: "topup", topup: pack.id })}<button${disabled} style="text-align:left;line-height:1.35">${pack.credits.toLocaleString("fr-FR")} crédits · ${pack.usd} $<br><small class="muted">≈ ${pack.francs.toLocaleString("fr-FR")} FCFA</small></button></form>`)}</div>
+<p class="muted">Payé par Mobile Money ou carte via SasPay, en francs CFA. Les crédits des recharges restent jusqu'à leur utilisation.</p></div>
+${input.orders.length ? h`<h2>Paiements</h2><div class="card">${input.orders.map((order) => h`<div class="row"><div class="grow">${order.kind === "plan" && order.plan ? `${PLANS[order.plan].name}${order.plan === "trial" ? "" : order.cycle === "year" ? " · annuel" : " · mensuel"}` : "Recharge"} · ${order.credits.toLocaleString("fr-FR")} crédits</div>
+<span class="muted">${money(order.amount)}</span><code>${order.status === "paid" ? "payé" : order.status === "failed" ? "échoué" : "en attente"}</code><span class="muted">${day(order.createdAt)}</span></div>`)}</div>` : ""}
+<h2>Applications connectées</h2><div class="card">${input.devices.length === 0 ? h`<p class="muted">Aucune application n'est connectée. Dans l'application : Réglages → Clés API → Compte Delio.</p>`
+  : input.devices.map((device) => h`<div class="row"><div class="grow">${device.label}<div class="muted">connectée le ${new Date(device.createdAt).toISOString().slice(0, 10)}${device.lastUsedAt ? ` · utilisée le ${new Date(device.lastUsedAt).toISOString().slice(0, 10)}` : ""}</div></div>
+<form class="inline" method="post" action="/billing/device"><input type="hidden" name="workspace" value="${slug}"><input type="hidden" name="device" value="${device.id}"><button class="danger">Déconnecter</button></form></div>`)}</div>
+<h2>Historique</h2><div class="card">${input.ledger.length === 0 ? h`<p class="muted">Rien pour l'instant.</p>` : input.ledger.map((row) => h`<div class="row"><div class="grow"><code>${({ grant: "forfait", topup: "recharge", usage: "usage", refund: "remboursement", adjust: "ajustement" } as Record<string, string>)[row.kind] ?? row.kind}</code> <span class="muted">${row.model ?? row.note ?? ""}</span></div>
 <span style="color:${row.delta < 0 ? "var(--ink-2)" : "var(--success)"}">${row.delta > 0 ? "+" : ""}${credits(row.delta / 1_000_000)}</span>
 <span class="muted">${new Date(row.at).toISOString().replace("T", " ").slice(0, 16)}</span></div>`)}</div>`;
 }
 
 export function devicePage(input: { code: string; label: string | null; workspaces: Array<Workspace & { role: Role }>; error?: string }): Html {
-  return h`<div class="narrow"><h1 class="center">Connect an app</h1>
-<p class="muted center">${input.label ? `“${input.label}” asks to use your Delio credits.` : "Enter the code your app shows."} Check that the code matches the one on your screen.</p>
+  return h`<div class="narrow"><h1 class="center">Connecter une application</h1>
+<p class="muted center">${input.label ? `« ${input.label} » demande à utiliser vos crédits Delio.` : "Entrez le code affiché par votre application."} Vérifiez que le code correspond à celui de votre écran.</p>
 ${notice(input.error, "error")}<form method="post" action="/device" class="card">
 <label for="code">Code</label><input id="code" name="code" value="${input.code}" required autocomplete="off" placeholder="BCDF-GHJK" style="font-size:20px;letter-spacing:.12em;text-transform:uppercase">
-<label for="workspace">Spend the credits of</label><select id="workspace" name="workspace">
-${input.workspaces.map((workspace) => h`<option value="${workspace.slug}">${workspace.name}</option>`)}<option value="personal">A new personal workspace</option></select>
-<p style="display:flex;gap:8px"><button class="primary" name="decision" value="allow" style="flex:1">Connect</button><button name="decision" value="deny">Refuse</button></p></form></div>`;
+<label for="workspace">Utiliser les crédits de</label><select id="workspace" name="workspace">
+${input.workspaces.map((workspace) => h`<option value="${workspace.slug}">${workspace.name}</option>`)}<option value="personal">Un nouvel espace personnel</option></select>
+<p style="display:flex;gap:8px"><button class="primary" name="decision" value="allow" style="flex:1">Connecter</button><button name="decision" value="deny">Refuser</button></p></form></div>`;
 }

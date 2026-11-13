@@ -20,7 +20,7 @@ export async function operatorConsole(options: Omit<AdminAppOptions, "publicUrl"
   };
   const get = (path: string) => fetch(new URL(path, origin), { redirect: "manual", headers: cookie ? { cookie } : {} });
   await post("/login", { email, next: "/" });
-  const code = /code is (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
+  const code = /Delio est (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
   await post("/login/verify", { email, code: code[1]! + code[2]!, next: "/" });
   return { origin, post, get, close: () => new Promise<void>((done) => server.close(() => done())) };
 }

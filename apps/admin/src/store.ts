@@ -45,6 +45,8 @@ CREATE TABLE IF NOT EXISTS sso (workspace TEXT PRIMARY KEY REFERENCES workspaces
   client_secret TEXT NOT NULL, domain TEXT NOT NULL, auto_join INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE IF NOT EXISTS sso_states (state TEXT PRIMARY KEY, workspace TEXT NOT NULL, verifier TEXT NOT NULL, nonce TEXT NOT NULL, next TEXT NOT NULL, expires_at INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS audit (id INTEGER PRIMARY KEY AUTOINCREMENT, workspace TEXT, actor TEXT, action TEXT NOT NULL, target TEXT, at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS blocked_accounts (account_id TEXT PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE, at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS suspensions (workspace TEXT PRIMARY KEY REFERENCES workspaces(slug) ON DELETE CASCADE, reason TEXT, at INTEGER NOT NULL);
 `;
 
 export type OtpResult = { ok: true; account: Account } | { ok: false; reason: "invalid" | "expired" | "locked" };
@@ -118,8 +120,8 @@ export class AdminStore {
 
   sessionAccount(value: string | undefined): Account | null {
     if (!value || value.length > 128) return null;
-    return (this.db.prepare("SELECT accounts.id, accounts.email FROM sessions JOIN accounts ON accounts.id = sessions.account_id WHERE token_hash = ? AND expires_at > ?")
-      .get(sha256(value), this.now()) as Account | undefined) ?? null;
+    return (this.db.prepare(`SELECT accounts.id, accounts.email FROM sessions JOIN accounts ON accounts.id = sessions.account_id WHERE token_hash = ? AND expires_at > ?
+      AND accounts.id NOT IN (SELECT account_id FROM blocked_accounts)`).get(sha256(value), this.now()) as Account | undefined) ?? null;
   }
 
   endSession(value: string): void {
@@ -241,7 +243,7 @@ export class AdminStore {
     this.db.prepare("DELETE FROM handoff_codes WHERE code_hash = ?").run(hash);
     if (row.workspace !== workspace || row.expires_at <= this.now() || !sameText(sha256(verifier), row.challenge)) return null;
     const role = this.role(workspace, row.account_id);
-    if (!role) return null;
+    if (!role || this.blocked(row.account_id)) return null;
     const grant = token();
     this.db.prepare("INSERT INTO grants (grant_hash, workspace, account_id, created_at) VALUES (?, ?, ?, ?)").run(sha256(grant), workspace, row.account_id, this.now());
     const { email } = this.db.prepare("SELECT email FROM accounts WHERE id = ?").get(row.account_id) as { email: string };
@@ -251,7 +253,7 @@ export class AdminStore {
   /** The member's current role, so a demotion or removal reaches every open session on its next check. */
   checkGrant(workspace: string, grant: string): { email: string; role: Role } | null {
     return (this.db.prepare(`SELECT a.email, m.role FROM grants g JOIN members m ON m.workspace = g.workspace AND m.account_id = g.account_id
-      JOIN accounts a ON a.id = g.account_id WHERE g.grant_hash = ? AND g.workspace = ?`).get(sha256(grant), workspace) as { email: string; role: Role } | undefined) ?? null;
+      JOIN accounts a ON a.id = g.account_id WHERE g.grant_hash = ? AND g.workspace = ? AND g.account_id NOT IN (SELECT account_id FROM blocked_accounts)`).get(sha256(grant), workspace) as { email: string; role: Role } | undefined) ?? null;
   }
 
   sso(workspace: string): SsoConfig | null {
@@ -287,6 +289,49 @@ export class AdminStore {
       { workspace: string; verifier: string; nonce: string; next: string; expires_at: number } | undefined;
     this.db.prepare("DELETE FROM sso_states WHERE state = ?").run(state);
     return row && row.expires_at > this.now() ? { workspace: row.workspace, verifier: row.verifier, nonce: row.nonce, next: row.next } : null;
+  }
+
+  account(id: string): Account | null {
+    return (this.db.prepare("SELECT id, email FROM accounts WHERE id = ?").get(id) as Account | undefined) ?? null;
+  }
+
+  /** A blocked account cannot sign in, and its sessions, workspace sign-ins and app connections stop working. */
+  blocked(accountId: string): boolean {
+    return Boolean(this.db.prepare("SELECT 1 FROM blocked_accounts WHERE account_id = ?").get(accountId));
+  }
+
+  setBlocked(accountId: string, blocked: boolean, actor: string): void {
+    this.transaction(() => {
+      if (blocked) {
+        this.db.prepare("INSERT INTO blocked_accounts (account_id, at) VALUES (?, ?) ON CONFLICT DO NOTHING").run(accountId, this.now());
+        this.db.prepare("DELETE FROM sessions WHERE account_id = ?").run(accountId);
+      } else {
+        this.db.prepare("DELETE FROM blocked_accounts WHERE account_id = ?").run(accountId);
+      }
+      this.audit(null, actor, blocked ? "account.block" : "account.unblock", accountId);
+    });
+  }
+
+  /** A suspended workspace keeps its data, but spends no Delio credits until it is resumed. */
+  suspension(slug: string): { reason: string | null; at: number } | null {
+    return (this.db.prepare("SELECT reason, at FROM suspensions WHERE workspace = ?").get(slug) as { reason: string | null; at: number } | undefined) ?? null;
+  }
+
+  setSuspended(slug: string, suspended: boolean, reason: string | null, actor: string): void {
+    this.transaction(() => {
+      if (suspended) this.db.prepare("INSERT INTO suspensions (workspace, reason, at) VALUES (?, ?, ?) ON CONFLICT (workspace) DO UPDATE SET reason = excluded.reason").run(slug, reason, this.now());
+      else this.db.prepare("DELETE FROM suspensions WHERE workspace = ?").run(slug);
+      this.audit(slug, actor, suspended ? "workspace.suspend" : "workspace.resume", reason);
+    });
+  }
+
+  /** Deletes a workspace and what only it uses; its orders, ledger and audit stay as the business's records. `tables`: the other per-workspace tables the portal created. */
+  deleteWorkspace(slug: string, actor: string, tables: readonly string[]): void {
+    this.transaction(() => {
+      for (const table of ["grants", "members", "invitations", "sso", "suspensions", ...tables]) this.db.prepare(`DELETE FROM ${table} WHERE workspace = ?`).run(slug);
+      this.db.prepare("DELETE FROM workspaces WHERE slug = ?").run(slug);
+      this.audit(slug, actor, "workspace.delete", null);
+    });
   }
 
   audit(workspace: string | null, actor: string | null, action: string, target: string | null): void {

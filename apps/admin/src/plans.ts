@@ -41,6 +41,8 @@ export const PLANS: Record<PlanId, Plan> = {
 export const OWN_AI_PLANS: ReadonlySet<PlanId> = new Set<PlanId>(["max", "byok"]);
 
 export const TRIAL_DAYS = 3;
+/** Orders an operator granted; they cost nothing and count in no revenue. */
+export const MANUAL_ORDER_PREFIX = "man_";
 export const RECOMMENDED: PlanId = "pro";
 
 export const TOPUPS = [
@@ -131,6 +133,9 @@ CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT N
 
   /** What the gateway may do for a workspace: spend Delio credits, keep how many computers awake, with how many free hours a month. */
   allowance(workspace: string): { gateway: boolean; computers: number; computerHours: number; plan: PlanId | null; ownAi: boolean; reason?: string } {
+    if (this.db.prepare("SELECT 1 FROM suspensions WHERE workspace = ?").get(workspace)) {
+      return { gateway: false, computers: 0, computerHours: 0, plan: null, ownAi: false, reason: "Cet espace est suspendu. Écrivez à support@deliobot.fun." };
+    }
     const subscription = this.subscription(workspace);
     if (subscription.status === "none") return { gateway: true, computers: 1, computerHours: 0, plan: null, ownAi: false };
     if (subscription.status === "expired") return { gateway: false, computers: 0, computerHours: 0, plan: null, ownAi: false, reason: "This workspace's plan has ended. An admin can renew it in Delio Admin → Billing." };
@@ -244,6 +249,22 @@ CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT N
       this.db.prepare("UPDATE subscriptions SET next_grant_at = ?, grants_left = ? WHERE workspace = ?").run(left > 0 ? next : null, left, row.workspace);
     }
     return granted;
+  }
+
+  /** An operator's grant: a free order applied like a paid one, so it shows among the orders and moves the period the same way. */
+  grantPlan(workspace: string, email: string, plan: PlanId, cycle: Cycle, currency: string): Order {
+    const id = `${MANUAL_ORDER_PREFIX}${token(12)}`;
+    const period = cycle === "year" && PLANS[plan].usdYear !== null ? "year" : "month";
+    this.db.prepare("INSERT INTO orders (id, workspace, email, kind, plan, cycle, credits, usd, amount, currency, status, created_at) VALUES (?, ?, ?, 'plan', ?, ?, ?, 0, '0', ?, 'pending', ?)")
+      .run(id, workspace, email, plan, period, PLANS[plan].credits, currency, this.now());
+    this.fulfil(id);
+    return this.order(id)!;
+  }
+
+  /** Applies an order the payer settled outside the checkout's confirmation; a failed one is reopened first. False when it was already paid. */
+  markPaid(orderId: string): boolean {
+    this.db.prepare("UPDATE orders SET status = 'pending' WHERE id = ? AND status = 'failed'").run(orderId);
+    return this.fulfil(orderId);
   }
 
   markFailed(orderId: string): void {

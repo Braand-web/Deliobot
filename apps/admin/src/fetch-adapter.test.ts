@@ -39,7 +39,7 @@ describe("the portal behind a Fetch API Request", () => {
     const form = (fields: Record<string, string>, cookie = "") => ({ method: "POST", body: new URLSearchParams(fields).toString(), redirect: "manual" as const,
       headers: { origin: ORIGIN, "content-type": "application/x-www-form-urlencoded", ...(cookie ? { cookie } : {}) } });
     expect((await target.send("/login", form({ email: "founder@acme.test", next: "/signup" }))).status).toBe(200);
-    const code = /code is (\d{4}) (\d{4})/.exec(target.mail.at(-1)!.text)!;
+    const code = /Delio est (\d{4}) (\d{4})/.exec(target.mail.at(-1)!.text)!;
     const verified = await target.send("/login/verify", form({ email: "founder@acme.test", code: code[1]! + code[2]!, next: "/signup" }));
     expect(verified.status).toBe(303);
     const cookie = verified.headers.get("set-cookie")!.split(";")[0]!;
@@ -49,7 +49,7 @@ describe("the portal behind a Fetch API Request", () => {
     expect(signup.headers.get("location")).toBe("/billing?workspace=acme&plan=pro&cycle=month");
     expect(target.store.workspace("acme")?.tenantUrl, "an app account leads to the download, not to a hosted workspace").toBe("https://deliobot.test/#telecharger");
     const billing = await target.send("/billing?workspace=acme&plan=pro&cycle=month", { headers: { cookie } });
-    expect(await billing.text()).toContain("Billing · Acme");
+    expect(await billing.text()).toContain("Facturation · Acme");
 
     const wallet = new Wallet(target.store.db);
     wallet.credit("acme", 100 * MICRO, "grant", null);

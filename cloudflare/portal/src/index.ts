@@ -1,6 +1,6 @@
 // Delio's customers' portal on Cloudflare: one Durable Object holds the portal and its SQLite database, every request
 // goes through it, and an alarm runs the once-a-minute billing sweep and the Composio broker's hourly one.
-import { DurableObject } from "cloudflare:workers";
+import { DurableObject, WorkerEntrypoint } from "cloudflare:workers";
 
 import "./fetch-redirects.ts";
 
@@ -11,6 +11,7 @@ import { catalog } from "../../../apps/admin/src/plans.ts";
 import { diagnose, diagnosticsAllowed } from "./diagnostics.ts";
 import { handleSetup, SETTINGS_KEY, SETUP_DONE_KEY, tokenDigest } from "./setup.ts";
 import { durableObjectDatabase } from "../../../apps/admin/src/sql.ts";
+import type { VisitInput } from "../../../apps/admin/src/traffic.ts";
 import { AdminStore } from "../../../apps/admin/src/store.ts";
 import curious from "../../../src/assets/delio-steel/cursor.curious-88.webp";
 import happy from "../../../src/assets/delio-steel/cursor.happy-88.webp";
@@ -113,6 +114,10 @@ export class Portal extends DurableObject<Env> {
     return serveFetch(this.app, request, request.headers.get("cf-connecting-ip") ?? "unknown");
   }
 
+  recordVisits(visits: VisitInput[]): number {
+    return this.app?.recordVisits(Array.isArray(visits) ? visits : []) ?? 0;
+  }
+
   async alarm(): Promise<void> {
     try { await this.app?.sweep(); } catch (error) { console.error("delio-admin: billing sweep failed", error); }
     await this.sweepComposio();
@@ -127,8 +132,32 @@ export class Portal extends DurableObject<Env> {
   }
 }
 
+const portal = (env: Env) => env.PORTAL.get(env.PORTAL.idFromName("portal"));
+
+/** The portal's pages people open, counted for the console's traffic and conversion figures. */
+const COUNTED_PATHS = new Set(["/", "/login", "/signup", "/pay", "/billing", "/device"]);
+
+function visitOf(request: Request, site: VisitInput["site"], kind: VisitInput["kind"]): VisitInput {
+  const url = new URL(request.url);
+  const cf = (request as Request & { cf?: { country?: string; city?: string } }).cf;
+  return { site, kind, path: url.pathname, referrer: request.headers.get("referer"), utmSource: url.searchParams.get("utm_source"),
+    ip: request.headers.get("cf-connecting-ip") ?? "", userAgent: request.headers.get("user-agent") ?? "", country: cf?.country ?? null, city: cf?.city ?? null };
+}
+
+/** Lets the site's Worker report its page views over a service binding; nothing else can reach it. */
+export class TrafficIntake extends WorkerEntrypoint<Env> {
+  async record(visits: VisitInput[]): Promise<number> {
+    return portal(this.env).recordVisits(visits.slice(0, 50));
+  }
+}
+
 export default {
-  fetch(request: Request, env: Env): Promise<Response> {
-    return env.PORTAL.get(env.PORTAL.idFromName("portal")).fetch(request);
+  fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const url = new URL(request.url);
+    const purpose = request.headers.get("sec-purpose") ?? request.headers.get("purpose") ?? "";
+    if (request.method === "GET" && COUNTED_PATHS.has(url.pathname) && url.host !== consoleHost(env) && !/prefetch/i.test(purpose)) {
+      ctx.waitUntil(portal(env).recordVisits([visitOf(request, "compte", "view")]).catch(() => 0));
+    }
+    return portal(env).fetch(request);
   },
 } satisfies ExportedHandler<Env>;

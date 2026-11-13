@@ -72,7 +72,7 @@ async function portal() {
   const signIn = async (email: string) => {
     cookie = "";
     await post("/login", { email, next: "/" });
-    const code = /code is (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
+    const code = /Delio est (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
     await post("/login/verify", { email, code: code[1]! + code[2]!, next: "/" });
   };
   /** Checks out a plan and has SasPay call it paid; the return page confirms it as a person coming back would. */
@@ -94,8 +94,8 @@ describe("self-serve workspaces", () => {
     expect(form).toContain(".deliobot.test");
     expect(form).toContain('name="plan" value="pro"');
 
-    expect(await (await target.post("/signup", { name: "Acme", slug: "admin", plan: "pro", cycle: "year" })).text()).toContain("That address is taken");
-    expect(await (await target.post("/signup", { name: "Acme", slug: "Bad slug", plan: "pro", cycle: "year" })).text()).toContain("lowercase letters");
+    expect(await (await target.post("/signup", { name: "Acme", slug: "admin", plan: "pro", cycle: "year" })).text()).toContain("Cet identifiant est déjà pris");
+    expect(await (await target.post("/signup", { name: "Acme", slug: "Bad slug", plan: "pro", cycle: "year" })).text()).toContain("lettres minuscules");
     const created = await target.post("/signup", { name: "Acme", slug: "acme", plan: "pro", cycle: "year" });
     expect(created.headers.get("location")).toBe("/billing?workspace=acme&plan=pro&cycle=year");
     const waiting = await (await target.get("/billing?workspace=acme&plan=pro&cycle=year")).text();
@@ -113,7 +113,7 @@ describe("self-serve workspaces", () => {
     expect(input.delioToken).toMatch(/^odb_workspace_[A-Za-z0-9_-]{43}$/);
     expect((await target.account("acme", input.delioToken!)).status, "the token the workspace got opens its gateway").toBe(200);
     expect(await (await target.get("/billing?workspace=acme")).text()).toContain('data-hosting="ready"');
-    expect(target.mail.find((message) => message.subject.includes("is ready"))).toMatchObject({ to: "founder@acme.test" });
+    expect(target.mail.find((message) => message.subject.includes("est prêt"))).toMatchObject({ to: "founder@acme.test" });
 
     await target.sweep();
     expect(target.fleet.calls.filter((call) => call.op === "create"), "created once").toHaveLength(1);
@@ -174,6 +174,6 @@ describe("self-serve workspaces", () => {
 
     await target.post("/signup", { name: "Two", slug: "two" });
     await target.post("/signup", { name: "Three", slug: "three" });
-    expect(await (await target.post("/signup", { name: "Four", slug: "four" })).text()).toContain("You already have 3 workspaces");
+    expect(await (await target.post("/signup", { name: "Four", slug: "four" })).text()).toContain("Vous avez déjà 3 espaces");
   });
 });

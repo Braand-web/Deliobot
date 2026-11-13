@@ -9,6 +9,8 @@ import { Hosting, hostingRunner, RESERVED_SLUGS, socketFleet, type Fleet } from 
 import { Billing, catalog, PLANS, reconcileOrders, TOPUPS, TRIAL_DAYS, type Cycle, type PlanId, type TopupId } from "./plans.ts";
 import { createSasPay, verifySasPayWebhook } from "./saspay.ts";
 import { MICRO, Wallet } from "./wallet.ts";
+import { consoleServes, createConsole } from "./console/routes.ts";
+import { Traffic, type VisitInput } from "./traffic.ts";
 import { billingPage, codePage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, otherAccountPage, signupPage, slackPage, ssoPage, SUPPORT_EMAIL, type Html } from "./pages.ts";
 import { normalizeEmail, token, validEmail, validSlug, type Account, type AdminStore, type Role, type Workspace } from "./store.ts";
 
@@ -38,7 +40,7 @@ export interface AdminAppOptions {
 }
 
 /** What the operators' console serves; everything else there is 404, customer pages and public APIs included. */
-const CONSOLE_PATHS = new Set(["/", "/login", "/login/verify", "/logout", "/workspaces", "/billing", "/billing/credit", "/billing/token", "/billing/hosting/retry", "/people"]);
+const CONSOLE_PATHS = new Set(["/login", "/login/verify", "/logout", "/workspaces", "/billing", "/billing/credit", "/billing/token", "/billing/hosting/retry", "/people"]);
 
 /** Self-serve workspaces may own this many; more takes an operator. */
 const SELF_SERVE_LIMIT = 3;
@@ -72,7 +74,7 @@ async function readBody(req: IncomingMessage): Promise<Record<string, unknown>> 
   let size = 0;
   for await (const chunk of req as AsyncIterable<Buffer>) {
     size += chunk.length;
-    if (size > MAX_BODY) throw new HttpError(413, "Request too large.");
+    if (size > MAX_BODY) throw new HttpError(413, "Requête trop volumineuse.");
     chunks.push(chunk);
   }
   const text = Buffer.concat(chunks).toString("utf8");
@@ -82,7 +84,7 @@ async function readBody(req: IncomingMessage): Promise<Record<string, unknown>> 
       const value: unknown = JSON.parse(text || "{}");
       if (value && typeof value === "object" && !Array.isArray(value)) return value as Record<string, unknown>;
     } catch { /* answered below */ }
-    throw new HttpError(400, "Malformed JSON.");
+    throw new HttpError(400, "JSON mal formé.");
   }
   return Object.fromEntries(new URLSearchParams(text));
 }
@@ -97,7 +99,7 @@ async function readRawBody(req: IncomingMessage): Promise<Buffer> {
   let size = 0;
   for await (const chunk of req as AsyncIterable<Buffer>) {
     size += chunk.length;
-    if (size > 256 * 1024) throw new HttpError(413, "Request too large.");
+    if (size > 256 * 1024) throw new HttpError(413, "Requête trop volumineuse.");
     chunks.push(chunk);
   }
   return Buffer.concat(chunks);
@@ -119,6 +121,8 @@ function tenantOrigin(value: string): string | null {
 export type AdminApp = ((req: IncomingMessage, res: ServerResponse) => Promise<void>) & {
   /** Charges cloud computers' awake minutes and puts those of workspaces out of credits to sleep; run once a minute. */
   sweep: () => Promise<void>;
+  /** Counts page views and downloads of the site and the portal; robots are left out. */
+  recordVisits: (visits: readonly VisitInput[]) => number;
 };
 
 export function createAdminApp(options: AdminAppOptions): AdminApp {
@@ -142,6 +146,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   const runHosting = selfServe ? hostingRunner({ hosting, billing: plans, wallet, store, mailer, operators, now, portalUrl: publicUrl.origin, models: selfServe.models,
     fleet: selfServe.fleet ?? socketFleet(selfServe.fleetSocket ?? "/run/opendeliobot/fleet.sock") }) : null;
   const startHosting = () => { void runHosting?.().catch((error: unknown) => console.error("delio-admin: hosting pass failed", error)); };
+  const traffic = new Traffic(store.db, now);
   const gateway = createGateway({ ...options.gateway, store, wallet, publicUrl, fetchImpl, now, deviceToken: (value, slug) => devices.check(value, slug),
     allowance: (slug) => plans.allowance(slug) });
 
@@ -168,22 +173,22 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
 
   /** Opens SasPay's checkout for a plan or a top-up of this workspace, or shows the billing page with what stopped it. */
   async function openCheckout(res: ServerResponse, user: Account, workspace: Workspace, input: { kind: string; plan: string; topup: string; cycle: string }): Promise<void> {
-    const fail = (status: number, error: string) => html(res, status, { title: "Billing", email: user.email, body: billing(workspace, user, { error }) });
-    if (!saspay) return fail(503, "Payments are not set up on this Delio deployment yet.");
+    const fail = (status: number, error: string) => html(res, status, { title: "Facturation", email: user.email, body: billing(workspace, user, { error }) });
+    if (!saspay) return fail(503, "Les paiements ne sont pas encore activés.");
     const kind = input.kind;
     const plan = input.plan as PlanId;
     const topup = input.topup as TopupId;
     const cycle: Cycle = input.cycle === "year" ? "year" : "month";
-    if (kind === "plan" && !Object.hasOwn(PLANS, plan)) return fail(400, "Choose a plan.");
-    if (kind === "topup" && !TOPUPS.some((pack) => pack.id === topup)) return fail(400, "Choose a top-up.");
-    if (kind !== "plan" && kind !== "topup") return fail(400, "Choose a plan or a top-up.");
-    if (kind === "plan" && plan === "trial" && plans.trialUsed(user.email, workspace.slug)) return fail(409, "The trial was already used for this account or workspace.");
+    if (kind === "plan" && !Object.hasOwn(PLANS, plan)) return fail(400, "Choisissez un forfait.");
+    if (kind === "topup" && !TOPUPS.some((pack) => pack.id === topup)) return fail(400, "Choisissez une recharge.");
+    if (kind !== "plan" && kind !== "topup") return fail(400, "Choisissez un forfait ou une recharge.");
+    if (kind === "plan" && plan === "trial" && plans.trialUsed(user.email, workspace.slug)) return fail(409, "L'essai a déjà été utilisé pour ce compte ou cet espace.");
     const order = kind === "plan"
       ? plans.createOrder({ workspace: workspace.slug, email: user.email, kind, plan, cycle }, currency, options.payments?.xofPerUsd)
       : plans.createOrder({ workspace: workspace.slug, email: user.email, kind, topup }, currency, options.payments?.xofPerUsd);
     const description = kind === "plan"
-      ? `Delio ${PLANS[plan].name} · ${plan === "trial" ? `${TRIAL_DAYS} days` : order.cycle === "year" ? "1 year" : "1 month"}`
-      : `Delio credits · ${order.credits}`;
+      ? `Delio ${PLANS[plan].name} · ${plan === "trial" ? `${TRIAL_DAYS} jours` : order.cycle === "year" ? "1 an" : "1 mois"}`
+      : `Crédits Delio · ${order.credits}`;
     try {
       const session = await saspay.createCheckout({ amount: order.amount, currency, description, email: user.email, name: user.email,
         returnUrl: new URL(`/billing/return?order=${order.id}`, publicUrl).href, metadata: { order: order.id, workspace: workspace.slug } });
@@ -195,7 +200,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       return void res.end();
     } catch (error) {
       plans.markFailed(order.id);
-      return fail(502, `The payment page could not be opened (${error instanceof Error ? error.message : "error"}). Try again in a moment.`);
+      return fail(502, `La page de paiement n'a pas pu s'ouvrir (${error instanceof Error ? error.message : "erreur"}). Réessayez dans un instant.`);
     }
   }
 
@@ -236,17 +241,20 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   }
 
   function otherAccount(res: ServerResponse, user: Account, next: string): void {
-    return html(res, 403, { title: "Another address", email: user.email, mascot: "curious", body: otherAccountPage(user.email, next) });
+    return html(res, 403, { title: "Autre adresse", email: user.email, mascot: "curious", body: otherAccountPage(user.email, next) });
   }
 
   function requireWorkspaceAdmin(user: Account, slug: string): Workspace {
     const workspace = validSlug(slug) ? store.workspace(slug) : null;
-    if (!workspace) throw new HttpError(404, "No such workspace.");
-    if (store.role(slug, user.id) !== "admin" && !isOperator(user)) throw new HttpError(403, "Only this workspace's administrators can do that.");
+    if (!workspace) throw new HttpError(404, "Cet espace n'existe pas.");
+    if (store.role(slug, user.id) !== "admin" && !isOperator(user)) throw new HttpError(403, "Seuls les administrateurs de cet espace peuvent faire cela.");
     return workspace;
   }
 
   function signIn(res: ServerResponse, user: Account, next: string): void {
+    if (store.blocked(user.id)) {
+      return html(res, 403, { title: "Compte bloqué", mascot: "sad", body: messagePage("Ce compte est bloqué", `Écrivez à ${SUPPORT_EMAIL} si vous pensez que c'est une erreur.`) });
+    }
     const session = store.createSession(user.id);
     store.audit(null, user.email, "account.signin", null);
     redirect(res, localPath(next), [sessionCookie(session.token, session.maxAgeSeconds)]);
@@ -254,7 +262,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
 
   async function startSso(res: ServerResponse, workspace: string, next: string): Promise<void> {
     const config = store.sso(workspace);
-    if (!config) throw new HttpError(404, "Single sign-on is not set up for this workspace.");
+    if (!config) throw new HttpError(404, "La connexion unique (SSO) n'est pas configurée pour cet espace.");
     const provider = await discover(fetchImpl, config.issuer, options.allowHttpProviders);
     const state = token(), verifier = token(48), nonce = token();
     store.saveSsoState({ state, workspace, verifier, nonce, next: localPath(next) });
@@ -291,17 +299,17 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     const slug = params.get("workspace") ?? "", state = params.get("state") ?? "", challenge = params.get("code_challenge") ?? "", redirectUri = params.get("redirect_uri") ?? "";
     const workspace = validSlug(slug) ? store.workspace(slug) : null;
     if (!workspace || !STATE.test(state) || !CHALLENGE.test(challenge) || params.get("code_challenge_method") !== "S256") {
-      return html(res, 400, { title: "Invalid link", body: messagePage("This sign-in link is not valid", "Open your workspace address again to start over."), mascot: "sad" });
+      return html(res, 400, { title: "Lien invalide", body: messagePage("Ce lien de connexion n'est pas valide", "Rouvrez l'adresse de votre espace pour recommencer."), mascot: "sad" });
     }
     // Security: codes only ever travel back to the callback registered for this workspace, never to an address the link names.
     if (redirectUri !== new URL(CALLBACK_PATH, workspace.tenantUrl).href) {
-      return html(res, 400, { title: "Invalid link", body: messagePage("This sign-in link is not valid", "The link does not lead back to this workspace."), mascot: "sad" });
+      return html(res, 400, { title: "Lien invalide", body: messagePage("Ce lien de connexion n'est pas valide", "Ce lien ne ramène pas vers cet espace."), mascot: "sad" });
     }
     if (!user) return redirect(res, `/login?next=${encodeURIComponent(url.pathname + url.search)}`);
     const role = store.role(slug, user.id);
     if (!role) {
-      return html(res, 403, { title: "No access", email: user.email, mascot: "sad",
-        body: messagePage(`You are not a member of ${workspace.name}`, `Signed in as ${user.email}. Ask one of its administrators for an invitation.`, { href: "/", label: "Your workspaces" }) });
+      return html(res, 403, { title: "Accès refusé", email: user.email, mascot: "sad",
+        body: messagePage(`Vous n'êtes pas membre de ${workspace.name}`, `Connecté en tant que ${user.email}. Demandez une invitation à l'un de ses administrateurs.`, { href: "/", label: "Vos espaces" }) });
     }
     const code = store.issueHandoffCode({ workspace: slug, accountId: user.id, challenge, redirectUri });
     const back = new URL(redirectUri);
@@ -323,7 +331,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       return;
     }
     if (path === "/api/health") return json(res, 200, { ok: true, service: "delio-admin", ...HOSTED_CONTRACT_METADATA });
-    if (operatorConsole && !CONSOLE_PATHS.has(path) && !path.startsWith("/people/")) throw new HttpError(404, "Not found.");
+    if (operatorConsole && !CONSOLE_PATHS.has(path) && !path.startsWith("/people/") && !consoleServes(path)) throw new HttpError(404, "Not found.");
     if (await gateway.handle(req, res, url)) return;
     if (path === "/api/public/plans") {
       if (method !== "GET") return json(res, 405, { error: "method not allowed" });
@@ -365,42 +373,42 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       return handoff(req, res, path === "/api/handoff/consume" ? "consume" : "check");
     }
 
-    if (method === "POST" && !sameOrigin(req)) throw new HttpError(403, "This form did not come from the Delio Admin portal.");
+    if (method === "POST" && !sameOrigin(req)) throw new HttpError(403, "Ce formulaire ne vient pas du portail Delio.");
     const user = account(req);
 
     if (method === "GET" && path === "/login") {
       if (user) return redirect(res, localPath(url.searchParams.get("next")));
-      return html(res, 200, { title: "Sign in", body: loginPage(localPath(url.searchParams.get("next"))), mascot: "idle" });
+      return html(res, 200, { title: "Connexion", body: loginPage(localPath(url.searchParams.get("next"))), mascot: "idle" });
     }
     if (method === "POST" && path === "/login") {
       const body = await readBody(req);
       const email = normalizeEmail(text(body, "email", 320)), next = localPath(text(body, "next", 2048));
-      if (!validEmail(email)) return html(res, 400, { title: "Sign in", body: loginPage(next, "Enter a valid email address."), mascot: "sad" });
+      if (!validEmail(email)) return html(res, 400, { title: "Connexion", body: loginPage(next, "Entrez une adresse e-mail valide."), mascot: "sad" });
       const domain = email.slice(email.lastIndexOf("@") + 1);
       const sso = operatorConsole ? undefined : store.ssoForDomain(domain)[0];
       if (sso) return startSso(res, sso.workspace, next);
       // The console sends codes to the team only, and says the same thing to anyone else so no address is revealed.
-      if (operatorConsole && !operators.has(email)) return html(res, 200, { title: "Check your email", body: codePage(email, next), mascot: "curious" });
+      if (operatorConsole && !operators.has(email)) return html(res, 200, { title: "Vérifiez vos e-mails", body: codePage(email, next), mascot: "curious" });
       if (!store.allow(`otp-ip:${clientAddress(req)}`, 20, 15 * 60_000) || !store.allow(`otp-email:${email}`, 5, 15 * 60_000)) {
-        return html(res, 429, { title: "Sign in", body: loginPage(next, "Too many codes were requested. Wait a few minutes and try again."), mascot: "sad" });
+        return html(res, 429, { title: "Connexion", body: loginPage(next, "Trop de codes demandés. Patientez quelques minutes et réessayez."), mascot: "sad" });
       }
       const code = store.issueOtp(email);
-      await mailer.send({ to: email, subject: `${code.slice(0, 4)} ${code.slice(4)} is your Delio sign-in code`,
-        text: `Your Delio sign-in code is ${code.slice(0, 4)} ${code.slice(4)}.\n\nIt expires in 10 minutes. If you did not ask for it, ignore this email.\n\nNeed help? Write to ${SUPPORT_EMAIL}.` })
+      await mailer.send({ to: email, subject: `${code.slice(0, 4)} ${code.slice(4)} est votre code de connexion Delio`,
+        text: `Votre code de connexion Delio est ${code.slice(0, 4)} ${code.slice(4)}.\n\nIl expire dans 10 minutes. Si vous ne l'avez pas demandé, ignorez cet e-mail.\n\nBesoin d'aide ? Écrivez à ${SUPPORT_EMAIL}.` })
         .catch((error: unknown) => console.error(`delio-admin: sign-in email could not be sent (${error instanceof Error ? error.name : "error"})`));
-      return html(res, 200, { title: "Check your email", body: codePage(email, next), mascot: "curious" });
+      return html(res, 200, { title: "Vérifiez vos e-mails", body: codePage(email, next), mascot: "curious" });
     }
     if (method === "POST" && path === "/login/verify") {
       const body = await readBody(req);
       const email = normalizeEmail(text(body, "email", 320)), next = localPath(text(body, "next", 2048));
       const code = text(body, "code", 16).replace(/\s/g, "");
       if (!store.allow(`verify-ip:${clientAddress(req)}`, 60, 15 * 60_000)) {
-        return html(res, 429, { title: "Sign in", body: codePage(email, next, "Too many attempts. Wait a few minutes."), mascot: "sad" });
+        return html(res, 429, { title: "Connexion", body: codePage(email, next, "Trop d'essais. Patientez quelques minutes."), mascot: "sad" });
       }
       const result = validEmail(email) && /^\d{8}$/.test(code) ? store.verifyOtp(email, code) : { ok: false as const, reason: "invalid" as const };
       if (!result.ok) {
-        const message = result.reason === "expired" ? "That code has expired. Request a new one." : result.reason === "locked" ? "Too many wrong codes. Request a new one." : "That code is not right.";
-        return html(res, 401, { title: "Check your email", body: codePage(email, next, message), mascot: "sad" });
+        const message = result.reason === "expired" ? "Ce code a expiré. Demandez-en un nouveau." : result.reason === "locked" ? "Trop de codes erronés. Demandez-en un nouveau." : "Ce code n'est pas le bon.";
+        return html(res, 401, { title: "Vérifiez vos e-mails", body: codePage(email, next, message), mascot: "sad" });
       }
       return signIn(res, result.account, next);
     }
@@ -414,7 +422,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
 
     if (method === "GET" && path === "/sso/start") {
       const slug = url.searchParams.get("workspace") ?? "";
-      if (!validSlug(slug)) throw new HttpError(404, "No such workspace.");
+      if (!validSlug(slug)) throw new HttpError(404, "Cet espace n'existe pas.");
       return startSso(res, slug, url.searchParams.get("next") ?? "/");
     }
     if (method === "GET" && path === SSO_CALLBACK_PATH) {
@@ -422,7 +430,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       const code = url.searchParams.get("code") ?? "";
       const config = pending ? store.sso(pending.workspace) : null;
       if (!pending || !config || !code) {
-        return html(res, 400, { title: "Sign-in failed", body: messagePage("Single sign-on did not finish", "The sign-in took too long or was already used. Start again.", { href: "/login", label: "Sign in" }), mascot: "sad" });
+        return html(res, 400, { title: "Connexion échouée", body: messagePage("La connexion unique n'a pas abouti", "La connexion a pris trop de temps ou a déjà servi. Recommencez.", { href: "/login", label: "Se connecter" }), mascot: "sad" });
       }
       let email: string;
       try {
@@ -431,10 +439,10 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
         ({ email } = await verifyIdToken(fetchImpl, provider, idToken, { clientId: config.clientId, nonce: pending.nonce, now: now() }));
       } catch (error) {
         console.warn(`delio-admin: single sign-on failed for ${pending.workspace}: ${error instanceof Error ? error.message : "error"}`);
-        return html(res, 401, { title: "Sign-in failed", body: messagePage("Single sign-on failed", "Your identity provider's answer could not be verified. Ask your administrator to check the setup.", { href: "/login", label: "Try again" }), mascot: "sad" });
+        return html(res, 401, { title: "Connexion échouée", body: messagePage("La connexion unique a échoué", "La réponse de votre fournisseur d'identité n'a pas pu être vérifiée. Demandez à votre administrateur de vérifier la configuration.", { href: "/login", label: "Réessayer" }), mascot: "sad" });
       }
       if (!email.endsWith(`@${config.domain}`)) {
-        return html(res, 403, { title: "Sign-in failed", body: messagePage("This account is not allowed here", `Single sign-on for this workspace accepts @${config.domain} addresses only.`), mascot: "sad" });
+        return html(res, 403, { title: "Connexion échouée", body: messagePage("Ce compte n'est pas autorisé ici", `La connexion unique de cet espace n'accepte que les adresses @${config.domain}.`), mascot: "sad" });
       }
       const signedIn = store.ensureAccount(email);
       if (config.autoJoin && !store.role(config.workspace, signedIn.id)) store.addMember(config.workspace, signedIn.id, "member", "sso");
@@ -445,29 +453,30 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       const value = url.searchParams.get("token") ?? "";
       const invitation = OPAQUE.test(value) ? store.invitation(value) : null;
       const workspace = invitation ? store.workspace(invitation.workspace) : null;
-      if (!invitation || !workspace) return html(res, 404, { title: "Invitation", email: user?.email, body: messagePage("This invitation has expired", "Ask an administrator to send a new one."), mascot: "sad" });
+      if (!invitation || !workspace) return html(res, 404, { title: "Invitation", email: user?.email, body: messagePage("Cette invitation a expiré", "Demandez à un administrateur de vous en envoyer une nouvelle."), mascot: "sad" });
       return html(res, 200, { title: "Invitation", email: user?.email, body: invitePage({ invitation, workspace, token: value, email: user?.email ?? null }), mascot: "happy" });
     }
 
     if (!user) {
       if (method === "GET") return redirect(res, `/login?next=${encodeURIComponent(path + url.search)}`);
-      throw new HttpError(401, "Sign in first.");
+      throw new HttpError(401, "Connectez-vous d'abord.");
     }
     if (operatorConsole && !isOperator(user)) throw new HttpError(404, "Not found.");
+    if (operatorConsole && await operatorPages(req, res, url, user)) return;
 
     if (method === "POST" && path === "/invite/accept") {
       const body = await readBody(req);
       const value = text(body, "token", 128);
       const invitation = OPAQUE.test(value) ? store.acceptInvitation(value, user) : null;
-      if (!invitation) throw new HttpError(400, "This invitation has expired or is for another address.");
+      if (!invitation) throw new HttpError(400, "Cette invitation a expiré ou concerne une autre adresse.");
       const workspace = store.workspace(invitation.workspace)!;
-      return html(res, 200, { title: "Welcome", email: user.email, mascot: "happy",
-        body: messagePage(`You joined ${workspace.name}`, "You can sign in to the workspace now.", { href: workspace.tenantUrl, label: `Open ${workspace.tenantUrl}` }) });
+      return html(res, 200, { title: "Bienvenue", email: user.email, mascot: "happy",
+        body: messagePage(`Vous avez rejoint ${workspace.name}`, "Vous pouvez maintenant vous connecter à l'espace.", { href: workspace.tenantUrl, label: `Ouvrir ${workspace.tenantUrl}` }) });
     }
 
     if (method === "GET" && path === "/") {
-      return html(res, 200, { title: "Workspaces", email: user.email, body: homePage({ workspaces: store.workspacesOf(user.id), operator: isOperator(user), signup: signupOpen && !operatorConsole,
-        all: isOperator(user) ? store.allWorkspaces() : [], message: url.searchParams.get("created") ? "Workspace created." : undefined }) });
+      return html(res, 200, { title: "Vos espaces", email: user.email, body: homePage({ workspaces: store.workspacesOf(user.id), operator: isOperator(user), signup: signupOpen && !operatorConsole,
+        all: isOperator(user) ? store.allWorkspaces() : [], message: url.searchParams.get("created") ? "Espace créé." : undefined }) });
     }
     if (signupOpen && path === "/signup") {
       const form = method === "POST" ? await readBody(req) : null;
@@ -475,17 +484,17 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       const plan = Object.hasOwn(PLANS, pick("plan", 16)) ? pick("plan", 16) : "";
       const cycle = pick("cycle", 8) === "year" ? "year" : "month";
       const show = (status: number, extra: { name?: string; slug?: string; error?: string } = {}) =>
-        html(res, status, { title: "Create your workspace", email: user.email, mascot: "happy", body: signupPage({ domain: selfServe?.domain, plan, cycle, ...extra }) });
+        html(res, status, { title: "Créer votre espace", email: user.email, mascot: "happy", body: signupPage({ domain: selfServe?.domain, plan, cycle, ...extra }) });
       if (method === "GET") return show(200);
-      if (method !== "POST") throw new HttpError(405, "Method not allowed.");
+      if (method !== "POST") throw new HttpError(405, "Méthode non autorisée.");
       const name = pick("name", 80), slug = pick("slug", 64).toLowerCase();
       const owned = store.workspacesOf(user.id).filter((item) => item.role === "admin" && hosting.get(item.slug)).length;
-      const error = !name ? "Give the workspace a name."
-        : !validSlug(slug) ? "The address must be 2–31 lowercase letters, digits or dashes, starting with a letter."
-        : RESERVED_SLUGS.has(slug) || store.workspace(slug) ? "That address is taken. Try another one."
-        : owned >= SELF_SERVE_LIMIT ? `You already have ${SELF_SERVE_LIMIT} workspaces. Write to the Delio team for more.` : null;
+      const error = !name ? "Donnez un nom à l'espace."
+        : !validSlug(slug) ? "L'identifiant doit faire 2 à 31 caractères : lettres minuscules, chiffres ou tirets, en commençant par une lettre."
+        : RESERVED_SLUGS.has(slug) || store.workspace(slug) ? "Cet identifiant est déjà pris. Essayez-en un autre."
+        : owned >= SELF_SERVE_LIMIT ? `Vous avez déjà ${SELF_SERVE_LIMIT} espaces. Écrivez à l'équipe Delio pour en avoir plus.` : null;
       if (error) return show(400, { name, slug, error });
-      if (!store.allow(`signup:${user.id}`, 10, 60 * 60_000)) return show(429, { name, slug, error: "Too many workspaces in a short time. Wait an hour and try again." });
+      if (!store.allow(`signup:${user.id}`, 10, 60 * 60_000)) return show(429, { name, slug, error: "Trop d'espaces créés en peu de temps. Patientez une heure et réessayez." });
       store.createWorkspace({ slug, name, tenantUrl: selfServe ? `https://${slug}.${selfServe.domain}` : options.signup!.downloadUrl, ownerEmail: user.email }, user.email);
       if (selfServe) hosting.request(slug);
       return redirect(res, `/billing?workspace=${slug}${plan ? `&plan=${plan}&cycle=${cycle}` : ""}`);
@@ -505,10 +514,10 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       if (!isOperator(user)) throw new HttpError(404, "Not found.");
       const body = await readBody(req);
       const slug = text(body, "slug", 64), name = text(body, "name", 80), tenant = tenantOrigin(text(body, "tenantUrl", 512)), owner = normalizeEmail(text(body, "ownerEmail", 320));
-      const error = !validSlug(slug) ? "The slug must be 2–31 lowercase letters, digits or dashes, starting with a letter." : !name ? "Give the workspace a name."
+      const error = !validSlug(slug) ? "L'identifiant doit faire 2 à 31 caractères : lettres minuscules, chiffres ou tirets, en commençant par une lettre." : !name ? "Donnez un nom à l'espace."
         : !tenant ? "The workspace address must be an https:// address." : !validEmail(owner) ? "Enter the first administrator's email." : store.workspace(slug) ? "That slug is taken." : null;
       if (error) {
-        return html(res, 400, { title: "Workspaces", email: user.email, body: homePage({ workspaces: store.workspacesOf(user.id), operator: true, all: store.allWorkspaces(), error }) });
+        return html(res, 400, { title: "Vos espaces", email: user.email, body: homePage({ workspaces: store.workspacesOf(user.id), operator: true, all: store.allWorkspaces(), error }) });
       }
       store.createWorkspace({ slug, name, tenantUrl: tenant!, ownerEmail: owner }, user.email);
       return redirect(res, "/?created=1");
@@ -517,24 +526,24 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     if (method === "GET" && path === "/people") {
       const workspace = requireWorkspaceAdmin(user, url.searchParams.get("workspace") ?? "");
       const flash = url.searchParams.get("done");
-      return html(res, 200, { title: "People", email: user.email, body: people(workspace, user, { message: flash === "invited" ? "Invitation sent." : flash ? "Saved." : undefined }) });
+      return html(res, 200, { title: "Membres", email: user.email, body: people(workspace, user, { message: flash === "invited" ? "Invitation envoyée." : flash ? "Enregistré." : undefined }) });
     }
     if (method === "POST" && path.startsWith("/people/")) {
       const body = await readBody(req);
       const workspace = requireWorkspaceAdmin(user, text(body, "workspace", 64));
       const back = (done: string) => redirect(res, `/people?workspace=${workspace.slug}&done=${done}`);
       const fail = (status: number, error: string, extra: { inviteLink?: string } = {}) =>
-        html(res, status, { title: "People", email: user.email, body: people(workspace, user, { error, ...extra }) });
+        html(res, status, { title: "Membres", email: user.email, body: people(workspace, user, { error, ...extra }) });
       if (path === "/people/invite") {
         const email = normalizeEmail(text(body, "email", 320)), role = text(body, "role", 16) as Role;
-        if (!validEmail(email) || !ROLES.includes(role)) return fail(400, "Enter an email address and a role.");
-        if (!store.allow(`invite:${workspace.slug}`, 100, 60 * 60_000)) return fail(429, "Too many invitations this hour.");
+        if (!validEmail(email) || !ROLES.includes(role)) return fail(400, "Entrez une adresse e-mail et un rôle.");
+        if (!store.allow(`invite:${workspace.slug}`, 100, 60 * 60_000)) return fail(429, "Trop d'invitations cette heure-ci.");
         const { token: value } = store.invite(workspace.slug, email, role, user.email);
         const link = new URL(`/invite?token=${value}`, publicUrl).href;
-        await mailer.send({ to: email, subject: `You're invited to ${workspace.name} on Delio`,
-          text: `${user.email} invited you to the ${workspace.name} workspace on Delio as ${role === "admin" ? "an admin" : "a member"}.\n\nAccept: ${link}\n\nThis link expires in 7 days.` })
+        await mailer.send({ to: email, subject: `Invitation à rejoindre ${workspace.name} sur Delio`,
+          text: `${user.email} vous invite dans l'espace ${workspace.name} sur Delio en tant que ${role === "admin" ? "administrateur" : "membre"}.\n\nAccepter : ${link}\n\nCe lien expire dans 7 jours.` })
           .catch(() => console.error("delio-admin: invitation email could not be sent"));
-        return html(res, 200, { title: "People", email: user.email, body: people(workspace, user, { message: `Invitation sent to ${email}.`, inviteLink: link }) });
+        return html(res, 200, { title: "Membres", email: user.email, body: people(workspace, user, { message: `Invitation envoyée à ${email}.`, inviteLink: link }) });
       }
       if (path === "/people/cancel") {
         store.cancelInvitation(workspace.slug, text(body, "invitation", 64), user.email);
@@ -543,10 +552,10 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       const target = text(body, "account", 64);
       if (path === "/people/role") {
         const role = text(body, "role", 16) as Role;
-        if (!ROLES.includes(role)) return fail(400, "Choose a role.");
+        if (!ROLES.includes(role)) return fail(400, "Choisissez un rôle.");
         const outcome = store.setRole(workspace.slug, target, role, user.email);
         if (outcome === "last-admin") return fail(409, "A workspace needs at least one admin. Promote someone else first.");
-        if (outcome === "missing") return fail(404, "That person is no longer a member.");
+        if (outcome === "missing") return fail(404, "Cette personne n'est plus membre.");
         return back("role");
       }
       if (path === "/people/remove") {
@@ -558,8 +567,8 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
 
     if (method === "GET" && path === "/sso") {
       const workspace = requireWorkspaceAdmin(user, url.searchParams.get("workspace") ?? "");
-      return html(res, 200, { title: "Single sign-on", email: user.email, body: ssoPage({ workspace, sso: store.sso(workspace.slug), redirectUri: ssoRedirectUri,
-        message: url.searchParams.get("done") ? "Saved." : undefined }) });
+      return html(res, 200, { title: "Connexion unique (SSO)", email: user.email, body: ssoPage({ workspace, sso: store.sso(workspace.slug), redirectUri: ssoRedirectUri,
+        message: url.searchParams.get("done") ? "Enregistré." : undefined }) });
     }
     if (method === "POST" && (path === "/sso" || path === "/sso/remove")) {
       const body = await readBody(req);
@@ -572,45 +581,45 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       const issuer = text(body, "issuer", 512).replace(/\/$/, ""), clientId = text(body, "clientId", 512);
       const clientSecret = text(body, "clientSecret", 1024) || existing?.clientSecret || "";
       const domain = text(body, "domain", 253).toLowerCase().replace(/^@/, "");
-      const fail = (error: string) => html(res, 400, { title: "Single sign-on", email: user.email,
+      const fail = (error: string) => html(res, 400, { title: "Connexion unique (SSO)", email: user.email,
         body: ssoPage({ workspace, sso: existing, redirectUri: ssoRedirectUri, error }) });
-      if (!clientId || !clientSecret || !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(domain)) return fail("Fill in every field.");
+      if (!clientId || !clientSecret || !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(domain)) return fail("Remplissez tous les champs.");
       const claimed = store.ssoForDomain(domain).find((config) => config.workspace !== workspace.slug);
       if (claimed) return fail(`${domain} already signs in through another workspace.`);
       try {
         await discover(fetchImpl, issuer, options.allowHttpProviders);
       } catch (error) {
-        return fail(`The issuer could not be reached or is not an OpenID Connect provider (${error instanceof Error ? error.message : "error"}).`);
+        return fail(`L'émetteur est injoignable ou n'est pas un fournisseur OpenID Connect (${error instanceof Error ? error.message : "erreur"}).`);
       }
       store.setSso({ workspace: workspace.slug, issuer, clientId, clientSecret, domain, autoJoin: body.autoJoin === "1" }, user.email);
       return redirect(res, `/sso?workspace=${workspace.slug}&done=1`);
     }
 
     if (method === "GET" && path === "/device") {
-      return html(res, 200, { title: "Connect an app", email: user.email, mascot: "curious",
+      return html(res, 200, { title: "Connecter une application", email: user.email, mascot: "curious",
         body: devicePage({ code: url.searchParams.get("code") ?? "", label: devices.pendingLabel(url.searchParams.get("code") ?? ""), workspaces: store.workspacesOf(user.id).filter((item) => item.role === "admin") }) });
     }
     if (method === "POST" && path === "/device") {
       const body = await readBody(req);
       const code = text(body, "code", 16);
       const admin = store.workspacesOf(user.id).filter((item) => item.role === "admin");
-      const again = (status: number, error: string) => html(res, status, { title: "Connect an app", email: user.email, mascot: "sad", body: devicePage({ code, label: devices.pendingLabel(code), workspaces: admin, error }) });
-      if (!devices.pendingLabel(code)) return again(400, "This code has expired or was already used. Start again from the app.");
+      const again = (status: number, error: string) => html(res, status, { title: "Connecter une application", email: user.email, mascot: "sad", body: devicePage({ code, label: devices.pendingLabel(code), workspaces: admin, error }) });
+      if (!devices.pendingLabel(code)) return again(400, "Ce code a expiré ou a déjà servi. Recommencez depuis l'application.");
       if (text(body, "decision", 8) === "deny") {
         devices.decide(code, "deny");
-        return html(res, 200, { title: "Connect an app", email: user.email, body: messagePage("Connection refused", "The app was not connected. You can close this page.") });
+        return html(res, 200, { title: "Connecter une application", email: user.email, body: messagePage("Connexion refusée", "L'application n'a pas été connectée. Vous pouvez fermer cette page.") });
       }
       let slug = text(body, "workspace", 64);
       if (slug === "personal") {
         slug = personalWorkspace(user).slug;
       } else if (!admin.some((item) => item.slug === slug)) {
-        return again(403, "Choose a workspace you administer.");
+        return again(403, "Choisissez un espace que vous administrez.");
       }
       const label = devices.pendingLabel(code);
       devices.decide(code, { workspace: slug, accountId: user.id });
       store.audit(slug, user.email, "device.connect", label);
-      return html(res, 200, { title: "Connected", email: user.email, mascot: "happy",
-        body: messagePage("The app is connected", "Go back to the app: it finishes on its own in a few seconds. It uses this workspace's Delio credits.") });
+      return html(res, 200, { title: "Connectée", email: user.email, mascot: "happy",
+        body: messagePage("L'application est connectée", "Retournez dans l'application : elle termine toute seule en quelques secondes. Elle utilise les crédits Delio de cet espace.") });
     }
     if (method === "POST" && path === "/billing/checkout") {
       const body = await readBody(req);
@@ -628,14 +637,14 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     }
     if (method === "GET" && path === "/billing/return") {
       const order = plans.order(url.searchParams.get("order") ?? "");
-      if (!order) throw new HttpError(404, "No such payment.");
+      if (!order) throw new HttpError(404, "Ce paiement n'existe pas.");
       const workspace = requireWorkspaceAdmin(user, order.workspace);
       if (order.status === "pending" && saspay && (await reconcileOrders(plans, saspay, order.id)).length) startHosting();
       const latest = plans.order(order.id)!;
-      return html(res, 200, { title: "Billing", email: user.email, body: billing(workspace, user,
-        latest.status === "paid" ? { message: "Payment received: thank you. Your credits are added." }
-          : latest.status === "failed" ? { error: "The payment did not go through. You can try again." }
-          : { message: "The payment is being confirmed. This page shows it as soon as SasPay does." }) });
+      return html(res, 200, { title: "Facturation", email: user.email, body: billing(workspace, user,
+        latest.status === "paid" ? { message: "Paiement reçu : merci ! Vos crédits sont ajoutés." }
+          : latest.status === "failed" ? { error: "Le paiement n'a pas abouti. Vous pouvez réessayer." }
+          : { message: "Le paiement est en cours de confirmation. Cette page l'affichera dès que SasPay l'aura confirmé." }) });
     }
     if (method === "POST" && path === "/billing/device") {
       const body = await readBody(req);
@@ -650,7 +659,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       if (!asked) {
         const first = store.workspacesOf(user.id).find((item) => item.role === "admin");
         if (!first && signupOpen) return redirect(res, `/signup?${new URLSearchParams([...url.searchParams].filter(([name]) => name === "plan" || name === "cycle"))}`);
-        if (!first) return html(res, 200, { title: "Billing", email: user.email, body: messagePage("No workspace yet", "Plans are bought for a workspace you administer. Ask its administrator, or create one first.", { href: "/", label: "Back" }) });
+        if (!first) return html(res, 200, { title: "Facturation", email: user.email, body: messagePage("Pas encore d'espace", "Un forfait s'achète pour un espace que vous administrez. Demandez à son administrateur, ou créez-en un d'abord.", { href: "/", label: "Retour" }) });
         const next = new URLSearchParams(url.searchParams);
         next.set("workspace", first.slug);
         return redirect(res, `/billing?${next}`);
@@ -658,7 +667,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       if (!administers(user, asked)) return otherAccount(res, user, path + url.search);
       const workspace = requireWorkspaceAdmin(user, asked);
       const chosen = url.searchParams.get("plan");
-      return html(res, 200, { title: "Billing", email: user.email, body: billing(workspace, user, { message: url.searchParams.get("done") ? "Saved." : undefined,
+      return html(res, 200, { title: "Facturation", email: user.email, body: billing(workspace, user, { message: url.searchParams.get("done") ? "Enregistré." : undefined,
         chosen: chosen && Object.hasOwn(PLANS, chosen) ? chosen as PlanId : undefined, cycle: url.searchParams.get("cycle") === "year" ? "year" : "month" }) });
     }
     if (method === "POST" && (path === "/billing/credit" || path === "/billing/token")) {
@@ -668,11 +677,11 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       if (path === "/billing/token") {
         const issued = wallet.issueToken(workspace.slug);
         store.audit(workspace.slug, user.email, "gateway.token", null);
-        return html(res, 200, { title: "Billing", email: user.email, body: billing(workspace, user, { token: issued }) });
+        return html(res, 200, { title: "Facturation", email: user.email, body: billing(workspace, user, { token: issued }) });
       }
       const credits = Number(text(body, "credits", 16));
       if (!Number.isFinite(credits) || credits === 0 || Math.abs(credits) > 10_000_000) {
-        return html(res, 400, { title: "Billing", email: user.email, body: billing(workspace, user, { error: "Enter a number of credits." }) });
+        return html(res, 400, { title: "Facturation", email: user.email, body: billing(workspace, user, { error: "Entrez un nombre de crédits." }) });
       }
       wallet.credit(workspace.slug, Math.round(credits * MICRO), credits > 0 ? "grant" : "adjust", text(body, "note", 200) || null);
       store.audit(workspace.slug, user.email, "credits.add", String(credits));
@@ -698,7 +707,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
 
   function hostingView(slug: string) {
     const row = hosting.get(slug);
-    return row ? { state: row.state, error: row.state === "failed" ? "The last attempt failed." : null, retry: row.state === "failed" } : null;
+    return row ? { state: row.state, error: row.state === "failed" ? "La dernière tentative a échoué." : null, retry: row.state === "failed" } : null;
   }
 
   function people(workspace: Workspace, user: Account, extra: { message?: string; error?: string; inviteLink?: string }): Html {
@@ -706,20 +715,24 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       audit: store.auditLog(workspace.slug, 20), ...extra });
   }
 
+  const operatorPages = createConsole({ store, wallet, devices, billing: plans, hosting, saspay, currency, operators, now, readForm: readBody,
+    redirect: (res, location) => redirect(res, location), send });
+
   const handler = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
     try {
       await route(req, res);
     } catch (error) {
       const status = error instanceof HttpError ? error.status : 500;
-      const message = error instanceof HttpError ? error.message : "Something went wrong.";
+      const message = error instanceof HttpError ? error.message : "Une erreur est survenue.";
       if (status === 500) console.error("delio-admin:", error);
       if (res.headersSent) return void res.end();
       if (req.url?.startsWith("/api/")) return json(res, status, { error: message });
-      html(res, status, { title: "Error", body: messagePage(status === 404 ? "Not found" : "That did not work", message, { href: "/", label: "Back" }), mascot: "sad" });
+      html(res, status, { title: "Erreur", body: messagePage(status === 404 ? "Page introuvable" : "Cela n'a pas marché", message, { href: "/", label: "Retour" }), mascot: "sad" });
     }
   };
   async function sweep(): Promise<void> {
     await gateway.sweep();
+    traffic.purge();
     if (saspay) await reconcileOrders(plans, saspay);
     plans.grantDue();
     if (runHosting) await runHosting();
@@ -727,17 +740,17 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       const workspace = store.workspace(due.workspace);
       if (!workspace) continue;
       const link = new URL(`/billing?workspace=${due.workspace}`, publicUrl).href;
-      const day = new Date(due.periodEnd).toISOString().slice(0, 10);
+      const day = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long", timeZone: "UTC" }).format(new Date(due.periodEnd));
       const message = due.plan === "trial"
-        ? { subject: `Your Delio trial for ${workspace.name} ends soon`,
-          text: `The trial of ${workspace.name} ends on ${day}.\n\nChoose a plan here to keep your bots working with Delio's AI: ${link}` }
-        : { subject: `Your Delio ${PLANS[due.plan].name} plan for ${workspace.name} ends soon`,
-          text: `The ${PLANS[due.plan].name} plan of ${workspace.name} ends on ${day}.\n\nRenew it here to keep its credits coming: ${link}\n\nAfter that day the workspace has 7 days of grace, then its bots stop using Delio credits until it is renewed.` };
+        ? { subject: `Votre essai Delio pour ${workspace.name} se termine bientôt`,
+          text: `L'essai de ${workspace.name} se termine le ${day}.\n\nChoisissez un forfait ici pour que vos bots continuent d'utiliser l'IA de Delio : ${link}\n\nBesoin d'aide ? Écrivez à ${SUPPORT_EMAIL}.` }
+        : { subject: `Votre forfait Delio ${PLANS[due.plan].name} pour ${workspace.name} se termine bientôt`,
+          text: `Le forfait ${PLANS[due.plan].name} de ${workspace.name} se termine le ${day}.\n\nRenouvelez-le ici pour continuer à recevoir ses crédits : ${link}\n\nAprès cette date, l'espace a 7 jours de grâce ; ensuite ses bots n'utilisent plus les crédits Delio jusqu'au renouvellement.\n\nBesoin d'aide ? Écrivez à ${SUPPORT_EMAIL}.` };
       for (const admin of store.members(due.workspace).filter((member) => member.role === "admin")) {
         await mailer.send({ to: admin.email, ...message })
           .catch(() => console.error("delio-admin: a renewal reminder could not be sent"));
       }
     }
   }
-  return Object.assign(handler, { sweep });
+  return Object.assign(handler, { sweep, recordVisits: (visits: readonly VisitInput[]) => traffic.record(visits) });
 }

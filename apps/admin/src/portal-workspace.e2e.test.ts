@@ -57,7 +57,7 @@ function person() {
     go(path, { method: "POST", headers: { origin: portalOrigin, "content-type": "application/x-www-form-urlencoded" }, body: new URLSearchParams(form).toString() });
   async function signIn(email: string) {
     await post("/login", { email, next: "/" });
-    const code = /code is (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
+    const code = /Delio est (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
     expect((await post("/login/verify", { email, code: code[1]! + code[2]!, next: "/" })).status).toBe(303);
   }
   /** Opens the workspace address and follows the handoff through the portal; returns the workspace session cookie. */
@@ -147,7 +147,7 @@ describe("Delio Admin portal with a real workspace server", () => {
     expect((await outsider.go(connect.pathname + connect.search)).status).toBe(403);
 
     await boss.post("/people/invite", { workspace: "acme", email: "dev@acme.test", role: "admin" });
-    const link = new URL(/Accept: (\S+)/.exec(mail.at(-1)!.text)![1]!);
+    const link = new URL(/Accepter : (\S+)/.exec(mail.at(-1)!.text)![1]!);
     await dev.signIn("dev@acme.test");
     expect((await dev.post("/invite/accept", { token: link.searchParams.get("token")! })).status).toBe(200);
     devId = store.members("acme").find((member) => member.email === "dev@acme.test")!.accountId;

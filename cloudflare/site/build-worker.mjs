@@ -20,6 +20,18 @@ const SECURITY = { "x-content-type-options": "nosniff", "referrer-policy": "stri
 const DOWNLOAD_TYPES = { exe: "application/vnd.microsoft.portable-executable", deb: "application/vnd.debian.binary-package", AppImage: "application/octet-stream", zip: "application/zip",
   yml: "text/yaml; charset=utf-8", blockmap: "application/octet-stream", sha256: "text/plain; charset=utf-8" };
 
+/** Reports a page view or a download to the portal's audience count, after the answer is sent; robots are left out there. */
+function count(request, env, ctx, kind, path) {
+  if (!env.TRAFFIC || !ctx || request.method !== "GET") return;
+  if (/prefetch/i.test(request.headers.get("sec-purpose") ?? request.headers.get("purpose") ?? "")) return;
+  const range = request.headers.get("range");
+  if (kind === "download" && range && !/^bytes=0-/.test(range)) return;
+  const url = new URL(request.url);
+  const visit = { site: "site", kind, path, referrer: request.headers.get("referer"), utmSource: url.searchParams.get("utm_source"),
+    ip: request.headers.get("cf-connecting-ip") ?? "", userAgent: request.headers.get("user-agent") ?? "", country: request.cf?.country ?? null, city: request.cf?.city ?? null };
+  ctx.waitUntil(env.TRAFFIC.record([visit]).catch(() => 0));
+}
+
 /** Installers and vendored binaries live in R2; a Range request (the app's differential updates) gets just that part. */
 async function download(request, env, key) {
   if (request.method !== "GET" && request.method !== "HEAD") return new Response("method not allowed", { status: 405 });
@@ -76,13 +88,15 @@ async function upload(request, env, key) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const path = new URL(request.url).pathname;
     if (env.DOWNLOADS && path.startsWith("/__upload/")) return upload(request, env, decodeURIComponent(path.slice("/__upload/".length)));
+    if (env.DOWNLOADS && path.startsWith("/download/")) count(request, env, ctx, "download", path);
     if (env.DOWNLOADS && (path.startsWith("/download/") || path.startsWith("/vendor/"))) return download(request, env, decodeURIComponent(path.slice(1)));
     const clean = path.length > 1 ? path.replace(/\\/+$/, "") : path;
     const file = FILES[clean === "/" ? "/index.html" : clean] ?? FILES[clean + ".html"] ?? FILES[clean + "/index.html"];
     if (!file) return new Response(bytes(FILES["/404.html"].body), { status: 404, headers: { "content-type": "text/html; charset=utf-8", ...SECURITY } });
+    if (file.type.startsWith("text/html")) count(request, env, ctx, "view", clean);
     const cache = file.type.startsWith("image/") ? "public, max-age=86400" : "public, max-age=300";
     return new Response(bytes(file.body), { headers: { "content-type": file.type, "cache-control": cache, ...SECURITY } });
   },

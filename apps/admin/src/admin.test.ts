@@ -53,7 +53,7 @@ function browser(target: Portal, at = target.origin) {
     go(path, { method: "POST", headers: { origin, "content-type": "application/x-www-form-urlencoded" }, body: new URLSearchParams(form).toString() });
   async function signIn(email: string) {
     await post("/login", { email, next: "/" });
-    const code = /code is (\d{4}) (\d{4})/.exec(target.mail.at(-1)!.text)!;
+    const code = /Delio est (\d{4}) (\d{4})/.exec(target.mail.at(-1)!.text)!;
     const response = await post("/login/verify", { email, code: code[1]! + code[2]!, next: "/" });
     expect(response.status).toBe(303);
     return response;
@@ -78,7 +78,7 @@ async function workspaceWithAdmin(target: Portal) {
 
 async function invite(target: Portal, admin: ReturnType<typeof browser>, email: string, role: "admin" | "member") {
   await admin.post("/people/invite", { workspace: "acme", email, role });
-  const link = /Accept: (\S+)/.exec(target.mail.at(-1)!.text)![1]!;
+  const link = /Accepter : (\S+)/.exec(target.mail.at(-1)!.text)![1]!;
   const person = browser(target);
   await person.signIn(email);
   const accepted = await person.post("/invite/accept", { token: new URL(link).searchParams.get("token")! });
@@ -100,9 +100,9 @@ describe("Delio Admin accounts", () => {
     await visitor.post("/login", { email: "Someone@Example.test", next: "/" });
     expect(target.mail.at(-1)!.to).toBe("someone@example.test");
     for (let attempt = 0; attempt < 5; attempt++) expect((await visitor.post("/login/verify", { email: "someone@example.test", code: "00000000", next: "/" })).status).toBe(401);
-    const code = /code is (\d{4}) (\d{4})/.exec(target.mail.at(-1)!.text)!;
+    const code = /Delio est (\d{4}) (\d{4})/.exec(target.mail.at(-1)!.text)!;
     const locked = await visitor.post("/login/verify", { email: "someone@example.test", code: code[1]! + code[2]!, next: "/" });
-    expect(await locked.text()).toContain("Too many wrong codes");
+    expect(await locked.text()).toContain("Trop de codes erronés");
     await visitor.signIn("someone@example.test");
     expect((await visitor.go("/")).status).toBe(200);
     for (let sent = 0; sent < 4; sent++) await visitor.post("/login", { email: "someone@example.test", next: "/" });
@@ -116,7 +116,7 @@ describe("Delio Admin accounts", () => {
     expect((await visitor.post("/login", { email: "a@b.test", next: "/" }, "https://evil.example.test")).status).toBe(403);
     expect(target.mail).toEqual([]);
     await visitor.post("/login", { email: "a@b.test", next: "//evil.example.test/" });
-    const code = /code is (\d{4}) (\d{4})/.exec(target.mail.at(-1)!.text)!;
+    const code = /Delio est (\d{4}) (\d{4})/.exec(target.mail.at(-1)!.text)!;
     const signedIn = await visitor.post("/login/verify", { email: "a@b.test", code: code[1]! + code[2]!, next: "//evil.example.test/" });
     expect(signedIn.headers.get("location")).toBe("/");
   });
@@ -139,7 +139,7 @@ describe("Delio Admin accounts", () => {
     const boss = await workspaceWithAdmin(target);
     const intruder = browser(target, target.consoleOrigin);
     const sent = target.mail.length;
-    expect(await (await intruder.post("/login", { email: "boss@acme.test", next: "/" })).text(), "same answer as for the team").toContain("Check your email");
+    expect(await (await intruder.post("/login", { email: "boss@acme.test", next: "/" })).text(), "same answer as for the team").toContain("Vérifiez vos e-mails");
     expect(target.mail.length, "no code is sent to a customer").toBe(sent);
     await intruder.post("/login/verify", { email: "boss@acme.test", code: "12345678", next: "/" });
     expect((await intruder.go("/")).status).toBe(303);
@@ -149,7 +149,7 @@ describe("Delio Admin accounts", () => {
 
     const ops = browser(target);
     await ops.signIn("ops@delio.test");
-    expect(await (await ops.go("/")).text(), "the customers' portal shows an operator no other workspace").not.toContain("All workspaces");
+    expect(await (await ops.go("/")).text(), "the customers' portal shows an operator no other workspace").not.toContain("Tous les espaces");
     expect((await ops.post("/workspaces", { slug: "other", name: "Other", tenantUrl: "https://other.example.test", ownerEmail: "ops@delio.test" })).status).toBe(404);
     expect((await ops.post("/billing/credit", { workspace: "acme", credits: "1000" })).status).toBe(403);
     expect((await ops.go("/billing?workspace=acme")).status, "nor any customer's billing").toBe(403);
@@ -160,7 +160,7 @@ describe("Delio Admin accounts", () => {
     const target = await portal();
     const boss = await workspaceWithAdmin(target);
     await boss.post("/people/invite", { workspace: "acme", email: "dev@acme.test", role: "member" });
-    const link = new URL(/Accept: (\S+)/.exec(target.mail.at(-1)!.text)![1]!);
+    const link = new URL(/Accepter : (\S+)/.exec(target.mail.at(-1)!.text)![1]!);
     const other = browser(target);
     await other.signIn("other@acme.test");
     expect((await other.post("/invite/accept", { token: link.searchParams.get("token")! })).status).toBe(400);

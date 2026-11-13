@@ -112,8 +112,8 @@ export function hostingRunner(deps: HostingDeps): () => Promise<void> {
           deps.hosting.set(row.workspace, { state: "ready", attempts: 0, error: null, delio });
           deps.store.audit(row.workspace, null, "hosting.ready", workspace.tenantUrl);
           for (const email of admins) {
-            await deps.mailer.send({ to: email, subject: `Your Delio workspace ${workspace.name} is ready`,
-              text: `${workspace.name} is ready at ${workspace.tenantUrl}\n\nSign in there with this email address: a code is sent to it each time.` })
+            await deps.mailer.send({ to: email, subject: `Votre espace Delio ${workspace.name} est prêt`,
+              text: `${workspace.name} est prêt à l'adresse ${workspace.tenantUrl}\n\nConnectez-vous-y avec cette adresse e-mail : un code vous est envoyé à chaque fois.` })
               .catch(() => console.error("delio-admin: a workspace-ready email could not be sent"));
           }
         } catch (error) {

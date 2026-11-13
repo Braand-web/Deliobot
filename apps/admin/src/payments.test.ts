@@ -65,7 +65,7 @@ async function portal(saspay: ReturnType<typeof fakeSasPay>, clock: { now: numbe
   const signIn = async (email: string) => {
     cookie = "";
     await post("/login", { email, next: "/" });
-    const code = /code is (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
+    const code = /Delio est (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
     await post("/login/verify", { email, code: code[1]! + code[2]!, next: "/" });
   };
   const ops = await operatorConsole({ store, operators: new Set(["ops@delio.test"]), mailer: { send: async (message) => void mail.push(message) }, now: () => clock.now }, mail);
@@ -128,7 +128,7 @@ describe("plans paid through SasPay", () => {
     expect((await target.account()).credits).toBe(300);
     await target.webhook({ event: "transaction.success", data: { id: "t3" } });
     expect((await target.account()).credits, "a second confirmation changes nothing").toBe(300);
-    expect(await (await target.get("/billing?workspace=acme")).text()).toContain("Trial until");
+    expect(await (await target.get("/billing?workspace=acme")).text()).toContain("Essai jusqu");
     expect((await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "trial" })).status, "one trial per account and workspace").toBe(409);
 
     const pro = await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "pro", cycle: "month" });
@@ -136,16 +136,16 @@ describe("plans paid through SasPay", () => {
     saspay.pay("cs_2");
     const order = /order=(ord_[^&"]+)/.exec(String((saspay.calls.at(-1)!.body as { return_url: string }).return_url))![1];
     expect(new URL(pro.headers.get("location")!).pathname).toBe("/checkout/cs_2");
-    expect(await (await target.get(`/billing/return?order=${order}`)).text(), "the return page confirms with SasPay itself").toContain("Payment received");
+    expect(await (await target.get(`/billing/return?order=${order}`)).text(), "the return page confirms with SasPay itself").toContain("Paiement reçu");
     expect((await target.account()).credits).toBe(5800);
-    expect(await (await target.get("/billing?workspace=acme")).text()).toMatch(/Pro · monthly · until/);
+    expect(await (await target.get("/billing?workspace=acme")).text()).toMatch(/Pro · mensuel · jusqu/);
 
     await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "pro", cycle: "month" });
     saspay.pay("cs_3");
     await target.sweep();
     expect((await target.account()).credits, "the sweep confirms payments whose webhook never came").toBe(11300);
     expect(await (await target.get("/billing?workspace=acme")).text(), "a renewal adds 30 days after the current period")
-      .toContain(`until ${new Date(clock.now + 60 * DAY).toISOString().slice(0, 10)}`);
+      .toContain(`jusqu&#39;au ${new Date(clock.now + 60 * DAY).toISOString().slice(0, 10)}`);
   });
 
   it("sells a year for the price of eleven months and grants its credits month by month", async () => {
@@ -153,7 +153,7 @@ describe("plans paid through SasPay", () => {
     const saspay = fakeSasPay();
     const target = await portal(saspay, clock);
     await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "starter", cycle: "year" });
-    expect(saspay.calls.at(-1)!.body).toMatchObject({ amount: "99000.00", description: "Delio Starter · 1 year" });
+    expect(saspay.calls.at(-1)!.body).toMatchObject({ amount: "99000.00", description: "Delio Starter · 1 an" });
     saspay.pay("cs_1");
     await target.sweep();
     expect((await target.account()).credits).toBe(1300);
@@ -182,9 +182,9 @@ describe("plans paid through SasPay", () => {
 
     clock.now += 28 * DAY;
     await target.sweep();
-    expect(target.mail.filter((message) => message.subject.includes("ends soon")).map((message) => message.to)).toEqual(["boss@acme.test"]);
+    expect(target.mail.filter((message) => message.subject.includes("se termine bientôt")).map((message) => message.to)).toEqual(["boss@acme.test"]);
     await target.sweep();
-    expect(target.mail.filter((message) => message.subject.includes("ends soon")), "once per period").toHaveLength(1);
+    expect(target.mail.filter((message) => message.subject.includes("se termine bientôt")), "once per period").toHaveLength(1);
 
     clock.now += 5 * DAY;
     expect((await target.account()).gateway, "inside the grace week").toBe(true);
@@ -237,7 +237,7 @@ describe("plans paid through SasPay", () => {
       const answer = await target.get(path);
       expect(answer.status).toBe(403);
       const html = await answer.text();
-      expect(html).toContain("This workspace belongs to another address");
+      expect(html).toContain("Cet espace appartient à une autre adresse");
       expect(html).toContain("someone-else@delio.test");
     }
     const out = await target.post("/logout", { next: "/billing?workspace=acme&plan=trial" });

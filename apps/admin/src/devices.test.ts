@@ -37,7 +37,7 @@ async function portal() {
   const signIn = async (email: string) => {
     cookie = "";
     await request("/login", { email, next: "/" });
-    const code = /code is (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
+    const code = /Delio est (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
     await request("/login/verify", { email, code: code[1]! + code[2]!, next: "/" });
   };
   return { origin, request, signIn };
