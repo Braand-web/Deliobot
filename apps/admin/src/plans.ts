@@ -267,6 +267,24 @@ CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT N
     return this.fulfil(orderId);
   }
 
+  /** Applies paid orders whose credits and period never landed (a top-up with no ledger row, a plan with neither a ledger row
+   * nor a subscription), keeping their payment time; run from the sweep. Answers the orders it applied. */
+  repairUnapplied(): string[] {
+    const missing = this.db.prepare(`SELECT o.id, o.paid_at FROM orders o WHERE o.status = 'paid' AND o.paid_at > ?
+      AND NOT EXISTS (SELECT 1 FROM credit_ledger l WHERE l.workspace = o.workspace AND l.note LIKE '%· ' || o.id)
+      AND (o.kind = 'topup' OR NOT EXISTS (SELECT 1 FROM subscriptions s WHERE s.workspace = o.workspace))
+      AND EXISTS (SELECT 1 FROM workspaces w WHERE w.slug = o.workspace)`).all(this.now() - 60 * DAY_MS) as Array<{ id: string; paid_at: number }>;
+    const repaired: string[] = [];
+    for (const row of missing) {
+      this.db.prepare("UPDATE orders SET status = 'pending' WHERE id = ? AND status = 'paid'").run(row.id);
+      if (this.fulfil(row.id)) {
+        this.db.prepare("UPDATE orders SET paid_at = ? WHERE id = ?").run(row.paid_at, row.id);
+        repaired.push(row.id);
+      }
+    }
+    return repaired;
+  }
+
   markFailed(orderId: string): void {
     this.db.prepare("UPDATE orders SET status = 'failed' WHERE id = ? AND status = 'pending'").run(orderId);
   }

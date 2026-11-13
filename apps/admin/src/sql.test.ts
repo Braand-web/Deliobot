@@ -7,7 +7,8 @@ import { durableObjectDatabase, type DurableSqlStorage } from "./sql.ts";
 import { AdminStore } from "./store.ts";
 import { MICRO, Wallet } from "./wallet.ts";
 
-/** A Durable Object's storage as Cloudflare documents it, over an in-memory SQLite: one statement per exec, no BEGIN. */
+/** A Durable Object's storage as Cloudflare documents it, over an in-memory SQLite: one statement per exec, no BEGIN, and a
+ * rowsWritten that counts index entries too. */
 function durableStorage(): DurableSqlStorage & { statements: string[] } {
   const db = new DatabaseSync(":memory:");
   db.exec("PRAGMA foreign_keys = ON");
@@ -24,7 +25,7 @@ function durableStorage(): DurableSqlStorage & { statements: string[] } {
           return { toArray: () => rows, rowsWritten: 0 };
         }
         const { changes } = statement.run(...(bindings as never[]));
-        return { toArray: () => [], rowsWritten: Number(changes) };
+        return { toArray: () => [], rowsWritten: Number(changes) * 2 };
       },
     },
     transactionSync(body) {
@@ -56,5 +57,38 @@ describe("the portal on a Durable Object's SQLite", () => {
     const max = billing.createOrder({ workspace: "acme", email: "boss@acme.test", kind: "plan", plan: "max", cycle: "month" }, "XOF");
     billing.fulfil(max.id);
     expect(billing.allowance("acme")).toMatchObject({ plan: "max", ownAi: true });
+  });
+
+  it("applies a trial and counts a payment event once, though Cloudflare counts index writes among the rows written", () => {
+    const db = durableObjectDatabase(durableStorage());
+    const store = new AdminStore({ db, secret: randomBytes(32) });
+    store.createWorkspace({ slug: "acme", name: "Acme", tenantUrl: "https://deliobot.fun", ownerEmail: "boss@acme.test" }, "boss@acme.test");
+    const wallet = new Wallet(db);
+    const billing = new Billing(wallet);
+    const trial = billing.createOrder({ workspace: "acme", email: "boss@acme.test", kind: "plan", plan: "trial", cycle: "month" }, "XOF");
+    expect(billing.fulfil(trial.id)).toBe(true);
+    expect(billing.subscription("acme")).toMatchObject({ plan: "trial", status: "trialing" });
+    expect(wallet.balance("acme") / MICRO).toBe(300);
+    expect(billing.firstSeen("transaction.success:tx_1:1")).toBe(true);
+    expect(billing.firstSeen("transaction.success:tx_1:1")).toBe(false);
+  });
+
+  it("applies once a paid order whose plan and credits never landed, keeping its payment time", () => {
+    const db = durableObjectDatabase(durableStorage());
+    const store = new AdminStore({ db, secret: randomBytes(32) });
+    store.createWorkspace({ slug: "acme", name: "Acme", tenantUrl: "https://deliobot.fun", ownerEmail: "boss@acme.test" }, "boss@acme.test");
+    const wallet = new Wallet(db);
+    const billing = new Billing(wallet);
+    const trial = billing.createOrder({ workspace: "acme", email: "boss@acme.test", kind: "plan", plan: "trial", cycle: "month" }, "XOF");
+    const paidAt = Date.now() - 3_600_000;
+    db.prepare("UPDATE orders SET status = 'paid', paid_at = ? WHERE id = ?").run(paidAt, trial.id);
+    const applied = billing.createOrder({ workspace: "acme", email: "boss@acme.test", kind: "topup", topup: "small" }, "XOF");
+    expect(billing.repairUnapplied()).toEqual([trial.id]);
+    expect(billing.subscription("acme")).toMatchObject({ plan: "trial", status: "trialing" });
+    expect(wallet.balance("acme") / MICRO).toBe(300);
+    expect(db.prepare("SELECT paid_at FROM orders WHERE id = ?").get(trial.id)).toEqual({ paid_at: paidAt });
+    expect(billing.fulfil(applied.id)).toBe(true);
+    expect(billing.repairUnapplied(), "nothing is applied twice").toEqual([]);
+    expect(wallet.balance("acme") / MICRO).toBe(4800);
   });
 });

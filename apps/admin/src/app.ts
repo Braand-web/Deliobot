@@ -736,6 +736,9 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     traffic.purge();
     if (saspay) await reconcileOrders(plans, saspay);
     plans.grantDue();
+    const repaired = plans.repairUnapplied();
+    for (const id of repaired) store.audit(plans.order(id)?.workspace ?? null, null, "order.repaired", id);
+    if (repaired.length) startHosting();
     if (runHosting) await runHosting();
     for (const due of plans.dueReminders()) {
       const workspace = store.workspace(due.workspace);

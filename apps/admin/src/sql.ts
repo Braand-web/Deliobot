@@ -33,7 +33,11 @@ export function durableObjectDatabase(storage: DurableSqlStorage): SqlDatabase {
       return {
         get: (...params) => run(sql, params).toArray()[0],
         all: (...params) => run(sql, params).toArray(),
-        run: (...params) => ({ changes: run(sql, params).rowsWritten }),
+        // Cloudflare's rowsWritten also counts index entries, so an UPDATE of one indexed row reports 2: the changed rows come from SQLite.
+        run: (...params) => {
+          run(sql, params);
+          return { changes: Number(storage.sql.exec("SELECT changes() AS n").toArray()[0]?.n ?? 0) };
+        },
       };
     },
     transaction(body) {
