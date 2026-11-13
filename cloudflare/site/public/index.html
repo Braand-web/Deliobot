@@ -70,12 +70,40 @@ h1 .face{width:1.02em;height:1.02em;flex:none;animation:bob 4s ease-in-out infin
 
 /* app mockup */
 .stage{position:relative;margin:64px auto 0;max-width:1220px}
-.film{position:relative;border-radius:26px;overflow:hidden;aspect-ratio:16/9;background:#09090c;box-shadow:0 40px 120px -40px rgba(0,0,0,.55),0 0 0 1px var(--line)}
-.film video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
-.film-sound{position:absolute;left:24px;bottom:24px;display:inline-flex;align-items:center;gap:10px;border:0;border-radius:999px;padding:12px 20px;font:inherit;font-size:15px;font-weight:500;color:#0b0b0c;background:rgba(255,255,255,.92);cursor:pointer;backdrop-filter:blur(8px);box-shadow:0 10px 30px -10px rgba(0,0,0,.5)}
-.film-sound:hover{background:#fff}.film-sound svg{width:14px;height:14px}
-@media (max-width:640px){.film{border-radius:18px}.film-sound{left:10px;bottom:10px;padding:7px 12px;font-size:12px;gap:7px}.film-sound svg{width:10px;height:10px}}
-.film-dl{display:inline-block;margin-top:14px;font-size:14px;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px}
+.app{display:grid;grid-template-columns:300px 1fr;height:620px;border-radius:26px;overflow:hidden;background:var(--app);color:var(--app-ink);text-align:left;box-shadow:0 40px 120px -40px rgba(0,0,0,.55),0 0 0 1px var(--app-line);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.side{background:#161618;border-right:1px solid var(--app-line);padding:16px 14px;display:flex;flex-direction:column}
+.dots{display:flex;gap:8px;align-items:center;height:40px}
+.dots i{width:12px;height:12px;border-radius:50%;background:#ff5f57}.dots i:nth-child(2){background:#febc2e}.dots i:nth-child(3){background:#28c840}
+.dots span{margin-left:auto;display:flex;gap:8px}
+.circle{width:36px;height:36px;border-radius:50%;border:1px solid var(--app-line);display:grid;place-items:center;color:var(--app-ink-2)}
+.fav{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:14px 0 10px}
+.fav div{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;border-radius:14px;font-size:13px;color:var(--app-ink-2);text-align:center;line-height:1.2}
+.thread{display:flex;gap:12px;align-items:center;padding:10px 6px;border-radius:12px}
+.thread b{display:block;font-weight:500;font-size:15px}
+.thread span{display:block;font-size:13px;color:var(--app-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px}
+.me{margin-top:auto;display:flex;align-items:center;gap:10px;font-size:14px;padding:6px}
+.me i{width:30px;height:30px;border-radius:50%;background:#2a2a2d;display:grid;place-items:center;font-style:normal;font-size:11px;color:var(--app-ink-2)}
+.chat{display:flex;flex-direction:column;background:var(--app-2);min-width:0}
+.chat-top{height:58px;display:flex;align-items:center;justify-content:center;position:relative}
+.chip{display:inline-flex;align-items:center;gap:8px;background:#2c2c2f;border-radius:999px;padding:5px 12px 5px 6px;font-size:14px;font-weight:500}
+.share{position:absolute;right:16px;font-size:14px;border:1px solid var(--app-line);border-radius:999px;padding:5px 14px}
+.msgs{flex:1;overflow:hidden;padding:8px 26px;display:flex;flex-direction:column;gap:14px;justify-content:flex-end}
+.when{align-self:center;font-size:13px;color:var(--app-ink-2)}
+.status{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--app-ink-2);animation:pop .3s ease both}
+.status .ring{width:30px;height:30px;border-radius:50%;border:1px solid var(--app-line);display:grid;place-items:center}
+.status .ring i{width:10px;height:10px;border-radius:50%;background:#38d591;box-shadow:0 0 0 0 rgba(56,213,145,.6);animation:ping 1.4s infinite}
+.shimmer{background:linear-gradient(90deg,var(--app-ink-2) 0%,#fff 50%,var(--app-ink-2) 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:sh 1.6s linear infinite}
+.done{align-self:flex-start;background:#2e2e31;border-radius:16px;padding:10px 16px;font-size:14px;display:flex;flex-direction:column;gap:6px;animation:pop .35s ease both}
+.done span::before{content:"✓ ";color:#38d591;font-weight:700}
+.compose{margin:10px 22px 20px;border:1px solid var(--app-line);border-radius:22px;height:52px;display:flex;align-items:center;gap:12px;padding:0 8px 0 10px;color:var(--app-ink-2);font-size:15px}
+.compose .plus{width:34px;height:34px;border-radius:50%;background:#2c2c2f;display:grid;place-items:center}
+.compose .mic{margin-left:auto;width:34px;height:34px;border-radius:50%;background:#f2f2f2;color:#111;display:grid;place-items:center}
+.approve{position:absolute;width:300px;background:#fff;color:#111;border-radius:18px;padding:14px 16px;box-shadow:0 24px 60px -20px rgba(0,0,0,.45);font-family:system-ui,-apple-system,sans-serif;font-size:14px;text-align:left;opacity:0;transform:translateY(12px);transition:opacity .5s,transform .5s}
+.approve small{display:flex;align-items:center;gap:6px;color:#b26b00;font-weight:600;font-size:12px}
+.approve small::before{content:"";width:7px;height:7px;border-radius:50%;background:#f5a623}
+.approve b{display:block;margin:6px 0 2px;font-weight:600}
+.approve p{margin:0 0 12px;color:#666}
+.ap1{right:-34px;top:120px}.ap2{left:-40px;bottom:90px;transition-delay:.25s}
 .video{margin-top:120px;border-radius:30px;aspect-ratio:16/9;position:relative;overflow:hidden;background:#09090c}
 .video video{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover}
 .film-mute{position:absolute;right:18px;bottom:18px;z-index:1;width:44px;height:44px;border:0;border-radius:50%;display:grid;place-items:center;color:#fff;background:rgba(20,20,24,.55);backdrop-filter:blur(10px);cursor:pointer}
@@ -94,6 +122,7 @@ h1 .face{width:1.02em;height:1.02em;flex:none;animation:bob 4s ease-in-out infin
 .approve .row{display:flex;gap:8px}
 .approve .row span{flex:1;text-align:center;padding:7px;border-radius:999px;background:#111;color:#fff;font-weight:500}
 .approve .row span+span{background:#f0f0f0;color:#111}
+@media (max-width:1100px){.ap1,.ap2{display:none}}
 @keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes ping{70%{box-shadow:0 0 0 10px rgba(56,213,145,0)}100%{box-shadow:0 0 0 0 rgba(56,213,145,0)}}
 @keyframes sh{to{background-position:-200% 0}}
@@ -384,13 +413,27 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
     <p class="release" data-release hidden><i></i><span></span></p>
 
     <div class="stage reveal">
-      <div class="film">
-        <video data-film-loop autoplay muted loop playsinline preload="metadata" poster="/media/deliobot-film.jpg" aria-label="Aperçu de Deliobot en vidéo">
-          <source src="/media/deliobot-film-loop.mp4" type="video/mp4">
-        </video>
-        <button class="film-sound" type="button" data-film-open><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M4 2.8v14.4L17 10z"/></svg>Regarder avec le son</button>
+      <div class="app" aria-hidden="true">
+        <aside class="side">
+          <div class="dots"><i></i><i></i><i></i><span><b class="circle">⌕</b><b class="circle">+</b></span></div>
+          <div class="fav">
+            <div class="on"><span class="bot" style="--c:#4fbfa8;--src:url(/assets/delio-happy.webp)"><img src="/assets/delio-happy.webp" alt=""></span>Lancement</div>
+            <div><span class="bot" style="--c:#6a63ff;--src:url(/assets/delio-curious.webp)"><img src="/assets/delio-curious.webp" alt=""></span>Boîte mail</div>
+            <div><span class="bot" style="--c:#9b6bff;--src:url(/assets/delio-thinking.webp)"><img src="/assets/delio-thinking.webp" alt=""></span>Données marketing</div>
+          </div>
+          <div class="thread"><span class="bot" style="--c:#4d8dff;--src:url(/assets/delio-listening.webp)"><img src="/assets/delio-listening.webp" alt=""></span><div><b>Recrutement</b><span>3 présentations rédigées dans votre ton…</span></div></div>
+          <div class="thread"><span class="bot" style="--c:#ff7a3d;--src:url(/assets/delio-working.webp)"><img src="/assets/delio-working.webp" alt=""></span><div><b>Notes de frais</b><span>Rapport déposé, 9 reçus, rien à signaler</span></div></div>
+          <div class="thread"><span class="bot" style="--c:#4cc77a;--src:url(/assets/delio-proud.webp)"><img src="/assets/delio-proud.webp" alt=""></span><div><b>Bras droit</b><span>Votre vol est déplacé à vendredi…</span></div></div>
+          <div class="me"><i>CM</i>Camille Martin</div>
+        </aside>
+        <div class="chat">
+          <div class="chat-top"><span class="chip"><span class="bot" style="--c:#4fbfa8;--src:url(/assets/delio-happy.webp)"><img src="/assets/delio-happy.webp" alt=""></span>Lancement</span><span class="share">Partager</span></div>
+          <div class="msgs" id="msgs"><div class="when">Vendredi 7:48</div></div>
+          <div class="compose"><span class="plus">+</span>Message à Lancement<span class="mic">🎙</span></div>
+        </div>
       </div>
-      <a class="film-dl" href="/media/deliobot-film.mp4" download="Deliobot.mp4">Télécharger la vidéo (MP4)</a>
+      <div class="approve ap1" id="ap1"><small>Votre accord est requis</small><b>Fiches magasin · v3</b><p>Autonomie mise à jour : 40 heures. Envoi à l'imprimeur.</p><div class="row"><span>Envoyer</span><span>Modifier</span></div></div>
+      <div class="approve ap2" id="ap2"><small>Votre accord est requis</small><b>E-mail de lancement · « Voici Arc »</b><p>Liste d'attente · jeudi 9:00</p><div class="row"><span>Programmer</span><span>Modifier</span></div></div>
     </div>
   </div>
 </section>
@@ -742,8 +785,29 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
   document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
 
   const wait = (ms) => new Promise((r) => setTimeout(r, reduce ? 0 : ms));
-  const loop = document.querySelector("[data-film-loop]"), film = document.querySelector("[data-film]");
-  if (reduce) { loop.removeAttribute("autoplay"); loop.pause(); }
+  const msgs = document.getElementById("msgs");
+  const add = (html, cls) => { const d = document.createElement("div"); d.className = cls; d.innerHTML = html; msgs.appendChild(d); return d; };
+  async function heroChat() {
+    msgs.innerHTML = '<div class="when">Vendredi 7:48</div>';
+    document.getElementById("ap1").classList.remove("show"); document.getElementById("ap2").classList.remove("show");
+    await wait(700);
+    add("Bonjour ! Petit point sur le lancement du casque Arc : l'autonomie est passée à 40 heures cette semaine, mais la fiche produit, les cartes magasin et le dossier de presse indiquent encore 32.", "m bot-m");
+    await wait(1600);
+    add("ah, bien vu. l'ingénierie a confirmé 40 ?", "m user");
+    await wait(900);
+    const st = add('<span class="ring"><i></i></span><span class="shimmer">Exploration</span>', "status");
+    await wait(2400);
+    st.remove();
+    add('Oui, l\'ingénierie confirme 40 heures avec la réduction de bruit activée. J\'ai fait les modifications et prévenu <span class="at">@Benji</span> et <span class="at">@Léa</span>.', "m bot-m");
+    await wait(700);
+    add("<span>Fiche produit → mise à jour à 40 heures</span><span>Dossier de presse → mis à jour</span><span>Cartes magasin → en attente de votre accord</span>", "done");
+    await wait(500);
+    document.getElementById("ap1").classList.add("show"); document.getElementById("ap2").classList.add("show");
+    if (!reduce) { await wait(9000); heroChat(); }
+  }
+  const stage = document.querySelector(".stage");
+  new IntersectionObserver((e, o) => { if (e[0].isIntersecting) { o.disconnect(); heroChat(); } }, { threshold: .25 }).observe(stage);
+  const film = document.querySelector("[data-film]");
   const mute = document.querySelector("[data-film-mute]");
   const load = () => { if (!film.src) film.src = film.dataset.src; };
   const sound = (on) => { film.muted = !on; mute.setAttribute("aria-pressed", String(on)); mute.setAttribute("aria-label", on ? "Couper le son" : "Activer le son"); };
@@ -753,10 +817,6 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
     else film.pause();
   }, { rootMargin: "200px 0px", threshold: .35 }).observe(film);
   mute.addEventListener("click", () => { if (film.muted) withSound(); else sound(false); });
-  document.querySelector("[data-film-open]").addEventListener("click", () => {
-    film.closest(".video").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
-    withSound();
-  });
 
   const picks = [["Auto", "choisit le bon modèle pour chaque message"], ["Claude", "pour un long texte bien écrit"], ["GPT", "pour analyser un tableau"],
     ["Gemini", "pour lire un document de 200 pages"], ["Grok", "pour suivre l'actualité"], ["DeepSeek", "pour un calcul rapide et économique"],
