@@ -10,6 +10,9 @@ sent.
 
 ## What it is
 
+- Events go to the PostHog project whose key the app was built with (`DELIO_POSTHOG_KEY` in the build's environment). A
+  build without a key sends nothing, whatever the switch says.
+
 - `posthog-js` loads only while the switch is on. With the switch off, the library is never downloaded and nothing is
   sent.
 - Autocapture, pageviews, surveys and feature flags are off. Events come only from the calls listed on this page, and

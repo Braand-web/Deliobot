@@ -52,6 +52,7 @@ export default defineConfig({
   },
   define: {
     __APP_VERSION__: JSON.stringify(version),
+    __ANALYTICS_KEY__: JSON.stringify(process.env.DELIO_POSTHOG_KEY ?? (process.env.VITEST ? "phc_test_key" : "")),
   },
   test: {
     environment: "node",
