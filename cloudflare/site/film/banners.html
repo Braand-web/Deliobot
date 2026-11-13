@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Deliobot — bannières</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#050507;color:#f7f7fa;font-family:Geist,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
+.canvas{position:relative;overflow:hidden;background:#050507}
+.blob{position:absolute;border-radius:50%;filter:blur(120px)}
+.rays{position:absolute;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(127,182,255,.09) 0deg 4deg,transparent 4deg 13deg);-webkit-mask:radial-gradient(circle,#000 20%,transparent 68%);mask:radial-gradient(circle,#000 20%,transparent 68%)}
+.vignette{position:absolute;inset:0;background:radial-gradient(120% 100% at 50% 50%,transparent 55%,rgba(0,0,0,.6) 100%)}
+.grain{position:absolute;inset:0;opacity:.08;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.brand{position:absolute;display:flex;align-items:center;transform:translate(-50%,-50%)}
+.brand img{filter:drop-shadow(0 20px 40px rgba(80,110,255,.45))}
+.name{font-weight:900;letter-spacing:-.06em;line-height:.9;background:linear-gradient(100deg,#9cc6ff 0%,#a98bff 48%,#3ef0b0 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.tag{position:absolute;transform:translateX(-50%);white-space:nowrap;color:#c4c4d0;font-weight:500;letter-spacing:-.01em}
+.row{position:absolute;display:flex;gap:16px;transform:translateX(-50%);white-space:nowrap}
+.pill{display:inline-flex;align-items:center;gap:12px;border-radius:999px;font-weight:600}
+.pill.white{background:#fff;color:#0b0b0c}
+.pill.ghost{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;backdrop-filter:blur(10px)}
+.chip{position:absolute;display:flex;align-items:center;gap:14px;border-radius:22px;background:rgba(20,20,28,.82);border:1px solid rgba(255,255,255,.12);box-shadow:0 30px 70px -30px rgba(0,0,0,.9);white-space:nowrap}
+.chip img{flex:none}
+.chip b{display:block;font-weight:700;letter-spacing:-.02em}
+.chip span{color:#a9a9b6}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.safe{position:absolute;border:3px dashed #ff3b6b;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="canvas" id="canvas"></div>
+<script>
+const ASSETS = "../public/assets/";
+const kind = new URLSearchParams(location.search).get("kind") ?? "facebook";
+const guides = new URLSearchParams(location.search).has("guides");
+/** Every size of a banner is given in pixels of its own canvas; `safe` is the area every device shows. */
+const SPECS = {
+  facebook: { w: 1640, h: 624, safe: { w: 1230, h: 624 }, cy: 300, scale: 1 },
+  youtube: { w: 2560, h: 1440, safe: { w: 1546, h: 423 }, cy: 720, scale: 1.05 },
+};
+const spec = SPECS[kind];
+const canvas = document.getElementById("canvas");
+canvas.style.width = `${spec.w}px`; canvas.style.height = `${spec.h}px`;
+document.body.style.width = `${spec.w}px`; document.body.style.height = `${spec.h}px`;
+const el = (tag, cls, style, html) => { const node = document.createElement(tag); if (cls) node.className = cls; node.style.cssText = style; if (html !== undefined) node.innerHTML = html; canvas.appendChild(node); return node; };
+const cx = spec.w / 2, cy = spec.cy, k = spec.scale;
+
+// Light: blue left, violet right, mint low, rays behind Delio.
+el("div", "blob", `left:${cx - 900 * k}px;top:${cy - 520 * k}px;width:${1000 * k}px;height:${900 * k}px;background:#2348d8;opacity:.75`);
+el("div", "blob", `left:${cx + 120 * k}px;top:${cy - 420 * k}px;width:${950 * k}px;height:${850 * k}px;background:#6a3fe0;opacity:.7`);
+el("div", "blob", `left:${cx - 260 * k}px;top:${cy + 120 * k}px;width:${900 * k}px;height:${600 * k}px;background:#0f8f74;opacity:.55`);
+el("div", "rays", `left:${cx - 1100 * k}px;top:${cy - 1100 * k}px;width:${2200 * k}px;height:${2200 * k}px`);
+
+// The brand: Delio and the name side by side, the promise under them, then the offer.
+const brand = el("div", "brand", `left:${cx}px;top:${cy - 50 * k}px;gap:${26 * k}px`,
+  `<img src="${ASSETS}delio-happy.webp" style="width:${170 * k}px;height:${170 * k}px"><div class="name" style="font-size:${172 * k}px">Deliobot</div>`);
+el("div", "tag", `left:${cx}px;top:${cy + 62 * k}px;font-size:${40 * k}px`, "Des collègues IA qui terminent le travail.");
+el("div", "row", `left:${cx}px;top:${cy + 132 * k}px`,
+  `<span class="pill white" style="font-size:${27 * k}px;padding:${15 * k}px ${30 * k}px">Essai 3 jours · 5 $</span>`
+  + `<span class="pill ghost" style="font-size:${27 * k}px;padding:${15 * k}px ${30 * k}px"><span class="dot" style="background:#3ef0b0"></span>deliobot.fun</span>`);
+
+// Bots at work around the brand, outside the safe area: shown where there is room, cropped where there is not.
+const bots = [["curious", "Commercial", "Relance 8 prospects", "#3b8bff"], ["listening", "Support", "Répond à 23 demandes", "#3ef0b0"],
+  ["proud", "Marketing", "Programme 5 publications", "#a98bff"], ["working", "Comptabilité", "Saisit 12 factures", "#ffc24b"]];
+/** Where each bot sits, from the centre, and how big: inside the image, beside the safe area and never over the brand. */
+const placement = kind === "youtube"
+  ? { scale: 1, spots: [[-900, -105, -5], [-850, 120, 4], [900, -105, 5], [850, 120, -4]] }
+  : { scale: .78, spots: [[-660, -170, -6], [-640, 160, 5], [660, -170, 6], [640, 160, -5]] };
+bots.forEach(([face, name, work, color], i) => {
+  const [dx, dy, r] = placement.spots[i];
+  el("div", "chip", `left:${cx + dx * k}px;top:${cy + dy * k}px;transform:translate(-50%,-50%) rotate(${r}deg) scale(${placement.scale});padding:${18 * k}px ${26 * k}px ${18 * k}px ${18 * k}px`,
+    `<img src="${ASSETS}delio-${face}.webp" style="width:${66 * k}px;height:${66 * k}px"><div><b style="font-size:${27 * k}px">${name}</b><span style="font-size:${21 * k}px"><span class="dot" style="background:${color};margin-right:8px"></span>${work}</span></div>`);
+});
+
+el("div", "vignette", "");
+el("div", "grain", "");
+if (guides) el("div", "safe", `left:${cx - spec.safe.w / 2}px;top:${spec.h / 2 - spec.safe.h / 2}px;width:${spec.safe.w}px;height:${spec.safe.h}px`);
+window.ready = Promise.all([document.fonts.ready, ...[...document.images].map((image) => image.decode().catch(() => {}))]);
+</script>
+</body>
+</html>
