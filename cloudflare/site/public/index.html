@@ -301,6 +301,9 @@ h2.c{text-align:center}
 .plat b{font-weight:500;display:block}
 .plat small{color:var(--ink-3);font-size:13px}
 .plat .tag{margin-left:auto;font-size:12px;color:var(--ink-3);border:1px solid var(--line);border-radius:999px;padding:3px 10px}
+.release{display:inline-flex;align-items:center;gap:8px;margin-top:18px;font-size:13px;color:var(--ink-2);background:var(--card);border-radius:999px;padding:6px 12px}
+.release i{width:7px;height:7px;border-radius:50%;background:#2fb57d;flex:none}
+.hero .release{margin-top:14px}.release[hidden]{display:none}
 
 /* guides */
 .guides{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
@@ -407,6 +410,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
       <a class="pill dark lg" href="#telecharger" data-os-label="hero">Télécharger</a>
       <a class="pill soft lg" href="https://compte.deliobot.fun/pay?plan=trial" data-portal-path="/pay?plan=trial">Essayer 3 jours pour 5 $</a>
     </div>
+    <p class="release" data-release hidden><i></i><span></span></p>
 
     <div class="stage reveal">
       <div class="app" aria-hidden="true">
@@ -664,6 +668,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
     <div class="reveal">
       <h2>Télécharger Deliobot</h2>
       <p class="lede" style="margin-top:18px">Installez l'application, connectez-la à votre compte avec un code, et vos bots se mettent au travail sur votre ordinateur.</p>
+      <p class="release" data-release hidden><i></i><span></span></p>
     </div>
     <div class="plat reveal">
       <a href="/download/Deliobot-Setup.exe" data-download="windows"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10 4.5v7H3zM11 4.4l10-1.4v8.5H11zM3 12.5h7v7L3 18.5zM11 12.5h10V21l-10-1.4z"/></svg></span><span><b>Windows</b><small>Windows 10 et 11</small></span><span class="tag">Télécharger</span></a>
@@ -674,7 +679,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
       <a href="/download/Deliobot-Windows.zip" data-download="windows-zip"><span class="ic">🗜️</span><span><b>Windows, version ZIP</b><small>Sans installation : décompressez, puis lancez Deliobot.exe</small></span><span class="tag">Télécharger</span></a>
       <a href="#telecharger"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 2.5 15.4 0 18M12 3c-2.5 2.6-2.5 15.4 0 18"/></svg></span><span><b>Web</b><small>Dans le navigateur, sans installation</small></span><span class="tag">bientôt</span></a>
     </div>
-    <p class="lede reveal" style="margin-top:18px;font-size:14px">L'installateur Windows affiche une erreur d'écriture ? Prenez la version ZIP : décompressez-la dans un dossier à vous (par exemple Documents), puis lancez Deliobot.exe. Elle ne se met pas à jour toute seule : téléchargez le nouveau ZIP pour changer de version. Windows peut afficher « Windows a protégé votre ordinateur » : cliquez sur « Informations complémentaires », puis « Exécuter quand même ».</p>
+    <p class="lede reveal" style="margin-top:18px;font-size:14px">L'installateur Windows affiche une erreur d'écriture ? Prenez la version ZIP : décompressez-la dans un dossier à vous (par exemple Documents), puis lancez Deliobot.exe. Elle vous prévient quand une nouvelle version sort et vous propose de télécharger le nouveau ZIP. Windows peut afficher « Windows a protégé votre ordinateur » : cliquez sur « Informations complémentaires », puis « Exécuter quand même ».</p>
   </div>
 </section>
 
@@ -756,6 +761,22 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
   const os = /Windows/.test(ua) ? "Windows" : /Mac/.test(ua) && !/iPhone|iPad/.test(ua) ? "macOS" : /Android|iPhone|iPad/.test(ua) ? null : /Linux/.test(ua) ? "Linux" : null;
   const build = { Windows: "/download/Deliobot-Setup.exe", Linux: "/download/Deliobot.deb" }[os];
   if (build) document.querySelectorAll("[data-os-label]").forEach((el) => { el.textContent = el.dataset.osLabel === "hero" ? `Télécharger pour ${os}` : "Télécharger"; el.href = build; });
+
+  // The version the update feed offers, which is the one the download buttons serve: published with every release.
+  fetch("/download/latest/latest.yml", { cache: "no-store" }).then((r) => r.ok ? r.text() : "").then((feed) => {
+    const version = /^version:\s*['"]?([\w.+-]+)/m.exec(feed)?.[1];
+    if (!version) return;
+    const at = /^releaseDate:\s*['"]?([^'"\n]+)/m.exec(feed)?.[1];
+    const day = at && !Number.isNaN(Date.parse(at)) ? new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(new Date(at)) : null;
+    document.querySelectorAll("[data-release]").forEach((el) => { el.querySelector("span").textContent = `Version ${version}${day ? ` · publiée le ${day}` : ""}`; el.hidden = false; });
+  }).catch(() => {});
+  document.querySelectorAll("a[data-download]").forEach((a) => {
+    fetch(a.getAttribute("href"), { method: "HEAD", cache: "no-store" }).then((r) => {
+      const bytes = Number(r.headers.get("content-length"));
+      const small = a.querySelector("small");
+      if (r.ok && bytes > 0 && small) small.textContent += ` · ${Math.round(bytes / 1048576)} Mo`;
+    }).catch(() => {});
+  });
 
   const toggle = document.querySelector("[data-menu-toggle]"), menu = document.querySelector(".menu");
   toggle.addEventListener("click", (e) => { e.stopPropagation(); const open = menu.classList.toggle("open"); toggle.setAttribute("aria-expanded", String(open)); });

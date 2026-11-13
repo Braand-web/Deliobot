@@ -1,0 +1,68 @@
+# Puts a release on deliobot.fun once the Windows and Linux builds of the same main commit have both succeeded: the
+# site's download buttons, then the update feeds the installed apps read. Run by hand with a commit to publish it again.
+name: Publish downloads
+
+on:
+  workflow_run:
+    workflows: ["Package Windows", "Package Ubuntu"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Commit whose builds to publish"
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: publish-downloads
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: deliobot.fun downloads
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.sha || github.event.workflow_run.head_sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.SHA }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+      - name: Find both builds of this commit
+        id: builds
+        run: |
+          pick() { gh run list --repo "$GITHUB_REPOSITORY" --workflow "$1" --commit "$SHA" --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty'; }
+          win=$(pick package-win.yml); linux=$(pick package-linux.yml)
+          echo "Windows build: ${win:-none}, Linux build: ${linux:-none}"
+          if [ -z "$win" ] || [ -z "$linux" ]; then echo "ready=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          { echo "ready=true"; echo "win=$win"; echo "linux=$linux"; } >> "$GITHUB_OUTPUT"
+      - name: Download the builds
+        if: steps.builds.outputs.ready == 'true'
+        run: |
+          mkdir -p artifacts out
+          gh run download "${{ steps.builds.outputs.win }}" --repo "$GITHUB_REPOSITORY" -D artifacts/win
+          gh run download "${{ steps.builds.outputs.linux }}" --repo "$GITHUB_REPOSITORY" -D artifacts/linux
+          find artifacts -type f -exec mv -n {} out/ \;
+          ls -la out
+      - name: Check the builds are this commit's version
+        if: steps.builds.outputs.ready == 'true'
+        run: |
+          version=$(node -p 'require("./package.json").version')
+          grep -qx "version: $version" out/latest.yml
+          grep -qx "version: $version" out/latest-linux.yml
+          echo "Publishing $version"
+      - name: Publish on deliobot.fun
+        if: steps.builds.outputs.ready == 'true'
+        env:
+          DELIO_UPLOAD_TOKEN: ${{ secrets.DELIO_UPLOAD_TOKEN }}
+        run: node scripts/publish-downloads.mjs out
