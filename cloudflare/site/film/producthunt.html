@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Deliobot — Product Hunt gallery</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1270px;height:760px;overflow:hidden;background:#050507;color:#f7f7fa;font-family:Geist,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.slide{position:absolute;inset:0;overflow:hidden;display:none}
+.slide.on{display:block}
+.blob{position:absolute;border-radius:50%;filter:blur(100px)}
+.vig{position:absolute;inset:0;background:radial-gradient(120% 100% at 50% 50%,transparent 55%,rgba(0,0,0,.55) 100%)}
+.kicker{font-size:18px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#8cbcff}
+h1{font-size:62px;font-weight:800;letter-spacing:-.045em;line-height:1}
+.grad{background:linear-gradient(100deg,#9cc6ff 0%,#a98bff 48%,#3ef0b0 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{font-size:22px;color:#b9b9c6;line-height:1.4}
+.card{background:#111117;border:1px solid #2a2a33;border-radius:22px;box-shadow:0 40px 100px -40px rgba(0,0,0,.95)}
+.pill{display:inline-flex;align-items:center;gap:10px;border-radius:999px;padding:12px 22px;font-size:19px;font-weight:600}
+.row{display:flex;align-items:center;gap:14px}
+.ok{display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:600;color:#5fd9a6;background:rgba(52,197,138,.14);border-radius:999px;padding:6px 12px;white-space:nowrap}
+.tick{width:26px;height:26px;border-radius:50%;background:#2fbf86;display:grid;place-items:center;flex:none}
+.tick svg{width:15px;height:15px}
+.model{display:flex;align-items:center;gap:14px;padding:13px 16px;border-radius:14px;font-size:19px}
+.model b{font-weight:600;width:110px}
+.model span{color:#9d9daa;font-size:16px}
+.model.on{background:rgba(59,139,255,.16);box-shadow:inset 0 0 0 1.5px rgba(127,182,255,.7)}
+.badge{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:18px;flex:none}
+</style>
+</head>
+<body>
+<script>
+const A = "../public/assets/";
+const check = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+/** One gallery image: light, then the content; positions are pixels of the 1270×760 canvas. */
+function slide(html, lights = [["#2348d8", -200, -260, 760], ["#6a3fe0", 700, -200, 700], ["#0f8f74", 300, 480, 620]]) {
+  const node = document.createElement("div");
+  node.className = "slide";
+  node.innerHTML = lights.map(([c, x, y, s]) => `<div class="blob" style="left:${x}px;top:${y}px;width:${s}px;height:${s}px;background:${c};opacity:.55"></div>`).join("") + html + '<div class="vig"></div>';
+  document.body.appendChild(node);
+}
+
+// 1. The promise.
+slide(`<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:22px">
+  <div class="row" style="gap:20px"><img src="${A}delio-happy.webp" style="width:130px;height:130px"><div class="grad" style="font-size:120px;font-weight:900;letter-spacing:-.06em">Deliobot</div></div>
+  <h1 style="font-size:48px;max-width:980px">Your AI team on any model,<br>or your own <span class="grad">Claude &amp; ChatGPT</span></h1>
+  <div class="sub">AI coworkers that finish real work: reports, emails, quotes, support.</div>
+  <div class="row" style="margin-top:10px"><span class="pill" style="background:#fff;color:#0b0b0c">Try 3 days for $5</span><span class="pill" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)">deliobot.fun</span></div></div>`);
+
+// 2. Any model, picked per message.
+const models = [["Auto", "best model per message", "#3b8bff", "A"], ["Claude", "long, well-written text", "#d97757", "C"], ["GPT", "analysis and spreadsheets", "#10a37f", "G"],
+  ["Gemini", "200-page documents", "#4f7cff", "G"], ["Grok", "what's happening now", "#e5e5e5", "X"], ["DeepSeek", "fast, low-cost reasoning", "#4d6bfe", "D"], ["Mistral", "flawless French", "#ff7000", "M"], ["Llama", "simple tasks, small price", "#7b61ff", "L"]];
+slide(`<div style="position:absolute;left:70px;top:150px;width:470px;display:flex;flex-direction:column;gap:22px">
+  <div class="kicker">Model freedom</div><h1>Pick <span class="grad">any AI model</span></h1>
+  <div class="sub">Delio Auto chooses the right model for every message. Or pin the one you trust, bot by bot.</div>
+  <div class="row" style="flex-wrap:wrap;gap:10px">${["Text", "Images", "Video", "Music", "Voice"].map((t) => `<span class="pill" style="background:rgba(255,255,255,.08);font-size:16px;padding:8px 16px">${t}</span>`).join("")}</div></div>
+  <div class="card" style="position:absolute;left:600px;top:70px;width:600px;padding:18px;display:flex;flex-direction:column;gap:4px">
+  <div style="font-size:15px;color:#8a8a96;padding:4px 16px 10px">Model for this bot</div>
+  ${models.map(([n, w, c, l], i) => `<div class="model${i === 0 ? " on" : ""}"><span class="badge" style="background:${c}22;color:${c}">${l}</span><b>${n}</b><span>${w}</span>${i === 0 ? '<span class="ok" style="margin-left:auto">Selected</span>' : ""}</div>`).join("")}</div>`,
+  [["#2348d8", -200, -200, 700], ["#0f8f74", 700, 400, 600]]);
+
+// 3. Your own AI accounts.
+const own = [["C", "#d97757", "Claude", "Sign in with your Claude account"], ["G", "#10a37f", "ChatGPT", "Sign in with your ChatGPT plan"], ["K", "#8b5cff", "API keys", "OpenRouter and other providers"], ["L", "#2fd0c2", "Local models", "Run AI on your own computer"]];
+slide(`<div style="position:absolute;left:70px;top:150px;width:520px;display:flex;flex-direction:column;gap:22px">
+  <div class="kicker">Bring your own AI</div><h1>Already pay for <span class="grad">Claude or ChatGPT?</span></h1>
+  <div class="sub">Sign in once and your bots run on the subscription you already have, next to Deliobot's own models.</div>
+  <div><span class="pill" style="background:#fff;color:#0b0b0c;font-size:17px">Included in Max &amp; BYOK plans</span></div></div>
+  <div style="position:absolute;left:650px;top:110px;width:550px;display:flex;flex-direction:column;gap:16px">
+  ${own.map(([l, c, n, w], i) => `<div class="card row" style="padding:22px 24px;gap:18px${i % 2 ? ";margin-left:40px" : ""}"><span class="badge" style="width:54px;height:54px;font-size:22px;background:${c}26;color:${c}">${l}</span>
+  <div style="flex:1"><div style="font-size:22px;font-weight:700">${n}</div><div style="font-size:16px;color:#9d9daa;margin-top:2px">${w}</div></div><span class="ok">${check.replace('stroke="#fff"', 'stroke="#5fd9a6"').replace("<svg", '<svg width="14" height="14"')}Connected</span></div>`).join("")}</div>`,
+  [["#6a3fe0", -150, -200, 700], ["#d97757", 800, 420, 520], ["#10a37f", 1000, -200, 500]]);
+
+// 4. Work that gets finished.
+slide(`<div style="position:absolute;left:70px;top:60px;width:1130px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center">
+  <div class="kicker">Coworkers, not a chatbot</div><h1>You ask. <span class="grad">Delio finishes.</span></h1></div>
+  <div class="card" style="position:absolute;left:135px;top:225px;width:1000px;height:480px;display:grid;grid-template-columns:220px 1fr;overflow:hidden">
+  <div style="background:#0c0c11;border-right:1px solid #2a2a33;padding:22px 16px;display:flex;flex-direction:column;gap:8px;font-size:16px">
+  ${[["working", "Delio"], ["curious", "Sales"], ["listening", "Support"], ["proud", "Marketing"]].map(([f, n], i) => `<div class="row" style="gap:10px;padding:9px;border-radius:10px${i === 0 ? ";background:#1b1b24" : ""}"><img src="${A}delio-${f}.webp" style="width:32px;height:32px">${n}</div>`).join("")}</div>
+  <div style="padding:26px 32px;position:relative;display:flex;flex-direction:column;gap:16px">
+  <div style="align-self:flex-end;background:#3b8bff;border-radius:20px 20px 6px 20px;padding:14px 20px;font-size:18px">Make me this week's sales report.</div>
+  <div class="row" style="align-items:flex-start;gap:12px"><img src="${A}delio-working.webp" style="width:40px;height:40px"><div style="display:flex;flex-direction:column;gap:11px;font-size:17px">
+  ${["Pulled the sales from the spreadsheet", "Compared with last week", "Wrote the analysis", "Built the chart"].map((t) => `<div class="row" style="gap:12px"><span class="tick">${check}</span>${t}</div>`).join("")}</div></div>
+  <div class="card" style="position:absolute;right:28px;bottom:24px;width:380px;padding:20px"><div style="font-size:18px;font-weight:700">Sales report · week 46</div>
+  <div class="row" style="gap:10px;margin-top:8px"><span style="font-size:38px;font-weight:800;color:#3ef0b0">+18%</span><span style="font-size:14px;color:#9d9daa">vs last week</span></div>
+  <div style="display:flex;align-items:flex-end;gap:10px;height:110px;margin-top:10px">${[40, 55, 48, 66, 72, 61, 90].map((h) => `<i style="flex:1;height:${h}%;border-radius:7px 7px 3px 3px;background:linear-gradient(180deg,#7fb6ff,#2f6ff0)"></i>`).join("")}</div></div></div></div>`);
+
+// 5. A team, every morning.
+const team = [["curious", "Sales", "Follows up 8 leads", "#3b8bff", 78], ["listening", "Support", "Answers 23 requests", "#3ef0b0", 64], ["proud", "Marketing", "Schedules 5 posts", "#a98bff", 88]];
+slide(`<div style="position:absolute;left:0;right:0;top:60px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center">
+  <div class="kicker">A whole team</div><h1>Bots that work <span class="grad">in parallel</span></h1>
+  <div class="sub">Connected to your email, calendar, documents, spreadsheets and CRM.</div></div>
+  <div style="position:absolute;left:70px;right:70px;top:290px;display:flex;gap:24px">
+  ${team.map(([f, n, w, c, p]) => `<div class="card" style="flex:1;padding:24px;display:flex;flex-direction:column;gap:14px"><div class="row"><img src="${A}delio-${f}.webp" style="width:62px;height:62px"><div><div style="font-size:23px;font-weight:700">${n}</div><div style="font-size:15px;color:#9d9daa">working</div></div></div>
+  <div style="height:10px;border-radius:999px;background:#24242c;overflow:hidden"><i style="display:block;height:100%;width:${p}%;background:${c};border-radius:999px"></i></div><div style="font-size:17px;color:#c4c4d0">${w}</div></div>`).join("")}</div>
+  <div class="card row" style="position:absolute;left:170px;right:170px;top:540px;padding:20px 26px;gap:18px"><span style="font-size:30px">⏰</span><div style="flex:1"><div style="font-size:21px;font-weight:700">Routines</div>
+  <div style="font-size:16px;color:#9d9daa;margin-top:3px">Every morning at 8:00: sales recap, urgent tickets, today's agenda</div></div><span class="ok">Active</span></div>`);
+
+// 6. You stay in control, and the offer.
+slide(`<div style="position:absolute;left:70px;top:130px;width:560px;display:flex;flex-direction:column;gap:22px">
+  <div class="kicker">You stay in control</div><h1>Nothing important goes out <span class="grad">without you</span></h1>
+  <div class="sub">Delio asks for your approval on your phone, then gets it done.</div>
+  <div class="row" style="margin-top:16px"><span class="pill" style="background:#fff;color:#0b0b0c">Try 3 days for $5</span><span class="pill" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)">deliobot.fun</span></div>
+  <div style="font-size:15px;color:#8a8a96">Windows &amp; Linux · Nothing renews on its own</div></div>
+  <div style="position:absolute;left:770px;top:40px;width:360px;height:700px;border-radius:56px;border:9px solid #2c2c34;background:#0d0d12;padding:64px 20px 24px;box-shadow:0 50px 120px -40px rgba(0,0,0,.9)">
+  <div style="font-size:14px;color:#77778a;text-align:center;margin-bottom:22px">Today · 11:42</div>
+  <div class="card" style="padding:22px;display:flex;flex-direction:column;gap:16px;background:#1a1a22">
+  <div class="row" style="gap:10px;font-size:15px;color:#9d9daa"><img src="${A}delio-curious.webp" style="width:36px;height:36px">Delio · Sales</div>
+  <div style="font-size:20px;line-height:1.35">The Acme quote is ready: $4,800. Shall I send it?</div>
+  <div class="row" style="gap:10px"><span style="flex:1;text-align:center;padding:14px;border-radius:14px;background:#18b37e;font-weight:700;font-size:17px">Sent ✓</span><span style="flex:1;text-align:center;padding:14px;border-radius:14px;background:#26262e;font-weight:700;font-size:17px">Edit</span></div></div></div>`,
+  [["#2348d8", -200, -200, 700], ["#6a3fe0", 650, 200, 700]]);
+
+// Thumbnail.
+const thumb = document.createElement("div");
+thumb.className = "slide";
+thumb.style.cssText = "width:240px;height:240px;background:radial-gradient(circle at 30% 20%,#3a5cff,#6a3fe0 55%,#0f8f74);display:none;place-items:center";
+thumb.innerHTML = `<img src="${A}delio-happy.webp" style="width:190px;height:190px;filter:drop-shadow(0 12px 22px rgba(0,0,0,.35))">`;
+document.body.appendChild(thumb);
+
+const which = Number(new URLSearchParams(location.search).get("slide") ?? 1);
+const slides = [...document.querySelectorAll(".slide")];
+slides.forEach((node, i) => node.classList.toggle("on", i === which - 1));
+if (which === 7) { thumb.style.display = "grid"; document.body.style.width = document.body.style.height = "240px"; }
+window.ready = Promise.all([document.fonts.ready, ...[...document.images].map((image) => image.decode().catch(() => {}))]);
+</script>
+</body>
+</html>
