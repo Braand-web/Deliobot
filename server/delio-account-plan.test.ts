@@ -48,3 +48,23 @@ describe("a turn on a plan without the customer's own AI", () => {
     await expect(turns.before("scout", "t1")).rejects.toMatchObject({ code: "plan_required" });
   });
 });
+
+describe("reading the Delio account", () => {
+  it("answers from the last reading at once and reads again behind it, but waits for a fresh reading on return", async () => {
+    let clock = 0;
+    let plan = "pro";
+    let calls = 0;
+    const fetchImpl = (async () => { calls++; return Response.json({ credits: 100, usedThisMonth: 0, plan, ownAi: plan === "max" }); }) as unknown as typeof fetch;
+    const delio = createDelioAccount({ config: () => connected, save: () => undefined, label: () => "test", fetchImpl, now: () => clock });
+    expect((await delio.balance())?.plan).toBe("pro");
+    plan = "max";
+    clock += 120_000;
+    expect((await delio.balance())?.plan, "an old reading answers at once").toBe("pro");
+    await new Promise((done) => setTimeout(done, 0));
+    expect((await delio.balance())?.plan, "the reading behind it has landed").toBe("max");
+    plan = "byok";
+    clock += 10_000;
+    expect((await delio.balance({ fresh: true }))?.plan, "back in the app, the reading waits for the portal").toBe("byok");
+    expect(calls).toBe(3);
+  });
+});

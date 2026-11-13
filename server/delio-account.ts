@@ -121,11 +121,8 @@ export function createDelioAccount(deps: {
     return { state: "waiting", userCode: pending.userCode, verification: pending.verification };
   }
 
-  /** `fresh`: the person is back in the app, perhaps from paying, so a reading older than a few seconds is read again. */
-  async function balance({ fresh = false }: { fresh?: boolean } = {}): Promise<DelioAccountView | null> {
-    const connection = delioConnection(deps.config());
-    if (!connection) return null;
-    if (credits && now() - credits.at < (fresh ? 5_000 : 60_000)) return credits.view;
+  let reading: Promise<DelioAccountView | null> | null = null;
+  async function read(connection: NonNullable<ReturnType<typeof delioConnection>>): Promise<DelioAccountView | null> {
     let view: DelioAccountView | null = null;
     try {
       const response = await fetchImpl(`${connection.portal}/api/workspace/${connection.workspace}/account`, {
@@ -136,8 +133,20 @@ export function createDelioAccount(deps: {
         view = { email: typeof body.email === "string" ? body.email : null, credits: body.credits, usedThisMonth: body.usedThisMonth, plan: typeof body.plan === "string" ? body.plan : null, ownAi: body.ownAi === true };
       }
     } catch { view = null; }
-    credits = { at: now(), view };
+    if (delioConnection(deps.config())?.token === connection.token) credits = { at: now(), view };
     return view;
+  }
+
+  /** The account as last read: a reading older than a minute is answered at once and read again behind it, so no screen
+   * waits on the portal. `fresh`: the person is back in the app, perhaps from paying, so a reading older than a few
+   * seconds is read again before answering. */
+  async function balance({ fresh = false }: { fresh?: boolean } = {}): Promise<DelioAccountView | null> {
+    const connection = delioConnection(deps.config());
+    if (!connection) return null;
+    const age = credits ? now() - credits.at : Infinity;
+    if (age < (fresh ? 5_000 : 60_000)) return credits!.view;
+    const pending = reading ?? (reading = read(connection).finally(() => { reading = null; }));
+    return credits && !fresh ? credits.view : pending;
   }
 
   /** Whether this app may run AI other than Delio's: always without the plan gate, else only on a Max or BYOK plan. */
