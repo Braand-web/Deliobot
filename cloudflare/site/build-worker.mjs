@@ -65,7 +65,7 @@ async function upload(request, env, key) {
   const token = env.UPLOAD_TOKEN ?? "";
   const presented = /^Bearer (\\S+)$/.exec(request.headers.get("authorization") ?? "")?.[1] ?? "";
   if (token.length < 32 || !sameText(presented, token)) return new Response("not found", { status: 404 });
-  if (!/^(download|vendor)\\/[A-Za-z0-9._\\/-]+$/.test(key) || key.includes("..")) return new Response("bad key", { status: 400 });
+  if (!/^(download|vendor|media)\\/[A-Za-z0-9._\\/-]+$/.test(key) || key.includes("..")) return new Response("bad key", { status: 400 });
   const url = new URL(request.url);
   const id = url.searchParams.get("id");
   if (request.method === "POST" && url.searchParams.has("start")) {

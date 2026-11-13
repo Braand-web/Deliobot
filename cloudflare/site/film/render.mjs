@@ -1,7 +1,8 @@
 // Renders the film: each frame of scenes.html drawn at its exact time and piped to ffmpeg, then mixed with the
 // voice-over and music that audio.mjs made.
 //   node cloudflare/site/film/render.mjs <audio folder> <output folder> [--stills]
-// --stills writes two frames per scene as PNGs, to check the layout before the full render.
+// --stills writes two frames per scene as PNGs, to check the layout before the full render; --mix only remixes the
+// sound onto the picture already rendered.
 import { spawn } from "node:child_process";
 import { mkdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -39,7 +40,7 @@ if (mode === "--stills") {
 
 const frames = Math.round(timeline.total * FPS);
 const silent = join(out, "picture.mp4");
-await run(["-f", "image2pipe", "-framerate", String(FPS), "-i", "-", "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p", silent], async (stdin) => {
+if (mode !== "--mix") await run(["-f", "image2pipe", "-framerate", String(FPS), "-i", "-", "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p", silent], async (stdin) => {
   for (let frame = 0; frame < frames; frame++) {
     const png = await shot(frame / FPS);
     if (!stdin.write(png)) await new Promise((done) => stdin.once("drain", done));
@@ -52,7 +53,8 @@ await browser.close();
 // Voice clips at their scene's place, music under them, lowered while the voice speaks.
 const voices = timeline.scenes.map((scene) => ["-i", join(audio, `voice-${scene.id}.mp3`)]).flat();
 const delays = timeline.scenes.map((scene, i) => `[${i + 2}:a]adelay=${Math.round(scene.voiceAt * 1000)}|${Math.round(scene.voiceAt * 1000)},volume=1.6[v${i}]`).join(";");
-const mixVoices = `${timeline.scenes.map((_, i) => `[v${i}]`).join("")}amix=inputs=${timeline.scenes.length}:normalize=0[voice]`;
+// The voice track lasts the whole film, so the music it lowers plays to the end.
+const mixVoices = `${timeline.scenes.map((_, i) => `[v${i}]`).join("")}amix=inputs=${timeline.scenes.length}:normalize=0,apad=whole_dur=${timeline.total}[voice]`;
 const filter = `${delays};${mixVoices};[voice]asplit[voiceout][key];[1:a]volume=0.55,afade=t=in:d=1.5,afade=t=out:st=${(timeline.total - 2.5).toFixed(2)}:d=2.5[bed];`
   + `[bed][key]sidechaincompress=threshold=0.03:ratio=8:attack=20:release=400[ducked];[ducked][voiceout]amix=inputs=2:normalize=0,loudnorm=I=-16:TP=-1.5:LRA=11[mix]`;
 await run(["-i", silent, "-i", join(audio, "music.mp3"), ...voices, "-filter_complex", filter, "-map", "0:v", "-map", "[mix]",
