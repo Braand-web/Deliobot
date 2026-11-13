@@ -32,8 +32,12 @@ export interface GatewayOptions {
 }
 
 const MAX_BODY = 4 * 1024 * 1024;
-/** What a text request may cost before its real cost is known; the rest goes back when it settles. */
+/** The least a text request is held at before its real cost is known; the rest goes back when it settles. */
 const TEXT_HOLD_USD = 0.05;
+/** A request that names no `max_tokens` is held as if it answered with this many. */
+const TEXT_DEFAULT_OUTPUT_TOKENS = 4096;
+/** Bytes of request per input token, on the low side so the hold errs high. */
+const BYTES_PER_TOKEN = 3;
 /** A fal.ai job whose price list cannot be read is held at this much. */
 const FAL_UNKNOWN_HOLD_USD = 1;
 const MAX_CONCURRENT = 8;
@@ -147,6 +151,32 @@ export function createGateway(options: GatewayOptions) {
     };
   }
 
+  let textPrices: { at: number; byModel: Map<string, { prompt: number; completion: number }> } | null = null;
+  /** OpenRouter's USD price per token of each model, read from its public list and kept a day; empty when unreadable. */
+  async function textPrice(model: string): Promise<{ prompt: number; completion: number } | null> {
+    if (!textPrices || now() - textPrices.at >= PRICE_TTL_MS) {
+      const byModel = new Map<string, { prompt: number; completion: number }>();
+      try {
+        const response = await fetchImpl(`${openrouterUrl}/models`, { headers: { accept: "application/json" }, redirect: "error", signal: AbortSignal.timeout(10_000) });
+        const body = response.ok ? await response.json() as { data?: Array<{ id?: unknown; pricing?: { prompt?: unknown; completion?: unknown } }> } : null;
+        for (const entry of body?.data ?? []) {
+          const prompt = Number(entry.pricing?.prompt), completion = Number(entry.pricing?.completion);
+          if (typeof entry.id === "string" && Number.isFinite(prompt) && Number.isFinite(completion) && prompt >= 0 && completion >= 0) byModel.set(entry.id, { prompt, completion });
+        }
+      } catch { /* held at the flat amount below */ }
+      textPrices = { at: byModel.size ? now() : now() - PRICE_TTL_MS + 60_000, byModel };
+    }
+    return textPrices.byModel.get(model) ?? null;
+  }
+
+  /** What a text request can cost at most: its size at the model's input price plus the answer it may ask for. */
+  async function textHoldUsd(model: string, bytes: number, maxTokens: unknown): Promise<number> {
+    const price = await textPrice(model);
+    if (!price) return TEXT_HOLD_USD;
+    const output = typeof maxTokens === "number" && Number.isFinite(maxTokens) && maxTokens > 0 ? maxTokens : TEXT_DEFAULT_OUTPUT_TOKENS;
+    return Math.max(TEXT_HOLD_USD, (bytes / BYTES_PER_TOKEN) * price.prompt + output * price.completion);
+  }
+
   async function openrouter(req: IncomingMessage, res: ServerResponse, workspace: string, rest: string): Promise<void> {
     if (!options.openrouterKey) return failure(res, 503, NOT_CONFIGURED);
     const upstreamHeaders = { authorization: `Bearer ${options.openrouterKey}`, accept: req.headers.accept ?? "application/json" };
@@ -160,17 +190,22 @@ export function createGateway(options: GatewayOptions) {
     }
     if (req.method !== "POST" || rest !== "chat/completions") return failure(res, 404, "Not found.");
     let body: Record<string, unknown>;
+    let bytes = 0;
     try {
-      const parsed: unknown = JSON.parse((await readRaw(req)).toString("utf8"));
+      const raw = await readRaw(req);
+      bytes = raw.length;
+      const parsed: unknown = JSON.parse(raw.toString("utf8"));
       if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error();
       body = parsed as Record<string, unknown>;
     } catch (error) {
       return failure(res, (error as { status?: number }).status ?? 400, "The request was not valid JSON.");
     }
     const model = typeof body.model === "string" ? body.model : "unknown";
+    if (wallet.balance(workspace) <= 0) return failure(res, 402, OUT_OF_CREDITS, OUT_OF_CREDITS_CODE);
+    const holdUsd = await textHoldUsd(model, bytes, body.max_tokens ?? body.max_completion_tokens);
     const done = admit(workspace);
     if (!done) return failure(res, 429, "Too many requests at once for this workspace. Try again in a moment.");
-    const hold = wallet.hold(workspace, wallet.microFor(TEXT_HOLD_USD));
+    const hold = wallet.hold(workspace, wallet.microFor(holdUsd));
     if (!hold) { done(); return failure(res, 402, OUT_OF_CREDITS, OUT_OF_CREDITS_CODE); }
     let settled = false;
     const finish = (costUsd: number | null, made: boolean) => {

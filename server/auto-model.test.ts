@@ -23,6 +23,9 @@ describe("Auto for text", () => {
     expect(autoTier({ text: "Debug this:\n```ts\nconst x = y.z;\n```" })).toBe("power");
     expect(autoTier({ text: "x".repeat(3000) })).toBe("power");
     expect(autoTier({ text: "Publie ce post sur LinkedIn" }), "acting on a site takes a model that plans").toBe("standard");
+    expect(autoTier({ text: "Cherche nos 10 meilleurs clients dans le CRM, puis rédige un e-mail pour chacun, ensuite programme les envois pour lundi et enfin fais-moi un rapport" }), "several chained steps take the strongest model").toBe("power");
+    expect(autoTier({ text: "Compare ces trois offres et recommande la meilleure pour notre budget, avec les risques" }), "judgement on top of the work").toBe("power");
+    expect(autoTier({ text: "Traduis cette phrase en anglais" }), "one plain piece of work").toBe("standard");
     expect(autoTier({ text: "va sur deliobot.fun" })).toBe("standard");
     expect(autoTier({ text: "oui vas-y", previous: "power" }), "a go-ahead continues the work before it").toBe("power");
     expect(autoTier({ text: "ok", previous: "standard" })).toBe("standard");

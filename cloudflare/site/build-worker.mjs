@@ -16,7 +16,9 @@ const files = {};
 
 writeFileSync(new URL("./dist/worker.js", import.meta.url), `const FILES = ${JSON.stringify(files)};
 const bytes = (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-const SECURITY = { "x-content-type-options": "nosniff", "referrer-policy": "strict-origin-when-cross-origin", "x-frame-options": "DENY" };
+const SECURITY = { "x-content-type-options": "nosniff", "referrer-policy": "strict-origin-when-cross-origin", "x-frame-options": "DENY",
+  "strict-transport-security": "max-age=31536000; includeSubDomains", "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=()", "cross-origin-opener-policy": "same-origin" };
+const decoded = (text) => { try { return decodeURIComponent(text); } catch { return null; } };
 const DOWNLOAD_TYPES = { exe: "application/vnd.microsoft.portable-executable", deb: "application/vnd.debian.binary-package", AppImage: "application/octet-stream", zip: "application/zip",
   yml: "text/yaml; charset=utf-8", blockmap: "application/octet-stream", sha256: "text/plain; charset=utf-8", mp4: "video/mp4", jpg: "image/jpeg" };
 
@@ -90,6 +92,7 @@ async function upload(request, env, key) {
 export default {
   async fetch(request, env, ctx) {
     const path = new URL(request.url).pathname;
+    if (decoded(path) === null) return new Response("bad request", { status: 400, headers: SECURITY });
     if (env.DOWNLOADS && path.startsWith("/__upload/")) return upload(request, env, decodeURIComponent(path.slice("/__upload/".length)));
     if (env.DOWNLOADS && path.startsWith("/download/")) count(request, env, ctx, "download", path);
     if (env.DOWNLOADS && (path.startsWith("/download/") || path.startsWith("/vendor/") || path.startsWith("/media/"))) return download(request, env, decodeURIComponent(path.slice(1)));

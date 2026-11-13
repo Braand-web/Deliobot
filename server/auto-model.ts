@@ -36,7 +36,7 @@ function newer(a: string, b: string): number {
 
 const RANK: Record<AutoTier, number> = { light: 0, standard: 1, power: 2 };
 
-/** How demanding a message looks: short and plain is light, code or analysis is power, everything else standard.
+/** The tier a message's complexity calls for: nothing to work out is light, several steps or hard reasoning is power, the rest standard.
  * `previous` is the tier of the thread's turn before it. */
 export function autoTier(input: { text: string; images?: number; transcriptChars?: number; previous?: AutoTier }): AutoTier {
   const text = input.text.trim();
@@ -45,12 +45,30 @@ export function autoTier(input: { text: string; images?: number; transcriptChars
   return previous && RANK[previous] > RANK[rated] && text.length <= 80 && GO_AHEAD.test(text) ? previous : rated;
 }
 
+/** Words that chain steps or name several deliverables: each one is a step the model has to plan and keep track of. */
+const STEP = /\b(puis|ensuite|apr[eè]s (?:ça|cela|quoi)|enfin|d'abord|premi[eè]rement|deuxi[eè]mement|et aussi|ainsi que|pour chaque|chacun\w*|tous les|toutes les|then|after that|afterwards|next|finally|first|second(?:ly)?|and also|as well as|for each|every)\b/gi;
+const LIST_ITEM = /^\s*(?:[-*•]|\d+[.)])\s+\S/gm;
+/** Work that takes judgement rather than execution, whatever its length. */
+const JUDGEMENT = /\b(compar\w*|[ée]value\w*|evaluat\w*|recommand\w*|recommend\w*|d[ée]cid\w*|decide|arbitr\w*|trade-?offs?|avantages et inconv[ée]nients|pros and cons|pourquoi|why|risques?|risks?|plan d'action|business plan|roadmap|feuille de route|n[ée]goci\w*|negotiat\w*|diagnos\w*|audit\w*|pr[ée]vision\w*|forecast\w*|budget\w*|sc[ée]nario\w*)\b/gi;
+
+/** How much a message asks for: its steps, its deliverables, the judgement and the tools it takes, and what it carries. */
+export function complexity(input: { text: string; images?: number; transcriptChars?: number }): number {
+  const text = input.text.trim();
+  const steps = (text.match(STEP)?.length ?? 0) + Math.max(0, (text.match(LIST_ITEM)?.length ?? 0) - 1);
+  const code = /```|^\s{4}\S/m.test(text);
+  return Math.min(steps, 4)
+    + (ACTION.test(text) ? 1 : 0) + (WORK.test(text) ? 1 : 0) + (HEAVY.test(text) ? 2 : 0) + Math.min(text.match(JUDGEMENT)?.length ?? 0, 3) + (code ? 2 : 0)
+    + (text.length > 2500 ? 4 : text.length > 1200 ? 2 : text.length > 400 ? 1 : 0)
+    + ((input.images ?? 0) > 2 ? 1 : 0) + ((input.transcriptChars ?? 0) > 60_000 ? 1 : 0);
+}
+
+const POWER_AT = 4;
+
 function ratedTier(input: { text: string; images?: number; transcriptChars?: number }): AutoTier {
   const { text } = input;
-  const code = /```|^\s{4}\S/m.test(text);
-  const heavy = HEAVY.test(text);
-  if (text.length > 2500 || (code && heavy) || (heavy && text.length > 600)) return "power";
-  if (!code && !heavy && !WORK.test(text) && !ACTION.test(text) && !input.images && text.length <= 220 && (input.transcriptChars ?? 0) <= 6000) return "light";
+  const score = complexity(input);
+  if (score >= POWER_AT) return "power";
+  if (score === 0 && !input.images && text.length <= 220 && (input.transcriptChars ?? 0) <= 6000) return "light";
   return "standard";
 }
 

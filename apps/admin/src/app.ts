@@ -164,6 +164,10 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     res.setHeader("content-type", type);
     res.setHeader("cache-control", "no-store");
     res.setHeader("x-content-type-options", "nosniff");
+    res.setHeader("cross-origin-opener-policy", "same-origin");
+    res.setHeader("cross-origin-resource-policy", "same-origin");
+    res.setHeader("permissions-policy", "camera=(), microphone=(), geolocation=(), payment=()");
+    if (secure) res.setHeader("strict-transport-security", "max-age=31536000; includeSubDomains");
     // Chromium sends `Origin: null` on form posts from a no-referrer page, which the same-origin check would refuse.
     res.setHeader("referrer-policy", "same-origin");
     res.setHeader("content-security-policy", `default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; ${scriptNonce ? `script-src 'nonce-${scriptNonce}'; ` : ""}form-action 'self' ${CHECKOUT_ORIGINS}; frame-ancestors 'none'; base-uri 'none'`);
@@ -182,6 +186,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   async function openCheckout(res: ServerResponse, user: Account, workspace: Workspace, input: { kind: string; plan: string; topup: string; cycle: string }): Promise<void> {
     const fail = (status: number, error: string) => html(res, status, { title: "Facturation", email: user.email, body: billing(workspace, user, { error }) });
     if (!saspay) return fail(503, "Les paiements ne sont pas encore activés.");
+    if (!store.allow(`checkout:${user.id}`, 20, 60 * 60_000)) return fail(429, "Trop de paiements ouverts en peu de temps. Patientez une heure et réessayez.");
     const kind = input.kind;
     const plan = input.plan as PlanId;
     const topup = input.topup as TopupId;
@@ -213,6 +218,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
 
   /** The person's own workspace, for an app or a payment that needs one before they made any. */
   function personalWorkspace(user: Account): Workspace {
+    if (!store.allow(`personal:${user.id}`, 3, 24 * 60 * 60_000)) throw new HttpError(429, "Trop d'espaces créés aujourd'hui. Utilisez un espace existant ou réessayez demain.");
     const slug = `me-${token(6).toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 8).padEnd(8, "x")}`;
     store.createWorkspace({ slug, name: `${user.email} (personal)`, tenantUrl: publicUrl.origin, ownerEmail: user.email }, user.email);
     return store.workspace(slug)!;
@@ -623,7 +629,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
         return again(403, "Choisissez un espace que vous administrez.");
       }
       const label = devices.pendingLabel(code);
-      devices.decide(code, { workspace: slug, accountId: user.id });
+      if (!devices.decide(code, { workspace: slug, accountId: user.id })) return again(400, "Ce code a expiré ou a déjà servi. Recommencez depuis l'application.");
       store.audit(slug, user.email, "device.connect", label);
       return html(res, 200, { title: "Connectée", email: user.email, mascot: "happy",
         body: messagePage("L'application est connectée", "Retournez dans l'application : elle termine toute seule en quelques secondes. Elle utilise les crédits Delio de cet espace.") });
