@@ -12,7 +12,7 @@ export const DELIO_TOKEN_ENV = "ODB_DELIO_TOKEN";
 export const DELIO_PLAN_GATE_ENV = "ODB_DELIO_PLAN_GATE";
 export const OWN_AI_REFUSAL = "Your own AI accounts and keys come with the Max and BYOK plans. Choose a plan in Settings → Plans and top-ups, or use Delio.";
 
-export interface DelioAccountView { email: string | null; credits: number; usedThisMonth: number; plan: string | null; ownAi: boolean }
+export interface DelioAccountView { email: string | null; credits: number; usedThisMonth: number; plan: string | null; ownAi: boolean; paymentVersion?: number }
 const DEVICE_TOKEN = /^odb_device_[A-Za-z0-9_-]{43}$/;
 const SLUG = /^[a-z][a-z0-9-]{1,30}$/;
 export const DEFAULT_DELIO_PORTAL = "https://compte.deliobot.fun";
@@ -72,7 +72,8 @@ export function createDelioAccount(deps: {
   const fetchImpl = deps.fetchImpl ?? fetch;
   const now = deps.now ?? Date.now;
   let pending: PendingFlow | null = null;
-  let credits: { at: number; view: DelioAccountView | null } | null = null;
+  let credits: { key: string; at: number; view: DelioAccountView | null } | null = null;
+  const connectionKey = (connection: DelioConnection) => `${connection.portal}/${connection.workspace}/${connection.token}`;
   const planGate = (deps.env ?? process.env)[DELIO_PLAN_GATE_ENV] === "1";
 
   async function post(url: string, body: unknown): Promise<{ status: number; body: Record<string, unknown> }> {
@@ -121,19 +122,27 @@ export function createDelioAccount(deps: {
     return { state: "waiting", userCode: pending.userCode, verification: pending.verification };
   }
 
-  let reading: Promise<DelioAccountView | null> | null = null;
+  let reading: { key: string; promise: Promise<DelioAccountView | null> } | null = null;
   async function read(connection: NonNullable<ReturnType<typeof delioConnection>>): Promise<DelioAccountView | null> {
     let view: DelioAccountView | null = null;
     try {
       const response = await fetchImpl(`${connection.portal}/api/workspace/${connection.workspace}/account`, {
         headers: { authorization: `Bearer ${connection.token}`, accept: "application/json" }, redirect: "error", signal: AbortSignal.timeout(5_000),
       });
-      const body = response.ok ? await response.json() as { email?: unknown; credits?: unknown; usedThisMonth?: unknown; plan?: unknown; ownAi?: unknown } : null;
+      const body = response.ok ? await response.json() as { workspace?: unknown; email?: unknown; credits?: unknown; usedThisMonth?: unknown; plan?: unknown; ownAi?: unknown; paymentVersion?: unknown } : null;
       if (body && typeof body.credits === "number" && typeof body.usedThisMonth === "number") {
-        view = { email: typeof body.email === "string" ? body.email : null, credits: body.credits, usedThisMonth: body.usedThisMonth, plan: typeof body.plan === "string" ? body.plan : null, ownAi: body.ownAi === true };
+        const current = delioConnection(deps.config());
+        if (!current || connectionKey(current) !== connectionKey(connection)) return null;
+        const email = typeof body.email === "string" && body.email.includes("@") && body.email.length <= 320 ? body.email.trim() : deps.config().delio?.email;
+        const workspace = typeof body.workspace === "string" && SLUG.test(body.workspace) ? body.workspace : connection.workspace;
+        if (email !== deps.config().delio?.email || workspace !== connection.workspace) deps.save({ ...deps.config().delio, portal: connection.portal, token: connection.token, workspace, ...(email ? { email } : {}) });
+        view = { email: email ?? null, credits: body.credits, usedThisMonth: body.usedThisMonth, plan: typeof body.plan === "string" ? body.plan : null, ownAi: body.ownAi === true,
+          ...(Number.isSafeInteger(body.paymentVersion) && (body.paymentVersion as number) >= 0 ? { paymentVersion: body.paymentVersion as number } : {}) };
       }
     } catch { view = null; }
-    if (delioConnection(deps.config())?.token === connection.token) credits = { at: now(), view };
+    const current = delioConnection(deps.config());
+    if (!current || current.token !== connection.token || current.portal !== connection.portal) return null;
+    credits = { key: connectionKey(current), at: now(), view };
     return view;
   }
 
@@ -143,10 +152,16 @@ export function createDelioAccount(deps: {
   async function balance({ fresh = false }: { fresh?: boolean } = {}): Promise<DelioAccountView | null> {
     const connection = delioConnection(deps.config());
     if (!connection) return null;
+    const key = connectionKey(connection);
+    if (credits?.key !== key) credits = null;
     const age = credits ? now() - credits.at : Infinity;
     if (age < (fresh ? 5_000 : 60_000)) return credits!.view;
-    const pending = reading ?? (reading = read(connection).finally(() => { reading = null; }));
-    return credits && !fresh ? credits.view : pending;
+    if (!reading || reading.key !== key) {
+      const next = { key, promise: Promise.resolve(null) as Promise<DelioAccountView | null> };
+      next.promise = read(connection).finally(() => { if (reading === next) reading = null; });
+      reading = next;
+    }
+    return credits && !fresh ? credits.view : reading.promise;
   }
 
   /** Whether this app may run AI other than Delio's: always without the plan gate, else only on a Max or BYOK plan. */
@@ -155,14 +170,24 @@ export function createDelioAccount(deps: {
     return (await balance())?.ownAi === true;
   }
 
+  async function ownAiVisible(): Promise<boolean> {
+    if (!planGate) return true;
+    if (!delioConnection(deps.config())) return false;
+    const account = await balance();
+    return account === null || account.ownAi;
+  }
+
   /** Refuses a turn on an engine other than Delio's when the plan does not include the customer's own AI. */
   async function assertOwnAi(instanceId: string): Promise<void> {
-    if (instanceId === DELIO_INSTANCE || await ownAiAllowed()) return;
+    if (instanceId === DELIO_INSTANCE || !planGate) return;
+    const account = await balance();
+    if (!account) throw Object.assign(new Error("Your Deliobot account could not be verified. Try again in a moment."), { status: 503, code: "account_unavailable" });
+    if (account.ownAi) return;
     throw Object.assign(new Error(OWN_AI_REFUSAL), { status: 402, code: "plan_required" });
   }
 
   return {
-    start, status, balance, ownAiAllowed, assertOwnAi, planGate,
+    start, status, balance, ownAiAllowed, ownAiVisible, assertOwnAi, planGate,
     /** Forgets the account here and revokes this app's token on the portal, so a copied token stops working too. */
     async disconnect() {
       const connection = delioConnection(deps.config());
@@ -188,6 +213,8 @@ export function delioPlanTurnsFor(deps: {
     async before(botId: string, threadId: string): Promise<void> {
       const current = deps.bot(botId, threadId);
       if (!current || current.modelSelection.instanceId === DELIO_INSTANCE || await deps.account.ownAiAllowed()) return;
+      try { await deps.account.assertOwnAi(current.modelSelection.instanceId); }
+      catch (error) { if ((error as { code?: string }).code !== "plan_required") throw error; }
       deps.useDelio(botId, { instanceId: DELIO_INSTANCE, model: "auto" });
       await deps.account.assertOwnAi(deps.bot(botId, threadId)?.modelSelection.instanceId ?? current.modelSelection.instanceId);
     },

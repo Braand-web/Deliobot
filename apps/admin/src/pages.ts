@@ -53,11 +53,11 @@ export const SUPPORT_EMAIL = "support@deliobot.fun";
 
 /** `brand`: "Delio" for customers, "Delio Admin" on the operators' console. */
 /** `nonce`: the page's script nonce, for the one script that shows a form is on its way. */
-export function page(input: { title: string; body: Html; email?: string | null; mascot?: "idle" | "happy" | "sad" | "curious"; brand?: string; nonce?: string }): string {
+export function page(input: { title: string; body: Html; email?: string | null; mascot?: "idle" | "happy" | "sad" | "curious"; brand?: string; nonce?: string; billingRefresh?: { workspace: string; paymentVersion: number } }): string {
   const brand = input.brand ?? "Delio";
   const mascot = input.mascot ? h`<img class="mascot" src="/assets/delio-${input.mascot}.webp" alt="">` : raw("");
   return `<!doctype html>${h`<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${input.title} · ${brand}</title><link rel="icon" href="/assets/delio-idle.webp"><style>${raw(STYLE)}</style></head><body>
+<title>${input.title} · ${brand}</title><link rel="icon" href="/assets/delio-idle.webp"><style>${raw(STYLE)}</style>${input.billingRefresh && input.nonce ? h`<script nonce="${input.nonce}" src="/assets/billing-refresh.js" defer data-workspace="${input.billingRefresh.workspace}" data-payment-version="${input.billingRefresh.paymentVersion}"></script>` : ""}</head><body>
 <header><img src="/assets/delio-idle.webp" alt=""><b>${brand}</b><nav>${input.email ? h`<span>${input.email}</span>
 <form class="inline" method="post" action="/logout"><button>Se déconnecter</button></form>` : ""}</nav></header>
 <main>${mascot}${input.body}</main>
@@ -216,7 +216,7 @@ export function billingPage(input: { workspace: Workspace; operator: boolean; ba
     const yearly = cycle === "year" && plan.usdYear !== null && plan.francsYear !== null;
     const current = sub.plan === plan.id && sub.cycle === cycle && (sub.status === "active" || sub.status === "grace");
     const highlight = input.chosen === plan.id || (!input.chosen && plan.id === input.catalog.recommended);
-    return h`<form method="post" action="/billing/checkout" class="card" style="margin:0${highlight ? ";outline:2px solid #0a84ff" : ""}">
+    return h`<form method="post" action="/billing/checkout" target="_blank" rel="noopener" class="card" style="margin:0${highlight ? ";outline:2px solid #0a84ff" : ""}">
 ${hidden({ workspace: slug, kind: "plan", plan: plan.id, cycle })}
 <div class="row"><b class="grow">${plan.name}</b>${plan.id === input.catalog.recommended ? h`<span class="muted" style="font-size:12px">Le plus choisi</span>` : ""}</div>
 ${yearly ? price(plan.usdYear!, plan.francsYear!, "/an") : price(plan.usd, plan.francs, "/mois")}
@@ -241,13 +241,13 @@ ${input.token ? h`<div class="notice">Copiez-le maintenant, il n'est affiché qu
 <form method="post" action="/billing/token"><input type="hidden" name="workspace" value="${slug}"><button>${input.hasToken ? "Créer un nouveau jeton" : "Créer un jeton"}</button></form></div>` : ""}
 ${input.hosting ? hostingCard(input.workspace, input.hosting) : ""}
 <h2>Forfait</h2><div class="card"><b>${status}</b>${!input.payments ? h`<p class="muted">Les paiements ne sont pas encore activés.</p>` : ""}</div>
-${input.trialAvailable && sub.status === "none" ? h`<form method="post" action="/billing/checkout" class="card">${hidden({ workspace: slug, kind: "plan", plan: "trial" })}
+${input.trialAvailable && sub.status === "none" ? h`<form method="post" action="/billing/checkout" target="_blank" rel="noopener" class="card">${hidden({ workspace: slug, kind: "plan", plan: "trial" })}
 <div class="row"><div class="grow"><b>Essayez Delio pendant ${TRIAL_DAYS} jours</b><div class="muted">${trial.credits} crédits IA · ${trial.computerHours} heures d'ordinateur cloud</div></div>
 <div style="text-align:right">${price(trial.usd, trial.francs, `pour ${TRIAL_DAYS} jours`)}</div></div>
 <p><button class="primary"${disabled}>Commencer l'essai</button></p></form>` : ""}
 <div class="row" style="margin:8px 0 12px">${cycleLink("month", "Mensuel")}${cycleLink("year", "Annuel · 1 mois offert")}</div>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">${sold.map(planCard)}</div>
-<h2>Recharger des crédits</h2><div class="card"><div style="display:flex;flex-wrap:wrap;gap:8px">${input.catalog.topups.map((pack) => h`<form class="inline" method="post" action="/billing/checkout">
+<h2>Recharger des crédits</h2><div class="card"><div style="display:flex;flex-wrap:wrap;gap:8px">${input.catalog.topups.map((pack) => h`<form class="inline" method="post" action="/billing/checkout" target="_blank" rel="noopener">
 ${hidden({ workspace: slug, kind: "topup", topup: pack.id })}<button${disabled} style="text-align:left;line-height:1.35">${pack.credits.toLocaleString("fr-FR")} crédits · ${pack.usd} $<br><small class="muted">≈ ${pack.francs.toLocaleString("fr-FR")} FCFA</small></button></form>`)}</div>
 <p class="muted">Payé par Mobile Money ou carte via SasPay, en francs CFA. Les crédits des recharges restent jusqu'à leur utilisation.</p></div>
 ${input.orders.length ? h`<h2>Paiements</h2><div class="card">${input.orders.map((order) => h`<div class="row"><div class="grow">${order.kind === "plan" && order.plan ? `${PLANS[order.plan].name}${order.plan === "trial" ? "" : order.cycle === "year" ? " · annuel" : " · mensuel"}` : "Recharge"} · ${order.credits.toLocaleString("fr-FR")} crédits</div>
@@ -267,7 +267,7 @@ export function devicePage(input: { code: string; email: string; label: string |
 ${notice(input.error, "error")}<form method="post" action="/device" class="card">
 <label for="code">Code</label><input id="code" name="code" value="${input.code}" required autocomplete="off" placeholder="BCDF-GHJK" style="font-size:20px;letter-spacing:.12em;text-transform:uppercase">
 <label for="workspace">Utiliser les crédits de</label><select id="workspace" name="workspace">
-${input.workspaces.map((workspace) => h`<option value="${workspace.slug}">${workspace.name}</option>`)}<option value="personal">Un nouvel espace personnel</option></select>
+<option value="personal">Mon compte personnel</option>${input.workspaces.map((workspace) => h`<option value="${workspace.slug}">${workspace.name}</option>`)}</select>
 <p style="display:flex;gap:8px"><button class="primary" name="decision" value="allow" style="flex:1">Connecter</button><button name="decision" value="deny">Refuser</button></p></form>
 <form method="post" action="/logout" class="center muted"><input type="hidden" name="next" value="/device?code=${encodeURIComponent(input.code)}">
 Connecté en tant que <b>${input.email}</b>. Pas vous ? <button>Utiliser une autre adresse</button></form></div>`;

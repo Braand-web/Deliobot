@@ -22,11 +22,11 @@ export function createDelioAccountRoutes(account: ReturnType<typeof createDelioA
       return json(res, 200, { state: "disconnected" });
     }
     if (path === "/api/delio/account" && method === "GET") {
-      const connection = delioConnection(config());
       const view = await account.balance({ fresh: url.searchParams.get("fresh") === "1" });
+      const connection = delioConnection(config());
       const gate = { planGate: account.planGate, ownAi: await account.ownAiAllowed() };
       return json(res, 200, connection
-        ? { connected: true, workspace: connection.workspace, portal: connection.portal, billingUrl: portalBillingUrl(connection.portal, connection.workspace), ...view, ...gate }
+        ? { connected: true, workspace: connection.workspace, portal: connection.portal, email: config().delio?.email ?? null, checking: view === null, billingUrl: portalBillingUrl(connection.portal, connection.workspace), ...view, ...gate }
         : { connected: false, ...gate });
     }
     return json(res, 405, { error: "method not allowed" });

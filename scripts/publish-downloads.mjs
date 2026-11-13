@@ -21,7 +21,7 @@ const read = (name) => readFileSync(join(folder, name), "utf8");
 const version = feedVersion(read("latest.yml"));
 if (!version || feedVersion(read("latest-linux.yml")) !== version) throw new Error("latest.yml and latest-linux.yml must name the same version");
 
-const versioned = [`OpenDeliobot-${version}-setup.exe`, `OpenDeliobot-${version}-setup.exe.blockmap`, `OpenDeliobot-${version}-x86_64.AppImage`,
+const versioned = [`OpenDeliobot-${version}-setup.exe`, `OpenDeliobot-${version}-setup.exe.blockmap`, `OpenDeliobot-${version}-x64.zip`, `OpenDeliobot-${version}-x86_64.AppImage`,
   `OpenDeliobot-${version}-amd64.deb`, "SHA256SUMS-ubuntu-x64.txt"].map((file) => [file, `download/latest/${file}`]);
 const links = [[`OpenDeliobot-${version}-setup.exe`, "download/Deliobot-Setup.exe"], [`OpenDeliobot-${version}-x64.zip`, "download/Deliobot-Windows.zip"],
   [`OpenDeliobot-${version}-amd64.deb`, "download/Deliobot.deb"], [`OpenDeliobot-${version}-x86_64.AppImage`, "download/Deliobot.AppImage"]];

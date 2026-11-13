@@ -1,4 +1,9 @@
 {
+  "delioMenu.checking": "Vérification de votre forfait…",
+  "delioMenu.connected": "Compte connecté",
+  "delioPlans.current": "{plan} · {credits} crédits",
+  "delioPlans.noPlan": "Aucun forfait",
+  "delioPlans.connectFirst": "Connecte cette application à ton compte Delio avant de payer pour que ton forfait et tes crédits s’affichent ici automatiquement.",
   "delioPlans.lede": "Fait tourner vos bots 24 h/24 dans le cloud, avec l'IA de Delio incluse.",
   "delioPlans.credits": "{credits} crédits IA par mois",
   "delioPlans.hours": "{hours} h d'ordinateur cloud par mois",

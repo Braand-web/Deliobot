@@ -597,7 +597,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
   const delioRows = delioMenuItems(delio, {
     signIn: () => void delioConnect.connect(),
     manage: () => { if (delio?.connected && delio.billingUrl) void openExternalLink(delio.billingUrl); },
-    switchAccount: () => void delioConnect.disconnect().then(() => delioConnect.connect()),
+    switchAccount: () => void delioConnect.connect(),
     signOut: () => void delioConnect.disconnect(),
   });
 
@@ -615,8 +615,8 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     update: update?.item ?? null,
     updateTop: simple ? simpleUpdateTop(update) : null,
     move: move.items,
-    account: delio ? null : cloudAccount ? cloudRowLabel(accounts.view) : null,
-    accounts: delio ? delioRows : accountMenuItems(accounts),
+    account: cloudAccount ? cloudRowLabel(accounts.view) : null,
+    accounts: [...accountMenuItems(accounts), ...delioRows],
     ...(account ? { simple: {
       tools: toolMenuItems({
         activeView: state.activeView,

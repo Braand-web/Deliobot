@@ -12,6 +12,10 @@ export interface GatewayOptions {
   wallet: Wallet;
   /** A connected desktop app's token, accepted beside the workspace token. */
   deviceToken?: (token: string, workspace: string) => boolean;
+  /** Resolves an authenticated device's empty duplicate personal workspace to its existing personal account. */
+  deviceAccount?: (token: string, workspace: string) => { workspace: string; sourceWorkspace: string; email: string } | null;
+  refreshAccount?: (workspace: string) => Promise<void>;
+  paymentVersion?: (workspace: string) => number;
   /** The address that connected a device token, shown in the app as who is signed in. */
   deviceEmail?: (token: string, workspace: string) => string | null;
   /** Revokes a device token when its app signs out. */
@@ -284,22 +288,25 @@ export function createGateway(options: GatewayOptions) {
     async handle(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
       const gateway = /^\/api\/gateway\/([a-z][a-z0-9-]{1,30})\/(openrouter\/v1|fal|boat\/v1|anthropic|openai\/v1)\/(.+)$/.exec(url.pathname);
       const account = /^\/api\/workspace\/([a-z][a-z0-9-]{1,30})\/account$/.exec(url.pathname);
-      const workspace = gateway?.[1] ?? account?.[1];
-      if (!workspace) return false;
+      const requested = gateway?.[1] ?? account?.[1];
+      if (!requested) return false;
       const presented = bearer(req);
-      if (!store.workspace(workspace) || !(wallet.tokenWorkspace(presented, workspace) || options.deviceToken?.(presented, workspace))) {
+      const device = options.deviceAccount?.(presented, requested);
+      if (!store.workspace(requested) || !(device || wallet.tokenWorkspace(presented, requested) || options.deviceToken?.(presented, requested))) {
         failure(res, 401, "This workspace token is not valid.");
         return true;
       }
-      const allowed = options.allowance?.(workspace) ?? { gateway: true, computers: 1 };
+      const workspace = device?.workspace ?? requested;
       if (account && req.method === "DELETE") {
-        options.revokeDevice?.(presented, workspace);
+        options.revokeDevice?.(presented, device?.sourceWorkspace ?? requested);
         send(res, 200, { revoked: true });
         return true;
       }
+      if (account) await options.refreshAccount?.(workspace);
+      const allowed = options.allowance?.(workspace) ?? { gateway: true, computers: 1 };
       if (account) {
-        send(res, 200, { email: options.deviceEmail?.(presented, workspace) ?? null, workspace, credits: wallet.balance(workspace) / MICRO, usedThisMonth: wallet.usedThisMonth(workspace) / MICRO, creditUsd: wallet.creditUsd, gateway: allowed.gateway,
-          plan: allowed.plan ?? null, ownAi: allowed.ownAi ?? false });
+        send(res, 200, { email: device?.email ?? options.deviceEmail?.(presented, requested) ?? null, workspace, credits: wallet.balance(workspace) / MICRO, usedThisMonth: wallet.usedThisMonth(workspace) / MICRO, creditUsd: wallet.creditUsd, gateway: allowed.gateway,
+          plan: allowed.plan ?? null, ownAi: allowed.ownAi ?? false, paymentVersion: options.paymentVersion?.(workspace) });
         return true;
       }
       if (!allowed.gateway) {

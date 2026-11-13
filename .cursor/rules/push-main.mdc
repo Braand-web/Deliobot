@@ -1,0 +1,12 @@
+---
+description: Commit and push validated Deliobot deliveries to main
+alwaysApply: true
+---
+
+- Every completed delivery includes committing and pushing its intended changes to `origin/main`.
+- Fetch main first, integrate concurrent changes and resolve conflicts without discarding others' work.
+- Run the checks appropriate to the final merged changes before pushing.
+- Never force-push main or bypass required checks and protections.
+- Keep secrets, generated build artifacts and temporary verification data out of Git.
+- Verify the remote main commit after the push. Report source publication and deployment separately.
+- If authentication, permissions or branch protection prevents the push, report the exact remaining blocker; do not claim it succeeded.

@@ -762,14 +762,26 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
   const build = { Windows: "/download/Deliobot-Setup.exe", Linux: "/download/Deliobot.deb" }[os];
   if (build) document.querySelectorAll("[data-os-label]").forEach((el) => { el.textContent = el.dataset.osLabel === "hero" ? `Télécharger pour ${os}` : "Télécharger"; el.href = build; });
 
-  // The version the update feed offers, which is the one the download buttons serve: published with every release.
-  fetch("/download/latest/latest.yml", { cache: "no-store" }).then((r) => r.ok ? r.text() : "").then((feed) => {
+  const releases = [
+    { platform: "Windows", feed: "latest.yml", paths: ["/download/Deliobot-Setup.exe", "/download/Deliobot-Windows.zip"] },
+    { platform: "Linux", feed: "latest-linux.yml", paths: ["/download/Deliobot.deb", "/download/Deliobot.AppImage"] },
+  ];
+  releases.forEach((release) => fetch(`/download/latest/${release.feed}`, { cache: "no-store" }).then((r) => r.ok ? r.text() : "").then((feed) => {
     const version = /^version:\s*['"]?([\w.+-]+)/m.exec(feed)?.[1];
     if (!version) return;
+    document.querySelectorAll("a[href]").forEach((link) => {
+      const url = new URL(link.href, location.href);
+      if (url.origin !== location.origin || !release.paths.includes(url.pathname)) return;
+      url.searchParams.set("v", version);
+      link.href = url.pathname + url.search;
+      const small = link.querySelector("small");
+      if (small) small.textContent += ` · v${version}`;
+    });
+    if (release.platform !== (os === "Linux" ? "Linux" : "Windows")) return;
     const at = /^releaseDate:\s*['"]?([^'"\n]+)/m.exec(feed)?.[1];
     const day = at && !Number.isNaN(Date.parse(at)) ? new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(new Date(at)) : null;
-    document.querySelectorAll("[data-release]").forEach((el) => { el.querySelector("span").textContent = `Version ${version}${day ? ` · publiée le ${day}` : ""}`; el.hidden = false; });
-  }).catch(() => {});
+    document.querySelectorAll("[data-release]").forEach((el) => { el.querySelector("span").textContent = `${release.platform} · Version ${version}${day ? ` · publiée le ${day}` : ""}`; el.hidden = false; });
+  }).catch(() => {}));
   document.querySelectorAll("a[data-download]").forEach((a) => {
     fetch(a.getAttribute("href"), { method: "HEAD", cache: "no-store" }).then((r) => {
       const bytes = Number(r.headers.get("content-length"));

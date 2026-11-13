@@ -3,8 +3,10 @@ import { CloudUpload, KeyRound, Lock, Monitor, Moon, Smartphone, Sparkles, Timer
 import { delioCheckoutUrl, type DelioCatalog, type DelioPlan } from "../../../shared/delio-plans";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
+import { delioPaymentStarted, type DelioAccount } from "@/lib/delio-account";
 import type { LocaleKey } from "@/locales";
 import { NightCard } from "./NightCard";
+import { DelioAccountCard } from "../keys/DelioAccountCard";
 import { PRIMARY_WIDE, QUIET, QUIET_WIDE, SCREEN, Tag } from "./parts";
 
 export type DelioCycle = "month" | "year";
@@ -22,7 +24,7 @@ export const dollars = (usd: number) => `$${usd.toLocaleString("en-US", { minimu
 export const francs = (amount: number) => `≈ ${amount.toLocaleString("fr-FR")} FCFA`;
 
 
-function PlanCard({ plan, cycle, popular, payUrl }: { plan: DelioPlan; cycle: DelioCycle; popular: boolean; payUrl: string }) {
+function PlanCard({ plan, cycle, popular, payUrl, requiresAccount }: { plan: DelioPlan; cycle: DelioCycle; popular: boolean; payUrl: string; requiresAccount: boolean }) {
   const yearly = cycle === "year" && plan.usdYear !== null && plan.francsYear !== null;
   const nameId = `delio-plan-${plan.id}`;
   const rows: Array<[LucideIcon, string]> = plan.gateway
@@ -49,13 +51,13 @@ function PlanCard({ plan, cycle, popular, payUrl }: { plan: DelioPlan; cycle: De
         <Icon size={16} strokeWidth={1.5} aria-hidden="true" className="mt-px text-ink-tertiary" /><span>{text}</span>
       </li>)}
     </ul>
-    <a data-plan-buy={plan.id} aria-describedby={nameId} className={cn(popular ? PRIMARY_WIDE : QUIET_WIDE, "text-center no-underline")} target="_blank" rel="noreferrer"
-      href={delioCheckoutUrl(payUrl, { plan: plan.id, cycle })}>{t("delioPlans.choose")}</a>
+    <a data-plan-buy={plan.id} aria-describedby={nameId} aria-disabled={requiresAccount || undefined} className={cn(popular ? PRIMARY_WIDE : QUIET_WIDE, "text-center no-underline", requiresAccount && "cursor-not-allowed opacity-50")} target="_blank" rel="noreferrer"
+      onClick={requiresAccount ? undefined : delioPaymentStarted} href={requiresAccount ? undefined : delioCheckoutUrl(payUrl, { plan: plan.id, cycle })}>{t("delioPlans.choose")}</a>
   </li>;
 }
 
 /** Delio's plans: Starter, Pro and Max, then BYOK and the top-ups that only the app shows. Prices in dollars, francs beneath. */
-export function DelioPlansScreen({ catalog, initialCycle = "month" }: { catalog: DelioCatalog; initialCycle?: DelioCycle }) {
+export function DelioPlansScreen({ catalog, account, requiresAccount = false, initialCycle = "month" }: { catalog: DelioCatalog; account?: DelioAccount | null; requiresAccount?: boolean; initialCycle?: DelioCycle }) {
   const [cycle, setCycle] = useState<DelioCycle>(initialCycle);
   const trial = catalog.plans.find(plan => plan.id === "trial");
   const plans = [...catalog.plans.filter(plan => plan.id !== "trial" && plan.listed), ...catalog.plans.filter(plan => plan.id !== "trial" && !plan.listed)];
@@ -69,6 +71,10 @@ export function DelioPlansScreen({ catalog, initialCycle = "month" }: { catalog:
         </p>
       </NightCard>
     </div>
+    {requiresAccount && <div><p className="mb-3 text-sm text-ink-secondary">{t("delioPlans.connectFirst")}</p><DelioAccountCard /></div>}
+    {account?.connected && typeof account.credits === "number" && <p role="status" data-delio-current-plan className="text-sm text-ink-secondary">
+      {t("delioPlans.current", { plan: catalog.plans.find(plan => plan.id === account.plan)?.name ?? t("delioPlans.noPlan"), credits: account.credits.toLocaleString() })}
+    </p>}
     {yearly && <div role="radiogroup" aria-label={t("delioPlans.billing")} className="flex items-center gap-1 self-center rounded-full bg-ink/[0.05] p-1">
       {(["month", "year"] as const).map(value => <button key={value} type="button" role="radio" aria-checked={cycle === value} onClick={() => setCycle(value)}
         className={cn("rounded-full px-3.5 py-1.5 text-[13px] leading-[18px] transition-colors motion-reduce:transition-none",
@@ -79,7 +85,7 @@ export function DelioPlansScreen({ catalog, initialCycle = "month" }: { catalog:
     <section aria-labelledby="delio-plans-heading">
       <h3 id="delio-plans-heading" className="sr-only">{t("cloudBuy.choose")}</h3>
       <ul className={cn("grid gap-3", COLUMNS[plans.length] ?? "md:grid-cols-3")}>
-        {plans.map(plan => <PlanCard key={plan.id} plan={plan} cycle={cycle} popular={plan.id === catalog.recommended} payUrl={catalog.payUrl} />)}
+        {plans.map(plan => <PlanCard key={plan.id} plan={plan} cycle={cycle} popular={plan.id === catalog.recommended} payUrl={catalog.payUrl} requiresAccount={requiresAccount} />)}
       </ul>
     </section>
     {trial && <div data-delio-trial="" className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[12px] bg-ink/[0.04] px-4 py-3">
@@ -88,14 +94,14 @@ export function DelioPlansScreen({ catalog, initialCycle = "month" }: { catalog:
         <span className="text-ink-tertiary">{francs(trial.francs)}</span>
         <span className="block text-ink-secondary">{t("delioPlans.trial.body", { credits: trial.credits.toLocaleString(), hours: trial.computerHours })}</span>
       </p>
-      <a className={cn(QUIET, "no-underline")} target="_blank" rel="noreferrer" href={delioCheckoutUrl(catalog.payUrl, { plan: trial.id })}>{t("delioPlans.trial.start")}</a>
+      <a className={cn(QUIET, "no-underline", requiresAccount && "cursor-not-allowed opacity-50")} aria-disabled={requiresAccount || undefined} target="_blank" rel="noreferrer" onClick={requiresAccount ? undefined : delioPaymentStarted} href={requiresAccount ? undefined : delioCheckoutUrl(catalog.payUrl, { plan: trial.id })}>{t("delioPlans.trial.start")}</a>
     </div>}
     {catalog.topups.length > 0 && <section aria-labelledby="delio-topups" className="flex flex-col gap-2.5">
       <h3 id="delio-topups" className="text-[13px] font-medium leading-[18px] text-ink-secondary">{t("delioPlans.topups")}</h3>
       <ul className="flex flex-wrap gap-2">
         {catalog.topups.map(pack => <li key={pack.id}>
-          <a data-delio-topup={pack.id} target="_blank" rel="noreferrer" href={delioCheckoutUrl(catalog.payUrl, { topup: pack.id })}
-            className="flex flex-col rounded-[10px] border-[0.5px] border-ink/15 px-3 py-2 text-[13px] leading-[18px] text-ink no-underline transition-colors hover:bg-ink/[0.04] motion-reduce:transition-none">
+          <a data-delio-topup={pack.id} aria-disabled={requiresAccount || undefined} target="_blank" rel="noreferrer" onClick={requiresAccount ? undefined : delioPaymentStarted} href={requiresAccount ? undefined : delioCheckoutUrl(catalog.payUrl, { topup: pack.id })}
+            className={cn("flex flex-col rounded-[10px] border-[0.5px] border-ink/15 px-3 py-2 text-[13px] leading-[18px] text-ink no-underline transition-colors hover:bg-ink/[0.04] motion-reduce:transition-none", requiresAccount && "cursor-not-allowed opacity-50")}>
             <span>{t("delioPlans.topup", { credits: pack.credits.toLocaleString(), price: dollars(pack.usd) })}</span>
             <small className="text-[12px] leading-4 text-ink-tertiary">{francs(pack.francs)}</small>
           </a>

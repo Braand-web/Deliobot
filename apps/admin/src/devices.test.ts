@@ -12,6 +12,8 @@ import { createAdminApp } from "./app.ts";
 import type { MailMessage } from "./mail.ts";
 import { AdminStore } from "./store.ts";
 import { nodeDatabase } from "./sql-node.ts";
+import { Billing } from "./plans.ts";
+import { MICRO, Wallet } from "./wallet.ts";
 
 const cleanups: Array<() => void | Promise<void>> = [];
 afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) await cleanup(); });
@@ -24,7 +26,8 @@ async function portal() {
   await new Promise<void>((done) => server.listen(0, "127.0.0.1", done));
   const origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
   cleanups.push(() => new Promise<void>((done) => server.close(() => { store.close(); rmSync(dir, { recursive: true, force: true }); done(); })));
-  server.on("request", createAdminApp({ store, publicUrl: new URL(origin), operators: new Set(["ops@delio.test"]), mailer: { send: async (message) => void mail.push(message) } }));
+  server.on("request", createAdminApp({ store, publicUrl: new URL(origin), operators: new Set(["ops@delio.test"]), mailer: { send: async (message) => void mail.push(message) },
+    gateway: { openrouterKey: "fixture-key" }, fetchImpl: (async () => Response.json({ choices: [], usage: { cost: 0.002 } })) as typeof fetch }));
   let cookie = "";
   const request = async (path: string, form?: Record<string, string>) => {
     const response = await fetch(new URL(path, origin), form
@@ -40,7 +43,7 @@ async function portal() {
     const code = /Delio est (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
     await request("/login/verify", { email, code: code[1]! + code[2]!, next: "/" });
   };
-  return { origin, request, signIn };
+  return { origin, request, signIn, store };
 }
 
 /** The desktop side as the server runs it, with its settings in memory. */
@@ -52,6 +55,62 @@ function desktop(origin: string) {
 }
 
 describe("connecting a desktop app to a Delio account", () => {
+  it("reuses the same personal account on reconnect and keeps it when a switch is refused", async () => {
+    const target = await portal();
+    const app = desktop(target.origin);
+    await target.signIn("ana@acme.test");
+    const first = await app.start();
+    await target.request("/device", { code: first.userCode, workspace: "personal", decision: "allow" });
+    await app.account.status();
+    const original = delioConnection(app.config)!;
+    const second = await app.start();
+    await target.request("/device", { code: second.userCode, workspace: "personal", decision: "allow" });
+    await app.account.status();
+    expect(delioConnection(app.config)!.workspace).toBe(original.workspace);
+    expect(target.store.workspacesOf(target.store.ensureAccount("ana@acme.test").id)).toHaveLength(1);
+    const saved = { ...app.config.delio };
+    const cancelled = await app.start();
+    await target.request("/device", { code: cancelled.userCode, decision: "deny" });
+    await app.account.status();
+    expect(app.config.delio).toEqual(saved);
+    expect((await app.account.balance({ fresh: true }))?.email).toBe("ana@acme.test");
+  });
+
+  it("recovers Max from an empty duplicate using the same authenticated device, without granting credits again", async () => {
+    const target = await portal();
+    const app = desktop(target.origin);
+    await target.signIn("ana@acme.test");
+    const first = await app.start();
+    await target.request("/device", { code: first.userCode, workspace: "personal", decision: "allow" });
+    await app.account.status();
+    const original = delioConnection(app.config)!;
+    target.store.createWorkspace({ slug: "me-paid1234", name: "ana@acme.test (personal)", tenantUrl: target.origin, ownerEmail: "ana@acme.test" }, "fixture");
+    const wallet = new Wallet(target.store.db);
+    const billing = new Billing(wallet);
+    const order = billing.createOrder({ workspace: "me-paid1234", email: "ana@acme.test", kind: "plan", plan: "max", cycle: "year" }, "XOF");
+    billing.fulfil(order.id);
+    const read = (slug: string, method = "GET") => fetch(`${target.origin}/api/workspace/${slug}/account`, { method, headers: { authorization: `Bearer ${original.token}` } });
+    expect(await (await read(original.workspace)).json()).toMatchObject({ workspace: "me-paid1234", email: "ana@acme.test", plan: "max", ownAi: true, credits: 13500 });
+    expect(await app.account.balance({ fresh: true })).toMatchObject({ email: "ana@acme.test", plan: "max", ownAi: true });
+    expect(app.config.delio).toMatchObject({ workspace: "me-paid1234", email: "ana@acme.test", token: original.token });
+    expect((await read("me-paid1234")).status).toBe(200);
+    expect(wallet.balance("me-paid1234")).toBe(13500 * MICRO);
+    expect(wallet.ledger("me-paid1234")).toHaveLength(1);
+    const chat = await fetch(`${target.origin}/api/gateway/${original.workspace}/openrouter/v1/chat/completions`, {
+      method: "POST", headers: { authorization: `Bearer ${original.token}`, "content-type": "application/json" }, body: JSON.stringify({ model: "fixture", messages: [] }),
+    });
+    expect(chat.status).toBe(200);
+    await chat.text();
+    expect(wallet.balance("me-paid1234")).toBe(13499 * MICRO);
+    expect(wallet.balance(original.workspace)).toBe(0);
+    target.store.createWorkspace({ slug: "me-other123", name: "bob@acme.test (personal)", tenantUrl: target.origin, ownerEmail: "bob@acme.test" }, "fixture");
+    expect((await read("me-other123")).status).toBe(401);
+    const page = await target.request(`/billing?workspace=${original.workspace}`);
+    expect(page.headers.get("location")).toBe("/billing?workspace=me-paid1234");
+    expect((await read("me-paid1234", "DELETE")).status).toBe(200);
+    expect((await read(original.workspace)).status).toBe(401);
+    expect((await read("me-paid1234")).status).toBe(401);
+  });
   it("connects with a code approved on the portal, spends a personal workspace's credits, and stops at disconnection", async () => {
     const target = await portal();
     const app = desktop(target.origin);
@@ -75,7 +134,7 @@ describe("connecting a desktop app to a Delio account", () => {
       config: { url: `${target.origin}/api/gateway/${connection.workspace}/openrouter/v1`, model: "auto" } });
     expect(withDelioMedia(app.config).fal).toEqual({ key: connection.token, url: `${target.origin}/api/gateway/${connection.workspace}/fal` });
     expect(withDelioMedia({ ...app.config, fal: { key: "own-fal-key" } }).fal, "the person's own key wins").toEqual({ key: "own-fal-key" });
-    expect(await app.account.balance()).toEqual({ email: "ana@acme.test", credits: 0, usedThisMonth: 0, plan: null, ownAi: false });
+    expect(await app.account.balance()).toEqual({ email: "ana@acme.test", credits: 0, usedThisMonth: 0, plan: null, ownAi: false, paymentVersion: 0 });
 
     await target.signIn("ana@acme.test");
     const billing = await (await target.request(`/billing?workspace=${connection.workspace}`)).text();

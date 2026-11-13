@@ -1,8 +1,9 @@
 // Bundles public/ into one Worker module, so a deploy sends only the script.
-import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { join, relative } from "node:path";
+import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { join, relative, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = new URL("./public/", import.meta.url).pathname;
+const root = fileURLToPath(new URL("./public/", import.meta.url));
 const types = { ".html": "text/html; charset=utf-8", ".webp": "image/webp", ".svg": "image/svg+xml", ".css": "text/css" };
 const files = {};
 (function walk(dir) {
@@ -10,10 +11,11 @@ const files = {};
     const path = join(dir, name);
     if (statSync(path).isDirectory()) { walk(path); continue; }
     const ext = name.slice(name.lastIndexOf("."));
-    files["/" + relative(root, path)] = { type: types[ext] ?? "application/octet-stream", body: readFileSync(path).toString("base64") };
+    files["/" + relative(root, path).split(sep).join("/")] = { type: types[ext] ?? "application/octet-stream", body: readFileSync(path).toString("base64") };
   }
 })(root);
 
+mkdirSync(new URL("./dist/", import.meta.url), { recursive: true });
 writeFileSync(new URL("./dist/worker.js", import.meta.url), `const FILES = ${JSON.stringify(files)};
 const bytes = (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
 const SECURITY = { "x-content-type-options": "nosniff", "referrer-policy": "strict-origin-when-cross-origin", "x-frame-options": "DENY" };
@@ -37,11 +39,25 @@ async function download(request, env, key) {
   if (request.method !== "GET" && request.method !== "HEAD") return new Response("method not allowed", { status: 405 });
   const range = /^bytes=(\\d+)-(\\d*)$/.exec(request.headers.get("range") ?? "");
   const options = range ? { range: range[2] ? { offset: Number(range[1]), length: Number(range[2]) - Number(range[1]) + 1 } : { offset: Number(range[1]) } } : {};
-  const object = request.method === "HEAD" ? await env.DOWNLOADS.head(key) : await env.DOWNLOADS.get(key, options);
+  const readObject = (name) => request.method === "HEAD" ? env.DOWNLOADS.head(name) : env.DOWNLOADS.get(name, options);
+  let object;
+  const release = {
+    "download/Deliobot-Setup.exe": ["latest.yml", "setup.exe"],
+    "download/Deliobot-Windows.zip": ["latest.yml", "x64.zip"],
+    "download/Deliobot.deb": ["latest-linux.yml", "amd64.deb"],
+    "download/Deliobot.AppImage": ["latest-linux.yml", "x86_64.AppImage"],
+  }[key];
+  if (release) {
+    const feed = await env.DOWNLOADS.get("download/latest/" + release[0]);
+    const version = feed && /^version:\\s*['"]?([0-9][A-Za-z0-9.+-]*)/m.exec(await feed.text())?.[1];
+    if (version) object = await readObject("download/latest/OpenDeliobot-" + version + "-" + release[1]);
+  }
+  object ??= await readObject(key);
   if (!object) return new Response(bytes(FILES["/404.html"].body), { status: 404, headers: { "content-type": "text/html; charset=utf-8", ...SECURITY } });
   const ext = key.slice(key.lastIndexOf(".") + 1);
+  const stable = /^download\\/Deliobot[.-]/.test(key) || ext === "yml";
   const headers = { "content-type": DOWNLOAD_TYPES[ext] ?? "application/octet-stream", "accept-ranges": "bytes", etag: object.httpEtag,
-    "cache-control": ext === "yml" ? "no-cache" : "public, max-age=3600", ...SECURITY };
+    "cache-control": stable ? "no-cache" : "public, max-age=3600", ...SECURITY };
   if (key.startsWith("download/") && ext !== "yml") headers["content-disposition"] = \`attachment; filename="\${key.slice(key.lastIndexOf("/") + 1)}"\`;
   if (range && object.range) {
     const start = object.range.offset, end = start + object.range.length - 1;

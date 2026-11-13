@@ -25,3 +25,13 @@ name, a type, an extracted function, one shared helper. A rule ("never X",
 rule that guards correctness; fix the code.
 
 More specific `AGENTS.md` files override this note within their directories.
+
+## Releases
+
+Every validated release must also be published through the download buttons on
+`https://deliobot.fun`. Follow
+[the download publication rule](.cursor/rules/publish-latest-downloads.mdc).
+Do not finish a release by providing only a local installer.
+After validating a delivery, commit and push all intended project changes to
+`origin/main`. Follow [the main delivery rule](.cursor/rules/push-main.mdc).
+Confirm the remote commit separately from deployment before reporting completion.

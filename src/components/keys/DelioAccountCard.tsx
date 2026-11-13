@@ -28,7 +28,7 @@ export function DelioAccountCard() {
           <span className="text-[14px] font-medium leading-5 text-ink">{t("delioAccount.title")}</span>
           <span className="text-[13px] leading-[18px] text-ink-secondary">
             {account.connected
-              ? t("delioAccount.connected", { account: account.workspace }) + (typeof account.credits === "number" ? ` · ${t("delioAccount.credits", { credits: format(account.credits) })}` : "")
+              ? t("delioAccount.connected", { account: account.email || t("delioMenu.connected") }) + (typeof account.credits === "number" ? ` · ${t("delioAccount.credits", { credits: format(account.credits) })}` : "")
               : t("delioAccount.pitch")}
           </span>
         </span>

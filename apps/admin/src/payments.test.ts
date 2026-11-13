@@ -79,7 +79,7 @@ async function portal(saspay: ReturnType<typeof fakeSasPay>, clock: { now: numbe
     const signature = createHmac("sha256", options.secret ?? SECRET).update(`${timestamp}.${body}`).digest("hex");
     return fetch(new URL("/api/saspay/webhook", origin), { method: "POST", body, headers: { "content-type": "application/json", "x-webhook-signature": signature, "x-webhook-timestamp": timestamp, "x-webhook-event": "transaction.success" } });
   };
-  const account = async () => (await fetch(new URL("/api/workspace/acme/account", origin), { headers: { authorization: `Bearer ${token}` } })).json() as Promise<{ credits: number; gateway: boolean }>;
+  const account = async () => (await fetch(new URL("/api/workspace/acme/account", origin), { headers: { authorization: `Bearer ${token}` } })).json() as Promise<{ credits: number; gateway: boolean; plan: string | null; paymentVersion: number }>;
   const chat = () => fetch(new URL("/api/gateway/acme/openrouter/v1/chat/completions", origin), { method: "POST", body: "{}", headers: { authorization: `Bearer ${token}`, "content-type": "application/json" } });
   return { post, get, webhook, account, chat, mail, sweep: () => app.sweep(), signIn };
 }
@@ -105,6 +105,79 @@ describe("SasPay webhook signature", () => {
 });
 
 describe("plans paid through SasPay", () => {
+  it("refreshes billing after a late payment without a webhook or a checkout return, and credits it once", async () => {
+    const clock = { now: Date.now() };
+    const saspay = fakeSasPay();
+    const target = await portal(saspay, clock);
+    const before = await target.get("/billing?workspace=acme");
+    const nonce = /script-src 'nonce-([A-Za-z0-9_-]+)'/.exec(before.headers.get("content-security-policy") ?? "")?.[1];
+    expect(nonce).toBeTruthy();
+    const initial = await before.text();
+    expect(initial).toContain('data-payment-version="0"');
+    expect(initial).toContain(`<script nonce="${nonce}" src="/assets/billing-refresh.js"`);
+    expect(initial).toContain('action="/billing/checkout" target="_blank"');
+    expect((await target.get("/assets/billing-refresh.js")).headers.get("content-type")).toContain("javascript");
+
+    await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "trial" });
+    expect(await (await target.get("/api/billing/status?workspace=acme")).json()).toEqual({ paymentVersion: 0, pending: true });
+    clock.now += 5 * 60_000;
+    saspay.pay("cs_1");
+    const confirmed = await Promise.all(Array.from({ length: 4 }, () => target.get("/api/billing/status?workspace=acme").then(answer => answer.json())));
+    expect(confirmed).toEqual(Array.from({ length: 4 }, () => ({ paymentVersion: 1, pending: false })));
+    expect(await target.account()).toMatchObject({ credits: 300, plan: "trial", paymentVersion: 1 });
+    expect(await (await target.get("/billing?workspace=acme")).text()).toContain('data-payment-version="1"');
+    await target.webhook({ event: "transaction.success", data: { id: "late-delivery" } });
+    await target.sweep();
+    expect(await target.account()).toMatchObject({ credits: 300, paymentVersion: 1 });
+    expect(saspay.calls.filter(call => call.url.endsWith("/cs_1/status/"))).toHaveLength(2);
+  });
+
+  it("updates a connected app's account when checkout never returns", async () => {
+    const clock = { now: Date.now() };
+    const saspay = fakeSasPay();
+    const target = await portal(saspay, clock);
+    await target.post("/billing/checkout", { workspace: "acme", kind: "topup", topup: "small" });
+    expect(await target.account()).toMatchObject({ credits: 0, paymentVersion: 0 });
+    saspay.pay("cs_1");
+    clock.now += 5_001;
+    expect(await target.account()).toMatchObject({ credits: 4500, paymentVersion: 1 });
+    expect(await target.account()).toMatchObject({ credits: 4500, paymentVersion: 1 });
+  });
+
+  it("only verifies the workspace the signed-in person is allowed to refresh", async () => {
+    const clock = { now: Date.now() };
+    const saspay = fakeSasPay();
+    const target = await portal(saspay, clock);
+    await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "trial" });
+    await target.signIn("another@delio.test");
+    await target.get("/pay?plan=pro");
+    const other = (saspay.calls.at(-1)!.body as { metadata: { workspace: string } }).metadata.workspace;
+    saspay.pay("cs_1");
+    saspay.pay("cs_2");
+    expect(await (await target.get(`/api/billing/status?workspace=${other}`)).json()).toEqual({ paymentVersion: 1, pending: false });
+    expect(saspay.calls.filter(call => call.url.endsWith("/cs_1/status/"))).toHaveLength(0);
+    expect((await target.get("/api/billing/status?workspace=acme")).status).toBe(403);
+    await target.signIn("boss@acme.test");
+    expect(await target.account()).toMatchObject({ credits: 300, paymentVersion: 1 });
+  });
+
+  it("keeps pending and failed payments uncredited and refuses another account's billing status", async () => {
+    const clock = { now: Date.now() };
+    const saspay = fakeSasPay();
+    const target = await portal(saspay, clock);
+    await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "pro" });
+    expect(await (await target.get("/api/billing/status?workspace=acme")).json()).toEqual({ paymentVersion: 0, pending: true });
+    expect(await target.account()).toMatchObject({ credits: 0, plan: null, paymentVersion: 0 });
+    saspay.sessions.get("cs_1")!.status = "FAILED";
+    clock.now += 5_001;
+    expect(await (await target.get("/api/billing/status?workspace=acme")).json()).toEqual({ paymentVersion: 0, pending: false });
+    const checked = saspay.calls.length;
+    await target.signIn("outsider@delio.test");
+    expect((await target.get("/api/billing/status?workspace=acme")).status).toBe(403);
+    expect(saspay.calls).toHaveLength(checked);
+    expect(await target.account()).toMatchObject({ credits: 0, plan: null, paymentVersion: 0 });
+  });
+
   it("runs the five-dollar trial once, credits it on a signed webhook only once, then sells and renews Pro by the month", async () => {
     const clock = { now: Date.now() };
     const saspay = fakeSasPay();

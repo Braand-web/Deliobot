@@ -1,4 +1,9 @@
 {
+  "delioMenu.checking": "Checking your plan…",
+  "delioMenu.connected": "Signed-in account",
+  "delioPlans.current": "{plan} · {credits} credits",
+  "delioPlans.noPlan": "No plan",
+  "delioPlans.connectFirst": "Connect this app to your Delio account before paying so your plan and credits appear here automatically.",
   "connectedWorkspaces.localTitle": "Environments on this computer",
   "connectedWorkspaces.missing": "missing",
   "connectedWorkspaces.current": "Current",

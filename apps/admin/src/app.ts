@@ -5,6 +5,8 @@ import type { Mailer } from "./mail.ts";
 import { discover, exchangeCode, pkceChallenge, verifyIdToken } from "./oidc.ts";
 import { createGateway, type GatewayOptions } from "./gateway.ts";
 import { DEVICE_POLL_SECONDS, Devices } from "./devices.ts";
+import { personalWorkspaces } from "./personal-workspaces.ts";
+import { BILLING_REFRESH_SCRIPT } from "./billing-refresh.ts";
 import { Hosting, hostingRunner, RESERVED_SLUGS, socketFleet, type Fleet } from "./hosting.ts";
 import { Billing, catalog, PLANS, reconcileOrders, TOPUPS, TRIAL_DAYS, type Cycle, type PlanId, type TopupId } from "./plans.ts";
 import { createSasPay, verifySasPayWebhook } from "./saspay.ts";
@@ -28,7 +30,7 @@ export interface AdminAppOptions {
   /** Tests only: lets a fixture identity provider run over plain HTTP. */
   allowHttpProviders?: boolean;
   /** The operator's provider keys and upstreams for the paid gateway; a provider without a key is refused there. */
-  gateway?: Omit<GatewayOptions, "store" | "wallet" | "publicUrl" | "fetchImpl" | "now" | "allowance" | "deviceToken"> & { creditUsd?: number };
+  gateway?: Omit<GatewayOptions, "store" | "wallet" | "publicUrl" | "fetchImpl" | "now" | "allowance" | "deviceToken" | "deviceEmail" | "deviceAccount" | "revokeDevice" | "refreshAccount" | "paymentVersion"> & { creditUsd?: number };
   /** The mascot pictures pages show, by path (`/assets/delio-idle.webp`…). */
   assets?: ReadonlyMap<string, Uint8Array>;
   /** SasPay: the secret key, the webhook signing secret, and the currency checkouts are priced in (XOF by default). */
@@ -141,6 +143,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   const wallet = new Wallet(store.db, { now, creditUsd: options.gateway?.creditUsd });
   const devices = new Devices(store.db, now);
   const plans = new Billing(wallet, now);
+  const personal = personalWorkspaces(store, plans, wallet, publicUrl.origin);
   const saspay = options.payments?.saspayKey ? createSasPay({ key: options.payments.saspayKey, apiUrl: options.payments.apiUrl, fetchImpl }) : null;
   const currency = options.payments?.currency ?? "XOF";
   const hosting = new Hosting(store.db, now);
@@ -150,9 +153,31 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     fleet: selfServe.fleet ?? socketFleet(selfServe.fleetSocket ?? "/run/opendeliobot/fleet.sock") }) : null;
   const startHosting = () => { void runHosting?.().catch((error: unknown) => console.error("delio-admin: hosting pass failed", error)); };
   const traffic = new Traffic(store.db, now);
-  const gateway = createGateway({ ...options.gateway, store, wallet, publicUrl, fetchImpl, now, deviceToken: (value, slug) => devices.check(value, slug),
+  const paymentChecks = new Map<string, { at: number; running: Promise<void> | null }>();
+  async function refreshPayments(workspace: string): Promise<void> {
+    if (!saspay) return;
+    const previous = paymentChecks.get(workspace);
+    if (previous?.running) return previous.running;
+    if (!plans.pending().some(order => order.workspace === workspace)) { paymentChecks.delete(workspace); return; }
+    if (previous && now() - previous.at < 5_000) return;
+    const check = { at: now(), running: null as Promise<void> | null };
+    check.running = reconcileOrders(plans, saspay, { workspace }).then(paid => {
+      if (paid.length) startHosting();
+    }).finally(() => { check.at = now(); check.running = null; });
+    paymentChecks.set(workspace, check);
+    return check.running;
+  }
+  const gateway = createGateway({ ...options.gateway, store, wallet, publicUrl, fetchImpl, now,
+    deviceAccount: (value, requested) => {
+      const owner = devices.identity(value);
+      if (!owner) return null;
+      const workspace = personal.resolve(owner, owner.workspace);
+      if (requested !== owner.workspace && requested !== workspace) return null;
+      if (!devices.check(value, owner.workspace)) return null;
+      return { workspace, sourceWorkspace: owner.workspace, email: owner.email };
+    },
     deviceEmail: (value, slug) => devices.ownerEmail(value, slug), revokeDevice: (value, slug) => devices.revokeToken(value, slug),
-    allowance: (slug) => plans.allowance(slug) });
+    allowance: (slug) => plans.allowance(slug), refreshAccount: refreshPayments, paymentVersion: slug => plans.paidCount(slug) });
 
   function sessionCookie(value: string, maxAgeSeconds: number): string {
     return `${cookieName}=${value}; Path=/; Max-Age=${maxAgeSeconds}; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}`;
@@ -166,7 +191,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     res.setHeader("x-content-type-options", "nosniff");
     // Chromium sends `Origin: null` on form posts from a no-referrer page, which the same-origin check would refuse.
     res.setHeader("referrer-policy", "same-origin");
-    res.setHeader("content-security-policy", `default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; ${scriptNonce ? `script-src 'nonce-${scriptNonce}'; ` : ""}form-action 'self' ${CHECKOUT_ORIGINS}; frame-ancestors 'none'; base-uri 'none'`);
+    res.setHeader("content-security-policy", `default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; ${scriptNonce ? `script-src 'nonce-${scriptNonce}'; connect-src 'self'; ` : ""}form-action 'self' ${CHECKOUT_ORIGINS}; frame-ancestors 'none'; base-uri 'none'`);
     for (const [name, value] of Object.entries(headers)) res.setHeader(name, value);
     res.end(body);
   }
@@ -177,10 +202,12 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     const nonce = token(16);
     send(res, status, page({ ...input, nonce, brand: operatorConsole ? "Delio Admin" : "Delio" }), "text/html; charset=utf-8", headers, nonce);
   };
+  const billingRefresh = (workspace: Workspace) => operatorConsole ? {} : { billingRefresh: { workspace: workspace.slug, paymentVersion: plans.paidCount(workspace.slug) } };
 
   /** Opens SasPay's checkout for a plan or a top-up of this workspace, or shows the billing page with what stopped it. */
   async function openCheckout(res: ServerResponse, user: Account, workspace: Workspace, input: { kind: string; plan: string; topup: string; cycle: string }): Promise<void> {
-    const fail = (status: number, error: string) => html(res, status, { title: "Facturation", email: user.email, body: billing(workspace, user, { error }) });
+    workspace = store.workspace(personal.resolve(user, workspace.slug))!;
+    const fail = (status: number, error: string) => html(res, status, { title: "Facturation", email: user.email, ...billingRefresh(workspace), body: billing(workspace, user, { error }) });
     if (!saspay) return fail(503, "Les paiements ne sont pas encore activés.");
     const kind = input.kind;
     const plan = input.plan as PlanId;
@@ -213,9 +240,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
 
   /** The person's own workspace, for an app or a payment that needs one before they made any. */
   function personalWorkspace(user: Account): Workspace {
-    const slug = `me-${token(6).toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 8).padEnd(8, "x")}`;
-    store.createWorkspace({ slug, name: `${user.email} (personal)`, tenantUrl: publicUrl.origin, ownerEmail: user.email }, user.email);
-    return store.workspace(slug)!;
+    return personal.ensure(user);
   }
 
   function redirect(res: ServerResponse, location: string, cookies: string[] = []): void {
@@ -329,6 +354,8 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     const url = new URL(req.url ?? "/", publicUrl);
     const method = req.method ?? "GET";
     const path = url.pathname;
+
+    if (method === "GET" && path === "/assets/billing-refresh.js") return send(res, 200, BILLING_REFRESH_SCRIPT, "text/javascript; charset=utf-8");
 
     const asset = method === "GET" ? options.assets?.get(path) : undefined;
     if (asset) {
@@ -622,6 +649,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       } else if (!admin.some((item) => item.slug === slug)) {
         return again(403, "Choisissez un espace que vous administrez.");
       }
+      slug = personal.resolve(user, slug);
       const label = devices.pendingLabel(code);
       devices.decide(code, { workspace: slug, accountId: user.id });
       store.audit(slug, user.email, "device.connect", label);
@@ -637,18 +665,23 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     if (method === "GET" && path === "/pay") {
       const asked = url.searchParams.get("workspace");
       if (asked && !administers(user, asked)) return otherAccount(res, user, path + url.search);
-      const workspace = asked ? requireWorkspaceAdmin(user, asked) : store.workspacesOf(user.id).find((item) => item.role === "admin") ?? personalWorkspace(user);
+      const workspace = asked ? requireWorkspaceAdmin(user, personal.resolve(user, asked)) : personal.existing(user) ?? store.workspacesOf(user.id).find((item) => item.role === "admin") ?? personalWorkspace(user);
       const pick = (name: string, max: number) => (url.searchParams.get(name) ?? "").slice(0, max);
       const topup = pick("topup", 16);
       return openCheckout(res, user, workspace, { kind: topup ? "topup" : "plan", plan: pick("plan", 16), topup, cycle: pick("cycle", 8) });
+    }
+    if (method === "GET" && path === "/api/billing/status") {
+      const workspace = requireWorkspaceAdmin(user, url.searchParams.get("workspace") ?? "");
+      await refreshPayments(workspace.slug);
+      return json(res, 200, { paymentVersion: plans.paidCount(workspace.slug), pending: plans.pending().some(order => order.workspace === workspace.slug) });
     }
     if (method === "GET" && path === "/billing/return") {
       const order = plans.order(url.searchParams.get("order") ?? "");
       if (!order) throw new HttpError(404, "Ce paiement n'existe pas.");
       const workspace = requireWorkspaceAdmin(user, order.workspace);
-      if (order.status === "pending" && saspay && (await reconcileOrders(plans, saspay, order.id)).length) startHosting();
+      if (order.status === "pending") await refreshPayments(workspace.slug);
       const latest = plans.order(order.id)!;
-      return html(res, 200, { title: "Facturation", email: user.email, body: billing(workspace, user,
+      return html(res, 200, { title: "Facturation", email: user.email, ...billingRefresh(workspace), body: billing(workspace, user,
         latest.status === "paid" ? { message: "Paiement reçu : merci ! Vos crédits sont ajoutés." }
           : latest.status === "failed" ? { error: "Le paiement n'a pas abouti. Vous pouvez réessayer." }
           : { message: "Le paiement est en cours de confirmation. Cette page l'affichera dès que SasPay l'aura confirmé." }) });
@@ -664,7 +697,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     if (method === "GET" && path === "/billing") {
       const asked = url.searchParams.get("workspace");
       if (!asked) {
-        const first = store.workspacesOf(user.id).find((item) => item.role === "admin");
+        const first = personal.existing(user) ?? store.workspacesOf(user.id).find((item) => item.role === "admin");
         if (!first && signupOpen) return redirect(res, `/signup?${new URLSearchParams([...url.searchParams].filter(([name]) => name === "plan" || name === "cycle"))}`);
         if (!first) return html(res, 200, { title: "Facturation", email: user.email, body: messagePage("Pas encore d'espace", "Un forfait s'achète pour un espace que vous administrez. Demandez à son administrateur, ou créez-en un d'abord.", { href: "/", label: "Retour" }) });
         const next = new URLSearchParams(url.searchParams);
@@ -672,9 +705,16 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
         return redirect(res, `/billing?${next}`);
       }
       if (!administers(user, asked)) return otherAccount(res, user, path + url.search);
+      const resolved = personal.resolve(user, asked);
+      if (resolved !== asked) {
+        const next = new URLSearchParams(url.searchParams);
+        next.set("workspace", resolved);
+        return redirect(res, `/billing?${next}`);
+      }
       const workspace = requireWorkspaceAdmin(user, asked);
       const chosen = url.searchParams.get("plan");
-      return html(res, 200, { title: "Facturation", email: user.email, body: billing(workspace, user, { message: url.searchParams.get("done") ? "Enregistré." : undefined,
+      await refreshPayments(workspace.slug);
+      return html(res, 200, { title: "Facturation", email: user.email, ...billingRefresh(workspace), body: billing(workspace, user, { message: url.searchParams.get("done") ? "Enregistré." : undefined,
         chosen: chosen && Object.hasOwn(PLANS, chosen) ? chosen as PlanId : undefined, cycle: url.searchParams.get("cycle") === "year" ? "year" : "month" }) });
     }
     if (method === "POST" && (path === "/billing/credit" || path === "/billing/token")) {

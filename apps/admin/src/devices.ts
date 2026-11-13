@@ -92,6 +92,14 @@ CREATE TABLE IF NOT EXISTS device_tokens (id TEXT PRIMARY KEY, token_hash TEXT N
     return row?.email ?? null;
   }
 
+  identity(value: string): { workspace: string; id: string; email: string } | null {
+    if (!DEVICE_TOKEN.test(value)) return null;
+    return this.db.prepare(`SELECT d.workspace, a.id, a.email FROM device_tokens d JOIN accounts a ON a.id = d.account_id
+      JOIN members m ON m.account_id = a.id AND m.workspace = d.workspace AND m.role = 'admin'
+      WHERE d.token_hash = ? AND a.id NOT IN (SELECT account_id FROM blocked_accounts)`)
+      .get(sha256(value)) as { workspace: string; id: string; email: string } | undefined ?? null;
+  }
+
   /** A device signing itself out: its own token stops working. */
   revokeToken(value: string, workspace: string): void {
     if (DEVICE_TOKEN.test(value)) this.db.prepare("DELETE FROM device_tokens WHERE token_hash = ? AND workspace = ?").run(sha256(value), workspace);

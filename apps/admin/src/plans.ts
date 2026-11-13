@@ -182,6 +182,10 @@ CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT N
     return this.db.prepare(`SELECT ${ORDER_COLUMNS} FROM orders WHERE workspace = ? ORDER BY created_at DESC LIMIT ?`).all(workspace, limit) as unknown as Order[];
   }
 
+  paidCount(workspace: string): number {
+    return (this.db.prepare("SELECT COUNT(*) AS count FROM orders WHERE workspace = ? AND status = 'paid'").get(workspace) as { count: number }).count;
+  }
+
   /** Pending orders worth asking SasPay about: those with a session, from the last two days. */
   pending(): Order[] {
     return this.db.prepare(`SELECT ${ORDER_COLUMNS} FROM orders WHERE status = 'pending' AND session_id IS NOT NULL AND created_at > ?`).all(this.now() - 2 * DAY_MS) as unknown as Order[];
@@ -304,10 +308,10 @@ CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT N
 }
 
 /** Asks SasPay about pending orders and applies those it reports paid; the webhook and the return page both call it. */
-export async function reconcileOrders(billing: Billing, saspay: SasPay, only?: string): Promise<string[]> {
+export async function reconcileOrders(billing: Billing, saspay: SasPay, filter: { order?: string; workspace?: string } = {}): Promise<string[]> {
   const fulfilled: string[] = [];
   for (const order of billing.pending()) {
-    if (only && order.id !== only) continue;
+    if ((filter.order && order.id !== filter.order) || (filter.workspace && order.workspace !== filter.workspace)) continue;
     let status: string;
     try { status = await saspay.sessionStatus(order.sessionId!); } catch { continue; }
     if (status === "PAID" && billing.fulfil(order.id)) fulfilled.push(order.id);

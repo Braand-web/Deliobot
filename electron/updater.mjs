@@ -150,11 +150,10 @@ export function attachUpdaterWindow(mainWindow) {
   win = mainWindow;
 }
 
-/** A Windows copy unpacked from the ZIP: NSIS writes `Uninstall <productName>.exe` beside every copy it installs, and an
- * update through NSIS would install a second copy elsewhere instead of replacing this one. */
+/** NSIS names its uninstaller after productName, which may differ from Electron's package name across releases. */
 function unpackedWindowsCopy() {
   return process.platform === "win32" && Boolean(process.resourcesPath)
-    && !existsSync(join(process.resourcesPath, "..", `Uninstall ${app.getName()}.exe`));
+    && ![app.getName(), "Deliobot", "OpenDeliobot"].some(name => existsSync(join(process.resourcesPath, "..", `Uninstall ${name}.exe`)));
 }
 
 /** `signals` (quietSignals): what tells a quiet moment; without them a downloaded update installs only on Restart or quit. */

@@ -26,4 +26,12 @@ describe("the You menu's Deliobot account rows", () => {
   it("shows nothing until the account is known", () => {
     expect(delioMenuItems(null, actions())).toEqual([]);
   });
+
+  it("never presents a workspace identifier as an account or an unavailable plan as zero credits", () => {
+    const rows = delioMenuItems({ connected: true, planGate: true, ownAi: false, workspace: "me-zypcfy1r", portal: "https://compte.deliobot.fun", checking: true }, actions());
+    expect(rows[0]?.label).toBe("Signed-in account");
+    expect(rows[0]?.subtitle).toBe("Checking your plan…");
+    expect(JSON.stringify(rows)).not.toContain("me-zypcfy1r");
+    expect(JSON.stringify(rows)).not.toContain("0 credits");
+  });
 });

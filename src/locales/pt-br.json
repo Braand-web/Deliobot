@@ -1,4 +1,6 @@
 {
+  "delioMenu.checking": "Verificando seu plano…",
+  "delioMenu.connected": "Conta conectada",
   "voice.gemini.keyPlaceholder": "Cole sua chave de API do Google AI Studio",
   "voice.gemini.model": "Modelo de voz do Gemini",
   "keys.label.geminiTts": "Chave de API de voz do Gemini",

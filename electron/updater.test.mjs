@@ -16,12 +16,14 @@ const CLOUD = "https://home-7f3k2.fly.dev";
 const OTHER = "https://bots.example.test";
 const OWN = "https://odb-c-a.fly.dev";
 
-const fixture = vi.hoisted(() => ({ autoUpdater: null, handlers: new Map(), home: "" }));
+const fixture = vi.hoisted(() => ({ autoUpdater: null, handlers: new Map(), home: "", appName: "opendeliobot", fetch: vi.fn(), openExternal: vi.fn() }));
 
 vi.mock("electron", () => ({
-  app: { isPackaged: true, getPath: () => fixture.home, getVersion: () => "1.0.0", getName: () => "OpenDeliobot", hide: vi.fn() },
+  app: { isPackaged: true, getPath: () => fixture.home, getVersion: () => "1.0.0", getName: () => fixture.appName, hide: vi.fn() },
   clipboard: { writeText: vi.fn() },
   ipcMain: { handle: (name, handler) => fixture.handlers.set(name, handler) },
+  net: { fetch: (...args) => fixture.fetch(...args) },
+  shell: { openExternal: (...args) => fixture.openExternal(...args) },
 }));
 vi.mock("node:module", () => ({
   createRequire: () => () => ({ autoUpdater: fixture.autoUpdater }),
@@ -33,6 +35,32 @@ function installedCopy(install) {
   writeFileSync(join(install, "Uninstall OpenDeliobot.exe"), "");
   return resources;
 }
+
+it.each(["Deliobot", "OpenDeliobot", "opendeliobot"])("an NSIS copy with Uninstall %s.exe downloads inside the app and offers restart", async name => {
+  const platform = Object.getOwnPropertyDescriptor(process, "platform");
+  const resourcesPath = process.resourcesPath;
+  const install = mkdtempSync(join(tmpdir(), "odb-updater-installed-name-"));
+  try {
+    Object.defineProperty(process, "platform", { ...platform, value: "win32" });
+    process.resourcesPath = join(install, "resources");
+    mkdirSync(process.resourcesPath);
+    writeFileSync(join(install, `Uninstall ${name}.exe`), "");
+    const { updater, autoUpdater, handlers } = await load(() => true);
+    updater.startUpdater();
+    await vi.advanceTimersByTimeAsync(15_000);
+    await settle();
+    expect(autoUpdater.checkForUpdates).toHaveBeenCalledOnce();
+    expect(autoUpdater.downloadUpdate).toHaveBeenCalledOnce();
+    expect(await handlers.get("update:get-state")({})).toMatchObject({ status: "downloaded", version: "2.0.0", installMode: "restart" });
+    await handlers.get("update:install")({});
+    expect(autoUpdater.quitAndInstall).toHaveBeenCalledOnce();
+    expect(fixture.openExternal).not.toHaveBeenCalled();
+  } finally {
+    Object.defineProperty(process, "platform", platform);
+    process.resourcesPath = resourcesPath;
+    rmSync(install, { recursive: true, force: true });
+  }
+});
 
 function page(origin) {
   const mainFrame = { url: `${origin}/` };
@@ -128,6 +156,8 @@ const settle = async () => {
 
 beforeEach(() => {
   fixture.home = mkdtempSync(join(tmpdir(), "odb-updater-home-"));
+  fixture.fetch.mockReset().mockImplementation(async () => new Response("version: 1.0.0\n"));
+  fixture.openExternal.mockReset();
   localOriginModule.setLocalOrigin(LOCAL);
   vi.useFakeTimers();
 });

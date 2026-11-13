@@ -191,6 +191,12 @@ dollars. `GET /api/public/plans` returns this catalog for the site and the apps.
   of `timestamp.body`, at most five minutes old), and once a minute for any
   order still pending. An order is applied once: its first month's credits and
   its period (added after the current period when renewing the same plan).
+- Billing stays open while checkout runs in another tab. It checks pending
+  payments every five seconds and reloads when a payment is confirmed. A
+  connected app also checks its account after opening checkout, so its plan
+  and credits update even when SasPay never redirects back. These account
+  reads reconcile only that authenticated workspace's pending orders; concurrent
+  checks share one verification, with at least five seconds between checks.
 - Three days before a period ends, the workspace's admins get an email with the
   Billing link. After a paid period comes a 7-day grace; then the gateway answers
   `402 plan_inactive` until the plan is renewed. BYOK never spends Delio
@@ -199,6 +205,13 @@ dollars. `GET /api/public/plans` returns this catalog for the site and the apps.
   subscribe it to `transaction.success`, and copy its signing secret.
 
 ## Tests
+
+Personal app connections reuse the same personal workspace. Legacy empty
+duplicates resolve to the owner's existing personal workspace, with the device
+token still checked against its original workspace and current administrator.
+Workspaces with payments, credits, history, or other members remain separate.
+The account endpoint returns the verified email and effective billing workspace;
+desktop settings keep that identity through a temporary portal outage.
 
 ```sh
 pnpm exec vitest run apps/admin

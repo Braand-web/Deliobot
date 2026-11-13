@@ -1,0 +1,13 @@
+---
+description: Publish every validated Deliobot release through the landing download buttons
+alwaysApply: true
+---
+
+Every validated release must be published on deliobot.fun, not delivered only as a local installer.
+
+- Publish each available platform's validated artifacts, versioned files, stable download links, and matching update feed.
+- Keep the previous release available for platforms that have no newly validated build. Never relabel an older binary as the new release.
+- Verify the public binary's digest against the validated local artifact before publishing its update feed.
+- Keep the landing's displayed version consistent with the platform offered by its download button.
+- Stable download links and update feeds must revalidate their cache so they cannot keep serving a previous release.
+- Confirm publication from the live landing and a public download URL before reporting completion.

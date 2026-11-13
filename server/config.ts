@@ -339,7 +339,7 @@ const appConfigSchema = z.object({
   /** fal.ai key, for image and video generation. */
   fal: z.object({ key: optionalText, url: optionalText }).optional(),
   /** A Delio account this app is connected to: its portal, the workspace whose credits it spends, and the device token. */
-  delio: z.object({ portal: optionalText, workspace: optionalText, token: optionalText }).nullable().optional(),
+  delio: z.object({ portal: optionalText, workspace: optionalText, token: optionalText, email: optionalText }).nullable().optional(),
   /** Workspace monthly spend limit; enforced only with the `budgets` entitlement. */
   budgets: z
     .object({
@@ -472,7 +472,7 @@ export interface AppConfig extends HelperConfig {
   openrouter?: { key?: string };
   /** `url`: the fal.ai queue, or a Delio gateway in front of it (ODB_FAL_URL); the key then is the workspace token. */
   fal?: { key?: string; url?: string };
-  delio?: { portal?: string; workspace?: string; token?: string } | null;
+  delio?: { portal?: string; workspace?: string; token?: string; email?: string } | null;
   budgets?: { monthlyUsd?: number; warnAtPercent?: number };
   decisions?: { retentionDays?: number };
   loopGuard?: LoopGuardConfig;
