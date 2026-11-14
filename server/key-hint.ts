@@ -1,4 +1,5 @@
 import type { AppConfig } from "./config.ts";
+import { fishKeyOf } from "./included-services.ts";
 import { usableLiveKey } from "./live-config.ts";
 
 /** Security: a hint is the last four characters of a key long enough that four reveal nothing useful, and only admins
@@ -17,7 +18,7 @@ export function keyStatus(secret: string | undefined | null): { configured: bool
 export function nestedKeyStatus(cfg: AppConfig) {
   return {
     ttsKey: keyStatus(cfg.tts?.key),
-    fishAudioKey: keyStatus(cfg.tts?.fishKey),
+    fishAudioKey: cfg.tts?.fishKey?.trim() || !fishKeyOf(cfg) ? keyStatus(cfg.tts?.fishKey) : { configured: true },
     geminiTtsKey: keyStatus(cfg.tts?.geminiKey),
     jevApiKey: keyStatus(cfg.decider?.key),
     openrouterDeciderKey: keyStatus(cfg.decider?.openrouterKey),

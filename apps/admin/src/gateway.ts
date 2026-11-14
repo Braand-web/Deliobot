@@ -5,6 +5,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 
 import type { AppHosting } from "./app-hosting.ts";
 import { createBoatRelay } from "./boat-relay.ts";
+import { createFishRelay } from "./fish-relay.ts";
 import { createVoiceRelay } from "./voice-relay.ts";
 import type { AdminStore } from "./store.ts";
 import { MICRO, type Wallet } from "./wallet.ts";
@@ -35,6 +36,8 @@ export interface GatewayOptions {
   boatUrl?: string;
   boatUsdPerHour?: number;
   elevenlabsKey?: string;
+  fishKey?: string;
+  fishUrl?: string;
   elevenlabsUrl?: string;
   /** Included app hosting; absent where no bucket is bound. */
   hosting?: AppHosting;
@@ -136,6 +139,7 @@ export function createGateway(options: GatewayOptions) {
   const boat = createBoatRelay({ wallet, key: options.boatKey, apiUrl: options.boatUrl, usdPerHour: options.boatUsdPerHour, limit: (workspace) => options.allowance?.(workspace).computers ?? 1,
     includedHours: (workspace) => options.allowance?.(workspace).computerHours ?? 0, fetchImpl, now });
   const voice = createVoiceRelay({ wallet, key: options.elevenlabsKey, apiUrl: options.elevenlabsUrl, fetchImpl });
+  const fishVoice = createFishRelay({ db: store.db, wallet, key: options.fishKey, apiUrl: options.fishUrl, fetchImpl, now });
   const running = new Map<string, number>();
   const prices = new Map<string, { at: number; price: { unitPrice: number; unit: string } | null }>();
 
@@ -376,10 +380,10 @@ export function createGateway(options: GatewayOptions) {
 
   return {
     /** Charges cloud computers' awake minutes; run once a minute. */
-    sweep: () => boat.sweep(),
+    sweep: () => { fishVoice.sweep(); return boat.sweep(); },
     /** Handles /api/gateway/<workspace>/<provider>/… and /api/workspace/<workspace>/account; false for any other path. */
     async handle(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
-      const gateway = /^\/api\/gateway\/([a-z][a-z0-9-]{1,30})\/(openrouter\/v1|fal|boat\/v1|elevenlabs\/v1|hosting\/v1|anthropic|openai\/v1)\/(.+)$/.exec(url.pathname);
+      const gateway = /^\/api\/gateway\/([a-z][a-z0-9-]{1,30})\/(openrouter\/v1|fal|boat\/v1|elevenlabs\/v1|fish|hosting\/v1|anthropic|openai\/v1)\/(.+)$/.exec(url.pathname);
       const account = /^\/api\/workspace\/([a-z][a-z0-9-]{1,30})\/account$/.exec(url.pathname);
       const report = /^\/api\/workspace\/([a-z][a-z0-9-]{1,30})\/report$/.exec(url.pathname);
       const requested = gateway?.[1] ?? account?.[1] ?? report?.[1];
@@ -430,6 +434,7 @@ export function createGateway(options: GatewayOptions) {
         else if (provider === "fal") await fal(req, res, workspace, rest);
         else if (provider === "boat/v1") await boat.handle(req, res, workspace, rest);
         else if (provider === "elevenlabs/v1") await voice.handle(req, res, workspace, rest);
+        else if (provider === "fish") await fishVoice.handle(req, res, workspace, rest);
         else failure(res, 501, "Claude and Codex company models are not offered on this deployment yet; use the OpenRouter company models.");
       } catch (error) {
         if (!res.headersSent) failure(res, (error as { status?: number }).status ?? 502, "The gateway could not complete this request.");

@@ -1,5 +1,5 @@
 import type { AppConfig } from "../config.ts";
-import { voiceCredential } from "../included-services.ts";
+import { fishKeyOf, voiceCredential } from "../included-services.ts";
 import * as chatterbox from "./chatterbox.ts";
 import * as elevenlabs from "./elevenlabs.ts";
 import * as openai from "./openai.ts";
@@ -34,7 +34,7 @@ export function autoVoiceProvider(cfg: AppConfig): VoiceProvider | null {
   if (elevenLabs(cfg) && voice) return "elevenlabs";
   if (cfg.openai?.key) return "openai";
   if (cfg.tts?.geminiKey) return "gemini";
-  if (cfg.tts?.fishKey && voice) return "fish";
+  if (fishKeyOf(cfg) && voice) return "fish";
   if (cfg.xai?.key && voice) return "xai";
   if (cfg.tts?.baseUrl?.trim() && voice) return "chatterbox";
   if (systemVoices.systemVoicesAvailable() && voice) return "system";
@@ -84,7 +84,7 @@ export function providerConfigured(original: AppConfig): boolean {
   if (provider === "xai") return Boolean(cfg.xai?.key);
   if (provider === "system") return systemVoices.systemVoicesAvailable();
   if (provider === "chatterbox") return Boolean(cfg.tts?.baseUrl?.trim());
-  if (provider === "fish") return Boolean(cfg.tts?.fishKey);
+  if (provider === "fish") return Boolean(fishKeyOf(cfg));
   return Boolean(elevenLabs(cfg));
 }
 
@@ -103,7 +103,7 @@ export function voiceConfigured(original: AppConfig): boolean {
     return systemVoices.systemVoicesAvailable() && Boolean(cfg.tts?.voice);
   }
   if (provider === "chatterbox") return Boolean(cfg.tts?.baseUrl?.trim() && cfg.tts?.voice);
-  if (provider === "fish") return Boolean(cfg.tts?.fishKey && cfg.tts?.voice);
+  if (provider === "fish") return Boolean(fishKeyOf(cfg) && cfg.tts?.voice);
   return Boolean(elevenLabs(cfg) && cfg.tts?.voice);
 }
 
@@ -124,7 +124,7 @@ export function voiceReady(original: AppConfig, ownVoice?: string): boolean {
     return systemVoices.systemVoicesAvailable() && Boolean(voiceId || cfg.tts?.voice);
   }
   if (provider === "chatterbox") return Boolean(cfg.tts?.baseUrl?.trim() && (voiceId || cfg.tts?.voice));
-  if (provider === "fish") return Boolean(cfg.tts?.fishKey && (voiceId || cfg.tts?.voice));
+  if (provider === "fish") return Boolean(fishKeyOf(cfg) && (voiceId || cfg.tts?.voice));
   return Boolean(elevenLabs(cfg) && (voiceId || cfg.tts?.voice));
 }
 
@@ -186,7 +186,7 @@ export async function listVoices(
     return baseUrl ? chatterbox.listChatterboxVoices(baseUrl) : [];
   }
   if (provider === "fish") {
-    const key = cfg.tts?.fishKey;
+    const key = fishKeyOf(cfg);
     return key ? fish.listVoices(key, search) : [];
   }
   const credential = elevenLabs(cfg);
@@ -254,7 +254,7 @@ export function speak(original: AppConfig, text: string, ownVoice?: string, run?
     return chatterbox.synthesizeChatterbox(text, voice, baseUrl, cfg.tts?.model);
   }
   if (provider === "fish") {
-    const key = cfg.tts?.fishKey;
+    const key = fishKeyOf(cfg);
     if (!key) {
       throw new NoVoiceConfigured(
         "key",

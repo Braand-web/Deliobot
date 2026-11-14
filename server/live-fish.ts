@@ -5,6 +5,7 @@ import type { LiveFishRelayCommand, LiveFishRelayEvent, LiveFishSessionToken } f
 import type { LiveSocket } from "./live-call-controller.ts";
 import { liveInstructions, LiveSessionError, type LiveBot, type LiveEndpoint, type LiveHistoryMessage } from "./live-call.ts";
 import type { LiveConfig } from "./live-config.ts";
+import { fishApiFor } from "./included-services.ts";
 
 const FISH_BASE = "https://api.fish.audio";
 const CREATE_TIMEOUT_MS = 20_000;
@@ -29,9 +30,9 @@ export function fishLiveBaseUrl(env: NodeJS.ProcessEnv = process.env): string {
 }
 
 /** `model` is the agent id, "" while no usable one is saved. */
-export function fishLiveEndpoint(agentId: string | null | undefined, env: NodeJS.ProcessEnv = process.env): LiveEndpoint {
+export function fishLiveEndpoint(agentId: string | null | undefined, env: NodeJS.ProcessEnv = process.env, key = ""): LiveEndpoint {
   const id = agentId?.trim() ?? "";
-  return { provider: "fish", apiBase: `${fishLiveBaseUrl(env)}/v1/agent`, model: AGENT_ID.test(id) ? id : "" };
+  return { provider: "fish", apiBase: `${fishApiFor(key) ?? fishLiveBaseUrl(env)}/v1/agent`, model: AGENT_ID.test(id) ? id : "" };
 }
 
 /** Which Fish Audio account an agent was set up on, without keeping its key. */

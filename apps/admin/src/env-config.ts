@@ -12,7 +12,7 @@ export interface PortalSettings {
   secret: string | undefined;
   mailer: Mailer;
   operators: Set<string>;
-  gateway: { openrouterKey?: string; falKey?: string; boatKey?: string; boatUsdPerHour?: number; creditUsd?: number; elevenlabsKey?: string };
+  gateway: { openrouterKey?: string; falKey?: string; boatKey?: string; boatUsdPerHour?: number; creditUsd?: number; elevenlabsKey?: string; fishKey?: string };
   payments: { saspayKey?: string; webhookSecret?: string; currency: string; xofPerUsd?: number };
   hosting?: { domain: string; models: string[]; fleetSocket?: string };
   signup?: { downloadUrl: string };
@@ -48,7 +48,8 @@ export function portalSettings(env: PortalEnv): PortalSettings {
   const boatUsdPerHour = env.DELIO_ADMIN_BOAT_USD_PER_HOUR ? Number(env.DELIO_ADMIN_BOAT_USD_PER_HOUR) : undefined;
   if (boatUsdPerHour !== undefined && !(boatUsdPerHour > 0)) fail("DELIO_ADMIN_BOAT_USD_PER_HOUR must be a positive number of dollars");
   const gateway = { openrouterKey: env.DELIO_ADMIN_OPENROUTER_KEY?.trim() || undefined, falKey: env.DELIO_ADMIN_FAL_KEY?.trim() || undefined,
-    boatKey: env.DELIO_ADMIN_BOAT_KEY?.trim() || undefined, boatUsdPerHour, creditUsd, elevenlabsKey: env.DELIO_ADMIN_ELEVENLABS_KEY?.trim() || undefined };
+    boatKey: env.DELIO_ADMIN_BOAT_KEY?.trim() || undefined, boatUsdPerHour, creditUsd, elevenlabsKey: env.DELIO_ADMIN_ELEVENLABS_KEY?.trim() || undefined,
+    fishKey: env.DELIO_ADMIN_FISH_KEY?.trim() || undefined };
   if (!gateway.openrouterKey && !gateway.falKey) warnings.push("no DELIO_ADMIN_OPENROUTER_KEY or DELIO_ADMIN_FAL_KEY, so the AI gateway refuses every request");
 
   const currency = (env.DELIO_ADMIN_CURRENCY ?? "XOF").trim().toUpperCase();

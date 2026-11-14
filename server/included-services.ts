@@ -74,6 +74,20 @@ export function useDelioServices(connection: () => { gateway: string; token: str
   delioGateway = connection;
 }
 
+/** The Fish Audio key a Delio account lends this app: its device token, which only the account's gateway accepts. */
+export function includedFishKey(): string | null {
+  return delioGateway()?.token ?? null;
+}
+
+/** The person's own Fish Audio key, else the Delio account's. */
+export const fishKeyOf = (cfg: { tts?: { fishKey?: string } }): string | undefined => cfg.tts?.fishKey?.trim() || includedFishKey() || undefined;
+
+/** Where a Fish Audio request with this key goes: the Delio gateway for the account's own token, null for any other key. */
+export function fishApiFor(key: string): string | null {
+  const connection = delioGateway();
+  return connection && key.trim() === connection.token ? `${connection.gateway}/fish` : null;
+}
+
 function delioService(path: string): ServiceCredential | null {
   const connection = delioGateway();
   return connection ? { token: connection.token, api: `${connection.gateway}/${path}`, included: true } : null;

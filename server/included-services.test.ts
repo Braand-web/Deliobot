@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { jevEndpoint } from "./decider/jev.ts";
-import { applyIncludedXMessage, boatCredential, deciderCredential, hostingCredential, useDelioServices, researchCredential, trialCreditCredential, voiceCredential, xCredential, xResearchStatus } from "./included-services.ts";
+import { applyIncludedXMessage, boatCredential, deciderCredential, hostingCredential, useDelioServices, fishKeyOf, fishApiFor, researchCredential, trialCreditCredential, voiceCredential, xCredential, xResearchStatus } from "./included-services.ts";
 
 const RELAY_BOAT = "https://cloud.example.test/api/cloud/services/boat/api/box/v1";
 const RELAY_VOICE = "https://cloud.example.test/api/cloud/services/voice/v1";
@@ -245,5 +245,17 @@ describe("a desktop connected to a Delio account", () => {
     useDelioServices(() => null);
     expect(voiceCredential(undefined, {})).toBeNull();
     expect(hostingCredential({})).toBeNull();
+  });
+});
+
+describe("Fish Audio on a Delio account", () => {
+  afterEach(() => useDelioServices(() => null));
+
+  it("lends the account's token, sent only to its gateway, and keeps a key of the person's own", () => {
+    useDelioServices(() => ({ gateway: "https://compte.example.test/api/gateway/acme", token: "odb_device_token" }));
+    expect(fishKeyOf({})).toBe("odb_device_token");
+    expect(fishApiFor("odb_device_token")).toBe("https://compte.example.test/api/gateway/acme/fish");
+    expect(fishKeyOf({ tts: { fishKey: "own" } })).toBe("own");
+    expect(fishApiFor("own")).toBeNull();
   });
 });

@@ -1,7 +1,7 @@
 // The voice routes: whether a voice is ready, the provider's voices (searched, or one pasted by ID or link), adding an
 // ElevenLabs Voice Library voice to My Voices, speaking a line, and hearing speech. Scopes are keyed by path in server/request-auth.ts.
 import type { AppConfig } from "../config.ts";
-import { voiceCredential } from "../included-services.ts";
+import { fishKeyOf, voiceCredential } from "../included-services.ts";
 import { redactSecretsInText } from "../redact.ts";
 import * as elevenlabs from "../tts/elevenlabs.ts";
 import * as fish from "../tts/fish.ts";
@@ -92,7 +92,7 @@ export function createTtsRoutes(deps: TtsRouteDeps): RouteHandler {
         return json(res, 400, { error: "content-type must be audio/wav" });
       }
       // Fish Audio first, as before; without it the person's own ElevenLabs key (never the plan's included voice).
-      const key = cfg.tts?.fishKey;
+      const key = fishKeyOf(cfg);
       const own = key ? null : voiceCredential(cfg.tts?.key);
       const eleven = own?.included ? null : own;
       if (!key && !eleven) {

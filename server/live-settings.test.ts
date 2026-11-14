@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import type { AppConfig } from "./config.ts";
+import { useDelioServices } from "./included-services.ts";
 import { nestedKeyStatus } from "./key-hint.ts";
 import { LIVE_NEEDS_AZURE, LIVE_NEEDS_FISH, LIVE_NEEDS_KEY } from "./live-call.ts";
 import { fishKeyFromLiveKey, LIVE_KEY_NEEDS_ENDPOINT, liveConfigWithEnv, liveKeyTarget, liveSavePatch, usableLiveKey, type LiveConfig } from "./live-config.ts";
@@ -289,5 +290,24 @@ describe("a saved Live key", () => {
       expect(usable(undefined, { ODB_OPENAI_LIVE_KEY: "sk-env" })).toBe("sk-env");
       expect(usable({ voice: "cedar" }, { ODB_OPENAI_LIVE_KEY: "sk-env", ODB_LIVE_PROVIDER: "openai" })).toBe("sk-env");
     });
+  });
+});
+
+describe("Live calls on a Delio account's included Fish Audio voice", () => {
+  afterEach(() => useDelioServices(() => null));
+  const connected = () => ({ gateway: "https://compte.example.test/api/gateway/acme", token: "odb_device_token" });
+
+  it("call through the account's gateway when no provider was chosen and there is no OpenAI key", () => {
+    useDelioServices(connected);
+    const cfg = { live: { fishAgentId: "agent-1", fishAgentFor: fishKeyPrint("odb_device_token") } } as unknown as AppConfig;
+    expect(liveCallKey(cfg)).toEqual({ key: "odb_device_token", source: "fishAudio" });
+    expect(liveCallEndpoint(cfg)).toEqual({ provider: "fish", apiBase: "https://compte.example.test/api/gateway/acme/fish/v1/agent", model: "agent-1" });
+    expect(liveSettingsFor(cfg)).toMatchObject({ configured: true, provider: "fish" });
+    expect(nestedKeyStatus(cfg).fishAudioKey).toEqual({ configured: true });
+  });
+
+  it("keep OpenAI when the person has an OpenAI key", () => {
+    useDelioServices(connected);
+    expect(liveCallKey({ openai: { key: "sk-own" } } as unknown as AppConfig)).toEqual({ key: "sk-own", source: "openai" });
   });
 });

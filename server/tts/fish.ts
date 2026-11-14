@@ -1,8 +1,11 @@
 // The API key stays on the harness: the renderer gets only voice metadata and audio bytes.
 import type { FishTtsModel } from "../config.ts";
+import { fishApiFor } from "../included-services.ts";
 import { userErrorThrown } from "../user-errors.ts";
 
 const API = (process.env.ODB_FISH_AUDIO_API || "https://api.fish.audio").replace(/\/+$/, "");
+/** A Delio account's included key goes only to its gateway; any other key goes to Fish Audio. */
+const fishApi = (key: string) => fishApiFor(key) ?? API;
 export const DEFAULT_FISH_MODEL: FishTtsModel = "s2.1-pro";
 const MAX_ERROR_LENGTH = 240;
 const PAGE_SIZE = 100;
@@ -63,7 +66,7 @@ function errorMessage(status: number, action: string, body: unknown): string {
 export async function verifyKey(key: string): Promise<VerifyResult> {
   try {
     // The public catalog needs no key, so it proves nothing; `self=true` answers 401 for an absent or invalid Bearer token.
-    const res = await fetch(`${API}/model?page_size=1&self=true`, {
+    const res = await fetch(`${fishApi(key)}/model?page_size=1&self=true`, {
       headers: { authorization: `Bearer ${key}` },
       redirect: "error",
       signal: AbortSignal.timeout(20_000),
@@ -78,7 +81,7 @@ export async function verifyKey(key: string): Promise<VerifyResult> {
 async function fishGet(key: string, path: string): Promise<{ status: number; body: unknown }> {
   let response: Response;
   try {
-    response = await fetch(`${API}${path}`, {
+    response = await fetch(`${fishApi(key)}${path}`, {
       headers: { authorization: `Bearer ${key}` },
       redirect: "error",
       signal: AbortSignal.timeout(20_000),
@@ -183,7 +186,7 @@ export async function synthesize(
 ): Promise<Audio> {
   let res: Response;
   try {
-    res = await fetch(`${API}/v1/tts`, {
+    res = await fetch(`${fishApi(key)}/v1/tts`, {
       method: "POST",
       headers: {
         authorization: `Bearer ${key}`,
@@ -217,7 +220,7 @@ export async function transcribe(audio: Uint8Array, mime: string, key: string): 
   form.append("tag_audio_events", "false");
   let res: Response;
   try {
-    res = await fetch(`${API}/v1/asr`, {
+    res = await fetch(`${fishApi(key)}/v1/asr`, {
       method: "POST",
       headers: { authorization: `Bearer ${key}`, model: "transcribe-1-pro" },
       body: form,

@@ -1,5 +1,6 @@
 import type { LiveKeySource, LiveSettings } from "../shared/wire.ts";
 import { saveConfig, syncCredentialEnv, type AppConfig } from "./config.ts";
+import { fishKeyOf, includedFishKey } from "./included-services.ts";
 import { azureLiveEndpoint, LIVE_NEEDS_AZURE, LIVE_NEEDS_FISH, LIVE_NEEDS_KEY, openAiLiveEndpoint, type LiveEndpoint } from "./live-call.ts";
 import { liveSavePatch, usableLiveKey, type LiveConfig as LiveConfigSection } from "./live-config.ts";
 import { fishLiveEndpoint, usableFishAgent } from "./live-fish.ts";
@@ -8,16 +9,22 @@ export const LIVE_IDLE_MINUTES_DEFAULT = 5;
 
 type LiveConfig = Pick<AppConfig, "live" | "openai" | "tts">;
 
+/** The provider calls use: the one chosen, else Fish Audio on a Delio account's included key when there is no OpenAI key. */
+export function liveProvider(cfg: LiveConfig): LiveConfigSection["provider"] {
+  if (cfg.live?.provider) return cfg.live.provider;
+  return includedFishKey() && !usableLiveKey(cfg.live) && !cfg.openai?.key?.trim() ? "fish" : undefined;
+}
+
 /** A saved Live key goes only to the provider and host it was saved for (`usableLiveKey`), the OpenAI API key only ever to
  * OpenAI, and the Fish Audio key only to Fish Audio. */
 export function liveCallKey(cfg: LiveConfig): { key: string; source: LiveKeySource } | null {
-  if (cfg.live?.provider === "fish") {
-    const fish = cfg.tts?.fishKey?.trim();
+  if (liveProvider(cfg) === "fish") {
+    const fish = fishKeyOf(cfg);
     return fish ? { key: fish, source: "fishAudio" } : null;
   }
   const live = usableLiveKey(cfg.live);
   if (live) return { key: live, source: "live" };
-  if (cfg.live?.provider === "azure") return null;
+  if (liveProvider(cfg) === "azure") return null;
   const openai = cfg.openai?.key?.trim();
   return openai ? { key: openai, source: "openai" } : null;
 }
@@ -25,13 +32,13 @@ export function liveCallKey(cfg: LiveConfig): { key: string; source: LiveKeySour
 /** null when Azure is chosen but its endpoint or deployment is missing or not valid. On Fish Audio, `model` is "" until the
  * harness has set up an agent on the account of the Fish Audio key. */
 export function liveCallEndpoint(cfg: LiveConfig, env: NodeJS.ProcessEnv = process.env): LiveEndpoint | null {
-  if (cfg.live?.provider === "azure") return azureLiveEndpoint(cfg.live.azureEndpoint, cfg.live.azureDeployment);
-  if (cfg.live?.provider === "fish") return fishLiveEndpoint(usableFishAgent(cfg.live, cfg.tts?.fishKey ?? ""), env);
+  if (liveProvider(cfg) === "azure") return azureLiveEndpoint(cfg.live?.azureEndpoint, cfg.live?.azureDeployment);
+  if (liveProvider(cfg) === "fish") return fishLiveEndpoint(usableFishAgent(cfg.live, fishKeyOf(cfg) ?? ""), env, fishKeyOf(cfg));
   return openAiLiveEndpoint(env);
 }
 
 export function liveSetupProblem(cfg: LiveConfig): string | null {
-  const provider = cfg.live?.provider;
+  const provider = liveProvider(cfg);
   const missing = provider === "azure" ? LIVE_NEEDS_AZURE : provider === "fish" ? LIVE_NEEDS_FISH : LIVE_NEEDS_KEY;
   if (!liveCallKey(cfg)) return missing;
   return liveCallEndpoint(cfg) ? null : missing;
@@ -57,7 +64,7 @@ export function liveSettingsForClient({ azureEndpoint: _endpoint, azureDeploymen
 export function liveSettingsFor(cfg: AppConfig): LiveSettings {
   const minutes = cfg.live?.idleMinutes;
   const key = liveCallKey(cfg);
-  const provider = cfg.live?.provider;
+  const provider = liveProvider(cfg);
   return {
     configured: liveSetupProblem(cfg) === null,
     ...(key ? { keySource: key.source } : {}),
