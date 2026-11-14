@@ -7,6 +7,7 @@
   "workers_dev": false,
   "preview_urls": false,
   "routes": [{ "pattern": "compte.deliobot.fun", "custom_domain": true }, { "pattern": "admin.deliobot.fun", "custom_domain": true }],
+  "r2_buckets": [{ "binding": "SITES", "bucket_name": "deliobot-sites" }],
   "durable_objects": { "bindings": [{ "name": "PORTAL", "class_name": "Portal" }] },
   "services": [{ "binding": "COMPOSIO_SWEEP", "service": "deliobot-composio", "entrypoint": "HourlySweep" }],
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Portal"] }],
@@ -17,7 +18,8 @@
     "DELIO_ADMIN_CONSOLE_URL": "https://admin.deliobot.fun",
     "DELIO_ADMIN_DOWNLOAD_URL": "https://deliobot.fun/#telecharger",
     "DELIO_ADMIN_CURRENCY": "XOF",
-    "DELIO_ADMIN_XOF_PER_USD": "600"
+    "DELIO_ADMIN_XOF_PER_USD": "600",
+    "DELIO_SITES_SUFFIX": "-app.deliobot.fun"
   },
   "observability": { "enabled": true }
 }

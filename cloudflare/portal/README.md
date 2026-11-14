@@ -28,7 +28,7 @@ type **Secret**), never in this repository:
 | `DELIO_ADMIN_SECRET` | already set: 64 random characters signing sessions and codes |
 | `DELIO_ADMIN_MAIL_API_KEY` | a Resend API key, with `deliobot.fun` verified at Resend |
 | `DELIO_ADMIN_MAIL_FROM` | `Delio <signin@deliobot.fun>` |
-| `DELIO_ADMIN_OPENROUTER_KEY`, `DELIO_ADMIN_FAL_KEY`, `DELIO_ADMIN_BOAT_KEY` | the operator's provider keys |
+| `DELIO_ADMIN_OPENROUTER_KEY`, `DELIO_ADMIN_FAL_KEY`, `DELIO_ADMIN_BOAT_KEY`, `DELIO_ADMIN_ELEVENLABS_KEY` | the operator's provider keys |
 | `DELIO_ADMIN_SASPAY_KEY`, `DELIO_ADMIN_SASPAY_WEBHOOK_SECRET` | SasPay's secret key and the webhook's signing secret |
 | `DELIO_ADMIN_OPERATORS` | the Delio team's addresses, separated by commas |
 

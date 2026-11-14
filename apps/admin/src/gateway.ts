@@ -3,7 +3,9 @@
 // Security: provider keys never leave this process, and a workspace only ever reaches its own fal.ai jobs.
 import type { IncomingMessage, ServerResponse } from "node:http";
 
+import type { AppHosting } from "./app-hosting.ts";
 import { createBoatRelay } from "./boat-relay.ts";
+import { createVoiceRelay } from "./voice-relay.ts";
 import type { AdminStore } from "./store.ts";
 import { MICRO, type Wallet } from "./wallet.ts";
 
@@ -32,6 +34,10 @@ export interface GatewayOptions {
   boatKey?: string;
   boatUrl?: string;
   boatUsdPerHour?: number;
+  elevenlabsKey?: string;
+  elevenlabsUrl?: string;
+  /** Included app hosting; absent where no bucket is bound. */
+  hosting?: AppHosting;
   /** What the workspace's plan allows: spending Delio credits, and cloud computers awake at once. */
   allowance?: (workspace: string) => { gateway: boolean; computers: number; computerHours?: number; plan?: string | null; ownAi?: boolean; reason?: string };
   now?: () => number;
@@ -87,7 +93,7 @@ function bearer(req: IncomingMessage): string {
   const header = req.headers.authorization ?? "";
   const match = /^(?:Bearer|Key)\s+(\S+)$/i.exec(header);
   if (match) return match[1]!;
-  const apiKey = req.headers["x-api-key"];
+  const apiKey = req.headers["x-api-key"] ?? req.headers["xi-api-key"];
   return typeof apiKey === "string" ? apiKey : "";
 }
 
@@ -129,6 +135,7 @@ export function createGateway(options: GatewayOptions) {
   const falApiUrl = (options.falApiUrl ?? "https://api.fal.ai/v1").replace(/\/+$/, "");
   const boat = createBoatRelay({ wallet, key: options.boatKey, apiUrl: options.boatUrl, usdPerHour: options.boatUsdPerHour, limit: (workspace) => options.allowance?.(workspace).computers ?? 1,
     includedHours: (workspace) => options.allowance?.(workspace).computerHours ?? 0, fetchImpl, now });
+  const voice = createVoiceRelay({ wallet, key: options.elevenlabsKey, apiUrl: options.elevenlabsUrl, fetchImpl });
   const running = new Map<string, number>();
   const prices = new Map<string, { at: number; price: { unitPrice: number; unit: string } | null }>();
 
@@ -372,7 +379,7 @@ export function createGateway(options: GatewayOptions) {
     sweep: () => boat.sweep(),
     /** Handles /api/gateway/<workspace>/<provider>/… and /api/workspace/<workspace>/account; false for any other path. */
     async handle(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
-      const gateway = /^\/api\/gateway\/([a-z][a-z0-9-]{1,30})\/(openrouter\/v1|fal|boat\/v1|anthropic|openai\/v1)\/(.+)$/.exec(url.pathname);
+      const gateway = /^\/api\/gateway\/([a-z][a-z0-9-]{1,30})\/(openrouter\/v1|fal|boat\/v1|elevenlabs\/v1|hosting\/v1|anthropic|openai\/v1)\/(.+)$/.exec(url.pathname);
       const account = /^\/api\/workspace\/([a-z][a-z0-9-]{1,30})\/account$/.exec(url.pathname);
       const report = /^\/api\/workspace\/([a-z][a-z0-9-]{1,30})\/report$/.exec(url.pathname);
       const requested = gateway?.[1] ?? account?.[1] ?? report?.[1];
@@ -407,16 +414,22 @@ export function createGateway(options: GatewayOptions) {
           plan: allowed.plan ?? null, ownAi: allowed.ownAi ?? false, paymentVersion: options.paymentVersion?.(workspace) });
         return true;
       }
+      const provider = gateway![2]!;
+      const rest = gateway![3]! + url.search;
+      if (provider === "hosting/v1") {
+        if (options.hosting) await options.hosting.handle(req, res, workspace, rest);
+        else send(res, 503, { error: "unavailable" });
+        return true;
+      }
       if (!allowed.gateway) {
         failure(res, 402, allowed.reason ?? OUT_OF_CREDITS, "plan_inactive");
         return true;
       }
-      const provider = gateway![2]!;
-      const rest = gateway![3]! + url.search;
       try {
         if (provider === "openrouter/v1") await openrouter(req, res, workspace, rest, CONCURRENT_BY_PLAN[allowed.plan ?? ""] ?? CONCURRENT_DEFAULT);
         else if (provider === "fal") await fal(req, res, workspace, rest);
         else if (provider === "boat/v1") await boat.handle(req, res, workspace, rest);
+        else if (provider === "elevenlabs/v1") await voice.handle(req, res, workspace, rest);
         else failure(res, 501, "Claude and Codex company models are not offered on this deployment yet; use the OpenRouter company models.");
       } catch (error) {
         if (!res.headersSent) failure(res, (error as { status?: number }).status ?? 502, "The gateway could not complete this request.");

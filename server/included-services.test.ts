@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { jevEndpoint } from "./decider/jev.ts";
-import { applyIncludedXMessage, boatCredential, deciderCredential, researchCredential, trialCreditCredential, voiceCredential, xCredential, xResearchStatus } from "./included-services.ts";
+import { applyIncludedXMessage, boatCredential, deciderCredential, hostingCredential, useDelioServices, researchCredential, trialCreditCredential, voiceCredential, xCredential, xResearchStatus } from "./included-services.ts";
 
 const RELAY_BOAT = "https://cloud.example.test/api/cloud/services/boat/api/box/v1";
 const RELAY_VOICE = "https://cloud.example.test/api/cloud/services/voice/v1";
@@ -228,3 +228,22 @@ describe("research credential", () => {
   });
 });
 
+
+describe("a desktop connected to a Delio account", () => {
+  afterEach(() => useDelioServices(() => null));
+  const connected = () => ({ gateway: "https://compte.example.test/api/gateway/acme", token: "odb_device_token" });
+
+  it("speaks and publishes through the account's gateway when it has no key of its own", () => {
+    useDelioServices(connected);
+    expect(voiceCredential(undefined, {})).toEqual({ token: "odb_device_token", api: "https://compte.example.test/api/gateway/acme/elevenlabs/v1", included: true });
+    expect(hostingCredential({})).toEqual({ token: "odb_device_token", api: "https://compte.example.test/api/gateway/acme/hosting/v1", included: true });
+  });
+
+  it("keeps the person's own ElevenLabs key, and has neither service when no account is connected", () => {
+    useDelioServices(connected);
+    expect(voiceCredential("own-key", {})).toEqual({ token: "own-key", api: "https://api.elevenlabs.io/v1", included: false });
+    useDelioServices(() => null);
+    expect(voiceCredential(undefined, {})).toBeNull();
+    expect(hostingCredential({})).toBeNull();
+  });
+});

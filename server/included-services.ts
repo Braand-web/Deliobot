@@ -66,6 +66,19 @@ function trialCreditService(url: string | undefined, token: string | undefined):
 
 let held: Included | null = null;
 
+/** A desktop connected to a Delio account, with no key of its own, speaks and publishes through the Delio gateway. */
+let delioGateway: () => { gateway: string; token: string } | null = () => null;
+
+/** Points the voice and app hosting fallback at the account the app is connected to, read each time it is needed. */
+export function useDelioServices(connection: () => { gateway: string; token: string } | null): void {
+  delioGateway = connection;
+}
+
+function delioService(path: string): ServiceCredential | null {
+  const connection = delioGateway();
+  return connection ? { token: connection.token, api: `${connection.gateway}/${path}`, included: true } : null;
+}
+
 /** Dropped from the environment at startup so nothing the server starts can inherit them. */
 export function holdIncludedServices(env: NodeJS.ProcessEnv = process.env): void {
   held = includedFrom(env);
@@ -90,16 +103,16 @@ export function boatCredential(own: string | undefined, env: NodeJS.ProcessEnv =
 }
 
 export function voiceCredential(own: string | undefined, env: NodeJS.ProcessEnv = process.env): ServiceCredential | null {
-  return resolve(own, elevenLabsProviderApi(env), (held ?? includedFrom(env)).voice);
+  return resolve(own, elevenLabsProviderApi(env), (held ?? includedFrom(env)).voice ?? delioService("elevenlabs/v1"));
 }
 
 export function trialCreditCredential(env: NodeJS.ProcessEnv = process.env): ServiceCredential | null {
   return (held ?? includedFrom(env)).ai;
 }
 
-/** The plan's app hosting relay (a Cloud home only): null wherever the Admin gave none. */
+/** The plan's app hosting relay: a Cloud home's, else a desktop's Delio account; null with neither. */
 export function hostingCredential(env: NodeJS.ProcessEnv = process.env): ServiceCredential | null {
-  return (held ?? includedFrom(env)).hosting;
+  return (held ?? includedFrom(env)).hosting ?? delioService("hosting/v1");
 }
 
 export function deciderCredential(

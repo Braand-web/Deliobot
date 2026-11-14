@@ -39,7 +39,7 @@ const include = [
   "shared/**/*.test.ts",
   "companion/**/*.test.ts",
   "enterprise/**/*.test.ts",
-  "apps/admin/**/*.test.ts",
+  "apps/admin/**/*.test.ts", "cloudflare/sites/**/*.test.ts",
   "connector/**/*.test.ts",
   "scripts/**/*.test.mjs",
   "scripts/**/*.test.ts",

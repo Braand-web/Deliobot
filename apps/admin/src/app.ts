@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { HOSTED_CONTRACT_HEADER, HOSTED_CONTRACT_METADATA, HOSTED_CONTRACT_MISMATCH, HOSTED_CONTRACT_VERSION, hostedContractCompatible } from "../../../server/hosted-contract.ts";
 import type { Mailer } from "./mail.ts";
 import { discover, exchangeCode, pkceChallenge, verifyIdToken } from "./oidc.ts";
+import { createAppHosting, hostingAccess, type SiteBucket } from "./app-hosting.ts";
 import { createGateway, type GatewayOptions } from "./gateway.ts";
 import { DEVICE_POLL_SECONDS, Devices } from "./devices.ts";
 import { personalWorkspaces } from "./personal-workspaces.ts";
@@ -33,7 +34,9 @@ export interface AdminAppOptions {
   /** Tests only: lets a fixture identity provider run over plain HTTP. */
   allowHttpProviders?: boolean;
   /** The operator's provider keys and upstreams for the paid gateway; a provider without a key is refused there. */
-  gateway?: Omit<GatewayOptions, "store" | "wallet" | "publicUrl" | "fetchImpl" | "now" | "allowance" | "deviceToken" | "deviceEmail" | "deviceAccount" | "revokeDevice" | "refreshAccount" | "paymentVersion" | "report"> & { creditUsd?: number };
+  gateway?: Omit<GatewayOptions, "store" | "wallet" | "publicUrl" | "fetchImpl" | "now" | "allowance" | "deviceToken" | "deviceEmail" | "deviceAccount" | "revokeDevice" | "refreshAccount" | "paymentVersion" | "report" | "hosting"> & { creditUsd?: number };
+  /** Included app hosting: the bucket the sites Worker serves, and what follows each site's label in its host name. */
+  sites?: { bucket: SiteBucket; suffix: string };
   /** The mascot pictures pages show, by path (`/assets/delio-idle.webp`…). */
   assets?: ReadonlyMap<string, Uint8Array>;
   /** SasPay: the secret key, the webhook signing secret, and the currency checkouts are priced in (XOF by default). */
@@ -198,7 +201,8 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       store.audit(input.workspace, input.email, "report.sent", reports.add(input));
       return true;
     },
-    allowance: (slug) => plans.allowance(slug), refreshAccount, paymentVersion: slug => plans.paidCount(slug) });
+    allowance: (slug) => plans.allowance(slug), refreshAccount, paymentVersion: slug => plans.paidCount(slug),
+    ...(options.sites ? { hosting: createAppHosting({ db: store.db, bucket: options.sites.bucket, sitesSuffix: options.sites.suffix, now, access: (slug) => hostingAccess(plans, slug) }) } : {}) });
 
   function sessionCookie(value: string, maxAgeSeconds: number): string {
     return `${cookieName}=${value}; Path=/; Max-Age=${maxAgeSeconds}; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}`;

@@ -291,7 +291,7 @@ import { lentCopies, noteSyncBotTurn } from "./routes/cloud-sync.ts"; import { m
 import { type CloudOwnership } from "./cloud-owner.ts"; import { memberLoginRefusal, personalMoveRefusal } from "./cloud-team.ts"; import { createCloudTeamHost, type MemberProfile } from "./host/cloud-team-host.ts"; import { engineHomes } from "./engine-homes/engine-homes.ts"; import { audienceMember, layerId, memberAudience } from "./audience.ts"; import { createPersonRooms, createRoomReads, type OwnGroupFrames } from "./host/room-reads.ts"; import { createPersonBotOrder } from "./host/person-bot-order.ts"; import { createMeRoutes } from "./routes/me.ts"; import { createTeamPhoneRoutes } from "./routes/team-phone.ts"; import { settleCloudHome } from "./cloud-home-settle.ts"; import { CLOUD_NOBODY_KEY, CLOUD_OUTSIDE_KEY } from "./cloud-sharing.ts";
 import { createCloudMoveRoutes } from "./cloud-move-http.ts";
 import { RESTART_EXIT_CODE } from "./restart.ts";
-import { applyIncludedXMessage, holdIncludedServices, hostingCredential, researchCredential, trialCreditCredential, xCredential, xResearchStatus } from "./included-services.ts"; import { applyPhoneLinkMessage, phoneLinkPart } from "./phone-link.ts"; import { createResearchAvailability } from "./research.ts";
+import { applyIncludedXMessage, holdIncludedServices, hostingCredential, useDelioServices, researchCredential, trialCreditCredential, xCredential, xResearchStatus } from "./included-services.ts"; import { applyPhoneLinkMessage, phoneLinkPart } from "./phone-link.ts"; import { createResearchAvailability } from "./research.ts";
 import { CloudCreditProvider } from "./cloud-credit-provider.ts";
 import { createCreditMoves } from "./cloud-credit-moves.ts"; import { createRoutineHoldsHost } from "./host/routine-holds-host.ts";
 import { TRIAL_CREDIT_OWN_AI, TRIAL_KEY_HELD } from "./trial-credit.ts"; import { createHeldKeys } from "./cloud-held-keys.ts";
@@ -2847,7 +2847,7 @@ async function bookMediaUsage(by: { botId: string; threadId: string }, media: { 
     trigger: turnTriggers.get(by.threadId) ?? { kind: "user" }, media: { kind: media.kind, ...(media.seconds !== undefined ? { seconds: media.seconds } : {}) } });
   noteSpend(DATA_DIR, booked, appendUsage(DATA_DIR, booked));
 }
-const delioAccount = createDelioAccount({ config: () => cfg, label: () => `Deliobot on ${hostname()}`,
+useDelioServices(() => delioConnection(cfg)); const delioAccount = createDelioAccount({ config: () => cfg, label: () => `Deliobot on ${hostname()}`,
   save: (delio) => {
     const before = engineLaunches(providerConfigs());
     saveConfig({ delio: delio ?? null });

@@ -5,6 +5,7 @@ import { DurableObject, WorkerEntrypoint } from "cloudflare:workers";
 import "./fetch-redirects.ts";
 
 import { createAdminApp, type AdminApp } from "../../../apps/admin/src/app.ts";
+import type { SiteBucket } from "../../../apps/admin/src/app-hosting.ts";
 import { portalSettings } from "../../../apps/admin/src/env-config.ts";
 import { serveFetch } from "../../../apps/admin/src/fetch-adapter.ts";
 import { catalog } from "../../../apps/admin/src/plans.ts";
@@ -20,6 +21,8 @@ import sad from "../../../src/assets/delio-steel/cursor.sad-88.webp";
 
 interface Env extends Record<string, unknown> {
   PORTAL: DurableObjectNamespace<Portal>;
+  /** The bucket the sites Worker serves published apps from. */
+  SITES?: R2Bucket;
   COMPOSIO_SWEEP?: { run(): Promise<void> };
 }
 
@@ -30,6 +33,14 @@ const ASSETS = new Map<string, Uint8Array>([
   ["/assets/delio-idle.webp", new Uint8Array(idle)], ["/assets/delio-happy.webp", new Uint8Array(happy)],
   ["/assets/delio-sad.webp", new Uint8Array(sad)], ["/assets/delio-curious.webp", new Uint8Array(curious)],
 ]);
+
+function r2Sites(bucket: R2Bucket): SiteBucket {
+  return {
+    has: async (key) => (await bucket.head(key)) !== null,
+    put: async (key, bytes, contentType) => { await bucket.put(key, bytes, contentType ? { httpMetadata: { contentType } } : undefined); },
+    delete: async (key) => { await bucket.delete(key); },
+  };
+}
 
 const unavailable = () => new Response(
   "<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>Delio</title>" +
@@ -71,7 +82,8 @@ export class Portal extends DurableObject<Env> {
       for (const warning of settings.warnings) console.warn(`delio-admin: ${warning}`);
       const store = new AdminStore({ db: durableObjectDatabase(this.ctx.storage), secret: Buffer.from(settings.secret ?? "") });
       this.app = createAdminApp({ store, publicUrl: settings.publicUrl, operators: settings.operators, mailer: settings.mailer, gateway: settings.gateway,
-        payments: settings.payments, assets: ASSETS, waitUntil: work => this.ctx.waitUntil(work), ...(settings.signup ? { signup: settings.signup } : {}) });
+        payments: settings.payments, assets: ASSETS, waitUntil: work => this.ctx.waitUntil(work), ...(settings.signup ? { signup: settings.signup } : {}),
+        ...(this.env.SITES && typeof base.DELIO_SITES_SUFFIX === "string" ? { sites: { bucket: r2Sites(this.env.SITES), suffix: base.DELIO_SITES_SUFFIX } } : {}) });
       const consoleUrl = base.DELIO_ADMIN_CONSOLE_URL ? new URL(base.DELIO_ADMIN_CONSOLE_URL) : null;
       this.operatorsConsole = consoleUrl && settings.operators.size > 0 ? { host: consoleUrl.host, app: createAdminApp({ store, publicUrl: consoleUrl,
         operators: settings.operators, mailer: settings.mailer, payments: settings.payments, assets: ASSETS, console: true, waitUntil: work => this.ctx.waitUntil(work) }) } : null;

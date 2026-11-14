@@ -44,6 +44,7 @@ Open http://localhost:8790. In development, sign-in codes and invitation links a
 | `DELIO_ADMIN_MAIL=console` | Prints mail instead of sending it, even in production. Never use this on a public deployment. |
 | `DELIO_ADMIN_OPENROUTER_KEY` | The operator's OpenRouter key, used only by the AI gateway. |
 | `DELIO_ADMIN_FAL_KEY` | The operator's fal.ai key, used only by the AI gateway. |
+| `DELIO_ADMIN_ELEVENLABS_KEY` | The operator's ElevenLabs key: the included voice that connected apps read replies aloud and transcribe meetings with. |
 | `DELIO_ADMIN_BOAT_KEY` | The operator's Boat key, used only by the cloud-computer relay. |
 | `DELIO_ADMIN_BOAT_USD_PER_HOUR` | What an awake cloud computer costs, charged per minute. Default: `0.10`; set it to your Boat rate. |
 | `DELIO_ADMIN_CREDIT_USD` | The provider cost one credit stands for. Default: `0.002` (so 1 USD of provider cost = 500 credits). |
@@ -107,6 +108,16 @@ prepaid **credits** kept per workspace.
   those. Awake minutes are charged once a minute; at zero credits every awake
   computer of the workspace is put to sleep (its disk is kept) and none can
   start or wake. One computer awake at a time per workspace.
+- **Included voice.** `/api/gateway/<slug>/elevenlabs/v1/…` relays the
+  ElevenLabs calls a connected app makes (speech, voices, transcription) with
+  the operator's key. Speech always runs on Flash and costs 0.12 USD per 1,000
+  characters, transcription 0.03 USD per MB (0.005 minimum) and a live meeting
+  transcription session 0.05 USD, held and settled like any other call.
+- **Included app hosting.** `/api/gateway/<slug>/hosting/v1/…` is the relay the
+  app's Published apps use. A paid plan (Starter 2 apps and 30 publishes a
+  month, BYOK 3/50, Pro 5/100, Max 20/300; a trial gets none) keeps static
+  sites in the `SITES` bucket, and the `deliobot-sites` Worker
+  (`cloudflare/sites`) serves each one at `https://<label>-app.deliobot.fun/`.
 
 - **Desktop apps.** In the app, **Settings → API keys → Delio account →
   Connect** shows a code and opens `https://<portal>/device` (RFC 8628 device

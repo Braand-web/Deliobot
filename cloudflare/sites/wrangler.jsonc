@@ -1,0 +1,13 @@
+{
+  "$schema": "../control-plane/node_modules/wrangler/config-schema.json",
+  "name": "deliobot-sites",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-25",
+  "workers_dev": false,
+  "preview_urls": false,
+  "r2_buckets": [{ "binding": "SITES", "bucket_name": "deliobot-sites" }],
+  // One level under the zone, so Cloudflare's free certificate for *.deliobot.fun covers every site.
+  "routes": [{ "pattern": "*-app.deliobot.fun/*", "zone_name": "deliobot.fun" }],
+  "vars": { "SITES_SUFFIX": "-app.deliobot.fun" },
+  "observability": { "enabled": true }
+}
