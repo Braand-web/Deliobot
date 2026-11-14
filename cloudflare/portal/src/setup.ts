@@ -10,6 +10,7 @@ export const SETUP_FIELDS = [
   { name: "DELIO_ADMIN_OPENROUTER_KEY", label: "Clé API OpenRouter (texte)", secret: true },
   { name: "DELIO_ADMIN_FAL_KEY", label: "Clé API fal.ai (images, vidéo, musique, voix)", secret: true },
   { name: "DELIO_ADMIN_BOAT_KEY", label: "Clé API Boat (ordinateurs cloud)", secret: true },
+  { name: "DELIO_ADMIN_ELEVENLABS_KEY", label: "Clé API ElevenLabs (voix incluse : lecture à voix haute et transcription)", secret: true },
   { name: "DELIO_ADMIN_SASPAY_KEY", label: "Clé secrète SasPay (sk_live_… ou sk_test_…)", secret: true },
   { name: "DELIO_ADMIN_SASPAY_WEBHOOK_SECRET", label: "Secret du webhook SasPay", secret: true },
   { name: "DELIO_ADMIN_OPERATORS", label: "Votre e-mail d'opérateur (console d'administration)", secret: false, placeholder: "vous@exemple.com" },
