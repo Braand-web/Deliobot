@@ -3,8 +3,8 @@ import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const fixture = vi.hoisted(() => ({ state: { config: { cloudHome: true, botLimit: 5 } as Record<string, unknown>, bots: [] as unknown[] } }));
-vi.mock("@/state/store", () => ({ useStore: () => ({ state: fixture.state, dispatch: vi.fn() }) }));
+const fixture = vi.hoisted(() => ({ state: { config: { cloudHome: true, botLimit: 5 } as Record<string, unknown>, bots: [] as unknown[] }, dispatch: vi.fn() }));
+vi.mock("@/state/store", () => ({ useStore: () => ({ state: fixture.state, dispatch: fixture.dispatch }) }));
 vi.mock("./Avatar", () => ({ DelioAvatar: () => createElement("i", { "data-mark": "" }), BotAvatar: () => createElement("i", { "data-avatar": "" }) }));
 const posted = vi.hoisted(() => [] as Array<{ path: string; body: unknown }>);
 vi.mock("@/state/api", () => ({ api: vi.fn(async (path: string, init?: { body?: string }) => { posted.push({ path, body: init?.body ? JSON.parse(init.body) : undefined }); return {}; }) }));
@@ -109,12 +109,14 @@ describe("the bot limit popup", () => {
     expect(dialog()!.querySelector("h2")?.textContent).toBe("That's more bots than Starter has room for");
   });
 
-  it("in a browser tab, with no bridge, opens the Plan page", async () => {
+  it("with no bridge opens the integrated plans sheet and closes the notice", async () => {
     await open();
     expect(dialog()!.querySelector("p")?.textContent).toBe("To create more, upgrade this Cloud on its Plan page. Every bot you have stays as it is.");
     expect(buttons()).toEqual(["Open the Plan page", "Not now", "Close"]);
     await press("Open the Plan page");
-    expect(openExternalLink).toHaveBeenCalledExactlyOnceWith("https://compte.deliobot.fun/billing");
+    expect(fixture.dispatch).toHaveBeenCalledWith({ type: "openCloudAdd", source: "app_menu" });
+    expect(openExternalLink).not.toHaveBeenCalled();
+    expect(dialog()).toBeNull();
   });
 
   it("on a person's other Cloud, which only reads its plan, opens its Plan page and closes", async () => {

@@ -1,13 +1,15 @@
-import { createElement } from "react";
+// @vitest-environment happy-dom
+import { act, createElement } from "react";
+import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ConfigStatus } from "@/state/store";
-import { budgetTone, entitledTo, UsageBudgetCards, type BudgetState } from "./UsageBudget";
+import { budgetTone, entitledTo, UsageBudgetCards, DelioCreditsCard, type BudgetState } from "./UsageBudget";
 
-const fixture = vi.hoisted(() => ({ config: null as ConfigStatus | null }));
+const fixture = vi.hoisted(() => ({ config: null as ConfigStatus | null, dispatch: vi.fn() }));
 vi.mock("@/state/store", async (importOriginal) => ({
   ...await importOriginal<typeof import("@/state/store")>(),
-  useStore: () => ({ state: { config: fixture.config }, dispatch: () => {} }),
+  useStore: () => ({ state: { config: fixture.config }, dispatch: fixture.dispatch }),
 }));
 afterEach(() => vi.unstubAllGlobals());
 
@@ -23,6 +25,18 @@ function config(features: string[], extra: Partial<ConfigStatus> = {}): ConfigSt
 const budget: BudgetState = { month: "2026-09", monthlyUsd: 50, spentUsd: 42.5, percent: 85, warnAtPercent: 80, warn: true, exceeded: false };
 
 describe("usage budget and prices cards", () => {
+  it("opens top-ups in the app rather than navigating to the old billing page", async () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    try {
+      await act(async () => root.render(createElement(DelioCreditsCard, { credits: { credits: 30, usedThisMonth: 10, billingUrl: "https://compte.example.test/billing?workspace=fixture" } })));
+      expect(host.querySelector('a[target="_blank"]')).toBeNull();
+      await act(async () => host.querySelector("button")!.click());
+      expect(fixture.dispatch).toHaveBeenCalledWith({ type: "openCloudAdd", source: "app_settings" });
+    } finally { await act(async () => root.unmount()); host.remove(); }
+  });
+
   it("render nothing at all on the open-source edition", () => {
     fixture.config = config([]);
     expect(renderToStaticMarkup(createElement(UsageBudgetCards, { budget }))).toBe("");

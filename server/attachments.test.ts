@@ -42,7 +42,7 @@ afterEach(() => {
 // before the import is evaluated.
 const DATA_ROOT = mkdtempSync(join(tmpdir(), "odb-attachments-"));
 process.env.ODB_DATA_DIR = join(DATA_ROOT, "data");
-process.env.ODB_ATTACHMENTS_MAX_BYTES = String(64 * 1024 * 1024);
+process.env.ODB_ATTACHMENTS_MAX_BYTES = String(128 * 1024 * 1024);
 
 const {
   ATTACHMENTS_DIR,
@@ -249,7 +249,7 @@ describe("saveAudio", () => {
 
 describe("attachmentsMaxBytes", () => {
   it("keeps 512 MB unless ODB_ATTACHMENTS_MAX_BYTES is a positive whole number of bytes", () => {
-    expect(ATTACHMENTS_MAX_BYTES).toBe(64 * 1024 * 1024);
+    expect(ATTACHMENTS_MAX_BYTES).toBe(128 * 1024 * 1024);
     expect(attachmentsMaxBytes({})).toBe(512 * 1024 * 1024);
     expect(attachmentsMaxBytes({ ODB_ATTACHMENTS_MAX_BYTES: " 4294967296 " })).toBe(4 * 1024 * 1024 * 1024);
     for (const bad of ["", "0", "-1", "2GB", "1.5", "NaN"]) {
@@ -276,7 +276,7 @@ describe("aggregate attachment storage", () => {
       throw new Error("expected quota rejection");
     } catch (error) {
       expect(error).toMatchObject({ status: 507 });
-      expect(error).toHaveProperty("message", "attachments storage is full (64 MB limit). Clear old attachments in Settings → General.");
+      expect(error).toHaveProperty("message", "attachments storage is full (128 MB limit). Clear old attachments in Settings → General.");
     }
     expect(existsSync(referenced.path)).toBe(true);
     expect(statSync(referenced.path).size).toBe(ATTACHMENTS_MAX_BYTES);
@@ -610,7 +610,8 @@ describe("shared files", () => {
 
     async function* tooLarge() {
       yield Buffer.from("partial");
-      yield Buffer.alloc(FILE_MAX_BYTES);
+      const chunk = Buffer.alloc(1024 * 1024);
+      for (let offset = 0; offset < FILE_MAX_BYTES; offset += chunk.length) yield chunk;
     }
     await expect(saveFile(tooLarge(), "large.pdf", "application/pdf")).rejects.toMatchObject({ status: 413 });
     expect(readdirSync(ATTACHMENTS_DIR)).toEqual([]);
@@ -750,7 +751,7 @@ describe("clearing attachments from Settings", () => {
     __resetAttachmentAccountingForTests();
     offerAttachmentClear(false);
     try {
-      expect(() => saveImage(Buffer.from("y"), "image/png")).toThrow(/^attachments storage is full \(64 MB limit\)$/);
+      expect(() => saveImage(Buffer.from("y"), "image/png")).toThrow(/^attachments storage is full \(128 MB limit\)$/);
     } finally {
       offerAttachmentClear(true);
     }

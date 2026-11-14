@@ -215,6 +215,7 @@ export function useDelioCredits(): Credits | null {
 }
 
 export function DelioCreditsCard({ credits }: { credits: Credits }) {
+  const { dispatch } = useStore();
   const format = (value: number) => value.toLocaleString(undefined, { maximumFractionDigits: 1 });
   return (
     <Card title={t("usage.credits.title")}>
@@ -223,7 +224,7 @@ export function DelioCreditsCard({ credits }: { credits: Credits }) {
           <span className={credits.credits <= 0 ? "text-[22px] font-semibold text-danger" : "text-[22px] font-semibold text-ink"}>{format(credits.credits)}</span>
           <span className="text-[13px] text-ink-secondary">{t("usage.credits.left")}</span>
         </div>
-        {credits.billingUrl && <a href={credits.billingUrl} target="_blank" rel="noreferrer" className="ui-button shrink-0">{t("usage.credits.topUp")}</a>}
+        {credits.billingUrl && <button type="button" onClick={() => dispatch({ type: "openCloudAdd", source: "app_settings" })} className="ui-button shrink-0">{t("usage.credits.topUp")}</button>}
       </div>
       <p className="mt-1 text-[12px] text-ink-secondary">{t("usage.credits.used", { credits: format(credits.usedThisMonth) })}</p>
       {credits.credits <= 0 && <p className="mt-2 text-[12px] text-danger">{t("usage.credits.empty")}</p>}

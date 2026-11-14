@@ -84,7 +84,8 @@ async function portal(saspay: ReturnType<typeof fakeSasPay>, clock: { now: numbe
   };
   const account = async () => (await fetch(new URL("/api/workspace/acme/account", origin), { headers: { authorization: `Bearer ${token}` } })).json() as Promise<{ credits: number; gateway: boolean; plan: string | null; paymentVersion: number }>;
   const chat = () => fetch(new URL("/api/gateway/acme/openrouter/v1/chat/completions", origin), { method: "POST", body: "{}", headers: { authorization: `Bearer ${token}`, "content-type": "application/json" } });
-  return { post, get, webhook, account, chat, mail, sweep: () => app.sweep(), signIn };
+  return { post, get, webhook, account, chat, mail, sweep: () => app.sweep(), signIn,
+    subscription: () => store.db.prepare("SELECT plan, cycle, period_end AS periodEnd FROM subscriptions WHERE workspace = 'acme'").get() };
 }
 
 describe("SasPay webhook signature", () => {
@@ -132,13 +133,9 @@ describe("plans paid through SasPay", () => {
     const saspay = fakeSasPay();
     const target = await portal(saspay, clock);
     const before = await target.get("/billing?workspace=acme");
-    const nonce = /script-src 'nonce-([A-Za-z0-9_-]+)'/.exec(before.headers.get("content-security-policy") ?? "")?.[1];
-    expect(nonce).toBeTruthy();
-    const initial = await before.text();
-    expect(initial).toContain('data-payment-version="0"');
-    expect(initial).toContain(`<script nonce="${nonce}" src="/assets/billing-refresh.js"`);
-    expect(initial).toContain('action="/billing/checkout" target="_blank"');
-    expect((await target.get("/assets/billing-refresh.js")).headers.get("content-type")).toContain("javascript");
+    expect(before.status).toBe(303);
+    expect(before.headers.get("location")).toBe("opendeliobot://cloud");
+    expect(await before.text()).not.toContain('action="/billing/checkout"');
 
     await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "trial" });
     expect(await (await target.get("/api/billing/status?workspace=acme")).json()).toEqual({ paymentVersion: 0, pending: true });
@@ -147,7 +144,7 @@ describe("plans paid through SasPay", () => {
     const confirmed = await Promise.all(Array.from({ length: 4 }, () => target.get("/api/billing/status?workspace=acme").then(answer => answer.json())));
     expect(confirmed).toEqual(Array.from({ length: 4 }, () => ({ paymentVersion: 1, pending: false })));
     expect(await target.account()).toMatchObject({ credits: 300, plan: "trial", paymentVersion: 1 });
-    expect(await (await target.get("/billing?workspace=acme")).text()).toContain('data-payment-version="1"');
+    expect((await target.get("/billing?workspace=acme")).headers.get("location")).toBe("opendeliobot://cloud");
     await target.webhook({ event: "transaction.success", data: { id: "late-delivery" } });
     await target.sweep();
     expect(await target.account()).toMatchObject({ credits: 300, paymentVersion: 1 });
@@ -223,7 +220,7 @@ describe("plans paid through SasPay", () => {
     expect((await target.account()).credits).toBe(300);
     await target.webhook({ event: "transaction.success", data: { id: "t3" } });
     expect((await target.account()).credits, "a second confirmation changes nothing").toBe(300);
-    expect(await (await target.get("/billing?workspace=acme")).text()).toContain("Essai jusqu");
+    expect(target.subscription()).toMatchObject({ plan: "trial" });
     expect((await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "trial" })).status, "one trial per account and workspace").toBe(409);
 
     const pro = await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "pro", cycle: "month" });
@@ -231,25 +228,23 @@ describe("plans paid through SasPay", () => {
     saspay.pay("cs_2");
     const order = /order=(ord_[^&"]+)/.exec(String((saspay.calls.at(-1)!.body as { return_url: string }).return_url))![1];
     expect(new URL(pro.headers.get("location")!).pathname).toBe("/checkout/cs_2");
-    expect(await (await target.get(`/billing/return?order=${order}`)).text(), "the return page confirms with SasPay itself").toContain("Paiement reçu");
+    expect((await target.get(`/billing/return?order=${order}`)).headers.get("location"), "the return confirms with SasPay and opens the app").toBe("opendeliobot://cloud");
     expect((await target.account()).credits).toBe(5800);
-    expect(await (await target.get("/billing?workspace=acme")).text()).toMatch(/Pro · mensuel · jusqu/);
+    expect(target.subscription()).toMatchObject({ plan: "pro", cycle: "month" });
 
     await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "pro", cycle: "month" });
     saspay.pay("cs_3");
     await target.sweep();
     expect((await target.account()).credits, "the sweep confirms payments whose webhook never came").toBe(11300);
-    expect(await (await target.get("/billing?workspace=acme")).text(), "a renewal adds 30 days after the current period")
-      .toContain(`jusqu&#39;au ${new Date(clock.now + 60 * DAY).toISOString().slice(0, 10)}`);
+    expect(target.subscription(), "a renewal adds 30 days after the current period").toMatchObject({ periodEnd: clock.now + 60 * DAY });
   });
 
-  it("lets the billing page's forms land on SasPay's checkout, and shows a pending button with its own script only", async () => {
+  it("retires the external pricing page and sends its legacy address to the app", async () => {
     const target = await portal(fakeSasPay(), { now: Date.now() });
     const response = await target.get("/billing?workspace=acme");
-    const policy = response.headers.get("content-security-policy") ?? "";
-    expect(policy, "Chromium applies form-action to the redirect to the checkout").toContain("form-action 'self' https://*.saspay.me;");
-    const nonce = /script-src 'nonce-([A-Za-z0-9_-]+)'/.exec(policy)?.[1];
-    expect(await response.text()).toContain(`<script nonce="${nonce}">`);
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("opendeliobot://cloud");
+    expect(await response.text()).not.toContain("Choisir");
   });
 
   it("sells a year for the price of eleven months and grants its credits month by month", async () => {

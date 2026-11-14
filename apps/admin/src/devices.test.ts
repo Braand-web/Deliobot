@@ -139,9 +139,9 @@ describe("connecting a desktop app to a Delio account", () => {
     expect(await app.account.balance()).toEqual({ email: "ana@acme.test", credits: 0, usedThisMonth: 0, plan: null, ownAi: false, paymentVersion: 0 });
 
     await target.signIn("ana@acme.test");
-    const billing = await (await target.request(`/billing?workspace=${connection.workspace}`)).text();
-    expect(billing).toContain("Deliobot on test-mac");
-    const device = /name="device" value="([^"]+)"/.exec(billing)![1]!;
+    const billing = await target.request(`/billing?workspace=${connection.workspace}`);
+    expect(billing.headers.get("location")).toBe("opendeliobot://cloud");
+    const device = new Devices(target.store.db).list(connection.workspace)[0]!.id;
     await target.request("/billing/device", { workspace: connection.workspace, device });
     const refused = await fetch(`${target.origin}/api/workspace/${connection.workspace}/account`, { headers: { authorization: `Bearer ${connection.token}` } });
     expect(refused.status, "a disconnected app's token no longer works").toBe(401);

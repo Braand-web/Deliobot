@@ -708,12 +708,8 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       const order = plans.order(url.searchParams.get("order") ?? "");
       if (!order) throw new HttpError(404, "Ce paiement n'existe pas.");
       const workspace = requireWorkspaceAdmin(user, order.workspace);
-      if (order.status === "pending") await refreshPayments(workspace.slug);
-      const latest = plans.order(order.id)!;
-      return html(res, 200, { title: "Facturation", email: user.email, ...billingRefresh(workspace), body: billing(workspace, user,
-        latest.status === "paid" ? { message: "Paiement reçu : merci ! Vos crédits sont ajoutés." }
-          : latest.status === "failed" ? { error: "Le paiement n'a pas abouti. Vous pouvez réessayer." }
-          : { message: "Le paiement est en cours de confirmation. Cette page l'affichera dès que SasPay l'aura confirmé." }) });
+      if (order.status === "pending") await refreshAccount(workspace.slug);
+      return redirect(res, "opendeliobot://cloud");
     }
     if (method === "POST" && path === "/billing/device") {
       const body = await readBody(req);
@@ -742,7 +738,8 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       }
       const workspace = requireWorkspaceAdmin(user, asked);
       const chosen = url.searchParams.get("plan");
-      await refreshPayments(workspace.slug);
+      await refreshAccount(workspace.slug);
+      if (!operatorConsole) return redirect(res, "opendeliobot://cloud");
       return html(res, 200, { title: "Facturation", email: user.email, ...billingRefresh(workspace), body: billing(workspace, user, { message: url.searchParams.get("done") ? "Enregistré." : undefined,
         chosen: chosen && Object.hasOwn(PLANS, chosen) ? chosen as PlanId : undefined, cycle: url.searchParams.get("cycle") === "year" ? "year" : "month" }) });
     }
@@ -773,6 +770,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   }
 
   function billing(workspace: Workspace, user: Account, extra: { message?: string; error?: string; token?: string; chosen?: PlanId; cycle?: Cycle }): Html {
+    if (!operatorConsole) return messagePage("Forfaits et crédits dans Delio", extra.error ?? extra.message ?? "Consultez votre forfait et vos crédits dans l'application Delio.", { href: "opendeliobot://cloud", label: "Ouvrir Delio" });
     return billingPage({ workspace, operator: isOperator(user), balance: wallet.balance(workspace.slug) / MICRO,
       subscription: plans.subscription(workspace.slug), orders: plans.orders(workspace.slug, 10), payments: Boolean(saspay), currency,
       trialAvailable: !plans.trialUsed(user.email, workspace.slug), catalog: catalog(options.payments?.xofPerUsd),

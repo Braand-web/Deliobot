@@ -596,7 +596,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
   const delioConnect = useDelioConnect();
   const delioRows = delioMenuItems(delio, {
     signIn: () => void delioConnect.connect(),
-    manage: () => { if (delio?.connected && delio.billingUrl) void openExternalLink(delio.billingUrl); },
+    manage: () => dispatch({ type: "openCloudAdd", source: "app_menu" }),
     switchAccount: () => void delioConnect.connect(),
     signOut: () => void delioConnect.disconnect(),
   });
