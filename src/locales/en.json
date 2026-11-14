@@ -10257,5 +10257,17 @@
   "remote.devices.pairAgain": "Pair again",
   "openrouterOption.name": "OpenRouter",
   "openrouterOption.line": "One key for hundreds of models, some of them free",
-  "openrouterOption.link": "Get a key"
+  "openrouterOption.link": "Get a key",
+  "report.menu": "Report a problem",
+  "report.title": "Report a problem",
+  "report.intro": "Tell us what went wrong. The Deliobot team reads every report.",
+  "report.notePlaceholder": "What did you expect, and what happened instead?",
+  "report.includeConversation": "Send this conversation with {name}, so we can see what happened",
+  "report.privacy": "Sent only when you press Send. Keys and passwords are masked first, and the report is deleted after 90 days.",
+  "report.send": "Send",
+  "report.close": "Close",
+  "report.sent": "Thank you. Your report reached the Deliobot team.",
+  "report.notConnected": "Sign in to your Deliobot account first, then send the report again.",
+  "report.tooMany": "You've sent several reports today. Write to support@deliobot.fun instead.",
+  "report.failed": "The report couldn't be sent. Check your connection and try again."
 }

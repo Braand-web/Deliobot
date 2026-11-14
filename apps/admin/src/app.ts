@@ -10,6 +10,7 @@ import { BILLING_REFRESH_SCRIPT } from "./billing-refresh.ts";
 import { Hosting, hostingRunner, RESERVED_SLUGS, socketFleet, type Fleet } from "./hosting.ts";
 import { Billing, catalog, PLANS, reconcileOrders, TOPUPS, TRIAL_DAYS, type Cycle, type PlanId, type TopupId } from "./plans.ts";
 import { createSasPay, verifySasPayWebhook } from "./saspay.ts";
+import { Reports } from "./reports.ts";
 import { MICRO, Wallet } from "./wallet.ts";
 import { consoleServes, createConsole } from "./console/routes.ts";
 import { Traffic, type VisitInput } from "./traffic.ts";
@@ -30,7 +31,7 @@ export interface AdminAppOptions {
   /** Tests only: lets a fixture identity provider run over plain HTTP. */
   allowHttpProviders?: boolean;
   /** The operator's provider keys and upstreams for the paid gateway; a provider without a key is refused there. */
-  gateway?: Omit<GatewayOptions, "store" | "wallet" | "publicUrl" | "fetchImpl" | "now" | "allowance" | "deviceToken" | "deviceEmail" | "deviceAccount" | "revokeDevice" | "refreshAccount" | "paymentVersion"> & { creditUsd?: number };
+  gateway?: Omit<GatewayOptions, "store" | "wallet" | "publicUrl" | "fetchImpl" | "now" | "allowance" | "deviceToken" | "deviceEmail" | "deviceAccount" | "revokeDevice" | "refreshAccount" | "paymentVersion" | "report"> & { creditUsd?: number };
   /** The mascot pictures pages show, by path (`/assets/delio-idle.webp`…). */
   assets?: ReadonlyMap<string, Uint8Array>;
   /** SasPay: the secret key, the webhook signing secret, and the currency checkouts are priced in (XOF by default). */
@@ -153,6 +154,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     fleet: selfServe.fleet ?? socketFleet(selfServe.fleetSocket ?? "/run/opendeliobot/fleet.sock") }) : null;
   const startHosting = () => { void runHosting?.().catch((error: unknown) => console.error("delio-admin: hosting pass failed", error)); };
   const traffic = new Traffic(store.db, now);
+  const reports = new Reports(store.db, now);
   const paymentChecks = new Map<string, { at: number; running: Promise<void> | null }>();
   async function refreshPayments(workspace: string): Promise<void> {
     if (!saspay) return;
@@ -177,6 +179,11 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       return { workspace, sourceWorkspace: owner.workspace, email: owner.email };
     },
     deviceEmail: (value, slug) => devices.ownerEmail(value, slug), revokeDevice: (value, slug) => devices.revokeToken(value, slug),
+    report: (input) => {
+      if (!store.allow(`report:${input.workspace}`, 10, 24 * 60 * 60_000)) return false;
+      store.audit(input.workspace, input.email, "report.sent", reports.add(input));
+      return true;
+    },
     allowance: (slug) => plans.allowance(slug), refreshAccount: refreshPayments, paymentVersion: slug => plans.paidCount(slug) });
 
   function sessionCookie(value: string, maxAgeSeconds: number): string {
@@ -770,7 +777,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       audit: store.auditLog(workspace.slug, 20), ...extra });
   }
 
-  const operatorPages = createConsole({ store, wallet, devices, billing: plans, hosting, saspay, currency, operators, now, readForm: readBody,
+  const operatorPages = createConsole({ store, wallet, devices, reports, billing: plans, hosting, saspay, currency, operators, now, readForm: readBody,
     redirect: (res, location) => redirect(res, location), send });
 
   const handler = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
@@ -788,6 +795,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   async function sweep(): Promise<void> {
     await gateway.sweep();
     traffic.purge();
+    reports.purge();
     if (saspay) await reconcileOrders(plans, saspay);
     plans.grantDue();
     const repaired = plans.repairUnapplied();

@@ -1,13 +1,22 @@
 import { delioConnection, type createDelioAccount } from "../delio-account.ts";
 import type { AppConfig } from "../config.ts";
+import { serverVersion } from "../environment.ts";
 import { portalBillingUrl } from "../hosted-credits.ts";
 import { PASS, type RouteHandler } from "./table.ts";
 
 /** Settings' Delio account card: connect with a device code, see the credits left, disconnect. */
 export function createDelioAccountRoutes(account: ReturnType<typeof createDelioAccount>, config: () => AppConfig): RouteHandler {
   return async ({ req, res, path, method, json, readBody, url }) => {
-    if (path !== "/api/delio/account" && path !== "/api/delio/connect") return PASS;
+    if (path !== "/api/delio/account" && path !== "/api/delio/connect" && path !== "/api/delio/report") return PASS;
     res.setHeader("cache-control", "no-store");
+    if (path === "/api/delio/report") {
+      if (method !== "POST") return json(res, 405, { error: "method not allowed" });
+      const body = await readBody(req, 1024 * 1024).catch(() => null) as { note?: unknown; transcript?: unknown; bot?: unknown } | null;
+      const text = (value: unknown) => typeof value === "string" ? value : "";
+      if (!body || (!text(body.note).trim() && !text(body.transcript).trim())) return json(res, 400, { error: "empty report" });
+      const outcome = await account.report({ note: text(body.note), transcript: text(body.transcript), bot: text(body.bot).slice(0, 80), appVersion: serverVersion(), platform: process.platform });
+      return json(res, outcome === "sent" ? 200 : outcome === "not-connected" ? 409 : outcome === "too-many" ? 429 : 502, { outcome });
+    }
     if (path === "/api/delio/connect" && method === "POST") {
       const body = await readBody(req, 4096).catch(() => ({})) as { portal?: unknown };
       try {

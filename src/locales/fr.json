@@ -3424,5 +3424,17 @@
   "update.banner.copiedOpened": "Commande copiée : collez-la dans le terminal qui s'est ouvert.",
   "update.banner.copiedPaste": "Commande copiée : collez-la dans un terminal pour terminer.",
   "update.banner.quitReopen": "{error} Quittez et rouvrez {app} avant de réessayer la mise à jour.",
-  "update.banner.dismiss": "Fermer"
+  "update.banner.dismiss": "Fermer",
+  "report.menu": "Signaler un problème",
+  "report.title": "Signaler un problème",
+  "report.intro": "Dites-nous ce qui n'a pas marché. L'équipe Deliobot lit chaque signalement.",
+  "report.notePlaceholder": "Qu'attendiez-vous, et que s'est-il passé à la place ?",
+  "report.includeConversation": "Envoyer cette conversation avec {name}, pour que nous voyions ce qui s'est passé",
+  "report.privacy": "Envoyé seulement quand vous appuyez sur Envoyer. Les clés et mots de passe sont masqués avant, et le signalement est supprimé après 90 jours.",
+  "report.send": "Envoyer",
+  "report.close": "Fermer",
+  "report.sent": "Merci. Votre signalement est arrivé à l'équipe Deliobot.",
+  "report.notConnected": "Connectez-vous d'abord à votre compte Deliobot, puis renvoyez le signalement.",
+  "report.tooMany": "Vous avez envoyé plusieurs signalements aujourd'hui. Écrivez plutôt à support@deliobot.fun.",
+  "report.failed": "Le signalement n'a pas pu être envoyé. Vérifiez votre connexion et réessayez."
 }

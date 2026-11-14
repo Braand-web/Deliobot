@@ -1,6 +1,7 @@
 import { h, raw, type Html } from "../pages.ts";
 import type { DeviceRow } from "../devices.ts";
 import { MANUAL_ORDER_PREFIX, PLANS, type Order, type PlanId, type Subscription } from "../plans.ts";
+import type { ProblemReport } from "../reports.ts";
 import type { LedgerRow } from "../wallet.ts";
 import { barChart, donut, funnel, ranking, sparkline } from "./charts.ts";
 import { PERIODS, type Metrics, type Period } from "./metrics.ts";
@@ -16,15 +17,17 @@ const ICONS: Record<string, string> = {
   system: "M3 4h18v6H3z M3 14h18v6H3z M7 7h.01 M7 17h.01",
   security: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z M9 12l2 2 4-4",
   journal: "M8 6h13 M8 12h13 M8 18h13 M3 6h.01 M3 12h.01 M3 18h.01",
+  reports: "M4 22V4a1 1 0 0 1 1-1h11l-2 4 2 4H5",
   search: "M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14 M21 21l-4.3-4.3",
   theme: "M12 3a6 6 0 0 0 9 9a9 9 0 1 1-9-9z",
   out: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9",
 };
 
-export type ConsoleSection = "dash" | "traffic" | "clients" | "orders" | "journal";
+export type ConsoleSection = "dash" | "traffic" | "clients" | "orders" | "reports" | "journal";
 
 const NAV: ReadonlyArray<[string, string, string | null]> = [
   ["dash", "Tableau de bord", "/"], ["traffic", "Trafic", "/trafic"], ["clients", "Clients", "/clients"], ["orders", "Commandes", "/commandes"],
+  ["reports", "Signalements", "/signalements"],
   ["promos", "Codes promo", null], ["comms", "Communication", null], ["pricing", "Forfaits & prix", null], ["system", "Système", null],
   ["security", "Sécurité", null], ["journal", "Journal", "/journal"],
 ];
@@ -149,10 +152,10 @@ var b=f.querySelector("button[type=submit],button:not([type])");if(b)setTimeout(
 export interface Flash { kind: "ok" | "bad"; text: string }
 
 export function consolePage(input: { title: string; subtitle?: string; section: ConsoleSection; email: string; body: Html; nonce: string; period?: Period;
-  periodPath?: string; flash?: Flash | null; pendingOrders?: number; tools?: Html }): string {
+  periodPath?: string; flash?: Flash | null; pendingOrders?: number; unreadReports?: number; tools?: Html }): string {
   const nav = NAV.map(([id, label, href]) => href
     ? h`<a class="nav" href="${href}" ${id === input.section ? raw('aria-current="page"') : ""} title="${label}">${icon(id)}<span class="label">${label}</span>
-${id === "orders" && input.pendingOrders ? h`<span class="count">${input.pendingOrders}</span>` : ""}</a>`
+${id === "orders" && input.pendingOrders ? h`<span class="count">${input.pendingOrders}</span>` : ""}${id === "reports" && input.unreadReports ? h`<span class="count">${input.unreadReports}</span>` : ""}</a>`
     : h`<span class="nav off" title="${label} : bientôt">${icon(id)}<span class="label">${label}</span><span class="soon">bientôt</span></span>`);
   const periods = input.period ? PERIODS.map(([id, label]) => h`<a class="chip" href="${input.periodPath ?? ""}?p=${id}" ${id === input.period!.id ? raw('aria-current="true"') : ""}>${label}</a>`) : [];
   const flash = input.flash ? h`<div class="toast ${input.flash.kind === "bad" ? "bad" : ""}" role="status"><img src="/assets/delio-${input.flash.kind === "bad" ? "sad" : "happy"}.webp" alt="">${input.flash.text}</div>` : "";
@@ -229,6 +232,7 @@ export const orderWhat = (order: Pick<Order, "kind" | "plan" | "cycle" | "credit
   : `Recharge ${nf.format(order.credits)} crédits`;
 
 const ACTIONS: Record<string, string> = {
+  "report.sent": "Signalement reçu", "report.read": "Signalement lu", "report.deleted": "Signalement supprimé",
   "workspace.create": "Espace créé", "workspace.delete": "Espace supprimé", "workspace.suspend": "Espace suspendu", "workspace.resume": "Espace réactivé",
   "workspace.signin": "Connexion à l'espace", "account.signin": "Connexion au portail", "account.block": "Compte bloqué", "account.unblock": "Compte débloqué",
   "member.add": "Membre ajouté", "member.role": "Rôle changé", "member.remove": "Membre retiré", "invitation.create": "Invitation envoyée", "invitation.cancel": "Invitation annulée",
@@ -444,3 +448,22 @@ ${auditTable(input.rows, input.now)}<div class="pager">${input.page > 1 ? h`<a c
 ${input.more ? h`<a class="btn small" href="/journal?${new URLSearchParams({ q: input.q, page: String(input.page + 1) })}">Plus ancien</a>` : ""}</div></section>`;
 }
 
+
+export function reportsPage(input: { rows: Array<Omit<ProblemReport, "transcript">>; page: number; more: boolean; now: number }): Html {
+  if (input.rows.length === 0 && input.page === 1) return h`<section class="card">${empty("Aucun signalement. Ils arrivent ici quand un client choisit « Signaler un problème » dans l'application.")}</section>`;
+  return h`<section class="card"><div class="table-wrap"><table><thead><tr><th>Quand</th><th>Client</th><th>Bot</th><th>Ce qu'il dit</th><th>Version</th></tr></thead><tbody>
+${input.rows.map((row) => h`<tr><td class="muted">${ago(row.createdAt, input.now)}</td><td><a href="/clients/${row.workspace}">${row.email ?? row.workspace}</a></td><td>${row.bot || "—"}</td>
+<td><a href="/signalements/${row.id}">${row.readAt === null ? h`<b>${row.note.slice(0, 120) || "Sans commentaire"}</b>` : row.note.slice(0, 120) || "Sans commentaire"}</a></td>
+<td class="muted small mono">${row.appVersion} · ${row.platform}</td></tr>`)}</tbody></table></div>
+<div class="pager">${input.page > 1 ? h`<a class="btn small" href="/signalements?page=${input.page - 1}">Plus récent</a>` : ""}
+${input.more ? h`<a class="btn small" href="/signalements?page=${input.page + 1}">Plus ancien</a>` : ""}</div></section>`;
+}
+
+export function reportPage(report: ProblemReport, now: number): Html {
+  return h`<section class="card"><h2>${report.email ?? report.workspace}<small>${ago(report.createdAt, now)} · ${report.bot || "bot inconnu"} · version ${report.appVersion} · ${report.platform}</small></h2>
+<p style="white-space:pre-wrap">${report.note || "Sans commentaire."}</p>
+<p class="bar"><a class="btn small" href="/clients/${report.workspace}">Voir le client</a><a class="btn small" href="/signalements">Tous les signalements</a></p></section>
+<section class="card"><h2>Conversation envoyée<small>${n(report.transcript.length)} caractères · supprimée automatiquement après 90 jours</small></h2>
+<pre class="small mono" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:70vh;overflow:auto;margin:0">${report.transcript || "Aucune conversation jointe."}</pre></section>
+<form method="post" action="/signalements/${report.id}/supprimer" data-confirm="Supprimer ce signalement ?" data-detail="La conversation envoyée par le client est effacée."><button class="btn small danger">Supprimer ce signalement</button></form>`;
+}

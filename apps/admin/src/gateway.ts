@@ -16,6 +16,8 @@ export interface GatewayOptions {
   deviceAccount?: (token: string, workspace: string) => { workspace: string; sourceWorkspace: string; email: string } | null;
   refreshAccount?: (workspace: string) => Promise<void>;
   paymentVersion?: (workspace: string) => number;
+  /** Keeps a problem report a person sent from their app; false when this workspace has sent too many today. */
+  report?: (input: { workspace: string; email: string | null; note: string; transcript: string; bot: string; appVersion: string; platform: string }) => boolean;
   /** The address that connected a device token, shown in the app as who is signed in. */
   deviceEmail?: (token: string, workspace: string) => string | null;
   /** Revokes a device token when its app signs out. */
@@ -323,7 +325,8 @@ export function createGateway(options: GatewayOptions) {
     async handle(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
       const gateway = /^\/api\/gateway\/([a-z][a-z0-9-]{1,30})\/(openrouter\/v1|fal|boat\/v1|anthropic|openai\/v1)\/(.+)$/.exec(url.pathname);
       const account = /^\/api\/workspace\/([a-z][a-z0-9-]{1,30})\/account$/.exec(url.pathname);
-      const requested = gateway?.[1] ?? account?.[1];
+      const report = /^\/api\/workspace\/([a-z][a-z0-9-]{1,30})\/report$/.exec(url.pathname);
+      const requested = gateway?.[1] ?? account?.[1] ?? report?.[1];
       if (!requested) return false;
       const presented = bearer(req);
       const device = options.deviceAccount?.(presented, requested);
@@ -332,6 +335,17 @@ export function createGateway(options: GatewayOptions) {
         return true;
       }
       const workspace = device?.workspace ?? requested;
+      if (report) {
+        if (req.method !== "POST" || !options.report) { failure(res, 405, "Method not allowed."); return true; }
+        let body: Record<string, unknown>;
+        try { body = JSON.parse((await readRaw(req)).toString("utf8")) as Record<string, unknown>; } catch { failure(res, 400, "The request was not valid JSON."); return true; }
+        const text = (key: string) => typeof body?.[key] === "string" ? body[key] as string : "";
+        if (!text("note").trim() && !text("transcript").trim()) { failure(res, 400, "A report needs a note or a conversation."); return true; }
+        const kept = options.report({ workspace, email: device?.email ?? options.deviceEmail?.(presented, requested) ?? null, note: text("note"), transcript: text("transcript"),
+          bot: text("bot"), appVersion: text("appVersion"), platform: text("platform") });
+        if (kept) send(res, 200, { received: true }); else failure(res, 429, "Too many reports today. Write to support instead.");
+        return true;
+      }
       if (account && req.method === "DELETE") {
         options.revokeDevice?.(presented, device?.sourceWorkspace ?? requested);
         send(res, 200, { revoked: true });
