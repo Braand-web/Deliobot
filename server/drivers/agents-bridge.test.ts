@@ -265,6 +265,7 @@ describe("find_tool", () => {
     ["use the desktop the user shared", "shared_computer"],
     ["open a separate job for each pull request", "start_thread"],
     ["read the whole message from an old conversation", "session_search"],
+    ["fetch a public web page URL", "read_public_url"],
     ["retry the failed thread", "retry_thread"],
     ["cron", "trigger"],
   ])("ranks the hidden tool first from how a person would ask: %s", async (query, expected) => {

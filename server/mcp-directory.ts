@@ -168,6 +168,7 @@ export function schemaText(schema: unknown, maxChars = SCHEMA_TEXT_CHARS): strin
 
 export function toolArea(name: string): string {
   const prefix = name.slice(0, Math.max(0, name.indexOf("_")));
+  if (/^(?:read|write|fetch)$/i.test(prefix)) return "";
   if (prefix.trim()) return cut(prefix.toLowerCase(), 40);
   const head = name.split(/[\s_./:-]+/).find(Boolean) ?? name;
   const word = /^[A-Z]?[a-z0-9]+|^[A-Z]+(?![a-z])/.exec(head)?.[0] ?? head;

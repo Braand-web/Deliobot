@@ -33,6 +33,7 @@ const STEP_KEYS: Record<string, LocaleKey> = {
   web_search: "toolStep.searchWeb",
   webfetch: "toolStep.openWebPage",
   web_fetch: "toolStep.openWebPage",
+  read_public_url: "toolStep.openWebPage",
   fetch: "toolStep.openWebPage",
   open_url: "toolStep.openWebPage",
   screenshot: "toolStep.lookAtScreen",

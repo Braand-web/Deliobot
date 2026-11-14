@@ -203,6 +203,7 @@ export function describeTool(name: string, input?: unknown): { app: string | nul
 }
 
 export function describedTool(name: string, input?: unknown): Described {
+  if (name === "read_public_url" || name === "mcp__agents__read_public_url") return describedTool("WebFetch");
   if (Object.hasOwn(BUILTIN_LABELS, name)) return { app: null, label: BUILTIN_LABELS[name]![1], labelKey: BUILTIN_LABELS[name]![0] };
 
   if (name.startsWith("mcp__")) {

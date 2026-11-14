@@ -11,7 +11,7 @@ const FALLBACK_LABELS: Array<[RegExp, LocaleKey]> = [
   [/\b(?:write|write_file|create_file)\b/i, "chat.activity.writeFile"],
   [/\b(?:edit|apply_patch|replace|str_replace)\b/i, "chat.activity.editFile"],
   [/\b(?:web_search|search_web)\b/i, "chat.activity.searchWeb"],
-  [/\b(?:web_fetch|fetch_url|read_page)\b/i, "chat.activity.readPage"],
+  [/\b(?:web_fetch|fetch_url|read_page|read_public_url)\b/i, "chat.activity.readPage"],
   [/\b(?:grep|glob|find|search)\b/i, "chat.activity.searching"],
   [/\b(?:screenshot|screen_capture)\b/i, "chat.activity.screen"],
   [/\b(?:click|type|keypress|press|scroll|computer)\b/i, "chat.activity.computer"],
