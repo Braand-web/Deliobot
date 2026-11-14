@@ -169,6 +169,28 @@ describe("Delio AI gateway", () => {
     expect(before - after, "only the real cost is charged").toBeGreaterThan(0);
   });
 
+  it("makes requests past the workspace's limit wait their turn instead of refusing them", async () => {
+    let inFlight = 0, peak = 0;
+    const gate: Array<() => void> = [];
+    const upstream = upstreams({ cost: 0.001, duringChat: async () => {
+      inFlight += 1; peak = Math.max(peak, inFlight);
+      await new Promise<void>((open) => gate.push(open));
+      inFlight -= 1;
+    } });
+    const target = await portal(upstream);
+    const token = await target.workspace("busy", 1000);
+    const ask = () => target.gateway("busy", "openrouter/v1/chat/completions", token, { method: "POST", body: JSON.stringify({ model: "openai/gpt-5", messages: [] }) }).then(async (response) => { await response.text(); return response.status; });
+    const all = Array.from({ length: 12 }, ask);
+    while (gate.length < 8) await new Promise((tick) => setTimeout(tick, 5));
+    expect(peak, "eight run, four wait").toBe(8);
+    for (let opened = 0; opened < 12; opened += 1) {
+      while (!gate.length) await new Promise((tick) => setTimeout(tick, 5));
+      gate.shift()!();
+    }
+    expect(await Promise.all(all)).toEqual(Array.from({ length: 12 }, () => 200));
+    expect(peak).toBe(8);
+  });
+
   it("runs a fal.ai job for the workspace's own client: queue URLs on the portal, priced per second, out of other workspaces' reach", async () => {
     const upstream = upstreams({ falPrice: 0.07, falUnit: "second" });
     const target = await portal(upstream);
