@@ -5,6 +5,7 @@ import { BUILT_IN_BROWSER_SYSTEM_PROMPT } from "./browser-engine.ts";
 import {
   longCommandsPrompt,
   buildSystemPrompt,
+  buildRuntimeSystemPrompt,
   CONVERSATIONAL_STYLE_PROMPT,
   CLOUD_HOME_PLACE,
   CLOUD_ENGINES_HERE,
@@ -36,6 +37,17 @@ import {
 } from "./system-prompt.ts";
 import { loginPlace } from "../shared/logins.ts";
 import { REPLY_HABITS_PROMPT } from "./reply-habits.ts";
+import { serverVersion } from "./environment.ts";
+
+describe("runtime identity", () => {
+  it("keeps the actual app version in the stable context beside the supplied prompt sections", () => {
+    const built = buildRuntimeSystemPrompt("You are Kiwi.", "Keep answers brief.", [{ id: "files", label: "Files", text: "folder: /fixture" }]);
+    expect(built.sections.filter(section => section.id === "runtime-identity")).toHaveLength(1);
+    expect(built.stable).toContain(`version ${JSON.stringify(serverVersion())}`);
+    expect(built.stable).toContain("not an AI model version");
+    expect(built.volatile).toContain("/fixture");
+  });
+});
 
 describe("the stable half", () => {
   it("leaves out a conversation's folder, so a new thread can read the bot's cached prompt", () => {

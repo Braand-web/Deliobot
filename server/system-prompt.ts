@@ -8,12 +8,17 @@ import { loginLabel, type LoginPlace } from "../shared/logins.ts";
 import { vaultNameKey } from "../shared/vault.ts";
 import { isConversational, type ReplyStyle } from "../shared/reply-style.ts";
 import { REPLY_HABITS_PROMPT } from "./reply-habits.ts";
+import { serverVersion } from "./environment.ts";
 
 export type PromptPart = { id: string; label: string; text: string };
 export type PromptSection = PromptPart & { bytes: number };
 
 export function runtimeIdentityPart(version: string): PromptPart {
   return { id: "runtime-identity", label: "Deliobot version", text: `\n\nThis Deliobot application/server runs version ${JSON.stringify(version)}. This is the application's version, not an AI model version. Never substitute today's date for a version. The configured model may use automatic routing; do not invent an exact underlying model or claim a provider's full catalog is available to this account. Check the current tools and connection state before claiming a capability is unavailable; a failed call or a missing local runtime does not establish that every available route is unavailable.` };
+}
+
+export function buildRuntimeSystemPrompt(...[persona, soul, parts, agents, opts]: Parameters<typeof buildSystemPrompt>) {
+  return buildSystemPrompt(persona, soul, [runtimeIdentityPart(serverVersion()), ...parts], agents, opts);
 }
 
 /** `person`: on a Team Cloud, the name of the member whose conversation this is (a team has no one "user"). */
