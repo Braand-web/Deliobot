@@ -431,6 +431,17 @@ describe("aggregate attachment storage", () => {
     expect(() => saveImage(Buffer.from("z"), "image/png")).toThrow(/storage is full/);
   });
 
+  it("saves by copying where the disk refuses hard links, and still never replaces a file already there", async () => {
+    const refused = Object.assign(new Error("operation not permitted, link"), { code: "EPERM" });
+    vi.mocked(link).mockRejectedValueOnce(refused);
+    const saved = await saveFile((async function* () { yield Buffer.from("miniature"); })(), "miniature.txt", "text/plain", { uploadId: UPLOAD_A, expectedBytes: 9 });
+    expect(readFileSync(saved.path, "utf8")).toBe("miniature");
+    vi.mocked(link).mockRejectedValueOnce(refused);
+    await expect(saveFile((async function* () { yield Buffer.from("different"); })(), "miniature.txt", "text/plain", { uploadId: UPLOAD_A, expectedBytes: 9 }))
+      .rejects.toMatchObject({ status: 409 });
+    expect(readFileSync(saved.path, "utf8")).toBe("miniature");
+  });
+
   it("does not count an in-flight commit twice when cleanup failure causes a rescan", async () => {
     const existing = saveImage(Buffer.from("x"), "image/png");
     truncateSync(existing.path, ATTACHMENTS_MAX_BYTES - 5);

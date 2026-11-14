@@ -411,7 +411,7 @@ import {
   customMcpPrompt,
   CREDENTIAL_PROMPT,
   longCommandsPrompt,
-  THREADS_PROMPT, WIDGET_PROMPT, JUST_DO_IT_PROMPT, FINISH_PROMPT,
+  THREADS_PROMPT, WIDGET_PROMPT, JUST_DO_IT_PROMPT, FINISH_PROMPT, WORK_RULES_PROMPT, engineFactsPrompt,
   LEARN_PROMPT,
   PROFILE_PROMPT,
   TEAM_MEMORY_PROMPT,
@@ -8428,7 +8428,7 @@ async function beginTurn(
         { id: "assignment", label: "Teammate task", text: coordinationNode?.parentId ? `\n${coordinationSystemInstructions()}` : "" },
         { id: "outstanding", label: "Outstanding teammate work", text: teammatePrompts.outstanding(threadId) },
         { id: "teammate-questions", label: "Teammates' questions to the person", text: teammatePrompts.questions(liveBot ?? bot, threadId) },
-        { id: "credential", label: "Credentials", text: credentialPrompt }, { id: "finish", label: "Finish the job", text: FINISH_PROMPT }, { id: "just-do-it", label: "Just do it", text: approvalModeForTurn(bot, commsDepth > 0, threadId) === "full" && !isUnattended(bot.id, threadId) && coordinationNode?.origin?.kind !== "outside" ? JUST_DO_IT_PROMPT : "" },
+        { id: "credential", label: "Credentials", text: credentialPrompt }, { id: "finish", label: "Finish the job", text: FINISH_PROMPT + WORK_RULES_PROMPT + engineFactsPrompt(engineName(bot.modelSelection.instanceId), bot.modelSelection.model) }, { id: "just-do-it", label: "Just do it", text: approvalModeForTurn(bot, commsDepth > 0, threadId) === "full" && !isUnattended(bot.id, threadId) && coordinationNode?.origin?.kind !== "outside" ? JUST_DO_IT_PROMPT : "" },
         { id: "recall", label: "Recall", text: recallPrompt },
         { id: "routine", label: "Routines", text: routinePrompt },
         { id: "active-routines", label: "Active automations", text: integrations.agents && !confined && (!CLOUD_HOME || cloudOwnerOnlyThread(threadId)) ? activeRoutinesContext({
@@ -8810,7 +8810,7 @@ async function stopBotForEmergencyApprovalDowngrade(botId: string): Promise<void
 const engineName = (engine: string) => engineLabel(engine, registry.get(engine) ?? undefined);
 const limitClock = new LimitResetClock({ file: join(DATA_DIR, "limit-holds.json"), accounts: () => planAccountsFromInstances(instanceConfigs(cfg)), onChange: () => routines?.retimeLimitResets(),
   waiting: () => Boolean(routines?.listRoutines().some((routine) => routine.enabled && routine.schedule.type === "limit_reset")) }); const limitTakeover = createLimitTakeover({ file: join(DATA_DIR, "limit-notices.json"), holdsFile: join(DATA_DIR, "limit-takeover-holds.json"), configs: () => instanceConfigs(cfg), context: selectionContext, blockedUntil: (engine) => limitClock.blockedUntil(engine), resetAt: (engine) => limitClock.resetAt(engine), enabled: () => quotaSwitchEnabled(), where: CLOUD_HOME ? "on the Cloud" : "on this computer", signedOutNow: (id) => registry.knownSnapshot(id)?.authenticated === false, signedOutNoticed: () => registry.forgetSnapshots(), botsOn: (id) => store.bots.filter((bot) => !bot.hidden && bot.modelSelection.instanceId === id), engineName, engines: () => selectableInstances(registry.instances().map((engine) => ({ instanceId: engine.instanceId, driverKind: engine.driverKind, displayName: engine.displayName, enabled: engine.enabled, access: registry.access(engine.instanceId), models: engine.models, snapshot: registry.knownSnapshot(engine.instanceId) ?? { state: "unavailable" as const, reason: "not read yet" }, capabilities: engine.adapter.capabilities }))), chosen: (botId) => [...(store.bot(botId)?.fallback ?? []), ...(cfg.automaticRecovery?.backup ? [cfg.automaticRecovery.backup] : [])], signedOutChosen: (botId) => { const bot = store.bot(botId); return bot ? startupBackups(bot, cfg.automaticRecovery) : []; }, tell: (about, text) => notify(buildNoticeNotification(about, store.bot(about.id)?.threadId ?? "", text)), record: (failover) => limitFailovers.record(failover) }); registry.onSignedIn((instanceId) => limitTakeover.signedIn(instanceId));
-const limitFailovers = new LimitFailovers({ file: join(DATA_DIR, "limit-failovers.json"), blockedUntil: (engine) => limitClock.blockedUntil(engine), signedOut: (engine) => limitTakeover.stillSignedOut(engine), engineName,
+const limitFailovers = new LimitFailovers({ file: join(DATA_DIR, "limit-failovers.json"), blockedUntil: (engine) => limitClock.blockedUntil(engine), signedOut: (engine) => limitTakeover.stillSignedOut(engine), backupWithoutAccess: (engine) => limitTakeover.withoutAccess(engine), engineName,
   threadModel: (botId, threadId) => store.projectBotForTask(botId, threadId)?.modelSelection ?? null,
   note: (threadId, line, text) => store.appendMessage(threadId, { role: "bot", kind: "activity", tool: { name: `recovery: ${line}`, ok: true, ...(text ? { nameCode: text.key, nameParams: text.params } : {}) } }),
   switchBack: ({ botId, threadId, from, to }) => {
@@ -10237,7 +10237,7 @@ async function runClaimedGroupMemberTurn(
       mounted: Boolean(integrations.device), offered: instance.adapter.capabilities.deviceMcp === true,
       turn: { botId: readyBot.id, threadId, generation: internalGeneration }, place: "computer",
     }),
-    { id: "recall", label: "Recall", text: integrations.agents && bot.memoryEnabled !== false ? SESSION_SEARCH_SYSTEM_PROMPT : "" }, { id: "finish", label: "Finish the job", text: FINISH_PROMPT }, { id: "just-do-it", label: "Just do it", text: preparedApprovalMode === "full" && !isUnattended(bot.id, threadId) ? JUST_DO_IT_PROMPT : "" },
+    { id: "recall", label: "Recall", text: integrations.agents && bot.memoryEnabled !== false ? SESSION_SEARCH_SYSTEM_PROMPT : "" }, { id: "finish", label: "Finish the job", text: FINISH_PROMPT + WORK_RULES_PROMPT + engineFactsPrompt(engineName(bot.modelSelection.instanceId), bot.modelSelection.model) }, { id: "just-do-it", label: "Just do it", text: preparedApprovalMode === "full" && !isUnattended(bot.id, threadId) ? JUST_DO_IT_PROMPT : "" },
     teamAvailabilityPart(outsideRoom),
     { id: "recent", label: "Recent work", text: recentWorkPrompt(recentLines) },
     { id: "section-context", label: "Section context", text: sectionContextSystemPrompt(bot.section) },

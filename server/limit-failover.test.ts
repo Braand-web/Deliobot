@@ -34,7 +34,7 @@ describe("LimitFailovers", () => {
   afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }); });
   const from = { instanceId: "claude", model: "claude-sonnet-5" };
   const to = { instanceId: "codex", model: "gpt-fake-default" };
-  function fixture(options: { blocked?: number | null; current?: typeof from | null; allowed?: boolean; signedOut?: () => boolean } = {}) {
+  function fixture(options: { blocked?: number | null; current?: typeof from | null; allowed?: boolean; signedOut?: () => boolean; backupWithoutAccess?: () => boolean } = {}) {
     const dir = mkdtempSync(join(tmpdir(), "odb-limit-failovers-"));
     dirs.push(dir);
     let now = NOW;
@@ -43,7 +43,7 @@ describe("LimitFailovers", () => {
     const switched: LimitFailover[] = [];
     const deps = {
       file: join(dir, "limit-failovers.json"), now: () => now,
-      blockedUntil: () => state.blocked, threadModel: () => state.current, signedOut: options.signedOut,
+      blockedUntil: () => state.blocked, threadModel: () => state.current, signedOut: options.signedOut, backupWithoutAccess: options.backupWithoutAccess,
       switchBack: (failover: LimitFailover) => { if (options.allowed === false) return false; switched.push(failover); state.current = failover.from; return true; },
       note: (_threadId: string, line: string) => notes.push(line), engineName: (engine: string) => engine === "claude" ? "Claude" : engine,
     };
@@ -104,6 +104,15 @@ describe("LimitFailovers", () => {
     expect(f.failovers.restore("scout", "t")).toBe(true);
     expect(f.notes).toEqual(["Claude is signed in again, so this conversation is back on Claude."]);
     expect(new LimitFailovers(f.deps).list()).toEqual([]);
+  });
+
+  it("leaves a backup whose account cannot run turns at once, before the reset and without a line", () => {
+    const f = fixture({ blocked: NOW + HOUR, backupWithoutAccess: () => true });
+    f.failovers.record({ botId: "scout", threadId: "t", from, to, resetsAt: NOW + HOUR, at: NOW });
+    expect(f.failovers.restore("scout", "t")).toBe(true);
+    expect(f.switched).toEqual([expect.objectContaining({ from, to })]);
+    expect(f.notes).toEqual([]);
+    expect(f.failovers.list()).toEqual([]);
   });
 
   it("forgets a thread someone moved to another model, and remembers across a restart", () => {

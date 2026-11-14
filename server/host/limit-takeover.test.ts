@@ -7,7 +7,7 @@ import type { RuntimeEvent } from "../../shared/runtime-events.ts";
 import type { ModelSelection } from "../../shared/wire.ts";
 import type { InstanceConfigMap } from "../contracts.ts";
 import { LimitResetClock, UNNAMED_LIMIT_MS } from "../limit-resets.ts";
-import { MODEL_HOLD_MS, SIGNED_OUT_RECHECK_MS, SIGNED_OUT_REPEAT_MS, createLimitTakeover, signedOutStop, type LimitTakeoverDeps, type TakeoverEngine } from "./limit-takeover.ts";
+import { MODEL_HOLD_MS, NO_ACCESS_HOLD_MS, SIGNED_OUT_RECHECK_MS, SIGNED_OUT_REPEAT_MS, createLimitTakeover, signedOutStop, type LimitTakeoverDeps, type TakeoverEngine } from "./limit-takeover.ts";
 
 const NOW = Date.parse("2026-10-27T10:00:00Z");
 const HOUR = 3_600_000;
@@ -62,6 +62,20 @@ function takeover(overrides: Partial<LimitTakeoverDeps> = {}, dir = freshDir()) 
 }
 
 describe("which AI carries on while one is limited", () => {
+  it("stops carrying turns to an AI whose account refused one for want of a plan, until a turn works there or the hold ends", () => {
+    const t = takeover({ engines: () => [CLAUDE, CODEX] });
+    expect(t.instance.backups("kai", on("claude", "claude-opus-5-5"))).toEqual([on("codex", "gpt-6")]);
+    t.instance.noteRuntimeEvent("kai", on("codex", "gpt-6"), { type: "runtime.error", threadId: "t", setup: true, message: "Your current subscription does not have access to Codex right now" } as never);
+    t.instance.noteRuntimeEvent("kai", on("codex", "gpt-6"), { type: "turn.completed", threadId: "t", ok: false, stopReason: "auth_required" } as never);
+    expect(t.instance.withoutAccess("codex")).toBe(true);
+    expect(t.instance.backups("kai", on("claude", "claude-opus-5-5"))).toEqual([]);
+    t.instance.noteRuntimeEvent("kai", on("codex", "gpt-6"), { type: "turn.completed", threadId: "t", ok: true } as never);
+    expect(t.instance.backups("kai", on("claude", "claude-opus-5-5"))).toEqual([on("codex", "gpt-6")]);
+    t.instance.noteRuntimeEvent("kai", on("codex", "gpt-6"), { type: "turn.completed", threadId: "t", ok: false, stopReason: "auth_required" } as never);
+    t.now.at += NO_ACCESS_HOLD_MS + 1;
+    expect(t.instance.backups("kai", on("claude", "claude-opus-5-5"))).toEqual([on("codex", "gpt-6")]);
+  });
+
   it("never picks an AI that bills each use by itself, only as a backup the person chose", () => {
     const apiClaude = engine("claude-api", "claudeAgent", ["claude-opus-5-5"], { access: "api" });
     const keyedClaude = engine("claude-key", "claudeAgent", ["claude-opus-5-5"]);

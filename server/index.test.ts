@@ -10211,6 +10211,8 @@ describe("harness HTTP API", () => {
       expect(system).toContain(browserSection.text);
       expect(system, "social networks are open to the browser").toMatch(/Every public website is open to you.*social networks included/);
       expect(system, "every turn is told to finish the job").toMatch(/Finish what you are asked/);
+      expect(system, "the bot is told which engine it runs on").toMatch(/ You run on \S/);
+      expect(system).toMatch(/Before you say you can do something, check that you can/);
       expect(system).toContain(SIGN_IN_PROMPT);
       expect(system).not.toMatch(/never type their (?:credentials|password)/i);
       expect(system).not.toContain("At a sign-in, password, MFA, CAPTCHA");

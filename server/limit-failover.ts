@@ -77,6 +77,9 @@ export interface LimitFailoverDeps {
   blockedUntil: (engine: string) => number | null;
   /** This engine refused a turn because it is signed out, and has not been signed in again since. */
   signedOut?: (engine: string) => boolean;
+  /** The engine a thread was carried to cannot run turns (no plan, no credit): the thread goes back at once, so its own
+   * engine's refusal can pick another backup. */
+  backupWithoutAccess?: (engine: string) => boolean;
   /** The thread's model now, or null when the thread is gone. */
   threadModel: (botId: string, threadId: string) => ModelSelection | null;
   /** Switches the thread back; false when that is not allowed now (a busy thread, a permission change). */
@@ -125,6 +128,11 @@ export class LimitFailovers {
     const now = this.deps.now?.() ?? Date.now();
     const current = this.deps.threadModel(botId, threadId);
     if (!current || !sameModelSelection(current, row.to)) return this.forget(threadId);
+    if (this.deps.backupWithoutAccess?.(row.to.instanceId)) {
+      if (!this.deps.switchBack(row)) return false;
+      this.forget(threadId);
+      return true;
+    }
     const waitUntil = row.why === "signed-out" ? row.at : row.resetsAt ?? row.at + UNKNOWN_RESET_WAIT_MS;
     if (waitUntil > now || this.deps.blockedUntil(row.from.instanceId) !== null) return false;
     if (row.why === "signed-out" && this.deps.signedOut?.(row.from.instanceId)) return false;

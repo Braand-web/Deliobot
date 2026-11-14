@@ -1,5 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import {
+  constants,
+  copyFileSync,
   createReadStream,
   linkSync,
   mkdirSync,
@@ -10,7 +12,7 @@ import {
   unlinkSync,
   writeFileSync,
 } from "node:fs";
-import { link, open, unlink } from "node:fs/promises";
+import { copyFile, link, open, unlink } from "node:fs/promises";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { FILE_MAX_BYTES, PREVIEW_MAX_BYTES } from "../shared/upload-limits.ts";
 import { DATA_DIR } from "./config.ts";
@@ -184,6 +186,30 @@ function dropBoxUploadCopies(names: readonly string[], dataDir = DATA_DIR): void
         try { rmSync(join(boxUploadsDir(dataDir, bot, thread), name), { force: true }); } catch { /* best effort: a file still in use stays */ }
       }
     }
+  }
+}
+
+// Windows refuses a hard link with EPERM on FAT and exFAT volumes and in some synced or redirected profile folders
+// (Node 24, fs.link); other systems answer EXDEV, ENOSYS or ENOTSUP where links are not supported.
+const NO_HARD_LINKS = new Set(["EPERM", "EXDEV", "ENOSYS", "ENOTSUP", "EMLINK"]);
+const cannotLink = (error: unknown) => NO_HARD_LINKS.has((error as NodeJS.ErrnoException).code ?? "");
+
+/** Puts a finished partial at its final name without ever replacing a file already there (EEXIST, as a link answers). */
+function placeSync(partialPath: string, path: string): void {
+  try {
+    linkWithRetry(partialPath, path, linkSync);
+  } catch (error) {
+    if (!cannotLink(error)) throw error;
+    copyFileSync(partialPath, path, constants.COPYFILE_EXCL);
+  }
+}
+
+async function place(partialPath: string, path: string): Promise<void> {
+  try {
+    await linkWithRetryAsync(partialPath, path, link);
+  } catch (error) {
+    if (!cannotLink(error)) throw error;
+    await copyFile(partialPath, path, constants.COPYFILE_EXCL);
   }
 }
 
@@ -510,7 +536,7 @@ export async function saveFile(
       closed = true;
       try {
         const accountingVersion = attachmentAccountingVersion;
-        await linkWithRetryAsync(partialPath, path, link);
+        await place(partialPath, path);
         addCommittedBytes(bytes, accountingVersion);
         await unlink(partialPath);
       } catch (error) {
@@ -560,7 +586,7 @@ export async function saveNamedAttachment(name: string, chunks: AsyncIterable<Ui
     await file.close();
     file = undefined;
     const accountingVersion = attachmentAccountingVersion;
-    try { await linkWithRetryAsync(partialPath, path, link); }
+    try { await place(partialPath, path); }
     catch (error) {
       if ((error as NodeJS.ErrnoException).code === "EEXIST") return { stored: false };
       throw error;
@@ -606,7 +632,7 @@ export function saveImage(bytes: Buffer, mime: string, requestedUploadId?: strin
   try {
     writeFileSync(partialPath, bytes, { mode: 0o600, flag: "wx" });
     try {
-      linkWithRetry(partialPath, path, linkSync);
+      placeSync(partialPath, path);
       addCommittedBytes(bytes.byteLength);
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
@@ -661,7 +687,7 @@ export function saveAudio(bytes: Buffer, mime: string): SavedAttachment {
   try {
     writeFileSync(partialPath, bytes, { mode: 0o600, flag: "wx" });
     try {
-      linkWithRetry(partialPath, path, linkSync);
+      placeSync(partialPath, path);
       addCommittedBytes(bytes.byteLength);
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;

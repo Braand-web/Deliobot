@@ -28,6 +28,7 @@ export const MODEL_HOLD_MS = 6 * 60 * 60_000;
 /** A signed-out AI is tried again by a new turn no sooner than this after its last refusal, in case it signed in again
  * some way this server did not see; a finished sign-in in the app, or a turn on it that works, ends the hold at once. */
 export const SIGNED_OUT_RECHECK_MS = UNNAMED_LIMIT_MS;
+export const NO_ACCESS_HOLD_MS = 6 * 60 * 60_000;
 /** A sign-out's first notice to a bot stands until the AI is signed in again or works. */
 const SIGNED_OUT_STRETCH_MS = 30 * 24 * 60 * 60_000;
 /** Refusals never end a sign-out's stretch, so the person is told again this often, once across all bots. */
@@ -146,6 +147,14 @@ export function createLimitTakeover(deps: LimitTakeoverDeps) {
     return at !== undefined && (now() - at < SIGNED_OUT_RECHECK_MS || deps.signedOutNow?.(instanceId) === true);
   };
 
+  /** An AI whose account cannot run turns now (no active plan, out of credit): signing in again fixes neither, so no
+   * turn is carried over to it until one works there or this long has passed. */
+  const noAccess = new Map<string, number>();
+  const noAccessHeld = (instanceId: string): boolean => {
+    const at = noAccess.get(instanceId);
+    return at !== undefined && now() - at < NO_ACCESS_HOLD_MS;
+  };
+
   const noteSignedOut = (instanceId: string): void => {
     const first = !signedOut.has(instanceId);
     signedOut.set(instanceId, now());
@@ -164,7 +173,7 @@ export function createLimitTakeover(deps: LimitTakeoverDeps) {
     const engine = engines.find((candidate) => candidate.instanceId === selection.instanceId);
     if (!engine || !readyToRun(engine, deps.context) || deps.blockedUntil(engine.instanceId) !== null || modelHeld(selection) !== null) return false;
     if (engine.instanceId !== current.instanceId) {
-      if (signedOutHeld(engine.instanceId)) return false;
+      if (signedOutHeld(engine.instanceId) || noAccessHeld(engine.instanceId)) return false;
       // Another sign-in to the same plan never carries a limit (that rotates accounts); it may stand in for one signed out.
       if (scope !== "signed-out" && !limitBackupAllowed(current, engine, deps.configs()[engine.instanceId])) return false;
       // The same rule as switching by hand: a level the other AI has no such mode for needs the person first.
@@ -233,6 +242,7 @@ export function createLimitTakeover(deps: LimitTakeoverDeps) {
       notices.ended(who, modelKey(selection));
     }
     if (heldModels.delete(modelKey(selection))) save();
+    noAccess.delete(selection.instanceId);
     signedIn(selection.instanceId);
   };
 
@@ -249,6 +259,8 @@ export function createLimitTakeover(deps: LimitTakeoverDeps) {
     /** Whether a conversation moved off this signed-out AI waits before going back: until it is signed in again or a
      * turn on it works. */
     stillSignedOut: (instanceId: string): boolean => signedOut.has(instanceId),
+    /** This AI's account refused its last turn for want of a plan or credit, and none has worked there since. */
+    withoutAccess: noAccessHeld,
     /** Before a turn on `selection`: what holds that AI, when another AI can take the turn instead, so it starts there
      * with no refused turn first. Null when nothing holds it, or when nothing could carry on and the AI is tried as
      * usual. `recovering`: Automatic recovery has backups of its own for a limit. */
@@ -274,6 +286,7 @@ export function createLimitTakeover(deps: LimitTakeoverDeps) {
       }
       else if (event.type === "turn.completed" && event.ok) worked(botId, selection);
       else if (event.type === "turn.completed" && signedOutStop(event.stopReason, said)) noteSignedOut(selection.instanceId);
+      else if (event.type === "turn.completed" && event.stopReason === "auth_required") noAccess.set(selection.instanceId, now());
     },
     tell,
     moved,
