@@ -25,6 +25,21 @@ describe("the fixture's fake engine knobs", () => {
     expect(env).toMatchObject({ FAKE_CLAUDE_TEXT_ROUTES: "/tmp/routes.json", FAKE_CODEX_TEXT_ROUTES: "/tmp/codex-routes.json", FAKE_CODEX_TEXT_LOG: "/tmp/codex.jsonl" });
     for (const key of ["FAKE_CODEX_MODE", "FAKE_CODEX_DUMP", "SOME_SECRET"]) expect(env, key).not.toHaveProperty(key);
   });
+
+  it("lets every fake's scripted stream cross, for a reply that arrives in pieces", () => {
+    const env = childEnv({ FAKE_STREAM_SCRIPT: "/tmp/script.json", FAKE_STREAM_CADENCE: "3:90", FAKE_ACP_DUMP: "/tmp/acp.json" });
+    expect(env).toMatchObject({ FAKE_STREAM_SCRIPT: "/tmp/script.json", FAKE_STREAM_CADENCE: "3:90" });
+    expect(env).not.toHaveProperty("FAKE_ACP_DUMP");
+  });
+});
+
+describe("the fixture's Netlify stand-in", () => {
+  it("lets only a loopback stand-in's API address cross, so a fixture never lists or deletes on Netlify", () => {
+    expect(childEnv({ ODB_NETLIFY_API_URL: " http://127.0.0.1:4010/api/v1 " }).ODB_NETLIFY_API_URL).toBe("http://127.0.0.1:4010/api/v1");
+    for (const url of ["https://api.netlify.com/api/v1", "http://localhost:4010/api/v1", "http://127.0.0.1:4010", "http://127.0.0.1:4010/api/v1@evil.test", "http://192.0.2.1:4010/api/v1", ""]) {
+      expect(childEnv({ ODB_NETLIFY_API_URL: url }), url).not.toHaveProperty("ODB_NETLIFY_API_URL");
+    }
+  });
 });
 
 describe("the fixture's Live call environment", () => {
@@ -43,6 +58,19 @@ describe("the fixture's Live call environment", () => {
       expect(env, url).not.toHaveProperty("ODB_OPENAI_LIVE_KEY");
     }
     expect(childEnv({ ODB_OPENAI_LIVE_KEY: "sk-real" })).not.toHaveProperty("ODB_OPENAI_LIVE_KEY");
+  });
+});
+
+describe("the fixture's included app hosting relay", () => {
+  it("passes a loopback stand-in and its token through together, and neither for any other address", () => {
+    expect(childEnv({ ODB_CLOUD_HOSTING_URL: " http://127.0.0.1:4400/api/cloud/services/hosting/v1 ", ODB_CLOUD_HOSTING_TOKEN: "odb_host_fixture" }))
+      .toMatchObject({ ODB_CLOUD_HOSTING_URL: "http://127.0.0.1:4400/api/cloud/services/hosting/v1", ODB_CLOUD_HOSTING_TOKEN: "odb_host_fixture" });
+    for (const url of ["https://cloud.opendeliobot.com/api/cloud/services/hosting/v1", "http://localhost:4400/api/cloud/services/hosting/v1", "http://192.0.2.1:4400", "http://127.0.0.1:4400/../x?y", ""]) {
+      const env = childEnv({ ODB_CLOUD_HOSTING_URL: url, ODB_CLOUD_HOSTING_TOKEN: "odb_host_real" });
+      expect(env, url).not.toHaveProperty("ODB_CLOUD_HOSTING_URL");
+      expect(env, url).not.toHaveProperty("ODB_CLOUD_HOSTING_TOKEN");
+    }
+    expect(childEnv({ ODB_CLOUD_HOSTING_URL: "http://127.0.0.1:4400/api/cloud/services/hosting/v1" })).not.toHaveProperty("ODB_CLOUD_HOSTING_URL");
   });
 });
 

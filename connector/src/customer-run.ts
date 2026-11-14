@@ -97,7 +97,7 @@ export function checkCustomerRunJob(message: unknown, by: JobSource): CheckedJob
   }
   const image = (args as Record<string, unknown>).image;
   if (keys.length !== 1 || typeof image !== "string" || !CUSTOMER_HOME_IMAGE.test(image)) {
-    return { ok: false, id: shape.job.id, code: "invalid_args", message: "image must be ghcr.io/braand-web/opendeliobot@sha256:<digest>" };
+    return { ok: false, id: shape.job.id, code: "invalid_args", message: "image must be ghcr.io/braand-web/deliobot@sha256:<digest>" };
   }
   return { ok: true, job: { id: shape.job.id, type, args: { image } } };
 }

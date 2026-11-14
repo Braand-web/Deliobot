@@ -9,7 +9,7 @@ import { localJobId, sendLocalJob, serveLocalJobs } from "../src/local.ts";
 import { parsePolicy } from "../src/policy.ts";
 import type { Job, JobReply } from "../src/protocol.ts";
 
-const HOME = `ghcr.io/braand-web/opendeliobot-cloud-home@sha256:${"a".repeat(64)}`;
+const HOME = `ghcr.io/braand-web/deliobot-cloud-home@sha256:${"a".repeat(64)}`;
 const SECRET = "Bootstrap-secret-0123456789abcdefghijklmnopq";
 const dirs: string[] = [];
 afterEach(() => {

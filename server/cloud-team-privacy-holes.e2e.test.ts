@@ -84,7 +84,7 @@ beforeAll(async () => {
   admin = (await team.pair(ADMIN)).token!;
   rui = (await team.pair(RUI)).token!;
   marta = (await team.pair(MARTA)).token!;
-  quotes = (await team.as(owner, "POST", "/api/bots", { name: "Quotes" })).body.bot;
+  quotes = (await team.as(owner, "POST", "/api/bots", { name: "Quotes", visibility: "everyone" })).body.bot;
   ruiDelio = (await botsOf(rui)).find((bot) => bot.defaultBot?.person === RUI.email)!;
   expect(ruiDelio, "Rui has a Delio of his own").toBeTruthy();
 

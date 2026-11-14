@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { cn } from "@/lib/cn";
+import { avatarMarks, type AvatarKind } from "@/lib/avatar-marks";
 import { CHROME_EYES, CHROME_GRADIENT, DELIO_COLORS, type DelioColor, type DelioMotion, type DelioState } from "@/lib/mascot";
 import { CursorAvatar, type CursorAvatarHandle } from "./CursorAvatar";
 import { avatarCropRadius, botAvatarProfile, clampAvatarFocus, clampAvatarZoom, mascotFaceInk, type BotAvatarCrop, type MascotFaceColor } from "../../shared/bot-avatar";
@@ -97,10 +98,12 @@ export type DelioAvatarProps = {
   bodyId?: BotBodyId;
   gradient?: [string, string, string];
   faceColor?: MascotFaceColor | null;
+  /** Whose face this is; a decorative mascot has none. */
+  kind?: AvatarKind;
 };
 
 function DelioAvatarComponent(props: DelioAvatarProps, ref: React.Ref<DelioAvatarHandle>) {
-  const { bodyId, color, size, state, motion, motionKey, gaze, trackPointer, animated, label } = props;
+  const { bodyId, color, size, state, motion, motionKey, gaze, trackPointer, animated, label, kind } = props;
   if (isCarvedBody(bodyId)) {
     return (
       <CarvedAvatar
@@ -116,6 +119,7 @@ function DelioAvatarComponent(props: DelioAvatarProps, ref: React.Ref<DelioAvata
         trackPointer={trackPointer}
         animated={animated}
         label={label}
+        kind={kind}
       />
     );
   }
@@ -144,6 +148,7 @@ function GradientAvatarComponent(
     bodyId,
     gradient,
     faceColor,
+    kind,
   }: DelioAvatarProps,
   ref: React.Ref<DelioAvatarHandle>,
 ) {
@@ -186,6 +191,7 @@ function GradientAvatarComponent(
   const picture = chrome && !faceInk ? steelBodyImage(silhouette.id, size, globalThis.devicePixelRatio ?? 1, undefined, shownState) : null;
   return (
     <span
+      {...avatarMarks(kind, "mascot")}
       className="inline-flex shrink-0"
       onPointerMove={trackPointer && animated ? onPointerMove : undefined}
       onPointerLeave={trackPointer && animated ? onPointerLeave : undefined}
@@ -272,6 +278,7 @@ export function BotAvatar({ bot, size = 44, label, readable = false, ...mascotPr
         gradient={readable ? roomAvatarGradient(bot.color) : undefined}
         size={size}
         label={label ?? bot.name}
+        kind="bot"
       />
     );
   }
@@ -283,6 +290,7 @@ export function BotAvatar({ bot, size = 44, label, readable = false, ...mascotPr
   const origin = `${focusX * 100}% ${focusY * 100}%`;
   return (
     <span
+      {...avatarMarks("bot", "picture")}
       className="relative block shrink-0 overflow-hidden bg-raised"
       style={{ width: size, height: size, borderRadius: radius }}
     >
@@ -325,10 +333,11 @@ export function InitialsAvatar({
   // A picture that is gone (a restored backup carries the address, not the file) falls back to the initials.
   const [failed, setFailed] = useState<string | null>(null);
   if (avatarUrl && failed !== avatarUrl) {
-    return <img src={avatarUrl} alt="" onError={() => setFailed(avatarUrl)} className={cn("shrink-0 rounded-full object-cover", className)} style={{ width: size, height: size }} />;
+    return <img {...avatarMarks("person", "picture")} src={avatarUrl} alt="" onError={() => setFailed(avatarUrl)} className={cn("shrink-0 rounded-full object-cover", className)} style={{ width: size, height: size }} />;
   }
   return (
     <div
+      {...avatarMarks("person", "initials")}
       className={cn("flex shrink-0 items-center justify-center rounded-full bg-raised text-ink-secondary font-medium", className)}
       style={{ width: size, height: size, fontSize: fontSize ?? size * 0.38 }}
     >

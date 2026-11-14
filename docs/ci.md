@@ -1,8 +1,8 @@
 # CI job selection
 
 Every PR still runs the workflow, its `static` job and the `CI` gate: locale
-validation, lint, the CI-selection tests, the verification-documentation
-checks and the source guards always run. Selection never skips the entire
+validation, lint, the CI-selection tests, the
+verification-documentation checks and the source guards always run. Selection never skips the entire
 workflow. The source guards are the tests that only read the source (the
 vocabulary and locale checks, the size and route ratchets, and the like): they
 take seconds, and they run in `static` as well as in the shards, so a change

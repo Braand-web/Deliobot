@@ -45,7 +45,7 @@ export interface KeyTarget {
 export type KeyId =
   | "openai" | "anthropic" | "xai" | "openrouter" | "fal" | "mistral" | "cerebras" | "groq" | "greenference" | "meta" | "deepseek" | "opencodeGo" | "opencodeProviders"
   | "ollama" | "lmStudio" | "openaiCompat" | "liveCalls" | "liveKey" | "elevenlabs" | "fishAudio" | "geminiTts" | "box" | "vps" | "onePassword" | "composio" | "treg" | "postiz"
-  | "jev" | "openrouterHelper" | "workersAi" | "imageOpenai" | "imageGemini" | "imageCustom" | "delioAccount";
+  | "jev" | "openrouterHelper" | "workersAi" | "customDecider" | "imageOpenai" | "imageGemini" | "imageCustom" | "delioAccount";
 
 export type KeyMark = { driverKind: string; preset?: ProviderIconPreset } | { icon: LucideIcon };
 
@@ -195,6 +195,10 @@ export const KEY_CATALOG: readonly KeyEntry[] = [
     words: ["cloudflare", "workers ai", "clef", "clairic", "decisions", "helper"], mark: { icon: Zap }, kind: "elsewhere",
     opens: "decisionModel", whereKey: "keys.where.decisions",
     status: (config) => flag(config.savedKeys?.workersAiToken ?? { configured: config.helpers?.own.workersAi === true }) },
+  { id: "customDecider", section: "helpers", labelKey: "decider.custom.key.label", purposeKey: "keys.purpose.customDecider", name: "Custom endpoint", env: ["ODB_CUSTOM_DECIDER_KEY"],
+    words: ["custom", "endpoint", "gateway", "system one", "decisions", "helper"], mark: { icon: Zap }, kind: "elsewhere",
+    opens: "decisionModel", whereKey: "keys.where.decisions",
+    status: (config) => flag(config.savedKeys?.customDeciderKey ?? { configured: false }) },
   { id: "imageOpenai", section: "helpers", labelKey: "keys.label.imageOpenai", purposeKey: "keys.purpose.imageOpenai", name: "OpenAI", env: ["ODB_OPENAI_IMAGE_KEY"],
     words: ["openai", "image", "images", "pictures", "avatar", "gpt image"], mark: { icon: Image }, kind: "key",
     target: { patch: (value) => ({ imageGen: { key: value } }), slot: "openaiImageApiKey",
@@ -216,11 +220,16 @@ export function keyEntry(id: KeyId): KeyEntry {
   return entry;
 }
 
-/** With Azure OpenAI chosen for Live calls, the row for their key is about the Azure resource: required, and no OpenAI key. */
+/** With Azure OpenAI or Fish Audio chosen for Live calls, the row for their key is about that service: required, and no OpenAI
+ * key. With Fish Audio it is the Fish Audio key itself, which Fish voices use too. */
 export function shownKeyEntry(id: KeyId, config: ConfigStatus | null | undefined): KeyEntry {
   const entry = keyEntry(id);
-  if (id !== "liveKey" || config?.live?.provider !== "azure" || !entry.target) return entry;
+  const provider = config?.live?.provider;
+  if (id !== "liveKey" || (provider !== "azure" && provider !== "fish") || !entry.target) return entry;
   const { shape: _openAiShape, ...target } = entry.target;
+  if (provider === "fish") {
+    return { ...entry, name: "Fish Audio", labelKey: "keys.label.fishAudio", purposeKey: "keys.purpose.liveKeyFish", target: keyEntry("fishAudio").target };
+  }
   return { ...entry, name: "Azure OpenAI", labelKey: "call.live.azureKeyField", purposeKey: "keys.purpose.liveKeyAzure", target: { ...target, placeholder: "…", href: "https://portal.azure.com" } };
 }
 
@@ -234,10 +243,18 @@ export function savedState(entry: KeyEntry, config: ConfigStatus | null | undefi
   return entry.target?.saved(config) ?? entry.status?.(config) ?? { configured: false };
 }
 
-export function keyMatches(entry: KeyEntry, query: string): boolean {
+/** With Azure or Fish Audio chosen, Live calls do not use the OpenAI key the Live calls row points at, so that row is hidden. */
+export function keyHidden(id: KeyId, config: ConfigStatus | null | undefined): boolean {
+  const provider = config?.live?.provider;
+  return id === "liveCalls" && (provider === "azure" || provider === "fish");
+}
+
+/** With `config`, the row is matched as shown: the Live key row by the provider Live calls use. */
+export function keyMatches(entry: KeyEntry, query: string, config?: ConfigStatus | null): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
-  return [t(entry.labelKey), t(entry.purposeKey), t(keySection(entry).titleKey), entry.name, ...entry.words].some((part) => part.toLowerCase().includes(q));
+  const shown = config ? shownKeyEntry(entry.id, config) : entry;
+  return [t(shown.labelKey), t(shown.purposeKey), t(keySection(shown).titleKey), shown.name, ...shown.words].some((part) => part.toLowerCase().includes(q));
 }
 
 export function looksLikeOtherKey(entry: KeyEntry, value: string): KeyEntry | null {

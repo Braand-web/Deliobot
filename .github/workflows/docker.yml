@@ -95,7 +95,7 @@ jobs:
         run: |
           set -euo pipefail
           docker rm -f odb >/dev/null
-          docker tag opendeliobot:ci ghcr.io/braand-web/opendeliobot:latest
+          docker tag opendeliobot:ci ghcr.io/braand-web/deliobot:latest
           printf 'DOMAIN=localhost\nENGINES=\n' > deploy/.env
           docker compose -f deploy/docker-compose.yml up -d --no-build
           for i in $(seq 1 45); do
@@ -563,7 +563,7 @@ jobs:
       # The Cloud Pro home machine (the Dockerfile's cloud-home target), on the
       # same runtime layers as the server image just pushed, with Claude Code,
       # Codex and Grok baked in. The Admin pins it by digest
-      # (ODB_CLOUD_HOME_IMAGE=ghcr.io/braand-web/opendeliobot-cloud-home@sha256:...).
+      # (ODB_CLOUD_HOME_IMAGE=ghcr.io/braand-web/deliobot-cloud-home@sha256:...).
       - id: repo
         # Image references must be lowercase; the repository name is not.
         run: echo "name=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"

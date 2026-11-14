@@ -7,7 +7,7 @@ const release = (tag: string) =>
   ({ ok: true, status: 200, json: async () => ({ tag_name: tag, html_url: `https://github.com/Braand-web/Deliobot/releases/tag/${tag}` }) }) as Response;
 
 const promoted = (version: string) =>
-  ({ ok: true, status: 200, json: async () => ({ channel: "stable", version, image: `ghcr.io/braand-web/opendeliobot@sha256:${"a".repeat(64)}`, releaseUrl: `https://github.com/Braand-web/Deliobot/releases/tag/v${version}` }) }) as Response;
+  ({ ok: true, status: 200, json: async () => ({ channel: "stable", version, image: `ghcr.io/braand-web/deliobot@sha256:${"a".repeat(64)}`, releaseUrl: `https://github.com/Braand-web/Deliobot/releases/tag/v${version}` }) }) as Response;
 const missing = { ok: false, status: 404, json: async () => ({}) } as Response;
 /** GitHub's newest release is `newest`; the stable channel names `stable`, or does not exist yet. */
 const github = (newest: string, stable: string | null) => vi.fn(async (url: string | URL | Request) =>

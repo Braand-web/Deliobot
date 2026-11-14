@@ -155,6 +155,7 @@ const proxy = createProxyHandler({
     authenticate: (token) => devices.authenticate(token),
     redeem: (code, deviceName, pairRequestId) => devices.redeem(code, deviceName, pairRequestId),
     serverName: machineName,
+    version: process.env.ODB_APP_VERSION,
     hosts: () => hostCandidates(),
     endpoints: () => companionEndpointCandidates(COMPANION_PORT, undefined, undefined, hostedUrl),
     connected: connectedDevices.open,

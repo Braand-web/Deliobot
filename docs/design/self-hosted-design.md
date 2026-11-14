@@ -20,7 +20,7 @@ A standalone server becomes connected by enrolling the connector. No reinstall, 
 
 ## Parts and where the code lives
 
-- **Home**: the server image our own Clouds run (`ghcr.io/braand-web/opendeliobot`). This repository.
+- **Home**: the server image our own Clouds run (`ghcr.io/braand-web/deliobot`). This repository.
 - **Connector** (`connector/`): enrols with a one-time code, holds its own Ed25519 key, keeps one outbound WebSocket
   and runs only a fixed job list. No shell, no command of its own choosing, no read of a file by path. In this
   repository, so customers can read what it can do. It has two modes, chosen on the server when it enrols:
@@ -62,7 +62,14 @@ The published lists of principles 5 and 6 are the docs page
   previous image and the backup, and report it.
 - The rule that makes rollback safe: version N's data must stay readable by N-1. The data directory carries a schema
   marker; a change that breaks the rule ships in two releases (read the new format first, write it one release later).
-- Standalone servers get the same update as one command they run themselves.
+- Standalone servers get the same update as one command they run themselves, or from **Update server** in the app on a
+  Docker install whose host has `deploy/update-runner.sh` (the installer adds it): the server only leaves a request
+  file, and root's runner on the host runs its own copy of `update.sh` with no arguments taken from it. Anything
+  running as the server's user can leave that file (bots too, while the sandbox is off on self-hosted servers), so such
+  a run goes by the image's label only, tries each stable image once (never again after a rollback until a person runs
+  update.sh), keeps the person's own copy of the data and its own two newest ones, and stops the server at most every
+  four minutes. Not through the connector:
+  that needs enrolling, and its runner takes an image from its request.
 - Skew: desktop and phone apps work with any stable server from the last 90 days; an older server shows a banner.
 
 ## Entitlements
@@ -150,7 +157,7 @@ Backward compatible: a field is only ever added, and only by a customer-run serv
 | `JobErrorCode` | `refused_by_mode`, `paused`, `update_unavailable`, `update_not_started`, `older_version` | Only from a customer-run server. Its error `message` is a fixed sentence per code |
 
 For a customer-run box the Admin should: send `start` with no arguments; send `update` with
-`ghcr.io/braand-web/opendeliobot@sha256:…` (the server image, not the Cloud home image); never an older version than the one running; never send `export-disk`,
+`ghcr.io/braand-web/deliobot@sha256:…` (the server image, not the Cloud home image); never an older version than the one running; never send `export-disk`,
 `import-disk`, `self-update`, `restore` or a request other than `GET /v1/health`, `/v1/version`, `/v1/seats`, `/v1/update`; send
 `schedule.image: null` in the signed config (a Cloud home image there is accepted, any other is ignored with the whole
 config); and sign people in by sending them to the server's own address, never by pairing.

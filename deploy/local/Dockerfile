@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/braand-web/opendeliobot:latest
+ARG BASE_IMAGE=ghcr.io/braand-web/deliobot:latest
 FROM ${BASE_IMAGE}
 USER root
 ARG ENGINES="@anthropic-ai/claude-code @openai/codex"

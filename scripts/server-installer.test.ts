@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
@@ -19,7 +19,7 @@ const BOX_PASSED = '{"box":"bwrap","total":31,"passed":31,"failed":[],"results":
 const BOX_FAILED = '{"box":"bwrap","total":31,"passed":30,"failed":["config-hidden"],"results":[{"id":"config-hidden","ok":false}]}';
 const FILES = "https://raw.githubusercontent.com/Braand-web/Deliobot";
 const SOURCE = `${FILES}/v0.1.151`;
-const REAL_TOOLS = ["sed", "awk", "grep", "cat", "head", "tail", "tr", "sort", "cut", "mkdir", "mktemp", "chmod", "chown", "mv", "rm", "dirname", "sh"];
+const REAL_TOOLS = ["sed", "awk", "grep", "cat", "head", "tail", "tr", "sort", "cut", "mkdir", "mktemp", "chmod", "chown", "mv", "rm", "dirname", "sh", "stat", "install", "find"];
 
 /** A server that passes every check: Ubuntu 24.04, x86-64, 4 cores, 8 GB, 80 GB free, Docker 27, free ports, a domain that points here. */
 const HEALTHY = {
@@ -38,6 +38,8 @@ interface Server {
   apparmor?: string | null;
   /** Leave these stand-ins out, as on a server without the tool. */
   without?: string[];
+  /** The umask the installer is started with, as a root shell may have it. */
+  umask?: string;
 }
 
 /** Stand-ins for every tool install.sh asks about the machine, written once: what each answers comes from the run's FAKE_ settings. */
@@ -82,6 +84,7 @@ case "$*" in
     for last; do :; done
     case "$*" in
       *deploy/box/prepare-host.sh*) printf '#!/bin/sh\\necho "prepare-host profiles=$DELIO_PROFILES_DIR" >> "$FAKE_LOG"\\nexit "\${FAKE_PREPARE:-0}"\\n' > "$last" ;;
+      *deploy/update-runner.sh*) printf '#!/bin/sh\\necho "update-runner $*" >> "$FAKE_LOG"\\nexit "\${FAKE_RUNNER:-0}"\\n' > "$last" ;;
       *) printf 'the repository file\\n' > "$last" ;;
     esac ;;
   *"get.docker.com -o "*) exit 22 ;;
@@ -146,7 +149,8 @@ function run(args: string[], server: Server = {}, kept?: { dir: string }) {
   writeFileSync(join(sysroot, "proc", "meminfo"), `MemTotal:       ${server.memoryKb ?? 8_100_000} kB\nMemFree:         1000000 kB\n`);
   writeFileSync(join(sysroot, "proc", "sys", "user", "max_user_namespaces"), `${server.userns?.max ?? "63000"}\n`);
   if (server.userns?.clone !== undefined) writeFileSync(join(sysroot, "proc", "sys", "kernel", "unprivileged_userns_clone"), `${server.userns.clone}\n`);
-  const result = spawnSync("/bin/sh", [SCRIPT, ...args], {
+  const command = server.umask ? ["-c", `umask ${server.umask}; exec /bin/sh "$0" "$@"`, SCRIPT, ...args] : [SCRIPT, ...args];
+  const result = spawnSync("/bin/sh", command, {
     encoding: "utf8",
     env: { PATH: bin, FAKE_LOG: log, ODB_INSTALL_SYSROOT: sysroot, ODB_INSTALL_DIR: install, DELIO_ADMIN_URL: "https://admin.example.test", ...HEALTHY, ...server.env },
     timeout: 60_000,
@@ -231,7 +235,7 @@ describe.skipIf(!posix)("deploy/install.sh", () => {
     ["a clock an hour off", { env: { FAKE_THEIRS: "1794265200" } }, /^This server's clock is 60 minutes off, so HTTPS certificates will be refused\. Run: sudo timedatectl set-ntp true/],
     ["a release without an image", { env: { FAKE_RELEASE_STATUS: "404" } }, /^Delio v0\.1\.151 has no server image yet/],
     ["a registry that is throttling", { env: { FAKE_RELEASE_STATUS: "429" } }, /^The image registry ghcr\.io did not say whether it has Delio v0\.1\.151 \(it answered 429\)\. Run this again in a few minutes\.$/],
-    ["the latest tag asked for", { env: { ODB_INSTALL_IMAGE: "ghcr.io/braand-web/opendeliobot:latest" } }, /^ODB_INSTALL_IMAGE names the latest tag/],
+    ["the latest tag asked for", { env: { ODB_INSTALL_IMAGE: "ghcr.io/braand-web/deliobot:latest" } }, /^ODB_INSTALL_IMAGE names the latest tag/],
   ])("--check on %s prints the one thing to fix", (_name, server, sentence) => {
     const result = run(["--check", "--domain", "delio.example.com"], server);
     expect(result.fixes).toHaveLength(1);
@@ -304,18 +308,19 @@ describe.skipIf(!posix)("deploy/install.sh", () => {
     const result = run(["--domain", "delio.example.com", "--email", "owner@example.com"]);
     expect(result.all).toContain("Delio is running at https://delio.example.com");
     expect(result.status).toBe(0);
-    expect(readFileSync(join(result.install, ".env"), "utf8")).toContain("DOMAIN=delio.example.com\nODB_IMAGE=ghcr.io/braand-web/opendeliobot:v0.1.151\nODB_SIGNIN_EMAILS=owner@example.com\n");
+    expect(readFileSync(join(result.install, ".env"), "utf8")).toContain("DOMAIN=delio.example.com\nODB_IMAGE=ghcr.io/braand-web/deliobot:v0.1.151\nODB_SIGNIN_EMAILS=owner@example.com\n");
     expect(statSync(join(result.install, ".env")).mode & 0o777).toBe(0o600);
     expect(statSync(join(result.install, "data")).mode & 0o777).toBe(0o700);
     for (const file of ["compose.yaml", "Caddyfile", "caddy/data", "caddy/config"]) expect(existsSync(join(result.install, file)), file).toBe(true);
     const changes = result.docker.filter((call) => !READS.test(call) && !call.includes(" ps -q odb") && !call.startsWith("docker inspect"));
     expect(changes).toEqual([
       "docker compose pull -q",
-      'docker image inspect -f {{index .Config.Labels "org.opencontainers.image.version"}} ghcr.io/braand-web/opendeliobot:v0.1.151',
-      "docker image inspect -f {{json .Config.Env}} ghcr.io/braand-web/opendeliobot:v0.1.151",
-      'docker image inspect -f {{index .Config.Labels "org.opencontainers.image.version"}} ghcr.io/braand-web/opendeliobot:v0.1.151',
-      "docker run --rm --network none --entrypoint id ghcr.io/braand-web/opendeliobot:v0.1.151 -u",
-      "docker run --rm --network none --entrypoint id ghcr.io/braand-web/opendeliobot:v0.1.151 -g",
+      'docker image inspect -f {{index .Config.Labels "org.opencontainers.image.version"}} ghcr.io/braand-web/deliobot:v0.1.151',
+      "docker image inspect -f {{json .Config.Env}} ghcr.io/braand-web/deliobot:v0.1.151",
+      'docker image inspect -f {{index .Config.Labels "org.opencontainers.image.version"}} ghcr.io/braand-web/deliobot:v0.1.151',
+      "docker run --rm --network none --entrypoint id ghcr.io/braand-web/deliobot:v0.1.151 -u",
+      "docker run --rm --network none --entrypoint id ghcr.io/braand-web/deliobot:v0.1.151 -g",
+      'docker image inspect -f {{index .Config.Labels "org.opencontainers.image.version"}} ghcr.io/braand-web/deliobot:v0.1.151',
       "docker compose up -d --remove-orphans",
       "docker compose exec -T odb node dist-server/bot-box/box-check.js --public=none",
     ]);
@@ -341,9 +346,9 @@ describe.skipIf(!posix)("deploy/install.sh", () => {
     const without = run(["--check", "--domain", "delio.example.com"], registry(""));
     expect(without.stdout).toContain("  ok    version: v0.1.151, the newest release\n  note  This version has no bots' sandbox");
     expect(without.calls.filter((call) => call.includes("-fsSL")).map((call) => call.replace(/^.* (\S+)$/, "$1"))).toEqual([
-      "https://ghcr.io/v2/braand-web/opendeliobot/manifests/v0.1.151",
-      `https://ghcr.io/v2/braand-web/opendeliobot/manifests/${digest("b")}`,
-      `https://ghcr.io/v2/braand-web/opendeliobot/blobs/${digest("d")}`,
+      "https://ghcr.io/v2/braand-web/deliobot/manifests/v0.1.151",
+      `https://ghcr.io/v2/braand-web/deliobot/manifests/${digest("b")}`,
+      `https://ghcr.io/v2/braand-web/deliobot/blobs/${digest("d")}`,
     ]);
     expect(run(["--check", "--domain", "delio.example.com"], registry("ODB_IMAGE=server")).stdout).not.toContain("no bots' sandbox");
     // Asked for no sandbox, or a registry that does not say: nothing to add.
@@ -354,7 +359,7 @@ describe.skipIf(!posix)("deploy/install.sh", () => {
   it("uses the stable channel once it is published, and never the latest tag", () => {
     const result = run(["--domain", "delio.example.com"], { env: { FAKE_STABLE: "200" } });
     expect(result.stdout).toContain("  ok    version: the stable channel");
-    expect(readFileSync(join(result.install, ".env"), "utf8")).toContain("ODB_IMAGE=ghcr.io/braand-web/opendeliobot:stable\n");
+    expect(readFileSync(join(result.install, ".env"), "utf8")).toContain("ODB_IMAGE=ghcr.io/braand-web/deliobot:stable\n");
     expect(script).not.toMatch(/opendeliobot:latest/);
     expect(result.calls.some((call) => call.includes("releases/latest"))).toBe(false);
   });
@@ -402,7 +407,7 @@ describe.skipIf(!posix)("deploy/install.sh", () => {
     expect(second.all).toContain("Delio is running at https://delio.example.com");
     expect(second.status).toBe(0);
     expect(readFileSync(env, "utf8").split("\n").filter((line) => /^[A-Z_]+=/.test(line))).toEqual([
-      "ODB_SIGNIN_SMTP_URL=smtps://mail.example.com", "DOMAIN=delio.example.com", "ODB_IMAGE=ghcr.io/braand-web/opendeliobot:v0.1.152", "COMPOSE_FILE=compose.yaml:compose.box.yaml",
+      "ODB_SIGNIN_SMTP_URL=smtps://mail.example.com", "DOMAIN=delio.example.com", "ODB_IMAGE=ghcr.io/braand-web/deliobot:v0.1.152", "COMPOSE_FILE=compose.yaml:compose.box.yaml",
     ]);
     expect(readFileSync(join(first.install, "compose.yaml"), "utf8")).toContain("name: opendeliobot");
     expect(readFileSync(join(first.install, "data", "messages.db"), "utf8")).toBe("chats");
@@ -419,6 +424,38 @@ describe.skipIf(!posix)("deploy/install.sh", () => {
     expect(noCertificate.status).toBe(1);
     expect(noCertificate.stderr).toContain("Delio is running, but https://delio.example.com did not answer within 10 seconds, usually because the certificate could not be issued.");
     expect(noCertificate.all).not.toContain("Delio is running at");
+  });
+
+  it("gives what it makes fixed modes whatever the umask it is started with, and closes a folder others could change", () => {
+    const mode = (path: string) => statSync(path).mode & 0o777;
+    const first = run(["--domain", "delio.example.com"], { umask: "000" });
+    expect(first.status, first.all).toBe(0);
+    const expected: Record<string, number> = {
+      "": 0o755, "compose.yaml": 0o644, Caddyfile: 0o644, ".env": 0o600, data: 0o700, "update.sh": 0o755,
+      caddy: 0o755, "caddy/data": 0o755, "caddy/config": 0o755,
+    };
+    for (const [path, want] of Object.entries(expected)) expect(mode(join(first.install, path)).toString(8), path || "the install's folder").toBe(want.toString(8));
+    chmodSync(first.install, 0o777);
+    chmodSync(join(first.install, "data"), 0o777);
+    const again = run([], { umask: "000" }, { dir: first.dir });
+    expect(again.status, again.all).toBe(0);
+    expect(mode(first.install)).toBe(0o755);
+    expect(mode(join(first.install, "data"))).toBe(0o755);
+    expect(again.stdout).toContain(`  note  ${first.install} could be changed by others on this server; now only its owner can change it.`);
+    // A folder its owner made tighter keeps its mode; a link to the folder is judged by the folder, not the link.
+    chmodSync(first.install, 0o700);
+    const tight = run([], { umask: "000" }, { dir: first.dir });
+    expect(tight.status, tight.all).toBe(0);
+    expect(mode(first.install)).toBe(0o700);
+    expect(tight.stdout).not.toContain("could be changed by others");
+    chmodSync(first.install, 0o755);
+    const real = join(first.dir, "elsewhere");
+    renameSync(first.install, real);
+    symlinkSync(real, first.install);
+    const linked = run([], { umask: "000" }, { dir: first.dir });
+    expect(linked.status, linked.all).toBe(0);
+    expect(linked.stdout).not.toContain("could be changed by others");
+    expect(mode(real)).toBe(0o755);
   });
 
   it("--uninstall stops the server and keeps the data, saying where it is", () => {
@@ -559,8 +596,8 @@ describe.skipIf(!posix)("deploy/install.sh", () => {
     expect(statSync(join(first.install, "update.sh")).mode & 0o777).toBe(0o755);
     expect(first.stdout).toContain(`To update later, with a backup first and a way back:  sudo ${first.install}/update.sh`);
     const env = join(first.install, ".env");
-    const pin = `ghcr.io/braand-web/opendeliobot@sha256:${"a".repeat(64)}`;
-    writeFileSync(env, readFileSync(env, "utf8").replace("ODB_IMAGE=ghcr.io/braand-web/opendeliobot:stable", `ODB_IMAGE=${pin}`));
+    const pin = `ghcr.io/braand-web/deliobot@sha256:${"a".repeat(64)}`;
+    writeFileSync(env, readFileSync(env, "utf8").replace("ODB_IMAGE=ghcr.io/braand-web/deliobot:stable", `ODB_IMAGE=${pin}`));
     const again = run([], { env: { FAKE_STABLE: "200" } }, { dir: first.dir });
     expect(again.status).toBe(0);
     expect(again.stdout).toContain("  ok    version: the one update.sh pinned here; it stays until update.sh changes it");
@@ -571,6 +608,23 @@ describe.skipIf(!posix)("deploy/install.sh", () => {
     expect(unpublished.status).toBe(0);
     expect(existsSync(join(unpublished.install, "update.sh"))).toBe(false);
     expect(unpublished.stdout).toContain("To update later, run this command again.");
+  });
+
+  it("adds the Update server button with update-runner.sh, before the server starts, and says when it could not", () => {
+    const first = run(["--domain", "delio.example.com"]);
+    expect(first.calls.some((call) => call.includes(`${SOURCE}/deploy/update-runner.sh -o `))).toBe(true);
+    const ids = `${process.getuid?.()}:${process.getgid?.()}`;
+    const button = first.calls.findIndex((call) => call === `update-runner --install --dir ${first.install} --user ${ids} --no-restart`);
+    expect(button).toBeGreaterThan(-1);
+    expect(button).toBeLessThan(first.calls.indexOf("docker compose up -d --remove-orphans"));
+    expect(first.stdout).toContain("  note  The app can update this server: Settings, Updates, Update server.");
+    const compose = readFileSync(join(first.install, "compose.yaml"), "utf8");
+    expect(compose).toContain("      - /var/lib/opendeliobot-update/request:/run/odb-update/request\n      - /var/lib/opendeliobot-update/status:/run/odb-update/status:ro\n");
+    const refused = run(["--domain", "delio.example.com"], { env: { FAKE_RUNNER: "1" } });
+    expect(refused.status).toBe(0);
+    expect(refused.stdout).toContain(`Update it with: sudo ${refused.install}/update.sh`);
+    const removed = run(["--uninstall"], {}, { dir: first.dir });
+    expect(removed.calls).toContain(`update-runner --remove --dir ${first.install}`);
   });
 
   // update.sh moves an install from before Caddy had its own container, writing these two files as the installer does.

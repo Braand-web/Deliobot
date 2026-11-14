@@ -8,7 +8,7 @@ import { UPDATE_FILES } from "../src/adopted-home.ts";
 import { CUSTOMER_HOME_IMAGE, SERVER_VERSION_FLOOR, VERSION_LABEL } from "../src/customer-run.ts";
 
 const SCRIPT = join(import.meta.dirname, "..", "host", "delio-update-runner.sh");
-const IMAGE = `ghcr.io/braand-web/opendeliobot@sha256:${"b".repeat(64)}`;
+const IMAGE = `ghcr.io/braand-web/deliobot@sha256:${"b".repeat(64)}`;
 const posix = process.platform !== "win32";
 const dirs: string[] = [];
 afterEach(() => {
@@ -49,7 +49,7 @@ esac
 describe.skipIf(!posix)("delio-update-runner.sh", () => {
   it("is plain POSIX sh and accepts the image the connector accepts", () => {
     expect(spawnSync("sh", ["-n", SCRIPT]).status).toBe(0);
-    expect(readFileSync(SCRIPT, "utf8")).toContain("'ghcr\\.io/braand-web/opendeliobot@sha256:[0-9a-f]{64}'");
+    expect(readFileSync(SCRIPT, "utf8")).toContain("'ghcr\\.io/braand-web/deliobot@sha256:[0-9a-f]{64}'");
     expect(CUSTOMER_HOME_IMAGE.source).toBe("^ghcr\\.io\\/braand-web\\/opendeliobot@sha256:[0-9a-f]{64}$");
   });
 
@@ -64,7 +64,7 @@ describe.skipIf(!posix)("delio-update-runner.sh", () => {
   });
 
   it("runs nothing for an image that is not Delio's server image by digest, whatever the request says", () => {
-    for (const image of ["ghcr.io/braand-web/opendeliobot:latest", "ghcr.io/someone/opendeliobot@sha256:" + "b".repeat(64), `${IMAGE} --replace-local-build`, `${IMAGE};reboot`, ""]) {
+    for (const image of ["ghcr.io/braand-web/deliobot:latest", "ghcr.io/someone/opendeliobot@sha256:" + "b".repeat(64), `${IMAGE} --replace-local-build`, `${IMAGE};reboot`, ""]) {
       const refused = run(`id=u1\nimage=${image}\n`);
       expect(refused.calls, image).toEqual([]);
       expect(refused.answer, image).toBe("id=u1\ncode=4\n");

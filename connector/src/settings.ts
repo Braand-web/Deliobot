@@ -78,7 +78,7 @@ export const HIDEPID_CAPABILITIES = ["SYS_ADMIN", "SETPCAP"] as const;
 /** The home's secrets: kept out of its container's environment (docker inspect shows that) once its launcher reads the file. */
 export const HOME_SECRET_ENV = [
   "ODB_CLOUD_BOOTSTRAP_SECRET", "ODB_CLOUD_BOAT_TOKEN", "ODB_CLOUD_VOICE_TOKEN", "ODB_CLOUD_DECIDER_TOKEN", "ODB_CLOUD_AI_TOKEN",
-  "ODB_CLOUD_CONNECTED_APPS_GRANT", "ODB_CLOUD_X_TOKEN", "ODB_CLOUD_TUNNEL_TOKEN",
+  "ODB_CLOUD_CONNECTED_APPS_GRANT", "ODB_CLOUD_X_TOKEN", "ODB_CLOUD_HOSTING_TOKEN", "ODB_CLOUD_TUNNEL_TOKEN",
 ] as const;
 /** In the home: a read-only folder holding only `secrets.json`, root's alone. The launcher reads it at start. */
 export const HOME_SECRETS_TARGET = "/run/delio";

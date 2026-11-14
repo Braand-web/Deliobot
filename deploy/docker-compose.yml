@@ -21,7 +21,7 @@ services:
         ENGINES: ${ENGINES:-}
     # update.sh pins ODB_IMAGE in .env to the stable version's digest. Without it: `latest`, prebuilt on every main
     # push; `docker compose up --build` builds from source instead.
-    image: ${ODB_IMAGE:-ghcr.io/braand-web/opendeliobot:latest}
+    image: ${ODB_IMAGE:-ghcr.io/braand-web/deliobot:latest}
     restart: unless-stopped
     # The bots' browsers (docs/browser-packaging.md, "Process hygiene"): an
     # init collects the browser processes whose parents exit, and Chrome

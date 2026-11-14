@@ -12,8 +12,8 @@ ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 OUT=${OUT:-$(mktemp -d)}
 mkdir -p "$OUT"
 # Two published homes with the same 32-check bot box (v0.1.129 and v0.1.130).
-HOME_A=ghcr.io/braand-web/opendeliobot-cloud-home@sha256:2909b6a9e02565f524db94d9ea5759f0290c8c90fc9d6e753d7f284ca5e5ba75
-HOME_B=ghcr.io/braand-web/opendeliobot-cloud-home@sha256:495c1bd14a5677a1f9e8b6f8560e4971093e64bb07934fb8e8920de9f66da9d6
+HOME_A=ghcr.io/braand-web/deliobot-cloud-home@sha256:2909b6a9e02565f524db94d9ea5759f0290c8c90fc9d6e753d7f284ca5e5ba75
+HOME_B=ghcr.io/braand-web/deliobot-cloud-home@sha256:495c1bd14a5677a1f9e8b6f8560e4971093e64bb07934fb8e8920de9f66da9d6
 CONNECTOR_IMAGE=delio-connector:e2e
 PORT=18990
 ADMIN="http://127.0.0.1:$PORT"

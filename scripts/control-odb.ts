@@ -35,7 +35,7 @@ export interface ControlOdbDependencies {
 }
 
 export const HELP_UI = `renderer (needs a ui launch handle; every verb takes --ui HANDLE, never discovery):
-  node --experimental-strip-types scripts/control-odb.ts ui launch [--entry threads] [--tool-calls JSON] [--mode happy] [--engine codex]
+  node --experimental-strip-types scripts/control-odb.ts ui launch [--entry threads] [--tool-calls JSON] [--mode happy] [--engine codex|acp|cline|copilot|opencode]
   ui snapshot --ui HANDLE [--interactive]
   ui click --ui HANDLE (--ref @eN | --name NAME)
   ui type --ui HANDLE (--ref @eN | --name NAME) --text TEXT
@@ -162,11 +162,13 @@ export function verificationServerEnvironment(parentEnv: NodeJS.ProcessEnv, data
     // Without it the server also scans /opt/homebrew/bin, /usr/local/bin and the
     // login shell's PATH, finding a developer's own engine CLIs that CI lacks.
     ODB_TEST_SEALED_PATH: "1",
+    // The project's live announcement cards would sit over the corner the UI tests click in.
+    ODB_DISABLE_ANNOUNCEMENTS: "1",
   });
   // The fake engines' knobs are the one thing a caller may script into the child.
   for (const [key, value] of Object.entries(parentEnv)) {
     // FAKE_CLAUDE_DUMP stays the launcher's: assertions read fixtureDumpPath.
-    if ((key.startsWith("FAKE_CLAUDE_") || key.startsWith("FAKE_CODEX_TEXT_") || key.startsWith("FAKE_CODEX_COMMAND") || key === "FAKE_ACP_HANG_ON") && key !== "FAKE_CLAUDE_DUMP" && value) childEnv[key] = value;
+    if ((key.startsWith("FAKE_CLAUDE_") || key.startsWith("FAKE_CODEX_TEXT_") || key.startsWith("FAKE_CODEX_COMMAND") || key.startsWith("FAKE_STREAM_") || key === "FAKE_ACP_HANG_ON") && key !== "FAKE_CLAUDE_DUMP" && value) childEnv[key] = value;
   }
   // Enables POST /api/testing/org-library; the route does not exist without it.
   if (parentEnv.ODB_TEST_ORG_LIBRARY_KEY) childEnv.ODB_TEST_ORG_LIBRARY_KEY = parentEnv.ODB_TEST_ORG_LIBRARY_KEY;
@@ -187,6 +189,10 @@ export function verificationServerEnvironment(parentEnv: NodeJS.ProcessEnv, data
   // A loopback stand-in for Postiz Cloud only (server/testing/fake-postiz.ts): no test signs in to the real one.
   const postizUrl = parentEnv.ODB_POSTIZ_CLOUD_URL?.trim() ?? "";
   if (/^http:\/\/127\.0\.0\.1:\d{1,5}$/.test(postizUrl)) childEnv.ODB_POSTIZ_CLOUD_URL = postizUrl;
+  // A loopback stand-in for Netlify only (server/testing/fake-netlify.ts): the Published apps page then lists and
+  // deletes sites there, never on Netlify.
+  const netlifyUrl = parentEnv.ODB_NETLIFY_API_URL?.trim() ?? "";
+  if (/^http:\/\/127\.0\.0\.1:\d{1,5}\/api\/v1$/.test(netlifyUrl)) childEnv.ODB_NETLIFY_API_URL = netlifyUrl;
   // A loopback connected-apps service only (server/testing/broker-fake.ts): its token never reaches the real one.
   const brokerUrl = parentEnv.ODB_COMPOSIO_BROKER_URL?.trim() ?? "";
   if (/^http:\/\/127\.0\.0\.1:\d{1,5}$/.test(brokerUrl) && parentEnv.ODB_COMPOSIO_BROKER_TOKEN) {
@@ -199,6 +205,12 @@ export function verificationServerEnvironment(parentEnv: NodeJS.ProcessEnv, data
   if (/^http:\/\/127\.0\.0\.1:\d{1,5}(?:\/[A-Za-z0-9_-]+)*$/.test(xUrl)) {
     childEnv.ODB_CLOUD_X_URL = xUrl;
     if (parentEnv.ODB_CLOUD_X_TOKEN) childEnv.ODB_CLOUD_X_TOKEN = parentEnv.ODB_CLOUD_X_TOKEN;
+  }
+  // Included app hosting against a loopback stand-in only (server/testing/fake-app-hosting.ts): its token crosses only with it.
+  const hostingUrl = parentEnv.ODB_CLOUD_HOSTING_URL?.trim() ?? "";
+  if (/^http:\/\/127\.0\.0\.1:\d{1,5}(?:\/[A-Za-z0-9_-]+)*$/.test(hostingUrl) && parentEnv.ODB_CLOUD_HOSTING_TOKEN) {
+    childEnv.ODB_CLOUD_HOSTING_URL = hostingUrl;
+    childEnv.ODB_CLOUD_HOSTING_TOKEN = parentEnv.ODB_CLOUD_HOSTING_TOKEN;
   }
   // @devs reports reach a loopback fake only, else a closed port: never the Delio team.
   const bugReportUrl = parentEnv.ODB_BUG_REPORT_URL?.trim() ?? "";
@@ -273,7 +285,7 @@ export async function launchVerificationServer(
   enterprise?: { dir: string; licenseKey: string },
   room?: { scripted: boolean },
   /** Optional repository-owned fake providers for multi-engine setup checks. */
-  extraProviders: Array<"codex" | "cline" | "copilot" | "customAcp"> = [],
+  extraProviders: Array<"codex" | "cline" | "copilot" | "customAcp" | "opencode"> = [],
   /** Programmatic tests only: an owned loopback Boat provider, never a live account. */
   boatFixtureApi?: string,
   /** Programmatic web UI qualification against the fixture's static server. */
@@ -330,6 +342,10 @@ export async function launchVerificationServer(
         config: { cli: fileURLToPath(new URL("../server/testing/fake-acp-cli.ts", import.meta.url)) },
         environment: { FAKE_ACP_MODELS: "auto,claude-haiku-4.5,gpt-5.6-luna", FAKE_ACP_REJECT_STDIO_MCP: "1",
           FAKE_ACP_DUMP: join(dataDir, "copilot-launch.json") },
+      } } : {}),
+      // A real OpenCode the recipe downloaded and verified itself; it runs in this fixture's temporary home.
+      ...(extraProviders.includes("opencode") && parentEnv.ODB_VERIFY_OPENCODE_CLI ? { opencode: {
+        driver: "opencodeGo", displayName: "Verification OpenCode", config: { cli: parentEnv.ODB_VERIFY_OPENCODE_CLI },
       } } : {}),
       ...(extraProviders.includes("customAcp") ? { myAgent: {
         driver: "customAcp", displayName: "Verification custom ACP",

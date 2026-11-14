@@ -442,14 +442,14 @@ function checkArgs(type: JobType, args: Record<string, unknown>): Checked<JobArg
     case "start": {
       const extra = only(args, ["image", "env"]);
       if (extra) return { ok: false, message: extra };
-      if (typeof args.image !== "string" || !HOME_IMAGE.test(args.image)) return { ok: false, message: "image must be ghcr.io/braand-web/opendeliobot-cloud-home@sha256:<digest>" };
+      if (typeof args.image !== "string" || !HOME_IMAGE.test(args.image)) return { ok: false, message: "image must be ghcr.io/braand-web/deliobot-cloud-home@sha256:<digest>" };
       const env = checkHomeEnv(args.env);
       return env.ok ? { ok: true, value: { image: args.image, env: env.value } } : env;
     }
     case "update": {
       const extra = only(args, ["image"]);
       if (extra) return { ok: false, message: extra };
-      if (typeof args.image !== "string" || !HOME_IMAGE.test(args.image)) return { ok: false, message: "image must be ghcr.io/braand-web/opendeliobot-cloud-home@sha256:<digest>" };
+      if (typeof args.image !== "string" || !HOME_IMAGE.test(args.image)) return { ok: false, message: "image must be ghcr.io/braand-web/deliobot-cloud-home@sha256:<digest>" };
       return { ok: true, value: { image: args.image } };
     }
     case "self-update": {

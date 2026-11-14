@@ -49,7 +49,7 @@ describe("the stable channel", () => {
       releaseUrl: release().url, releasedAt: release().publishedAt, promotedAt: "2026-11-12T12:00:00.000Z",
       history: [{ version: "0.1.151", promotedAt: "2026-11-12T12:00:00.000Z" }],
     });
-    expect(() => stableRecord({ version: "0.1.151", image: "ghcr.io/braand-web/opendeliobot:v0.1.151", cloudHomeImage: HOME, release: release(), current: null, now: NOW })).toThrow("is not pinned by digest");
+    expect(() => stableRecord({ version: "0.1.151", image: "ghcr.io/braand-web/deliobot:v0.1.151", cloudHomeImage: HOME, release: release(), current: null, now: NOW })).toThrow("is not pinned by digest");
     if (process.platform === "win32") return;
     // Three promotions: the history then names older versions after the current one, as it does from the second on.
     let next = record;

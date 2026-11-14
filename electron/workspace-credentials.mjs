@@ -21,6 +21,7 @@ export const WORKSPACE_CREDENTIALS = [
   { section: "decider", field: "key", name: "jevApiKey", env: "ODB_JEV_API_KEY" },
   { section: "decider", field: "openrouterKey", name: "openrouterDeciderKey", env: "ODB_OPENROUTER_DECIDER_KEY" },
   { section: "decider", field: "workersAiToken", name: "workersAiToken", env: "ODB_WORKERS_AI_TOKEN" },
+  { section: "decider", field: "customKey", name: "customDeciderKey", env: "ODB_CUSTOM_DECIDER_KEY" },
   { section: "imageGen", field: "key", name: "openaiImageApiKey", env: "ODB_OPENAI_IMAGE_KEY" },
   { section: "imageGen", field: "customApiKey", name: "customImageApiKey", env: "ODB_CUSTOM_IMAGE_KEY" },
   { section: "imageGen", field: "geminiKey", name: "geminiImageApiKey", env: "ODB_GEMINI_IMAGE_KEY" },

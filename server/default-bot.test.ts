@@ -233,6 +233,19 @@ describe("Delio, every person's helper", () => {
     expect(new Store(selection).bot(delio.id)?.sidebarHidden).toBe(false);
   });
 
+  it("demotes to a regular bot on defaultBot: null, then it can be deleted", () => {
+    const store = new Store(selection);
+    const delio = boot(store)!;
+    const other = store.createBot({ name: "Writer" });
+    expect(defaultBotPatchRefusal(delio, { defaultBot: {} })).toMatch(/only be cleared/);
+    expect(defaultBotPatchRefusal(delio, { defaultBot: null })).toBeNull();
+    expect(defaultBotPatchRefusal(other, { defaultBot: null })).toBeNull();
+    store.patchBot(delio.id, { defaultBot: undefined });
+    expect(store.bot(delio.id)?.defaultBot).toBeUndefined();
+    expect(() => store.deleteBot(delio.id)).not.toThrow();
+    expect(store.bot(delio.id)).toBeNull();
+  });
+
   it("is never made twice for one place, even once its mark is gone", () => {
     const store = new Store(selection);
     const delio = boot(store)!;

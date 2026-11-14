@@ -8,7 +8,7 @@ services:
     build:
       context: ./deploy/local
       args:
-        BASE_IMAGE: ${ODB_BASE_IMAGE:-ghcr.io/braand-web/opendeliobot:latest}
+        BASE_IMAGE: ${ODB_BASE_IMAGE:-ghcr.io/braand-web/deliobot:latest}
         ENGINES: ${ENGINES-@anthropic-ai/claude-code @openai/codex}
     image: ${ODB_LOCAL_IMAGE:-opendeliobot-local:latest}
     restart: unless-stopped

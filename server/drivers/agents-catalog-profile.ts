@@ -30,8 +30,10 @@ export interface CatalogProfile {
   imageGeneration?: boolean;
   videoGeneration?: boolean;
   musicGeneration?: boolean;
-  /** A cloud computer can be had here (Boat): the meeting tools are mounted. */
+  /** A cloud computer can be had here (Boat): the meeting tools and reset_cloud_computer are mounted. */
   meetings?: boolean;
+  /** The plan's included app hosting reaches this server: publish_app is mounted. */
+  appHosting?: boolean;
 }
 
 /** Everything is off unless the harness says "1". */
@@ -54,5 +56,6 @@ export function catalogProfileFromEnv(env: NodeJS.ProcessEnv): CatalogProfile {
     videoGeneration: env.ODB_VIDEO_GENERATION === "1",
     musicGeneration: env.ODB_MUSIC_GENERATION === "1",
     meetings: env.ODB_MEETINGS === "1",
+    appHosting: env.ODB_APP_HOSTING === "1",
   };
 }

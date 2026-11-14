@@ -213,6 +213,7 @@ async function start({ resourcesPath, harnessPort, mutationToken, hostedUrl = nu
   delete childEnvironment.ODB_COMPANION_INTERNAL_ORIGIN;
   delete childEnvironment.ODB_PHONE_SECRET_PUBLIC_KEY;
   delete childEnvironment.ODB_COMPANION_TAILNET_NAME;
+  childEnvironment.ODB_APP_VERSION = app.getVersion();
   const settings = companionSettings();
   const direct = directRoutesOn(settings);
   childEnvironment.ODB_COMPANION_ROUTES = Object.keys(direct).filter((route) => direct[route]).join(",");
