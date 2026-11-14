@@ -49,7 +49,9 @@ describe("the portal behind a Fetch API Request", () => {
     expect(signup.headers.get("location")).toBe("/billing?workspace=acme&plan=pro&cycle=month");
     expect(target.store.workspace("acme")?.tenantUrl, "an app account leads to the download, not to a hosted workspace").toBe("https://deliobot.test/#telecharger");
     const billing = await target.send("/billing?workspace=acme&plan=pro&cycle=month", { headers: { cookie } });
-    expect(await billing.text()).toContain("Facturation · Acme");
+    expect(billing.status).toBe(303);
+    expect(billing.headers.get("location")).toBe("opendeliobot://cloud");
+    expect(await billing.text()).not.toContain("Facturation · Acme");
 
     const wallet = new Wallet(target.store.db);
     wallet.credit("acme", 100 * MICRO, "grant", null);

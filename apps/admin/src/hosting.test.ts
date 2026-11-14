@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { createAdminApp } from "./app.ts";
-import type { Fleet } from "./hosting.ts";
+import { Hosting, type Fleet } from "./hosting.ts";
 import type { MailMessage } from "./mail.ts";
 import { AdminStore } from "./store.ts";
 import { nodeDatabase } from "./sql-node.ts";
@@ -83,7 +83,8 @@ async function portal() {
     await app.sweep();
   };
   const account = async (slug: string, token: string) => fetch(new URL(`/api/workspace/${slug}/account`, origin), { headers: { authorization: `Bearer ${token}` } });
-  return { clock, mail, fleet, post, get, signIn, buy, account, sweep: () => app.sweep() };
+  const hosting = new Hosting(store.db, () => clock.now);
+  return { clock, mail, fleet, post, get, signIn, buy, account, hosting: (slug: string) => hosting.get(slug), workspace: (slug: string) => store.workspace(slug), sweep: () => app.sweep() };
 }
 
 describe("self-serve workspaces", () => {
@@ -98,9 +99,11 @@ describe("self-serve workspaces", () => {
     expect(await (await target.post("/signup", { name: "Acme", slug: "Bad slug", plan: "pro", cycle: "year" })).text()).toContain("lettres minuscules");
     const created = await target.post("/signup", { name: "Acme", slug: "acme", plan: "pro", cycle: "year" });
     expect(created.headers.get("location")).toBe("/billing?workspace=acme&plan=pro&cycle=year");
-    const waiting = await (await target.get("/billing?workspace=acme&plan=pro&cycle=year")).text();
-    expect(waiting).toContain("https://acme.deliobot.test");
-    expect(waiting).toContain('data-hosting="waiting"');
+    const waiting = await target.get("/billing?workspace=acme&plan=pro&cycle=year");
+    expect(waiting.status).toBe(303);
+    expect(waiting.headers.get("location")).toBe("opendeliobot://cloud");
+    expect(target.workspace("acme")?.tenantUrl).toBe("https://acme.deliobot.test");
+    expect(target.hosting("acme")?.state).toBe("waiting");
 
     await target.sweep();
     expect(target.fleet.calls, "nothing is created before a plan is paid").toEqual([]);
@@ -112,7 +115,7 @@ describe("self-serve workspaces", () => {
     expect(input.portalUrl).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/);
     expect(input.delioToken).toMatch(/^odb_workspace_[A-Za-z0-9_-]{43}$/);
     expect((await target.account("acme", input.delioToken!)).status, "the token the workspace got opens its gateway").toBe(200);
-    expect(await (await target.get("/billing?workspace=acme")).text()).toContain('data-hosting="ready"');
+    expect(target.hosting("acme")?.state).toBe("ready");
     expect(target.mail.find((message) => message.subject.includes("est prêt"))).toMatchObject({ to: "founder@acme.test" });
 
     await target.sweep();
@@ -132,7 +135,7 @@ describe("self-serve workspaces", () => {
     await target.sweep();
     expect(target.fleet.calls.map((call) => call.op)).toEqual(["create", "suspend"]);
     await target.signIn("founder@acme.test");
-    expect(await (await target.get("/billing?workspace=acme")).text()).toContain('data-hosting="suspended"');
+    expect(target.hosting("acme")?.state).toBe("suspended");
 
     await target.buy("acme", "starter", "cs_2");
     expect(target.fleet.calls.map((call) => call.op)).toEqual(["create", "suspend", "resume"]);
@@ -144,9 +147,11 @@ describe("self-serve workspaces", () => {
     await target.post("/signup", { name: "Acme", slug: "acme" });
     target.fleet.failNext(4);
     await target.buy("acme", "pro", "cs_1");
-    const billing = await (await target.get("/billing?workspace=acme")).text();
-    expect(billing).toContain('data-hosting="failed"');
-    expect(billing, "the server's own error stays out of the customer's page").not.toContain("nft");
+    const billing = await target.get("/billing?workspace=acme");
+    expect(billing.status).toBe(303);
+    expect(billing.headers.get("location")).toBe("opendeliobot://cloud");
+    expect(target.hosting("acme")?.state).toBe("failed");
+    expect(await billing.text(), "the server's own error stays out of the customer's page").not.toContain("nft");
 
     for (const wait of [5, 10, 20]) {
       await target.sweep();
@@ -162,7 +167,7 @@ describe("self-serve workspaces", () => {
     await target.post("/billing/hosting/retry", { workspace: "acme" });
     await target.sweep();
     expect(target.fleet.calls.filter((call) => call.op === "create")).toHaveLength(5);
-    expect(await (await target.get("/billing?workspace=acme")).text()).toContain('data-hosting="ready"');
+    expect(target.hosting("acme")?.state).toBe("ready");
   });
 
   it("creates a BYOK workspace without Delio's token, and caps self-serve workspaces per account", async () => {
