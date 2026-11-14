@@ -16,6 +16,8 @@ export interface GatewayOptions {
   deviceAccount?: (token: string, workspace: string) => { workspace: string; sourceWorkspace: string; email: string } | null;
   refreshAccount?: (workspace: string) => Promise<void>;
   paymentVersion?: (workspace: string) => number;
+  /** Keeps a problem report a person sent from their app; false when this workspace has sent too many today. */
+  report?: (input: { workspace: string; email: string | null; note: string; transcript: string; bot: string; appVersion: string; platform: string }) => boolean;
   /** The address that connected a device token, shown in the app as who is signed in. */
   deviceEmail?: (token: string, workspace: string) => string | null;
   /** Revokes a device token when its app signs out. */
@@ -44,7 +46,12 @@ const TEXT_DEFAULT_OUTPUT_TOKENS = 4096;
 const BYTES_PER_TOKEN = 3;
 /** A fal.ai job whose price list cannot be read is held at this much. */
 const FAL_UNKNOWN_HOLD_USD = 1;
-const MAX_CONCURRENT = 8;
+/** Text requests a workspace runs at once, by plan; the ones past it wait their turn. */
+const CONCURRENT_BY_PLAN: Record<string, number> = { pro: 16, max: 32 };
+const CONCURRENT_DEFAULT = 8;
+/** A waiting request gives up after this long, and no more than this many times the limit wait at once. */
+const QUEUE_WAIT_MS = 45_000;
+const QUEUE_DEPTH = 4;
 const PRICE_TTL_MS = 24 * 60 * 60_000;
 const FAL_MODEL = /^[A-Za-z0-9][A-Za-z0-9._-]*(\/[A-Za-z0-9][A-Za-z0-9._-]*){1,5}$/;
 const SEGMENT = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
@@ -145,14 +152,33 @@ export function createGateway(options: GatewayOptions) {
     return price;
   }
 
-  function admit(workspace: string): (() => void) | null {
+  const waiting = new Map<string, Array<() => void>>();
+  const release = (workspace: string) => () => {
+    const next = waiting.get(workspace)?.shift();
+    if (next) return next();
+    const left = (running.get(workspace) ?? 1) - 1;
+    if (left > 0) running.set(workspace, left); else running.delete(workspace);
+  };
+
+  /** A place among the workspace's running requests, at once or after waiting in line; null when the line is full or the wait too long. */
+  function admit(workspace: string, limit: number): Promise<(() => void) | null> {
     const count = running.get(workspace) ?? 0;
-    if (count >= MAX_CONCURRENT) return null;
-    running.set(workspace, count + 1);
-    return () => {
-      const left = (running.get(workspace) ?? 1) - 1;
-      if (left > 0) running.set(workspace, left); else running.delete(workspace);
-    };
+    if (count < limit) {
+      running.set(workspace, count + 1);
+      return Promise.resolve(release(workspace));
+    }
+    const line = waiting.get(workspace) ?? [];
+    if (line.length >= limit * QUEUE_DEPTH) return Promise.resolve(null);
+    waiting.set(workspace, line);
+    return new Promise((resolve) => {
+      const turn = () => { clearTimeout(timer); resolve(release(workspace)); };
+      const timer = setTimeout(() => {
+        const at = line.indexOf(turn);
+        if (at >= 0) line.splice(at, 1);
+        resolve(null);
+      }, QUEUE_WAIT_MS);
+      line.push(turn);
+    });
   }
 
   let textPrices: { at: number; byModel: Map<string, { prompt: number; completion: number }> } | null = null;
@@ -181,7 +207,7 @@ export function createGateway(options: GatewayOptions) {
     return Math.max(TEXT_HOLD_USD, (bytes / BYTES_PER_TOKEN) * price.prompt + output * price.completion);
   }
 
-  async function openrouter(req: IncomingMessage, res: ServerResponse, workspace: string, rest: string): Promise<void> {
+  async function openrouter(req: IncomingMessage, res: ServerResponse, workspace: string, rest: string, limit: number): Promise<void> {
     if (!options.openrouterKey) return failure(res, 503, NOT_CONFIGURED);
     const upstreamHeaders = { authorization: `Bearer ${options.openrouterKey}`, accept: req.headers.accept ?? "application/json" };
     if (req.method === "GET" && (rest === "models" || rest.startsWith("models?"))) {
@@ -207,7 +233,7 @@ export function createGateway(options: GatewayOptions) {
     const model = typeof body.model === "string" ? body.model : "unknown";
     if (wallet.balance(workspace) <= 0) return failure(res, 402, OUT_OF_CREDITS, OUT_OF_CREDITS_CODE);
     const holdUsd = await textHoldUsd(model, bytes, body.max_tokens ?? body.max_completion_tokens);
-    const done = admit(workspace);
+    const done = await admit(workspace, limit);
     if (!done) return failure(res, 429, "Too many requests at once for this workspace. Try again in a moment.");
     const hold = wallet.hold(workspace, wallet.microFor(holdUsd));
     if (!hold) { done(); return failure(res, 402, OUT_OF_CREDITS, OUT_OF_CREDITS_CODE); }
@@ -348,7 +374,8 @@ export function createGateway(options: GatewayOptions) {
     async handle(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
       const gateway = /^\/api\/gateway\/([a-z][a-z0-9-]{1,30})\/(openrouter\/v1|fal|boat\/v1|anthropic|openai\/v1)\/(.+)$/.exec(url.pathname);
       const account = /^\/api\/workspace\/([a-z][a-z0-9-]{1,30})\/account$/.exec(url.pathname);
-      const requested = gateway?.[1] ?? account?.[1];
+      const report = /^\/api\/workspace\/([a-z][a-z0-9-]{1,30})\/report$/.exec(url.pathname);
+      const requested = gateway?.[1] ?? account?.[1] ?? report?.[1];
       if (!requested) return false;
       const presented = bearer(req);
       const device = options.deviceAccount?.(presented, requested);
@@ -357,6 +384,17 @@ export function createGateway(options: GatewayOptions) {
         return true;
       }
       const workspace = device?.workspace ?? requested;
+      if (report) {
+        if (req.method !== "POST" || !options.report) { failure(res, 405, "Method not allowed."); return true; }
+        let body: Record<string, unknown>;
+        try { body = JSON.parse((await readRaw(req)).toString("utf8")) as Record<string, unknown>; } catch { failure(res, 400, "The request was not valid JSON."); return true; }
+        const text = (key: string) => typeof body?.[key] === "string" ? body[key] as string : "";
+        if (!text("note").trim() && !text("transcript").trim()) { failure(res, 400, "A report needs a note or a conversation."); return true; }
+        const kept = options.report({ workspace, email: device?.email ?? options.deviceEmail?.(presented, requested) ?? null, note: text("note"), transcript: text("transcript"),
+          bot: text("bot"), appVersion: text("appVersion"), platform: text("platform") });
+        if (kept) send(res, 200, { received: true }); else failure(res, 429, "Too many reports today. Write to support instead.");
+        return true;
+      }
       if (account && req.method === "DELETE") {
         options.revokeDevice?.(presented, device?.sourceWorkspace ?? requested);
         send(res, 200, { revoked: true });
@@ -376,7 +414,7 @@ export function createGateway(options: GatewayOptions) {
       const provider = gateway![2]!;
       const rest = gateway![3]! + url.search;
       try {
-        if (provider === "openrouter/v1") await openrouter(req, res, workspace, rest);
+        if (provider === "openrouter/v1") await openrouter(req, res, workspace, rest, CONCURRENT_BY_PLAN[allowed.plan ?? ""] ?? CONCURRENT_DEFAULT);
         else if (provider === "fal") await fal(req, res, workspace, rest);
         else if (provider === "boat/v1") await boat.handle(req, res, workspace, rest);
         else failure(res, 501, "Claude and Codex company models are not offered on this deployment yet; use the OpenRouter company models.");

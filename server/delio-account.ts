@@ -1,6 +1,7 @@
 // A desktop app connected to a Delio account: it spends that account's credits through the Delio gateway for text
 // (a "Delio" engine on OpenRouter's catalog) and, without a fal.ai key of its own, for images, video and music.
 // Connecting is RFC 8628's device flow against Delio Admin: the app shows a code, the person approves it there.
+import { redactSecretsInText } from "../shared/redact.ts";
 import type { ModelSelection } from "../shared/wire.ts";
 import type { AppConfig } from "./config.ts";
 import type { InstanceConfigMap } from "./contracts.ts";
@@ -60,6 +61,9 @@ export function withDelioMedia<T extends Pick<AppConfig, "delio" | "fal">>(cfg: 
 }
 
 interface PendingFlow { portal: string; deviceCode: string; userCode: string; verification: string; expiresAt: number; interval: number; nextPollAt: number }
+
+const REPORT_NOTE_MAX = 2000;
+const REPORT_TRANSCRIPT_MAX = 200_000;
 
 export function createDelioAccount(deps: {
   config: () => AppConfig;
@@ -196,8 +200,24 @@ export function createDelioAccount(deps: {
     throw Object.assign(new Error(OWN_AI_REFUSAL), { status: 402, code: "plan_required" });
   }
 
+  /** Sends a problem report the person chose to send: their note and the conversation they named, with secrets masked.
+   * Security: nothing leaves this computer unless the person presses Send in the report dialog. */
+  async function report(input: { note: string; transcript: string; bot: string; appVersion: string; platform: string }): Promise<"sent" | "not-connected" | "too-many" | "failed"> {
+    const connection = delioConnection(deps.config());
+    if (!connection) return "not-connected";
+    try {
+      const response = await fetchImpl(`${connection.portal}/api/workspace/${connection.workspace}/report`, {
+        method: "POST", redirect: "error", signal: AbortSignal.timeout(20_000),
+        headers: { authorization: `Bearer ${connection.token}`, "content-type": "application/json", accept: "application/json" },
+        body: JSON.stringify({ ...input, note: redactSecretsInText(input.note).slice(0, REPORT_NOTE_MAX), transcript: redactSecretsInText(input.transcript).slice(-REPORT_TRANSCRIPT_MAX) }),
+      });
+      await response.body?.cancel().catch(() => undefined);
+      return response.ok ? "sent" : response.status === 429 ? "too-many" : "failed";
+    } catch { return "failed"; }
+  }
+
   return {
-    start, status, balance, ownAiAllowed, ownAiVisible, assertOwnAi, planGate,
+    start, status, balance, ownAiAllowed, ownAiVisible, assertOwnAi, planGate, report,
     /** Forgets the account here and revokes this app's token on the portal, so a copied token stops working too. */
     async disconnect() {
       const connection = delioConnection(deps.config());

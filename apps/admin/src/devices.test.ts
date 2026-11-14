@@ -11,6 +11,7 @@ import { createDelioAccount, delioConnection, delioInstanceConfigs, withDelioMed
 import { createAdminApp } from "./app.ts";
 import type { MailMessage } from "./mail.ts";
 import { Devices } from "./devices.ts";
+import { Reports } from "./reports.ts";
 import { AdminStore } from "./store.ts";
 import { nodeDatabase } from "./sql-node.ts";
 import { Billing } from "./plans.ts";
@@ -190,5 +191,34 @@ describe("a device token and the account behind it", () => {
     expect(devices.check(polled.token, "acme"), "a demoted admin's app").toBe(false);
     expect(store.removeMember("acme", second.id, "owner@acme.test")).toBe("ok");
     expect(devices.check(polled.token, "acme"), "a removed member's app").toBe(false);
+  });
+});
+
+describe("a problem report sent from the app", () => {
+  it("reaches the portal under the sender's workspace with secrets masked, and is refused without an account or past ten a day", async () => {
+    const target = await portal();
+    const app = desktop(target.origin);
+    const report = { note: "Le bot s'arrête avant la fin. Ma clé : sk-ant-api03-abcdefghijklmnopqrstuvwxyz0123456789", transcript: "Moi: fais le rapport\nDelio: …", bot: "Delio", appVersion: "0.1.161", platform: "win32" };
+    expect(await app.account.report(report)).toBe("not-connected");
+
+    const started = await app.start();
+    await target.signIn("ana@acme.test");
+    await target.request("/device", { code: started.userCode, workspace: "personal", decision: "allow" });
+    expect(await app.account.status()).toMatchObject({ state: "connected" });
+    expect(await app.account.report(report)).toBe("sent");
+
+    const reports = new Reports(target.store.db);
+    const [listed] = reports.list(10);
+    expect(listed).toMatchObject({ email: "ana@acme.test", bot: "Delio", appVersion: "0.1.161", platform: "win32", readAt: null });
+    const opened = reports.open(listed!.id)!;
+    expect(opened.transcript).toContain("fais le rapport");
+    expect(opened.note).toContain("Le bot s'arrête avant la fin");
+    expect(opened.note, "a key pasted in the note never leaves the computer").not.toContain("abcdefghijklmnopqrstuvwxyz0123456789");
+    expect(reports.unread()).toBe(0);
+
+    for (let sent = 1; sent < 10; sent += 1) expect(await app.account.report(report)).toBe("sent");
+    expect(await app.account.report(report)).toBe("too-many");
+    const anonymous = await fetch(new URL(`/api/workspace/${listed!.workspace}/report`, target.origin), { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(report) });
+    expect(anonymous.status).toBe(401);
   });
 });

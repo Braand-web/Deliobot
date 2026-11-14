@@ -2,15 +2,16 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 
 import type { Devices } from "../devices.ts";
 import type { Hosting } from "../hosting.ts";
+import type { Reports } from "../reports.ts";
 import { MANUAL_ORDER_PREFIX, PLANS, type Billing, type Cycle, type Order, type PlanId } from "../plans.ts";
 import type { SasPay } from "../saspay.ts";
 import { token, type Account, type AdminStore, type Workspace } from "../store.ts";
 import { MICRO, type Wallet } from "../wallet.ts";
 import { Metrics, period } from "./metrics.ts";
-import { CLIENT_FILTERS, clientPage, clientsPage, consolePage, dashboardPage, journalPage, n, ORDER_FILTERS, ordersPage, trafficPage, type ClientRow, type ConsoleSection, type Flash } from "./pages.ts";
+import { CLIENT_FILTERS, clientPage, clientsPage, consolePage, dashboardPage, journalPage, n, ORDER_FILTERS, ordersPage, reportPage, reportsPage, trafficPage, type ClientRow, type ConsoleSection, type Flash } from "./pages.ts";
 
 export interface ConsoleContext {
-  store: AdminStore; wallet: Wallet; devices: Devices; billing: Billing; hosting: Hosting; saspay: SasPay | null; currency: string;
+  store: AdminStore; wallet: Wallet; devices: Devices; reports: Reports; billing: Billing; hosting: Hosting; saspay: SasPay | null; currency: string;
   operators: ReadonlySet<string>; now: () => number;
   readForm: (req: IncomingMessage) => Promise<Record<string, unknown>>;
   redirect: (res: ServerResponse, location: string) => void;
@@ -22,14 +23,15 @@ const ORDER_ID = "(?:ord|man)_[A-Za-z0-9_-]{8,40}";
 const CLIENT_ACTION = new RegExp(`^/clients/(${SLUG})/(credits|forfait|suspendre|bloquer|appareil|jeton|supprimer)$`);
 const CLIENT = new RegExp(`^/clients/(${SLUG})$`);
 const ORDER_ACTION = new RegExp(`^/commandes/(${ORDER_ID})/(verifier|payee)$`);
-const PAGES = new Set(["/", "/trafic", "/clients", "/commandes", "/journal"]);
+const PAGES = new Set(["/", "/trafic", "/clients", "/commandes", "/signalements", "/journal"]);
+const REPORT = /^\/signalements\/([A-Za-z0-9_-]{8,20})(\/supprimer)?$/;
 const PAGE_SIZE = 25;
 /** Per-workspace tables the portal keeps besides the store's own; a deleted workspace leaves no row in them. */
 const WORKSPACE_TABLES = ["wallets", "gateway_tokens", "holds", "subscriptions", "device_tokens", "hosting", "boat_included"] as const;
 
 /** Whether a path belongs to the console's own pages and actions. */
 export function consoleServes(path: string): boolean {
-  return PAGES.has(path) || CLIENT.test(path) || CLIENT_ACTION.test(path) || ORDER_ACTION.test(path);
+  return PAGES.has(path) || REPORT.test(path) || CLIENT.test(path) || CLIENT_ACTION.test(path) || ORDER_ACTION.test(path);
 }
 
 const FLASH: Record<string, (count: string) => Flash> = {
@@ -37,7 +39,7 @@ const FLASH: Record<string, (count: string) => Flash> = {
   plan: () => ({ kind: "ok", text: "Forfait offert et appliqué" }),
   suspended: () => ({ kind: "ok", text: "Espace suspendu" }), resumed: () => ({ kind: "ok", text: "Espace réactivé" }),
   blocked: () => ({ kind: "ok", text: "Compte bloqué" }), unblocked: () => ({ kind: "ok", text: "Compte débloqué" }),
-  device: () => ({ kind: "ok", text: "Application déconnectée" }), deleted: () => ({ kind: "ok", text: "Espace supprimé" }),
+  device: () => ({ kind: "ok", text: "Application déconnectée" }), "report-deleted": () => ({ kind: "ok", text: "Signalement supprimé" }), deleted: () => ({ kind: "ok", text: "Espace supprimé" }),
   paid: () => ({ kind: "ok", text: "Commande marquée payée, crédits appliqués" }), "already-paid": () => ({ kind: "bad", text: "Cette commande était déjà payée" }),
   "recheck-paid": () => ({ kind: "ok", text: "SasPay confirme le paiement : commande appliquée" }),
   "recheck-pending": () => ({ kind: "ok", text: "SasPay : paiement toujours en attente" }),
@@ -54,7 +56,7 @@ const like = (value: string) => `%${value.replace(/[\\%_]/g, (char) => `\\${char
 const field = (body: Record<string, unknown>, key: string, max = 200) => typeof body[key] === "string" ? (body[key] as string).trim().slice(0, max) : "";
 
 export function createConsole(ctx: ConsoleContext) {
-  const { store, wallet, devices, billing, hosting, now } = ctx;
+  const { store, wallet, devices, reports, billing, hosting, now } = ctx;
   const metrics = new Metrics(store.db, wallet.creditUsd, now);
 
   function render(res: ServerResponse, user: Account, url: URL, page: { title: string; subtitle?: string; section: ConsoleSection; body: (ctx: { now: number }) => ReturnType<typeof dashboardPage>;
@@ -63,7 +65,7 @@ export function createConsole(ctx: ConsoleContext) {
     const flashCode = url.searchParams.get("ok") ?? url.searchParams.get("erreur");
     const flash = flashCode && Object.hasOwn(FLASH, flashCode) ? FLASH[flashCode]!(url.searchParams.get("n") ?? "0") : null;
     const pendingOrders = Number((store.db.prepare("SELECT COUNT(*) AS n FROM orders WHERE status = 'pending' AND created_at > ?").get(now() - 2 * 86_400_000) as { n: number }).n);
-    const html = consolePage({ ...page, body: page.body({ now: now() }), email: user.email, nonce, flash, pendingOrders });
+    const html = consolePage({ ...page, body: page.body({ now: now() }), email: user.email, nonce, flash, pendingOrders, unreadReports: reports.unread() });
     ctx.send(res, status, html, "text/html; charset=utf-8", {
       "content-security-policy": `default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; script-src 'nonce-${nonce}'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'`,
     });
@@ -229,6 +231,21 @@ export function createConsole(ctx: ConsoleContext) {
       body: ({ now: at }) => journalPage({ rows: rows.slice(0, 50), q, page, more: rows.length > 50, now: at }) });
   }
 
+  function reportList(res: ServerResponse, user: Account, url: URL): void {
+    const page = Math.max(1, Math.min(1000, Number(url.searchParams.get("page")) || 1));
+    const rows = reports.list(51, (page - 1) * 50);
+    render(res, user, url, { title: "Signalements", subtitle: "Problèmes envoyés depuis l'application", section: "reports",
+      body: ({ now: at }) => reportsPage({ rows: rows.slice(0, 50), page, more: rows.length > 50, now: at }) });
+  }
+
+  function reportDetail(res: ServerResponse, user: Account, url: URL, id: string): boolean {
+    const report = reports.open(id);
+    if (!report) return false;
+    store.audit(report.workspace, user.email, "report.read", id);
+    render(res, user, url, { title: "Signalement", subtitle: report.email ?? report.workspace, section: "reports", body: ({ now: at }) => reportPage(report, at) });
+    return true;
+  }
+
   /** Serves a console page or action for a signed-in operator; false when the path is not the console's. */
   return async function handle(req: IncomingMessage, res: ServerResponse, url: URL, user: Account): Promise<boolean> {
     const method = req.method ?? "GET";
@@ -239,12 +256,22 @@ export function createConsole(ctx: ConsoleContext) {
       if (path === "/clients") { clients(res, user, url); return true; }
       if (path === "/commandes") { orders(res, user, url); return true; }
       if (path === "/journal") { journal(res, user, url); return true; }
+      if (path === "/signalements") { reportList(res, user, url); return true; }
+      const reportId = REPORT.exec(path);
+      if (reportId && !reportId[2]) return reportDetail(res, user, url, reportId[1]!);
       const slug = CLIENT.exec(path)?.[1];
       const workspace = slug ? store.workspace(slug) : null;
       if (workspace) { client(res, user, url, workspace); return true; }
       return false;
     }
     if (method !== "POST") return false;
+    const reportAct = REPORT.exec(path);
+    if (reportAct?.[2]) {
+      reports.remove(reportAct[1]!);
+      store.audit(null, user.email, "report.deleted", reportAct[1]!);
+      ctx.redirect(res, "/signalements?ok=report-deleted");
+      return true;
+    }
     const clientAct = CLIENT_ACTION.exec(path);
     if (clientAct) {
       const workspace = store.workspace(clientAct[1]!);

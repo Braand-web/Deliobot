@@ -1,5 +1,5 @@
 import { useMemo, useState, type JSX } from "react";
-import { Bug, Copy, Cpu, Download, Gauge, ListChecks, MessagesSquare, Monitor, MoreHorizontal, RotateCcw, Search, Share, SquarePen, UserRound } from "lucide-react";
+import { Bug, Copy, Cpu, Download, Gauge, LifeBuoy, ListChecks, MessagesSquare, Monitor, MoreHorizontal, RotateCcw, Search, Share, SquarePen, UserRound } from "lucide-react";
 import { currentTaskBot, openBotThread, useStore, visibleMessages, type Bot } from "@/state/store";
 import { useAdvancedMode } from "@/lib/interface-mode";
 import { useShowThreads } from "@/lib/thread-preferences";
@@ -13,6 +13,7 @@ import {
 } from "@/lib/export-transcript";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
+import { openProblemReport } from "@/lib/report-problem";
 import { localizedTaskTitle } from "@/lib/task-title";
 import { useContextAction } from "./ContextWarning";
 import { ELEVATED_CONTROL, ELEVATED_HOVER, ELEVATED_OPEN } from "./elevated";
@@ -132,6 +133,12 @@ export function useChatMoreItems(profile: Bot, phoneHeader = false): { items: Si
       icon: <Download size={16} />,
       disabled: !hasMessages,
       onSelect: () => downloadMarkdownTranscript(slugifyTranscriptFilename(bot.name), transcript()),
+    },
+    {
+      key: "report",
+      label: t("report.menu"),
+      icon: <LifeBuoy size={16} />,
+      onSelect: () => openProblemReport({ bot: bot.name, transcript: hasMessages ? transcript() : "" }),
     },
     ...(usage ? [{
       key: "usage",
