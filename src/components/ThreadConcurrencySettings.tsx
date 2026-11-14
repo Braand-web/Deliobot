@@ -4,6 +4,9 @@ import { t } from "@/lib/i18n";
 import { Card } from "./SettingsPrimitives";
 import { Select } from "./Select";
 
+/** The server's ceiling on a bot's parallel threads. */
+const MAX_THREADS_PER_BOT = 32;
+
 export function ThreadConcurrencySettings() {
   const { state, dispatch } = useStore();
   const confirmed = state.config?.threads?.maxConcurrentPerBot ?? 3;
@@ -35,7 +38,7 @@ export function ThreadConcurrencySettings() {
       <Select className="mt-2" id="thread-concurrency" value={pending ?? confirmed} disabled={pending !== null || oneThreadPerBot}
         aria-describedby="thread-concurrency-help"
         onChange={(event) => void save(Number(event.target.value))}>
-        {Array.from({ length: 16 }, (_, i) => i + 1).map((limit) => <option key={limit} value={limit}>{limit}</option>)}
+        {Array.from({ length: MAX_THREADS_PER_BOT }, (_, i) => i + 1).map((limit) => <option key={limit} value={limit}>{limit}</option>)}
       </Select>
       <p id="thread-concurrency-help" className="mt-2 text-[12px] leading-relaxed text-ink-secondary">{oneThreadPerBot ? t("settings.threads.starter") : t("settings.threads.helpHanded")}</p>
       {pending !== null && <p role="status" className="mt-2 text-[12px] text-ink-secondary">{t("settings.threads.saving")}</p>}

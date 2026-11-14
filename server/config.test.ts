@@ -148,21 +148,21 @@ describe("configuration boundaries", () => {
   it("defaults to what each host holds, and a saved number wins except over a plan's limit", () => {
     const GB = 1024 ** 3;
     const desktop = (gb: number) => ({ memoryGate: false, totalBytes: gb * GB, oneThreadPerBot: false });
-    for (const [gb, threads] of [[2, 3], [4, 3], [8, 4], [16, 8], [26, 13], [32, 16], [128, 16]] as const) expect(maxConcurrentBotThreads({}, desktop(gb))).toBe(threads);
+    for (const [gb, threads] of [[2, 3], [4, 3], [8, 4], [16, 8], [26, 13], [32, 16], [64, 32], [128, 32]] as const) expect(maxConcurrentBotThreads({}, desktop(gb))).toBe(threads);
     expect(maxConcurrentBotThreads({}, desktop(15.8)), "a 16 GB machine reports a little less").toBe(8);
-    for (const gb of [2, 8]) expect(maxConcurrentBotThreads({}, { memoryGate: true, totalBytes: gb * GB, oneThreadPerBot: false }), "the memory gate decides").toBe(16);
+    for (const gb of [2, 8]) expect(maxConcurrentBotThreads({}, { memoryGate: true, totalBytes: gb * GB, oneThreadPerBot: false }), "the memory gate decides").toBe(32);
     expect(maxConcurrentBotThreads({ threads: { maxConcurrentPerBot: 2 } }, desktop(64))).toBe(2);
     expect(maxConcurrentBotThreads({ threads: { maxConcurrentPerBot: 2 } }, { memoryGate: true, totalBytes: 8 * GB, oneThreadPerBot: false })).toBe(2);
     const starter = { memoryGate: true, totalBytes: 2 * GB, oneThreadPerBot: true };
     expect(maxConcurrentBotThreads({}, starter)).toBe(1);
     expect(maxConcurrentBotThreads({ threads: { maxConcurrentPerBot: 8 } }, starter), "a plan's limit is not a preference").toBe(1);
-    expect(maxConcurrentChildThreads({}, starter), "a bot's own turn is never held behind itself").toBe(16);
+    expect(maxConcurrentChildThreads({}, starter), "a bot's own turn is never held behind itself").toBe(32);
     expect(maxConcurrentChildThreads({ threads: { maxConcurrentPerBot: 2 } }, desktop(64)), "only a plan's limit lets children through").toBe(2);
     expect(botThreadLimitText({}, starter)).toContain("Starter runs one thread at a time per bot");
     expect(botThreadLimitText({ threads: { maxConcurrentPerBot: 5 } }, desktop(16))).toBe("this bot has reached its limit of 5 parallel threads — wait for one to finish");
-    expect(parseStoredConfig({ threads: { maxConcurrentPerBot: 16 } })).toEqual({ threads: { maxConcurrentPerBot: 16 } });
+    expect(parseStoredConfig({ threads: { maxConcurrentPerBot: 32 } })).toEqual({ threads: { maxConcurrentPerBot: 32 } });
     expect(maxConcurrentBotThreads(parseConfigPatch({ threads: { maxConcurrentPerBot: 1 } }))).toBe(1);
-    for (const value of [0, -1, 17, 1.5, "10", null]) {
+    for (const value of [0, -1, 33, 1.5, "10", null]) {
       expect(() => parseConfigPatch({ threads: { maxConcurrentPerBot: value } })).toThrow("threads.maxConcurrentPerBot");
     }
   });

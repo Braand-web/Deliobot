@@ -3,7 +3,7 @@ import { totalmem } from "node:os";
 
 import { engineMemory } from "./engine-memory.ts";
 
-export const MAX_CONCURRENT_BOT_THREADS = 16;
+export const MAX_CONCURRENT_BOT_THREADS = 32;
 const DEFAULT_THREADS_FLOOR = 3, BYTES_PER_DEFAULT_THREAD = 2 * 1024 ** 3;
 
 /** Where the memory gate runs it decides, so only the ceiling applies; elsewhere nothing protects the machine. */

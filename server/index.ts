@@ -1823,7 +1823,7 @@ function internalCapabilityIsActive(capability: InternalCapability): boolean {
   );
 }
 const MAX_COMMS_DEPTH = 1;
-const MAX_WORKSPACE_BOTS = 100;
+const MAX_WORKSPACE_BOTS = 300;
 const phoneProxyPath = SPAWNED_PROXIES.phone;
 
 const researchAvailability = createResearchAvailability({ credential: () => researchCredential(cfg.treg?.key) }); researchAvailability.available();
