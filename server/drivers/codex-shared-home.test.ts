@@ -73,7 +73,8 @@ describe("linkSharedCodexHome", () => {
     linkSharedCodexHome(shared, plan);
 
     for (const name of ["config.toml", "skills", "history.jsonl", ".credentials.json", "state_5.sqlite", "sessions", "plugins", "thread-writer-locks"]) {
-      expect(linksTo(join(plan, name), join(shared, name)), name).toBe(true);
+      if (process.platform === "win32" && name === "config.toml") expect(readFileSync(join(plan, name))).toEqual(readFileSync(join(shared, name)));
+      else expect(linksTo(join(plan, name), join(shared, name)), name).toBe(true);
     }
     // The shared folders exist in the person's home from the first turn, so what the plan writes lands there.
     expect(lstatSync(join(shared, "sessions")).isDirectory()).toBe(true);
@@ -143,7 +144,8 @@ describe("linkSharedCodexHome", () => {
     const moved = join(root, "elsewhere", ".codex");
     write(join(moved, "config.toml"), "moved");
     linkSharedCodexHome(moved, plan);
-    expect(linksTo(join(plan, "config.toml"), join(moved, "config.toml"))).toBe(true);
+    if (process.platform === "win32") expect(isLink(join(plan, "config.toml"))).toBe(false);
+    else expect(linksTo(join(plan, "config.toml"), join(moved, "config.toml"))).toBe(true);
     expect(readFileSync(join(plan, "config.toml"), "utf8")).toBe("moved");
     expect(existsSync(join(shared, "config.toml"))).toBe(true);
   });

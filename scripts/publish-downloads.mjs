@@ -26,6 +26,13 @@ function feedVersion(text) {
   return /^version:\s*['"]?([0-9][0-9A-Za-z.+-]*)['"]?\s*$/m.exec(text)?.[1] ?? null;
 }
 
+function newerRelease(published, candidate) {
+  if (!/^\d+\.\d+\.\d+$/.test(published ?? "") || !/^\d+\.\d+\.\d+$/.test(candidate)) return false;
+  const left = published.split(".").map(Number), right = candidate.split(".").map(Number);
+  const different = left.findIndex((part, index) => part !== right[index]);
+  return different >= 0 && left[different] > right[different];
+}
+
 async function call(url, init, tries = 5) {
   for (let attempt = 1; ; attempt += 1) {
     try {
@@ -88,7 +95,13 @@ async function publishRelease(folder) {
   for (const [file] of [...versioned, ...links, ...feeds]) if (!existsSync(join(folder, file))) throw new Error(`missing ${file}`);
 
   const liveVersion = async (feed) => feedVersion(await fetch(`${SITE}/download/latest/${feed}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).catch(() => ""));
-  if (await liveVersion("latest.yml") === version && await liveVersion("latest-linux.yml") === version) {
+  const published = await Promise.all([liveVersion("latest.yml"), liveVersion("latest-linux.yml")]);
+  const newer = published.find(current => newerRelease(current, version));
+  if (newer) {
+    console.log(`deliobot.fun already offers newer ${newer}; refusing to replace it with ${version}`);
+    return;
+  }
+  if (published.every(current => current === version)) {
     console.log(`deliobot.fun already offers ${version}; nothing to publish`);
     return;
   }

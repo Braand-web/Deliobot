@@ -389,7 +389,7 @@ describe("createOpenAIChatRuntime tool approvals", () => {
         });
         await vi.waitFor(() => expect(events.some((event) => event.type === "turn.completed")).toBe(true), { timeout: 10_000 });
       } finally { await instance.dispose(); }
-      const corrective = bodies.at(-1)!.messages.filter((message: any) => message.role === "user" && /Re-run the failed/.test(String(message.content)));
+      const corrective = bodies.at(-1)!.messages.filter((message: any) => message.role === "user" && /Inspect the failed result and current state first/.test(String(message.content)));
       const completed = events.find((event) => event.type === "turn.completed") as any;
       return { requests: bodies.length, corrective: corrective.length, ok: completed.ok, stopReason: completed.stopReason };
     };

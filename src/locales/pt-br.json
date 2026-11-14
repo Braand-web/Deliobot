@@ -10254,5 +10254,20 @@
   "videoGen.maxPerTurn.label": "Vídeos por resposta",
   "videoGen.maxPerTurn.help": "O máximo de vídeos que uma resposta pode trazer.",
   "videoGen.dailyCap.label": "Vídeos por dia",
-  "videoGen.dailyCap.help": "Todos os bots juntos, contados até a meia-noite, para que um loop não aumente a conta."
+  "videoGen.dailyCap.help": "Todos os bots juntos, contados até a meia-noite, para que um loop não aumente a conta.",
+  "delioPlans.current": "{plan} · {credits} créditos",
+  "delioPlans.noPlan": "Sem plano",
+  "delioPlans.connectFirst": "Conecte este app à sua conta Delio antes de pagar para que seu plano e seus créditos apareçam aqui automaticamente.",
+  "report.menu": "Relatar um problema",
+  "report.title": "Relatar um problema",
+  "report.intro": "Conte o que deu errado. A equipe Deliobot lê todos os relatos.",
+  "report.notePlaceholder": "O que você esperava e o que aconteceu?",
+  "report.includeConversation": "Enviar esta conversa com {name} para podermos ver o que aconteceu",
+  "report.privacy": "Enviado somente quando você pressionar Enviar. Chaves e senhas são ocultadas antes, e o relato é excluído após 90 dias.",
+  "report.send": "Enviar",
+  "report.close": "Fechar",
+  "report.sent": "Obrigado. Seu relato chegou à equipe Deliobot.",
+  "report.notConnected": "Entre na sua conta Deliobot primeiro e envie o relato novamente.",
+  "report.tooMany": "Você enviou vários relatos hoje. Escreva para support@deliobot.fun.",
+  "report.failed": "Não foi possível enviar o relato. Verifique sua conexão e tente novamente."
 }

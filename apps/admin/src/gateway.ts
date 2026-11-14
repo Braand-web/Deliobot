@@ -55,7 +55,7 @@ const QUEUE_DEPTH = 4;
 const PRICE_TTL_MS = 24 * 60 * 60_000;
 const FAL_MODEL = /^[A-Za-z0-9][A-Za-z0-9._-]*(\/[A-Za-z0-9][A-Za-z0-9._-]*){1,5}$/;
 const SEGMENT = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
-const OUT_OF_CREDITS = "This workspace is out of Delio credits. Ask an admin to top up in Delio Admin → Billing.";
+const OUT_OF_CREDITS = "This workspace is out of Delio credits. Open Plans and credits in Deliobot to top up.";
 const NOT_CONFIGURED = "This provider is not available on this Delio deployment.";
 
 export const OUT_OF_CREDITS_CODE = "credits_exhausted";

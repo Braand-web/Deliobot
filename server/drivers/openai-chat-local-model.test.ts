@@ -209,7 +209,7 @@ describe("a local model repeating itself", () => {
     await f.start();
     expect(await f.completed()).toMatchObject({ ok: true });
     expect(f.effects().map((effect) => effect.name)).toEqual(["same", "same"]);
-    expect(JSON.stringify(f.requests[2]!.messages.at(-1))).toContain("Re-run the failed operations");
+    expect(JSON.stringify(f.requests[2]!.messages.at(-1))).toContain("Inspect the failed result and current state first");
   });
 
   it("does not nag a model that reacted to a failure by using more tools", async () => {

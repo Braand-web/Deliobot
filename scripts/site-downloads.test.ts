@@ -84,7 +84,7 @@ it("shows and links each platform's actual published version", async () => {
   expect(badge.hidden).toBe(false);
 });
 
-it("publishes a release through the Worker while stable links still select the previous feed", async () => {
+it.each(["0.0.1", "0.0.3"])("publishes through the Worker without downgrading its current %s release", async currentVersion => {
   const folder = mkdtempSync(join(tmpdir(), "delio-publish-fixture-"));
   try {
     const version = "0.0.2";
@@ -93,7 +93,7 @@ it("publishes a release through the Worker while stable links still select the p
     for (const file of files) writeFileSync(join(folder, file), `fixture ${file}`);
     for (const file of ["latest.yml", "latest-linux.yml"]) writeFileSync(join(folder, file), `version: ${version}\n`);
     const objects = new Map<string, Buffer>();
-    for (const file of ["latest.yml", "latest-linux.yml"]) objects.set(`download/latest/${file}`, Buffer.from("version: 0.0.1\n"));
+    for (const file of ["latest.yml", "latest-linux.yml"]) objects.set(`download/latest/${file}`, Buffer.from(`version: ${currentVersion}\n`));
     for (const suffix of ["setup.exe", "x64.zip", "amd64.deb", "x86_64.AppImage"]) objects.set(`download/latest/OpenDeliobot-0.0.1-${suffix}`, Buffer.from("old fixture"));
     const uploads = new Map<string, Map<number, Buffer>>();
     const objectAt = (key: string, options: { range?: { offset: number; length?: number } } = {}) => {
@@ -135,6 +135,12 @@ it("publishes a release through the Worker while stable links still select the p
         return worker.fetch(new Request(url, init), { DOWNLOADS: bucket, UPLOAD_TOKEN: token }, {});
       },
     });
+    if (currentVersion === "0.0.3") {
+      expect(objects.get("download/latest/latest.yml")?.toString()).toBe("version: 0.0.3\n");
+      expect(uploads.size).toBe(0);
+      expect(lines.at(-1)).toContain("refusing to replace");
+      return;
+    }
     expect(objects.get(`download/latest/OpenDeliobot-${version}-x64.zip`)).toEqual(readFileSync(join(folder, `OpenDeliobot-${version}-x64.zip`)));
     expect(objects.get("download/latest/latest.yml")?.toString()).toBe("version: 0.0.2\n");
     expect(objects.get("download/latest/latest-linux.yml")?.toString()).toBe("version: 0.0.2\n");
