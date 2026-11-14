@@ -20,7 +20,7 @@ const cleanups: Array<() => void | Promise<void>> = [];
 afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) await cleanup(); });
 
 /** A SasPay stand-in: checkout sessions the test marks paid, and every request it got. */
-function fakeSasPay() {
+function fakeSasPay(options: { beforeStatus?: () => Promise<void> } = {}) {
   const sessions = new Map<string, { status: string; body: Record<string, unknown> }>();
   const calls: Array<{ url: string; method: string; auth: string | null; body: unknown }> = [];
   let next = 0;
@@ -34,7 +34,10 @@ function fakeSasPay() {
       return Response.json({ success: true, data: { id, checkout_url: `https://pay.saspay.me/checkout/${id}`, status: "PENDING" }, code: 201 }, { status: 201 });
     }
     const status = /^\/api\/v1\/checkout-sessions\/([^/]+)\/status\/$/.exec(url.pathname);
-    if (status) return Response.json({ success: true, data: { id: status[1], status: sessions.get(status[1]!)?.status ?? "PENDING" } });
+    if (status) {
+      await options.beforeStatus?.();
+      return Response.json({ success: true, data: { id: status[1], status: sessions.get(status[1]!)?.status ?? "PENDING" } });
+    }
     return new Response("{}", { status: 404 });
   }) as typeof fetch;
   return { fetchImpl, sessions, calls, pay: (id: string) => { sessions.get(id)!.status = "PAID"; } };
@@ -105,6 +108,25 @@ describe("SasPay webhook signature", () => {
 });
 
 describe("plans paid through SasPay", () => {
+  it("serves an active Max account while an abandoned checkout's status is stalled", async () => {
+    let stall = false;
+    let release!: () => void;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    const saspay = fakeSasPay({ beforeStatus: () => stall ? gate : Promise.resolve() });
+    const clock = { now: Date.now() };
+    const target = await portal(saspay, clock);
+    await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "max", cycle: "year" });
+    saspay.pay("cs_1");
+    expect(await target.account()).toMatchObject({ plan: "max", ownAi: true });
+    await target.post("/billing/checkout", { workspace: "acme", kind: "topup", topup: "small" });
+    clock.now += 5_001;
+    stall = true;
+    try {
+      const read = await Promise.race([target.account(), new Promise<never>((_resolve, reject) => setTimeout(() => reject(new Error("account blocked by SasPay")), 1500))]);
+      expect(read).toMatchObject({ plan: "max", ownAi: true, paymentVersion: 1 });
+    } finally { release(); }
+  });
+
   it("refreshes billing after a late payment without a webhook or a checkout return, and credits it once", async () => {
     const clock = { now: Date.now() };
     const saspay = fakeSasPay();

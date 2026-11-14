@@ -25,7 +25,7 @@ export const loopGuardConfigSchema = z.object({
   steerAt: count.optional(),
   /** Identical failures in a row before the turn is stopped; unset never stops. ODB_LOOP_GUARD_STOP_AT wins; null clears. */
   stopAt: count.nullable().optional(),
-  /** For bots on API models: times a turn that answers after a failed tool call is sent back to re-run it; 0 when unset. */
+  /** For API models: bounded repair attempts after a failed tool call; one when unset, zero disables repair. */
   correctiveRounds: z.number().int().min(0).max(MAX_CORRECTIVE_ROUNDS).optional(),
 }).strict();
 export type LoopGuardConfig = z.output<typeof loopGuardConfigSchema>;
@@ -51,9 +51,9 @@ export function loopGuardSettings(cfg: { loopGuard?: LoopGuardConfig }, env: Nod
   };
 }
 
-/** Only with the guard on, like the note and the stop. */
 export function correctiveRounds(cfg: { loopGuard?: LoopGuardConfig }, env: NodeJS.ProcessEnv = process.env): number {
-  return loopGuardSettings(cfg, env).enabled ? cfg.loopGuard?.correctiveRounds ?? 0 : 0;
+  if (cfg.loopGuard?.enabled === false && env.ODB_LOOP_GUARD !== "1") return 0;
+  return cfg.loopGuard?.correctiveRounds ?? 1;
 }
 
 type ActivityTool = { name: string; ok: false };

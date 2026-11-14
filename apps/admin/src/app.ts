@@ -27,6 +27,8 @@ export interface AdminAppOptions {
   mailer: Mailer;
   fetchImpl?: typeof fetch;
   now?: () => number;
+  /** Keeps payment reconciliation alive after a bounded account response on Workers. */
+  waitUntil?: (work: Promise<unknown>) => void;
   /** Tests only: lets a fixture identity provider run over plain HTTP. */
   allowHttpProviders?: boolean;
   /** The operator's provider keys and upstreams for the paid gateway; a provider without a key is refused there. */
@@ -165,7 +167,19 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       if (paid.length) startHosting();
     }).finally(() => { check.at = now(); check.running = null; });
     paymentChecks.set(workspace, check);
+    options.waitUntil?.(check.running);
     return check.running;
+  }
+  async function refreshAccount(workspace: string): Promise<void> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      await Promise.race([
+        refreshPayments(workspace),
+        new Promise<void>(resolve => { timer = setTimeout(resolve, 750); }),
+      ]);
+    } catch (error) {
+      console.error("delio-admin: account payment refresh failed", error);
+    } finally { clearTimeout(timer); }
   }
   const gateway = createGateway({ ...options.gateway, store, wallet, publicUrl, fetchImpl, now,
     deviceAccount: (value, requested) => {
@@ -177,7 +191,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       return { workspace, sourceWorkspace: owner.workspace, email: owner.email };
     },
     deviceEmail: (value, slug) => devices.ownerEmail(value, slug), revokeDevice: (value, slug) => devices.revokeToken(value, slug),
-    allowance: (slug) => plans.allowance(slug), refreshAccount: refreshPayments, paymentVersion: slug => plans.paidCount(slug) });
+    allowance: (slug) => plans.allowance(slug), refreshAccount, paymentVersion: slug => plans.paidCount(slug) });
 
   function sessionCookie(value: string, maxAgeSeconds: number): string {
     return `${cookieName}=${value}; Path=/; Max-Age=${maxAgeSeconds}; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}`;

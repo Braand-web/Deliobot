@@ -191,7 +191,7 @@ function replayDelivered(
   return { content, matched: found.map(({ record }) => record), volatile };
 }
 
-const CORRECTIVE_ROUND = "[Deliobot: a tool call in this turn failed (its result is marked ok:false). Re-run the failed operations with corrected inputs where possible, check the results, then give your final answer. Do not report results you did not get.]";
+const CORRECTIVE_ROUND = "[Deliobot: a tool call in this turn failed (its result is marked ok:false). Inspect the failed result and current state first. Correct invalid arguments using the advertised schema. Retry an operation only when you have established that it was not applied; never repeat a payment, send, publish or other mutation whose outcome is uncertain. Do not bypass a denial, human takeover, missing sign-in or provider quota. Verify any repair before your final answer. If blocked, explain the concrete cause and required user action; do not claim results you did not get.]";
 const NUDGE_ANNOUNCED_ACTION = "You said what you would do next but called no tool. Use your tools for only the remaining work, or reply with verified results if nothing is left to do. Never repeat an operation that succeeded, was denied, or may already have taken effect; inspect its state instead. Do not retry a destructive operation.";
 
 const UNREADABLE_CALL = "[Deliobot: your last tool call could not be read, so nothing ran. Call the tool again using only the tools you were given, with valid JSON arguments.]";

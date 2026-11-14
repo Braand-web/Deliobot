@@ -335,6 +335,33 @@ describe("WaitManager", () => {
     h.manager.stop();
   });
 
+  it("keeps file and bot notifications responsive while a web probe is pending", async () => {
+    vi.useFakeTimers();
+    const h = harness({ now: () => Date.now() });
+    h.page = { ok: true, text: "building" };
+    await h.create({ kind: "url_contains", url: "https://slow.test/", text: "shipped" });
+    await h.create({ kind: "file_exists", path: "/ready" }, { label: "file" });
+    h.busy.set("coder", true);
+    await h.create({ kind: "bot_idle", botId: "coder", botName: "Coder" }, { label: "bot" });
+    let release!: () => void;
+    h.pageGate = new Promise(resolve => { release = resolve; });
+    await vi.advanceTimersByTimeAsync(60_000);
+    h.manager.start();
+    try {
+      await vi.advanceTimersByTimeAsync(0);
+      expect(h.pageInFlight).toBe(1);
+      h.stamp = { size: 1, mtimeMs: 1 };
+      h.busy.set("coder", false);
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(h.posts.map(notice => notice.text)).toEqual(["file: done. /ready is there now.", "bot: done. Coder finished."]);
+      expect(h.pageInFlight).toBe(1);
+      expect(h.pageMaxInFlight).toBe(1);
+    } finally {
+      h.manager.stop(); release();
+      await vi.advanceTimersByTimeAsync(0);
+    }
+  });
+
   it("waits for another bot to start and then finish, even a turn shorter than a tick", async () => {
     const h = harness();
     h.busy.set("coder", false);

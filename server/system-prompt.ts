@@ -12,6 +12,10 @@ import { REPLY_HABITS_PROMPT } from "./reply-habits.ts";
 export type PromptPart = { id: string; label: string; text: string };
 export type PromptSection = PromptPart & { bytes: number };
 
+export function runtimeIdentityPart(version: string): PromptPart {
+  return { id: "runtime-identity", label: "Deliobot version", text: `\n\nThis Deliobot application/server runs version ${JSON.stringify(version)}. This is the application's version, not an AI model version. Never substitute today's date for a version. The configured model may use automatic routing; do not invent an exact underlying model or claim a provider's full catalog is available to this account. Check the current tools and connection state before claiming a capability is unavailable; a failed call or a missing local runtime does not establish that every available route is unavailable.` };
+}
+
 /** `person`: on a Team Cloud, the name of the member whose conversation this is (a team has no one "user"). */
 export function userProfileSystemPrompt(profile?: { aboutMe?: string; person?: string }): string {
   const person = profile?.person?.trim();

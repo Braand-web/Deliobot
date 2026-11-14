@@ -239,6 +239,10 @@ CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT N
 
   /** Grants the monthly credits of yearly plans whose next month has begun; run from the sweep. */
   grantDue(): number {
+    return this.db.transaction(() => this.grantDueWithinTransaction());
+  }
+
+  private grantDueWithinTransaction(): number {
     const due = this.db.prepare("SELECT workspace, plan, monthly_credits, next_grant_at, grants_left FROM subscriptions WHERE grants_left > 0 AND next_grant_at <= ?")
       .all(this.now()) as Array<{ workspace: string; plan: PlanId; monthly_credits: number; next_grant_at: number; grants_left: number }>;
     let granted = 0;

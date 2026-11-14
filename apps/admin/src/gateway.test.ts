@@ -22,16 +22,21 @@ afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) awai
 interface UpstreamCall { url: string; method: string; auth: string | null; body: unknown }
 
 /** OpenRouter and fal.ai stand-ins reached through the portal's fetch: they record what the gateway sent them. */
-function upstreams(options: { cost?: number; falUnit?: string; falPrice?: number; textPricing?: { prompt: string; completion: string }; duringChat?: () => Promise<void> } = {}) {
+function upstreams(options: { cost?: number; falUnit?: string; falPrice?: number; textPricing?: { prompt: string; completion: string }; duringChat?: () => Promise<void>;
+  textRefusal?: { message: string; repeat?: boolean; source?: string } } = {}) {
   const boats: Array<{ id: string; state: string }> = [{ id: "bx_zzzz9999", state: "idle" }];
   let nextBoat = 0;
   const calls: UpstreamCall[] = [];
   let polls = 0;
+  let textRefusals = 0;
   const fetchImpl = (async (input: string | URL | Request, init?: RequestInit) => {
     const url = new URL(String(input));
     const body = init?.body ? JSON.parse(String(init.body)) : undefined;
     calls.push({ url: url.href, method: init?.method ?? "GET", auth: new Headers(init?.headers).get("authorization"), body });
     if (url.host === "openrouter.test" && url.pathname === "/api/v1/chat/completions") {
+      if (options.textRefusal && (textRefusals++ === 0 || options.textRefusal.repeat)) return Response.json({ error: {
+        message: options.textRefusal.message, ...(options.textRefusal.source ? { metadata: { limit_source: options.textRefusal.source } } : {}),
+      } }, { status: 402, headers: { "retry-after": "5" } });
       await options.duringChat?.();
       const events = [
         { choices: [{ delta: { content: "Bon" } }] },
@@ -114,6 +119,41 @@ describe("cost and length readers", () => {
 });
 
 describe("Delio AI gateway", () => {
+  it.each(["max_tokens", "max_completion_tokens"])("reduces an unaffordable %s once without changing models or charging the refusal", async field => {
+    const upstream = upstreams({ textRefusal: { message: "This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 26345. To increase, add credits." } });
+    const target = await portal(upstream);
+    const token = await target.workspace("budget", 100);
+    const response = await target.gateway("budget", "openrouter/v1/chat/completions", token, { method: "POST", body: JSON.stringify({ model: "openai/gpt-5", [field]: 65536, messages: [{ role: "user", content: "Hello" }] }) });
+    expect(response.status).toBe(200);
+    expect(await response.text()).toContain("jour");
+    const calls = upstream.calls.filter(call => call.url.endsWith("/chat/completions"));
+    expect(calls).toHaveLength(2);
+    expect(calls[1]!.body).toMatchObject({ model: "openai/gpt-5", [field]: 23710 });
+    expect((await target.account("budget", token)).credits).toBeCloseTo(95);
+  });
+
+  it("does not retry a provider's exhausted key and keeps that outage separate from customer credits", async () => {
+    const upstream = upstreams({ textRefusal: { message: "Key limit exceeded", source: "openrouter_key_limit", repeat: true } });
+    const target = await portal(upstream);
+    const token = await target.workspace("budget", 100);
+    const response = await target.gateway("budget", "openrouter/v1/chat/completions", token, { method: "POST", body: JSON.stringify({ model: "openai/gpt-5", max_tokens: 65536 }) });
+    expect(response.status).toBe(503);
+    expect(response.headers.get("retry-after")).toBe("5");
+    expect(await response.json()).toMatchObject({ error: { code: "provider_unavailable" } });
+    expect(upstream.calls.filter(call => call.url.endsWith("/chat/completions"))).toHaveLength(1);
+    expect((await target.account("budget", token)).credits).toBe(100);
+  });
+
+  it("stops after one reduced-budget refusal and refunds the hold", async () => {
+    const upstream = upstreams({ textRefusal: { message: "This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 26345.", repeat: true } });
+    const target = await portal(upstream);
+    const token = await target.workspace("budget", 100);
+    const response = await target.gateway("budget", "openrouter/v1/chat/completions", token, { method: "POST", body: JSON.stringify({ model: "openai/gpt-5", max_tokens: 65536 }) });
+    expect(response.status).toBe(503);
+    expect(upstream.calls.filter(call => call.url.endsWith("/chat/completions"))).toHaveLength(2);
+    expect((await target.account("budget", token)).credits).toBe(100);
+  });
+
   it("refuses a missing or another workspace's token, and shows a workspace its own credits", async () => {
     const upstream = upstreams();
     const target = await portal(upstream);

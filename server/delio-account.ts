@@ -72,6 +72,7 @@ export function createDelioAccount(deps: {
   const fetchImpl = deps.fetchImpl ?? fetch;
   const now = deps.now ?? Date.now;
   let pending: PendingFlow | null = null;
+  let flowVersion = 0;
   let credits: { key: string; at: number; view: DelioAccountView | null } | null = null;
   const connectionKey = (connection: DelioConnection) => `${connection.portal}/${connection.workspace}/${connection.token}`;
   const planGate = (deps.env ?? process.env)[DELIO_PLAN_GATE_ENV] === "1";
@@ -88,7 +89,10 @@ export function createDelioAccount(deps: {
   async function start(portalRaw?: string): Promise<{ userCode: string; verification: string; expiresAt: number }> {
     const portal = delioPortalOrigin(portalRaw || deps.env?.ODB_DELIO_ADMIN_URL || process.env.ODB_DELIO_ADMIN_URL || DEFAULT_DELIO_PORTAL);
     if (!portal) throw Object.assign(new Error("The Delio Admin address must be an HTTPS origin."), { status: 400 });
+    const version = ++flowVersion;
+    pending = null;
     const answer = await post(`${portal}/api/device/start`, { label: deps.label() });
+    if (version !== flowVersion) throw Object.assign(new Error("This connection attempt was replaced or cancelled."), { status: 409 });
     const { device_code: deviceCode, user_code: userCode, verification_uri_complete: verification, expires_in: expiresIn, interval } = answer.body;
     if (answer.status !== 200 || typeof deviceCode !== "string" || typeof userCode !== "string" || typeof verification !== "string" || !verification.startsWith(`${portal}/`)) {
       throw Object.assign(new Error("Delio Admin did not start the connection. Try again in a moment."), { status: 502 });
@@ -103,12 +107,18 @@ export function createDelioAccount(deps: {
     const connection = delioConnection(deps.config());
     if (connection && !pending) return { state: "connected", workspace: connection.workspace, portal: connection.portal };
     if (!pending) return { state: "disconnected" };
-    if (pending.expiresAt <= now()) { pending = null; return { state: "disconnected", reason: "expired" }; }
-    if (now() >= pending.nextPollAt) {
-      pending.nextPollAt = now() + pending.interval;
-      const answer = await post(`${pending.portal}/api/device/token`, { device_code: pending.deviceCode }).catch(() => null);
-      if (answer?.status === 200 && typeof answer.body.token === "string" && typeof answer.body.workspace === "string") {
-        deps.save({ portal: pending.portal, workspace: answer.body.workspace, token: answer.body.token });
+    const flow = pending;
+    if (flow.expiresAt <= now()) { pending = null; return { state: "disconnected", reason: "expired" }; }
+    if (now() >= flow.nextPollAt) {
+      flow.nextPollAt = now() + flow.interval;
+      const answer = await post(`${flow.portal}/api/device/token`, { device_code: flow.deviceCode }).catch(() => null);
+      if (pending !== flow) {
+        if (pending) return { state: "waiting", userCode: pending.userCode, verification: pending.verification };
+        const current = delioConnection(deps.config());
+        return current ? { state: "connected", workspace: current.workspace, portal: current.portal } : { state: "disconnected" };
+      }
+      if (answer?.status === 200 && typeof answer.body.token === "string" && DEVICE_TOKEN.test(answer.body.token) && typeof answer.body.workspace === "string" && SLUG.test(answer.body.workspace)) {
+        deps.save({ portal: flow.portal, workspace: answer.body.workspace, token: answer.body.token });
         pending = null;
         credits = null;
         const saved = delioConnection(deps.config());
@@ -191,6 +201,7 @@ export function createDelioAccount(deps: {
     /** Forgets the account here and revokes this app's token on the portal, so a copied token stops working too. */
     async disconnect() {
       const connection = delioConnection(deps.config());
+      flowVersion += 1;
       pending = null;
       credits = null;
       deps.save(null);

@@ -149,6 +149,8 @@ export class WaitManager {
   private ticking = false;
   private pageTail: Promise<unknown> = Promise.resolve();
   private pagesQueued = 0;
+  private pagePass: Promise<void> | null = null;
+  private pageGeneration = 0;
 
   constructor(options: WaitManagerOptions) {
     this.options = options;
@@ -289,7 +291,7 @@ export class WaitManager {
     this.stopped = false;
     if (this.timer) return;
     this.timer = startDueTimer({
-      run: () => this.tick(),
+      run: () => this.tick({ waitForPages: false }),
       next: () => this.waits.reduce<number | null>((at, w) => Math.min(at ?? Infinity, w.ending ? this.now() : Math.min(w.nextCheckAt, w.expiresAt)), null),
       now: this.now,
       retryMs: WAIT_TICK_MS,
@@ -299,11 +301,12 @@ export class WaitManager {
 
   stop(): void {
     this.stopped = true;
+    this.pageGeneration += 1;
     this.timer?.stop();
     this.timer = null;
   }
 
-  async tick(): Promise<void> {
+  async tick({ waitForPages = true }: { waitForPages?: boolean } = {}): Promise<void> {
     if (this.running) return;
     this.running = true;
     try {
@@ -317,18 +320,27 @@ export class WaitManager {
       const verdicts = new Map<WaitRecord, Verdict>();
       let processes: Promise<ProcessEntry[]> | undefined;
       const readProcesses = () => (processes ??= this.probes.processes());
-      const pages = this.pagesQueued > 0 ? [] : due.filter((w) => isPage(w.condition));
-      const chain = async () => {
-        for (const w of pages) verdicts.set(w, await this.probe(w.condition, readProcesses));
-      };
-      await Promise.all([
-        chain(),
-        ...due.filter((w) => !isPage(w.condition)).map(async (w) => { verdicts.set(w, await this.probe(w.condition, readProcesses)); }),
-      ]);
+      const pages = this.pagePass || this.pagesQueued > 0 ? [] : due.filter((w) => isPage(w.condition));
+      if (pages.length) {
+        const generation = this.pageGeneration;
+        this.pagePass = (async () => {
+          for (const wait of pages) {
+            if (this.stopped || generation !== this.pageGeneration) break;
+            if (!this.waits.includes(wait) || !this.options.sourceAlive(wait.botId, wait.threadId)) continue;
+            const verdict = await this.probe(wait.condition, readProcesses);
+            if (!this.stopped && generation === this.pageGeneration) this.settle(this.now(), new Map([[wait, verdict]]));
+          }
+        })().catch(error => { console.error("wait page check failed", error); }).finally(() => {
+          this.pagePass = null;
+          if (!this.stopped) this.timer?.poke();
+        });
+      }
+      await Promise.all(due.filter((w) => !isPage(w.condition)).map(async (w) => { verdicts.set(w, await this.probe(w.condition, readProcesses)); }));
       if (!this.stopped) this.settle(now, verdicts);
     } finally {
       this.running = false;
     }
+    if (waitForPages) await this.pagePass;
   }
 
   private settle(now: number, verdicts: ReadonlyMap<WaitRecord, Verdict>): void {

@@ -179,6 +179,8 @@ describe("Chat MCP session", () => {
     expect(session.definitions).toEqual([{ type: "function", function: { name: "audit_write", description: "Fixture write", parameters: schema } }]);
     expect(f.read().calls.map((call) => call.method)).not.toContain("tools/call");
     expect(() => session.validate("audit_write", { value: 42 })).toThrow("input schema");
+    expect(() => session.validate("audit_write", { value: 42 })).toThrow("value: must be string");
+    expect(() => session.validate("audit_write", {})).toThrow("value");
     await expect(session.execute("not_registered", {}, f.controller.signal)).rejects.toThrow("not advertised");
     expect(f.read().calls.map((call) => call.method)).not.toContain("tools/call");
     await expect(session.execute("audit_write", { value: "receipt" }, f.controller.signal)).resolves.toEqual({ text: "recorded:receipt", ok: true });
@@ -641,7 +643,7 @@ describe("Chat MCP session", () => {
       const f = bigFixture();
       const folder = workFolder();
       const elsewhere = workFolder();
-      symlinkSync(elsewhere, join(folder, SAVED_RESULTS_FOLDER));
+      symlinkSync(elsewhere, join(folder, SAVED_RESULTS_FOLDER), process.platform === "win32" ? "junction" : "dir");
       const result = await (await f.mount(false, false, undefined, folder)).execute("audit_write", { value: "test" }, f.controller.signal);
       expect(readdirSync(elsewhere)).toEqual([]);
       expect(result.text).toContain("[MCP result truncated at 50KB; request less output.]");

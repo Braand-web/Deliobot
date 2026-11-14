@@ -1453,10 +1453,13 @@ on API models or turns in a room yet.
 
 Bots on API models (xAI, Mistral, Groq, Greenference, Cerebras, Meta, MiniMax or an
 OpenAI-compatible endpoint) end a turn as failed when a tool call failed and
-the bot then answered. With the loop guard on, set `loopGuard.correctiveRounds`
-(0-5, default 0) and such a bot is sent back to re-run the failed call up to
-that many times first; the turn counts as done only if the tools it runs after
-that succeed. A tool call that was denied is never sent back.
+the bot then answered. One corrective round is allowed by default: the bot must
+inspect the error and current state, correct invalid inputs, and verify the repair.
+It must not repeat a mutation whose outcome is uncertain or bypass a denial,
+human takeover, missing sign-in or provider quota. Set `loopGuard.correctiveRounds`
+(0-5) to change the limit; zero or an explicitly disabled loop guard turns repair
+off. The turn counts as done only if the tools it runs after that succeed.
+A tool call that was denied is never sent back.
 
 ## A turn that goes silent
 

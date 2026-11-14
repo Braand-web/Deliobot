@@ -708,7 +708,10 @@ export async function mountChatTools(integrations: SendTurnInput["integrations"]
     if (!tool) throw new Error("The requested tool was not advertised for this turn");
     if (selectionExcludes(tool, args)) throw new Error("Tool selection excludes this tool");
     omitBlankDefaults(tool.builtInBrowser, tool.name, args);
-    if (!object(args) || (!(tool.searched && isDirectoryTool(tool.name)) && !tool.schema(args))) throw new Error(ARGUMENTS_MISFIT);
+    if (!object(args)) throw new Error(ARGUMENTS_MISFIT);
+    if (!(tool.searched && isDirectoryTool(tool.name)) && !tool.schema(args)) {
+      throw new Error(`${ARGUMENTS_MISFIT}. ${schemaProblems(tool.schema.errors).join("; ")}`);
+    }
   };
   const viewOf = (tool: RegisteredTool, args: Record<string, unknown>, title: string): ChatToolCallView => {
     const runs = target(tool, args);

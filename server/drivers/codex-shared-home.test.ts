@@ -30,6 +30,33 @@ afterEach(() => {
 });
 
 describe("linkSharedCodexHome", () => {
+  it("copies shared settings on Windows without file symlink privileges, refreshes them, and preserves plan edits", () => {
+    write(join(shared, "config.toml"), "shared config");
+    write(join(shared, "AGENTS.md"), "shared instructions");
+    write(join(shared, "auth.json"), "private source login");
+    write(join(plan, "auth.json"), "private plan login");
+    linkSharedCodexHome(shared, plan, "win32");
+    expect(isLink(join(plan, "config.toml"))).toBe(false);
+    expect(readFileSync(join(plan, "config.toml"), "utf8")).toBe("shared config");
+    expect(readFileSync(join(plan, "AGENTS.md"), "utf8")).toBe("shared instructions");
+    expect(readFileSync(join(plan, "auth.json"), "utf8")).toBe("private plan login");
+    write(join(shared, "config.toml"), "updated shared config");
+    linkSharedCodexHome(shared, plan, "win32");
+    expect(readFileSync(join(plan, "config.toml"), "utf8")).toBe("updated shared config");
+    write(join(plan, "config.toml"), "plan edit");
+    write(join(shared, "config.toml"), "later source edit");
+    linkSharedCodexHome(shared, plan, "win32");
+    expect(readFileSync(join(plan, "config.toml"), "utf8")).toBe("plan edit");
+    expect(readFileSync(join(shared, "config.toml"), "utf8")).toBe("later source edit");
+  });
+
+  it("preserves an existing Windows plan config without a managed-copy receipt", () => {
+    write(join(shared, "config.toml"), "shared config");
+    write(join(plan, "config.toml"), "plan config");
+    linkSharedCodexHome(shared, plan, "win32");
+    expect(readFileSync(join(plan, "config.toml"), "utf8")).toBe("plan config");
+  });
+
   it("links the person's Codex home into the plan's, but never its sign-in, local folders or SQLite journals", () => {
     write(join(shared, "config.toml"), '[mcp_servers.notes]\ncommand = "notes"\n');
     write(join(shared, "skills", "review", "SKILL.md"));

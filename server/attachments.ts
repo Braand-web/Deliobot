@@ -15,6 +15,7 @@ import { basename, dirname, extname, join, resolve } from "node:path";
 import { FILE_MAX_BYTES, PREVIEW_MAX_BYTES } from "../shared/upload-limits.ts";
 import { DATA_DIR } from "./config.ts";
 import { boxUploadsDir } from "./bot-box/plan.ts";
+import { linkWithRetry, linkWithRetryAsync } from "./atomic.ts";
 
 export { FILE_MAX_BYTES, PREVIEW_MAX_BYTES } from "../shared/upload-limits.ts";
 export const ATTACHMENTS_DIR = join(DATA_DIR, "attachments");
@@ -509,7 +510,7 @@ export async function saveFile(
       closed = true;
       try {
         const accountingVersion = attachmentAccountingVersion;
-        await link(partialPath, path);
+        await linkWithRetryAsync(partialPath, path, link);
         addCommittedBytes(bytes, accountingVersion);
         await unlink(partialPath);
       } catch (error) {
@@ -559,7 +560,7 @@ export async function saveNamedAttachment(name: string, chunks: AsyncIterable<Ui
     await file.close();
     file = undefined;
     const accountingVersion = attachmentAccountingVersion;
-    try { await link(partialPath, path); }
+    try { await linkWithRetryAsync(partialPath, path, link); }
     catch (error) {
       if ((error as NodeJS.ErrnoException).code === "EEXIST") return { stored: false };
       throw error;
@@ -605,7 +606,7 @@ export function saveImage(bytes: Buffer, mime: string, requestedUploadId?: strin
   try {
     writeFileSync(partialPath, bytes, { mode: 0o600, flag: "wx" });
     try {
-      linkSync(partialPath, path);
+      linkWithRetry(partialPath, path, linkSync);
       addCommittedBytes(bytes.byteLength);
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
@@ -660,7 +661,7 @@ export function saveAudio(bytes: Buffer, mime: string): SavedAttachment {
   try {
     writeFileSync(partialPath, bytes, { mode: 0o600, flag: "wx" });
     try {
-      linkSync(partialPath, path);
+      linkWithRetry(partialPath, path, linkSync);
       addCommittedBytes(bytes.byteLength);
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;

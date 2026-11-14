@@ -8,12 +8,14 @@ import {
   fstatSync,
   fsyncSync,
   lstatSync,
+  linkSync,
   openSync,
   readFileSync,
   renameSync,
   unlinkSync,
   writeFileSync,
 } from "node:fs";
+import { link } from "node:fs/promises";
 
 export type AtomicWriteOptions = {
   mode?: number;
@@ -44,6 +46,22 @@ export function renameWithRetry(
       const code = (e as { code?: string }).code;
       if (!code || !RETRYABLE_RENAME_CODES.has(code) || attempt >= RENAME_RETRY_DELAYS_MS.length) throw e;
       sleepSync(RENAME_RETRY_DELAYS_MS[attempt]!);
+    }
+  }
+}
+
+/** Publishes a completed attachment without replacing an existing destination; transient Windows file locks are retried. */
+export function linkWithRetry(source: string, destination: string, commit: typeof linkSync = linkSync): void {
+  renameWithRetry(source, destination, commit);
+}
+
+export async function linkWithRetryAsync(source: string, destination: string, commit: typeof link = link): Promise<void> {
+  for (let attempt = 0; ; attempt += 1) {
+    try { await commit(source, destination); return; }
+    catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if (!code || !RETRYABLE_RENAME_CODES.has(code) || attempt >= RENAME_RETRY_DELAYS_MS.length) throw error;
+      await new Promise(resolve => setTimeout(resolve, RENAME_RETRY_DELAYS_MS[attempt]!));
     }
   }
 }

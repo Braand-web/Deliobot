@@ -221,11 +221,36 @@ export function createGateway(options: GatewayOptions) {
     };
     try {
       // OpenRouter reports each answer's cost only when asked.
-      const response = await fetchImpl(`${openrouterUrl}/chat/completions`, {
+      const complete = (input: Record<string, unknown>) => fetchImpl(`${openrouterUrl}/chat/completions`, {
         method: "POST", headers: { ...upstreamHeaders, "content-type": "application/json" },
-        body: JSON.stringify({ ...body, usage: { ...(body.usage && typeof body.usage === "object" ? body.usage : {}), include: true } }),
+        body: JSON.stringify({ ...input, usage: { ...(body.usage && typeof body.usage === "object" ? body.usage : {}), include: true } }),
         redirect: "error", signal: AbortSignal.timeout(10 * 60_000),
       });
+      let response = await complete(body);
+      if (response.status === 402) {
+        const refused = await response.clone().json().catch(() => null) as { error?: { message?: unknown; metadata?: { limit_source?: unknown } } } | null;
+        const message = refused?.error?.message;
+        const match = typeof message === "string" && message.length < 8192
+          ? /^This request requires more credits, or fewer max_tokens\. You requested up to (\d+) tokens, but can only afford (\d+)\./.exec(message) : null;
+        const limits = [body.max_completion_tokens, body.max_tokens].filter((value): value is number => typeof value === "number" && Number.isSafeInteger(value) && value > 0);
+        const requested = Math.min(Number(match?.[1]), ...limits);
+        const affordable = Math.floor(Math.min(Number(match?.[2]), requested) * 0.9);
+        const source = refused?.error?.metadata?.limit_source;
+        if (match && (source === undefined || source === "openrouter_credits") && Number.isSafeInteger(requested) && affordable >= 256 && affordable < requested) {
+          await response.body?.cancel();
+          const revised: Record<string, unknown> = { ...body };
+          if ("max_tokens" in body || !("max_completion_tokens" in body)) revised.max_tokens = affordable;
+          if ("max_completion_tokens" in body) revised.max_completion_tokens = affordable;
+          response = await complete(revised);
+        }
+      }
+      const retryAfter = response.headers.get("retry-after");
+      if (retryAfter) res.setHeader("retry-after", retryAfter);
+      if (response.status === 402) {
+        await response.body?.cancel();
+        finish(null, false);
+        return failure(res, 503, "Delio's AI provider is temporarily unavailable. Your Deliobot credits were not charged. Try again shortly.", "provider_unavailable");
+      }
       res.statusCode = response.status;
       res.setHeader("content-type", response.headers.get("content-type") ?? "application/json");
       res.setHeader("cache-control", "no-store");

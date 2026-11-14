@@ -71,10 +71,10 @@ export class Portal extends DurableObject<Env> {
       for (const warning of settings.warnings) console.warn(`delio-admin: ${warning}`);
       const store = new AdminStore({ db: durableObjectDatabase(this.ctx.storage), secret: Buffer.from(settings.secret ?? "") });
       this.app = createAdminApp({ store, publicUrl: settings.publicUrl, operators: settings.operators, mailer: settings.mailer, gateway: settings.gateway,
-        payments: settings.payments, assets: ASSETS, ...(settings.signup ? { signup: settings.signup } : {}) });
+        payments: settings.payments, assets: ASSETS, waitUntil: work => this.ctx.waitUntil(work), ...(settings.signup ? { signup: settings.signup } : {}) });
       const consoleUrl = base.DELIO_ADMIN_CONSOLE_URL ? new URL(base.DELIO_ADMIN_CONSOLE_URL) : null;
       this.operatorsConsole = consoleUrl && settings.operators.size > 0 ? { host: consoleUrl.host, app: createAdminApp({ store, publicUrl: consoleUrl,
-        operators: settings.operators, mailer: settings.mailer, payments: settings.payments, assets: ASSETS, console: true }) } : null;
+        operators: settings.operators, mailer: settings.mailer, payments: settings.payments, assets: ASSETS, console: true, waitUntil: work => this.ctx.waitUntil(work) }) } : null;
     } catch (error) {
       this.app = null;
       this.operatorsConsole = null;

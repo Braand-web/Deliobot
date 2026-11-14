@@ -821,10 +821,12 @@ describe("loop guard setting", () => {
     expect(() => parseConfigPatch({ loopGuard: { enabled: true, mode: "steer" } })).toThrow();
   });
 
-  it("gives API-model turns corrective rounds only with the guard on, from 0 to 5", () => {
-    expect(correctiveRounds({}, {})).toBe(0);
-    expect(correctiveRounds({ loopGuard: { enabled: true } }, {})).toBe(0);
-    expect(correctiveRounds({ loopGuard: { correctiveRounds: 2 } }, {})).toBe(0);
+  it("gives API-model turns one repair by default, respects explicit opt-outs and bounds the setting", () => {
+    expect(correctiveRounds({}, {})).toBe(1);
+    expect(correctiveRounds({ loopGuard: { enabled: true } }, {})).toBe(1);
+    expect(correctiveRounds({ loopGuard: { correctiveRounds: 2 } }, {})).toBe(2);
+    expect(correctiveRounds({ loopGuard: { enabled: false, correctiveRounds: 2 } }, {})).toBe(0);
+    expect(correctiveRounds({ loopGuard: { correctiveRounds: 0 } }, {})).toBe(0);
     expect(correctiveRounds({ loopGuard: { enabled: true, correctiveRounds: 2 } }, {})).toBe(2);
     expect(correctiveRounds({ loopGuard: { correctiveRounds: 2 } }, { ODB_LOOP_GUARD: "1" })).toBe(2);
     expect(parseConfigPatch({ loopGuard: { correctiveRounds: 5 } })).toEqual({ loopGuard: { correctiveRounds: 5 } });
