@@ -1172,7 +1172,7 @@ provider outage. So on a Cloud home (`server/engine-memory.ts`):
   ten minutes (which keeps both stall checks quiet), and the turn starts by
   itself. Stop ends the wait. A thread whose engine is still running never
   waits, and the only task is never held back.
-- **How many threads a bot may run.** No number decides on a Cloud: up to 16 per
+- **How many threads a bot may run.** No number decides on a Cloud: up to 32 per
   bot unless one is saved, and this gate holds the rest. A Starter Cloud runs one
   thread per bot for what a person or a routine starts; the Admin says so with its
   signed `POST /api/cloud/plan` `{"v":1,"tier":"starter"}` (`server/host/cloud-plan-tier.ts`), and a
@@ -1192,7 +1192,7 @@ provider outage. So on a Cloud home (`server/engine-memory.ts`):
   fails at once with that line (no conversation is made, and it never wakes a sleeping Cloud),
   and its daily memory upkeep waits. Every bot wakes as soon as the Admin tells the home its new
   plan, with no restart. An older server refuses a sixth bot with `409` `{"code":"bot_limit"}`;
-  the app still shows its upgrade popup for that. Every plan holds at most 100 bots
+  the app still shows its upgrade popup for that. Every plan holds at most 300 bots
   (`MAX_WORKSPACE_BOTS`), counted on `POST /api/bots`, a package import and a Chief's setup.
 - **How much a Starter Cloud runs at once.** Two turns Cloud-wide, and four hand-offs waiting
   beyond them; past that a new hand-off is refused (`server/host/starter-caps.ts`).

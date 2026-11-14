@@ -10,11 +10,11 @@ vi.mock("@/state/store", () => ({
 }));
 
 describe("ThreadConcurrencySettings", () => {
-  it("shows three until the first answer arrives, and offers one through sixteen", () => {
+  it("shows three until the first answer arrives, and offers one through thirty-two", () => {
     fixture.limit = undefined;
     const markup = renderToStaticMarkup(createElement(ThreadConcurrencySettings));
     expect(markup).toContain('value="3" selected=""');
-    expect(markup.match(/<option /g)).toHaveLength(16);
+    expect(markup.match(/<option /g)).toHaveLength(32);
     expect(markup).toContain('value="16"');
     expect(markup).toContain("Extra messages queue until a slot opens.");
     expect(markup).toContain("Maximum running threads per bot");

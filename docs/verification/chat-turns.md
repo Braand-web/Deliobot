@@ -291,7 +291,7 @@ private chat; and a routine run started mid-run leaves its report between her an
 ## Threads of one bot at the same time
 
 Different threads of one bot run at once. A saved `threads.maxConcurrentPerBot` sets how many. With none saved, a Cloud
-runs up to 16 and its memory gate decides; a machine without the gate runs one per 2 GB of memory, 3 to 16. The bot's main
+runs up to 32 and its memory gate decides; a machine without the gate runs one per 2 GB of memory, 3 to 32. The bot's main
 chat always starts, and takes a slot. On a Starter Cloud a person's or routine's work runs one thread per bot whatever is
 saved; work a bot's own turn started goes through, so a turn can never wait on a child queued behind itself.
 `server/parallel-threads.e2e.test.ts` holds a turn open in each thread with a gate only
