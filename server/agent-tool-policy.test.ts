@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { agentToolAnnotations, isReadOnlyAgentTool, READ_ONLY_AGENT_TOOL_NAMES } from "./agent-tool-policy.ts";
 
 describe("built-in agent tool read policy", () => {
-  it("includes only the reviewed local reads", () => {
+  it("includes only the reviewed reads and identifies the public network tool", () => {
     expect([...READ_ONLY_AGENT_TOOL_NAMES]).toEqual([
       "list_bots",
       "list_team_setup",
@@ -18,6 +18,7 @@ describe("built-in agent tool read policy", () => {
       "skills_list",
       "list_unread_notifications",
       "usage_limits",
+      "read_public_url",
     ]);
     for (const name of READ_ONLY_AGENT_TOOL_NAMES) {
       expect(isReadOnlyAgentTool(name)).toBe(true);
@@ -25,7 +26,7 @@ describe("built-in agent tool read policy", () => {
         readOnlyHint: true,
         destructiveHint: false,
         idempotentHint: true,
-        openWorldHint: false,
+        openWorldHint: name === "read_public_url",
       });
     }
   });

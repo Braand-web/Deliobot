@@ -1,4 +1,4 @@
-/** The reviewed local reads of the built-in agents MCP. Names, prefixes or third-party annotations alone must never grant
+/** The reviewed reads of the built-in agents MCP. Names, prefixes or third-party annotations alone must never grant
  * read access; session recall keeps its own-bot scope. */
 export const READ_ONLY_AGENT_TOOL_NAMES: ReadonlySet<string> = new Set([
   "list_bots",
@@ -15,6 +15,7 @@ export const READ_ONLY_AGENT_TOOL_NAMES: ReadonlySet<string> = new Set([
   "skills_list",
   "list_unread_notifications",
   "usage_limits",
+  "read_public_url",
 ]);
 
 export const READ_ONLY_ANNOTATIONS = Object.freeze({
@@ -28,6 +29,7 @@ export function isReadOnlyAgentTool(name: string): boolean {
   return READ_ONLY_AGENT_TOOL_NAMES.has(name);
 }
 
-export function agentToolAnnotations(name: string): typeof READ_ONLY_ANNOTATIONS | undefined {
+export function agentToolAnnotations(name: string): (Omit<typeof READ_ONLY_ANNOTATIONS, "openWorldHint"> & { openWorldHint: boolean }) | undefined {
+  if (name === "read_public_url") return { ...READ_ONLY_ANNOTATIONS, openWorldHint: true };
   return isReadOnlyAgentTool(name) ? READ_ONLY_ANNOTATIONS : undefined;
 }

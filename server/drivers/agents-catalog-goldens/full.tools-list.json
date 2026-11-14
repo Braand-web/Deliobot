@@ -244,6 +244,37 @@
       }
     },
     {
+      "name": "read_public_url",
+      "description": "Read a public http/https URL as untrusted plain text. No Composio account, browser or API key is needed. GET only, no cookies or sign-in. Private/local addresses and redirects to them are refused. For pages needing JavaScript, use the built-in browser. Follow next_offset to read on; truncated means the downloaded page hit its size limit.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "url"
+        ],
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "offset": {
+            "type": "integer",
+            "maximum": 2097152
+          },
+          "max_chars": {
+            "type": "integer",
+            "minimum": 256,
+            "maximum": 16000
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
       "name": "list_rooms",
       "description": "List the shared rooms (team channels) you belong to, with the other members of each. Call this before post_to_room. One-to-one bot channels are never listed; discover individual teammates with list_bots. A room you are in but cannot post into is named without an id, together with the reason, so you can tell the user why.",
       "inputSchema": {

@@ -171,6 +171,8 @@ export type PageResult = { ok: true; text: string } | Failure;
 export type PublicPage = { ok: true; url: URL; headers: IncomingHttpHeaders; body: Buffer } | Failure;
 
 export interface PageFetchOptions {
+  /** Recheck caller authority before every network request, including redirects. */
+  beforeRequest?: () => void;
   allow?: (target: { host: string; address: string }) => boolean;
   lookup?: (host: string) => Promise<Array<{ address: string; family: number }>>;
   timeoutMs?: number;
@@ -264,6 +266,7 @@ export async function fetchPublicPage(rawUrl: string, options: PageFetchOptions 
         return fail(`${host} points at this computer or a private network, which waits never check. Use a page on the public web.`, true);
       }
       signal.throwIfAborted();
+      options.beforeRequest?.();
       const answer = await requestOnce(url, addresses[0], signal, maxBytes);
       if (answer.status >= 300 && answer.status < 400 && answer.location) {
         if (hop >= (options.maxRedirects ?? PAGE_MAX_REDIRECTS)) return fail("The page redirected too many times.");

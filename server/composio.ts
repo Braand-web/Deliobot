@@ -20,7 +20,7 @@ import {
   type ConnectedAccountResponse,
 } from "./composio-project.ts";
 import { MULTI_ACCOUNT_CONFIG, authConfigRefusal, ensureProjectSession, projectApiKey, sessionForToolkit } from "./composio-session.ts";
-import { authConfigUseLine, noManagedAuthToolkit, withNoManagedAuthNote } from "./connector-auth-config-hint.ts";
+import { authConfigUseLine } from "./connector-auth-config-hint.ts";
 import { planAccountLink } from "../shared/connector-account-link.ts";
 import type { CuratedConnectorSlug } from "../shared/connector-curated.ts";
 import { CONNECTOR_TOOL_NAME_PATTERN, type ConnectorToolGrant } from "../shared/wire.ts";
@@ -34,6 +34,7 @@ import {
 } from "./connector-advertisement.ts";
 import { connectedAppGrantSlugs, serviceSlugFor, serviceSlugForCandidates } from "./connector-verdict.ts";
 import { parseMcpResponse, withToolsListFallback } from "./connector-tools-list.ts";
+import { withConnectorResponseHints } from "./connector-response-hints.ts";
 import { brokerAccess, managedComposioBrokerOff, type BrokerAccess } from "./composio-broker-access.ts";
 export { applyManagedBrokerMessage, brokerAccess, setManagedBrokerAccess, type BrokerAccess } from "./composio-broker-access.ts";
 export { prepareProjectSession, trustedSessionMcpUrl } from "./composio-session.ts";
@@ -307,10 +308,7 @@ export async function relayMcp(
   if (nextTransportSessionId) rememberTransportSession(nextTransportSessionId, identity);
   const contentType = response.headers.get("content-type") ?? "application/json";
   const toolCall = typeof payload === "object" && payload !== null && !Array.isArray(payload) && payload.method === "tools/call";
-  const toolkit = toolCall ? noManagedAuthToolkit(new TextDecoder().decode(raw)) : null;
-  const bytes = toolkit
-    ? await withNoManagedAuthNote(raw, contentType, toolkit, apiKey ? () => sessionForToolkit(cfg, toolkit, { fresh: true }) : null)
-    : raw;
+  const bytes = await withConnectorResponseHints(raw, contentType, toolCall, apiKey ? toolkit => sessionForToolkit(cfg, toolkit, { fresh: true }) : null);
   return { status: response.status, bytes, contentType, transportSessionId: nextTransportSessionId };
 }
 

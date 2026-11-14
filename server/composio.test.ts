@@ -138,6 +138,10 @@ beforeAll(async () => {
         return res.end(JSON.stringify(brokerCatalogBody ?? { items: [{ slug: "github", name: "GitHub" }] }));
       }
       if (req.method === "POST" && url.pathname === "/broker/v1/mcp") {
+        if (body?.method === "tools/call" && body.params?.name === "COMPOSIO_SEARCH_FETCH_URL_CONTENT") {
+          res.writeHead(200, { "content-type": "application/json" });
+          return res.end(JSON.stringify({ jsonrpc: "2.0", id: body.id, result: { isError: true, content: [{ type: "text", text: "Execution of tool 'COMPOSIO_SEARCH_FETCH_URL_CONTENT' is temporarily disabled by the administrator." }] } }));
+        }
         if (brokerMcpTools !== null && body?.method === "initialize") {
           res.writeHead(200, { "content-type": "application/json", "mcp-session-id": "mcp_grants" });
           return res.end(JSON.stringify({
@@ -1403,6 +1407,19 @@ describe.sequential("Composio Sessions", () => {
     } finally {
       connectedAccountsOverride = null;
     }
+  });
+});
+
+describe("the shared public URL reader", () => {
+  it("passes the scoped browser guidance through the managed relay without retrying the disabled tool", async () => {
+    const before = calls.length;
+    const response = await relayMcp({}, { jsonrpc: "2.0", id: 165, method: "tools/call", params: { name: "COMPOSIO_SEARCH_FETCH_URL_CONTENT", arguments: { urls: ["https://public.example.test"] } } }, undefined, undefined, undefined, { url: origin + "/broker", token: "a".repeat(64) });
+    const frame = JSON.parse(new TextDecoder().decode(response.bytes));
+    expect(response.status).toBe(200);
+    expect(frame.result.isError).toBe(true);
+    expect(frame.result.content[0].text).toContain("temporarily disabled by the administrator");
+    expect(frame.result.content[1].text).toContain("agent_browser_open and agent_browser_read");
+    expect(calls.slice(before).filter(call => call.path === "/broker/v1/mcp")).toHaveLength(1);
   });
 });
 

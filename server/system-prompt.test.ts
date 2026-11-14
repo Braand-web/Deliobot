@@ -38,6 +38,16 @@ import {
 import { loginPlace } from "../shared/logins.ts";
 import { REPLY_HABITS_PROMPT } from "./reply-habits.ts";
 import { serverVersion } from "./environment.ts";
+import { CHROME_BROWSER_SYSTEM_PROMPT } from "./browser/prompt.ts";
+
+describe("public-page access for every browser engine", () => {
+  it.each([BUILT_IN_BROWSER_SYSTEM_PROMPT, CHROME_BROWSER_SYSTEM_PROMPT])("does not depend on the Composio URL reader", prompt => {
+    expect(prompt).toContain("For public-page reading, use this mounted browser directly");
+    expect(prompt).toContain("routines the person configured");
+    expect(prompt).toContain("does not disable this separate browser");
+    expect(prompt).toContain("Respect an explicit browser opt-out, tool denial");
+  });
+});
 
 describe("runtime identity", () => {
   it("keeps the actual app version in the stable context beside the supplied prompt sections", () => {

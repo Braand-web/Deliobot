@@ -5,11 +5,12 @@ import { createEngineLimitsRoutes, type EngineLimitsDeps } from "./engine-limits
 import { createHelperToolRoutes, type HelperToolContext, type HelperToolDeps } from "./helper-tools.ts";
 import { createDelioNotificationRoutes, type LiveNotificationsDeps } from "./delio-notifications.ts";
 import { PASS } from "./table.ts";
+import { createPublicWebRoutes, type PublicWebContext } from "./public-web.ts";
 import { createXResearchInternalRoutes, type XResearchDeps } from "./x-research.ts";
 
 export function createInternalToolRoutes(deps: { helpers: HelperToolDeps; xResearch: XResearchDeps; notifications: LiveNotificationsDeps; engineLimits: EngineLimitsDeps }) {
-  const routes = [createXResearchInternalRoutes(deps.xResearch), createHelperToolRoutes(deps.helpers), createDelioNotificationRoutes(deps.notifications), createEngineLimitsRoutes(deps.engineLimits)];
-  return async (ctx: HelperToolContext & { threadId: string }): Promise<typeof PASS | void> => {
+  const routes = [createXResearchInternalRoutes(deps.xResearch), createHelperToolRoutes(deps.helpers), createDelioNotificationRoutes(deps.notifications), createEngineLimitsRoutes(deps.engineLimits), createPublicWebRoutes()];
+  return async (ctx: HelperToolContext & PublicWebContext & { threadId: string }): Promise<typeof PASS | void> => {
     for (const route of routes) if (await route(ctx) !== PASS) return;
     return PASS;
   };

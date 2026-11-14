@@ -14,6 +14,13 @@ The regression tests cover:
 - rejected OpenRouter output budgets, one bounded reduction, a provider outage,
   and the customer's unchanged balance on rejection;
 - actionable MCP schema diagnostics and bounded tool repair, preserving denials;
+- a Composio URL reader disabled upstream, scoped diagnostics for JSON and SSE,
+  and public-page access through either built-in browser engine without a
+  Composio connection, preserving explicit browser opt-outs and tool denials;
+- the native `read_public_url` tool in every normal tool profile, with no
+  provider key, GET-only requests, bounded text and paging, DNS address pinning,
+  private-network and redirect refusal, and per-bot tool permissions checked
+  before each request;
 - menus, top-ups and bot limits opening the existing plans sheet in the app;
 - legacy customer billing URLs and checkout returns opening that same sheet,
   while SasPay verification, workspace authorization and credit idempotency remain.
