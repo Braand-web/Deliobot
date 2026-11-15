@@ -9,7 +9,7 @@ import { AnalyticsRow } from "../../AnalyticsRow";
 import { ChatWidthRow, FontRow, SidebarToolsLayoutRow } from "../../AppearanceSelectRows";
 import {
   ColorUserBubblesRow, FollowUpRow, LanguageRow, PinnedCirclesRow, ReplayTourRow, RunCardRow, SendKeyRow, ShowThreadsRow,
-  ToolCallsRow, UniversalPinsRow, UpdatesRow,
+  FeatureSwitchRow, ToolCallsRow, UniversalPinsRow, UpdatesRow,
 } from "../../AppSettingsRows";
 import { ChromeRailRow } from "../../ChromeRailToggle";
 import { ConnectedWorkspacesSettings } from "../../ConnectedWorkspacesSettings";
@@ -168,6 +168,9 @@ export function AppearancePage() {
     <SettingsGroup label={t("settings.appearance.chat")} block="chat">
       <SettingsRows>
         {!ctx.client && <ToolCallsRow />}
+        {!ctx.client && <FeatureSwitchRow feature="llmThreadTitles" />}
+        {!ctx.client && <FeatureSwitchRow feature="parallelRoomJobs" />}
+        {!ctx.client && <FeatureSwitchRow feature="skillsLibrary" />}
         {ctx.advanced && <RunCardRow />}
         {ctx.advanced && <ChatWidthRow />}
         {ctx.advanced && <FontRow />}

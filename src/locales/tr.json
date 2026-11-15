@@ -5992,5 +5992,12 @@
   "update.download.action": "İndir",
   "update.download.title": "{app} {version} kullanılabilir",
   "chat.notice.devinAccountRefused": "Devin, oturum açılmış hesap için bu isteği reddetti. Devin planını ve kredilerini kontrol edip yeniden deneyin.",
-  "composer.command.burstDesc": "Bir işin birçok parçasını aynı anda çalıştırın, sonra sonuçları birleştirin"
+  "composer.command.burstDesc": "Bir işin birçok parçasını aynı anda çalıştırın, sonra sonuçları birleştirin",
+  "settings.features.skillsLibrary.title": "Ortak beceri kitaplığı",
+  "settings.features.skillsLibrary.subtitle": "Botlar öğrendikleri becerileri ortak bir kitaplıkta tutar.",
+  "settings.features.parallelRoomJobs.title": "Odalarda paralel çalışma",
+  "settings.features.parallelRoomJobs.subtitle": "Bir odadaki botlar sırayla değil aynı anda çalışır.",
+  "settings.features.llmThreadTitles.title": "Yapay zekâ yazımı başlıklar",
+  "settings.features.llmThreadTitles.subtitle": "Yeni sohbetler yapay zekânın yazdığı kısa bir başlık alır.",
+  "settings.features.error": "Bu ayar kaydedilemedi."
 }

@@ -10045,5 +10045,12 @@
   "burst.status.failed": "失败",
   "burst.status.cancelled": "已取消",
   "burst.error.action": "操作没有成功，请稍后再试。",
-  "activity.tool.team.burst": "并行处理"
+  "activity.tool.team.burst": "并行处理",
+  "settings.features.skillsLibrary.title": "共享技能库",
+  "settings.features.skillsLibrary.subtitle": "机器人把学到的技能存放在共享技能库中。",
+  "settings.features.parallelRoomJobs.title": "房间内并行工作",
+  "settings.features.parallelRoomJobs.subtitle": "房间里的机器人同时工作，而不是一个接一个。",
+  "settings.features.llmThreadTitles.title": "AI 撰写的标题",
+  "settings.features.llmThreadTitles.subtitle": "新对话会获得由 AI 撰写的简短标题。",
+  "settings.features.error": "无法保存此设置。"
 }

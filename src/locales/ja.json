@@ -8040,5 +8040,12 @@
   "update.download.title": "{app} {version} を利用できます",
   "chat.notice.devinAccountRefused": "Devin はサインイン中のアカウントでのこのリクエストを拒否しました。Devin のプランとクレジットを確認してから、もう一度お試しください。",
   "botSettings.searchLoading": "接続済みのアプリを確認しています…",
-  "composer.command.burstDesc": "作業の多くの部分を同時に実行し、結果をまとめます"
+  "composer.command.burstDesc": "作業の多くの部分を同時に実行し、結果をまとめます",
+  "settings.features.skillsLibrary.title": "共有スキルライブラリ",
+  "settings.features.skillsLibrary.subtitle": "ボットは覚えたスキルを共有ライブラリに保存します。",
+  "settings.features.parallelRoomJobs.title": "ルームでの並行作業",
+  "settings.features.parallelRoomJobs.subtitle": "ルームのボットは順番ではなく同時に作業します。",
+  "settings.features.llmThreadTitles.title": "AI が書くタイトル",
+  "settings.features.llmThreadTitles.subtitle": "新しい会話に AI が書いた短いタイトルが付きます。",
+  "settings.features.error": "この設定を保存できませんでした。"
 }

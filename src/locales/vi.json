@@ -5992,5 +5992,12 @@
   "update.download.action": "Tải xuống",
   "update.download.title": "Đã có {app} {version}",
   "chat.notice.devinAccountRefused": "Devin đã từ chối yêu cầu này cho tài khoản đã đăng nhập. Hãy kiểm tra gói và tín dụng Devin, rồi thử lại.",
-  "composer.command.burstDesc": "Chạy nhiều phần của một công việc cùng lúc, rồi gộp kết quả"
+  "composer.command.burstDesc": "Chạy nhiều phần của một công việc cùng lúc, rồi gộp kết quả",
+  "settings.features.skillsLibrary.title": "Thư viện kỹ năng dùng chung",
+  "settings.features.skillsLibrary.subtitle": "Các bot lưu kỹ năng học được vào một thư viện chung.",
+  "settings.features.parallelRoomJobs.title": "Làm việc song song trong phòng",
+  "settings.features.parallelRoomJobs.subtitle": "Các bot trong phòng làm việc cùng lúc thay vì lần lượt.",
+  "settings.features.llmThreadTitles.title": "Tiêu đề do AI viết",
+  "settings.features.llmThreadTitles.subtitle": "Cuộc trò chuyện mới có tiêu đề ngắn do AI viết.",
+  "settings.features.error": "Không thể lưu cài đặt này."
 }

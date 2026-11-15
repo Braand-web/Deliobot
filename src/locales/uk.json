@@ -4069,5 +4069,12 @@
   "update.download.action": "Завантажити",
   "update.download.title": "Доступна версія {app} {version}",
   "chat.notice.devinAccountRefused": "Devin відхилив цей запит для підключеного облікового запису. Перевірте тариф і кредити Devin, а потім спробуйте ще раз.",
-  "composer.command.burstDesc": "Запустити багато частин роботи одночасно, а потім об'єднати результати"
+  "composer.command.burstDesc": "Запустити багато частин роботи одночасно, а потім об'єднати результати",
+  "settings.features.skillsLibrary.title": "Спільна бібліотека навичок",
+  "settings.features.skillsLibrary.subtitle": "Боти зберігають вивчені навички у спільній бібліотеці.",
+  "settings.features.parallelRoomJobs.title": "Паралельна робота в кімнатах",
+  "settings.features.parallelRoomJobs.subtitle": "Боти в кімнаті працюють одночасно, а не по черзі.",
+  "settings.features.llmThreadTitles.title": "Заголовки від ШІ",
+  "settings.features.llmThreadTitles.subtitle": "Нові розмови отримують короткий заголовок, написаний ШІ.",
+  "settings.features.error": "Не вдалося зберегти це налаштування."
 }

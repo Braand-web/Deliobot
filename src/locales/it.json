@@ -7115,5 +7115,12 @@
   "update.download.title": "{app} {version} è disponibile",
   "chat.notice.devinAccountRefused": "Devin ha rifiutato questa richiesta per l'account connesso. Controlla il piano e i crediti di Devin, poi riprova.",
   "botSettings.searchLoading": "Cerco tra le app collegate…",
-  "composer.command.burstDesc": "Esegui molte parti di un lavoro insieme, poi unisci i risultati"
+  "composer.command.burstDesc": "Esegui molte parti di un lavoro insieme, poi unisci i risultati",
+  "settings.features.skillsLibrary.title": "Libreria di competenze condivisa",
+  "settings.features.skillsLibrary.subtitle": "I bot salvano le competenze che imparano in una libreria comune.",
+  "settings.features.parallelRoomJobs.title": "Lavoro in parallelo nelle stanze",
+  "settings.features.parallelRoomJobs.subtitle": "I bot di una stanza lavorano insieme invece che uno dopo l'altro.",
+  "settings.features.llmThreadTitles.title": "Titoli scritti dall'IA",
+  "settings.features.llmThreadTitles.subtitle": "Le nuove conversazioni ricevono un titolo breve scritto dall'IA.",
+  "settings.features.error": "Impossibile salvare questa impostazione."
 }

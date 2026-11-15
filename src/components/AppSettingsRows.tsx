@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { api, useStore, type ConfigStatus } from "@/state/store";
-import { builtInBrowserEnabled, showToolCallsEnabled, skillAuthoringEnabled } from "@/lib/feature-flags";
+import { builtInBrowserEnabled, llmThreadTitlesEnabled, parallelRoomJobsEnabled, showToolCallsEnabled, skillAuthoringEnabled, skillsLibraryEnabled } from "@/lib/feature-flags";
 import { localeChoices } from "@/locales";
 import { activeLocale, activePackComplete, t } from "@/lib/i18n";
 import { withTourReset } from "@/lib/guided-tour";
@@ -385,6 +385,41 @@ export function ToolCallsRow() {
         onClick={() => void toggle()}
         className="disabled:cursor-wait disabled:opacity-50"
       />
+    </SettingRow>
+  );
+}
+
+const FEATURE_SWITCHES = {
+  skillsLibrary: { enabled: skillsLibraryEnabled, title: "settings.features.skillsLibrary.title", subtitle: "settings.features.skillsLibrary.subtitle" },
+  parallelRoomJobs: { enabled: parallelRoomJobsEnabled, title: "settings.features.parallelRoomJobs.title", subtitle: "settings.features.parallelRoomJobs.subtitle" },
+  llmThreadTitles: { enabled: llmThreadTitlesEnabled, title: "settings.features.llmThreadTitles.title", subtitle: "settings.features.llmThreadTitles.subtitle" },
+} as const;
+
+/** One on/off row for a server feature switch that has no other control. */
+export function FeatureSwitchRow({ feature }: { feature: keyof typeof FEATURE_SWITCHES }) {
+  const { state, dispatch } = useStore();
+  const spec = FEATURE_SWITCHES[feature];
+  const enabled = spec.enabled(state.config);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const toggle = async () => {
+    if (saving) return;
+    setSaving(true);
+    setError("");
+    try {
+      const config: ConfigStatus = await api("/api/config", { method: "PATCH", body: JSON.stringify({ features: { [feature]: !enabled } }) });
+      dispatch({ type: "configStatus", config });
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t("settings.features.error"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <SettingRow title={t(spec.title)} subtitle={t(spec.subtitle)} message={error ? <p role="alert" className="text-danger">{error}</p> : null}>
+      <Switch checked={enabled} aria-label={t(spec.title)} disabled={saving} onClick={() => void toggle()} className="disabled:cursor-wait disabled:opacity-50" />
     </SettingRow>
   );
 }

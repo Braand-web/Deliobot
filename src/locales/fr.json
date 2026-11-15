@@ -4088,5 +4088,12 @@
   "computer.recovery.replace": "Remplacer l'ordinateur",
   "computer.recovery.replaceTitle": "Supprime cet ordinateur cloud et en donne un nouveau au bot. Les fichiers qui ne sont que dessus sont perdus.",
   "chat.notice.devinAccountRefused": "Devin a refusé cette demande pour le compte connecté. Vérifie l'offre et les crédits Devin, puis réessaie.",
-  "composer.command.burstDesc": "Lancer plusieurs parties d'un travail en même temps, puis fusionner les résultats"
+  "composer.command.burstDesc": "Lancer plusieurs parties d'un travail en même temps, puis fusionner les résultats",
+  "settings.features.skillsLibrary.title": "Bibliothèque de compétences partagée",
+  "settings.features.skillsLibrary.subtitle": "Les bots rangent les compétences qu'ils apprennent dans une bibliothèque commune.",
+  "settings.features.parallelRoomJobs.title": "Travail en parallèle dans les salons",
+  "settings.features.parallelRoomJobs.subtitle": "Les bots d'un salon travaillent en même temps au lieu de l'un après l'autre.",
+  "settings.features.llmThreadTitles.title": "Titres écrits par l'IA",
+  "settings.features.llmThreadTitles.subtitle": "Les nouvelles conversations reçoivent un titre court écrit par l'IA.",
+  "settings.features.error": "Impossible d'enregistrer ce réglage."
 }

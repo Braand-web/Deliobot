@@ -10292,5 +10292,12 @@
   "burst.status.failed": "失敗",
   "burst.status.cancelled": "已取消",
   "burst.error.action": "操作沒有成功，請稍後再試。",
-  "activity.tool.team.burst": "平行處理"
+  "activity.tool.team.burst": "平行處理",
+  "settings.features.skillsLibrary.title": "共享技能庫",
+  "settings.features.skillsLibrary.subtitle": "機器人把學到的技能存放在共享技能庫中。",
+  "settings.features.parallelRoomJobs.title": "房間內並行工作",
+  "settings.features.parallelRoomJobs.subtitle": "房間裡的機器人同時工作，而不是一個接一個。",
+  "settings.features.llmThreadTitles.title": "AI 撰寫的標題",
+  "settings.features.llmThreadTitles.subtitle": "新對話會得到由 AI 撰寫的簡短標題。",
+  "settings.features.error": "無法儲存此設定。"
 }

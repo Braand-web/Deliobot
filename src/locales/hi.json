@@ -3648,5 +3648,12 @@
   "update.download.action": "डाउनलोड करें",
   "update.download.title": "{app} {version} उपलब्ध है",
   "chat.notice.devinAccountRefused": "Devin ने साइन-इन खाते के लिए यह अनुरोध अस्वीकार कर दिया। उसका Devin प्लान और क्रेडिट जाँचें, फिर दोबारा कोशिश करें।",
-  "composer.command.burstDesc": "किसी काम के कई हिस्से एक साथ चलाएं, फिर नतीजे मिलाएं"
+  "composer.command.burstDesc": "किसी काम के कई हिस्से एक साथ चलाएं, फिर नतीजे मिलाएं",
+  "settings.features.skillsLibrary.title": "साझा स्किल लाइब्रेरी",
+  "settings.features.skillsLibrary.subtitle": "बॉट सीखी हुई स्किल एक साझा लाइब्रेरी में रखते हैं।",
+  "settings.features.parallelRoomJobs.title": "रूम में एक साथ काम",
+  "settings.features.parallelRoomJobs.subtitle": "रूम के बॉट एक के बाद एक नहीं, एक साथ काम करते हैं।",
+  "settings.features.llmThreadTitles.title": "AI के लिखे शीर्षक",
+  "settings.features.llmThreadTitles.subtitle": "नई बातचीत को AI का लिखा छोटा शीर्षक मिलता है।",
+  "settings.features.error": "यह सेटिंग सहेजी नहीं जा सकी।"
 }

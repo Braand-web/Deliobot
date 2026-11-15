@@ -3978,5 +3978,12 @@
   "server.cloudComputer.unreachable": "Cloud-Computer sind gerade nicht erreichbar. Delio hat den Cloud-Computer von {name} behalten und prüft ihn erneut.",
   "server.peerResend.failed": "Konnte das nicht an die Ersatz-KI erneut senden: {detail}",
   "chat.notice.devinAccountRefused": "Devin hat diese Anfrage für das angemeldete Konto abgelehnt. Prüfe den Devin-Tarif und das Guthaben und versuche es dann erneut.",
-  "composer.command.burstDesc": "Viele Teile einer Aufgabe gleichzeitig ausführen und die Ergebnisse zusammenführen"
+  "composer.command.burstDesc": "Viele Teile einer Aufgabe gleichzeitig ausführen und die Ergebnisse zusammenführen",
+  "settings.features.skillsLibrary.title": "Gemeinsame Skill-Bibliothek",
+  "settings.features.skillsLibrary.subtitle": "Bots legen die gelernten Skills in einer gemeinsamen Bibliothek ab.",
+  "settings.features.parallelRoomJobs.title": "Parallele Arbeit in Räumen",
+  "settings.features.parallelRoomJobs.subtitle": "Bots in einem Raum arbeiten gleichzeitig statt nacheinander.",
+  "settings.features.llmThreadTitles.title": "Von der KI geschriebene Titel",
+  "settings.features.llmThreadTitles.subtitle": "Neue Unterhaltungen erhalten einen kurzen, von der KI geschriebenen Titel.",
+  "settings.features.error": "Diese Einstellung konnte nicht gespeichert werden."
 }

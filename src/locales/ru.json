@@ -7306,5 +7306,12 @@
   "update.download.title": "Доступна версия {app} {version}",
   "chat.notice.devinAccountRefused": "Devin отклонил этот запрос для подключённого аккаунта. Проверьте тариф и кредиты Devin, затем попробуйте снова.",
   "botSettings.searchLoading": "Ищем среди подключённых приложений…",
-  "composer.command.burstDesc": "Запускает много частей задачи сразу и объединяет результаты"
+  "composer.command.burstDesc": "Запускает много частей задачи сразу и объединяет результаты",
+  "settings.features.skillsLibrary.title": "Общая библиотека навыков",
+  "settings.features.skillsLibrary.subtitle": "Боты хранят изученные навыки в общей библиотеке.",
+  "settings.features.parallelRoomJobs.title": "Параллельная работа в комнатах",
+  "settings.features.parallelRoomJobs.subtitle": "Боты в комнате работают одновременно, а не по очереди.",
+  "settings.features.llmThreadTitles.title": "Заголовки от ИИ",
+  "settings.features.llmThreadTitles.subtitle": "Новые разговоры получают короткий заголовок, написанный ИИ.",
+  "settings.features.error": "Не удалось сохранить эту настройку."
 }

@@ -10825,5 +10825,12 @@
   "keys.purpose.liveKeyGemini": "Obrigatória. As chamadas ao vivo pelo Gemini usam sua chave do Gemini",
   "keys.purpose.liveKeyElevenLabs": "Obrigatória. As chamadas ao vivo pelo ElevenLabs usam sua chave do ElevenLabs",
   "activity.tool.team.renameThread": "Renomear conversa",
-  "chat.notice.devinAccountRefused": "O Devin recusou este pedido para a conta conectada. Confira o plano e os créditos do Devin e tente novamente."
+  "chat.notice.devinAccountRefused": "O Devin recusou este pedido para a conta conectada. Confira o plano e os créditos do Devin e tente novamente.",
+  "settings.features.skillsLibrary.title": "Biblioteca de habilidades compartilhada",
+  "settings.features.skillsLibrary.subtitle": "Os bots guardam as habilidades que aprendem em uma biblioteca comum.",
+  "settings.features.parallelRoomJobs.title": "Trabalho em paralelo nas salas",
+  "settings.features.parallelRoomJobs.subtitle": "Os bots de uma sala trabalham ao mesmo tempo em vez de um depois do outro.",
+  "settings.features.llmThreadTitles.title": "Títulos escritos pela IA",
+  "settings.features.llmThreadTitles.subtitle": "Novas conversas recebem um título curto escrito pela IA.",
+  "settings.features.error": "Não foi possível salvar esta configuração."
 }

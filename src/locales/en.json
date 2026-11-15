@@ -10825,5 +10825,12 @@
   "keys.purpose.liveKeyGemini": "Required. Live calls through Gemini use your Gemini key",
   "keys.purpose.liveKeyElevenLabs": "Required. Live calls through ElevenLabs use your ElevenLabs key",
   "activity.tool.team.renameThread": "Rename thread",
-  "chat.notice.devinAccountRefused": "Devin refused this request for the signed-in account. Check its Devin plan and credits, then try again."
+  "chat.notice.devinAccountRefused": "Devin refused this request for the signed-in account. Check its Devin plan and credits, then try again.",
+  "settings.features.skillsLibrary.title": "Shared skills library",
+  "settings.features.skillsLibrary.subtitle": "Bots keep the skills they learn in one library they all can use.",
+  "settings.features.parallelRoomJobs.title": "Parallel room work",
+  "settings.features.parallelRoomJobs.subtitle": "Bots in a room work on their jobs at the same time instead of one after another.",
+  "settings.features.llmThreadTitles.title": "AI-written titles",
+  "settings.features.llmThreadTitles.subtitle": "New conversations get a short title written by the AI.",
+  "settings.features.error": "Could not save this setting."
 }

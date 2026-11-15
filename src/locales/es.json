@@ -6491,5 +6491,12 @@
   "update.download.action": "Descargar",
   "update.download.title": "{app} {version} está disponible",
   "chat.notice.devinAccountRefused": "Devin rechazó esta solicitud para la cuenta conectada. Revisa el plan y los créditos de Devin e inténtalo de nuevo.",
-  "composer.command.burstDesc": "Ejecutar muchas partes de un trabajo a la vez y luego unir los resultados"
+  "composer.command.burstDesc": "Ejecutar muchas partes de un trabajo a la vez y luego unir los resultados",
+  "settings.features.skillsLibrary.title": "Biblioteca de habilidades compartida",
+  "settings.features.skillsLibrary.subtitle": "Los bots guardan las habilidades que aprenden en una biblioteca común.",
+  "settings.features.parallelRoomJobs.title": "Trabajo en paralelo en las salas",
+  "settings.features.parallelRoomJobs.subtitle": "Los bots de una sala trabajan a la vez en lugar de uno tras otro.",
+  "settings.features.llmThreadTitles.title": "Títulos escritos por la IA",
+  "settings.features.llmThreadTitles.subtitle": "Las conversaciones nuevas reciben un título corto escrito por la IA.",
+  "settings.features.error": "No se pudo guardar este ajuste."
 }

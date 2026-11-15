@@ -7253,5 +7253,12 @@
   "update.download.title": "{app} {version} jest dostępny",
   "chat.notice.devinAccountRefused": "Devin odrzucił to żądanie dla zalogowanego konta. Sprawdź plan i środki w Devin, a potem spróbuj ponownie.",
   "botSettings.searchLoading": "Przeszukuję połączone aplikacje…",
-  "composer.command.burstDesc": "Uruchom wiele części zadania naraz, a potem połącz wyniki"
+  "composer.command.burstDesc": "Uruchom wiele części zadania naraz, a potem połącz wyniki",
+  "settings.features.skillsLibrary.title": "Wspólna biblioteka umiejętności",
+  "settings.features.skillsLibrary.subtitle": "Boty zapisują poznane umiejętności we wspólnej bibliotece.",
+  "settings.features.parallelRoomJobs.title": "Równoległa praca w pokojach",
+  "settings.features.parallelRoomJobs.subtitle": "Boty w pokoju pracują jednocześnie, a nie jeden po drugim.",
+  "settings.features.llmThreadTitles.title": "Tytuły pisane przez AI",
+  "settings.features.llmThreadTitles.subtitle": "Nowe rozmowy dostają krótki tytuł napisany przez AI.",
+  "settings.features.error": "Nie udało się zapisać tego ustawienia."
 }

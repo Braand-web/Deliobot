@@ -7773,5 +7773,12 @@
   "update.download.title": "{app} {version} 사용 가능",
   "chat.notice.devinAccountRefused": "Devin이 로그인된 계정의 이 요청을 거부했습니다. Devin 요금제와 크레딧을 확인한 다음 다시 시도하세요.",
   "botSettings.searchLoading": "연결된 앱을 찾고 있어요…",
-  "composer.command.burstDesc": "작업의 여러 부분을 한 번에 실행한 뒤 결과 합치기"
+  "composer.command.burstDesc": "작업의 여러 부분을 한 번에 실행한 뒤 결과 합치기",
+  "settings.features.skillsLibrary.title": "공유 스킬 라이브러리",
+  "settings.features.skillsLibrary.subtitle": "봇이 배운 스킬을 공용 라이브러리에 보관합니다.",
+  "settings.features.parallelRoomJobs.title": "룸 병렬 작업",
+  "settings.features.parallelRoomJobs.subtitle": "룸의 봇들이 차례대로가 아니라 동시에 작업합니다.",
+  "settings.features.llmThreadTitles.title": "AI가 쓴 제목",
+  "settings.features.llmThreadTitles.subtitle": "새 대화에 AI가 쓴 짧은 제목이 붙습니다.",
+  "settings.features.error": "이 설정을 저장하지 못했습니다."
 }
