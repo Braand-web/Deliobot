@@ -18,6 +18,12 @@ export const SETUP_FIELDS = [
 ] as const;
 
 export const SETTINGS_KEY = "settings";
+/** When a setup token was first opened, by its digest. */
+export const SETUP_OPENED_KEY = "setup-opened";
+/** Security: a setup link stops working this long after it is first opened, so a link that leaked later opens nothing. */
+export const SETUP_LINK_TTL_MS = 60 * 60_000;
+/** Security: the operators list decides who runs the console, so once set it changes only as a Worker setting, never through a setup link. */
+const LOCKED_ONCE_SET = new Set(["DELIO_ADMIN_OPERATORS"]);
 export const SETUP_DONE_KEY = "setup-done";
 
 /** What the storage keeps of the token a setup was saved with: its SHA-256, never the token. */
@@ -38,8 +44,8 @@ button{margin-top:22px;width:100%;font:inherit;font-weight:600;padding:12px;bord
 </style></head><body><main>${body}</main></body></html>`, { status, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "referrer-policy": "no-referrer", "x-frame-options": "DENY" } });
 }
 
-function form(token: string, current: Record<string, string>, error?: string): Response {
-  const fields = SETUP_FIELDS.map((field) => {
+function form(token: string, current: Record<string, string>, locked: ReadonlySet<string>, error?: string): Response {
+  const fields = SETUP_FIELDS.filter((field) => !locked.has(field.name)).map((field) => {
     const set = Boolean(current[field.name]);
     const placeholder = set ? "déjà enregistrée : laisser vide pour la garder" : "placeholder" in field ? field.placeholder : "";
     return `<label for="${field.name}">${escape(field.label)}</label><input id="${field.name}" name="${field.name}" type="${field.secret ? "password" : "text"}"
@@ -62,22 +68,29 @@ function sameText(a: string, b: string): boolean {
 /** Handles /setup; null for any other path. `save` stores the merged settings and restarts the portal on them. */
 export async function handleSetup(request: Request, deps: {
   setupToken: string | undefined; done: boolean; stored: Record<string, string>; baseEnv: Record<string, string>;
+  /** When this token was first opened (setting it now when it never was); the link is closed past SETUP_LINK_TTL_MS. */
+  openedAt: () => Promise<number>;
+  now?: () => number;
   save: (settings: Record<string, string>) => Promise<void>;
 }): Promise<Response | null> {
   const url = new URL(request.url);
   if (url.pathname !== "/setup") return null;
   const closed = () => page("<h1>Page introuvable</h1>", 404);
   if (deps.done || !deps.setupToken || deps.setupToken.length < 32) return closed();
+  const expired = async () => (deps.now ?? Date.now)() - await deps.openedAt() > SETUP_LINK_TTL_MS;
+  const locked = new Set([...LOCKED_ONCE_SET].filter((name) => Boolean(deps.stored[name] || deps.baseEnv[name])));
   if (request.method === "GET") {
     const token = url.searchParams.get("token") ?? "";
-    return sameText(token, deps.setupToken) ? form(token, deps.stored) : closed();
+    if (!sameText(token, deps.setupToken) || await expired()) return closed();
+    return form(token, deps.stored, locked);
   }
   if (request.method !== "POST") return closed();
   const body = new URLSearchParams(await request.text());
   const token = body.get("token") ?? "";
-  if (!sameText(token, deps.setupToken)) return closed();
+  if (!sameText(token, deps.setupToken) || await expired()) return closed();
   const next: Record<string, string> = { ...deps.stored };
   for (const field of SETUP_FIELDS) {
+    if (locked.has(field.name)) continue;
     const value = (body.get(field.name) ?? "").trim();
     if (value) next[field.name] = value.slice(0, 2000);
   }
@@ -85,7 +98,7 @@ export async function handleSetup(request: Request, deps: {
   try {
     portalSettings({ ...deps.baseEnv, ...next });
   } catch (error) {
-    return form(token, next, error instanceof Error ? error.message : String(error));
+    return form(token, next, locked, error instanceof Error ? error.message : String(error));
   }
   await deps.save(next);
   return page(`<h1>C'est enregistré</h1><p class="ok">Le portail est ouvert : <a href="/">compte.deliobot.fun</a>.</p>

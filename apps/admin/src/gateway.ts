@@ -138,8 +138,8 @@ export function createGateway(options: GatewayOptions) {
   const falApiUrl = (options.falApiUrl ?? "https://api.fal.ai/v1").replace(/\/+$/, "");
   const boat = createBoatRelay({ wallet, key: options.boatKey, apiUrl: options.boatUrl, usdPerHour: options.boatUsdPerHour, limit: (workspace) => options.allowance?.(workspace).computers ?? 1,
     includedHours: (workspace) => options.allowance?.(workspace).computerHours ?? 0, fetchImpl, now });
-  const voice = createVoiceRelay({ wallet, key: options.elevenlabsKey, apiUrl: options.elevenlabsUrl, fetchImpl });
-  const fishVoice = createFishRelay({ db: store.db, wallet, key: options.fishKey, apiUrl: options.fishUrl, fetchImpl, now });
+  const voice = createVoiceRelay({ wallet, key: options.elevenlabsKey, apiUrl: options.elevenlabsUrl, fetchImpl, allow: (bucket, limit, windowMs) => store.allow(bucket, limit, windowMs) });
+  const fishVoice = createFishRelay({ db: store.db, wallet, key: options.fishKey, apiUrl: options.fishUrl, fetchImpl, now, allow: (bucket, limit, windowMs) => store.allow(bucket, limit, windowMs) });
   const running = new Map<string, number>();
   const prices = new Map<string, { at: number; price: { unitPrice: number; unit: string } | null }>();
 

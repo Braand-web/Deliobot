@@ -12,6 +12,8 @@ export const VOICE_PRICES = { speechPer1kChars: 0.12, transcriptionPerMb: 0.03, 
 const MAX_SPEECH_BODY = 64 * 1024;
 const MAX_AUDIO_BODY = 25 * 1024 * 1024;
 const VOICE_ID = /^[A-Za-z0-9]{1,64}$/;
+/** Security: a voice added from the library stays in Delio's ElevenLabs account, whose slots are shared by every workspace. */
+const VOICES_ADDED_PER_DAY = 10;
 const OUT_OF_CREDITS = "This workspace is out of Delio credits. Open Plans and credits in Deliobot to top up.";
 
 async function readBody(req: IncomingMessage, max: number): Promise<Buffer> {
@@ -50,7 +52,7 @@ export function voiceRoute(method: string, path: string): Route | null {
   return null;
 }
 
-export function createVoiceRelay(options: { wallet: Wallet; key?: string; apiUrl?: string; fetchImpl?: typeof fetch }) {
+export function createVoiceRelay(options: { wallet: Wallet; key?: string; apiUrl?: string; fetchImpl?: typeof fetch; allow?: (bucket: string, limit: number, windowMs: number) => boolean }) {
   const { wallet } = options;
   const fetchImpl = options.fetchImpl ?? fetch;
   const api = (options.apiUrl ?? "https://api.elevenlabs.io/v1").replace(/\/+$/, "");
@@ -79,6 +81,9 @@ export function createVoiceRelay(options: { wallet: Wallet; key?: string; apiUrl
       const headers: Record<string, string> = { "xi-api-key": options.key };
 
       if (route.kind === "free") {
+        if (route.method === "POST" && options.allow && !options.allow(`voice-add:${workspace}`, VOICES_ADDED_PER_DAY, 24 * 60 * 60_000)) {
+          return refuse(res, 429, "Too many voices added today. Try again tomorrow.");
+        }
         const body = route.method === "POST" ? await readBody(req, MAX_SPEECH_BODY) : undefined;
         if (body?.length) headers["content-type"] = "application/json";
         await forward(res, target, { method, headers, ...(body?.length ? { body: new Uint8Array(body) } : {}) });

@@ -78,6 +78,17 @@ describe("the included Fish Audio voice", () => {
     expect(calls.at(-1)!.url).toBe("https://fish.test/model?page_size=1");
   });
 
+  it("charges a call longer than its hold for every minute, up to the longest Fish lets it run", async () => {
+    const { wallet, clock, call, relay } = setup();
+    wallet.credit("acme", 100 * MICRO, "grant", null);
+    await call("acme", "POST", "v1/agent/agents", "{}");
+    await call("acme", "POST", "v1/agent/sessions", JSON.stringify({ agent_id: "agent-1" }));
+    clock.now += 25 * 60_000;
+    await call("acme", "POST", "v1/agent/sessions/sess-1/end");
+    expect(wallet.balance("acme")).toBe(100 * MICRO - wallet.microFor(25 * FISH_PRICES.livePerMinute));
+    void relay;
+  });
+
   it("relays only the calls the app makes", () => {
     expect(fishRoute("POST", "v1/agent/agents/a1/publish")).toEqual({ kind: "agent", id: "a1", action: "publish" });
     expect(fishRoute("DELETE", "v1/agent/agents/a1")).toBeNull();

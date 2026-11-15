@@ -10,7 +10,7 @@ import { portalSettings } from "../../../apps/admin/src/env-config.ts";
 import { serveFetch } from "../../../apps/admin/src/fetch-adapter.ts";
 import { catalog } from "../../../apps/admin/src/plans.ts";
 import { diagnose, diagnosticsAllowed } from "./diagnostics.ts";
-import { handleSetup, SETTINGS_KEY, SETUP_DONE_KEY, tokenDigest } from "./setup.ts";
+import { handleSetup, SETTINGS_KEY, SETUP_DONE_KEY, SETUP_OPENED_KEY, tokenDigest } from "./setup.ts";
 import { durableObjectDatabase } from "../../../apps/admin/src/sql.ts";
 import type { VisitInput } from "../../../apps/admin/src/traffic.ts";
 import { AdminStore } from "../../../apps/admin/src/store.ts";
@@ -108,6 +108,14 @@ export class Portal extends DurableObject<Env> {
     }
     const setup = await handleSetup(request, {
       setupToken: typeof this.env.SETUP_TOKEN === "string" ? this.env.SETUP_TOKEN : undefined, done: this.setupDone, stored: this.stored, baseEnv: this.baseEnv(),
+      openedAt: async () => {
+        const digest = await tokenDigest(String(this.env.SETUP_TOKEN));
+        const opened = await this.ctx.storage.get<{ digest: string; at: number }>(SETUP_OPENED_KEY);
+        if (opened?.digest === digest) return opened.at;
+        const at = Date.now();
+        await this.ctx.storage.put(SETUP_OPENED_KEY, { digest, at });
+        return at;
+      },
       save: async (settings) => {
         await this.ctx.storage.put(SETTINGS_KEY, settings);
         await this.ctx.storage.put(SETUP_DONE_KEY, await tokenDigest(String(this.env.SETUP_TOKEN)));

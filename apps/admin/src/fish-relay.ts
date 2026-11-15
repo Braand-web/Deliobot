@@ -14,6 +14,9 @@ export const FISH_PRICES = { speechPer1kChars: 0.05, transcriptionPerMb: 0.03, t
 const MAX_JSON_BODY = 64 * 1024;
 const MAX_AUDIO_BODY = 25 * 1024 * 1024;
 const ID = /^[\w-]{1,128}$/;
+/** Security: setting up agents is free but leaves them on Delio's Fish account, so each workspace gets a few a day. */
+const FREE_CALLS_PER_DAY = 20;
+const DAY_MS = 24 * 60 * 60_000;
 const OUT_OF_CREDITS = "This workspace is out of Delio credits. Open Plans and credits in Deliobot to top up.";
 
 type Route =
@@ -59,13 +62,13 @@ function reply(res: ServerResponse, status: number, body: unknown): void {
 }
 const refuse = (res: ServerResponse, status: number, message: string) => reply(res, status, { message });
 
-export function createFishRelay(options: { db: SqlDatabase; wallet: Wallet; key?: string; apiUrl?: string; fetchImpl?: typeof fetch; now?: () => number }) {
+export function createFishRelay(options: { db: SqlDatabase; wallet: Wallet; key?: string; apiUrl?: string; fetchImpl?: typeof fetch; now?: () => number; allow?: (bucket: string, limit: number, windowMs: number) => boolean }) {
   const { db, wallet } = options;
   const fetchImpl = options.fetchImpl ?? fetch;
   const now = options.now ?? Date.now;
   const api = (options.apiUrl ?? "https://api.fish.audio").replace(/\/+$/, "");
   db.exec("CREATE TABLE IF NOT EXISTS fish_objects (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, kind TEXT NOT NULL, created_at INTEGER NOT NULL)");
-  db.exec("CREATE TABLE IF NOT EXISTS fish_sessions (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, hold TEXT NOT NULL, started_at INTEGER NOT NULL)");
+  db.exec("CREATE TABLE IF NOT EXISTS fish_live_sessions (id TEXT PRIMARY KEY, workspace TEXT NOT NULL, hold TEXT NOT NULL, started_at INTEGER NOT NULL, max_seconds INTEGER)");
 
   const owns = (workspace: string, id: string, kind: string) =>
     Boolean(db.prepare("SELECT 1 FROM fish_objects WHERE id = ? AND workspace = ? AND kind = ?").get(id, workspace, kind));
@@ -101,21 +104,23 @@ export function createFishRelay(options: { db: SqlDatabase; wallet: Wallet; key?
     }
   }
 
-  /** Settles a Live call at its real length, at most what was held. */
+  /** Settles a Live call at its real length, past the hold when it ran longer. */
   function settleSession(id: string, workspace: string): void {
-    const session = db.prepare("SELECT hold, started_at FROM fish_sessions WHERE id = ? AND workspace = ?").get(id, workspace) as { hold: string; started_at: number } | undefined;
+    const session = db.prepare("SELECT hold, started_at, max_seconds FROM fish_live_sessions WHERE id = ? AND workspace = ?").get(id, workspace) as { hold: string; started_at: number; max_seconds: number | null } | undefined;
     if (!session) return;
-    db.prepare("DELETE FROM fish_sessions WHERE id = ?").run(id);
-    const minutes = Math.max(1, Math.ceil((now() - session.started_at) / 60_000));
-    wallet.settle(session.hold, wallet.microFor(Math.min(minutes, FISH_PRICES.liveHoldMinutes) * FISH_PRICES.livePerMinute), "fish", "live3");
+    db.prepare("DELETE FROM fish_live_sessions WHERE id = ?").run(id);
+    const elapsed = now() - session.started_at;
+    const lasted = session.max_seconds ? Math.min(elapsed, session.max_seconds * 1000) : elapsed;
+    const minutes = Math.max(1, Math.ceil(lasted / 60_000));
+    wallet.settle(session.hold, wallet.microFor(minutes * FISH_PRICES.livePerMinute), "fish", "live3");
   }
 
   return {
     available: () => Boolean(options.key),
 
-    /** Settles Live calls the app never ended, at their full hold, once they are past any call's length. */
+    /** Settles Live calls the app never ended, at the longest Fish let them run, once two hours have passed. */
     sweep(): void {
-      const stale = db.prepare("SELECT id, workspace FROM fish_sessions WHERE started_at < ?").all(now() - 2 * 60 * 60_000) as Array<{ id: string; workspace: string }>;
+      const stale = db.prepare("SELECT id, workspace FROM fish_live_sessions WHERE started_at < ?").all(now() - 2 * 60 * 60_000) as Array<{ id: string; workspace: string }>;
       for (const session of stale) settleSession(session.id, session.workspace);
     },
 
@@ -157,6 +162,7 @@ export function createFishRelay(options: { db: SqlDatabase; wallet: Wallet; key?
       }
 
       if (route.kind === "create") {
+        if (options.allow && !options.allow(`fish-create:${workspace}`, FREE_CALLS_PER_DAY, DAY_MS)) return refuse(res, 429, "Too many Fish Audio agents set up today. Try again tomorrow.");
         const response = await call("POST", path, { body: new Uint8Array(body), headers: json });
         const bytes = await pass(res, response);
         if (response.ok) {
@@ -182,9 +188,12 @@ export function createFishRelay(options: { db: SqlDatabase; wallet: Wallet; key?
         try {
           const response = await call("POST", path, { body: new Uint8Array(body), headers: json });
           const bytes = await pass(res, response);
-          const session = (() => { try { return (JSON.parse(bytes.toString("utf8")) as { session_id?: unknown }).session_id; } catch { return null; } })();
+          const started = (() => { try { return JSON.parse(bytes.toString("utf8")) as { session_id?: unknown; max_duration_seconds?: unknown }; } catch { return {}; } })();
+          const session = started.session_id;
+          const maxSeconds = Number(started.max_duration_seconds);
           if (response.ok && typeof session === "string" && ID.test(session)) {
-            db.prepare("INSERT INTO fish_sessions (id, workspace, hold, started_at) VALUES (?, ?, ?, ?)").run(session, workspace, hold.id, now());
+            db.prepare("INSERT INTO fish_live_sessions (id, workspace, hold, started_at, max_seconds) VALUES (?, ?, ?, ?, ?)")
+              .run(session, workspace, hold.id, now(), Number.isFinite(maxSeconds) && maxSeconds > 0 ? Math.floor(maxSeconds) : null);
           } else wallet.release(hold.id);
         } catch {
           wallet.release(hold.id);
@@ -193,7 +202,7 @@ export function createFishRelay(options: { db: SqlDatabase; wallet: Wallet; key?
         return;
       }
 
-      if (!db.prepare("SELECT 1 FROM fish_sessions WHERE id = ? AND workspace = ?").get(route.id, workspace)) return refuse(res, 404, "This call is not running.");
+      if (!db.prepare("SELECT 1 FROM fish_live_sessions WHERE id = ? AND workspace = ?").get(route.id, workspace)) return refuse(res, 404, "This call is not running.");
       try {
         await pass(res, await call("POST", path, { body: new Uint8Array(body), headers: json }));
       } finally {
