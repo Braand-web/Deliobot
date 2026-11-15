@@ -86,7 +86,8 @@ export class Portal extends DurableObject<Env> {
         ...(this.env.SITES && typeof base.DELIO_SITES_SUFFIX === "string" ? { sites: { bucket: r2Sites(this.env.SITES), suffix: base.DELIO_SITES_SUFFIX } } : {}) });
       const consoleUrl = base.DELIO_ADMIN_CONSOLE_URL ? new URL(base.DELIO_ADMIN_CONSOLE_URL) : null;
       this.operatorsConsole = consoleUrl && settings.operators.size > 0 ? { host: consoleUrl.host, app: createAdminApp({ store, publicUrl: consoleUrl,
-        operators: settings.operators, mailer: settings.mailer, payments: settings.payments, assets: ASSETS, console: true, waitUntil: work => this.ctx.waitUntil(work) }) } : null;
+        operators: settings.operators, mailer: settings.mailer, payments: settings.payments, assets: ASSETS, console: true, waitUntil: work => this.ctx.waitUntil(work),
+        ...(this.env.SITES && typeof base.DELIO_SITES_SUFFIX === "string" ? { sites: { bucket: r2Sites(this.env.SITES), suffix: base.DELIO_SITES_SUFFIX } } : {}) }) } : null;
     } catch (error) {
       this.app = null;
       this.operatorsConsole = null;

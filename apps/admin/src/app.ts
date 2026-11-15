@@ -186,6 +186,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       console.error("delio-admin: account payment refresh failed", error);
     } finally { clearTimeout(timer); }
   }
+  const sites = options.sites ? createAppHosting({ db: store.db, bucket: options.sites.bucket, sitesSuffix: options.sites.suffix, now, access: (slug) => hostingAccess(plans, slug) }) : undefined;
   const gateway = createGateway({ ...options.gateway, store, wallet, publicUrl, fetchImpl, now,
     deviceAccount: (value, requested) => {
       const owner = devices.identity(value);
@@ -202,7 +203,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       return true;
     },
     allowance: (slug) => plans.allowance(slug), refreshAccount, paymentVersion: slug => plans.paidCount(slug),
-    ...(options.sites ? { hosting: createAppHosting({ db: store.db, bucket: options.sites.bucket, sitesSuffix: options.sites.suffix, now, access: (slug) => hostingAccess(plans, slug) }) } : {}) });
+    ...(sites ? { hosting: sites } : {}) });
 
   function sessionCookie(value: string, maxAgeSeconds: number): string {
     return `${cookieName}=${value}; Path=/; Max-Age=${maxAgeSeconds}; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}`;
@@ -793,7 +794,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       audit: store.auditLog(workspace.slug, 20), ...extra });
   }
 
-  const operatorPages = createConsole({ store, wallet, devices, reports, billing: plans, hosting, saspay, currency, operators, now, readForm: readBody,
+  const operatorPages = createConsole({ store, wallet, devices, reports, billing: plans, hosting, saspay, currency, operators, now, ...(sites ? { sites } : {}), readForm: readBody,
     redirect: (res, location) => redirect(res, location), send });
 
   const handler = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {

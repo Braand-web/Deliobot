@@ -129,6 +129,21 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
   }
 
   return {
+    /** Every published app, newest first, for the operators' console. */
+    all(limit = 200): Array<{ workspace: string; key: string; label: string; title: string; state: string; url: string; publishedAt: number | null }> {
+      return (db.prepare("SELECT * FROM hosted_apps ORDER BY COALESCE(published_at, created_at) DESC LIMIT ?").all(limit) as AppRow[])
+        .map((app) => ({ workspace: app.workspace, key: app.key, label: app.label, title: app.title, state: app.state, url: `https://${app.label}${options.sitesSuffix}/`, publishedAt: app.published_at }));
+    },
+
+    /** Takes a site offline for good: its address stops answering and its workspace cannot publish it again. */
+    async takeDown(label: string): Promise<{ workspace: string; key: string } | null> {
+      const app = db.prepare("SELECT * FROM hosted_apps WHERE label = ?").get(label) as AppRow | undefined;
+      if (!app) return null;
+      if (options.bucket) await options.bucket.delete(`sites/${app.label}.json`);
+      db.prepare("UPDATE hosted_apps SET state = 'taken_down', pending = NULL WHERE label = ?").run(label);
+      return { workspace: app.workspace, key: app.key };
+    },
+
     /** Serves /api/gateway/<workspace>/hosting/v1/<rest> for an authenticated workspace. */
     async handle(req: IncomingMessage, res: ServerResponse, workspace: string, rest: string): Promise<void> {
       if (!options.bucket) return reply(res, 503, { error: "unavailable" });
@@ -144,6 +159,7 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
       const key = match ? decodeURIComponent(match[1]!) : "";
       if (!match || !KEY.test(key)) return reply(res, 404, { error: "not_found" });
       const existing = row(workspace, key);
+      if (existing?.state === "taken_down" && method !== "GET" && method !== "DELETE") return reply(res, 403, { error: "app_taken_down" });
 
       if (match[2] !== undefined) {
         if (method !== "PUT") return reply(res, 405, { error: "failed" });

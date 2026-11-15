@@ -21,6 +21,7 @@ import { eraseInstallation } from "./erase";
 import { adoptSharedUser, me, shareUser } from "./sharing";
 import { createTrigger, deleteTrigger, getTriggerType, listTriggers, listTriggerTypes, updateTrigger } from "./triggers";
 import { handleSetup, withSavedKeys } from "./setup";
+import { DELIO_ACCOUNT_REQUIRED, delioLinked, linkDelioAccount } from "./delio-link";
 
 interface ComposioSession {
   sessionId: string;
@@ -727,6 +728,8 @@ async function route(request: Request, env: Env, ctx: ExecutionContext) {
     await limitSessionRequests(installation, env);
     return eraseInstallation(installation, env);
   }
+  if (request.method === "POST" && url.pathname === "/v1/installation/delio") return linkDelioAccount(request, installation, env);
+  if (!delioLinked(installation, env) && /^\/v1\/(mcp|catalog|connectors)(\/|$)/.test(url.pathname)) return json({ error: DELIO_ACCOUNT_REQUIRED, code: "delio_account_required" }, 403);
   if (request.method === "POST" && url.pathname === "/v1/installation/share") return shareUser(request, installation, env);
   if (request.method === "POST" && url.pathname === "/v1/installation/adopt") {
     const adopted = await adoptSharedUser(request, installation, env);

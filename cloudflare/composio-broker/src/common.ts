@@ -8,6 +8,9 @@ export interface InstallationRow {
   session_id: string | null;
   disabled_at: number | null;
   last_seen_at?: number;
+  /** Absent on a database that has not run migration 0007 yet. */
+  delio_workspace?: string | null;
+  delio_verified_at?: number | null;
 }
 
 /** The Composio user whose connected accounts the installation reaches: the one shared with it, else its own. */

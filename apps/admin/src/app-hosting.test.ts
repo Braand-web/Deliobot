@@ -10,6 +10,7 @@ import { createAppHosting, sitePath, type HostingAccess, type SiteBucket, type S
 import { nodeDatabase } from "./sql-node.ts";
 
 const cleanups: Array<() => void> = [];
+let latestHosting: ReturnType<typeof createAppHosting> | null = null;
 afterEach(() => { for (const cleanup of cleanups.splice(0)) cleanup(); });
 
 function memoryBucket() {
@@ -29,7 +30,7 @@ function relay(access: HostingAccess = { plan: "starter", active: true }) {
   cleanups.push(() => { db.close(); rmSync(dir, { recursive: true, force: true }); });
   const { bucket, objects } = memoryBucket();
   let state = access;
-  const hosting = createAppHosting({ db, bucket, sitesSuffix: "-app.example.test", access: () => state });
+  const hosting = latestHosting = createAppHosting({ db, bucket, sitesSuffix: "-app.example.test", access: () => state });
   const fetchImpl = (async (input: string | URL | Request, init?: RequestInit) => {
     const url = new URL(String(input));
     const rest = url.pathname.replace(/^\/api\/gateway\/acme\/hosting\/v1\//, "");
@@ -105,6 +106,20 @@ describe("included app hosting", () => {
     await client.remove("app-one");
     expect(objects.has(`sites/${label}.json`)).toBe(false);
     await expect(client.app("app-one")).rejects.toBeInstanceOf(HostingRefusal);
+  });
+
+  it("lets the operator take a site down for good: its address stops answering and it cannot be published again", async () => {
+    const { client, objects } = relay();
+    await client.start("app-one", { title: "x", files: files({ "index.html": "a" }) });
+    await client.upload("app-one", sha1("a"), Buffer.from("a"));
+    const label = new URL((await client.app("app-one")).url!).hostname.split("-")[0]!;
+    expect(objects.has(`sites/${label}.json`)).toBe(true);
+    const hosting = latestHosting!;
+    expect(hosting.all().map((app) => app.label)).toEqual([label]);
+    expect(await hosting.takeDown(label)).toEqual({ workspace: "acme", key: "app-one" });
+    expect(objects.has(`sites/${label}.json`)).toBe(false);
+    expect((await client.app("app-one")).state).toBe("taken_down");
+    await expect(client.start("app-one", { title: "x", files: files({ "index.html": "b" }) })).rejects.toMatchObject({ code: "taken_down" });
   });
 
   it("names an app from the bot and its folder, as the app keys it", async () => {

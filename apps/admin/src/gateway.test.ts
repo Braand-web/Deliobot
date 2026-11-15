@@ -122,14 +122,28 @@ describe("Delio AI gateway", () => {
   it.each(["max_tokens", "max_completion_tokens"])("reduces an unaffordable %s once without changing models or charging the refusal", async field => {
     const upstream = upstreams({ textRefusal: { message: "This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 26345. To increase, add credits." } });
     const target = await portal(upstream);
-    const token = await target.workspace("budget", 100);
+    const token = await target.workspace("budget", 100_000);
     const response = await target.gateway("budget", "openrouter/v1/chat/completions", token, { method: "POST", body: JSON.stringify({ model: "openai/gpt-5", [field]: 65536, messages: [{ role: "user", content: "Hello" }] }) });
     expect(response.status).toBe(200);
     expect(await response.text()).toContain("jour");
     const calls = upstream.calls.filter(call => call.url.endsWith("/chat/completions"));
     expect(calls).toHaveLength(2);
     expect(calls[1]!.body).toMatchObject({ model: "openai/gpt-5", [field]: 23710 });
-    expect((await target.account("budget", token)).credits).toBeCloseTo(95);
+    expect((await target.account("budget", token)).credits).toBeCloseTo(99_995);
+  });
+
+  it("cuts an answer to what the balance can pay for, and refuses when almost nothing is left", async () => {
+    const upstream = upstreams();
+    const target = await portal(upstream);
+    const token = await target.workspace("low", 100);
+    const response = await target.gateway("low", "openrouter/v1/chat/completions", token, { method: "POST", body: JSON.stringify({ model: "openrouter/auto", max_tokens: 65536, messages: [{ role: "user", content: "Hello" }] }) });
+    expect(response.status).toBe(200);
+    const sent = upstream.calls.filter(call => call.url.endsWith("/chat/completions")).at(-1)!.body as { max_tokens: number };
+    expect(sent.max_tokens).toBeLessThan(65536);
+    expect(sent.max_tokens * 25 / 1_000_000).toBeLessThanOrEqual(100 * 0.002);
+    const empty = await target.workspace("empty", 0.01);
+    const refused = await target.gateway("empty", "openrouter/v1/chat/completions", empty, { method: "POST", body: JSON.stringify({ model: "openrouter/auto", messages: [{ role: "user", content: "Hello" }] }) });
+    expect(refused.status).toBe(402);
   });
 
   it("does not retry a provider's exhausted key and keeps that outage separate from customer credits", async () => {

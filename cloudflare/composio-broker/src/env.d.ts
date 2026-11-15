@@ -10,4 +10,8 @@ interface Env {
   STATS_TOKEN?: string;
   /** A var, not in wrangler.jsonc: the Cloud Admin's origin, which wakes a sleeping Cloud for its app events. */
   CLOUD_ADMIN_URL?: string;
+  /** "1": connected apps only for installations linked to a confirmed Deliobot account. */
+  REQUIRE_DELIO?: string;
+  /** The Deliobot portal that confirms accounts, e.g. https://compte.deliobot.fun. */
+  DELIO_PORTAL_URL?: string;
 }

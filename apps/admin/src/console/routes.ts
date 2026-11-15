@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 import type { Devices } from "../devices.ts";
+import type { AppHosting } from "../app-hosting.ts";
 import type { Hosting } from "../hosting.ts";
 import type { Reports } from "../reports.ts";
 import { MANUAL_ORDER_PREFIX, PLANS, type Billing, type Cycle, type Order, type PlanId } from "../plans.ts";
@@ -8,11 +9,13 @@ import type { SasPay } from "../saspay.ts";
 import { token, type Account, type AdminStore, type Workspace } from "../store.ts";
 import { MICRO, type Wallet } from "../wallet.ts";
 import { Metrics, period } from "./metrics.ts";
-import { CLIENT_FILTERS, clientPage, clientsPage, consolePage, dashboardPage, journalPage, n, ORDER_FILTERS, ordersPage, reportPage, reportsPage, trafficPage, type ClientRow, type ConsoleSection, type Flash } from "./pages.ts";
+import { CLIENT_FILTERS, clientPage, clientsPage, consolePage, dashboardPage, journalPage, n, ORDER_FILTERS, ordersPage, reportPage, reportsPage, sitesPage, trafficPage, type ClientRow, type ConsoleSection, type Flash } from "./pages.ts";
 
 export interface ConsoleContext {
   store: AdminStore; wallet: Wallet; devices: Devices; reports: Reports; billing: Billing; hosting: Hosting; saspay: SasPay | null; currency: string;
   operators: ReadonlySet<string>; now: () => number;
+  /** Included app hosting; absent where no bucket is bound. */
+  sites?: AppHosting;
   readForm: (req: IncomingMessage) => Promise<Record<string, unknown>>;
   redirect: (res: ServerResponse, location: string) => void;
   send: (res: ServerResponse, status: number, body: string, type: string, headers: Record<string, string>) => void;
@@ -23,7 +26,8 @@ const ORDER_ID = "(?:ord|man)_[A-Za-z0-9_-]{8,40}";
 const CLIENT_ACTION = new RegExp(`^/clients/(${SLUG})/(credits|forfait|suspendre|bloquer|appareil|jeton|supprimer)$`);
 const CLIENT = new RegExp(`^/clients/(${SLUG})$`);
 const ORDER_ACTION = new RegExp(`^/commandes/(${ORDER_ID})/(verifier|payee)$`);
-const PAGES = new Set(["/", "/trafic", "/clients", "/commandes", "/signalements", "/journal"]);
+const PAGES = new Set(["/", "/trafic", "/clients", "/commandes", "/signalements", "/journal", "/sites"]);
+const SITE_ACTION = /^\/sites\/([a-z2-9]{10})\/retirer$/;
 const REPORT = /^\/signalements\/([A-Za-z0-9_-]{8,20})(\/supprimer)?$/;
 const PAGE_SIZE = 25;
 /** Per-workspace tables the portal keeps besides the store's own; a deleted workspace leaves no row in them. */
@@ -31,7 +35,7 @@ const WORKSPACE_TABLES = ["wallets", "gateway_tokens", "holds", "subscriptions",
 
 /** Whether a path belongs to the console's own pages and actions. */
 export function consoleServes(path: string): boolean {
-  return PAGES.has(path) || REPORT.test(path) || CLIENT.test(path) || CLIENT_ACTION.test(path) || ORDER_ACTION.test(path);
+  return PAGES.has(path) || SITE_ACTION.test(path) || REPORT.test(path) || CLIENT.test(path) || CLIENT_ACTION.test(path) || ORDER_ACTION.test(path);
 }
 
 const FLASH: Record<string, (count: string) => Flash> = {
@@ -39,7 +43,7 @@ const FLASH: Record<string, (count: string) => Flash> = {
   plan: () => ({ kind: "ok", text: "Forfait offert et appliqué" }),
   suspended: () => ({ kind: "ok", text: "Espace suspendu" }), resumed: () => ({ kind: "ok", text: "Espace réactivé" }),
   blocked: () => ({ kind: "ok", text: "Compte bloqué" }), unblocked: () => ({ kind: "ok", text: "Compte débloqué" }),
-  device: () => ({ kind: "ok", text: "Application déconnectée" }), "report-deleted": () => ({ kind: "ok", text: "Signalement supprimé" }), deleted: () => ({ kind: "ok", text: "Espace supprimé" }),
+  device: () => ({ kind: "ok", text: "Application déconnectée" }), "site-down": () => ({ kind: "ok", text: "Site retiré : son adresse ne répond plus" }), "report-deleted": () => ({ kind: "ok", text: "Signalement supprimé" }), deleted: () => ({ kind: "ok", text: "Espace supprimé" }),
   paid: () => ({ kind: "ok", text: "Commande marquée payée, crédits appliqués" }), "already-paid": () => ({ kind: "bad", text: "Cette commande était déjà payée" }),
   "recheck-paid": () => ({ kind: "ok", text: "SasPay confirme le paiement : commande appliquée" }),
   "recheck-pending": () => ({ kind: "ok", text: "SasPay : paiement toujours en attente" }),
@@ -257,6 +261,11 @@ export function createConsole(ctx: ConsoleContext) {
       if (path === "/commandes") { orders(res, user, url); return true; }
       if (path === "/journal") { journal(res, user, url); return true; }
       if (path === "/signalements") { reportList(res, user, url); return true; }
+      if (path === "/sites") {
+        const rows = ctx.sites?.all() ?? [];
+        render(res, user, url, { title: "Sites publiés", subtitle: "Ce que les bots de vos clients ont mis en ligne", section: "sites", body: ({ now: at }) => sitesPage({ rows, now: at, available: Boolean(ctx.sites) }) });
+        return true;
+      }
       const reportId = REPORT.exec(path);
       if (reportId && !reportId[2]) return reportDetail(res, user, url, reportId[1]!);
       const slug = CLIENT.exec(path)?.[1];
@@ -265,6 +274,14 @@ export function createConsole(ctx: ConsoleContext) {
       return false;
     }
     if (method !== "POST") return false;
+    const siteAct = SITE_ACTION.exec(path);
+    if (siteAct) {
+      const taken = await ctx.sites?.takeDown(siteAct[1]!);
+      if (!taken) return false;
+      store.audit(taken.workspace, user.email, "site.taken_down", siteAct[1]!);
+      ctx.redirect(res, "/sites?ok=site-down");
+      return true;
+    }
     const reportAct = REPORT.exec(path);
     if (reportAct?.[2]) {
       reports.remove(reportAct[1]!);

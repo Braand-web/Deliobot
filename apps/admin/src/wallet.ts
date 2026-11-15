@@ -77,12 +77,14 @@ export class Wallet {
   }
 
   /** Takes `micro` from the balance for a request, or less when less is left; null when nothing is left. */
-  hold(workspace: string, micro: number): Hold | null {
+  /** Sets credits aside for a request. `whole`: only when the balance covers all of it, so a request that could cost more
+   * than what is left is refused instead of running the balance below zero. */
+  hold(workspace: string, micro: number, whole = false): Hold | null {
     this.expireHolds();
     let held: Hold | null = null;
     this.transaction(() => {
       const available = (this.db.prepare("SELECT balance FROM wallets WHERE workspace = ?").get(workspace) as { balance: number } | undefined)?.balance ?? 0;
-      if (available <= 0) return;
+      if (available <= 0 || (whole && available < micro)) return;
       const amount = Math.min(micro, available);
       const id = token(12);
       this.db.prepare("UPDATE wallets SET balance = balance - ? WHERE workspace = ?").run(amount, workspace);

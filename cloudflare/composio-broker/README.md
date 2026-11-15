@@ -27,6 +27,8 @@ the IDs in `wrangler.jsonc`, deploy under their own Worker name, and set
 `ODB_COMPOSIO_BROKER_URL` in their packaged build. Running only the local
 server with a Composio project key remains the no-Cloudflare self-host path.
 
+Set `REQUIRE_DELIO` to `1` to keep connected apps for installations linked to a Deliobot account the portal at `DELIO_PORTAL_URL` confirmed (the app links its installation from 0.1.170 on, and again every six hours); `0` records the links without requiring them.
+
 Set `REGISTRATION_MODE` to `closed` to stop issuing new installation tokens
 without affecting existing users.
 

@@ -49,6 +49,10 @@ export interface GatewayOptions {
 const MAX_BODY = 4 * 1024 * 1024;
 /** The least a text request is held at before its real cost is known; the rest goes back when it settles. */
 const TEXT_HOLD_USD = 0.05;
+/** Below this many answer tokens left in the balance, a text request is refused rather than cut to nothing. */
+const MIN_AFFORDABLE_OUTPUT_TOKENS = 64;
+/** Per token, what a request is held at when its model's price is unknown (Auto picks one per message): a top model's. */
+const UNKNOWN_TEXT_PRICE = { prompt: 5 / 1_000_000, completion: 25 / 1_000_000 };
 /** A request that names no `max_tokens` is held as if it answered with this many. */
 const TEXT_DEFAULT_OUTPUT_TOKENS = 4096;
 /** Bytes of request per input token, on the low side so the hold errs high. */
@@ -212,8 +216,7 @@ export function createGateway(options: GatewayOptions) {
 
   /** What a text request can cost at most: its size at the model's input price plus the answer it may ask for. */
   async function textHoldUsd(model: string, bytes: number, maxTokens: unknown): Promise<number> {
-    const price = await textPrice(model);
-    if (!price) return TEXT_HOLD_USD;
+    const price = await textPrice(model) ?? UNKNOWN_TEXT_PRICE;
     const output = typeof maxTokens === "number" && Number.isFinite(maxTokens) && maxTokens > 0 ? maxTokens : TEXT_DEFAULT_OUTPUT_TOKENS;
     return Math.max(TEXT_HOLD_USD, (bytes / BYTES_PER_TOKEN) * price.prompt + output * price.completion);
   }
@@ -243,6 +246,12 @@ export function createGateway(options: GatewayOptions) {
     }
     const model = typeof body.model === "string" ? body.model : "unknown";
     if (wallet.balance(workspace) <= 0) return failure(res, 402, OUT_OF_CREDITS, OUT_OF_CREDITS_CODE);
+    const price = await textPrice(model) ?? UNKNOWN_TEXT_PRICE;
+    const room = Math.floor(((wallet.balance(workspace) / MICRO) * wallet.creditUsd - (bytes / BYTES_PER_TOKEN) * price.prompt) / Math.max(price.completion, 1e-12));
+    if (room < MIN_AFFORDABLE_OUTPUT_TOKENS) return failure(res, 402, OUT_OF_CREDITS, OUT_OF_CREDITS_CODE);
+    const asked = typeof body.max_completion_tokens === "number" ? "max_completion_tokens" : "max_tokens";
+    const requested = typeof body[asked] === "number" && (body[asked] as number) > 0 ? body[asked] as number : TEXT_DEFAULT_OUTPUT_TOKENS;
+    if (requested > room) body = { ...body, [asked]: room };
     const holdUsd = await textHoldUsd(model, bytes, body.max_tokens ?? body.max_completion_tokens);
     const done = await admit(workspace, limit);
     if (!done) return failure(res, 429, "Too many requests at once for this workspace. Try again in a moment.");
@@ -356,7 +365,7 @@ export function createGateway(options: GatewayOptions) {
     }
     const price = await falPrice(model);
     const estimateUsd = price ? price.unitPrice * falUnits(input, price.unit) : FAL_UNKNOWN_HOLD_USD;
-    const hold = wallet.hold(workspace, wallet.microFor(estimateUsd));
+    const hold = wallet.hold(workspace, wallet.microFor(estimateUsd), true);
     if (!hold) return failure(res, 402, OUT_OF_CREDITS, OUT_OF_CREDITS_CODE);
     try {
       const response = await fetchImpl(`${falQueueUrl}/${model}`, {

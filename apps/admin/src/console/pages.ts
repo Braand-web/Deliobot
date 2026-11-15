@@ -23,11 +23,12 @@ const ICONS: Record<string, string> = {
   out: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9",
 };
 
-export type ConsoleSection = "dash" | "traffic" | "clients" | "orders" | "reports" | "journal";
+export type ConsoleSection = "dash" | "traffic" | "clients" | "orders" | "reports" | "sites" | "journal";
 
 const NAV: ReadonlyArray<[string, string, string | null]> = [
   ["dash", "Tableau de bord", "/"], ["traffic", "Trafic", "/trafic"], ["clients", "Clients", "/clients"], ["orders", "Commandes", "/commandes"],
   ["reports", "Signalements", "/signalements"],
+  ["sites", "Sites publiés", "/sites"],
   ["promos", "Codes promo", null], ["comms", "Communication", null], ["pricing", "Forfaits & prix", null], ["system", "Système", null],
   ["security", "Sécurité", null], ["journal", "Journal", "/journal"],
 ];
@@ -457,6 +458,16 @@ ${input.rows.map((row) => h`<tr><td class="muted">${ago(row.createdAt, input.now
 <td class="muted small mono">${row.appVersion} · ${row.platform}</td></tr>`)}</tbody></table></div>
 <div class="pager">${input.page > 1 ? h`<a class="btn small" href="/signalements?page=${input.page - 1}">Plus récent</a>` : ""}
 ${input.more ? h`<a class="btn small" href="/signalements?page=${input.page + 1}">Plus ancien</a>` : ""}</div></section>`;
+}
+
+export function sitesPage(input: { rows: Array<{ workspace: string; label: string; title: string; state: string; url: string; publishedAt: number | null }>; now: number; available: boolean }): Html {
+  if (!input.available) return h`<section class="card">${empty("L'hébergement inclus n'est pas activé sur ce portail.")}</section>`;
+  if (input.rows.length === 0) return h`<section class="card">${empty("Aucun site publié pour l'instant. Ils arrivent ici quand un bot met une appli en ligne.")}</section>`;
+  return h`<section class="card"><div class="table-wrap"><table><thead><tr><th>Site</th><th>Client</th><th>Titre</th><th>Publié</th><th></th></tr></thead><tbody>
+${input.rows.map((row) => h`<tr><td class="mono small">${row.state === "taken_down" ? h`<s>${row.url}</s>` : h`<a href="${row.url}" target="_blank" rel="noopener noreferrer">${row.url}</a>`}</td>
+<td><a href="/clients/${row.workspace}">${row.workspace}</a></td><td>${row.title}</td><td class="muted">${row.publishedAt === null ? "—" : ago(row.publishedAt, input.now)}</td>
+<td>${row.state === "taken_down" ? h`<span class="muted">Retiré</span>` : h`<form method="post" action="/sites/${row.label}/retirer" data-confirm="Retirer ce site ?" data-detail="Son adresse cesse de répondre tout de suite et le client ne peut plus le republier."><button class="btn small danger">Retirer</button></form>`}</td></tr>`)}
+</tbody></table></div></section>`;
 }
 
 export function reportPage(report: ProblemReport, now: number): Html {
