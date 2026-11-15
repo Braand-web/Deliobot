@@ -581,7 +581,7 @@ class BotDb implements BotDatabase {
     if (numeric || temporal) {
       const value = numeric ? `CAST(${id} AS DOUBLE)` : `epoch(CAST(${id} AS TIMESTAMP))`;
       const sql = `WITH odb_range AS (SELECT min(${value}) AS lo, max(${value}) AS hi FROM ${from} WHERE ${id} IS NOT NULL)
-SELECT coalesce(LEAST(floor((${value} - odb_range.lo) / nullif(odb_range.hi - odb_range.lo, 0) * ${bins}), ${bins - 1}), 0)::INTEGER AS bin, count(*) AS n, min(odb_range.lo), min(odb_range.hi)
+SELECT LEAST(coalesce(floor((${value} - odb_range.lo) / nullif(odb_range.hi - odb_range.lo, 0) * ${bins}), 0), ${bins - 1})::INTEGER AS bin, count(*) AS n, min(odb_range.lo), min(odb_range.hi)
 FROM ${from}, odb_range WHERE ${id} IS NOT NULL GROUP BY bin ORDER BY bin`;
       const rows = (await this.statement("panel", sql, options, (o, conn) => this.read(o, conn, sql))).rows;
       if (!rows.length) return result;

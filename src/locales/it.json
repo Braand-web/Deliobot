@@ -1653,7 +1653,7 @@
   "teamShare.skip.skill_changed": "è cambiata dopo la revisione",
   "teamShare.skip.skill_conflict": "due bot hanno abilità diverse con questo nome",
   "teamShare.skip.bot_skill_limit": "un bot può condividere al massimo 30 abilità (prima quelle attive)",
-  "teamShare.skip.team_skill_limit": "un reparto può condividere al massimo 60 abilità",
+  "teamShare.skip.team_skill_limit": "un reparto può condividere al massimo 120 abilità",
   "teamShare.field.soul": "istruzioni permanenti",
   "teamShare.field.notes": "note iniziali",
   "teamShare.field.brief": "istruzioni condivise",
@@ -7112,5 +7112,8 @@
   "settings.talk.title": "Parla con Delio da qualsiasi app",
   "sidebar.menu.feedback": "Contatta l'assistenza",
   "update.download.action": "Scarica",
-  "update.download.title": "{app} {version} è disponibile"
+  "update.download.title": "{app} {version} è disponibile",
+  "chat.notice.devinAccountRefused": "Devin ha rifiutato questa richiesta per l'account connesso. Controlla il piano e i crediti di Devin, poi riprova.",
+  "botSettings.searchLoading": "Cerco tra le app collegate…",
+  "composer.command.burstDesc": "Esegui molte parti di un lavoro insieme, poi unisci i risultati"
 }

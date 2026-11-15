@@ -1216,7 +1216,7 @@
   "teamShare.skip.skill_changed": "đã thay đổi sau khi được xem xét",
   "teamShare.skip.skill_conflict": "hai bot có hai kỹ năng khác nhau nhưng cùng tên này",
   "teamShare.skip.bot_skill_limit": "một bot chỉ có thể chia sẻ tối đa 30 kỹ năng (kỹ năng đang bật được ưu tiên trước)",
-  "teamShare.skip.team_skill_limit": "một phòng ban chỉ có thể chia sẻ tối đa 60 kỹ năng",
+  "teamShare.skip.team_skill_limit": "một phòng ban chỉ có thể chia sẻ tối đa 120 kỹ năng",
   "teamShare.field.soul": "hướng dẫn thường trực",
   "teamShare.field.notes": "ghi chú ban đầu",
   "teamShare.field.brief": "hướng dẫn dùng chung",
@@ -3600,7 +3600,7 @@
   "routines.editor.goalWhere": "Chạy ở đâu",
   "routines.editor.goalOneOnOne": "Chỉ bot, trong cuộc trò chuyện riêng của nó",
   "routines.editor.goalOneOnOneHelp": "Bot làm việc với mục tiêu trong cuộc trò chuyện riêng cho đến khi hoàn thành.",
-  "computer.tab.android": "Android",
+  "computer.tab.android": "Điện thoại",
   "computer.browserSwitch.title": "Cho phép {name} sử dụng trình duyệt",
   "computer.tab.browser": "Trình duyệt",
   "computer.tab.data": "Dữ liệu",
@@ -5990,5 +5990,7 @@
   "settings.talk.title": "Nói chuyện với Delio từ bất kỳ ứng dụng nào",
   "sidebar.menu.feedback": "Liên hệ hỗ trợ",
   "update.download.action": "Tải xuống",
-  "update.download.title": "Đã có {app} {version}"
+  "update.download.title": "Đã có {app} {version}",
+  "chat.notice.devinAccountRefused": "Devin đã từ chối yêu cầu này cho tài khoản đã đăng nhập. Hãy kiểm tra gói và tín dụng Devin, rồi thử lại.",
+  "composer.command.burstDesc": "Chạy nhiều phần của một công việc cùng lúc, rồi gộp kết quả"
 }

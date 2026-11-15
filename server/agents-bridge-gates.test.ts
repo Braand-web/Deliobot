@@ -28,7 +28,7 @@ type Server = { command: string; args: string[]; env: Record<string, string> };
 const BRIDGED: Server = {
   command: process.execPath,
   args: [join(HERE, "drivers", "agents-proxy.ts")],
-  env: { ODB_HARNESS_URL: "http://127.0.0.1:9", ODB_BOT_ID: "bot-gated", ODB_THREAD_ID: "thread-gated", ODB_COMMS_TOKEN: "unused", ODB_TURN_DEPTH: "0", [TOOL_BRIDGE_ENV]: "1" },
+  env: { ODB_HARNESS_URL: "http://127.0.0.1:9", ODB_BOT_ID: "bot-gated", ODB_THREAD_ID: "thread-gated", ODB_COMMS_TOKEN: "unused", [TOOL_BRIDGE_ENV]: "1" },
 };
 const DENY_VM: ToolScope = { deny: ["mcp:agents:vm_exec"] };
 const ONLY_LIST_BOTS: ToolScope = { allow: ["mcp:agents:list_bots"] };

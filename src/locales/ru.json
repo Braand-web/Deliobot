@@ -1686,7 +1686,7 @@
   "teamShare.skip.skill_changed": "изменён после проверки",
   "teamShare.skip.skill_conflict": "у двух ботов есть разные навыки с таким названием",
   "teamShare.skip.bot_skill_limit": "бот может передать не более 30 навыков (сначала идут включённые)",
-  "teamShare.skip.team_skill_limit": "отдел может передать не более 60 навыков",
+  "teamShare.skip.team_skill_limit": "отдел может передать не более 120 навыков",
   "teamShare.field.soul": "постоянные инструкции",
   "teamShare.field.notes": "начальные заметки",
   "teamShare.field.brief": "общие инструкции",
@@ -4577,7 +4577,7 @@
   "routines.botCountOne": "{count} бот",
   "routines.botCountMany": "{count} ботов",
   "routines.group": "Группа",
-  "computer.tab.android": "Android",
+  "computer.tab.android": "Телефон",
   "computer.browserSwitch.title": "Разрешить {name} пользоваться браузером",
   "computer.tab.browser": "Браузер",
   "computer.tab.data": "Данные",
@@ -7303,5 +7303,8 @@
   "settings.talk.title": "Говорите с Delio из любого приложения",
   "sidebar.menu.feedback": "Связаться с поддержкой",
   "update.download.action": "Скачать",
-  "update.download.title": "Доступна версия {app} {version}"
+  "update.download.title": "Доступна версия {app} {version}",
+  "chat.notice.devinAccountRefused": "Devin отклонил этот запрос для подключённого аккаунта. Проверьте тариф и кредиты Devin, затем попробуйте снова.",
+  "botSettings.searchLoading": "Ищем среди подключённых приложений…",
+  "composer.command.burstDesc": "Запускает много частей задачи сразу и объединяет результаты"
 }

@@ -1680,7 +1680,7 @@
   "teamShare.skip.skill_changed": "zmieniono po przeglądzie",
   "teamShare.skip.skill_conflict": "dwa boty mają różne umiejętności o tej samej nazwie",
   "teamShare.skip.bot_skill_limit": "bot może udostępnić maksymalnie 30 umiejętności (najpierw włączone umiejętności)",
-  "teamShare.skip.team_skill_limit": "dział może udostępnić maksymalnie 60 umiejętności",
+  "teamShare.skip.team_skill_limit": "dział może udostępnić maksymalnie 120 umiejętności",
   "teamShare.field.soul": "stałe instrukcje",
   "teamShare.field.notes": "notatki startowe",
   "teamShare.field.brief": "wspólne instrukcje",
@@ -4526,7 +4526,7 @@
   "routines.botCountOne": "{count} bot",
   "routines.botCountMany": "Boty: {count}",
   "routines.group": "Grupa",
-  "computer.tab.android": "Android",
+  "computer.tab.android": "Telefon",
   "computer.browserSwitch.title": "Pozwól botowi {name} używać przeglądarki",
   "computer.tab.browser": "Przeglądarka",
   "computer.tab.data": "Dane",
@@ -7250,5 +7250,8 @@
   "settings.talk.title": "Rozmawiaj z Delio z dowolnej aplikacji",
   "sidebar.menu.feedback": "Skontaktuj się z pomocą",
   "update.download.action": "Pobierz",
-  "update.download.title": "{app} {version} jest dostępny"
+  "update.download.title": "{app} {version} jest dostępny",
+  "chat.notice.devinAccountRefused": "Devin odrzucił to żądanie dla zalogowanego konta. Sprawdź plan i środki w Devin, a potem spróbuj ponownie.",
+  "botSettings.searchLoading": "Przeszukuję połączone aplikacje…",
+  "composer.command.burstDesc": "Uruchom wiele części zadania naraz, a potem połącz wyniki"
 }

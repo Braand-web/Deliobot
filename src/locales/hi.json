@@ -1771,7 +1771,7 @@
   "routines.editor.goalWhere": "यह कहाँ चलता है",
   "routines.editor.goalOneOnOne": "सिर्फ़ बॉट, उसकी अपनी चैट में",
   "routines.editor.goalOneOnOneHelp": "बॉट लक्ष्य पूरा होने तक अपनी चैट में उस पर काम करता है।",
-  "computer.tab.android": "Android",
+  "computer.tab.android": "फ़ोन",
   "computer.tab.browser": "ब्राउज़र",
   "computer.tabsAria": "बॉट पैनल का दृश्य",
   "computer.simple.needsSetup": "{name} के डेस्कटॉप को पहले एक सेटअप चरण चाहिए।",
@@ -3646,5 +3646,7 @@
   "settings.talk.title": "किसी भी ऐप से Delio से बात करें",
   "sidebar.menu.feedback": "सपोर्ट से संपर्क करें",
   "update.download.action": "डाउनलोड करें",
-  "update.download.title": "{app} {version} उपलब्ध है"
+  "update.download.title": "{app} {version} उपलब्ध है",
+  "chat.notice.devinAccountRefused": "Devin ने साइन-इन खाते के लिए यह अनुरोध अस्वीकार कर दिया। उसका Devin प्लान और क्रेडिट जाँचें, फिर दोबारा कोशिश करें।",
+  "composer.command.burstDesc": "किसी काम के कई हिस्से एक साथ चलाएं, फिर नतीजे मिलाएं"
 }

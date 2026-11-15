@@ -17,7 +17,7 @@ export const BOX_ENV_NAMES: ReadonlySet<string> = new Set([
  * proxies it starts. Security: no other `ODB_` name passes, whatever the operator set on the server (an SMTP URL, a
  * token); env.test.ts lists every `ODB_` name the server knows, so a new one needs a decision. */
 export const BOX_ENV_ODB_NAMES: ReadonlySet<string> = new Set([
-  "ODB_HARNESS_URL", "ODB_BOT_ID", "ODB_THREAD_ID", "ODB_COMMS_TOKEN", "ODB_TURN_DEPTH", "ODB_EXTERNAL_RUNTIME",
+  "ODB_HARNESS_URL", "ODB_BOT_ID", "ODB_THREAD_ID", "ODB_COMMS_TOKEN", "ODB_EXTERNAL_RUNTIME",
   "ODB_CHIEF_OF_STAFF", "ODB_DELIO", "ODB_SKILL_AUTHORING_ENABLED", "ODB_MEMORY_ENABLED", "ODB_SHARED_COMPUTERS_ENABLED",
   "ODB_VOICE_NOTES", "ODB_X_RESEARCH", "ODB_RESEARCH", "ODB_TEAM_PEOPLE", "ODB_COMPUTER_SELECTION", "ODB_ROOM",
   "ODB_IMAGE_GENERATION", "ODB_VIDEO_GENERATION", "ODB_MUSIC_GENERATION", "ODB_MEETINGS", "ODB_APP_HOSTING", "ODB_AGENTS_TOOL_BRIDGE", "ODB_TOOL_LIMIT", "ODB_TOOL_SCHEMA_PROFILE",

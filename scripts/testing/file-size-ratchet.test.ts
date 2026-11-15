@@ -40,7 +40,7 @@ const LINES: Record<string, number> = {
   "server/boat.ts": 1253,
   "server/drivers/pi.ts": 1033,
   "server/drivers/agents-call.ts": 1004,
-  "server/drivers/agents-catalog.ts": 1002,
+  "server/drivers/agents-catalog.ts": 1006,
   "server/plan-usage.ts": 1046,
   "server/container-computer.ts": 1175,
   "src/components/ModelPicker.tsx": 1039,

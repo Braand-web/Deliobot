@@ -40,7 +40,6 @@ export function agentsServerEnv(conversation: AgentsConversation, turn: AgentsTu
     ODB_BOT_ID: bot.id,
     ODB_THREAD_ID: conversation.threadId,
     ODB_COMMS_TOKEN: bearer(turn),
-    ODB_TURN_DEPTH: String(turn.depth),
     ODB_SKILL_AUTHORING_ENABLED: flag(host.skillAuthoring),
     ODB_MEMORY_ENABLED: flag(bot.memoryEnabled !== false),
     ODB_SHARED_COMPUTERS_ENABLED: flag(host.sharedComputers),

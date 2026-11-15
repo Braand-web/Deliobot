@@ -1770,7 +1770,7 @@
   "teamShare.skip.skill_changed": "검토한 뒤에 바뀌었어요",
   "teamShare.skip.skill_conflict": "두 봇에 같은 이름의 서로 다른 스킬이 있어요",
   "teamShare.skip.bot_skill_limit": "봇 하나는 스킬을 최대 30개까지 공유할 수 있어요(켜진 스킬이 먼저 들어가요)",
-  "teamShare.skip.team_skill_limit": "부서 하나는 스킬을 최대 60개까지 공유할 수 있어요",
+  "teamShare.skip.team_skill_limit": "부서 하나는 스킬을 최대 120개까지 공유할 수 있어요",
   "teamShare.field.soul": "상시 지침",
   "teamShare.field.notes": "시작 메모",
   "teamShare.field.brief": "공유 지침",
@@ -4929,7 +4929,7 @@
   "routines.botCountOne": "봇 {count}개",
   "routines.botCountMany": "봇 {count}개",
   "routines.group": "그룹",
-  "computer.tab.android": "Android",
+  "computer.tab.android": "휴대폰",
   "computer.browserSwitch.title": "{name}이(가) 브라우저를 쓰게 하기",
   "computer.tab.browser": "브라우저",
   "computer.tab.data": "데이터",
@@ -7770,5 +7770,8 @@
   "delioPlans.row.title": "요금제 및 충전",
   "sidebar.menu.feedback": "지원팀에 문의",
   "update.download.action": "다운로드",
-  "update.download.title": "{app} {version} 사용 가능"
+  "update.download.title": "{app} {version} 사용 가능",
+  "chat.notice.devinAccountRefused": "Devin이 로그인된 계정의 이 요청을 거부했습니다. Devin 요금제와 크레딧을 확인한 다음 다시 시도하세요.",
+  "botSettings.searchLoading": "연결된 앱을 찾고 있어요…",
+  "composer.command.burstDesc": "작업의 여러 부분을 한 번에 실행한 뒤 결과 합치기"
 }

@@ -3,7 +3,6 @@
 //   ODB_HARNESS_URL  base URL of the harness (http://127.0.0.1:8799)
 //   ODB_BOT_ID  the calling bot's id
 //   ODB_COMMS_TOKEN  shared secret for the localhost-only internal endpoints
-//   ODB_TURN_DEPTH  this turn's comms depth (the harness refuses recursion)
 //   ODB_EXTERNAL_RUNTIME  "1" for a standing process: oversized results are cut instead of cached
 //   ODB_CHIEF_OF_STAFF  "1" for a Chief of Staff, the only bot shown the Chief-only tools
 //   ODB_DELIO  "1" for the person's Delio, the only bot shown its notification tools
