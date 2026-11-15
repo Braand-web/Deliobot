@@ -10,7 +10,7 @@
     "COMPOSIO_API_BASE": "https://backend.composio.dev/api/v3.1",
     "COMPOSIO_TOOLKIT_BASE": "https://backend.composio.dev/api/v3",
     "REGISTRATION_MODE": "open",
-    "REQUIRE_DELIO": "0",
+    "REQUIRE_DELIO": "1",
     "DELIO_PORTAL_URL": "https://compte.deliobot.fun"
   },
   "d1_databases": [
