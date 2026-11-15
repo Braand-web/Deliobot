@@ -561,7 +561,7 @@ test("the menu names each bot using this Mac with its colour dot; See activity i
   bot.click();
   assert.deepEqual(clicked, ["activity"]);
   assert.equal(trays[0].title, "IT Support and Client A are using this Mac");
-  assert.equal(trays[0].tip, "OpenDeliobot: IT Support on My Cloud is using this Mac. Client A is using this Mac");
+  assert.equal(trays[0].tip, "Deliobot: IT Support on My Cloud is using this Mac. Client A is using this Mac");
   indicator.update({ clouds: ["My Cloud"], using: ["My Cloud"], bots: [{ name: "Helper", color: null, cloud: "My Cloud" }] });
   assert.deepEqual([labels()[0], trays[0].menu[0].icon], ["Helper on My Cloud is using this Mac", undefined], "no dot for a colour this app doesn't know");
   indicator.update({ clouds: ["My Cloud"], using: ["My Cloud"], bots: [{ name: "Helper", color: "red", cloud: "My Cloud" }], paused: true });
