@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 
 import { accountMenuItems, AccountsSheet, useAccounts } from "./AccountMenu";
-import { delioMenuItems } from "./DelioAccountMenu";
+import { delioMenuItems, delioPlanLine } from "./DelioAccountMenu";
 import { useDelioAccount, useDelioConnect } from "@/lib/delio-account";
 import { accountLine, useAccountSummary } from "./settings/account-summary";
 import { usePhonePlaceState, type PhonePlaceState } from "./settings/phone-status";
@@ -574,6 +574,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     switchAccount: () => void delioConnect.connect(),
     signOut: () => void delioConnect.disconnect(),
   });
+  const delioAccount = delio?.connected ? delio : null;
   const openSource = desktop && !window.odb?.cloudAccount && !window.odb?.cloudPlan;
   const planLine = !desktop ? undefined : cloudUsage ? t("sidebar.menu.plan.used", { plan: summary.plan ?? cloudPlanLabel(planSnapshot?.tier), percent: cloudUsage.value.replace(/\D+/g, "") })
     : summary.signedIn === false || summary.plan === t("settings.account.free") ? t("sidebar.menu.plan.free") : summary.plan ?? undefined;
@@ -583,13 +584,19 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     update: update?.item ?? null,
     updateTop: simpleUpdateTop(update),
     move: move.items,
-    header: {
+    header: delioAccount ? {
+      name: profile?.name?.trim() || delioAccount.email || name,
+      line: delioPlanLine(delioAccount),
+      avatar: <InitialsAvatar initials={profileInitials(profile)} avatarUrl={profile?.avatarUrl} size={32} fontSize={13} className="bg-ink/[0.08]" />,
+      onOpen: () => dispatch({ type: "openCloudAdd", source: "app_menu" }),
+    } : {
       name,
       line: accountLine({ ...summary, email: summary.email ?? (summary.plan ? profile?.email ?? null : null) }, { browser: !desktop, place: place.name, openSource }),
       avatar: <InitialsAvatar initials={profileInitials(profile)} avatarUrl={profile?.avatarUrl} size={32} fontSize={13} className="bg-ink/[0.08]" />,
       onOpen: () => openSettings("account"),
     },
-    plan: planHere ? { key: "plan", label: t("settings.page.plan"), ...(planLine ? { subtitle: planLine } : {}), icon: <CreditCard size={16} />, onSelect: () => openSettings("plan") } : null,
+    plan: delioAccount && !remote ? { key: "plan", label: t("settings.page.plan"), subtitle: delioPlanLine(delioAccount), icon: <CreditCard size={16} />, onSelect: () => dispatch({ type: "openCloudAdd", source: "app_menu" }) }
+      : planHere ? { key: "plan", label: t("settings.page.plan"), ...(planLine ? { subtitle: planLine } : {}), icon: <CreditCard size={16} />, onSelect: () => openSettings("plan") } : null,
     switchPlace: !besideRail && desktop && !remote && window.odb?.workspaces && account?.place.switchable
       ? { key: "switch-place", label: t("sidebar.menu.switchPlace"), icon: <ArrowLeftRight size={16} />, chevron: true, onSelect: account.place.openMenu } : null,
     accounts: [...accountMenuItems(accounts), ...delioRows],
