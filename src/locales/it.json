@@ -1535,7 +1535,7 @@
   "update.card.downloadingStart": "Avvio del download…",
   "update.card.downloading": "Download {percent}%",
   "update.card.downloadingNote": "Si scarica in background. Puoi continuare a lavorare.",
-  "update.card.restart": "Riavvia per aggiornare",
+  "update.card.restart": "Aggiorna",
   "update.card.restartNote": "{app} si chiude e si riapre tra un attimo. Le chat e i bot restano come sono.",
   "update.card.handoffNote": "Il comando di installazione viene copiato e si apre un terminale per finirlo.",
   "update.card.tryAgain": "Riprova",

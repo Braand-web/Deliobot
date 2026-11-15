@@ -1565,7 +1565,7 @@
   "update.card.downloadingStart": "Начинается загрузка…",
   "update.card.downloading": "Загрузка {percent}%",
   "update.card.downloadingNote": "Загрузка идёт в фоновом режиме. Вы можете продолжать работу.",
-  "update.card.restart": "Перезапустить для обновления",
+  "update.card.restart": "Обновить",
   "update.card.restartNote": "{app} через мгновение закроется и откроется снова. Ваши чаты и боты останутся без изменений.",
   "update.card.handoffNote": "Команда установки скопирована, и откроется терминал для завершения установки.",
   "update.card.tryAgain": "Повторить",

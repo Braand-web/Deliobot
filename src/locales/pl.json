@@ -1559,7 +1559,7 @@
   "update.card.downloadingStart": "Rozpoczynanie pobierania…",
   "update.card.downloading": "Pobieranie {percent}%",
   "update.card.downloadingNote": "Pobieranie odbywa się w tle. Możesz pracować dalej.",
-  "update.card.restart": "Uruchom ponownie, aby zaktualizować",
+  "update.card.restart": "Aktualizuj",
   "update.card.restartNote": "{app} zamknie się i wkrótce otworzy ponownie. Twoje czaty i boty pozostaną bez zmian.",
   "update.card.handoffNote": "Polecenie instalacji zostaje skopiowane, a terminal otwiera się, aby je dokończyć.",
   "update.card.tryAgain": "Spróbuj ponownie",

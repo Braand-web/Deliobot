@@ -3328,7 +3328,7 @@
   "update.card.downloadingStart": "Début du téléchargement…",
   "update.card.downloading": "Téléchargement {percent} %",
   "update.card.downloadingNote": "Elle se télécharge en arrière-plan. Vous pouvez continuer à travailler.",
-  "update.card.restart": "Redémarrer pour mettre à jour",
+  "update.card.restart": "Mettre à jour",
   "update.card.restartNote": "{app} se ferme et se rouvre dans un instant. Vos discussions et vos bots restent tels quels.",
   "update.card.handoffNote": "La commande d'installation est copiée et un terminal s'ouvre pour terminer.",
   "update.card.tryAgain": "Réessayer",

@@ -1785,7 +1785,7 @@
   "update.card.downloadingStart": "Iniciando o download…",
   "update.card.downloading": "Baixando {percent}%",
   "update.card.downloadingNote": "O download acontece em segundo plano. Você pode continuar trabalhando.",
-  "update.card.restart": "Reiniciar para atualizar",
+  "update.card.restart": "Atualizar",
   "update.card.restartNote": "{app} fecha e reabre em instantes. Suas conversas e bots continuam como estão.",
   "update.card.handoffNote": "O app copia o comando de instalação e abre um terminal para você concluir.",
   "update.card.tryAgain": "Tentar novamente",

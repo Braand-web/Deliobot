@@ -1769,7 +1769,7 @@
   "update.card.downloadingStart": "正在开始下载…",
   "update.card.downloading": "正在下载 {percent}%",
   "update.card.downloadingNote": "会在后台下载，你可以继续工作。",
-  "update.card.restart": "重启以更新",
+  "update.card.restart": "更新",
   "update.card.restartNote": "{app} 会关闭，稍后重新打开。你的聊天和机器人保持原样。",
   "update.card.handoffNote": "已复制安装命令，并会打开终端来完成安装。",
   "update.card.tryAgain": "重试",

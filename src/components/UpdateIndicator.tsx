@@ -269,7 +269,7 @@ export function UpdateCard({
             className={primary}
           >
             {primaryIcon}
-            <span className="truncate">{primaryLabel}</span>
+            <span className="truncate whitespace-nowrap">{primaryLabel}</span>
           </button>
         </div>
       </div>

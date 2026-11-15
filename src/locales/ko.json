@@ -1648,7 +1648,7 @@
   "update.card.downloadingStart": "다운로드 시작하는 중…",
   "update.card.downloading": "다운로드 중 {percent}%",
   "update.card.downloadingNote": "백그라운드에서 다운로드돼요. 계속 작업하세요.",
-  "update.card.restart": "다시 시작해서 업데이트",
+  "update.card.restart": "업데이트",
   "update.card.restartNote": "{app}이(가) 곧 닫혔다가 다시 열려요. 채팅과 봇은 그대로 남아요.",
   "update.card.handoffNote": "설치 명령이 복사되고, 마무리할 터미널이 열려요.",
   "update.card.tryAgain": "다시 시도",

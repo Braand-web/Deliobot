@@ -1098,7 +1098,7 @@
   "update.card.downloadingStart": "Đang bắt đầu tải xuống…",
   "update.card.downloading": "Đang tải xuống {percent}%",
   "update.card.downloadingNote": "Bản cập nhật được tải xuống ở chế độ nền. Bạn có thể tiếp tục làm việc.",
-  "update.card.restart": "Khởi động lại để cập nhật",
+  "update.card.restart": "Cập nhật",
   "update.card.restartNote": "{app} sẽ đóng và mở lại sau giây lát. Các cuộc trò chuyện và bot của bạn vẫn giữ nguyên.",
   "update.card.handoffNote": "Lệnh cài đặt đã được sao chép và terminal sẽ mở ra để hoàn tất.",
   "update.card.tryAgain": "Thử lại",

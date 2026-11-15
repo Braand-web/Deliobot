@@ -1862,7 +1862,7 @@
   "update.card.downloadingStart": "正在開始下載…",
   "update.card.downloading": "正在下載 {percent}%",
   "update.card.downloadingNote": "它會在背景下載。你可以繼續工作。",
-  "update.card.restart": "重新啟動以更新",
+  "update.card.restart": "更新",
   "update.card.restartNote": "{app} 會關閉並在稍後重新開啟。你的聊天和機器人都會保持原樣。",
   "update.card.handoffNote": "安裝指令已複製，並會開啟終端機來完成安裝。",
   "update.card.tryAgain": "再試一次",

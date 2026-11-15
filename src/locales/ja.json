@@ -1734,7 +1734,7 @@
   "update.card.downloadingStart": "ダウンロードを開始しています…",
   "update.card.downloading": "ダウンロード中 {percent}%",
   "update.card.downloadingNote": "バックグラウンドでダウンロードします。そのまま作業を続けられます。",
-  "update.card.restart": "再起動して更新",
+  "update.card.restart": "更新",
   "update.card.restartNote": "{app} が閉じ、すぐに再び開きます。チャットとボットはそのまま残ります。",
   "update.card.handoffNote": "インストール用コマンドをコピーし、実行を完了するためにターミナルを開きます。",
   "update.card.tryAgain": "もう一度試す",

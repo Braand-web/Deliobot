@@ -164,7 +164,7 @@ export function UpdateBanner({ sidebarIndicator = false }: UpdateBannerProps) {
                 </>
               ) : (
                 <>
-                  <RefreshCw size={13} /> {t("update.card.restart")}
+                  <RefreshCw size={13} className="shrink-0" /> <span className="whitespace-nowrap">{t("update.card.restart")}</span>
                 </>
               )}
             </button>

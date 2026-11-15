@@ -1098,7 +1098,7 @@
   "update.card.downloadingStart": "İndirme başlatılıyor…",
   "update.card.downloading": "İndiriliyor: %{percent}",
   "update.card.downloadingNote": "Arka planda indiriliyor. Çalışmaya devam edebilirsiniz.",
-  "update.card.restart": "Güncellemek için yeniden başlat",
+  "update.card.restart": "Güncelle",
   "update.card.restartNote": "{app} kapanır ve birazdan yeniden açılır. Sohbetleriniz ve botlarınız olduğu gibi kalır.",
   "update.card.handoffNote": "Kurulum komutu kopyalanır ve işlemi tamamlamak için bir terminal açılır.",
   "update.card.tryAgain": "Tekrar dene",
