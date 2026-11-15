@@ -220,7 +220,7 @@ describe("mcp-gate", () => {
 
     const unknown = (await call("search_products")).result;
     expect(unknown).not.toHaveProperty("structuredContent");
-    expect(unknown.content[0].text).toContain("SHAPED by OpenDeliobot");
+    expect(unknown.content[0].text).toContain("SHAPED by Deliobot");
 
     await listTools([{ name: "search_products", outputSchema: { type: "object" } }]);
     await listTools([{ name: "other_tool" }], "second");
@@ -230,7 +230,7 @@ describe("mcp-gate", () => {
     await listTools([{ name: "search_products" }]);
     const refreshed = (await call("search_products")).result;
     expect(refreshed).not.toHaveProperty("structuredContent");
-    expect(refreshed.content[0].text).toContain("SHAPED by OpenDeliobot");
+    expect(refreshed.content[0].text).toContain("SHAPED by Deliobot");
   });
 
   it("matches structuredContent to the text whatever its key order", async () => {
