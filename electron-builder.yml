@@ -122,6 +122,8 @@ mac:
       to: cua-sdk
     - from: dist-native/cloudflared/darwin-${arch}/cloudflared
       to: cloudflared/cloudflared
+    - from: dist-native/uv/darwin-${arch}
+      to: uv
     - from: dist-native/browser/darwin-${arch}
       to: browser-engine
     # The Data engine's native modules (DuckDB, resvg; server/data/engine.ts)
@@ -175,6 +177,8 @@ win:
   extraResources:
     - from: dist-native/cloudflared/win32-x64/cloudflared.exe
       to: cloudflared/cloudflared.exe
+    - from: dist-native/uv/win32-x64
+      to: uv
     - from: dist-native/browser/win32-x64
       to: browser-engine
     - from: dist-native/duckdb/win32-x64/node_modules
@@ -229,6 +233,8 @@ linux:
       to: cua-linux-x64
     - from: dist-native/cloudflared/linux-x64/cloudflared
       to: cloudflared/cloudflared
+    - from: dist-native/uv/linux-x64
+      to: uv
     - from: dist-native/browser/linux-x64
       to: browser-engine
     - from: dist-native/duckdb/linux-x64/node_modules

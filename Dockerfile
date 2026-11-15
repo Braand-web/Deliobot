@@ -236,6 +236,8 @@ CMD ["node", "/app/dist-server/cloud-home-start.js"]
 
 # The self-hosted server, last so a plain `docker build .` builds it.
 FROM runtime AS server
+# Python for the bots' shell: scripts, data processing, automation and files.
+RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-pip python3-venv && rm -rf /var/lib/apt/lists/* && python3 --version
 # Optional engine CLIs baked into the image (space-separated npm packages).
 ARG ENGINES=""
 RUN if [ -n "$ENGINES" ]; then HOME=/tmp/odb-build-home npm install -g $ENGINES && rm -rf /tmp/odb-build-home /tmp/node-compile-cache; fi

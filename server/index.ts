@@ -73,7 +73,7 @@ import {
 import { avatarImageStatus } from "./avatar-image.ts";
 import { imageGenerationReady } from "./image-generation.ts";
 import { withAutoModel } from "./auto-model.ts";
-import { createDelioAccount, delioConnection, delioPlanTurnsFor, withDelioMedia } from "./delio-account.ts"; import { hostedDelioAccount, startDelioBrokerLink } from "./delio-broker-link.ts";
+import { createDelioAccount, delioConnection, delioPlanTurnsFor, withDelioMedia } from "./delio-account.ts"; import { hostedDelioAccount, startDelioBrokerLink } from "./delio-broker-link.ts"; import { startPythonRuntime } from "./python-runtime.ts";
 import { createDelioAccountRoutes } from "./routes/delio-account.ts";
 import { videoGenerationReady } from "./video-generation.ts";
 import { createMediaToolRoutes, type MediaKind } from "./routes/media-tools.ts";
@@ -2849,7 +2849,7 @@ async function bookMediaUsage(by: { botId: string; threadId: string }, media: { 
     trigger: turnTriggers.get(by.threadId) ?? { kind: "user" }, media: { kind: media.kind, ...(media.seconds !== undefined ? { seconds: media.seconds } : {}) } });
   noteSpend(DATA_DIR, booked, appendUsage(DATA_DIR, booked));
 }
-useDelioServices(() => delioConnection(cfg)); const hostedDelio = hostedDelioAccount(); startDelioBrokerLink({ account: () => delioConnection(cfg) ?? hostedDelio, installations: () => { let own: { url: string; token: string } | null = null; try { own = composio.brokerAccess(); } catch { own = null; } return [...(own ? [own] : []), ...teamConnections.people.appsPeople().flatMap(({ access }) => ("composio" in access ? [] : [access]))]; }, log: (line) => console.warn(line) }); const delioAccount = createDelioAccount({ config: () => cfg, label: () => `Deliobot on ${hostname()}`,
+startPythonRuntime({ dataDir: DATA_DIR, log: (line) => console.log(line) }); useDelioServices(() => delioConnection(cfg)); const hostedDelio = hostedDelioAccount(); startDelioBrokerLink({ account: () => delioConnection(cfg) ?? hostedDelio, installations: () => { let own: { url: string; token: string } | null = null; try { own = composio.brokerAccess(); } catch { own = null; } return [...(own ? [own] : []), ...teamConnections.people.appsPeople().flatMap(({ access }) => ("composio" in access ? [] : [access]))]; }, log: (line) => console.warn(line) }); const delioAccount = createDelioAccount({ config: () => cfg, label: () => `Deliobot on ${hostname()}`,
   save: (delio) => {
     const before = engineLaunches(providerConfigs());
     saveConfig({ delio: delio ?? null });
