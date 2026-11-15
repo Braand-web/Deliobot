@@ -10832,5 +10832,9 @@
   "settings.features.parallelRoomJobs.subtitle": "Bots in a room work on their jobs at the same time instead of one after another.",
   "settings.features.llmThreadTitles.title": "AI-written titles",
   "settings.features.llmThreadTitles.subtitle": "New conversations get a short title written by the AI.",
-  "settings.features.error": "Could not save this setting."
+  "settings.features.error": "Could not save this setting.",
+  "settings.features.acpPlanLines.title": "Show external agents' plans",
+  "settings.features.acpPlanLines.subtitle": "Agents like Gemini CLI or Devin show each step of their plan in the chat. Each step counts as an action.",
+  "settings.features.agentsToolBridge.title": "Compact tool list",
+  "settings.features.agentsToolBridge.subtitle": "Engines get two tools to find and use the others, instead of the full list. Already on for local models."
 }

@@ -3985,5 +3985,9 @@
   "settings.features.parallelRoomJobs.subtitle": "Bots in einem Raum arbeiten gleichzeitig statt nacheinander.",
   "settings.features.llmThreadTitles.title": "Von der KI geschriebene Titel",
   "settings.features.llmThreadTitles.subtitle": "Neue Unterhaltungen erhalten einen kurzen, von der KI geschriebenen Titel.",
-  "settings.features.error": "Diese Einstellung konnte nicht gespeichert werden."
+  "settings.features.error": "Diese Einstellung konnte nicht gespeichert werden.",
+  "settings.features.acpPlanLines.title": "Pläne externer Agenten anzeigen",
+  "settings.features.acpPlanLines.subtitle": "Agenten wie Gemini CLI oder Devin zeigen jeden Schritt ihres Plans im Chat. Jeder Schritt zählt als Aktion.",
+  "settings.features.agentsToolBridge.title": "Kompakte Werkzeugliste",
+  "settings.features.agentsToolBridge.subtitle": "Engines erhalten zwei Werkzeuge, um die anderen zu finden und zu nutzen, statt der ganzen Liste. Für lokale Modelle schon aktiv."
 }

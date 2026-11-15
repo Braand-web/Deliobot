@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { api, useStore, type ConfigStatus } from "@/state/store";
-import { builtInBrowserEnabled, llmThreadTitlesEnabled, parallelRoomJobsEnabled, showToolCallsEnabled, skillAuthoringEnabled, skillsLibraryEnabled } from "@/lib/feature-flags";
+import { acpPlanLinesEnabled, agentsToolBridgeEnabled, builtInBrowserEnabled, llmThreadTitlesEnabled, parallelRoomJobsEnabled, showToolCallsEnabled, skillAuthoringEnabled, skillsLibraryEnabled } from "@/lib/feature-flags";
 import { localeChoices } from "@/locales";
 import { activeLocale, activePackComplete, t } from "@/lib/i18n";
 import { withTourReset } from "@/lib/guided-tour";
@@ -393,6 +393,8 @@ const FEATURE_SWITCHES = {
   skillsLibrary: { enabled: skillsLibraryEnabled, title: "settings.features.skillsLibrary.title", subtitle: "settings.features.skillsLibrary.subtitle" },
   parallelRoomJobs: { enabled: parallelRoomJobsEnabled, title: "settings.features.parallelRoomJobs.title", subtitle: "settings.features.parallelRoomJobs.subtitle" },
   llmThreadTitles: { enabled: llmThreadTitlesEnabled, title: "settings.features.llmThreadTitles.title", subtitle: "settings.features.llmThreadTitles.subtitle" },
+  acpPlanLines: { enabled: acpPlanLinesEnabled, title: "settings.features.acpPlanLines.title", subtitle: "settings.features.acpPlanLines.subtitle" },
+  agentsToolBridge: { enabled: agentsToolBridgeEnabled, title: "settings.features.agentsToolBridge.title", subtitle: "settings.features.agentsToolBridge.subtitle" },
 } as const;
 
 /** One on/off row for a server feature switch that has no other control. */

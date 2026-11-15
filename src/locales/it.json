@@ -7122,5 +7122,9 @@
   "settings.features.parallelRoomJobs.subtitle": "I bot di una stanza lavorano insieme invece che uno dopo l'altro.",
   "settings.features.llmThreadTitles.title": "Titoli scritti dall'IA",
   "settings.features.llmThreadTitles.subtitle": "Le nuove conversazioni ricevono un titolo breve scritto dall'IA.",
-  "settings.features.error": "Impossibile salvare questa impostazione."
+  "settings.features.error": "Impossibile salvare questa impostazione.",
+  "settings.features.acpPlanLines.title": "Mostra il piano degli agenti esterni",
+  "settings.features.acpPlanLines.subtitle": "Agenti come Gemini CLI o Devin mostrano ogni passo del loro piano nella chat. Ogni passo conta come un'azione.",
+  "settings.features.agentsToolBridge.title": "Elenco strumenti compatto",
+  "settings.features.agentsToolBridge.subtitle": "I motori ricevono due strumenti per trovare e usare gli altri, invece dell'elenco completo. Già attivo per i modelli locali."
 }

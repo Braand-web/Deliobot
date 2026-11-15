@@ -171,6 +171,8 @@ export function AppearancePage() {
         {!ctx.client && <FeatureSwitchRow feature="llmThreadTitles" />}
         {!ctx.client && <FeatureSwitchRow feature="parallelRoomJobs" />}
         {!ctx.client && <FeatureSwitchRow feature="skillsLibrary" />}
+        {!ctx.client && <FeatureSwitchRow feature="acpPlanLines" />}
+        {!ctx.client && <FeatureSwitchRow feature="agentsToolBridge" />}
         {ctx.advanced && <RunCardRow />}
         {ctx.advanced && <ChatWidthRow />}
         {ctx.advanced && <FontRow />}

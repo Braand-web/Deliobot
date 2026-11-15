@@ -5999,5 +5999,9 @@
   "settings.features.parallelRoomJobs.subtitle": "Bir odadaki botlar sırayla değil aynı anda çalışır.",
   "settings.features.llmThreadTitles.title": "Yapay zekâ yazımı başlıklar",
   "settings.features.llmThreadTitles.subtitle": "Yeni sohbetler yapay zekânın yazdığı kısa bir başlık alır.",
-  "settings.features.error": "Bu ayar kaydedilemedi."
+  "settings.features.error": "Bu ayar kaydedilemedi.",
+  "settings.features.acpPlanLines.title": "Dış ajanların planını göster",
+  "settings.features.acpPlanLines.subtitle": "Gemini CLI veya Devin gibi ajanlar planlarının her adımını sohbette gösterir. Her adım bir işlem sayılır.",
+  "settings.features.agentsToolBridge.title": "Kısa araç listesi",
+  "settings.features.agentsToolBridge.subtitle": "Motorlar tam liste yerine diğerlerini bulup kullanmak için iki araç alır. Yerel modellerde zaten açık."
 }
