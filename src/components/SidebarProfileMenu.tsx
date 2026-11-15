@@ -24,6 +24,7 @@ import {
   UserRound,
   UsersRound,
   Zap,
+  Compass,
 } from "lucide-react";
 
 import { accountMenuItems, AccountsSheet, useAccounts } from "./AccountMenu";
@@ -46,6 +47,7 @@ import { useAutomationsNeedYou } from "./SidebarFooterNav";
 import { useCloudFilesReady } from "@/lib/cloud-files";
 import { SidebarPopoverMenu, type SidebarMenuItem } from "./SidebarPopoverMenu";
 import { api, useStore, type Action, type AppSettingsSection } from "@/state/store";
+import { replayTourPatch } from "@/lib/replay-tour";
 import { serverCheckPhase, serverUpdateRow, type ServerUpdateCheck, type ServerUpdatePhase } from "@/lib/server-update";
 import type { CloudAccountBridge, CloudAccountState } from "../../electron/cloud-account.mjs";
 import { updaterMessage, useUpdaterState, type UpdaterState } from "@/lib/updater";
@@ -439,6 +441,7 @@ export function profileMenuItems({
   simple,
   onSettings,
   onShortcuts,
+  onTour,
   onAbout,
   onHelp,
   onFeedback,
@@ -460,6 +463,8 @@ export function profileMenuItems({
   simple?: { tools: SidebarMenuItem[] };
   onSettings: () => void;
   onShortcuts: () => void;
+  /** Starts the guided tour over; absent where this window cannot draw it. */
+  onTour?: () => void;
   onAbout: () => void;
   onHelp: () => void;
   onFeedback: () => void;
@@ -479,6 +484,7 @@ export function profileMenuItems({
   const help: SidebarMenuItem[] = [
     { key: "help", label: t("sidebar.menu.help"), icon: <HelpCircle size={16} />, onSelect: onHelp },
     ...(onWhatsNew ? [{ key: "whats-new", label: t("sidebar.menu.whatsNew"), icon: <Sparkles size={16} />, onSelect: onWhatsNew }] : []),
+    ...(onTour ? [{ key: "tour", label: t("sidebar.menu.tour"), icon: <Compass size={16} />, onSelect: onTour }] : []),
     { key: "shortcuts", label: t("sidebar.menu.shortcuts"), icon: <Keyboard size={16} />, trailing: keyHint(shortcutLabel("shortcuts-cheat-sheet")), onSelect: onShortcuts },
     { key: "feedback", label: t("sidebar.menu.feedback"), icon: <MessageSquare size={16} />, onSelect: onFeedback },
     ...(update && !raised ? [{ ...update, separatorBefore: true }] : []),
@@ -618,6 +624,8 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
       triggerRef.current?.closest("button")?.focus();
       dispatch({ type: "toggleShortcuts", open: true });
     },
+    ...(!remote ? { onTour: () => void api("/api/config", { method: "PUT", body: JSON.stringify(replayTourPatch(state.config?.onboarding)), signal: AbortSignal.timeout(10_000) })
+      .then((config) => { dispatch({ type: "configStatus", config }); dispatch({ type: "toggleTour", open: true }); }).catch(() => {}) } : {}),
     onAbout: () => setAboutOpen(true),
     onHelp: () => void openExternalLink(HELP_CENTER_URL),
     onFeedback: () => void openExternalLink(FEEDBACK_URL),

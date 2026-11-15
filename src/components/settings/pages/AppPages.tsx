@@ -74,7 +74,7 @@ export function AppPage() {
         {/* Simple keeps the Help card short: feedback, shortcuts and the tour are in the outer menu's Help too. */}
         {ctx.advanced && <SettingsLinkRow title={t("sidebar.menu.feedback")} external onClick={() => void openExternalLink(FEEDBACK_URL)} />}
         {ctx.advanced && <SettingsLinkRow title={t("sidebar.menu.shortcuts")} onClick={() => { dispatch({ type: "toggleAppSettings", open: false }); dispatch({ type: "toggleShortcuts", open: true }); }} />}
-        {ctx.advanced && !ctx.client && <ReplayTourRow />}
+        {!ctx.client && <ReplayTourRow />}
         {desk && ctx.advanced && (window.odb?.exportDiagnostics ? <DiagnosticsRow simple /> : <InertRow title={t("settings.app.diagnostics")}
           control={<button type="button" className="ui-button" tabIndex={-1}>{t("settings.diagnostics.export")}</button>} />)}
         <div data-settings-block="about" className="contents">

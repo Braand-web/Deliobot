@@ -4,6 +4,7 @@ import { ANCHOR_EFFECTS, currentStep, stepNumber, TOUR_STEPS, withTourFinished, 
 import { t } from "@/lib/i18n";
 import type { DelioState } from "@/lib/mascot";
 import { hintSeenPatch } from "@/lib/onboarding";
+import { shouldAutoStartTour } from "@/lib/replay-tour";
 import { sendKeyLabel, useSendKey } from "@/lib/send-key";
 import type { LocaleKey } from "@/locales";
 import { api, useStore } from "@/state/store";
@@ -54,6 +55,13 @@ export function GuidedTour() {
   const entered = useRef<string | null>(null);
   const [fallback, setFallback] = useState<string | null>(null);
   const sendKey = useSendKey();
+
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (autoStarted.current || state.tourOpen || state.welcomeOpen || !shouldAutoStartTour(record)) return;
+    autoStarted.current = true;
+    dispatch({ type: "toggleTour", open: true });
+  }, [dispatch, record, state.tourOpen, state.welcomeOpen]);
 
   useEffect(() => {
     if (!state.tourOpen) return;

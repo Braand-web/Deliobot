@@ -7264,5 +7264,6 @@
   "settings.features.acpPlanLines.title": "Pokazuj plany zewnętrznych agentów",
   "settings.features.acpPlanLines.subtitle": "Agenci tacy jak Gemini CLI czy Devin pokazują w czacie każdy krok planu. Każdy krok liczy się jako działanie.",
   "settings.features.agentsToolBridge.title": "Kompaktowa lista narzędzi",
-  "settings.features.agentsToolBridge.subtitle": "Silniki dostają dwa narzędzia do znajdowania i używania pozostałych zamiast pełnej listy. Już włączone dla modeli lokalnych."
+  "settings.features.agentsToolBridge.subtitle": "Silniki dostają dwa narzędzia do znajdowania i używania pozostałych zamiast pełnej listy. Już włączone dla modeli lokalnych.",
+  "sidebar.menu.tour": "Przewodnik po aplikacji"
 }

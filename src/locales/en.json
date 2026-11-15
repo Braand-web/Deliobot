@@ -10836,5 +10836,6 @@
   "settings.features.acpPlanLines.title": "Show external agents' plans",
   "settings.features.acpPlanLines.subtitle": "Agents like Gemini CLI or Devin show each step of their plan in the chat. Each step counts as an action.",
   "settings.features.agentsToolBridge.title": "Compact tool list",
-  "settings.features.agentsToolBridge.subtitle": "Engines get two tools to find and use the others, instead of the full list. Already on for local models."
+  "settings.features.agentsToolBridge.subtitle": "Engines get two tools to find and use the others, instead of the full list. Already on for local models.",
+  "sidebar.menu.tour": "Guided tour"
 }

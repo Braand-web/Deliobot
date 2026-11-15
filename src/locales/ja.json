@@ -8051,5 +8051,6 @@
   "settings.features.acpPlanLines.title": "外部エージェントの計画を表示",
   "settings.features.acpPlanLines.subtitle": "Gemini CLI や Devin などのエージェントが計画の各ステップをチャットに表示します。各ステップは 1 回の操作として数えます。",
   "settings.features.agentsToolBridge.title": "コンパクトなツール一覧",
-  "settings.features.agentsToolBridge.subtitle": "エンジンは全ツールの一覧の代わりに、他のツールを探して使う 2 つのツールを受け取ります。ローカルモデルでは既に有効です。"
+  "settings.features.agentsToolBridge.subtitle": "エンジンは全ツールの一覧の代わりに、他のツールを探して使う 2 つのツールを受け取ります。ローカルモデルでは既に有効です。",
+  "sidebar.menu.tour": "ガイドツアー"
 }

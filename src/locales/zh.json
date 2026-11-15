@@ -10056,5 +10056,6 @@
   "settings.features.acpPlanLines.title": "显示外部代理的计划",
   "settings.features.acpPlanLines.subtitle": "Gemini CLI 或 Devin 等代理会在聊天中显示计划的每一步。每一步都算作一次操作。",
   "settings.features.agentsToolBridge.title": "精简工具列表",
-  "settings.features.agentsToolBridge.subtitle": "引擎获得两个用于查找和使用其他工具的工具，而不是完整列表。本地模型已默认开启。"
+  "settings.features.agentsToolBridge.subtitle": "引擎获得两个用于查找和使用其他工具的工具，而不是完整列表。本地模型已默认开启。",
+  "sidebar.menu.tour": "引导教程"
 }

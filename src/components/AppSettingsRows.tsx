@@ -3,8 +3,7 @@ import { api, useStore, type ConfigStatus } from "@/state/store";
 import { acpPlanLinesEnabled, agentsToolBridgeEnabled, builtInBrowserEnabled, llmThreadTitlesEnabled, parallelRoomJobsEnabled, showToolCallsEnabled, skillAuthoringEnabled, skillsLibraryEnabled } from "@/lib/feature-flags";
 import { localeChoices } from "@/locales";
 import { activeLocale, activePackComplete, t } from "@/lib/i18n";
-import { withTourReset } from "@/lib/guided-tour";
-import { completionPatch } from "@/lib/onboarding";
+import { replayTourPatch } from "@/lib/replay-tour";
 import { updaterMessage, useUpdaterState } from "@/lib/updater";
 import { productName } from "../lib/brand";
 import { BrowserProfilesManager } from "./BrowserProfilesManager";
@@ -172,10 +171,7 @@ function ReplayAppTourButton({ label = t("settings.welcome.appTour") }: { label?
           setFailed(false);
           void api("/api/config", {
             method: "PUT",
-            body: JSON.stringify({ onboarding: {
-              ...(!state.config?.onboarding?.completedAt ? completionPatch().onboarding : {}),
-              hintsSeen: withTourReset(state.config?.onboarding),
-            } }),
+            body: JSON.stringify(replayTourPatch(state.config?.onboarding)),
             signal: AbortSignal.timeout(10_000),
           })
             .then((config) => {

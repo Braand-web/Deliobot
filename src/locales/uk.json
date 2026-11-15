@@ -4080,5 +4080,6 @@
   "settings.features.acpPlanLines.title": "Показувати плани зовнішніх агентів",
   "settings.features.acpPlanLines.subtitle": "Агенти на кшталт Gemini CLI чи Devin показують кожен крок плану в чаті. Кожен крок рахується як дія.",
   "settings.features.agentsToolBridge.title": "Компактний список інструментів",
-  "settings.features.agentsToolBridge.subtitle": "Рушії отримують два інструменти, щоб знайти й використати інші, замість повного списку. Уже ввімкнено для локальних моделей."
+  "settings.features.agentsToolBridge.subtitle": "Рушії отримують два інструменти, щоб знайти й використати інші, замість повного списку. Уже ввімкнено для локальних моделей.",
+  "sidebar.menu.tour": "Огляд застосунку"
 }

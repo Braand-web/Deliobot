@@ -6003,5 +6003,6 @@
   "settings.features.acpPlanLines.title": "Hiện kế hoạch của tác tử bên ngoài",
   "settings.features.acpPlanLines.subtitle": "Các tác tử như Gemini CLI hay Devin hiện từng bước kế hoạch trong cuộc trò chuyện. Mỗi bước tính là một hành động.",
   "settings.features.agentsToolBridge.title": "Danh sách công cụ gọn",
-  "settings.features.agentsToolBridge.subtitle": "Các engine nhận hai công cụ để tìm và dùng các công cụ khác thay vì toàn bộ danh sách. Đã bật cho mô hình cục bộ."
+  "settings.features.agentsToolBridge.subtitle": "Các engine nhận hai công cụ để tìm và dùng các công cụ khác thay vì toàn bộ danh sách. Đã bật cho mô hình cục bộ.",
+  "sidebar.menu.tour": "Hướng dẫn tham quan"
 }

@@ -3659,5 +3659,6 @@
   "settings.features.acpPlanLines.title": "बाहरी एजेंट की योजना दिखाएँ",
   "settings.features.acpPlanLines.subtitle": "Gemini CLI या Devin जैसे एजेंट अपनी योजना का हर चरण चैट में दिखाते हैं। हर चरण एक क्रिया गिना जाता है।",
   "settings.features.agentsToolBridge.title": "संक्षिप्त टूल सूची",
-  "settings.features.agentsToolBridge.subtitle": "इंजन को पूरी सूची के बजाय बाकी टूल ढूँढने और चलाने के लिए दो टूल मिलते हैं। लोकल मॉडल के लिए पहले से चालू।"
+  "settings.features.agentsToolBridge.subtitle": "इंजन को पूरी सूची के बजाय बाकी टूल ढूँढने और चलाने के लिए दो टूल मिलते हैं। लोकल मॉडल के लिए पहले से चालू।",
+  "sidebar.menu.tour": "गाइडेड टूर"
 }

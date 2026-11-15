@@ -3992,7 +3992,8 @@
       "settings.features.acpPlanLines.title": "0d0f84740f3c54931eb9b87c211f59ee62a3e432e575cb4876ac9291346dcf70",
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
-      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c"
+      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
     },
     "es": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -10498,7 +10499,8 @@
       "settings.features.acpPlanLines.title": "0d0f84740f3c54931eb9b87c211f59ee62a3e432e575cb4876ac9291346dcf70",
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
-      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c"
+      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
     },
     "fr": {
       "delioMenu.checking": "ee7fdea20d0b8d3d566f24f6e7b11b62f71cc8fc95748cd8d4c5431ab3947185",
@@ -14601,7 +14603,8 @@
       "settings.features.acpPlanLines.title": "0d0f84740f3c54931eb9b87c211f59ee62a3e432e575cb4876ac9291346dcf70",
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
-      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c"
+      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
     },
     "hi": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -18264,7 +18267,8 @@
       "settings.features.acpPlanLines.title": "0d0f84740f3c54931eb9b87c211f59ee62a3e432e575cb4876ac9291346dcf70",
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
-      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c"
+      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
     },
     "ja": {
       "connectedWorkspaces.localTitle": "7d6deafeab011d734c3fdd1bfd6f69544fbb746a004019269bdb48544b01164b",
@@ -26319,7 +26323,8 @@
       "settings.features.acpPlanLines.title": "0d0f84740f3c54931eb9b87c211f59ee62a3e432e575cb4876ac9291346dcf70",
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
-      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c"
+      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
     },
     "pt-br": {
       "delioMenu.checking": "ee7fdea20d0b8d3d566f24f6e7b11b62f71cc8fc95748cd8d4c5431ab3947185",
@@ -37159,7 +37164,8 @@
       "settings.features.acpPlanLines.title": "0d0f84740f3c54931eb9b87c211f59ee62a3e432e575cb4876ac9291346dcf70",
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
-      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c"
+      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
     },
     "zh": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -47219,7 +47225,8 @@
       "settings.features.acpPlanLines.title": "0d0f84740f3c54931eb9b87c211f59ee62a3e432e575cb4876ac9291346dcf70",
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
-      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c"
+      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
     },
     "zh-tw": {
       "connectedWorkspaces.localTitle": "7d6deafeab011d734c3fdd1bfd6f69544fbb746a004019269bdb48544b01164b",
@@ -57526,7 +57533,8 @@
       "settings.features.acpPlanLines.title": "0d0f84740f3c54931eb9b87c211f59ee62a3e432e575cb4876ac9291346dcf70",
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
-      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c"
+      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
     },
     "uk": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -61610,7 +61618,8 @@
       "settings.features.acpPlanLines.title": "0d0f84740f3c54931eb9b87c211f59ee62a3e432e575cb4876ac9291346dcf70",
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
-      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c"
+      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
     },
     "vi": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -67617,7 +67626,8 @@
       "settings.features.acpPlanLines.title": "0d0f84740f3c54931eb9b87c211f59ee62a3e432e575cb4876ac9291346dcf70",
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
-      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c"
+      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
     },
     "tr": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -73624,7 +73634,8 @@
       "settings.features.acpPlanLines.title": "0d0f84740f3c54931eb9b87c211f59ee62a3e432e575cb4876ac9291346dcf70",
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
-      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c"
+      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
     },
     "pl": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -80892,7 +80903,8 @@
       "settings.features.acpPlanLines.title": "0d0f84740f3c54931eb9b87c211f59ee62a3e432e575cb4876ac9291346dcf70",
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
-      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c"
+      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
     },
     "ru": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -88213,7 +88225,8 @@
       "settings.features.acpPlanLines.title": "0d0f84740f3c54931eb9b87c211f59ee62a3e432e575cb4876ac9291346dcf70",
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
-      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c"
+      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
     },
     "it": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -95343,7 +95356,8 @@
       "settings.features.acpPlanLines.title": "0d0f84740f3c54931eb9b87c211f59ee62a3e432e575cb4876ac9291346dcf70",
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
-      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c"
+      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
     },
     "ko": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -103131,7 +103145,8 @@
       "settings.features.acpPlanLines.title": "0d0f84740f3c54931eb9b87c211f59ee62a3e432e575cb4876ac9291346dcf70",
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
-      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c"
+      "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
     }
   }
 }
