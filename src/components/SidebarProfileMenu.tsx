@@ -593,9 +593,10 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
       name,
       line: accountLine({ ...summary, email: summary.email ?? (summary.plan ? profile?.email ?? null : null) }, { browser: !desktop, place: place.name, openSource }),
       avatar: <InitialsAvatar initials={profileInitials(profile)} avatarUrl={profile?.avatarUrl} size={32} fontSize={13} className="bg-ink/[0.08]" />,
-      onOpen: () => openSettings("account"),
+      onOpen: () => (delio && !delio.connected && desktop && !remote ? void delioConnect.connect() : openSettings("account")),
     },
     plan: delioAccount && !remote ? { key: "plan", label: t("settings.page.plan"), subtitle: delioPlanLine(delioAccount), icon: <CreditCard size={16} />, onSelect: () => dispatch({ type: "openCloudAdd", source: "app_menu" }) }
+      : delio && !delio.connected && desktop && !remote ? { key: "plan", label: t("settings.page.plan"), subtitle: t("delioPlans.row.subtitle"), icon: <CreditCard size={16} />, onSelect: () => dispatch({ type: "openCloudAdd", source: "app_menu" }) }
       : planHere ? { key: "plan", label: t("settings.page.plan"), ...(planLine ? { subtitle: planLine } : {}), icon: <CreditCard size={16} />, onSelect: () => openSettings("plan") } : null,
     switchPlace: !besideRail && desktop && !remote && window.odb?.workspaces && account?.place.switchable
       ? { key: "switch-place", label: t("sidebar.menu.switchPlace"), icon: <ArrowLeftRight size={16} />, chevron: true, onSelect: account.place.openMenu } : null,
