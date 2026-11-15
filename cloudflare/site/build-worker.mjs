@@ -3,17 +3,23 @@ import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "n
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { ROBOTS, sitemap, withSeo } from "./seo.mjs";
+
 const root = fileURLToPath(new URL("./public/", import.meta.url));
-const types = { ".html": "text/html; charset=utf-8", ".webp": "image/webp", ".svg": "image/svg+xml", ".css": "text/css" };
+const types = { ".html": "text/html; charset=utf-8", ".webp": "image/webp", ".svg": "image/svg+xml", ".css": "text/css", ".txt": "text/plain; charset=utf-8", ".xml": "application/xml; charset=utf-8" };
 const files = {};
 (function walk(dir) {
   for (const name of readdirSync(dir)) {
     const path = join(dir, name);
     if (statSync(path).isDirectory()) { walk(path); continue; }
     const ext = name.slice(name.lastIndexOf("."));
-    files["/" + relative(root, path).split(sep).join("/")] = { type: types[ext] ?? "application/octet-stream", body: readFileSync(path).toString("base64") };
+    const name_ = "/" + relative(root, path).split(sep).join("/");
+    const body = ext === ".html" ? Buffer.from(withSeo(readFileSync(path, "utf8"), name_)) : readFileSync(path);
+    files[name_] = { type: types[ext] ?? "application/octet-stream", body: body.toString("base64") };
   }
 })(root);
+files["/robots.txt"] = { type: types[".txt"], body: Buffer.from(ROBOTS).toString("base64") };
+files["/sitemap.xml"] = { type: types[".xml"], body: Buffer.from(sitemap(Object.keys(files), new Date().toISOString().slice(0, 10))).toString("base64") };
 
 mkdirSync(new URL("./dist/", import.meta.url), { recursive: true });
 writeFileSync(new URL("./dist/worker.js", import.meta.url), `const FILES = ${JSON.stringify(files)};
@@ -107,7 +113,9 @@ async function upload(request, env, key) {
 
 export default {
   async fetch(request, env, ctx) {
-    const path = new URL(request.url).pathname;
+    const url = new URL(request.url);
+    if (url.hostname === "www.deliobot.fun") return Response.redirect(\`https://deliobot.fun\${url.pathname}\${url.search}\`, 301);
+    const path = url.pathname;
     if (decoded(path) === null) return new Response("bad request", { status: 400, headers: SECURITY });
     if (env.DOWNLOADS && path.startsWith("/__upload/")) return upload(request, env, decodeURIComponent(path.slice("/__upload/".length)));
     if (env.DOWNLOADS && path.startsWith("/download/")) count(request, env, ctx, "download", path);

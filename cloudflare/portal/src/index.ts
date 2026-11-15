@@ -172,13 +172,21 @@ export class TrafficIntake extends WorkerEntrypoint<Env> {
   }
 }
 
+/** Account and console pages are for signed-in people, not search results: every answer here says so. */
+async function unindexed(response: Response): Promise<Response> {
+  const headers = new Headers(response.headers);
+  headers.set("x-robots-tag", "noindex, nofollow");
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
 export default {
-  fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const purpose = request.headers.get("sec-purpose") ?? request.headers.get("purpose") ?? "";
     if (request.method === "GET" && COUNTED_PATHS.has(url.pathname) && url.host !== consoleHost(env) && !/prefetch/i.test(purpose)) {
       ctx.waitUntil(portal(env).recordVisits([visitOf(request, "compte", "view")]).catch(() => 0));
     }
-    return portal(env).fetch(request);
+    if (url.pathname === "/robots.txt") return new Response("User-agent: *\nDisallow: /\n", { headers: { "content-type": "text/plain; charset=utf-8" } });
+    return unindexed(await portal(env).fetch(request));
   },
 } satisfies ExportedHandler<Env>;
