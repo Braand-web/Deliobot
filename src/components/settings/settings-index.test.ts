@@ -182,7 +182,7 @@ describe("search", () => {
     });
 
     it("offers a team's member none of it, and a team's admin all of it", () => {
-      for (const query of ["grok", "import", "export", "backup", "restore", "bring"]) {
+      for (const query of ["import", "export", "backup", "restore", "bring"]) {
         expect(find(query, { ...PEOPLE["a team member"], advanced }).filter((hit) => hit.entry.page === "transfer"), query).toEqual([]);
         expect(find(query, { ...PEOPLE["a team admin"], advanced })[0]?.entry.page, query).toBe("transfer");
       }

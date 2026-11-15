@@ -15,6 +15,8 @@ function write(path: string, text = "x"): void {
   writeFileSync(path, text);
 }
 const isLink = (path: string) => lstatSync(path).isSymbolicLink();
+/** On Windows the shared config.toml is copied, since a file link needs Developer Mode there. */
+const WINDOWS_COPY = process.platform === "win32";
 const linksTo = (path: string, target: string) => isLink(path) && realpathSync(path) === realpathSync(target);
 const snapshot = () => Object.fromEntries(readdirSync(plan).sort().map(name => [name, isLink(join(plan, name)) ? readlinkSync(join(plan, name)) : "real"]));
 
@@ -51,6 +53,13 @@ describe("linkSharedCodexHome", () => {
     expect(readFileSync(join(shared, "config.toml"), "utf8")).toBe("later source edit");
   });
 
+  it("preserves an existing Windows plan config without a managed-copy receipt", () => {
+    write(join(shared, "config.toml"), "shared config");
+    write(join(plan, "config.toml"), "plan config");
+    linkSharedCodexHome(shared, plan, "own", "win32");
+    expect(readFileSync(join(plan, "config.toml"), "utf8")).toBe("plan config");
+  });
+
   it("links the person's Codex home into the plan's, but never its sign-in, chats, local folders or SQLite journals", () => {
     write(join(shared, "config.toml"), '[mcp_servers.notes]\ncommand = "notes"\n');
     write(join(shared, "skills", "review", "SKILL.md"));
@@ -69,7 +78,8 @@ describe("linkSharedCodexHome", () => {
     expect(linkSharedCodexHome(shared, plan)).toBe(true);
 
     for (const name of ["config.toml", "skills", ".credentials.json", "plugins", "mcp-oauth-locks"]) {
-      expect(linksTo(join(plan, name), join(shared, name)), name).toBe(true);
+      if (WINDOWS_COPY && name === "config.toml") expect(readFileSync(join(plan, name))).toEqual(readFileSync(join(shared, name)));
+      else expect(linksTo(join(plan, name), join(shared, name)), name).toBe(true);
     }
     expect(readFileSync(join(plan, "skills", "review", "SKILL.md"), "utf8")).toBe("x");
     // Chats the plan starts stay in its own home, out of the person's Codex and ChatGPT apps.
@@ -195,7 +205,7 @@ describe("linkSharedCodexHome", () => {
     const moved = join(root, "elsewhere", ".codex");
     write(join(moved, "config.toml"), "moved");
     linkSharedCodexHome(moved, plan);
-    expect(linksTo(join(plan, "config.toml"), join(moved, "config.toml"))).toBe(true);
+    if (!WINDOWS_COPY) expect(linksTo(join(plan, "config.toml"), join(moved, "config.toml"))).toBe(true);
     expect(readFileSync(join(plan, "config.toml"), "utf8")).toBe("moved");
     expect(existsSync(join(shared, "config.toml"))).toBe(true);
   });
@@ -226,7 +236,8 @@ describe("keepChatsOutOfCodexHistory", () => {
     write(join(shared, "config.toml"), 'model = "gpt-5"\n');
     expect(turnEnv()).toMatchObject({ CODEX_HOME: delioHome("codex"), CODEX_SQLITE_HOME: delioHome("codex") });
     expect(linksTo(join(delioHome("codex"), "auth.json"), join(shared, "auth.json"))).toBe(true);
-    expect(linksTo(join(delioHome("codex"), "config.toml"), join(shared, "config.toml"))).toBe(true);
+    if (WINDOWS_COPY) expect(readFileSync(join(delioHome("codex"), "config.toml"), "utf8")).toBe('model = "gpt-5"\n');
+    else expect(linksTo(join(delioHome("codex"), "config.toml"), join(shared, "config.toml"))).toBe(true);
     expect(turnEnv({ CODEX_HOME: shared, CODEX_SQLITE_HOME: join(root, "elsewhere") }).CODEX_SQLITE_HOME).toBe(delioHome("codex"));
   });
 

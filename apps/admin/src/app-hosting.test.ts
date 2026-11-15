@@ -25,10 +25,11 @@ function memoryBucket() {
 /** The portal's relay behind a fetch, as the app's included-hosting client reaches it through the gateway. */
 function relay(access: HostingAccess = { plan: "starter", active: true }) {
   const dir = mkdtempSync(join(tmpdir(), "delio-hosting-"));
-  cleanups.push(() => rmSync(dir, { recursive: true, force: true }));
+  const db = nodeDatabase(join(dir, "portal.db"));
+  cleanups.push(() => { db.close(); rmSync(dir, { recursive: true, force: true }); });
   const { bucket, objects } = memoryBucket();
   let state = access;
-  const hosting = createAppHosting({ db: nodeDatabase(join(dir, "portal.db")), bucket, sitesSuffix: "-app.example.test", access: () => state });
+  const hosting = createAppHosting({ db, bucket, sitesSuffix: "-app.example.test", access: () => state });
   const fetchImpl = (async (input: string | URL | Request, init?: RequestInit) => {
     const url = new URL(String(input));
     const rest = url.pathname.replace(/^\/api\/gateway\/acme\/hosting\/v1\//, "");

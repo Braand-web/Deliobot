@@ -31,7 +31,7 @@ export const CUSTOMER_RUN_LOCAL_JOBS = ["self-update", "restore"] as const satis
  * - `backup`: nothing. Copies the data to a Docker volume on this server; it never removes a copy the owner made.
  * - `status`, `host-health`: nothing. They read.
  */
-export const CUSTOMER_HOME_IMAGE = /^ghcr\.io\/braand-web\/opendeliobot@sha256:[0-9a-f]{64}$/;
+export const CUSTOMER_HOME_IMAGE = /^ghcr\.io\/braand-web\/deliobot@sha256:[0-9a-f]{64}$/;
 
 /** Who sent a job: the Admin over the connection, or root on this server. */
 export type JobSource = "admin" | "local";
@@ -182,7 +182,7 @@ export function parseHomeReads(output: string): HomeFacts {
 // field that is not copied below is not sent. No name, no address, no file name, no log line.
 
 const VERSION = /^v?\d{1,5}\.\d{1,5}\.\d{1,5}(?:-[0-9A-Za-z.]{1,32})?$/;
-const IMAGE = /^ghcr\.io\/braand-web\/(?:opendeliobot|delio-connector)(?:@sha256:[0-9a-f]{64}|:[0-9A-Za-z][0-9A-Za-z._-]{0,63})$/;
+const IMAGE = /^ghcr\.io\/braand-web\/(?:deliobot|delio-connector)(?:@sha256:[0-9a-f]{64}|:[0-9A-Za-z][0-9A-Za-z._-]{0,63})$/;
 /** An operating system, kernel or Docker version as the machine names itself: letters, digits and version punctuation. */
 const MACHINE = /^[0-9A-Za-z][0-9A-Za-z ._:+~()/#-]{0,79}$/;
 const COPY_ID = /^[a-z0-9][a-z0-9-]{0,62}$/;

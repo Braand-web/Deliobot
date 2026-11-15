@@ -18,7 +18,7 @@ vi.mock("@/state/store", async (original) => {
   const subscribe = (listener: () => void) => { fx.listeners.add(listener); return () => { fx.listeners.delete(listener); }; };
   return {
     ...actual,
-    api: (...args: unknown[]) => fx.api(...args),
+    api: (...args: unknown[]) => (String(args[0]).startsWith("/api/delio/account") ? Promise.resolve(null) : fx.api(...args)),
     useStore: () => {
       const config = useSyncExternalStore(subscribe, () => fx.config);
       return { state: { ...actual.initialState, config, instances: fx.instances as never }, dispatch: fx.dispatch };

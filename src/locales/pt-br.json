@@ -10758,5 +10758,14 @@
   "settings.browser.proxyConfigured": "As novas conexões do navegador integrado usam este proxy SOCKS5. O Meu Chrome mantém as próprias configurações; destinos privados e locais continuam protegidos.",
   "settings.browser.proxyInactive": "Salvo, mas só funciona com o navegador integrado em hosts compatíveis.",
   "settings.browser.proxySave": "Salvar",
-  "settings.browser.proxyClear": "Remover"
+  "settings.browser.proxyClear": "Remover",
+  "publishedApps.source.page": "Página Delio",
+  "server.cloudComputer.replaced": "O computador na nuvem de {name} parou de responder, então o Delio o substituiu por um novo. Os arquivos que estavam só no computador antigo foram perdidos.",
+  "server.cloudComputer.restarted": "O computador na nuvem de {name} parou de responder, então o Delio o reiniciou. Ele voltou a responder; os programas que estavam abertos nele foram fechados.",
+  "server.cloudComputer.capped": "O computador na nuvem de {name} parou de responder de novo menos de uma hora depois de ser substituído, então o Delio o deixou como está. Substituir computador, no painel do computador, tenta mais uma vez.",
+  "server.cloudComputer.unreachable": "Os computadores na nuvem estão inacessíveis agora. O Delio manteve o computador na nuvem de {name} e vai verificá-lo de novo.",
+  "computer.recovery.notResponding": "Este computador na nuvem não está respondendo. O Delio está verificando e vai reiniciá-lo ou substituí-lo.",
+  "computer.recovery.restarting": "Este computador na nuvem não está respondendo. O Delio está reiniciando-o.",
+  "computer.recovery.replacing": "Este computador na nuvem não está respondendo. O Delio está substituindo-o.",
+  "serverError.share.ownBot": "As conversas com o seu próprio Delio continuam só suas, por isso não podem ser compartilhadas."
 }

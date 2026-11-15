@@ -15,8 +15,9 @@ afterEach(() => { for (const cleanup of cleanups.splice(0)) cleanup(); });
 
 function setup() {
   const dir = mkdtempSync(join(tmpdir(), "delio-fish-"));
-  cleanups.push(() => rmSync(dir, { recursive: true, force: true }));
-  const store = new AdminStore({ db: nodeDatabase(join(dir, "portal.db")), secret: randomBytes(32) });
+  const db = nodeDatabase(join(dir, "portal.db"));
+  cleanups.push(() => { db.close(); rmSync(dir, { recursive: true, force: true }); });
+  const store = new AdminStore({ db, secret: randomBytes(32) });
   for (const slug of ["acme", "other"]) store.createWorkspace({ slug, name: slug, tenantUrl: `https://${slug}.example.test`, ownerEmail: `boss@${slug}.test` }, "ops@delio.test");
   const wallet = new Wallet(store.db, { creditUsd: 0.01 });
   const clock = { now: 1_000_000 };
