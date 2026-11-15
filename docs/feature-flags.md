@@ -36,6 +36,10 @@ browser engine and a bot allowed to use it.
 
 ## Boolean switches
 
+The packaged Deliobot desktop app turns on `skillsLibrary`, `parallelRoomJobs`, `llmThreadTitles`, `skillReview`,
+`showToolCalls`, `roomMemoryCapture`, `claudeUserMcp`, `claudeUserSkills` and `usbPhoneTakeover` for anyone who never set
+them (`ODB_DELIO_FEATURE_DEFAULTS=1`); a switch turned off in Settings stays off. The defaults below are a server's own.
+
 Defaults below mean the key is omitted. A switch being on does not promise a
 fixed price. Background writing jobs may use the bot's engine or an eligible
 configured helper, whose provider and model can differ. Tool results, recalled
