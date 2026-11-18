@@ -9839,7 +9839,7 @@
   "delioStart.connect.title": "Bem-vindo ao {app}",
   "delioStart.connect.body": "Crie sua conta ou entre para começar. Seus bots passam a usar a IA da Delio com os créditos do seu plano.",
   "delioStart.connect.action": "Criar uma conta ou entrar",
-  "delioStart.connect.note": "Seu navegador abre a página da sua conta Delio: digite seu e-mail, o código que você receber e depois aprove este app.",
+  "delioStart.connect.note": "Seu navegador abre a página da sua conta Delio: digite seu e-mail (para entrar ou criar sua conta) e depois o código recebido por e-mail. O app se conecta sozinho.",
   "delioStart.plan.title": "Escolha seu plano",
   "delioStart.plan.body": "Sua conta está pronta. Escolha um plano, ou comece o teste de 3 dias, para dar créditos de IA aos seus bots.",
   "delioStart.plan.action": "Ver os planos",
@@ -11263,5 +11263,6 @@
   "permissions.rules.allow": "Permitir sem perguntar",
   "permissions.rules.allowHint": "Uma por linha: envios que saem sem cartão, ex.: «Respostas no WhatsApp para minha equipe». Uma verificação rápida compara cada envio com suas regras; na dúvida, pergunta.",
   "permissions.rules.payments": "Pagamentos sempre esperam sua aprovação.",
-  "chat.notice.hiddenInstructions": "O que {app} retornou tentou dar instruções ao bot («{excerpt}»). Elas vêm desse conteúdo, não de você: o bot não deve segui-las."
+  "chat.notice.hiddenInstructions": "O que {app} retornou tentou dar instruções ao bot («{excerpt}»). Elas vêm desse conteúdo, não de você: o bot não deve segui-las.",
+  "delioAccount.waitingLink": "Conclua no navegador: digite seu e-mail e depois o código recebido por e-mail. O app se conecta sozinho."
 }

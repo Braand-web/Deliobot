@@ -4,7 +4,15 @@ import { t } from "@/lib/i18n";
 import { useDelioAccount, useDelioConnect } from "@/lib/delio-account";
 
 /** The device code to type or confirm on the portal's page, while the app waits for its approval. */
-export function DelioConnectWaiting({ userCode, verification }: { userCode: string; verification: string }) {
+export function DelioConnectWaiting({ userCode, verification, codeNeeded = true }: { userCode: string; verification: string; codeNeeded?: boolean }) {
+  if (!codeNeeded) {
+    return (
+      <div role="status" data-delio-link className="mt-3 rounded-lg bg-ink/[0.05] px-3 py-2 text-[13px] text-ink-secondary">
+        {t("delioAccount.waitingLink")}{" "}
+        <a href={verification} target="_blank" rel="noreferrer" className="text-accent hover:underline">{t("delioAccount.open")}</a>
+      </div>
+    );
+  }
   return (
     <div role="status" className="mt-3 rounded-lg bg-ink/[0.05] px-3 py-2 text-[13px] text-ink-secondary">
       {t("delioAccount.waiting")}{" "}
@@ -38,7 +46,7 @@ export function DelioAccountCard() {
               {busy ? <Loader2 size={13} className="animate-spin" /> : t("delioAccount.connect")}
             </button>}
       </div>
-      {!account.connected && flow?.state === "waiting" && <DelioConnectWaiting userCode={flow.userCode} verification={flow.verification} />}
+      {!account.connected && flow?.state === "waiting" && <DelioConnectWaiting userCode={flow.userCode} verification={flow.verification} codeNeeded={flow.codeNeeded} />}
       {flow?.state === "disconnected" && flow.reason && <p role="alert" className="mt-2 text-[12px] text-danger">{t(flow.reason === "denied" ? "delioAccount.denied" : "delioAccount.expired")}</p>}
       {error && <p role="alert" className="mt-2 text-[12px] text-danger">{error}</p>}
     </section>

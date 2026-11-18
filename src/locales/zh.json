@@ -9986,5 +9986,7 @@
   "permissions.rules.allow": "无需询问直接允许",
   "permissions.rules.allowHint": "每行一条：无需卡片直接发出的发送，例如“回复团队的 WhatsApp”。快速检查会把每次发送与你的规则比对；有疑问就询问。",
   "permissions.rules.payments": "付款始终等你批准。",
-  "chat.notice.hiddenInstructions": "{app} 返回的内容试图给机器人下指令（“{excerpt}”）。这些来自该内容，而不是你：机器人不应照做。"
+  "chat.notice.hiddenInstructions": "{app} 返回的内容试图给机器人下指令（“{excerpt}”）。这些来自该内容，而不是你：机器人不应照做。",
+  "delioAccount.waitingLink": "在浏览器中完成：输入邮箱，再输入邮件收到的验证码。应用会自动连接。",
+  "delioStart.connect.note": "浏览器会打开你的 Delio 账户页面：输入邮箱（登录或创建账户），再输入邮件收到的验证码。应用会自动连接。"
 }

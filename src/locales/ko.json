@@ -7676,5 +7676,7 @@
   "permissions.rules.allow": "묻지 않고 허용",
   "permissions.rules.allowHint": "한 줄에 하나씩: 카드 없이 나가는 전송. 예: «팀에게 보내는 WhatsApp 답장». 빠른 검사가 각 전송을 규칙과 비교하고, 애매하면 묻습니다.",
   "permissions.rules.payments": "결제는 항상 승인을 기다립니다.",
-  "chat.notice.hiddenInstructions": "{app}에서 돌아온 내용이 봇에게 지시하려 했습니다(«{excerpt}»). 이는 사용자가 아니라 그 내용에서 온 것이므로 봇은 따르지 않아야 합니다."
+  "chat.notice.hiddenInstructions": "{app}에서 돌아온 내용이 봇에게 지시하려 했습니다(«{excerpt}»). 이는 사용자가 아니라 그 내용에서 온 것이므로 봇은 따르지 않아야 합니다.",
+  "delioAccount.waitingLink": "브라우저에서 마무리하세요: 이메일을 입력한 뒤 이메일로 받은 코드를 입력하세요. 앱은 자동으로 연결됩니다.",
+  "delioStart.connect.note": "브라우저에서 Delio 계정 페이지가 열립니다: 이메일(로그인 또는 계정 만들기)을 입력한 뒤 이메일로 받은 코드를 입력하세요. 앱은 자동으로 연결됩니다."
 }

@@ -8,7 +8,7 @@ export type DelioAccount = {
   ownAi: boolean;
 } & ({ connected: false } | { connected: true; workspace: string; portal: string; billingUrl?: string; email?: string | null; checking?: boolean; credits?: number; usedThisMonth?: number; plan?: string | null; paymentVersion?: number; ambassador?: boolean });
 
-export type DelioConnectFlow = { state: "connected"; workspace: string } | { state: "waiting"; userCode: string; verification: string }
+export type DelioConnectFlow = { state: "connected"; workspace: string } | { state: "waiting"; userCode: string; verification: string; codeNeeded?: boolean }
   | { state: "disconnected"; reason?: "denied" | "expired" };
 
 const CHANGED = "delio-account-changed";
@@ -101,7 +101,7 @@ export function useDelioConnect() {
     setBusy(true);
     setError(null);
     try {
-      const started = await api<{ userCode: string; verification: string }>("/api/delio/connect", { method: "POST", body: "{}" });
+      const started = await api<{ userCode: string; verification: string; codeNeeded?: boolean }>("/api/delio/connect", { method: "POST", body: "{}" });
       setFlow({ state: "waiting", ...started });
       window.open(started.verification, "_blank", "noopener");
       follow();

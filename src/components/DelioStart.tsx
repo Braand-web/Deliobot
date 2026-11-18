@@ -40,7 +40,7 @@ export function DelioStart({ step }: { step: "connect" | "plan" }) {
               onClick={() => dispatch({ type: "openCloudAdd", source: "app_onboarding" })}>
               {t("delioStart.plan.action")}
             </button>}
-        {step === "connect" && waiting && <div className="w-full text-left"><DelioConnectWaiting userCode={flow.userCode} verification={flow.verification} /></div>}
+        {step === "connect" && waiting && <div className="w-full text-left"><DelioConnectWaiting userCode={flow.userCode} verification={flow.verification} codeNeeded={flow.codeNeeded} /></div>}
         {step === "connect" && <p className="mt-4 text-[12px] leading-relaxed text-ink-secondary">{t("delioStart.connect.note")}</p>}
         {flow?.state === "disconnected" && flow.reason && <p role="alert" className="mt-3 text-[12px] text-danger">{t(flow.reason === "denied" ? "delioAccount.denied" : "delioAccount.expired")}</p>}
         {error && <p role="alert" className="mt-3 text-[12px] text-danger">{error}</p>}

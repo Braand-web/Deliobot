@@ -73,7 +73,7 @@ import {
 import { avatarImageStatus } from "./avatar-image.ts"; import { assignmentReadRefusal } from "./assignment-read.ts";
 import { imageGenerationReady } from "./image-generation.ts"; import { configureHiggsfield, createHiggsfieldBackend } from "./higgsfield-mcp.ts";
 import { withAutoModel } from "./auto-model.ts";
-import { createDelioAccount, delioConnection, delioPlanTurnsFor, withDelioMedia } from "./delio-account.ts"; import { hostedDelioAccount, startDelioBrokerLink } from "./delio-broker-link.ts"; import { createAppSignedOutNotice } from "./app-signed-out-notice.ts"; import { createOutboundReview } from "./outbound-review.ts"; import { createHiddenInstructionNotice } from "./hidden-instructions.ts"; import { setBrokerRelink } from "./composio-broker-access.ts"; import { startPythonRuntime } from "./python-runtime.ts";
+import { createDelioAccount, DELIO_LINKED_PATH, delioConnection, delioPlanTurnsFor, withDelioMedia } from "./delio-account.ts"; import { hostedDelioAccount, startDelioBrokerLink } from "./delio-broker-link.ts"; import { createAppSignedOutNotice } from "./app-signed-out-notice.ts"; import { createOutboundReview } from "./outbound-review.ts"; import { createHiddenInstructionNotice } from "./hidden-instructions.ts"; import { setBrokerRelink } from "./composio-broker-access.ts"; import { startPythonRuntime } from "./python-runtime.ts";
 import { createDelioAccountRoutes } from "./routes/delio-account.ts";
 import { videoGenerationReady } from "./video-generation.ts";
 import { createMediaToolRoutes, type MediaKind } from "./routes/media-tools.ts";
@@ -2809,7 +2809,7 @@ async function bookMediaUsage(by: { botId: string; threadId: string }, media: { 
     trigger: turnTriggers.get(by.threadId) ?? { kind: "user" }, media: { kind: media.kind, ...(media.seconds !== undefined ? { seconds: media.seconds } : {}) } });
   noteSpend(DATA_DIR, booked, appendUsage(DATA_DIR, booked));
 }
-startPythonRuntime({ dataDir: DATA_DIR, log: (line) => console.log(line) }); useDelioServices(() => delioConnection(cfg)); const hostedDelio = hostedDelioAccount(); const delioBrokerLink = startDelioBrokerLink({ account: () => delioConnection(cfg) ?? hostedDelio, installations: () => { let own: { url: string; token: string } | null = null; try { own = composio.brokerAccess(); } catch { own = null; } return [...(own ? [own] : []), ...teamConnections.people.appsPeople().flatMap(({ access }) => ("composio" in access ? [] : [access]))]; }, log: (line) => console.warn(line) }); setBrokerRelink(() => delioBrokerLink.tick(true)); const delioAccount = createDelioAccount({ config: () => cfg, label: () => `Deliobot on ${hostname()}`,
+startPythonRuntime({ dataDir: DATA_DIR, log: (line) => console.log(line) }); useDelioServices(() => delioConnection(cfg)); const hostedDelio = hostedDelioAccount(); const delioBrokerLink = startDelioBrokerLink({ account: () => delioConnection(cfg) ?? hostedDelio, installations: () => { let own: { url: string; token: string } | null = null; try { own = composio.brokerAccess(); } catch { own = null; } return [...(own ? [own] : []), ...teamConnections.people.appsPeople().flatMap(({ access }) => ("composio" in access ? [] : [access]))]; }, log: (line) => console.warn(line) }); setBrokerRelink(() => delioBrokerLink.tick(true)); const delioAccount = createDelioAccount({ config: () => cfg, label: () => `Deliobot on ${hostname()}`, linkUrl: () => (HOSTED_WORKSPACE || CLOUD_HOME ? null : `http://127.0.0.1:${PORT}${DELIO_LINKED_PATH}`),
   save: (delio) => {
     const before = engineLaunches(providerConfigs());
     saveConfig({ delio: delio ?? null });
@@ -12580,6 +12580,13 @@ const handleRequest = async (req: IncomingMessage, res: ServerResponse) => {
     if (method === "POST" && remoteAccessPaths(CLOUD_TEAM !== null).includes(path)) {
       const refusal = managedPolicy.remoteAccessRefusal();
       if (refusal) return json(res, 403, { error: refusal, code: "managed_policy" });
+    }
+    // Public like an OAuth loopback callback: the nonce is good only with the device code this app alone holds.
+    if (path === DELIO_LINKED_PATH && method === "GET") {
+      const done = await delioAccount.linked(url.searchParams.get("nonce") ?? "");
+      if (done.portal) return void res.writeHead(303, { location: `${done.portal}${done.ok ? "/device/done" : "/device"}`, "cache-control": "no-store", "referrer-policy": "no-referrer" }).end();
+      res.writeHead(400, { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" }).end("This sign-in link has expired. Return to Deliobot and connect again.");
+      return;
     }
     // Public like the loopback listener it stands in for: the state is the credential, checked once.
     if (path === MCP_OAUTH_CALLBACK_PATH) {

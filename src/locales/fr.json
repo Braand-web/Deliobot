@@ -3540,7 +3540,7 @@
   "delioStart.connect.title": "Bienvenue sur {app}",
   "delioStart.connect.body": "Créez votre compte ou connectez-vous pour commencer. Vos bots utilisent ensuite l'IA de Delio avec les crédits de votre forfait.",
   "delioStart.connect.action": "Créer un compte ou se connecter",
-  "delioStart.connect.note": "Votre navigateur ouvre la page de votre compte Delio : entrez votre e-mail, tapez le code reçu, puis validez cette application.",
+  "delioStart.connect.note": "Votre navigateur ouvre la page de votre compte Delio : entrez votre e-mail (pour vous connecter ou créer votre compte), puis le code reçu par e-mail. L'application se connecte toute seule.",
   "delioStart.plan.title": "Choisissez votre forfait",
   "delioStart.plan.body": "Votre compte est prêt. Choisissez un forfait, ou commencez l'essai de 3 jours, pour donner des crédits d'IA à vos bots.",
   "delioStart.plan.action": "Voir les forfaits",
@@ -4149,5 +4149,6 @@
   "permissions.rules.allow": "Autoriser sans demander",
   "permissions.rules.allowHint": "Une règle par ligne : les envois qui partent sans carte, par ex. « Réponses WhatsApp à mon équipe ». Une vérification rapide compare chaque envoi à vos règles ; en cas de doute, elle demande.",
   "permissions.rules.payments": "Les paiements attendent toujours votre accord.",
-  "chat.notice.hiddenInstructions": "Ce que {app} a renvoyé essayait de donner des instructions au bot (« {excerpt} »). Elles viennent de ce contenu, pas de vous : le bot ne doit pas les suivre."
+  "chat.notice.hiddenInstructions": "Ce que {app} a renvoyé essayait de donner des instructions au bot (« {excerpt} »). Elles viennent de ce contenu, pas de vous : le bot ne doit pas les suivre.",
+  "delioAccount.waitingLink": "Terminez dans votre navigateur : entrez votre e-mail, puis le code reçu par e-mail. L'application se connecte toute seule."
 }

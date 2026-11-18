@@ -7015,5 +7015,7 @@
   "permissions.rules.allow": "Consenti senza chiedere",
   "permissions.rules.allowHint": "Una per riga: invii che partono senza scheda, ad es. «Risposte WhatsApp al mio team». Un controllo rapido confronta ogni invio con le tue regole; nel dubbio, chiede.",
   "permissions.rules.payments": "I pagamenti aspettano sempre la tua approvazione.",
-  "chat.notice.hiddenInstructions": "Quello che {app} ha restituito cercava di dare istruzioni al bot («{excerpt}»). Vengono da quel contenuto, non da te: il bot non deve seguirle."
+  "chat.notice.hiddenInstructions": "Quello che {app} ha restituito cercava di dare istruzioni al bot («{excerpt}»). Vengono da quel contenuto, non da te: il bot non deve seguirle.",
+  "delioAccount.waitingLink": "Completa nel browser: inserisci la tua email, poi il codice ricevuto via email. L'app si collega da sola.",
+  "delioStart.connect.note": "Il browser apre la pagina del tuo account Delio: inserisci la tua email (per accedere o creare l'account), poi il codice ricevuto via email. L'app si collega da sola."
 }

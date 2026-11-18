@@ -60,7 +60,11 @@ export function withDelioMedia<T extends Pick<AppConfig, "delio" | "fal">>(cfg: 
   return connection ? { ...cfg, fal: { key: connection.token, url: `${connection.gateway}/fal` } } : cfg;
 }
 
-interface PendingFlow { portal: string; deviceCode: string; userCode: string; verification: string; expiresAt: number; interval: number; nextPollAt: number }
+interface PendingFlow { portal: string; deviceCode: string; userCode: string; verification: string; expiresAt: number; interval: number; nextPollAt: number; linked: boolean }
+
+/** Where the person's browser comes back to this app once they signed in on the portal. */
+export const DELIO_LINKED_PATH = "/delio-linked";
+const LINK_NONCE = /^[A-Za-z0-9_-]{43}$/;
 
 const REPORT_NOTE_MAX = 2000;
 const REPORT_TRANSCRIPT_MAX = 200_000;
@@ -72,6 +76,8 @@ export function createDelioAccount(deps: {
   config: () => AppConfig;
   save: (delio: AppConfig["delio"] | null) => void;
   label: () => string;
+  /** This app's loopback address for DELIO_LINKED_PATH, when the person's browser runs on this computer; null elsewhere. */
+  linkUrl?: () => string | null;
   env?: NodeJS.ProcessEnv;
   fetchImpl?: typeof fetch;
   now?: () => number;
@@ -96,25 +102,39 @@ export function createDelioAccount(deps: {
     return { status: response.status, body: parsed && typeof parsed === "object" ? parsed : {} };
   }
 
-  async function start(portalRaw?: string): Promise<{ userCode: string; verification: string; expiresAt: number }> {
+  /** `fromThisComputer`: the person asked from a window on this computer, whose browser can reach the loopback link. */
+  async function start(portalRaw?: string, fromThisComputer = false): Promise<{ userCode: string; verification: string; expiresAt: number; codeNeeded: boolean }> {
     const portal = delioPortalOrigin(portalRaw || deps.env?.ODB_DELIO_ADMIN_URL || process.env.ODB_DELIO_ADMIN_URL || DEFAULT_DELIO_PORTAL);
     if (!portal) throw Object.assign(new Error("The Delio Admin address must be an HTTPS origin."), { status: 400 });
     const version = ++flowVersion;
     pending = null;
     tokenRefused = false;
-    const answer = await post(`${portal}/api/device/start`, { label: deps.label() });
+    const linkUrl = fromThisComputer ? deps.linkUrl?.() ?? null : null;
+    const answer = await post(`${portal}/api/device/start`, { label: deps.label(), ...(linkUrl ? { return_to: linkUrl } : {}) });
     if (version !== flowVersion) throw Object.assign(new Error("This connection attempt was replaced or cancelled."), { status: 409 });
     const { device_code: deviceCode, user_code: userCode, verification_uri_complete: verification, expires_in: expiresIn, interval } = answer.body;
     if (answer.status !== 200 || typeof deviceCode !== "string" || typeof userCode !== "string" || typeof verification !== "string" || !verification.startsWith(`${portal}/`)) {
       throw Object.assign(new Error("Delio Admin did not start the connection. Try again in a moment."), { status: 502 });
     }
     const seconds = typeof interval === "number" && interval > 0 ? interval : 3;
-    pending = { portal, deviceCode, userCode, verification, expiresAt: now() + (typeof expiresIn === "number" ? expiresIn : 600) * 1000, interval: seconds * 1000, nextPollAt: 0 };
-    return { userCode, verification, expiresAt: pending.expiresAt };
+    const linked = Boolean(linkUrl) && answer.body.linked === true;
+    pending = { portal, deviceCode, userCode, verification, expiresAt: now() + (typeof expiresIn === "number" ? expiresIn : 600) * 1000, interval: seconds * 1000, nextPollAt: 0, linked };
+    return { userCode, verification, expiresAt: pending.expiresAt, codeNeeded: !linked };
+  }
+
+  /** The browser came back from the portal with a nonce: the app proves it holds the device code, then fetches its token. */
+  async function linked(nonce: string): Promise<{ ok: boolean; portal: string | null }> {
+    const flow = pending;
+    if (!flow?.linked || !LINK_NONCE.test(nonce)) return { ok: false, portal: flow?.portal ?? null };
+    const answer = await post(`${flow.portal}/api/device/confirm`, { device_code: flow.deviceCode, nonce }).catch(() => null);
+    if (answer?.status !== 200 || pending !== flow) return { ok: false, portal: flow.portal };
+    flow.nextPollAt = 0;
+    const settled = await status();
+    return { ok: settled.state === "connected", portal: flow.portal };
   }
 
   /** Where the connection stands; while a code waits, asks the portal at most once per its interval. */
-  async function status(): Promise<{ state: "connected"; workspace: string; portal: string } | { state: "waiting"; userCode: string; verification: string } | { state: "disconnected"; reason?: "denied" | "expired" }> {
+  async function status(): Promise<{ state: "connected"; workspace: string; portal: string } | { state: "waiting"; userCode: string; verification: string; codeNeeded: boolean } | { state: "disconnected"; reason?: "denied" | "expired" }> {
     const connection = delioConnection(deps.config());
     if (connection && !pending) return { state: "connected", workspace: connection.workspace, portal: connection.portal };
     if (!pending) return tokenRefused ? { state: "disconnected", reason: "expired" } : { state: "disconnected" };
@@ -124,7 +144,7 @@ export function createDelioAccount(deps: {
       flow.nextPollAt = now() + flow.interval;
       const answer = await post(`${flow.portal}/api/device/token`, { device_code: flow.deviceCode }).catch(() => null);
       if (pending !== flow) {
-        if (pending) return { state: "waiting", userCode: pending.userCode, verification: pending.verification };
+        if (pending) return { state: "waiting", userCode: pending.userCode, verification: pending.verification, codeNeeded: !pending.linked };
         const current = delioConnection(deps.config());
         return current ? { state: "connected", workspace: current.workspace, portal: current.portal } : { state: "disconnected" };
       }
@@ -140,7 +160,7 @@ export function createDelioAccount(deps: {
         return { state: "disconnected", reason: answer.body.error === "access_denied" ? "denied" : "expired" };
       }
     }
-    return { state: "waiting", userCode: pending.userCode, verification: pending.verification };
+    return { state: "waiting", userCode: pending.userCode, verification: pending.verification, codeNeeded: !pending.linked };
   }
 
   let reading: { key: string; promise: Promise<DelioAccountView | null> } | null = null;
@@ -240,7 +260,7 @@ export function createDelioAccount(deps: {
   }
 
   return {
-    start, status, balance, ownAiAllowed, ownAiVisible, assertOwnAi, planGate, report,
+    start, linked, status, balance, ownAiAllowed, ownAiVisible, assertOwnAi, planGate, report,
     /** Forgets the account here and revokes this app's token on the portal, so a copied token stops working too. */
     async disconnect() {
       const connection = delioConnection(deps.config());

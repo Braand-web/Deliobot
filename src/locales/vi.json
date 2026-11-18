@@ -5939,5 +5939,7 @@
   "permissions.rules.allow": "Cho phép không cần hỏi",
   "permissions.rules.allowHint": "Mỗi dòng một quy tắc: những lần gửi đi không cần thẻ, ví dụ «Trả lời WhatsApp cho nhóm của tôi». Một bước kiểm tra nhanh so sánh mỗi lần gửi với quy tắc; nếu nghi ngờ, nó sẽ hỏi.",
   "permissions.rules.payments": "Thanh toán luôn chờ bạn duyệt.",
-  "chat.notice.hiddenInstructions": "Nội dung {app} trả về đã cố đưa chỉ dẫn cho bot («{excerpt}»). Chúng đến từ nội dung đó, không phải từ bạn: bot không nên làm theo."
+  "chat.notice.hiddenInstructions": "Nội dung {app} trả về đã cố đưa chỉ dẫn cho bot («{excerpt}»). Chúng đến từ nội dung đó, không phải từ bạn: bot không nên làm theo.",
+  "delioAccount.waitingLink": "Hoàn tất trong trình duyệt: nhập email, rồi nhập mã nhận qua email. Ứng dụng sẽ tự kết nối.",
+  "delioStart.connect.note": "Trình duyệt mở trang tài khoản Delio của bạn: nhập email (để đăng nhập hoặc tạo tài khoản), rồi nhập mã nhận qua email. Ứng dụng sẽ tự kết nối."
 }

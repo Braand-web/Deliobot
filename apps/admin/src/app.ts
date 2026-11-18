@@ -507,15 +507,26 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       }
       return json(res, 200, { ok: true });
     }
+    if (path === "/api/device/confirm") {
+      if (method !== "POST") return json(res, 405, { error: "method not allowed" });
+      const body = await readBody(req);
+      const deviceCode = text(body, "device_code", 128), nonce = text(body, "nonce", 128);
+      if (!/^[A-Za-z0-9_-]{43}$/.test(deviceCode) || !/^[A-Za-z0-9_-]{43}$/.test(nonce)) return json(res, 400, { error: "invalid_request" });
+      if (!store.allow(`device-confirm:${clientAddress(req)}`, 30, 15 * 60_000)) return json(res, 429, { error: "slow_down" });
+      return devices.confirmLink(deviceCode, nonce) ? json(res, 200, { ok: true }) : json(res, 400, { error: "invalid_grant" });
+    }
     if (path === "/api/device/start" || path === "/api/device/token") {
       if (method !== "POST") return json(res, 405, { error: "method not allowed" });
       const body = await readBody(req);
       if (path === "/api/device/start") {
         if (!store.allow(`device:${clientAddress(req)}`, 20, 15 * 60_000)) return json(res, 429, { error: "slow_down" });
-        const started = devices.start(text(body, "label", 80));
+        const returnTo = text(body, "return_to", 120);
+        const started = devices.start(text(body, "label", 80), returnTo);
+        const linked = devices.returnTo(started.userCode) !== null;
         const verification = new URL("/device", publicUrl);
-        return json(res, 200, { device_code: started.deviceCode, user_code: started.userCode, verification_uri: verification.href,
-          verification_uri_complete: `${verification.href}?code=${encodeURIComponent(started.userCode)}`, expires_in: started.expiresIn, interval: DEVICE_POLL_SECONDS });
+        return json(res, 200, { device_code: started.deviceCode, user_code: started.userCode, verification_uri: verification.href, linked,
+          verification_uri_complete: linked ? new URL(`/device/link?code=${encodeURIComponent(started.userCode)}`, publicUrl).href : `${verification.href}?code=${encodeURIComponent(started.userCode)}`,
+          expires_in: started.expiresIn, interval: DEVICE_POLL_SECONDS });
       }
       const deviceCode = text(body, "device_code", 128);
       if (!/^[A-Za-z0-9_-]{43}$/.test(deviceCode)) return json(res, 400, { error: "invalid_request" });
@@ -809,6 +820,20 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       }
       const rows = admin.flatMap((workspace) => devices.list(workspace.slug).map((row) => ({ ...row, workspaceName: workspace.name.endsWith("(personal)") ? "Mon compte" : workspace.name })));
       return html(res, 200, { title: "Mes appareils", email: user.email, body: devicesPage({ rows, message: url.searchParams.get("done") ? "Appareil déconnecté." : undefined }) });
+    }
+    if (method === "GET" && path === "/device/link") {
+      const code = url.searchParams.get("code") ?? "";
+      const returnTo = devices.returnTo(code);
+      if (!returnTo) return redirect(res, "/device");
+      const workspace = personalWorkspace(user);
+      const nonce = devices.offerLink(code, { workspace: workspace.slug, accountId: user.id });
+      if (!nonce) return redirect(res, "/device");
+      store.audit(workspace.slug, user.email, "device.link", devices.pendingLabel(code));
+      return redirect(res, `${returnTo}?nonce=${nonce}`);
+    }
+    if (method === "GET" && path === "/device/done") {
+      return html(res, 200, { title: "Application connectée", email: user.email, mascot: "happy",
+        body: messagePage("C'est connecté", "Retournez dans votre application Deliobot : elle est reliée à votre compte. Vous pouvez fermer cette page.") });
     }
     if (method === "GET" && path === "/device") {
       return html(res, 200, { title: "Connecter une application", email: user.email, mascot: "curious",

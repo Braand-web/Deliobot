@@ -5939,5 +5939,7 @@
   "permissions.rules.allow": "Sormadan izin ver",
   "permissions.rules.allowHint": "Satır başına bir tane: kartsız giden gönderimler, ör. «Ekibime WhatsApp yanıtları». Hızlı bir kontrol her gönderimi kurallarınızla karşılaştırır; şüphede sorar.",
   "permissions.rules.payments": "Ödemeler her zaman onayınızı bekler.",
-  "chat.notice.hiddenInstructions": "{app} uygulamasının döndürdüğü içerik bota talimat vermeye çalıştı («{excerpt}»). Bunlar sizden değil, o içerikten geliyor: bot bunlara uymamalı."
+  "chat.notice.hiddenInstructions": "{app} uygulamasının döndürdüğü içerik bota talimat vermeye çalıştı («{excerpt}»). Bunlar sizden değil, o içerikten geliyor: bot bunlara uymamalı.",
+  "delioAccount.waitingLink": "Tarayıcınızda tamamlayın: e-postanızı, ardından e-postayla gelen kodu girin. Uygulama kendiliğinden bağlanır.",
+  "delioStart.connect.note": "Tarayıcınız Delio hesabınızın sayfasını açar: e-postanızı (giriş yapmak veya hesap oluşturmak için), ardından e-postayla gelen kodu girin. Uygulama kendiliğinden bağlanır."
 }

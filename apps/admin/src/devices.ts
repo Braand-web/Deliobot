@@ -1,6 +1,7 @@
-// Connecting a desktop app to a Delio account (RFC 8628's device flow): the app asks for a code, shows it, and polls;
-// the person approves it signed in on the portal, choosing the workspace whose credits the app spends. The app then
-// holds its own revocable device token for the gateway.
+// Connecting a desktop app to a Delio account (RFC 8628's device flow): the app asks for a code and polls; the person
+// approves it signed in on the portal. An app on the person's own computer also names its loopback address: once signed
+// in, the portal sends the browser there with a one-time nonce, and only the app holding both that nonce and its device
+// code can finish, so nothing is typed. The app then holds its own revocable device token for the gateway.
 import { randomInt } from "node:crypto";
 import type { SqlDatabase } from "./sql.ts";
 
@@ -10,6 +11,8 @@ export const DEVICE_TOKEN = /^odb_device_[A-Za-z0-9_-]{43}$/;
 const USER_CODE_ALPHABET = "BCDFGHJKLMNPQRSTVWXZ";
 const FLOW_TTL_MS = 10 * 60_000;
 export const DEVICE_POLL_SECONDS = 3;
+/** Security: the only place a signed-in browser is sent with a link nonce is the app's own loopback listener. */
+export const LOOPBACK_RETURN = /^http:\/\/(?:127\.0\.0\.1|localhost|\[::1\]):\d{2,5}\/delio-linked$/;
 
 export interface DeviceRow { id: string; workspace: string; label: string; createdAt: number; lastUsedAt: number | null }
 
@@ -31,12 +34,14 @@ export class Devices {
     this.db.exec(`
 CREATE TABLE IF NOT EXISTS device_flows (device_hash TEXT PRIMARY KEY, user_code TEXT NOT NULL UNIQUE, label TEXT NOT NULL, state TEXT NOT NULL,
   workspace TEXT, account_id TEXT, expires_at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS device_links (device_hash TEXT PRIMARY KEY, return_to TEXT NOT NULL, nonce_hash TEXT, workspace TEXT, account_id TEXT);
 CREATE TABLE IF NOT EXISTS device_tokens (id TEXT PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, workspace TEXT NOT NULL REFERENCES workspaces(slug) ON DELETE CASCADE,
   account_id TEXT NOT NULL, label TEXT NOT NULL, created_at INTEGER NOT NULL, last_used_at INTEGER);`);
   }
 
   /** A new code pair: the secret one stays with the app, the short one is typed or shown on the portal. */
-  start(label: string): { deviceCode: string; userCode: string; expiresIn: number } {
+  start(label: string, returnTo?: string | null): { deviceCode: string; userCode: string; expiresIn: number } {
+    this.db.prepare("DELETE FROM device_links WHERE device_hash IN (SELECT device_hash FROM device_flows WHERE expires_at <= ?)").run(this.now());
     this.db.prepare("DELETE FROM device_flows WHERE expires_at <= ?").run(this.now());
     const deviceCode = token();
     let userCode = "";
@@ -46,7 +51,36 @@ CREATE TABLE IF NOT EXISTS device_tokens (id TEXT PRIMARY KEY, token_hash TEXT N
     } while (this.db.prepare("SELECT 1 FROM device_flows WHERE user_code = ?").get(userCode));
     this.db.prepare("INSERT INTO device_flows (device_hash, user_code, label, state, expires_at) VALUES (?, ?, ?, 'pending', ?)")
       .run(sha256(deviceCode), userCode, label.slice(0, 80) || "Desktop app", this.now() + FLOW_TTL_MS);
+    if (returnTo && LOOPBACK_RETURN.test(returnTo)) this.db.prepare("INSERT INTO device_links (device_hash, return_to) VALUES (?, ?)").run(sha256(deviceCode), returnTo);
     return { deviceCode, userCode, expiresIn: FLOW_TTL_MS / 1000 };
+  }
+
+  /** The app's loopback address for a pending code, when the app named one. */
+  returnTo(userCode: string): string | null {
+    const row = this.db.prepare(`SELECT l.return_to FROM device_links l JOIN device_flows f ON f.device_hash = l.device_hash
+      WHERE f.user_code = ? AND f.state = 'pending' AND f.expires_at > ?`).get(normalize(userCode), this.now()) as { return_to: string } | undefined;
+    return row?.return_to ?? null;
+  }
+
+  /** The person signed in for a code: a one-time nonce the browser carries back to the app, kept with whose credits it spends. */
+  offerLink(userCode: string, decision: { workspace: string; accountId: string }): string | null {
+    const nonce = token();
+    const changed = this.db.prepare(`UPDATE device_links SET nonce_hash = ?, workspace = ?, account_id = ?
+      WHERE device_hash = (SELECT device_hash FROM device_flows WHERE user_code = ? AND state = 'pending' AND expires_at > ?)`)
+      .run(sha256(nonce), decision.workspace, decision.accountId, normalize(userCode), this.now());
+    return Number(changed.changes) === 1 ? nonce : null;
+  }
+
+  /** The app came back with its device code and the nonce its own computer received: the code is approved. */
+  confirmLink(deviceCode: string, nonce: string): boolean {
+    const hash = sha256(deviceCode);
+    const link = this.db.prepare("SELECT nonce_hash, workspace, account_id FROM device_links WHERE device_hash = ?").get(hash) as
+      { nonce_hash: string | null; workspace: string | null; account_id: string | null } | undefined;
+    if (!link?.nonce_hash || !link.workspace || !link.account_id || link.nonce_hash !== sha256(nonce)) return false;
+    const changed = this.db.prepare("UPDATE device_flows SET state = 'approved', workspace = ?, account_id = ? WHERE device_hash = ? AND state = 'pending' AND expires_at > ?")
+      .run(link.workspace, link.account_id, hash, this.now());
+    this.db.prepare("DELETE FROM device_links WHERE device_hash = ?").run(hash);
+    return Number(changed.changes) === 1;
   }
 
   pendingLabel(userCode: string): string | null {
@@ -71,6 +105,7 @@ CREATE TABLE IF NOT EXISTS device_tokens (id TEXT PRIMARY KEY, token_hash TEXT N
     if (!row || row.expires_at <= this.now()) return { status: "expired" };
     if (row.state === "pending") return { status: "pending" };
     this.db.prepare("DELETE FROM device_flows WHERE device_hash = ?").run(hash);
+    this.db.prepare("DELETE FROM device_links WHERE device_hash = ?").run(hash);
     if (row.state !== "approved" || !row.workspace || !row.account_id) return { status: "denied" };
     const value = `odb_device_${token()}`;
     this.db.prepare("INSERT INTO device_tokens (id, token_hash, workspace, account_id, label, created_at) VALUES (?, ?, ?, ?, ?, ?)")

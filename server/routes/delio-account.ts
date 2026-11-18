@@ -20,7 +20,8 @@ export function createDelioAccountRoutes(account: ReturnType<typeof createDelioA
     if (path === "/api/delio/connect" && method === "POST") {
       const body = await readBody(req, 4096).catch(() => ({})) as { portal?: unknown };
       try {
-        return json(res, 200, await account.start(typeof body?.portal === "string" ? body.portal : undefined));
+        const fromThisComputer = ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(req.socket.remoteAddress ?? "") && !req.headers["x-forwarded-for"] && !req.headers.forwarded;
+        return json(res, 200, await account.start(typeof body?.portal === "string" ? body.portal : undefined, fromThisComputer));
       } catch (error) {
         return json(res, (error as { status?: number }).status ?? 502, { error: error instanceof Error ? error.message : "Could not reach Delio Admin." });
       }

@@ -56,6 +56,49 @@ function desktop(origin: string) {
   return { config, account, start: () => account.start(origin) };
 }
 
+describe("connecting the app with only the e-mail code", () => {
+  const LINK = "http://127.0.0.1:8799/delio-linked";
+  const linkedApp = () => {
+    const config = { delio: null } as unknown as AppConfig;
+    const account = createDelioAccount({ config: () => config, save: (delio) => { config.delio = delio ?? null; }, label: () => "Deliobot on test-pc", linkUrl: () => LINK });
+    return { config, account };
+  };
+
+  it("sends the signed-in browser back to the app, which connects with no code to type", async () => {
+    const target = await portal();
+    const app = linkedApp();
+    const started = await app.account.start(target.origin, true);
+    expect(started.codeNeeded).toBe(false);
+    expect(started.verification).toContain("/device/link?code=");
+    await target.signIn("awa@clinic.test");
+    const back = await target.request(new URL(started.verification).pathname + new URL(started.verification).search);
+    expect(back.status).toBe(303);
+    const location = new URL(back.headers.get("location")!);
+    expect(location.origin + location.pathname).toBe(LINK);
+    const nonce = location.searchParams.get("nonce")!;
+
+    const intruder = linkedApp();
+    await intruder.account.start(target.origin, true);
+    expect(await intruder.account.linked(nonce)).toMatchObject({ ok: false });
+    expect(delioConnection(intruder.config)).toBeNull();
+
+    expect(await app.account.linked(nonce)).toMatchObject({ ok: true });
+    expect(delioConnection(app.config)?.workspace).toMatch(/^me-/);
+    expect(await app.account.linked(nonce)).toMatchObject({ ok: false });
+  });
+
+  it("asks for the code as before when the app runs elsewhere, or names an address that is not this computer's", async () => {
+    const target = await portal();
+    const remote = linkedApp();
+    expect(await remote.account.start(target.origin, false)).toMatchObject({ codeNeeded: true });
+    const config = { delio: null } as unknown as AppConfig;
+    const odd = createDelioAccount({ config: () => config, save: () => {}, label: () => "x", linkUrl: () => "https://evil.example/delio-linked" });
+    const started = await odd.start(target.origin, true);
+    expect(started.codeNeeded).toBe(true);
+    expect(started.verification).not.toContain("/device/link");
+  });
+});
+
 describe("connecting a desktop app to a Delio account", () => {
   it("reuses the same personal account on reconnect and keeps it when a switch is refused", async () => {
     const target = await portal();

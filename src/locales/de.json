@@ -4081,5 +4081,7 @@
   "permissions.rules.allow": "Ohne Nachfrage erlauben",
   "permissions.rules.allowHint": "Eine pro Zeile: Sendungen ohne Karte, z. B. „WhatsApp-Antworten an mein Team“. Eine kurze Prüfung vergleicht jede Sendung mit deinen Regeln; im Zweifel fragt sie.",
   "permissions.rules.payments": "Zahlungen warten immer auf deine Freigabe.",
-  "chat.notice.hiddenInstructions": "Was {app} zurückgab, versuchte dem Bot Anweisungen zu geben („{excerpt}“). Sie stammen aus diesem Inhalt, nicht von dir: Der Bot soll ihnen nicht folgen."
+  "chat.notice.hiddenInstructions": "Was {app} zurückgab, versuchte dem Bot Anweisungen zu geben („{excerpt}“). Sie stammen aus diesem Inhalt, nicht von dir: Der Bot soll ihnen nicht folgen.",
+  "delioAccount.waitingLink": "Schließe im Browser ab: Gib deine E-Mail-Adresse ein, dann den Code aus der E-Mail. Die App verbindet sich von selbst.",
+  "delioStart.connect.note": "Dein Browser öffnet die Seite deines Delio-Kontos: Gib deine E-Mail-Adresse ein (zum Anmelden oder Registrieren), dann den Code aus der E-Mail. Die App verbindet sich von selbst."
 }

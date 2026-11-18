@@ -9839,7 +9839,7 @@
   "delioStart.connect.title": "Welcome to {app}",
   "delioStart.connect.body": "Create your account or sign in to start. Your bots then run on Delio's AI with your plan's credits.",
   "delioStart.connect.action": "Create an account or sign in",
-  "delioStart.connect.note": "Your browser opens your Delio account page: enter your email, type the code you receive, then approve this app.",
+  "delioStart.connect.note": "Your browser opens your Delio account page: enter your email (to sign in or create your account), then the code you receive by email. The app connects by itself.",
   "delioStart.plan.title": "Choose your plan",
   "delioStart.plan.body": "Your account is ready. Pick a plan, or start the 3-day trial, to give your bots AI credits.",
   "delioStart.plan.action": "See the plans",
@@ -11263,5 +11263,6 @@
   "permissions.rules.allow": "Allow without asking",
   "permissions.rules.allowHint": "One per line: sends that go without a card, e.g. \"Replies on WhatsApp to my team\". A quick check reads each send against your rules; when in doubt, it asks.",
   "permissions.rules.payments": "Payments always wait for your approval.",
-  "chat.notice.hiddenInstructions": "What {app} returned tried to give the bot instructions (\"{excerpt}\"). They come from that content, not from you: the bot should not follow them."
+  "chat.notice.hiddenInstructions": "What {app} returned tried to give the bot instructions (\"{excerpt}\"). They come from that content, not from you: the bot should not follow them.",
+  "delioAccount.waitingLink": "Finish in your browser: enter your email, then the code you receive by email. The app connects by itself."
 }
