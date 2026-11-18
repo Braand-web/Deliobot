@@ -924,7 +924,7 @@ export function saveConfig(
   if (storedProfiles.success) disk.browserProfiles = storedProfiles.data;
   for (const key of ["xai", "anthropic", "mistral", "cerebras", "treg", "postiz", "groq", "greenference", "meta", "deepseek", "openai", "openrouter", "fal", "delio", "openaiCompat", "composio", "box", "opencodeGo", "tts", "decider", "imageGen", "videoGen", "musicGen", "auto", "live", "profile", "rooms", "mcp", "threads", "context", "memory", "localVm", "features", "budgets", "billing", "decisions", "loopGuard", "onboarding", "browserEngine", "newBots", "safetyFloor"] as const) {
     const section = checkedPatch[key];
-    if (!section) continue;
+    if (!section) { if (section === null && key === "delio") delete disk[key]; continue; }
     const current = jsonObjectSchema.safeParse(disk[key]);
     const merged: JsonObject = current.success ? { ...current.data } : {};
     if (key === "threads" && !current.success) merged.maxConcurrentPerBot = defaultBotThreads();

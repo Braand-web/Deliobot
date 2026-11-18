@@ -286,14 +286,25 @@ ${input.orders.length ? h`<h2>Paiements</h2><div class="card">${input.orders.map
 }
 
 /** `email`: who is signed in, with a way to switch address and come back to this same code. */
-export function devicePage(input: { code: string; email: string; label: string | null; workspaces: Array<Workspace & { role: Role }>; error?: string }): Html {
+/** Every app connected to the workspaces this person administers, each with a button that signs it out. */
+export function devicesPage(input: { rows: Array<{ id: string; workspace: string; workspaceName: string; label: string; createdAt: number; lastUsedAt: number | null }>; message?: string }): Html {
+  const day = (at: number | null) => at ? new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(at)) : "jamais";
+  return h`<h1>Mes appareils</h1><p class="muted">Les applications Deliobot connectées à vos comptes. Si vous n'en reconnaissez pas une, déconnectez-la : elle ne pourra plus utiliser vos crédits.</p>
+${notice(input.message)}<div class="card">${input.rows.length ? input.rows.map((row) => h`<div class="row"><div class="grow"><b>${row.label}</b><div class="muted">${row.workspaceName} · connectée le ${day(row.createdAt)} · dernier usage : ${day(row.lastUsedAt)}</div></div>
+<form class="inline" method="post" action="/appareils/deconnecter"><input type="hidden" name="workspace" value="${row.workspace}"><input type="hidden" name="device" value="${row.id}"><button class="danger">Déconnecter</button></form></div>`)
+  : h`<p class="muted">Aucune application connectée.</p>`}</div>`;
+}
+
+/** The code is always typed from the app's own screen: a link that carries one could come from someone else's app. */
+export function devicePage(input: { email: string; workspaces: Array<Workspace & { role: Role }>; error?: string }): Html {
   return h`<div class="narrow"><h1 class="center">Connecter une application</h1>
-<p class="muted center">${input.label ? `« ${input.label} » demande à utiliser vos crédits Delio.` : "Entrez le code affiché par votre application."} Vérifiez que le code correspond à celui de votre écran.</p>
+<p class="muted center">Tapez le code affiché <b>dans votre application Deliobot</b>, sur votre ordinateur. Si quelqu'un vous a envoyé ce lien ou un code, ne continuez pas : cette application pourrait utiliser vos crédits.</p>
 ${notice(input.error, "error")}<form method="post" action="/device" class="card">
-<label for="code">Code</label><input id="code" name="code" value="${input.code}" required autocomplete="off" placeholder="BCDF-GHJK" style="font-size:20px;letter-spacing:.12em;text-transform:uppercase">
+<label for="code">Code</label><input id="code" name="code" required autocomplete="off" autofocus placeholder="BCDF-GHJK" style="font-size:20px;letter-spacing:.12em;text-transform:uppercase">
 <label for="workspace">Utiliser les crédits de</label><select id="workspace" name="workspace">
 <option value="personal">Mon compte personnel</option>${input.workspaces.map((workspace) => h`<option value="${workspace.slug}">${workspace.name}</option>`)}</select>
 <p style="display:flex;gap:8px"><button class="primary" name="decision" value="allow" style="flex:1">Connecter</button><button name="decision" value="deny">Refuser</button></p></form>
-<form method="post" action="/logout" class="center muted"><input type="hidden" name="next" value="/device?code=${encodeURIComponent(input.code)}">
+<p class="center muted"><a href="/appareils">Voir et déconnecter mes appareils</a></p>
+<form method="post" action="/logout" class="center muted"><input type="hidden" name="next" value="/device">
 Connecté en tant que <b>${input.email}</b>. Pas vous ? <button>Utiliser une autre adresse</button></form></div>`;
 }

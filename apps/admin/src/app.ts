@@ -21,7 +21,7 @@ import { Reports } from "./reports.ts";
 import { MICRO, Wallet } from "./wallet.ts";
 import { consoleServes, createConsole } from "./console/routes.ts";
 import { Traffic, type VisitInput } from "./traffic.ts";
-import { billingPage, codePage, promoPage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, otherAccountPage, signupPage, slackPage, ssoPage, SUPPORT_EMAIL, type Html } from "./pages.ts";
+import { billingPage, codePage, devicesPage, promoPage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, otherAccountPage, signupPage, slackPage, ssoPage, SUPPORT_EMAIL, type Html } from "./pages.ts";
 import { domainHoldsToken } from "./sso-verify.ts";
 import { normalizeEmail, PUBLIC_MAIL_DOMAINS, sha256, token, validEmail, validSlug, type Account, type AdminStore, type Role, type Workspace } from "./store.ts";
 
@@ -775,15 +775,26 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       return redirect(res, `/sso?workspace=${workspace.slug}&done=1`);
     }
 
+    if (path === "/appareils" || path === "/appareils/deconnecter") {
+      const admin = store.workspacesOf(user.id).filter((item) => item.role === "admin");
+      if (method === "POST") {
+        const body = await readBody(req);
+        const workspace = admin.find((item) => item.slug === text(body, "workspace", 64));
+        if (workspace) { devices.revoke(workspace.slug, text(body, "device", 32)); store.audit(workspace.slug, user.email, "device.revoke", null); }
+        return redirect(res, "/appareils?done=1");
+      }
+      const rows = admin.flatMap((workspace) => devices.list(workspace.slug).map((row) => ({ ...row, workspaceName: workspace.name.endsWith("(personal)") ? "Mon compte" : workspace.name })));
+      return html(res, 200, { title: "Mes appareils", email: user.email, body: devicesPage({ rows, message: url.searchParams.get("done") ? "Appareil déconnecté." : undefined }) });
+    }
     if (method === "GET" && path === "/device") {
       return html(res, 200, { title: "Connecter une application", email: user.email, mascot: "curious",
-        body: devicePage({ code: url.searchParams.get("code") ?? "", email: user.email, label: devices.pendingLabel(url.searchParams.get("code") ?? ""), workspaces: store.workspacesOf(user.id).filter((item) => item.role === "admin") }) });
+        body: devicePage({ email: user.email, workspaces: store.workspacesOf(user.id).filter((item) => item.role === "admin") }) });
     }
     if (method === "POST" && path === "/device") {
       const body = await readBody(req);
       const code = text(body, "code", 16);
       const admin = store.workspacesOf(user.id).filter((item) => item.role === "admin");
-      const again = (status: number, error: string) => html(res, status, { title: "Connecter une application", email: user.email, mascot: "sad", body: devicePage({ code, email: user.email, label: devices.pendingLabel(code), workspaces: admin, error }) });
+      const again = (status: number, error: string) => html(res, status, { title: "Connecter une application", email: user.email, mascot: "sad", body: devicePage({ email: user.email, workspaces: admin, error }) });
       if (!devices.pendingLabel(code)) return again(400, "Ce code a expiré ou a déjà servi. Recommencez depuis l'application.");
       if (text(body, "decision", 8) === "deny") {
         devices.decide(code, "deny");

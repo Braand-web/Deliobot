@@ -123,8 +123,8 @@ describe("connecting a desktop app to a Delio account", () => {
 
     await target.signIn("ana@acme.test");
     const approval = await (await target.request(`/device?code=${started.userCode}`)).text();
-    expect(approval).toContain("Deliobot on test-mac");
-    expect(approval, "another address can sign in and come back to the same code").toContain(`name="next" value="/device?code=${started.userCode}"`);
+    expect(approval, "a link never fills the code in: it is typed from the app's own screen").not.toContain(started.userCode);
+    expect(approval).not.toContain("Deliobot on test-mac");
     const approved = await target.request("/device", { code: started.userCode.toLowerCase().replace("-", " "), workspace: "personal", decision: "allow" });
     expect(approved.status).toBe(200);
 

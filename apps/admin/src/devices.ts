@@ -18,6 +18,9 @@ export type DevicePoll =
   | { status: "approved"; token: string; workspace: string }
   | { status: "denied" | "expired" };
 
+/** A connected app unused this long must be connected again. */
+export const DEVICE_IDLE_MS = 90 * 24 * 60 * 60_000;
+
 export class Devices {
   private readonly db: SqlDatabase;
   private readonly now: () => number;
@@ -79,9 +82,9 @@ CREATE TABLE IF NOT EXISTS device_tokens (id TEXT PRIMARY KEY, token_hash TEXT N
   check(value: string, workspace: string): boolean {
     if (!DEVICE_TOKEN.test(value)) return false;
     // Security: a token lives only as long as its account administers the workspace, so removing or demoting someone ends their apps' access to its credits.
-    const found = this.db.prepare(`SELECT id FROM device_tokens WHERE token_hash = ? AND workspace = ?
+    const found = this.db.prepare(`SELECT id FROM device_tokens WHERE token_hash = ? AND workspace = ? AND COALESCE(last_used_at, created_at) > ?
       AND account_id NOT IN (SELECT account_id FROM blocked_accounts)
-      AND account_id IN (SELECT account_id FROM members WHERE workspace = device_tokens.workspace AND role = 'admin')`).get(sha256(value), workspace) as { id: string } | undefined;
+      AND account_id IN (SELECT account_id FROM members WHERE workspace = device_tokens.workspace AND role = 'admin')`).get(sha256(value), workspace, this.now() - DEVICE_IDLE_MS) as { id: string } | undefined;
     if (found) this.db.prepare("UPDATE device_tokens SET last_used_at = ? WHERE id = ?").run(this.now(), found.id);
     return Boolean(found);
   }
@@ -98,8 +101,8 @@ CREATE TABLE IF NOT EXISTS device_tokens (id TEXT PRIMARY KEY, token_hash TEXT N
     if (!DEVICE_TOKEN.test(value)) return null;
     return this.db.prepare(`SELECT d.workspace, a.id, a.email FROM device_tokens d JOIN accounts a ON a.id = d.account_id
       JOIN members m ON m.account_id = a.id AND m.workspace = d.workspace AND m.role = 'admin'
-      WHERE d.token_hash = ? AND a.id NOT IN (SELECT account_id FROM blocked_accounts)`)
-      .get(sha256(value)) as { workspace: string; id: string; email: string } | undefined ?? null;
+      WHERE d.token_hash = ? AND COALESCE(d.last_used_at, d.created_at) > ? AND a.id NOT IN (SELECT account_id FROM blocked_accounts)`)
+      .get(sha256(value), this.now() - DEVICE_IDLE_MS) as { workspace: string; id: string; email: string } | undefined ?? null;
   }
 
   /** A device signing itself out: its own token stops working. */

@@ -172,6 +172,7 @@ import {
   threadEventLogMaxBytes,
   threadEventLogRetentionDays,
   saveConfig,
+  syncCredentialEnv,
   showToolCallsEnabled,
   claudeUserMcpEnabled,
   skillAuthoringEnabled,
@@ -2853,6 +2854,7 @@ startPythonRuntime({ dataDir: DATA_DIR, log: (line) => console.log(line) }); use
   save: (delio) => {
     const before = engineLaunches(providerConfigs());
     saveConfig({ delio: delio ?? null });
+    syncCredentialEnv({ delio: { token: delio?.token ?? "" } });
     Object.assign(cfg, loadConfig());
     if (!delio) delete cfg.delio;
     broadcast({ kind: "config", ...configStatus() });

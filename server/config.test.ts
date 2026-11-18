@@ -753,6 +753,20 @@ describe("a config.json saved with a byte order mark", () => {
     }
   });
 
+  it("forgets the Delio account on disk when the app signs out of it", () => {
+    const path = join(DATA_DIR, "config.json");
+    mkdirSync(DATA_DIR, { recursive: true });
+    writeFileSync(path, JSON.stringify({ xai: { key: "xai-fixture" }, delio: { portal: "https://compte.deliobot.fun", workspace: "me-abcdefgh", token: "odb_device_x" } }));
+    try {
+      saveConfig({ delio: null });
+      const disk = JSON.parse(readFileSync(path, "utf8"));
+      expect(disk.delio).toBeUndefined();
+      expect(disk.xai).toEqual({ key: "xai-fixture" });
+    } finally {
+      rmSync(path, { force: true });
+    }
+  });
+
   it("keeps the browser's allow-list when the owner flips its local-sites switch", () => {
     const path = join(DATA_DIR, "config.json");
     mkdirSync(DATA_DIR, { recursive: true });

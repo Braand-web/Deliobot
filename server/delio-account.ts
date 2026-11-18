@@ -77,6 +77,8 @@ export function createDelioAccount(deps: {
   const now = deps.now ?? Date.now;
   let pending: PendingFlow | null = null;
   let flowVersion = 0;
+  /** Set when the portal refused this app's token (revoked, expired or its account blocked): the app asks to connect again. */
+  let tokenRefused = false;
   let credits: { key: string; at: number; view: DelioAccountView | null } | null = null;
   const connectionKey = (connection: DelioConnection) => `${connection.portal}/${connection.workspace}/${connection.token}`;
   const planGate = (deps.env ?? process.env)[DELIO_PLAN_GATE_ENV] === "1";
@@ -95,6 +97,7 @@ export function createDelioAccount(deps: {
     if (!portal) throw Object.assign(new Error("The Delio Admin address must be an HTTPS origin."), { status: 400 });
     const version = ++flowVersion;
     pending = null;
+    tokenRefused = false;
     const answer = await post(`${portal}/api/device/start`, { label: deps.label() });
     if (version !== flowVersion) throw Object.assign(new Error("This connection attempt was replaced or cancelled."), { status: 409 });
     const { device_code: deviceCode, user_code: userCode, verification_uri_complete: verification, expires_in: expiresIn, interval } = answer.body;
@@ -110,7 +113,7 @@ export function createDelioAccount(deps: {
   async function status(): Promise<{ state: "connected"; workspace: string; portal: string } | { state: "waiting"; userCode: string; verification: string } | { state: "disconnected"; reason?: "denied" | "expired" }> {
     const connection = delioConnection(deps.config());
     if (connection && !pending) return { state: "connected", workspace: connection.workspace, portal: connection.portal };
-    if (!pending) return { state: "disconnected" };
+    if (!pending) return tokenRefused ? { state: "disconnected", reason: "expired" } : { state: "disconnected" };
     const flow = pending;
     if (flow.expiresAt <= now()) { pending = null; return { state: "disconnected", reason: "expired" }; }
     if (now() >= flow.nextPollAt) {
@@ -143,6 +146,15 @@ export function createDelioAccount(deps: {
       const response = await fetchImpl(`${connection.portal}/api/workspace/${connection.workspace}/account`, {
         headers: { authorization: `Bearer ${connection.token}`, accept: "application/json" }, redirect: "error", signal: AbortSignal.timeout(5_000),
       });
+      if (response.status === 401 || response.status === 403) {
+        const current = delioConnection(deps.config());
+        if (current && connectionKey(current) === connectionKey(connection)) {
+          tokenRefused = true;
+          credits = null;
+          deps.save(null);
+        }
+        return null;
+      }
       const body = response.ok ? await response.json() as { workspace?: unknown; email?: unknown; credits?: unknown; usedThisMonth?: unknown; plan?: unknown; ownAi?: unknown; paymentVersion?: unknown } : null;
       if (body && typeof body.credits === "number" && typeof body.usedThisMonth === "number") {
         const current = delioConnection(deps.config());
