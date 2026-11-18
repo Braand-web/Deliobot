@@ -37218,7 +37218,8 @@
       "media.bot.music": "6eb00b4b2614a144d41ccdf709017a675953fae2df6cfd6b397bd9e4d8708461",
       "media.bot.auto": "b1bdf63d93c3720851559fc2a1edaeb65ec2c7bf1c170ecb2fb295a5295a37bd",
       "media.bot.recommended": "d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef",
-      "media.bot.more": "4c6c7d2f4958f9e6077997fbd91dcf4e9c15bc1e5119be648c7158953883e6d0"
+      "media.bot.more": "4c6c7d2f4958f9e6077997fbd91dcf4e9c15bc1e5119be648c7158953883e6d0",
+      "imageGen.provider.delioMedia": "8e0f174223e20eed8a292c100d18fbc1dcbbf4436250d9acdb707ccb36284185"
     },
     "zh": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",

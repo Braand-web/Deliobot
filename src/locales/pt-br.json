@@ -10845,5 +10845,6 @@
   "media.bot.music": "Música",
   "media.bot.auto": "Auto (recomendado)",
   "media.bot.recommended": "Recomendados",
-  "media.bot.more": "Mais modelos"
+  "media.bot.more": "Mais modelos",
+  "imageGen.provider.delioMedia": "Mídia Delio"
 }
