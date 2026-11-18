@@ -42,7 +42,7 @@ export interface GatewayOptions {
   /** Included app hosting; absent where no bucket is bound. */
   hosting?: AppHosting;
   /** What the workspace's plan allows: spending Delio credits, and cloud computers awake at once. */
-  allowance?: (workspace: string) => { gateway: boolean; computers: number; computerHours?: number; plan?: string | null; ownAi?: boolean; reason?: string };
+  allowance?: (workspace: string) => { gateway: boolean; media?: boolean; computers: number; computerHours?: number; plan?: string | null; ownAi?: boolean; reason?: string };
   now?: () => number;
 }
 
@@ -68,6 +68,8 @@ const QUEUE_DEPTH = 4;
 const PRICE_TTL_MS = 24 * 60 * 60_000;
 const FAL_MODEL = /^[A-Za-z0-9][A-Za-z0-9._-]*(\/[A-Za-z0-9][A-Za-z0-9._-]*){1,5}$/;
 const SEGMENT = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
+/** Providers every plan in force may pay for in credits, those on their own AI for text included. */
+const MEDIA_PROVIDERS: ReadonlySet<string> = new Set(["fal", "elevenlabs/v1", "fish", "boat/v1"]);
 const OUT_OF_CREDITS = "This workspace is out of Delio credits. Open Plans and credits in Deliobot to top up.";
 const NOT_CONFIGURED = "This provider is not available on this Delio deployment.";
 
@@ -423,7 +425,7 @@ export function createGateway(options: GatewayOptions) {
       if (account) await options.refreshAccount?.(workspace);
       const allowed = options.allowance?.(workspace) ?? { gateway: true, computers: 1 };
       if (account) {
-        send(res, 200, { email: device?.email ?? options.deviceEmail?.(presented, requested) ?? null, workspace, credits: wallet.balance(workspace) / MICRO, usedThisMonth: wallet.usedThisMonth(workspace) / MICRO, creditUsd: wallet.creditUsd, gateway: allowed.gateway,
+        send(res, 200, { email: device?.email ?? options.deviceEmail?.(presented, requested) ?? null, workspace, credits: wallet.balance(workspace) / MICRO, usedThisMonth: wallet.usedThisMonth(workspace) / MICRO, creditUsd: wallet.creditUsd, gateway: allowed.gateway, media: allowed.media ?? allowed.gateway,
           plan: allowed.plan ?? null, ownAi: allowed.ownAi ?? false, paymentVersion: options.paymentVersion?.(workspace) });
         return true;
       }
@@ -434,7 +436,7 @@ export function createGateway(options: GatewayOptions) {
         else send(res, 503, { error: "unavailable" });
         return true;
       }
-      if (!allowed.gateway) {
+      if (!allowed.gateway && !(allowed.media && MEDIA_PROVIDERS.has(provider))) {
         failure(res, 402, allowed.reason ?? OUT_OF_CREDITS, "plan_inactive");
         return true;
       }

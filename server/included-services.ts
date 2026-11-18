@@ -69,7 +69,7 @@ let held: Included | null = null;
 /** A desktop connected to a Delio account, with no key of its own, speaks and publishes through the Delio gateway. */
 let delioGateway: () => { gateway: string; token: string } | null = () => null;
 
-/** Points the voice and app hosting fallback at the account the app is connected to, read each time it is needed. */
+/** Points the voice, cloud computer and app hosting fallback at the account the app is connected to, read each time it is needed. */
 export function useDelioServices(connection: () => { gateway: string; token: string } | null): void {
   delioGateway = connection;
 }
@@ -113,7 +113,7 @@ export const elevenLabsProviderApi = (env: NodeJS.ProcessEnv = process.env): str
   env.ODB_ELEVENLABS_API || ELEVENLABS_API_DEFAULT;
 
 export function boatCredential(own: string | undefined, env: NodeJS.ProcessEnv = process.env): ServiceCredential | null {
-  return resolve(own, boatProviderApi(env), (held ?? includedFrom(env)).boat);
+  return resolve(own, boatProviderApi(env), (held ?? includedFrom(env)).boat ?? delioService("boat/v1"));
 }
 
 export function voiceCredential(own: string | undefined, env: NodeJS.ProcessEnv = process.env): ServiceCredential | null {

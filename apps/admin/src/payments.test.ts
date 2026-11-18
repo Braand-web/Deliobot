@@ -82,9 +82,10 @@ async function portal(saspay: ReturnType<typeof fakeSasPay>, clock: { now: numbe
     const signature = createHmac("sha256", options.secret ?? SECRET).update(`${timestamp}.${body}`).digest("hex");
     return fetch(new URL("/api/saspay/webhook", origin), { method: "POST", body, headers: { "content-type": "application/json", "x-webhook-signature": signature, "x-webhook-timestamp": timestamp, "x-webhook-event": "transaction.success" } });
   };
-  const account = async () => (await fetch(new URL("/api/workspace/acme/account", origin), { headers: { authorization: `Bearer ${token}` } })).json() as Promise<{ credits: number; gateway: boolean; plan: string | null; paymentVersion: number }>;
+  const account = async () => (await fetch(new URL("/api/workspace/acme/account", origin), { headers: { authorization: `Bearer ${token}` } })).json() as Promise<{ credits: number; gateway: boolean; media: boolean; plan: string | null; paymentVersion: number }>;
   const chat = () => fetch(new URL("/api/gateway/acme/openrouter/v1/chat/completions", origin), { method: "POST", body: "{}", headers: { authorization: `Bearer ${token}`, "content-type": "application/json" } });
-  return { post, get, webhook, account, chat, mail, sweep: () => app.sweep(), signIn,
+  const image = () => fetch(new URL("/api/gateway/acme/fal/fal-ai/flux/schnell", origin), { method: "POST", body: "{}", headers: { authorization: `Bearer ${token}`, "content-type": "application/json" } });
+  return { post, get, webhook, account, chat, image, mail, sweep: () => app.sweep(), signIn,
     subscription: () => store.db.prepare("SELECT plan, cycle, period_end AS periodEnd FROM subscriptions WHERE workspace = 'acme'").get() };
 }
 
@@ -298,6 +299,9 @@ describe("plans paid through SasPay", () => {
     saspay.pay("cs_2");
     await target.sweep();
     expect((await target.chat()).status, "BYOK uses the workspace's own keys").toBe(402);
+    expect((await target.account()).media, "BYOK still makes images, video and music in credits").toBe(true);
+    const image = await target.image();
+    expect(await image.json()).not.toMatchObject({ error: { code: "plan_inactive" } });
   });
 
   it("sells top-ups priced in dollars and charged in CFA francs, credited once SasPay confirms them", async () => {

@@ -325,6 +325,8 @@ export interface WireBot extends DefaultBotFields, BotAccessFields {
   replyStyle?: ReplyStyle;
   /** This bot's own voice id, so a room of bots doesn't sound like one person. */
   voice?: string;
+  /** This bot's media models (image, video, music), each a model ID; absent or "auto" lets Auto choose for each request. */
+  media?: { image?: string; video?: string; music?: string };
   /** Whether this bot may send voice notes. Absent/true = allowed; false
    * hides the tool and refuses the route even with a voice configured. */
   voiceNotes?: boolean; /** The harness speaks each reply as a voice note; absent follows the installation's `tts.everyReply`. */ voiceNoteEveryReply?: boolean;

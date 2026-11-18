@@ -237,6 +237,8 @@ describe("a desktop connected to a Delio account", () => {
     useDelioServices(connected);
     expect(voiceCredential(undefined, {})).toEqual({ token: "odb_device_token", api: "https://compte.example.test/api/gateway/acme/elevenlabs/v1", included: true });
     expect(hostingCredential({})).toEqual({ token: "odb_device_token", api: "https://compte.example.test/api/gateway/acme/hosting/v1", included: true });
+    expect(boatCredential(undefined, {})).toEqual({ token: "odb_device_token", api: "https://compte.example.test/api/gateway/acme/boat/v1", included: true });
+    expect(boatCredential("box_own", {})).toEqual({ token: "box_own", api: "https://boat.dev/api/v1", included: false });
   });
 
   it("keeps the person's own ElevenLabs key, and has neither service when no account is connected", () => {

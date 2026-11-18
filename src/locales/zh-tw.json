@@ -10304,5 +10304,13 @@
   "settings.features.acpPlanLines.subtitle": "Gemini CLI 或 Devin 等代理會在聊天中顯示計畫的每一步。每一步都算作一次操作。",
   "settings.features.agentsToolBridge.title": "精簡工具清單",
   "settings.features.agentsToolBridge.subtitle": "引擎取得兩個用來尋找與使用其他工具的工具，而不是完整清單。本機模型已預設開啟。",
-  "sidebar.menu.tour": "導覽教學"
+  "sidebar.menu.tour": "導覽教學",
+  "media.bot.title": "媒體",
+  "media.bot.help": "此機器人用於圖片、影片和音樂的模型。Auto 會為每個請求選擇一個；你在聊天中指名的模型，機器人也會使用。",
+  "media.bot.image": "圖片",
+  "media.bot.video": "影片",
+  "media.bot.music": "音樂",
+  "media.bot.auto": "Auto（推薦）",
+  "media.bot.recommended": "推薦",
+  "media.bot.more": "更多模型"
 }

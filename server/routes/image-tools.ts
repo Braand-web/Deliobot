@@ -8,6 +8,8 @@ import {
   type GeneratedImage, type ImageCredentials,
 } from "../image-generation.ts";
 import { createImageDailyCap, type ImageDailyCap } from "../image-daily-cap.ts";
+import type { FalModelCatalog } from "../fal-models.ts";
+import { chooseMediaModel, type BotMedia } from "../media-choice.ts";
 import type { json } from "../harness/http.ts";
 import { PASS } from "./table.ts";
 
@@ -23,6 +25,7 @@ const requestSchema = z.object({
   prompt: z.string().trim().min(1).max(IMAGE_PROMPT_MAX_CHARS),
   aspect: z.enum(["1:1", "16:9", "9:16"]).optional(),
   provider: z.enum(IMAGE_PROVIDERS).optional(),
+  model: z.string().trim().max(200).optional(),
 });
 
 export interface ImageTurn {
@@ -44,6 +47,9 @@ export interface ImageToolDeps {
   signal?: AbortSignal;
   /** Told of every image a provider made, attached or not: it was paid for either way. */
   made?: (image: { provider: string; model: string }) => void;
+  /** The bot's own media models, and the catalog a named model is looked up in. */
+  botMedia?: BotMedia;
+  catalog?: FalModelCatalog;
 }
 
 type Outcome = { status: number; body: { text: string } | { error: string } };
@@ -51,18 +57,28 @@ type Outcome = { status: number; body: { text: string } | { error: string } };
 export async function generateImageForTurn(raw: unknown, deps: ImageToolDeps): Promise<Outcome> {
   const parsed = requestSchema.safeParse(raw);
   if (!parsed.success) {
-    return { status: 400, body: { error: `generate_image takes a prompt (1 to ${IMAGE_PROMPT_MAX_CHARS} characters), an optional aspect (1:1, 16:9 or 9:16) and an optional provider.` } };
+    return { status: 400, body: { error: `generate_image takes a prompt (1 to ${IMAGE_PROMPT_MAX_CHARS} characters), an optional aspect (1:1, 16:9 or 9:16), an optional model and an optional provider.` } };
   }
-  const { prompt, aspect, provider } = parsed.data;
+  const { prompt, aspect } = parsed.data;
+  let provider = parsed.data.provider;
+  let cfg = deps.cfg;
   if (!deps.personTurn) return { status: 403, body: { error: IMAGE_MESSAGES.notPerson } };
   const { turn } = deps;
   if (!turn) return { status: 409, body: { error: IMAGE_MESSAGES.noTurn } };
-  const limit = deps.cfg.imageGen?.maxPerTurn ?? IMAGE_MAX_PER_TURN_DEFAULT;
+  if (deps.catalog && cfg.fal?.key?.trim()) {
+    const choice = await chooseMediaModel("image", parsed.data.model, deps.botMedia, deps.catalog);
+    if ("error" in choice) return { status: 400, body: { error: choice.error } };
+    if (choice.model) {
+      cfg = { ...cfg, imageGen: { ...cfg.imageGen, primary: { provider: "fal", model: choice.model } } };
+      provider = undefined;
+    }
+  }
+  const limit = cfg.imageGen?.maxPerTurn ?? IMAGE_MAX_PER_TURN_DEFAULT;
   if (turn.parked() + (deps.inFlight.get(turn.key) ?? 0) >= limit) {
     return { status: 429, body: { error: `This turn already has ${limit} images, the most the person allows per reply. Send what you have.` } };
   }
 
-  const { primary, fallback } = imageSlots(deps.cfg);
+  const { primary, fallback } = imageSlots(cfg);
   let slot: "primary" | "fallback" | undefined;
   if (provider) {
     const base = primary.provider === provider;
@@ -72,7 +88,7 @@ export async function generateImageForTurn(raw: unknown, deps: ImageToolDeps): P
       return { status: 400, body: { error: `${imageProviderName(provider)} is not one of the person's image providers: ${set}. Use one of those, or ask the person to change it in Settings.` } };
     }
     if (!(base && backup)) slot = base ? "primary" : "fallback";
-  } else if (!imageGenerationReady(deps.cfg)) {
+  } else if (!imageGenerationReady(cfg)) {
     return { status: 409, body: { error: IMAGE_MESSAGES.notSetUp } };
   }
 
@@ -80,7 +96,7 @@ export async function generateImageForTurn(raw: unknown, deps: ImageToolDeps): P
   let made = false;
   deps.inFlight.set(turn.key, (deps.inFlight.get(turn.key) ?? 0) + 1);
   try {
-    const image = await generateImage(deps.cfg, { prompt, aspect }, { slot, fetchImpl: deps.fetchImpl, signal: deps.signal });
+    const image = await generateImage(cfg, { prompt, aspect }, { slot, fetchImpl: deps.fetchImpl, signal: deps.signal });
     made = true;
     deps.made?.({ provider: image.provider, model: image.model });
     if (!turn.attach({ bytes: image.bytes, mime: image.mime })) return { status: 409, body: { error: IMAGE_MESSAGES.noTurn } };
@@ -134,7 +150,8 @@ export function imageTurn(store: ImageTurnStore, threadId: string, requireActive
   };
 }
 
-export function createImageToolRoutes(deps: ImageTurnStore & { config: () => ImageCredentials; dataDir: string; fetchImpl?: typeof fetch; made?: (image: { provider: string; model: string }, by: { botId: string; threadId: string }) => void }) {
+export function createImageToolRoutes(deps: ImageTurnStore & { config: () => ImageCredentials; dataDir: string; fetchImpl?: typeof fetch; made?: (image: { provider: string; model: string }, by: { botId: string; threadId: string }) => void;
+  botMedia?: (botId: string) => BotMedia | undefined; catalog?: FalModelCatalog }) {
   const inFlight = new Map<string, number>();
   const daily = createImageDailyCap(deps.dataDir);
   return {
@@ -144,6 +161,7 @@ export function createImageToolRoutes(deps: ImageTurnStore & { config: () => Ima
       const call = new AbortController();
       ctx.res.once("close", () => { if (!ctx.res.writableEnded) call.abort(); });
       const outcome = await generateImageForTurn(await ctx.readBody(), { cfg: deps.config(), personTurn: ctx.personTurn, daily, fetchImpl: deps.fetchImpl, turn, inFlight, signal: call.signal,
+        botMedia: ctx.botId ? deps.botMedia?.(ctx.botId) : undefined, catalog: deps.catalog,
         made: (image) => { if (ctx.botId) deps.made?.(image, { botId: ctx.botId, threadId: ctx.threadId }); } });
       ctx.json(ctx.res, outcome.status, outcome.body);
     },

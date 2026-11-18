@@ -146,6 +146,8 @@ export interface ConfigStatus {
     geminiConfigured?: boolean;
     openrouterConfigured?: boolean;
     falConfigured?: boolean;
+    /** No media key of the person's own: images, video and music go through the connected Delio account, paid in credits. */
+    delioMedia?: boolean;
   };
   /** Video clips on fal.ai: the saved choices, and whether bots are offered generate_video now. */
   videoGen?: import("../../shared/video-generation").VideoGenerationConfig & { ready: boolean };

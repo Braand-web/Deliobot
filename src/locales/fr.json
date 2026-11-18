@@ -4100,5 +4100,18 @@
   "settings.features.acpPlanLines.subtitle": "Les agents comme Gemini CLI ou Devin affichent chaque étape de leur plan dans le chat. Chaque étape compte comme une action.",
   "settings.features.agentsToolBridge.title": "Liste d'outils compacte",
   "settings.features.agentsToolBridge.subtitle": "Les moteurs reçoivent deux outils pour chercher et utiliser les autres, au lieu de la liste complète. Déjà actif pour les modèles locaux.",
-  "sidebar.menu.tour": "Visite guidée"
+  "sidebar.menu.tour": "Visite guidée",
+  "media.bot.title": "Médias",
+  "media.bot.help": "Les modèles que ce bot utilise pour les images, la vidéo et la musique. Auto en choisit un à chaque demande ; le bot utilise aussi un modèle que vous nommez dans le chat.",
+  "media.bot.image": "Image",
+  "media.bot.video": "Vidéo",
+  "media.bot.music": "Musique",
+  "media.bot.auto": "Auto (recommandé)",
+  "media.bot.recommended": "Recommandés",
+  "media.bot.more": "Autres modèles",
+  "videoGen.intro": "Les bots peuvent créer de courtes vidéos quand vous le demandez. Une vidéo prend une minute ou plus et coûte bien plus qu'une image.",
+  "videoGen.model.help": "Auto choisit un modèle rapide, ou un modèle cinématographique quand la demande le précise. Vous pouvez aussi choisir n'importe quel modèle vidéo de la liste.",
+  "musicGen.intro": "Les bots peuvent créer de la musique de fond, des jingles, des chansons avec paroles et des effets sonores quand vous le demandez. Le morceau se lit dans le chat.",
+  "musicGen.model.help": "Auto choisit une musique instrumentale, un modèle de chanson quand il y a des paroles, ou un modèle d'effets sonores. Vous pouvez aussi choisir n'importe quel modèle audio de la liste.",
+  "imageGen.provider.delioMedia": "Médias Delio"
 }

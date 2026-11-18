@@ -43,6 +43,7 @@ export type BotUpdatePatch = Partial<
     | "cacheKeepWarm"
     | "mcpServers"
     | "modelSelection"
+    | "media"
   >
 > & {
   computer?: Bot["computer"] | null;

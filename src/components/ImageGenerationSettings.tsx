@@ -14,6 +14,10 @@ import { MusicGenerationSettings, useFalModels, VideoGenerationSettings } from "
 const PROVIDER_LABEL: Record<ImageProvider, string> = {
   openai: "OpenAI", xai: "Grok (xAI)", gemini: "Gemini", openrouter: "OpenRouter", fal: "fal.ai", custom: "Custom",
 };
+/** fal.ai reached through the Delio account is shown as Delio's own media, the way OpenRouter models show under Delio. */
+const providerLabel = (provider: ImageProvider, delioMedia: boolean | undefined) =>
+  provider === "fal" && delioMedia ? t("imageGen.provider.delioMedia") : PROVIDER_LABEL[provider];
+
 const OWN_KEYS = {
   openai: { credential: "openaiImageApiKey", patch: (key: string) => ({ imageGen: { key } }), label: "imageGen.key.openai" },
   gemini: { credential: "geminiImageApiKey", patch: (key: string) => ({ imageGen: { geminiKey: key } }), label: "imageGen.key.gemini" },
@@ -104,8 +108,8 @@ export function ImageGenerationSettings() {
 
   const statusText = status?.ready
     ? primary.configured
-      ? t("imageGen.status.ready", { provider: PROVIDER_LABEL[primary.provider] })
-      : t("imageGen.status.backupOnly", { provider: PROVIDER_LABEL[fallback!.provider] })
+      ? t("imageGen.status.ready", { provider: providerLabel(primary.provider, status?.delioMedia) })
+      : t("imageGen.status.backupOnly", { provider: providerLabel(fallback!.provider, status?.delioMedia) })
     : t("imageGen.status.notReady");
   return (
     <>
@@ -117,11 +121,11 @@ export function ImageGenerationSettings() {
         </span>}>
         {more && <p data-image-gen-more="" className="px-4 text-[12px] leading-4 text-ink-secondary">{t("imageGen.intro")}</p>}
         <SettingsRows selectWidth={200}>
-          <SlotRow
+          <SlotRow delioMedia={status?.delioMedia}
             slot="primary" provider={primary.provider} model={primary.model} configured={primary.configured} openrouterModels={primary.provider === "fal" ? falModels : openrouterModels}
             disabled={saving || !state.config} onProvider={chooseProvider} onModel={(model) => void save({ imageGen: { primary: { provider: primary.provider, model } } })}
           />
-          <SlotRow
+          <SlotRow delioMedia={status?.delioMedia}
             slot="fallback" provider={fallback?.provider ?? null} model={fallback?.model ?? ""} configured={fallback?.configured === true} exclude={primary.provider} openrouterModels={fallback?.provider === "fal" ? falModels : openrouterModels}
             disabled={saving || !state.config} onProvider={chooseProvider} onModel={(model) => fallback && void save({ imageGen: { fallback: { provider: fallback.provider, model } } })}
           />
@@ -147,8 +151,9 @@ export function ImageGenerationSettings() {
   );
 }
 
-function SlotRow({ slot, provider, model, configured, exclude, openrouterModels, disabled, onProvider, onModel }: {
+function SlotRow({ slot, provider, model, configured, exclude, openrouterModels, disabled, onProvider, onModel, delioMedia }: {
   slot: Slot;
+  delioMedia?: boolean;
   provider: ImageProvider | null;
   model: string;
   configured: boolean;
@@ -173,7 +178,7 @@ function SlotRow({ slot, provider, model, configured, exclude, openrouterModels,
           aria-label={label}
         >
           {slot === "fallback" && <option value="">{t("imageGen.fallback.none")}</option>}
-          {IMAGE_PROVIDERS.filter((option) => option !== exclude).map((option) => <option key={option} value={option}>{PROVIDER_LABEL[option]}</option>)}
+          {IMAGE_PROVIDERS.filter((option) => option !== exclude).map((option) => <option key={option} value={option}>{providerLabel(option, delioMedia)}</option>)}
         </Select>
       </SettingRow>
       {provider && <ModelRow slot={slot} slotLabel={label} provider={provider} model={model} openrouterModels={openrouterModels} disabled={disabled} onModel={onModel} />}

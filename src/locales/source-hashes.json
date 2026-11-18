@@ -3993,7 +3993,15 @@
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
       "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
-      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46",
+      "media.bot.title": "d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd",
+      "media.bot.help": "e07c875e3e59acf567550a235756e178845a8f6e8084d8edd92b7ce35e93e82a",
+      "media.bot.image": "1aa4cb0bcca76e92e30677e809bb3d4b5c066715ef4d558184e319496bcc5125",
+      "media.bot.video": "d534be829e32196b4d1e53b67103cf1e376b1d60071857572598c196abfefbc6",
+      "media.bot.music": "6eb00b4b2614a144d41ccdf709017a675953fae2df6cfd6b397bd9e4d8708461",
+      "media.bot.auto": "b1bdf63d93c3720851559fc2a1edaeb65ec2c7bf1c170ecb2fb295a5295a37bd",
+      "media.bot.recommended": "d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef",
+      "media.bot.more": "4c6c7d2f4958f9e6077997fbd91dcf4e9c15bc1e5119be648c7158953883e6d0"
     },
     "es": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -10500,7 +10508,15 @@
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
       "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
-      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46",
+      "media.bot.title": "d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd",
+      "media.bot.help": "e07c875e3e59acf567550a235756e178845a8f6e8084d8edd92b7ce35e93e82a",
+      "media.bot.image": "1aa4cb0bcca76e92e30677e809bb3d4b5c066715ef4d558184e319496bcc5125",
+      "media.bot.video": "d534be829e32196b4d1e53b67103cf1e376b1d60071857572598c196abfefbc6",
+      "media.bot.music": "6eb00b4b2614a144d41ccdf709017a675953fae2df6cfd6b397bd9e4d8708461",
+      "media.bot.auto": "b1bdf63d93c3720851559fc2a1edaeb65ec2c7bf1c170ecb2fb295a5295a37bd",
+      "media.bot.recommended": "d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef",
+      "media.bot.more": "4c6c7d2f4958f9e6077997fbd91dcf4e9c15bc1e5119be648c7158953883e6d0"
     },
     "fr": {
       "delioMenu.checking": "ee7fdea20d0b8d3d566f24f6e7b11b62f71cc8fc95748cd8d4c5431ab3947185",
@@ -14604,7 +14620,20 @@
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
       "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
-      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46",
+      "media.bot.title": "d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd",
+      "media.bot.help": "e07c875e3e59acf567550a235756e178845a8f6e8084d8edd92b7ce35e93e82a",
+      "media.bot.image": "1aa4cb0bcca76e92e30677e809bb3d4b5c066715ef4d558184e319496bcc5125",
+      "media.bot.video": "d534be829e32196b4d1e53b67103cf1e376b1d60071857572598c196abfefbc6",
+      "media.bot.music": "6eb00b4b2614a144d41ccdf709017a675953fae2df6cfd6b397bd9e4d8708461",
+      "media.bot.auto": "b1bdf63d93c3720851559fc2a1edaeb65ec2c7bf1c170ecb2fb295a5295a37bd",
+      "media.bot.recommended": "d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef",
+      "media.bot.more": "4c6c7d2f4958f9e6077997fbd91dcf4e9c15bc1e5119be648c7158953883e6d0",
+      "videoGen.intro": "f1285413a01f80edd91bf1cbfcdb663a87570c9892540e64daae94062e754901",
+      "videoGen.model.help": "11c0ba87eb659fa784aa84944f582570cb1297ce67cdd275a3783bf5fb370cd0",
+      "musicGen.intro": "d007fa7d580e09667f461a6ce43235e0922fe2ee2a17c5be5b5dc4ae75db3708",
+      "musicGen.model.help": "724ad443ec964c10bc1fe7a332822a2c61f12b8fdf55652ee4d41408f1778c47",
+      "imageGen.provider.delioMedia": "8e0f174223e20eed8a292c100d18fbc1dcbbf4436250d9acdb707ccb36284185"
     },
     "hi": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -18268,7 +18297,15 @@
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
       "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
-      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46",
+      "media.bot.title": "d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd",
+      "media.bot.help": "e07c875e3e59acf567550a235756e178845a8f6e8084d8edd92b7ce35e93e82a",
+      "media.bot.image": "1aa4cb0bcca76e92e30677e809bb3d4b5c066715ef4d558184e319496bcc5125",
+      "media.bot.video": "d534be829e32196b4d1e53b67103cf1e376b1d60071857572598c196abfefbc6",
+      "media.bot.music": "6eb00b4b2614a144d41ccdf709017a675953fae2df6cfd6b397bd9e4d8708461",
+      "media.bot.auto": "b1bdf63d93c3720851559fc2a1edaeb65ec2c7bf1c170ecb2fb295a5295a37bd",
+      "media.bot.recommended": "d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef",
+      "media.bot.more": "4c6c7d2f4958f9e6077997fbd91dcf4e9c15bc1e5119be648c7158953883e6d0"
     },
     "ja": {
       "connectedWorkspaces.localTitle": "7d6deafeab011d734c3fdd1bfd6f69544fbb746a004019269bdb48544b01164b",
@@ -26324,7 +26361,15 @@
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
       "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
-      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46",
+      "media.bot.title": "d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd",
+      "media.bot.help": "e07c875e3e59acf567550a235756e178845a8f6e8084d8edd92b7ce35e93e82a",
+      "media.bot.image": "1aa4cb0bcca76e92e30677e809bb3d4b5c066715ef4d558184e319496bcc5125",
+      "media.bot.video": "d534be829e32196b4d1e53b67103cf1e376b1d60071857572598c196abfefbc6",
+      "media.bot.music": "6eb00b4b2614a144d41ccdf709017a675953fae2df6cfd6b397bd9e4d8708461",
+      "media.bot.auto": "b1bdf63d93c3720851559fc2a1edaeb65ec2c7bf1c170ecb2fb295a5295a37bd",
+      "media.bot.recommended": "d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef",
+      "media.bot.more": "4c6c7d2f4958f9e6077997fbd91dcf4e9c15bc1e5119be648c7158953883e6d0"
     },
     "pt-br": {
       "delioMenu.checking": "ee7fdea20d0b8d3d566f24f6e7b11b62f71cc8fc95748cd8d4c5431ab3947185",
@@ -36397,7 +36442,7 @@
       "imageGen.key.fal": "9f9c47a48540a7b83cdce39a564df56a19a3716dd382561e97f110e9b4c73d0a",
       "imageGen.key.sharedFal": "e364ac933f49ed97efb2eb26a6adc9b1c5e19071a49691d6dd1f1b3503cde895",
       "musicGen.title": "5e9444d562c03cb8a52bebe0f6086b9b0aaa9f61314b68b1ff95b161e9eb0adb",
-      "musicGen.intro": "9092604ceb8f7658bc2f239b0803ca2b98288d336b9c4b6ebb6be71b7f668378",
+      "musicGen.intro": "d007fa7d580e09667f461a6ce43235e0922fe2ee2a17c5be5b5dc4ae75db3708",
       "musicGen.status.ready": "53705eb967733c1ba97a15e356ee481abbda0ba488f4086fea8f243599979ce3",
       "musicGen.status.needsKey": "aa1f454c26a8e3c8d84ac571dd5dafe0902eae667c199097344b8021bc54942f",
       "musicGen.status.off": "71c9292c4dbf3ecb25248a20ab46876610ec2013aaf142c11610655624bc7c64",
@@ -36405,7 +36450,7 @@
       "musicGen.enabled.help": "3c63a6d2105b816f2972dd8679137218a131d48def2e93e3f146938df902ee74",
       "musicGen.model.label": "7ae96f48c3d9bdfe910a5d12c8c4114911ee42459d1b263db4c1ec8874dee876",
       "musicGen.model.idLabel": "5565863fe6b64fe4b6f6f4d01a73c5c4b5c1b984c2067918213f5063521eec22",
-      "musicGen.model.help": "df6ac17d9e0e0e4a746cd60b08d9ad0bbf64f9df85964c8ec1be3be8e707117a",
+      "musicGen.model.help": "724ad443ec964c10bc1fe7a332822a2c61f12b8fdf55652ee4d41408f1778c47",
       "musicGen.maxSeconds.label": "76bb1bfebb43f53908d1e84c96e55938521dacb49028faca5e5f25711919434a",
       "musicGen.maxSeconds.help": "033b3987d6671c22d1b5cb7356b8a344441202dbf55f82a811a29034548736a5",
       "musicGen.maxPerTurn.label": "7f21ab559b0e8e506c5359886bf72d618f9c58256485df7d64346d07a86ddb31",
@@ -36478,7 +36523,7 @@
       "keys.purpose.delioAccount": "7bc82c2e41b47a6f9ce1c1cb6c5537534069f855ba5e7b09f38b98ca64c67ba3",
       "keys.where.delioAccount": "eaa65824da168fd7ffa985a6617e7e9247cc9f6cdbb58a456c1fa4f9aea1f610",
       "videoGen.title": "d534be829e32196b4d1e53b67103cf1e376b1d60071857572598c196abfefbc6",
-      "videoGen.intro": "f73925f52959e72338f84d777ec726c7dfaf57045f5625533a585c2c2b7d4c20",
+      "videoGen.intro": "f1285413a01f80edd91bf1cbfcdb663a87570c9892540e64daae94062e754901",
       "videoGen.status.ready": "be747e8c3d7c723105b36c42d46ef29514b213a416c55e6fa2f1c7a727699857",
       "videoGen.status.needsKey": "11b04fd4d5992e22954364e6f4c00d97b23e565b1feb3c531df81bae6640b07f",
       "videoGen.status.off": "99dee9602d6a6bb291440aa19d03f715bfd6fa3629d522e11a9cac055cacfcd8",
@@ -36486,7 +36531,7 @@
       "videoGen.enabled.help": "d658524e5c138e400be1e6b3e5e1ebd54bb72a9980adcb310655a3fddc304869",
       "videoGen.model.label": "4a46611bea62e10e350279f5008991e4c95f032f4b77a1fcab3e245560cd2f3a",
       "videoGen.model.idLabel": "0e59999e3e25541835bdaca9e4f4b3ea93c246b7a2f63305f08cbd7010154058",
-      "videoGen.model.help": "9d11d5a4c3e88a4047cd449ede229cd6b2b9e19503bf821fd711bb202016427f",
+      "videoGen.model.help": "11c0ba87eb659fa784aa84944f582570cb1297ce67cdd275a3783bf5fb370cd0",
       "videoGen.maxSeconds.label": "b503a9d2e526038ff16fabd2a36d1752d2e8ed372109be566578bf9574d4720c",
       "videoGen.maxSeconds.help": "d3f71011c0945391587d580c1a34923eb4ddfc7637605d88d09e246001c4005b",
       "videoGen.maxPerTurn.label": "f4182b753a5e87adddafc54447e14d58445a6cef658217a13c075f1489e70d1b",
@@ -37165,7 +37210,15 @@
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
       "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
-      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46",
+      "media.bot.title": "d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd",
+      "media.bot.help": "e07c875e3e59acf567550a235756e178845a8f6e8084d8edd92b7ce35e93e82a",
+      "media.bot.image": "1aa4cb0bcca76e92e30677e809bb3d4b5c066715ef4d558184e319496bcc5125",
+      "media.bot.video": "d534be829e32196b4d1e53b67103cf1e376b1d60071857572598c196abfefbc6",
+      "media.bot.music": "6eb00b4b2614a144d41ccdf709017a675953fae2df6cfd6b397bd9e4d8708461",
+      "media.bot.auto": "b1bdf63d93c3720851559fc2a1edaeb65ec2c7bf1c170ecb2fb295a5295a37bd",
+      "media.bot.recommended": "d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef",
+      "media.bot.more": "4c6c7d2f4958f9e6077997fbd91dcf4e9c15bc1e5119be648c7158953883e6d0"
     },
     "zh": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -47226,7 +47279,15 @@
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
       "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
-      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46",
+      "media.bot.title": "d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd",
+      "media.bot.help": "e07c875e3e59acf567550a235756e178845a8f6e8084d8edd92b7ce35e93e82a",
+      "media.bot.image": "1aa4cb0bcca76e92e30677e809bb3d4b5c066715ef4d558184e319496bcc5125",
+      "media.bot.video": "d534be829e32196b4d1e53b67103cf1e376b1d60071857572598c196abfefbc6",
+      "media.bot.music": "6eb00b4b2614a144d41ccdf709017a675953fae2df6cfd6b397bd9e4d8708461",
+      "media.bot.auto": "b1bdf63d93c3720851559fc2a1edaeb65ec2c7bf1c170ecb2fb295a5295a37bd",
+      "media.bot.recommended": "d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef",
+      "media.bot.more": "4c6c7d2f4958f9e6077997fbd91dcf4e9c15bc1e5119be648c7158953883e6d0"
     },
     "zh-tw": {
       "connectedWorkspaces.localTitle": "7d6deafeab011d734c3fdd1bfd6f69544fbb746a004019269bdb48544b01164b",
@@ -57534,7 +57595,15 @@
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
       "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
-      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46",
+      "media.bot.title": "d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd",
+      "media.bot.help": "e07c875e3e59acf567550a235756e178845a8f6e8084d8edd92b7ce35e93e82a",
+      "media.bot.image": "1aa4cb0bcca76e92e30677e809bb3d4b5c066715ef4d558184e319496bcc5125",
+      "media.bot.video": "d534be829e32196b4d1e53b67103cf1e376b1d60071857572598c196abfefbc6",
+      "media.bot.music": "6eb00b4b2614a144d41ccdf709017a675953fae2df6cfd6b397bd9e4d8708461",
+      "media.bot.auto": "b1bdf63d93c3720851559fc2a1edaeb65ec2c7bf1c170ecb2fb295a5295a37bd",
+      "media.bot.recommended": "d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef",
+      "media.bot.more": "4c6c7d2f4958f9e6077997fbd91dcf4e9c15bc1e5119be648c7158953883e6d0"
     },
     "uk": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -61619,7 +61688,15 @@
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
       "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
-      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46",
+      "media.bot.title": "d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd",
+      "media.bot.help": "e07c875e3e59acf567550a235756e178845a8f6e8084d8edd92b7ce35e93e82a",
+      "media.bot.image": "1aa4cb0bcca76e92e30677e809bb3d4b5c066715ef4d558184e319496bcc5125",
+      "media.bot.video": "d534be829e32196b4d1e53b67103cf1e376b1d60071857572598c196abfefbc6",
+      "media.bot.music": "6eb00b4b2614a144d41ccdf709017a675953fae2df6cfd6b397bd9e4d8708461",
+      "media.bot.auto": "b1bdf63d93c3720851559fc2a1edaeb65ec2c7bf1c170ecb2fb295a5295a37bd",
+      "media.bot.recommended": "d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef",
+      "media.bot.more": "4c6c7d2f4958f9e6077997fbd91dcf4e9c15bc1e5119be648c7158953883e6d0"
     },
     "vi": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -67627,7 +67704,15 @@
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
       "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
-      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46",
+      "media.bot.title": "d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd",
+      "media.bot.help": "e07c875e3e59acf567550a235756e178845a8f6e8084d8edd92b7ce35e93e82a",
+      "media.bot.image": "1aa4cb0bcca76e92e30677e809bb3d4b5c066715ef4d558184e319496bcc5125",
+      "media.bot.video": "d534be829e32196b4d1e53b67103cf1e376b1d60071857572598c196abfefbc6",
+      "media.bot.music": "6eb00b4b2614a144d41ccdf709017a675953fae2df6cfd6b397bd9e4d8708461",
+      "media.bot.auto": "b1bdf63d93c3720851559fc2a1edaeb65ec2c7bf1c170ecb2fb295a5295a37bd",
+      "media.bot.recommended": "d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef",
+      "media.bot.more": "4c6c7d2f4958f9e6077997fbd91dcf4e9c15bc1e5119be648c7158953883e6d0"
     },
     "tr": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -73635,7 +73720,15 @@
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
       "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
-      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46",
+      "media.bot.title": "d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd",
+      "media.bot.help": "e07c875e3e59acf567550a235756e178845a8f6e8084d8edd92b7ce35e93e82a",
+      "media.bot.image": "1aa4cb0bcca76e92e30677e809bb3d4b5c066715ef4d558184e319496bcc5125",
+      "media.bot.video": "d534be829e32196b4d1e53b67103cf1e376b1d60071857572598c196abfefbc6",
+      "media.bot.music": "6eb00b4b2614a144d41ccdf709017a675953fae2df6cfd6b397bd9e4d8708461",
+      "media.bot.auto": "b1bdf63d93c3720851559fc2a1edaeb65ec2c7bf1c170ecb2fb295a5295a37bd",
+      "media.bot.recommended": "d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef",
+      "media.bot.more": "4c6c7d2f4958f9e6077997fbd91dcf4e9c15bc1e5119be648c7158953883e6d0"
     },
     "pl": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -80904,7 +80997,15 @@
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
       "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
-      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46",
+      "media.bot.title": "d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd",
+      "media.bot.help": "e07c875e3e59acf567550a235756e178845a8f6e8084d8edd92b7ce35e93e82a",
+      "media.bot.image": "1aa4cb0bcca76e92e30677e809bb3d4b5c066715ef4d558184e319496bcc5125",
+      "media.bot.video": "d534be829e32196b4d1e53b67103cf1e376b1d60071857572598c196abfefbc6",
+      "media.bot.music": "6eb00b4b2614a144d41ccdf709017a675953fae2df6cfd6b397bd9e4d8708461",
+      "media.bot.auto": "b1bdf63d93c3720851559fc2a1edaeb65ec2c7bf1c170ecb2fb295a5295a37bd",
+      "media.bot.recommended": "d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef",
+      "media.bot.more": "4c6c7d2f4958f9e6077997fbd91dcf4e9c15bc1e5119be648c7158953883e6d0"
     },
     "ru": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -88226,7 +88327,15 @@
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
       "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
-      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46",
+      "media.bot.title": "d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd",
+      "media.bot.help": "e07c875e3e59acf567550a235756e178845a8f6e8084d8edd92b7ce35e93e82a",
+      "media.bot.image": "1aa4cb0bcca76e92e30677e809bb3d4b5c066715ef4d558184e319496bcc5125",
+      "media.bot.video": "d534be829e32196b4d1e53b67103cf1e376b1d60071857572598c196abfefbc6",
+      "media.bot.music": "6eb00b4b2614a144d41ccdf709017a675953fae2df6cfd6b397bd9e4d8708461",
+      "media.bot.auto": "b1bdf63d93c3720851559fc2a1edaeb65ec2c7bf1c170ecb2fb295a5295a37bd",
+      "media.bot.recommended": "d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef",
+      "media.bot.more": "4c6c7d2f4958f9e6077997fbd91dcf4e9c15bc1e5119be648c7158953883e6d0"
     },
     "it": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -95357,7 +95466,15 @@
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
       "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
-      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46",
+      "media.bot.title": "d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd",
+      "media.bot.help": "e07c875e3e59acf567550a235756e178845a8f6e8084d8edd92b7ce35e93e82a",
+      "media.bot.image": "1aa4cb0bcca76e92e30677e809bb3d4b5c066715ef4d558184e319496bcc5125",
+      "media.bot.video": "d534be829e32196b4d1e53b67103cf1e376b1d60071857572598c196abfefbc6",
+      "media.bot.music": "6eb00b4b2614a144d41ccdf709017a675953fae2df6cfd6b397bd9e4d8708461",
+      "media.bot.auto": "b1bdf63d93c3720851559fc2a1edaeb65ec2c7bf1c170ecb2fb295a5295a37bd",
+      "media.bot.recommended": "d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef",
+      "media.bot.more": "4c6c7d2f4958f9e6077997fbd91dcf4e9c15bc1e5119be648c7158953883e6d0"
     },
     "ko": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -103146,7 +103263,15 @@
       "settings.features.acpPlanLines.subtitle": "f495f08d76add0cd3c8535d75ccea14bc5f9acc12a6e584a82fdcac8452250e0",
       "settings.features.agentsToolBridge.title": "93b765c0b6c0a80344e321fa9b624aea9470e39a01e4f34fec5f8487858b0a3c",
       "settings.features.agentsToolBridge.subtitle": "dcdc44b87bd261f5264d70ee3a4acf9c83a94f06894b86df3719253c773c6f5c",
-      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46"
+      "sidebar.menu.tour": "06938153048d6d0081649439e4d4f36455a7033e444858186b9131716a546b46",
+      "media.bot.title": "d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd",
+      "media.bot.help": "e07c875e3e59acf567550a235756e178845a8f6e8084d8edd92b7ce35e93e82a",
+      "media.bot.image": "1aa4cb0bcca76e92e30677e809bb3d4b5c066715ef4d558184e319496bcc5125",
+      "media.bot.video": "d534be829e32196b4d1e53b67103cf1e376b1d60071857572598c196abfefbc6",
+      "media.bot.music": "6eb00b4b2614a144d41ccdf709017a675953fae2df6cfd6b397bd9e4d8708461",
+      "media.bot.auto": "b1bdf63d93c3720851559fc2a1edaeb65ec2c7bf1c170ecb2fb295a5295a37bd",
+      "media.bot.recommended": "d70604e8430461372849bbd123d85771e11423870a507e8fa4650a7e9a5a50ef",
+      "media.bot.more": "4c6c7d2f4958f9e6077997fbd91dcf4e9c15bc1e5119be648c7158953883e6d0"
     }
   }
 }

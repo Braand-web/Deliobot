@@ -7785,5 +7785,13 @@
   "settings.features.acpPlanLines.subtitle": "Gemini CLI나 Devin 같은 에이전트가 계획의 각 단계를 채팅에 표시합니다. 각 단계는 하나의 작업으로 계산됩니다.",
   "settings.features.agentsToolBridge.title": "간결한 도구 목록",
   "settings.features.agentsToolBridge.subtitle": "엔진이 전체 목록 대신 다른 도구를 찾고 쓰는 두 가지 도구를 받습니다. 로컬 모델에는 이미 켜져 있습니다.",
-  "sidebar.menu.tour": "가이드 투어"
+  "sidebar.menu.tour": "가이드 투어",
+  "media.bot.title": "미디어",
+  "media.bot.help": "이 봇이 이미지, 동영상, 음악에 쓰는 모델입니다. Auto가 요청마다 하나를 고르며, 채팅에서 모델 이름을 말하면 그 모델도 사용합니다.",
+  "media.bot.image": "이미지",
+  "media.bot.video": "동영상",
+  "media.bot.music": "음악",
+  "media.bot.auto": "Auto(권장)",
+  "media.bot.recommended": "권장",
+  "media.bot.more": "더 많은 모델"
 }

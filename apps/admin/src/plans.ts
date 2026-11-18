@@ -152,18 +152,19 @@ CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT N
     return { workspace, plan: row.plan, cycle: row.cycle, periodEnd: row.period_end, status };
   }
 
-  /** What the gateway may do for a workspace: spend Delio credits, keep how many computers awake, with how many free hours a month. */
-  allowance(workspace: string): { gateway: boolean; computers: number; computerHours: number; plan: PlanId | null; ownAi: boolean; reason?: string } {
+  /** What the gateway may do for a workspace: spend Delio credits on text (`gateway`) and on media (`media`: images, video, music,
+   * voice; every plan in force, those on their own AI included), keep how many computers awake, with how many free hours a month. */
+  allowance(workspace: string): { gateway: boolean; media: boolean; computers: number; computerHours: number; plan: PlanId | null; ownAi: boolean; reason?: string } {
     if (this.db.prepare("SELECT 1 FROM suspensions WHERE workspace = ?").get(workspace)) {
-      return { gateway: false, computers: 0, computerHours: 0, plan: null, ownAi: false, reason: "Cet espace est suspendu. Écrivez à support@deliobot.fun." };
+      return { gateway: false, media: false, computers: 0, computerHours: 0, plan: null, ownAi: false, reason: "Cet espace est suspendu. Écrivez à support@deliobot.fun." };
     }
     const subscription = this.subscription(workspace);
-    if (subscription.status === "none") return { gateway: true, computers: 1, computerHours: 0, plan: null, ownAi: false };
-    if (subscription.status === "expired") return { gateway: false, computers: 0, computerHours: 0, plan: null, ownAi: false, reason: "This workspace's plan has ended. An admin can renew it in Delio Admin → Billing." };
+    if (subscription.status === "none") return { gateway: true, media: true, computers: 1, computerHours: 0, plan: null, ownAi: false };
+    if (subscription.status === "expired") return { gateway: false, media: false, computers: 0, computerHours: 0, plan: null, ownAi: false, reason: "This workspace's plan has ended. An admin can renew it in Delio Admin → Billing." };
     const plan = this.plan(subscription.plan);
     const ownAi = OWN_AI_PLANS.has(subscription.plan);
-    if (!plan.gateway) return { gateway: false, computers: 0, computerHours: 0, plan: subscription.plan, ownAi, reason: "This workspace's plan uses its own AI keys, not Delio credits." };
-    return { gateway: true, computers: plan.computers, computerHours: plan.computerHours, plan: subscription.plan, ownAi };
+    if (!plan.gateway) return { gateway: false, media: true, computers: 0, computerHours: 0, plan: subscription.plan, ownAi, reason: "This workspace's plan uses its own AI keys for text, not Delio credits." };
+    return { gateway: true, media: true, computers: plan.computers, computerHours: plan.computerHours, plan: subscription.plan, ownAi };
   }
 
   trialUsed(email: string, workspace: string): boolean {

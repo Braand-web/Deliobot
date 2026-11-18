@@ -24,6 +24,7 @@ export const VIDEO_TOOL_DEFINITIONS = [
       properties: {
         prompt: { type: "string", minLength: 1, maxLength: VIDEO_PROMPT_MAX_CHARS, description: "What happens in the clip, and how it is filmed." },
         seconds: { type: "integer", minimum: 1, maximum: VIDEO_SECONDS_MAX, description: "Length in seconds; the person's limit applies. 5 when omitted." },
+        model: { type: "string", maxLength: 200, description: "Only a model the person named." },
         aspect: { type: "string", enum: [...VIDEO_ASPECTS], description: "Shape; landscape 16:9 when omitted." },
       },
       required: ["prompt"],

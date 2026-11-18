@@ -8052,5 +8052,13 @@
   "settings.features.acpPlanLines.subtitle": "Gemini CLI や Devin などのエージェントが計画の各ステップをチャットに表示します。各ステップは 1 回の操作として数えます。",
   "settings.features.agentsToolBridge.title": "コンパクトなツール一覧",
   "settings.features.agentsToolBridge.subtitle": "エンジンは全ツールの一覧の代わりに、他のツールを探して使う 2 つのツールを受け取ります。ローカルモデルでは既に有効です。",
-  "sidebar.menu.tour": "ガイドツアー"
+  "sidebar.menu.tour": "ガイドツアー",
+  "media.bot.title": "メディア",
+  "media.bot.help": "このボットが画像・動画・音楽に使うモデルです。Auto がリクエストごとに選びます。チャットでモデル名を伝えると、そのモデルも使います。",
+  "media.bot.image": "画像",
+  "media.bot.video": "動画",
+  "media.bot.music": "音楽",
+  "media.bot.auto": "Auto（おすすめ）",
+  "media.bot.recommended": "おすすめ",
+  "media.bot.more": "その他のモデル"
 }

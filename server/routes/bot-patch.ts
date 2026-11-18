@@ -31,6 +31,7 @@ import type { RoutineManager } from "../routines.ts";
 import type { SessionRegistry } from "../sessions.ts";
 import { parseConnectorTools } from "../connector-tools.ts";
 import { sectionKey, type BotRecord, type GroupRecord, type Store, type TaskRecord } from "../store.ts";
+import { validFalModel } from "../fal.ts";
 import * as vps from "../vps-computer.ts";
 import { vpsSshAliasForBot } from "../vps-hosts.ts";
 import { refusalBody, userError } from "../user-errors.ts";
@@ -85,6 +86,20 @@ export interface BotPatchRouteDeps {
   shownThread?(auth: RequestAuth, bot: BotRecord): string;
   /** The Chief of Staff of a scope changed: these bots' flags did. */
   chiefChanged?(changed: readonly BotRecord[]): void;
+}
+
+/** A bot's media models from a request: null clears them, "auto" or a missing kind lets Auto choose. */
+export function botMediaPatch(raw: unknown): { value: BotRecord["media"] } | null {
+  if (raw === null) return { value: undefined };
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const value: NonNullable<BotRecord["media"]> = {};
+  for (const [kind, model] of Object.entries(raw)) {
+    if (kind !== "image" && kind !== "video" && kind !== "music") return null;
+    if (model === null || model === "" || model === "auto") continue;
+    if (typeof model !== "string" || !validFalModel(model)) return null;
+    value[kind] = model;
+  }
+  return { value: Object.keys(value).length ? value : undefined };
 }
 
 export function createBotPatchRoutes(deps: BotPatchRouteDeps): RouteHandler {
@@ -281,6 +296,11 @@ export function createBotPatchRoutes(deps: BotPatchRouteDeps): RouteHandler {
       if (body.composio !== undefined) {
         if (typeof body.composio !== "boolean") return json(res, 400, { error: "composio must be true or false" });
         patch.composio = body.composio;
+      }
+      if (body.media !== undefined) {
+        const media = botMediaPatch(body.media);
+        if (!media) return json(res, 400, { error: "media must be { image?, video?, music? } with each a model ID or \"auto\", or null" });
+        patch.media = media.value;
       }
       // An admin decision, so not on the client-writable profile surface.
       if (body.voiceNotes !== undefined) {

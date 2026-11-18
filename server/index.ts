@@ -79,7 +79,7 @@ import { videoGenerationReady } from "./video-generation.ts";
 import { createMediaToolRoutes, type MediaKind } from "./routes/media-tools.ts";
 import { musicGenerationReady } from "./music-generation.ts";
 import { createFalPriceBook, falCostUsd } from "./fal.ts";
-import { createImageToolRoutes } from "./routes/image-tools.ts"; import { createMeetingsHost } from "./host/meetings-host.ts"; import { meetingsUnavailablePrompt } from "./meetings/prompt.ts";
+import { createImageToolRoutes } from "./routes/image-tools.ts"; import { createFalModelCatalog } from "./fal-models.ts"; import { IMAGE_MODEL_CHOICES } from "../shared/image-generation.ts"; import { VIDEO_MODEL_CHOICES } from "../shared/video-generation.ts"; import { MUSIC_MODEL_CHOICES } from "../shared/music-generation.ts"; import { createMeetingsHost } from "./host/meetings-host.ts"; import { meetingsUnavailablePrompt } from "./meetings/prompt.ts";
 import { createImageSettingsRoutes } from "./routes/image-settings.ts";
 import { createHostedCredits } from "./hosted-credits.ts";
 import { createDelioPlans } from "./delio-plans.ts";
@@ -2859,11 +2859,12 @@ startPythonRuntime({ dataDir: DATA_DIR, log: (line) => console.log(line) }); use
     void reloadProviders(before).catch((error: unknown) => console.warn(`delio: engines did not reload: ${error instanceof Error ? error.message : String(error)}`));
   } });
 const delioPlanTurns = delioPlanTurnsFor({ account: delioAccount, bot: (id, thread) => store.projectBotForTask(id, thread), useDelio: (id, selection) => registry.get(selection.instanceId) ? store.applyModelDefault(id, selection) : null });
+const mediaModels = createFalModelCatalog({ curated: { image: IMAGE_MODEL_CHOICES.fal, video: VIDEO_MODEL_CHOICES, music: MUSIC_MODEL_CHOICES } });
 const imageTools = createImageToolRoutes({ config: () => withDelioMedia(cfg), dataDir: DATA_DIR, liveTurn: (threadId) => liveTurnByThread.get(threadId), key: turnAttachmentKey, images: (key) => (turnAttachmentsByTurn.get(key) ?? []).filter((item) => item.kind === "image").length, park: (key, image) => { const saved = saveImage(image.bytes, image.mime); turnAttachmentsByTurn.set(key, [...turnAttachmentsByTurn.get(key) ?? [], { kind: "image", path: saved.path, mime: saved.mime }]); },
-  made: (image, by) => void bookMediaUsage(by, { ...image, kind: "image" }) });
+  made: (image, by) => void bookMediaUsage(by, { ...image, kind: "image" }), botMedia: (botId) => store.bot(botId)?.media, catalog: mediaModels });
 const VIDEO_EXTENSIONS: Record<string, string> = { "video/mp4": "mp4", "video/webm": "webm", "video/quicktime": "mov" };
 const parkedMedia = (kind: MediaKind, key: string) => (turnAttachmentsByTurn.get(key) ?? []).filter((item) => kind === "music" ? item.kind === "audio" : item.kind === "file" && item.mime.startsWith("video/")).length;
-const mediaTools = createMediaToolRoutes({ config: () => withDelioMedia(cfg), dataDir: DATA_DIR, liveTurn: (threadId) => liveTurnByThread.get(threadId), key: turnAttachmentKey, parked: parkedMedia,
+const mediaTools = createMediaToolRoutes({ config: () => withDelioMedia(cfg), dataDir: DATA_DIR, botMedia: (botId) => store.bot(botId)?.media, catalog: mediaModels, liveTurn: (threadId) => liveTurnByThread.get(threadId), key: turnAttachmentKey, parked: parkedMedia,
   park: async (kind, key, media) => {
     if (kind === "music") {
       const saved = saveAudio(media.bytes, media.mime);
@@ -11770,7 +11771,8 @@ function configStatus() {
     opencodeGo: { ...keyStatus(cfg.opencodeGo?.apiKey), providerKeys: Object.keys(openCodeProviderKeys(cfg)) },
     tts: tts.describeVoice(cfg),
     decider: describeDecider(cfg), helpers: describeHelpers(cfg),
-    imageGen: avatarImageStatus(cfg), videoGen: { ...cfg.videoGen, ready: videoGenerationReady(cfg) }, musicGen: { ...cfg.musicGen, ready: musicGenerationReady(cfg) }, savedKeys: nestedKeyStatus(cfg),
+    imageGen: { ...avatarImageStatus(withDelioMedia(cfg)), falConfigured: Boolean(cfg.fal?.key?.trim()), delioMedia: !cfg.fal?.key?.trim() && Boolean(delioConnection(cfg)) },
+    videoGen: { ...cfg.videoGen, ready: videoGenerationReady(withDelioMedia(cfg)) }, musicGen: { ...cfg.musicGen, ready: musicGenerationReady(withDelioMedia(cfg)) }, savedKeys: nestedKeyStatus(cfg),
     live: liveSettingsFor(cfg),
     profile: CLOUD_TEAM ? NOBODY_PROFILE : { name: cfg.profile?.name ?? "", email: cfg.profile?.email ?? "", aboutMe: cfg.profile?.aboutMe ?? "", ...(cfg.profile?.avatarUrl ? { avatarUrl: cfg.profile.avatarUrl } : {}) },
     managedPolicy: managedPolicy.summary(),

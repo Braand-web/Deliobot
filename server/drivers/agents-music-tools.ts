@@ -25,6 +25,7 @@ export const MUSIC_TOOL_DEFINITIONS = [
       properties: {
         prompt: { type: "string", minLength: 1, maxLength: MUSIC_PROMPT_MAX_CHARS, description: "Genre, mood, instruments, tempo; or the sound to make." },
         seconds: { type: "integer", minimum: 1, maximum: MUSIC_SECONDS_MAX, description: "Length in seconds; the person's limit applies. 30 when omitted." },
+        model: { type: "string", maxLength: 200, description: "Only a model the person named." },
         lyrics: { type: "string", maxLength: MUSIC_LYRICS_MAX_CHARS, description: "Words to sing, only for a song." },
       },
       required: ["prompt"],

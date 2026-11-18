@@ -7127,5 +7127,13 @@
   "settings.features.acpPlanLines.subtitle": "Agenti come Gemini CLI o Devin mostrano ogni passo del loro piano nella chat. Ogni passo conta come un'azione.",
   "settings.features.agentsToolBridge.title": "Elenco strumenti compatto",
   "settings.features.agentsToolBridge.subtitle": "I motori ricevono due strumenti per trovare e usare gli altri, invece dell'elenco completo. Già attivo per i modelli locali.",
-  "sidebar.menu.tour": "Visita guidata"
+  "sidebar.menu.tour": "Visita guidata",
+  "media.bot.title": "Media",
+  "media.bot.help": "I modelli che questo bot usa per immagini, video e musica. Auto ne sceglie uno a ogni richiesta; il bot usa anche un modello che nomini in chat.",
+  "media.bot.image": "Immagine",
+  "media.bot.video": "Video",
+  "media.bot.music": "Musica",
+  "media.bot.auto": "Auto (consigliato)",
+  "media.bot.recommended": "Consigliati",
+  "media.bot.more": "Altri modelli"
 }

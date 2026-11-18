@@ -6004,5 +6004,13 @@
   "settings.features.acpPlanLines.subtitle": "Gemini CLI veya Devin gibi ajanlar planlarının her adımını sohbette gösterir. Her adım bir işlem sayılır.",
   "settings.features.agentsToolBridge.title": "Kısa araç listesi",
   "settings.features.agentsToolBridge.subtitle": "Motorlar tam liste yerine diğerlerini bulup kullanmak için iki araç alır. Yerel modellerde zaten açık.",
-  "sidebar.menu.tour": "Rehberli tur"
+  "sidebar.menu.tour": "Rehberli tur",
+  "media.bot.title": "Medya",
+  "media.bot.help": "Bu botun görsel, video ve müzik için kullandığı modeller. Auto her istek için birini seçer; bot sohbette adını verdiğin modeli de kullanır.",
+  "media.bot.image": "Görsel",
+  "media.bot.video": "Video",
+  "media.bot.music": "Müzik",
+  "media.bot.auto": "Auto (önerilen)",
+  "media.bot.recommended": "Önerilenler",
+  "media.bot.more": "Diğer modeller"
 }

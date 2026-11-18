@@ -8,7 +8,9 @@ import { VIDEO_ASPECTS, VIDEO_DAILY_CAP_DEFAULT, VIDEO_MAX_PER_TURN_DEFAULT, VID
 import { MUSIC_LYRICS_MAX_CHARS, MUSIC_PROMPT_MAX_CHARS } from "../drivers/agents-music-tools.ts";
 import { VIDEO_PROMPT_MAX_CHARS } from "../drivers/agents-video-tools.ts";
 import type { json } from "../harness/http.ts";
+import type { FalModelCatalog } from "../fal-models.ts";
 import { createImageDailyCap, type ImageDailyCap } from "../image-daily-cap.ts";
+import { chooseMediaModel, type BotMedia } from "../media-choice.ts";
 import { generateMusic, musicGenerationReady, type MusicCredentials } from "../music-generation.ts";
 import { generateVideo, videoGenerationReady, type VideoCredentials } from "../video-generation.ts";
 import { PASS } from "./table.ts";
@@ -35,8 +37,8 @@ export const MEDIA_SPECS: Record<MediaKind, MediaSpec> = {
   video: {
     path: "/api/internal/videos/generate",
     dayFile: "video-generation-day.json",
-    schema: z.object({ prompt: z.string().trim().min(1).max(VIDEO_PROMPT_MAX_CHARS), seconds: z.number().int().min(1).max(VIDEO_SECONDS_MAX).optional(), aspect: z.enum(VIDEO_ASPECTS).optional() }),
-    usage: `generate_video takes a prompt (1 to ${VIDEO_PROMPT_MAX_CHARS} characters), optional seconds (1 to ${VIDEO_SECONDS_MAX}) and an optional aspect (${VIDEO_ASPECTS.join(", ")}).`,
+    schema: z.object({ prompt: z.string().trim().min(1).max(VIDEO_PROMPT_MAX_CHARS), seconds: z.number().int().min(1).max(VIDEO_SECONDS_MAX).optional(), aspect: z.enum(VIDEO_ASPECTS).optional(), model: z.string().trim().max(200).optional() }),
+    usage: `generate_video takes a prompt (1 to ${VIDEO_PROMPT_MAX_CHARS} characters), optional seconds (1 to ${VIDEO_SECONDS_MAX}), an optional aspect (${VIDEO_ASPECTS.join(", ")}) and an optional model.`,
     ready: videoGenerationReady,
     limits: (cfg) => ({ maxPerTurn: cfg.videoGen?.maxPerTurn ?? VIDEO_MAX_PER_TURN_DEFAULT, dailyCap: cfg.videoGen?.dailyCap ?? VIDEO_DAILY_CAP_DEFAULT }),
     generate: (cfg, request, options) => generateVideo(cfg, request, options),
@@ -45,14 +47,14 @@ export const MEDIA_SPECS: Record<MediaKind, MediaSpec> = {
       notPerson: "Videos are made only for a person's own message in a chat. This turn was started another way, so no video was made. Tell the person they can ask for the video in a chat.",
       perTurn: (limit) => `This turn already has ${limit === 1 ? "a video" : `${limit} videos`}, the most the person allows per reply. Send what you have.`,
       dailyCap: (cap) => `Bots here have made ${cap} videos today, the most allowed in one day, so no video was made. Tell the person it starts again after midnight.`,
-      made: (media) => `A ${media.seconds}-second video was made by fal.ai (${media.model}). It will be attached to this turn's reply when the turn ends.`,
+      made: (media) => `A ${media.seconds}-second video was made with ${media.model}. It will be attached to this turn's reply when the turn ends.`,
     },
   },
   music: {
     path: "/api/internal/music/generate",
     dayFile: "music-generation-day.json",
-    schema: z.object({ prompt: z.string().trim().min(1).max(MUSIC_PROMPT_MAX_CHARS), seconds: z.number().int().min(1).max(MUSIC_SECONDS_MAX).optional(), lyrics: z.string().trim().max(MUSIC_LYRICS_MAX_CHARS).optional() }),
-    usage: `generate_music takes a prompt (1 to ${MUSIC_PROMPT_MAX_CHARS} characters), optional seconds (1 to ${MUSIC_SECONDS_MAX}) and optional lyrics.`,
+    schema: z.object({ prompt: z.string().trim().min(1).max(MUSIC_PROMPT_MAX_CHARS), seconds: z.number().int().min(1).max(MUSIC_SECONDS_MAX).optional(), lyrics: z.string().trim().max(MUSIC_LYRICS_MAX_CHARS).optional(), model: z.string().trim().max(200).optional() }),
+    usage: `generate_music takes a prompt (1 to ${MUSIC_PROMPT_MAX_CHARS} characters), optional seconds (1 to ${MUSIC_SECONDS_MAX}), optional lyrics and an optional model.`,
     ready: musicGenerationReady,
     limits: (cfg) => ({ maxPerTurn: cfg.musicGen?.maxPerTurn ?? MUSIC_MAX_PER_TURN_DEFAULT, dailyCap: cfg.musicGen?.dailyCap ?? MUSIC_DAILY_CAP_DEFAULT }),
     generate: (cfg, request, options) => generateMusic(cfg, request, options),
@@ -61,7 +63,7 @@ export const MEDIA_SPECS: Record<MediaKind, MediaSpec> = {
       notPerson: "Music is made only for a person's own message in a chat. This turn was started another way, so none was made. Tell the person they can ask for it in a chat.",
       perTurn: (limit) => `This turn already has ${limit === 1 ? "a track" : `${limit} tracks`}, the most the person allows per reply. Send what you have.`,
       dailyCap: (cap) => `Bots here have made ${cap} tracks today, the most allowed in one day, so none was made. Tell the person it starts again after midnight.`,
-      made: (media) => `A ${media.seconds}-second track was made by fal.ai (${media.model}). It will be attached to this turn's reply when the turn ends.`,
+      made: (media) => `A ${media.seconds}-second track was made with ${media.model}. It will be attached to this turn's reply when the turn ends.`,
     },
   },
 };
@@ -73,6 +75,9 @@ export interface MediaTurn {
 }
 
 export interface MediaToolDeps {
+  /** The bot's own media models, and the catalog a named model is looked up in. */
+  botMedia?: BotMedia;
+  catalog?: FalModelCatalog;
   cfg: MediaCredentials;
   personTurn: boolean;
   daily: ImageDailyCap;
@@ -92,15 +97,21 @@ export async function generateMediaForTurn(kind: MediaKind, raw: unknown, deps: 
   if (!parsed.success) return { status: 400, body: { error: spec.usage } };
   if (!deps.personTurn) return { status: 403, body: { error: spec.messages.notPerson } };
   if (!spec.ready(deps.cfg)) return { status: 409, body: { error: spec.messages.notSetUp } };
+  let cfg = deps.cfg;
+  if (deps.catalog) {
+    const choice = await chooseMediaModel(kind, (parsed.data as { model?: string }).model, deps.botMedia, deps.catalog);
+    if ("error" in choice) return { status: 400, body: { error: choice.error } };
+    if (choice.model) cfg = kind === "video" ? { ...cfg, videoGen: { ...cfg.videoGen, model: choice.model } } : { ...cfg, musicGen: { ...cfg.musicGen, model: choice.model } };
+  }
   const { turn } = deps;
   if (!turn) return { status: 409, body: { error: NO_TURN } };
-  const { maxPerTurn } = spec.limits(deps.cfg);
+  const { maxPerTurn } = spec.limits(cfg);
   if (turn.parked() + (deps.inFlight.get(turn.key) ?? 0) >= maxPerTurn) return { status: 429, body: { error: spec.messages.perTurn(maxPerTurn) } };
   if (!deps.daily.reserve()) return { status: 429, body: { error: spec.messages.dailyCap(deps.daily.cap) } };
   let made = false;
   deps.inFlight.set(turn.key, (deps.inFlight.get(turn.key) ?? 0) + 1);
   try {
-    const media = await spec.generate(deps.cfg, parsed.data as never, { fetchImpl: deps.fetchImpl, signal: deps.signal });
+    const media = await spec.generate(cfg, parsed.data as never, { fetchImpl: deps.fetchImpl, signal: deps.signal });
     made = true;
     deps.made?.(media);
     if (!await turn.attach(media)) return { status: 409, body: { error: NO_TURN } };
@@ -157,6 +168,8 @@ export function createMediaToolRoutes(deps: MediaTurnStore & {
   dataDir: string;
   fetchImpl?: typeof fetch;
   made?: (kind: MediaKind, media: GeneratedMedia, by: { botId: string; threadId: string }) => void;
+  botMedia?: (botId: string) => BotMedia | undefined;
+  catalog?: FalModelCatalog;
 }) {
   const inFlight = new Map<string, number>();
   const counters = new Map<MediaKind, { cap: number; counter: ImageDailyCap }>();
@@ -178,6 +191,7 @@ export function createMediaToolRoutes(deps: MediaTurnStore & {
       const outcome = await generateMediaForTurn(kind, await ctx.readBody(), {
         cfg: deps.config(), personTurn: ctx.personTurn, daily: daily(kind), fetchImpl: deps.fetchImpl, turn, inFlight, signal: call.signal,
         made: (media) => deps.made?.(kind, media, { botId: ctx.botId, threadId: ctx.threadId }),
+        botMedia: deps.botMedia?.(ctx.botId), catalog: deps.catalog,
       });
       ctx.json(ctx.res, outcome.status, outcome.body);
     },

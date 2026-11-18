@@ -3660,5 +3660,13 @@
   "settings.features.acpPlanLines.subtitle": "Gemini CLI या Devin जैसे एजेंट अपनी योजना का हर चरण चैट में दिखाते हैं। हर चरण एक क्रिया गिना जाता है।",
   "settings.features.agentsToolBridge.title": "संक्षिप्त टूल सूची",
   "settings.features.agentsToolBridge.subtitle": "इंजन को पूरी सूची के बजाय बाकी टूल ढूँढने और चलाने के लिए दो टूल मिलते हैं। लोकल मॉडल के लिए पहले से चालू।",
-  "sidebar.menu.tour": "गाइडेड टूर"
+  "sidebar.menu.tour": "गाइडेड टूर",
+  "media.bot.title": "मीडिया",
+  "media.bot.help": "वे मॉडल जिन्हें यह बॉट इमेज, वीडियो और संगीत के लिए इस्तेमाल करता है। Auto हर अनुरोध के लिए एक चुनता है; चैट में आप जिस मॉडल का नाम लें, बॉट उसे भी इस्तेमाल करता है।",
+  "media.bot.image": "इमेज",
+  "media.bot.video": "वीडियो",
+  "media.bot.music": "संगीत",
+  "media.bot.auto": "Auto (सुझाया गया)",
+  "media.bot.recommended": "सुझाए गए",
+  "media.bot.more": "और मॉडल"
 }

@@ -6004,5 +6004,13 @@
   "settings.features.acpPlanLines.subtitle": "Các tác tử như Gemini CLI hay Devin hiện từng bước kế hoạch trong cuộc trò chuyện. Mỗi bước tính là một hành động.",
   "settings.features.agentsToolBridge.title": "Danh sách công cụ gọn",
   "settings.features.agentsToolBridge.subtitle": "Các engine nhận hai công cụ để tìm và dùng các công cụ khác thay vì toàn bộ danh sách. Đã bật cho mô hình cục bộ.",
-  "sidebar.menu.tour": "Hướng dẫn tham quan"
+  "sidebar.menu.tour": "Hướng dẫn tham quan",
+  "media.bot.title": "Đa phương tiện",
+  "media.bot.help": "Các mô hình bot này dùng cho hình ảnh, video và nhạc. Auto chọn một mô hình cho mỗi yêu cầu; bot cũng dùng mô hình bạn nêu tên trong cuộc trò chuyện.",
+  "media.bot.image": "Hình ảnh",
+  "media.bot.video": "Video",
+  "media.bot.music": "Nhạc",
+  "media.bot.auto": "Auto (khuyên dùng)",
+  "media.bot.recommended": "Khuyên dùng",
+  "media.bot.more": "Thêm mô hình"
 }
