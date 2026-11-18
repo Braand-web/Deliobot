@@ -1,5 +1,6 @@
 import type { OutboundPolicy } from "../shared/outbound.ts";
-import { DEFAULT_OUTBOUND_POLICY } from "../shared/outbound.ts";
+import { DEFAULT_OUTBOUND_POLICY, isPaymentTool } from "../shared/outbound.ts";
+import type { OutboundReview } from "./outbound-review.ts";
 import type { Notification } from "../shared/notification.ts";
 import { HELD_NOTE } from "./auto-approve.ts";
 import { appendDecision } from "./decision-log.ts";
@@ -25,6 +26,8 @@ export interface OutboundHoldDeps {
   connectorThread: (botId: string, threadId: string) => { group?: GroupRecord } | null;
   activeGroupTurnForBot: (botId: string) => { threadId: string } | null;
   notify: (notification: Notification | null) => void;
+  /** Weighs a send against the person's own rules; without it the rules are not read. */
+  review?: OutboundReview;
 }
 
 export type OutboundHoldAnswer = { ok: true; approved: boolean } | { ok: false; text: string };
@@ -52,7 +55,19 @@ export function createOutboundHold(deps: OutboundHoldDeps): OutboundHold {
   return {
     async hold({ bot: currentSender, threadId, tool: outboundTool, calls: outboundCalls, opaque, fullAccess, active }) {
       const refuseOutbound = (text: string): OutboundHoldAnswer => ({ ok: false, text });
-      if (!sendsWithoutAsking(currentSender.outbound, fullAccess, opaque)) {
+      const payment = outboundCalls.some((call) => isPaymentTool(call.slug));
+      let card = payment || !sendsWithoutAsking(currentSender.outbound, fullAccess, opaque);
+      const rules = currentSender.outbound;
+      if (!payment && !opaque && deps.review && (rules?.allowRules?.length || rules?.askRules?.length)) {
+        const described = outboundCard(outboundCalls);
+        const verdict = await deps.review({ base: card ? "ask" : "allow", allowRules: rules.allowRules ?? [], askRules: rules.askRules ?? [], actions: described.calls, drafts: described.drafts });
+        if (card && verdict === "allow") {
+          appendDecision(DATA_DIR, { threadId, botId: currentSender.id, botName: currentSender.name, tool: outboundTool, summary: described.summary, decision: "auto-approved", source: "outbound", rule: "review:allow" });
+          return { ok: true, approved: true };
+        }
+        if (!card && verdict === "ask") card = true;
+      }
+      if (card) {
         const { app, calls, drafts, summary } = outboundCard(outboundCalls);
         const owner = connectorThread(currentSender.id, threadId);
         const held = outboundRequests.open({ botId: currentSender.id, threadId, tool: outboundTool, timeoutMs: holdMs });
@@ -111,6 +126,7 @@ export function createOutboundHold(deps: OutboundHoldDeps): OutboundHold {
       return { ok: true, approved: false };
     },
     beforeDispatch({ bot: fresh, threadId, tool: outboundTool, opaque, fullAccess, approved }) {
+      if (isPaymentTool(outboundTool) && !approved) throw new Error("A payment needs the person's approval. Ask for approval again before paying.");
       const rule = sendsWithoutAsking(fresh.outbound, fullAccess, opaque);
       if (rule) {
         appendDecision(DATA_DIR, { threadId, botId: fresh.id, botName: fresh.name, tool: outboundTool, decision: "auto-approved", source: "outbound", rule });

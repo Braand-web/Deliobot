@@ -7670,5 +7670,10 @@
   "outboundDraft.resend": "내 버전 보내기",
   "outboundDraft.edited": "수정됨, 승인을 위해 다시 보냄",
   "chat.notice.appSignedOut": "{app}에서 로그아웃되었습니다. 로그인이 만료되었거나 취소되었습니다. 봇이 다시 사용할 수 있도록 다시 연결하세요.",
-  "chat.notice.reconnect": "다시 연결"
+  "chat.notice.reconnect": "다시 연결",
+  "permissions.rules.ask": "항상 묻기",
+  "permissions.rules.askHint": "한 줄에 하나씩, 내 말로: 항상 승인을 기다리는 전송. 예: «고객에게 보내는 모든 것».",
+  "permissions.rules.allow": "묻지 않고 허용",
+  "permissions.rules.allowHint": "한 줄에 하나씩: 카드 없이 나가는 전송. 예: «팀에게 보내는 WhatsApp 답장». 빠른 검사가 각 전송을 규칙과 비교하고, 애매하면 묻습니다.",
+  "permissions.rules.payments": "결제는 항상 승인을 기다립니다."
 }

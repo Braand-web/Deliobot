@@ -8,7 +8,18 @@ import { isConnectedAppsServer } from "./own-apps.ts";
 export type OutboundPolicy = {
   /** ask: every outbound call waits for a tap. allow: outbound calls go out without asking. */
   policy: "ask" | "allow";
+  /** The person's own words for sends that go without asking even under "ask" ("replies on WhatsApp to my team"). */
+  allowRules?: string[];
+  /** The person's own words for sends that always wait for a tap, even under "allow" ("anything to a customer"). */
+  askRules?: string[];
 };
+
+/** At most this many rules in each list, each at most this long. */
+export const OUTBOUND_RULES_MAX = 12;
+export const OUTBOUND_RULE_LENGTH = 200;
+
+/** Words in an action that move money: such a send always waits for a tap, whatever the rules or the access level. */
+const PAYMENT_VERBS = new Set(["PAY", "PAYMENT", "PAYOUT", "CHARGE", "TRANSFER", "BUY", "PURCHASE", "REFUND", "CHECKOUT", "ORDER"]);
 
 /** Tools whose action is one of these words send something somewhere. */
 const SEND_VERBS = new Set([
@@ -104,11 +115,25 @@ export function isOutboundTool(name: string): boolean {
   return tokens.some((token) => CREATE_VERBS.has(token)) && tokens.some((token) => SENT_NOUNS.has(token));
 }
 
-/** The stored shape, or null when the value is not one. Fields other than `policy` are dropped. */
+/** Does this tool move money? */
+export function isPaymentTool(name: string): boolean {
+  if (isReadOnlyTool(name)) return false;
+  return actionTokens(name).some((token) => PAYMENT_VERBS.has(token));
+}
+
+function rules(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const kept = value.flatMap((rule) => (typeof rule === "string" && rule.trim() ? [rule.trim().slice(0, OUTBOUND_RULE_LENGTH)] : []));
+  return [...new Set(kept)].slice(0, OUTBOUND_RULES_MAX);
+}
+
+/** The stored shape, or null when the value is not one. Fields other than `policy` and the two rule lists are dropped. */
 export function normalizeOutboundPolicy(value: unknown): OutboundPolicy | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const { policy } = value as { policy?: unknown };
-  return policy === "ask" || policy === "allow" ? { policy } : null;
+  const { policy, allowRules, askRules } = value as { policy?: unknown; allowRules?: unknown; askRules?: unknown };
+  if (policy !== "ask" && policy !== "allow") return null;
+  const allow = rules(allowRules), ask = rules(askRules);
+  return { policy, ...(allow.length ? { allowRules: allow } : {}), ...(ask.length ? { askRules: ask } : {}) };
 }
 
 /** What a bot without a stored policy does: ask, every time. */

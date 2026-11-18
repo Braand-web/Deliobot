@@ -5933,5 +5933,10 @@
   "outboundDraft.resend": "Gửi bản của tôi",
   "outboundDraft.edited": "Đã sửa, gửi lại để duyệt",
   "chat.notice.appSignedOut": "{app} đã đăng xuất: phiên đăng nhập hết hạn hoặc bị thu hồi. Hãy kết nối lại để bot có thể dùng tiếp.",
-  "chat.notice.reconnect": "Kết nối lại"
+  "chat.notice.reconnect": "Kết nối lại",
+  "permissions.rules.ask": "Luôn hỏi",
+  "permissions.rules.askHint": "Mỗi dòng một quy tắc, bằng lời của bạn: những lần gửi luôn chờ bạn duyệt, ví dụ «Mọi thứ gửi khách hàng».",
+  "permissions.rules.allow": "Cho phép không cần hỏi",
+  "permissions.rules.allowHint": "Mỗi dòng một quy tắc: những lần gửi đi không cần thẻ, ví dụ «Trả lời WhatsApp cho nhóm của tôi». Một bước kiểm tra nhanh so sánh mỗi lần gửi với quy tắc; nếu nghi ngờ, nó sẽ hỏi.",
+  "permissions.rules.payments": "Thanh toán luôn chờ bạn duyệt."
 }

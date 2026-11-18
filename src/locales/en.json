@@ -11257,5 +11257,10 @@
   "outboundDraft.resend": "Send my version",
   "outboundDraft.edited": "Edited, sent back for approval",
   "chat.notice.appSignedOut": "{app} is signed out: its sign-in expired or was revoked. Reconnect it so your bots can use it again.",
-  "chat.notice.reconnect": "Reconnect"
+  "chat.notice.reconnect": "Reconnect",
+  "permissions.rules.ask": "Always ask",
+  "permissions.rules.askHint": "One per line, in your own words: sends that always wait for your tap, e.g. \"Anything to a customer\".",
+  "permissions.rules.allow": "Allow without asking",
+  "permissions.rules.allowHint": "One per line: sends that go without a card, e.g. \"Replies on WhatsApp to my team\". A quick check reads each send against your rules; when in doubt, it asks.",
+  "permissions.rules.payments": "Payments always wait for your approval."
 }

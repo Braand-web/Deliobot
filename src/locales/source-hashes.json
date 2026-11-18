@@ -4068,7 +4068,12 @@
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
       "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
       "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
-      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18",
+      "permissions.rules.ask": "3c42771506f63e322dde196757b097396054e1cd78adca470dc338f0432339f9",
+      "permissions.rules.askHint": "9066ab1ed420eb4eb0fded2072f100a2150cd27305b38e7f2f2f287d61f0779d",
+      "permissions.rules.allow": "2301478309ba00412073cfe13af4e083b7d484684d515cc4c9276477af4daae5",
+      "permissions.rules.allowHint": "4a36eeb4109bb10d576bb025d46ad3b13e7ac058c8286caf8ed79cb76cb428fb",
+      "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7"
     },
     "es": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -10498,7 +10503,12 @@
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
       "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
       "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
-      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18",
+      "permissions.rules.ask": "3c42771506f63e322dde196757b097396054e1cd78adca470dc338f0432339f9",
+      "permissions.rules.askHint": "9066ab1ed420eb4eb0fded2072f100a2150cd27305b38e7f2f2f287d61f0779d",
+      "permissions.rules.allow": "2301478309ba00412073cfe13af4e083b7d484684d515cc4c9276477af4daae5",
+      "permissions.rules.allowHint": "4a36eeb4109bb10d576bb025d46ad3b13e7ac058c8286caf8ed79cb76cb428fb",
+      "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7"
     },
     "fr": {
       "delioMenu.checking": "ee7fdea20d0b8d3d566f24f6e7b11b62f71cc8fc95748cd8d4c5431ab3947185",
@@ -14635,7 +14645,12 @@
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
       "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
       "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
-      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18",
+      "permissions.rules.ask": "3c42771506f63e322dde196757b097396054e1cd78adca470dc338f0432339f9",
+      "permissions.rules.askHint": "9066ab1ed420eb4eb0fded2072f100a2150cd27305b38e7f2f2f287d61f0779d",
+      "permissions.rules.allow": "2301478309ba00412073cfe13af4e083b7d484684d515cc4c9276477af4daae5",
+      "permissions.rules.allowHint": "4a36eeb4109bb10d576bb025d46ad3b13e7ac058c8286caf8ed79cb76cb428fb",
+      "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7"
     },
     "hi": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -18327,7 +18342,12 @@
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
       "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
       "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
-      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18",
+      "permissions.rules.ask": "3c42771506f63e322dde196757b097396054e1cd78adca470dc338f0432339f9",
+      "permissions.rules.askHint": "9066ab1ed420eb4eb0fded2072f100a2150cd27305b38e7f2f2f287d61f0779d",
+      "permissions.rules.allow": "2301478309ba00412073cfe13af4e083b7d484684d515cc4c9276477af4daae5",
+      "permissions.rules.allowHint": "4a36eeb4109bb10d576bb025d46ad3b13e7ac058c8286caf8ed79cb76cb428fb",
+      "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7"
     },
     "ja": {
       "connectedWorkspaces.localTitle": "7d6deafeab011d734c3fdd1bfd6f69544fbb746a004019269bdb48544b01164b",
@@ -26257,7 +26277,12 @@
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
       "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
       "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
-      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18",
+      "permissions.rules.ask": "3c42771506f63e322dde196757b097396054e1cd78adca470dc338f0432339f9",
+      "permissions.rules.askHint": "9066ab1ed420eb4eb0fded2072f100a2150cd27305b38e7f2f2f287d61f0779d",
+      "permissions.rules.allow": "2301478309ba00412073cfe13af4e083b7d484684d515cc4c9276477af4daae5",
+      "permissions.rules.allowHint": "4a36eeb4109bb10d576bb025d46ad3b13e7ac058c8286caf8ed79cb76cb428fb",
+      "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7"
     },
     "pt-br": {
       "delioMenu.checking": "ee7fdea20d0b8d3d566f24f6e7b11b62f71cc8fc95748cd8d4c5431ab3947185",
@@ -37455,7 +37480,12 @@
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
       "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
       "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
-      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18",
+      "permissions.rules.ask": "3c42771506f63e322dde196757b097396054e1cd78adca470dc338f0432339f9",
+      "permissions.rules.askHint": "9066ab1ed420eb4eb0fded2072f100a2150cd27305b38e7f2f2f287d61f0779d",
+      "permissions.rules.allow": "2301478309ba00412073cfe13af4e083b7d484684d515cc4c9276477af4daae5",
+      "permissions.rules.allowHint": "4a36eeb4109bb10d576bb025d46ad3b13e7ac058c8286caf8ed79cb76cb428fb",
+      "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7"
     },
     "zh": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -47426,7 +47456,12 @@
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
       "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
       "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
-      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18",
+      "permissions.rules.ask": "3c42771506f63e322dde196757b097396054e1cd78adca470dc338f0432339f9",
+      "permissions.rules.askHint": "9066ab1ed420eb4eb0fded2072f100a2150cd27305b38e7f2f2f287d61f0779d",
+      "permissions.rules.allow": "2301478309ba00412073cfe13af4e083b7d484684d515cc4c9276477af4daae5",
+      "permissions.rules.allowHint": "4a36eeb4109bb10d576bb025d46ad3b13e7ac058c8286caf8ed79cb76cb428fb",
+      "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7"
     },
     "zh-tw": {
       "connectedWorkspaces.localTitle": "7d6deafeab011d734c3fdd1bfd6f69544fbb746a004019269bdb48544b01164b",
@@ -57585,7 +57620,12 @@
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
       "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
       "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
-      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18",
+      "permissions.rules.ask": "3c42771506f63e322dde196757b097396054e1cd78adca470dc338f0432339f9",
+      "permissions.rules.askHint": "9066ab1ed420eb4eb0fded2072f100a2150cd27305b38e7f2f2f287d61f0779d",
+      "permissions.rules.allow": "2301478309ba00412073cfe13af4e083b7d484684d515cc4c9276477af4daae5",
+      "permissions.rules.allowHint": "4a36eeb4109bb10d576bb025d46ad3b13e7ac058c8286caf8ed79cb76cb428fb",
+      "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7"
     },
     "uk": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -61697,7 +61737,12 @@
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
       "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
       "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
-      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18",
+      "permissions.rules.ask": "3c42771506f63e322dde196757b097396054e1cd78adca470dc338f0432339f9",
+      "permissions.rules.askHint": "9066ab1ed420eb4eb0fded2072f100a2150cd27305b38e7f2f2f287d61f0779d",
+      "permissions.rules.allow": "2301478309ba00412073cfe13af4e083b7d484684d515cc4c9276477af4daae5",
+      "permissions.rules.allowHint": "4a36eeb4109bb10d576bb025d46ad3b13e7ac058c8286caf8ed79cb76cb428fb",
+      "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7"
     },
     "vi": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -67624,7 +67669,12 @@
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
       "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
       "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
-      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18",
+      "permissions.rules.ask": "3c42771506f63e322dde196757b097396054e1cd78adca470dc338f0432339f9",
+      "permissions.rules.askHint": "9066ab1ed420eb4eb0fded2072f100a2150cd27305b38e7f2f2f287d61f0779d",
+      "permissions.rules.allow": "2301478309ba00412073cfe13af4e083b7d484684d515cc4c9276477af4daae5",
+      "permissions.rules.allowHint": "4a36eeb4109bb10d576bb025d46ad3b13e7ac058c8286caf8ed79cb76cb428fb",
+      "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7"
     },
     "tr": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -73551,7 +73601,12 @@
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
       "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
       "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
-      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18",
+      "permissions.rules.ask": "3c42771506f63e322dde196757b097396054e1cd78adca470dc338f0432339f9",
+      "permissions.rules.askHint": "9066ab1ed420eb4eb0fded2072f100a2150cd27305b38e7f2f2f287d61f0779d",
+      "permissions.rules.allow": "2301478309ba00412073cfe13af4e083b7d484684d515cc4c9276477af4daae5",
+      "permissions.rules.allowHint": "4a36eeb4109bb10d576bb025d46ad3b13e7ac058c8286caf8ed79cb76cb428fb",
+      "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7"
     },
     "pl": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -80686,7 +80741,12 @@
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
       "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
       "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
-      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18",
+      "permissions.rules.ask": "3c42771506f63e322dde196757b097396054e1cd78adca470dc338f0432339f9",
+      "permissions.rules.askHint": "9066ab1ed420eb4eb0fded2072f100a2150cd27305b38e7f2f2f287d61f0779d",
+      "permissions.rules.allow": "2301478309ba00412073cfe13af4e083b7d484684d515cc4c9276477af4daae5",
+      "permissions.rules.allowHint": "4a36eeb4109bb10d576bb025d46ad3b13e7ac058c8286caf8ed79cb76cb428fb",
+      "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7"
     },
     "ru": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -87875,7 +87935,12 @@
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
       "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
       "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
-      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18",
+      "permissions.rules.ask": "3c42771506f63e322dde196757b097396054e1cd78adca470dc338f0432339f9",
+      "permissions.rules.askHint": "9066ab1ed420eb4eb0fded2072f100a2150cd27305b38e7f2f2f287d61f0779d",
+      "permissions.rules.allow": "2301478309ba00412073cfe13af4e083b7d484684d515cc4c9276477af4daae5",
+      "permissions.rules.allowHint": "4a36eeb4109bb10d576bb025d46ad3b13e7ac058c8286caf8ed79cb76cb428fb",
+      "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7"
     },
     "it": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -94879,7 +94944,12 @@
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
       "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
       "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
-      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18",
+      "permissions.rules.ask": "3c42771506f63e322dde196757b097396054e1cd78adca470dc338f0432339f9",
+      "permissions.rules.askHint": "9066ab1ed420eb4eb0fded2072f100a2150cd27305b38e7f2f2f287d61f0779d",
+      "permissions.rules.allow": "2301478309ba00412073cfe13af4e083b7d484684d515cc4c9276477af4daae5",
+      "permissions.rules.allowHint": "4a36eeb4109bb10d576bb025d46ad3b13e7ac058c8286caf8ed79cb76cb428fb",
+      "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7"
     },
     "ko": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -102544,7 +102614,12 @@
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
       "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
       "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
-      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18",
+      "permissions.rules.ask": "3c42771506f63e322dde196757b097396054e1cd78adca470dc338f0432339f9",
+      "permissions.rules.askHint": "9066ab1ed420eb4eb0fded2072f100a2150cd27305b38e7f2f2f287d61f0779d",
+      "permissions.rules.allow": "2301478309ba00412073cfe13af4e083b7d484684d515cc4c9276477af4daae5",
+      "permissions.rules.allowHint": "4a36eeb4109bb10d576bb025d46ad3b13e7ac058c8286caf8ed79cb76cb428fb",
+      "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7"
     }
   }
 }

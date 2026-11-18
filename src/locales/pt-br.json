@@ -11257,5 +11257,10 @@
   "outboundDraft.resend": "Enviar minha versão",
   "outboundDraft.edited": "Editado, reenviado para aprovação",
   "chat.notice.appSignedOut": "{app} foi desconectado: o login expirou ou foi revogado. Reconecte para que seus bots possam usá-lo de novo.",
-  "chat.notice.reconnect": "Reconectar"
+  "chat.notice.reconnect": "Reconectar",
+  "permissions.rules.ask": "Sempre perguntar",
+  "permissions.rules.askHint": "Uma por linha, com suas palavras: envios que sempre esperam sua aprovação, ex.: «Qualquer coisa para um cliente».",
+  "permissions.rules.allow": "Permitir sem perguntar",
+  "permissions.rules.allowHint": "Uma por linha: envios que saem sem cartão, ex.: «Respostas no WhatsApp para minha equipe». Uma verificação rápida compara cada envio com suas regras; na dúvida, pergunta.",
+  "permissions.rules.payments": "Pagamentos sempre esperam sua aprovação."
 }

@@ -7009,5 +7009,10 @@
   "outboundDraft.resend": "Invia la mia versione",
   "outboundDraft.edited": "Modificato, rimandato per l'approvazione",
   "chat.notice.appSignedOut": "{app} è disconnesso: l'accesso è scaduto o è stato revocato. Ricollegalo perché i tuoi bot possano usarlo di nuovo.",
-  "chat.notice.reconnect": "Ricollega"
+  "chat.notice.reconnect": "Ricollega",
+  "permissions.rules.ask": "Chiedi sempre",
+  "permissions.rules.askHint": "Una per riga, con parole tue: invii che aspettano sempre la tua conferma, ad es. «Qualsiasi cosa a un cliente».",
+  "permissions.rules.allow": "Consenti senza chiedere",
+  "permissions.rules.allowHint": "Una per riga: invii che partono senza scheda, ad es. «Risposte WhatsApp al mio team». Un controllo rapido confronta ogni invio con le tue regole; nel dubbio, chiede.",
+  "permissions.rules.payments": "I pagamenti aspettano sempre la tua approvazione."
 }

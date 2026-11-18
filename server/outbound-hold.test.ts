@@ -22,7 +22,7 @@ afterEach(async () => {
 
 const calls = [{ slug: "GMAIL_SEND_EMAIL", arguments: { to: "ana@example.com", subject: "Hello" } }];
 
-function setup(bot: HoldBot) {
+function setup(bot: HoldBot, review?: OutboundHoldDeps["review"]) {
   const dataDir = mkdtempSync(join(tmpdir(), "outbound-hold-"));
   dirs.push(dataDir);
   const appended: Array<{ threadId: string; message: { id: string; card?: Record<string, unknown> } & Record<string, unknown> }> = [];
@@ -60,6 +60,7 @@ function setup(bot: HoldBot) {
     connectorThread: () => ({ group: undefined }),
     activeGroupTurnForBot: () => null,
     notify: (notification) => notified.push(notification),
+    ...(review ? { review } : {}),
   };
   const input = { bot, threadId: "t1", tool: "GMAIL_SEND_EMAIL", calls, opaque: false, fullAccess: false };
   return { hold: createOutboundHold(deps), dataDir, appended, patches, activity, notified, outboundRequests, input };
@@ -145,6 +146,34 @@ describe("createOutboundHold", () => {
     const answer = await pending;
     expect(answer).toEqual({ ok: false, text: expect.stringMatching(/edited it first/) });
     expect(answer.ok ? "" : answer.text).toContain("Text:\nLe texte revu");
+  });
+
+  it("a payment always waits for a tap, even under send-without-asking and Full access, and cannot be sent unapproved", async () => {
+    const paying = setup(bot({ policy: "allow" }), async () => "allow");
+    const input = { ...paying.input, tool: "STRIPE_CREATE_REFUND", calls: [{ slug: "STRIPE_CREATE_REFUND", arguments: { amount: 5000 } }] };
+    const pending = paying.hold.hold({ ...input, fullAccess: true, active: () => true });
+    await vi.waitFor(() => expect(paying.appended).toHaveLength(1));
+    expect(() => paying.hold.beforeDispatch({ ...input, fullAccess: true, approved: false })).toThrow(/payment needs the person's approval/);
+    paying.outboundRequests.resolve({ threadId: "t1", requestId: paying.appended[0].message.card!.requestId as string, behavior: "allow" });
+    await expect(pending).resolves.toEqual({ ok: true, approved: true });
+  });
+
+  it("sends without a card what the person's allow rule covers, and records why", async () => {
+    const review = vi.fn(async () => "allow" as const);
+    const held = setup(bot({ policy: "ask", allowRules: ["Emails to Ana"] }), review);
+    await expect(send(held)).resolves.toEqual({ ok: true, approved: true });
+    expect(held.appended).toEqual([]);
+    expect(review).toHaveBeenCalledWith(expect.objectContaining({ base: "ask", allowRules: ["Emails to Ana"], drafts: [expect.objectContaining({ to: "ana@example.com" })] }));
+    await flushDecisionLog(held.dataDir);
+    expect(readDecisions(held.dataDir, 10)).toMatchObject([{ decision: "auto-approved", rule: "review:allow" }]);
+  });
+
+  it("holds for a card what the person's always-ask rule names, even under send-without-asking", async () => {
+    const held = setup(bot({ policy: "allow", askRules: ["Anything to a customer"] }), async () => "ask");
+    const pending = held.hold.hold({ ...held.input, active: () => true });
+    await vi.waitFor(() => expect(held.appended).toHaveLength(1));
+    held.outboundRequests.resolve({ threadId: "t1", requestId: held.appended[0].message.card!.requestId as string, behavior: "deny" });
+    await expect(pending).resolves.toEqual({ ok: false, text: expect.stringMatching(/the user declined/) });
   });
 
   it("deny answers the decline text; timeout marks the card unavailable", async () => {

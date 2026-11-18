@@ -4143,5 +4143,10 @@
   "outboundDraft.resend": "Envoyer ma version",
   "outboundDraft.edited": "Modifié, renvoyé pour validation",
   "chat.notice.appSignedOut": "{app} est déconnecté : sa connexion a expiré ou a été révoquée. Reconnectez-le pour que vos bots puissent l'utiliser.",
-  "chat.notice.reconnect": "Reconnecter"
+  "chat.notice.reconnect": "Reconnecter",
+  "permissions.rules.ask": "Toujours demander",
+  "permissions.rules.askHint": "Une règle par ligne, avec vos mots : les envois qui attendent toujours votre accord, par ex. « Tout message à un client ».",
+  "permissions.rules.allow": "Autoriser sans demander",
+  "permissions.rules.allowHint": "Une règle par ligne : les envois qui partent sans carte, par ex. « Réponses WhatsApp à mon équipe ». Une vérification rapide compare chaque envoi à vos règles ; en cas de doute, elle demande.",
+  "permissions.rules.payments": "Les paiements attendent toujours votre accord."
 }

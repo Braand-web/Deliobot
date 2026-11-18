@@ -7934,5 +7934,10 @@
   "outboundDraft.resend": "自分の版を送る",
   "outboundDraft.edited": "編集済み、承認のため再送",
   "chat.notice.appSignedOut": "{app} からサインアウトしました。サインインの期限切れか取り消しです。ボットが再び使えるよう、もう一度接続してください。",
-  "chat.notice.reconnect": "再接続"
+  "chat.notice.reconnect": "再接続",
+  "permissions.rules.ask": "常に確認する",
+  "permissions.rules.askHint": "1行に1つ、自分の言葉で：必ず承認を待つ送信。例「顧客へのすべて」。",
+  "permissions.rules.allow": "確認なしで許可",
+  "permissions.rules.allowHint": "1行に1つ：カードなしで送る送信。例「チームへのWhatsApp返信」。各送信をルールと照合し、迷ったら確認します。",
+  "permissions.rules.payments": "支払いは常に承認を待ちます。"
 }

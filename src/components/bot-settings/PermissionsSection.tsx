@@ -8,7 +8,7 @@ import { t } from "@/lib/i18n";
 import { useOwnerOrAdmin } from "@/lib/use-owner-or-admin";
 import { useStore, type Bot } from "@/state/store";
 import type { ApprovalMode } from "../../../shared/approval-mode";
-import { DEFAULT_OUTBOUND_POLICY, type OutboundPolicy } from "../../../shared/outbound";
+import { DEFAULT_OUTBOUND_POLICY, OUTBOUND_RULE_LENGTH, OUTBOUND_RULES_MAX, type OutboundPolicy } from "../../../shared/outbound";
 import { ApprovalModeSelector } from "../ApprovalModeSelector";
 import { CommandAllowlistDialog } from "../CommandAllowlistDialog";
 import { LocalComputerAutoWarning } from "../LocalComputerAutoWarning";
@@ -179,7 +179,7 @@ function OutboundControl({ bot, onChange }: { bot: Bot; onChange: (policy: Outbo
             type="button"
             aria-pressed={policy.policy === value}
             onClick={() => {
-              if (value !== policy.policy) onChange({ policy: value });
+              if (value !== policy.policy) onChange({ policy: value, ...(policy.allowRules?.length ? { allowRules: policy.allowRules } : {}), ...(policy.askRules?.length ? { askRules: policy.askRules } : {}) });
             }}
             className={cn(
               "flex-1 rounded-md px-2.5 py-1.5 text-[13px] font-medium",
@@ -190,6 +190,28 @@ function OutboundControl({ bot, onChange }: { bot: Bot; onChange: (policy: Outbo
           </button>
         ))}
       </div>
+      <OutboundRules key={`ask-${bot.id}`} label={t("permissions.rules.ask")} hint={t("permissions.rules.askHint")} rules={policy.askRules ?? []}
+        onSave={(askRules) => onChange({ ...policy, askRules })} />
+      <OutboundRules key={`allow-${bot.id}`} label={t("permissions.rules.allow")} hint={t("permissions.rules.allowHint")} rules={policy.allowRules ?? []}
+        onSave={(allowRules) => onChange({ ...policy, allowRules })} />
+      <p className="mt-3 text-[12px] text-ink-secondary">{t("permissions.rules.payments")}</p>
     </div>
+  );
+}
+
+/** One list of the person's own rules, one per line, saved when the field loses focus. */
+function OutboundRules({ label, hint, rules, onSave }: { label: string; hint: string; rules: readonly string[]; onSave: (rules: string[]) => void }) {
+  const [text, setText] = useState(rules.join("\n"));
+  const save = () => {
+    const next = [...new Set(text.split("\n").map((line) => line.trim()).filter(Boolean))].slice(0, OUTBOUND_RULES_MAX).map((line) => line.slice(0, OUTBOUND_RULE_LENGTH));
+    if (next.join("\n") !== rules.join("\n")) onSave(next);
+  };
+  return (
+    <label className="mt-4 flex flex-col gap-1">
+      <span className="text-[13px] font-medium text-ink">{label}</span>
+      <span className="text-[12px] text-ink-secondary">{hint}</span>
+      <textarea dir="auto" rows={3} value={text} onChange={(event) => setText(event.target.value)} onBlur={save}
+        className="mt-1 resize-y rounded-lg border border-hairline bg-inset px-2.5 py-1.5 text-[13px] leading-[19px] text-ink" />
+    </label>
   );
 }

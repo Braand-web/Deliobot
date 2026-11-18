@@ -10163,5 +10163,10 @@
   "outboundDraft.resend": "傳送我的版本",
   "outboundDraft.edited": "已編輯，重新送出等待核准",
   "chat.notice.appSignedOut": "{app} 已登出：登入已過期或被撤銷。請重新連線，讓你的機器人能再次使用。",
-  "chat.notice.reconnect": "重新連線"
+  "chat.notice.reconnect": "重新連線",
+  "permissions.rules.ask": "一律詢問",
+  "permissions.rules.askHint": "每行一條，用你自己的話：一律等你核准的傳送，例如「寄給客戶的任何內容」。",
+  "permissions.rules.allow": "不詢問直接允許",
+  "permissions.rules.allowHint": "每行一條：不需卡片就送出的傳送，例如「回覆團隊的 WhatsApp」。快速檢查會比對每次傳送與你的規則；有疑慮就詢問。",
+  "permissions.rules.payments": "付款一律等你核准。"
 }

@@ -321,7 +321,7 @@ export interface Bot extends DefaultBotFields, Pick<WireBot, "mascotFaceColor" |
   composio?: boolean;
   connectorTools?: Record<string, ConnectorToolGrant>;
   connectorScopes?: { apps: Record<string, "read" | "write"> }; phoneApps?: import("../../shared/phone-apps").PhoneApps;
-  outbound?: { policy: "ask" | "allow" };
+  outbound?: { policy: "ask" | "allow"; allowRules?: string[]; askRules?: string[] };
   fallback?: Array<{ instanceId: string; model: string }>;
   browser?: boolean;
   recordBrowserSteps?: boolean;

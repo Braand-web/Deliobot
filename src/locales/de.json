@@ -4075,5 +4075,10 @@
   "outboundDraft.resend": "Meine Version senden",
   "outboundDraft.edited": "Bearbeitet, zur Freigabe zurückgeschickt",
   "chat.notice.appSignedOut": "{app} ist abgemeldet: Die Anmeldung ist abgelaufen oder wurde widerrufen. Verbinde es neu, damit deine Bots es wieder nutzen können.",
-  "chat.notice.reconnect": "Neu verbinden"
+  "chat.notice.reconnect": "Neu verbinden",
+  "permissions.rules.ask": "Immer fragen",
+  "permissions.rules.askHint": "Eine pro Zeile, in deinen Worten: Sendungen, die immer auf deine Bestätigung warten, z. B. „Alles an Kunden“.",
+  "permissions.rules.allow": "Ohne Nachfrage erlauben",
+  "permissions.rules.allowHint": "Eine pro Zeile: Sendungen ohne Karte, z. B. „WhatsApp-Antworten an mein Team“. Eine kurze Prüfung vergleicht jede Sendung mit deinen Regeln; im Zweifel fragt sie.",
+  "permissions.rules.payments": "Zahlungen warten immer auf deine Freigabe."
 }

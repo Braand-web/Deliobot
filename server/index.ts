@@ -73,7 +73,7 @@ import {
 import { avatarImageStatus } from "./avatar-image.ts"; import { assignmentReadRefusal } from "./assignment-read.ts";
 import { imageGenerationReady } from "./image-generation.ts"; import { configureHiggsfield, createHiggsfieldBackend } from "./higgsfield-mcp.ts";
 import { withAutoModel } from "./auto-model.ts";
-import { createDelioAccount, delioConnection, delioPlanTurnsFor, withDelioMedia } from "./delio-account.ts"; import { hostedDelioAccount, startDelioBrokerLink } from "./delio-broker-link.ts"; import { createAppSignedOutNotice } from "./app-signed-out-notice.ts"; import { setBrokerRelink } from "./composio-broker-access.ts"; import { startPythonRuntime } from "./python-runtime.ts";
+import { createDelioAccount, delioConnection, delioPlanTurnsFor, withDelioMedia } from "./delio-account.ts"; import { hostedDelioAccount, startDelioBrokerLink } from "./delio-broker-link.ts"; import { createAppSignedOutNotice } from "./app-signed-out-notice.ts"; import { createOutboundReview } from "./outbound-review.ts"; import { setBrokerRelink } from "./composio-broker-access.ts"; import { startPythonRuntime } from "./python-runtime.ts";
 import { createDelioAccountRoutes } from "./routes/delio-account.ts";
 import { videoGenerationReady } from "./video-generation.ts";
 import { createMediaToolRoutes, type MediaKind } from "./routes/media-tools.ts";
@@ -327,7 +327,7 @@ import {
 } from "./store.ts";
 import * as tts from "./tts/index.ts";
 import { voiceNoteFailure } from "./tts/errors.ts";
-import { createDecider, deciderReady, describeDecider } from "./decider/index.ts"; import { createExtractor, describeHelpers } from "./extractor/index.ts";
+import { createDecider, deciderEnabled, deciderReady, describeDecider } from "./decider/index.ts"; import { createExtractor, describeHelpers } from "./extractor/index.ts";
 import { createStopLineRoutes } from "./routes/stop-line.ts"; import { decideRoomResponder } from "./decider/room-routing.ts"; import { roomRoutingInput } from "./host/room-routing-input.ts";
 import { autoRoomDefault, roomTurnMembers } from "./room-routing-members.ts";
 import { liveHistoryFrom, LiveSessionError, type LiveBot, type LiveHistoryMessage } from "./live-call.ts";
@@ -9221,7 +9221,7 @@ const teamMemoryRequests = createTeamMemoryRequests({ teamMemory, store, section
 const outsideWrites = createOutsideWrites({ store, notify, language: (threadId) => threadLanguage(threadId), decide: (row) => appendDecision(DATA_DIR, row),
   writeMemory: (botId, threadId, change) => { const written = botMemoryUpdate(teamHost.layer(botId, threadId), change, { source: memorySourceLabel({ room: store.groupByThread(threadId), task: store.taskByThread(teamHost.baseBotId(botId), threadId), threadId }), aboutMe: null, prefer: null }); return written.ok ? null : written.error; } });
 const outboundRequests = new OutboundRequestService();
-const outboundHold = createOutboundHold({ store, dataDir: DATA_DIR, outboundRequests, holdMs: OUTBOUND_HOLD_MS, connectorThread, activeGroupTurnForBot, notify }); const appSignedOut = createAppSignedOutNotice({ append: (threadId, tool) => { store.appendMessage(threadId, { role: "bot", kind: "activity", tool }); } });
+const outboundHold = createOutboundHold({ store, dataDir: DATA_DIR, outboundRequests, holdMs: OUTBOUND_HOLD_MS, connectorThread, activeGroupTurnForBot, notify, review: createOutboundReview(decider, () => deciderEnabled(cfg)) }); const appSignedOut = createAppSignedOutNotice({ append: (threadId, tool) => { store.appendMessage(threadId, { role: "bot", kind: "activity", tool }); } });
 
 const { resolveAndSendTrust } = createTrustAnswers({ store, dataDir: DATA_DIR, teamMemoryRequests, outsideWrites, outboundRequests });
 

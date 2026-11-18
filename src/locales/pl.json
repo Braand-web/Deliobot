@@ -7140,5 +7140,10 @@
   "outboundDraft.resend": "Wyślij moją wersję",
   "outboundDraft.edited": "Zmieniono, odesłano do zatwierdzenia",
   "chat.notice.appSignedOut": "{app} jest wylogowany: logowanie wygasło lub zostało cofnięte. Połącz ponownie, aby boty mogły z niego korzystać.",
-  "chat.notice.reconnect": "Połącz ponownie"
+  "chat.notice.reconnect": "Połącz ponownie",
+  "permissions.rules.ask": "Zawsze pytaj",
+  "permissions.rules.askHint": "Jedna w wierszu, własnymi słowami: wysyłki, które zawsze czekają na zgodę, np. „Wszystko do klienta”.",
+  "permissions.rules.allow": "Zezwalaj bez pytania",
+  "permissions.rules.allowHint": "Jedna w wierszu: wysyłki bez karty, np. „Odpowiedzi WhatsApp do mojego zespołu”. Szybka kontrola porównuje każdą wysyłkę z regułami; w razie wątpliwości pyta.",
+  "permissions.rules.payments": "Płatności zawsze czekają na Twoją zgodę."
 }
