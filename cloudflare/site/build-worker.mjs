@@ -3,7 +3,7 @@ import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "n
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { ROBOTS, sitemap, withSeo } from "./seo.mjs";
+import { llms, llmsFull, ROBOTS, sitemap, withSeo } from "./seo.mjs";
 
 const root = fileURLToPath(new URL("./public/", import.meta.url));
 const types = { ".html": "text/html; charset=utf-8", ".webp": "image/webp", ".svg": "image/svg+xml", ".css": "text/css", ".txt": "text/plain; charset=utf-8", ".xml": "application/xml; charset=utf-8" };
@@ -19,6 +19,9 @@ const files = {};
   }
 })(root);
 files["/robots.txt"] = { type: types[".txt"], body: Buffer.from(ROBOTS).toString("base64") };
+const pages = Object.fromEntries(Object.entries(files).filter(([name]) => name.endsWith(".html")).map(([name, file]) => [name, Buffer.from(file.body, "base64").toString("utf8")]));
+files["/llms.txt"] = { type: types[".txt"], body: Buffer.from(llms(pages)).toString("base64") };
+files["/llms-full.txt"] = { type: types[".txt"], body: Buffer.from(llmsFull(pages)).toString("base64") };
 files["/sitemap.xml"] = { type: types[".xml"], body: Buffer.from(sitemap(Object.keys(files), new Date().toISOString().slice(0, 10))).toString("base64") };
 
 mkdirSync(new URL("./dist/", import.meta.url), { recursive: true });
