@@ -27,8 +27,8 @@ const STYLE = `
 @media (prefers-color-scheme:light){:root{--canvas:#f7f7f8;--surface:#fff;--hairline:#e2e2e5;--ink:#141416;--ink-2:#14141699;--accent:#1084fe;--accent-text:#0a64c8;--danger:#d92d3f;--success:#178a5a;color-scheme:light}}
 *{box-sizing:border-box}body{margin:0;background:var(--canvas);color:var(--ink);font:15px/1.5 "Geist",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
 header{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid var(--hairline)}header img{width:32px;height:32px}header b{font-weight:600}
-header nav{margin-left:auto;display:flex;gap:12px;align-items:center;font-size:13px;color:var(--ink-2)}
-main{max-width:760px;margin:0 auto;padding:28px 16px 64px}h1{font-size:22px;margin:0 0 6px}h2{font-size:15px;margin:28px 0 10px}
+header nav{margin-left:auto;display:flex;gap:12px;align-items:center;font-size:13px;color:var(--ink-2)}@media (max-width:560px){header nav>span{display:none}}
+main{max-width:760px;margin:0 auto;padding:28px 16px 64px}main.wide{max-width:1140px}h1{font-size:22px;margin:0 0 6px}h2{font-size:15px;margin:28px 0 10px}
 p.muted,.muted{color:var(--ink-2);font-size:13px}a{color:var(--accent-text)}
 .card{background:var(--surface);border:1px solid var(--hairline);border-radius:12px;padding:16px;margin:12px 0}
 .row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--hairline)}.row:last-child{border-bottom:0}.grow{flex:1;min-width:0;overflow-wrap:anywhere}
@@ -60,15 +60,15 @@ export const SUPPORT_EMAIL = "support@deliobot.fun";
 
 /** `brand`: "Delio" for customers, "Delio Admin" on the operators' console. */
 /** `nonce`: the page's script nonce, for the one script that shows a form is on its way. */
-export function page(input: { title: string; body: Html; email?: string | null; mascot?: "idle" | "happy" | "sad" | "curious"; brand?: string; nonce?: string; billingRefresh?: { workspace: string; paymentVersion: number } }): string {
+export function page(input: { title: string; body: Html; email?: string | null; wide?: boolean; script?: string; mascot?: "idle" | "happy" | "sad" | "curious"; brand?: string; nonce?: string; billingRefresh?: { workspace: string; paymentVersion: number } }): string {
   const brand = input.brand ?? "Delio";
   const mascot = input.mascot ? h`<img class="mascot" src="/assets/delio-${input.mascot}.webp" alt="">` : raw("");
   return `<!doctype html>${h`<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${input.title} · ${brand}</title><link rel="icon" href="/assets/delio-idle.webp"><style>${raw(STYLE)}</style>${input.billingRefresh && input.nonce ? h`<script nonce="${input.nonce}" src="/assets/billing-refresh.js" defer data-workspace="${input.billingRefresh.workspace}" data-payment-version="${input.billingRefresh.paymentVersion}"></script>` : ""}</head><body>
 <header><img src="/assets/delio-idle.webp" alt=""><b>${brand}</b><nav>${input.email ? h`<span>${input.email}</span>
 <form class="inline" method="post" action="/logout"><button>Se déconnecter</button></form>` : ""}</nav></header>
-<main>${mascot}${input.body}</main>
-<footer class="help">Besoin d'aide ? <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></footer>${input.nonce ? h`<script nonce="${input.nonce}">${raw(PENDING_SCRIPT)}</script>` : ""}</body></html>`.html}`;
+<main class="${input.wide ? "wide" : ""}">${mascot}${input.body}</main>
+<footer class="help">Besoin d'aide ? <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a></footer>${input.nonce ? h`<script nonce="${input.nonce}">${raw(PENDING_SCRIPT + (input.script ?? ""))}</script>` : ""}</body></html>`.html}`;
 }
 
 export const notice = (text: string | null | undefined, kind: "info" | "error" = "info") => text ? h`<div class="notice ${kind}">${text}</div>` : raw("");

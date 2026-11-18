@@ -7,7 +7,7 @@ import { OperatorSettings } from "./operator-settings.ts";
 import { Outbox } from "./outbox.ts";
 import { normalizeCode, Promos } from "./promos.ts";
 import { Ambassadors } from "./ambassadors.ts";
-import { ambassadorDashboard, ambassadorJoinPage } from "./ambassador-pages.ts";
+import { ambassadorDashboard, DASHBOARD_SCRIPT, ambassadorJoinPage } from "./ambassador-pages.ts";
 import { discover, exchangeCode, pkceChallenge, verifyIdToken } from "./oidc.ts";
 import { createAppHosting, hostingAccess, type SiteBucket } from "./app-hosting.ts";
 import { createGateway, type GatewayOptions } from "./gateway.ts";
@@ -854,7 +854,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       if (!ambassador) return redirect(res, "/ambassadeur/rejoindre");
       const back = (key: "ok" | "erreur", value: string) => redirect(res, `/ambassadeur?${key}=${encodeURIComponent(value)}`);
       if (method === "GET" && path === "/ambassadeur") {
-        return html(res, 200, { title: "Espace ambassadeur", email: user.email, body: ambassadorDashboard({ ambassador, stats: ambassadors.stats(ambassador), rules: ambassadors.rules(), rate: xofRate(), now: now(),
+        return html(res, 200, { title: "Espace ambassadeur", email: user.email, wide: ambassador.status === "active", script: DASHBOARD_SCRIPT, body: ambassadorDashboard({ ambassador, stats: ambassadors.stats(ambassador), rules: ambassadors.rules(), rate: xofRate(), now: now(),
           codes: ambassadors.codes(ambassador.id), payouts: ambassadors.payouts(ambassador.id), message: url.searchParams.get("ok") ?? undefined, error: url.searchParams.get("erreur") ?? undefined }) });
       }
       if (method !== "POST" || ambassador.status !== "active") throw new HttpError(404, "Not found.");
