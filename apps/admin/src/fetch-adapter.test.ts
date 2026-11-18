@@ -10,7 +10,7 @@ import { AdminStore } from "./store.ts";
 
 const ORIGIN = "https://compte.deliobot.test";
 
-function portal() {
+function portal(ambassadors: string[] = []) {
   const store = new AdminStore({ db: nodeDatabase(":memory:"), secret: randomBytes(32) });
   const mail: MailMessage[] = [];
   const upstream = (async (input: string | URL | Request) => {
@@ -23,7 +23,7 @@ function portal() {
     return new Response("{}", { status: 404 });
   }) as typeof fetch;
   const app = createAdminApp({ store, publicUrl: new URL(ORIGIN), operators: new Set(), mailer: { send: async (message) => void mail.push(message) },
-    fetchImpl: upstream, gateway: { openrouterKey: "sk-or", openrouterUrl: "https://openrouter.test/api/v1" }, signup: { downloadUrl: "https://deliobot.test/#telecharger" } });
+    fetchImpl: upstream, gateway: { openrouterKey: "sk-or", openrouterUrl: "https://openrouter.test/api/v1" }, signup: { downloadUrl: "https://deliobot.test/#telecharger" }, ambassadors });
   const send = (path: string, init: RequestInit = {}) => serveFetch(app, new Request(new URL(path, ORIGIN), init), "203.0.113.7");
   return { store, mail, send };
 }
@@ -63,4 +63,18 @@ describe("the portal behind a Fetch API Request", () => {
     expect(await chat.text()).toContain('"content":"jour"');
     expect(wallet.balance("acme") / MICRO, "charged at the real cost: 0.01 USD is 5 credits").toBeCloseTo(95, 5);
   });
+
+  it("makes each configured e-mail an active ambassador with a first code, once", async () => {
+    const target = portal(["loop@influence.test"]);
+    const form = (fields: Record<string, string>, cookie = "") => ({ method: "POST", body: new URLSearchParams(fields).toString(), redirect: "manual" as const,
+      headers: { origin: ORIGIN, "content-type": "application/x-www-form-urlencoded", ...(cookie ? { cookie } : {}) } });
+    await target.send("/login", form({ email: "loop@influence.test", next: "/ambassadeur" }));
+    const code = /Delio est (\d{4}) (\d{4})/.exec(target.mail.at(-1)!.text)!;
+    const verified = await target.send("/login/verify", form({ email: "loop@influence.test", code: code[1]! + code[2]!, next: "/ambassadeur" }));
+    const cookie = verified.headers.get("set-cookie")!.split(";")[0]!;
+    const page = await (await target.send("/ambassadeur", { headers: { cookie } })).text();
+    expect(page).toContain("Espace ambassadeur");
+    expect(page).toContain("LOOP");
+  });
 });
+

@@ -81,7 +81,7 @@ export class Portal extends DurableObject<Env> {
       const settings = portalSettings({ ...base, ...this.stored, ...(base.DELIO_ADMIN_OPERATORS ? { DELIO_ADMIN_OPERATORS: base.DELIO_ADMIN_OPERATORS } : {}) });
       for (const warning of settings.warnings) console.warn(`delio-admin: ${warning}`);
       const store = new AdminStore({ db: durableObjectDatabase(this.ctx.storage), secret: Buffer.from(settings.secret ?? "") });
-      this.app = createAdminApp({ store, publicUrl: settings.publicUrl, operators: settings.operators, mailer: settings.mailer, gateway: settings.gateway, gifts: settings.gifts,
+      this.app = createAdminApp({ store, publicUrl: settings.publicUrl, operators: settings.operators, mailer: settings.mailer, gateway: settings.gateway, gifts: settings.gifts, ambassadors: settings.ambassadors,
         payments: settings.payments, assets: ASSETS, waitUntil: work => this.ctx.waitUntil(work), ...(settings.signup ? { signup: settings.signup } : {}),
         ...(this.env.SITES && typeof base.DELIO_SITES_SUFFIX === "string" ? { sites: { bucket: r2Sites(this.env.SITES), suffix: base.DELIO_SITES_SUFFIX } } : {}) });
       const consoleUrl = base.DELIO_ADMIN_CONSOLE_URL ? new URL(base.DELIO_ADMIN_CONSOLE_URL) : null;

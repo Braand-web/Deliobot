@@ -54,6 +54,8 @@ export interface AdminAppOptions {
   signup?: { downloadUrl: string };
   /** Plans given by e-mail, each applied once (see env-config's `gifts`). */
   gifts?: readonly Gift[];
+  /** E-mails made active ambassadors at start, each with a first code. */
+  ambassadors?: readonly string[];
 }
 
 /** What the operators' console serves; everything else there is 404, customer pages and public APIs included. */
@@ -177,6 +179,14 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   const outbox = new Outbox(store.db, now);
   const ambassadors = new Ambassadors({ wallet, promos, settings, now });
   plans.onPaid((order) => ambassadors.recordPaid(order));
+  if (!operatorConsole) for (const email of options.ambassadors ?? []) {
+    const known = ambassadors.byEmail(email);
+    const ambassador = known ?? ambassadors.apply({ name: email.split("@")[0]!, email }, "active");
+    if (!ambassador) continue;
+    if (ambassador.status !== "active") ambassadors.update(ambassador.id, { status: "active" });
+    const active = ambassadors.get(ambassador.id)!;
+    if (ambassadors.codes(active.id).length === 0) ambassadors.createCode(active, ambassadors.suggestCode(active));
+  }
   const xofRate = () => settings.xofPerUsd() ?? options.payments?.xofPerUsd ?? DEFAULT_XOF_PER_USD;
   const REF_COOKIE = secure ? "__Host-delio-ref" : "delio-ref";
   /** The ambassador code a visitor arrived with, from this request or the cookie their first visit left. */

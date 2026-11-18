@@ -28,7 +28,7 @@ const assets = mascotAssets();
 
 const port = Number(env.PORT ?? 8790);
 const host = env.HOST ?? (production ? "0.0.0.0" : "127.0.0.1");
-const app = createAdminApp({ store, publicUrl, operators, mailer, gateway, payments, assets, ...(hosting ? { hosting } : {}), ...(signup ? { signup } : {}) });
+const app = createAdminApp({ store, publicUrl, operators, mailer, gateway, payments, assets, gifts: settings.gifts, ambassadors: settings.ambassadors, ...(hosting ? { hosting } : {}), ...(signup ? { signup } : {}) });
 const server = createServer(app);
 const sweeper = setInterval(() => void app.sweep().catch((error: unknown) => console.error("delio-admin: billing sweep failed", error)), 60_000);
 server.listen(port, host, () => console.log(`delio-admin: customers' portal on http://${host}:${port}, public at ${publicUrl.origin}`));

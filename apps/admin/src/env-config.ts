@@ -33,6 +33,8 @@ export interface PortalSettings {
   signup?: { downloadUrl: string };
   /** Plans the operator gives by e-mail: the account and its personal workspace are made if needed, applied once each. */
   gifts: Gift[];
+  /** E-mails made active ambassadors at start, each with a first code. */
+  ambassadors: string[];
   warnings: string[];
 }
 
@@ -96,5 +98,8 @@ export function portalSettings(env: PortalEnv): PortalSettings {
     try { gifts = parseGifts(JSON.parse(env.DELIO_ADMIN_GIFTS)); } catch { fail('DELIO_ADMIN_GIFTS must be JSON such as [{"email":"a@b.c","plan":"max","days":3,"credits":0}]'); }
   }
 
-  return { publicUrl, production, secret, mailer, operators, gateway, payments, ...(hosting ? { hosting } : {}), ...(signup ? { signup } : {}), gifts, warnings };
+  const ambassadors = (env.DELIO_ADMIN_AMBASSADORS ?? "").split(",").map((email) => normalizeEmail(email)).filter(Boolean);
+  if (ambassadors.some((email) => !validEmail(email))) fail("DELIO_ADMIN_AMBASSADORS must be e-mail addresses separated by commas");
+
+  return { publicUrl, production, secret, mailer, operators, gateway, payments, ...(hosting ? { hosting } : {}), ...(signup ? { signup } : {}), gifts, ambassadors, warnings };
 }
