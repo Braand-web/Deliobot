@@ -7675,5 +7675,6 @@
   "permissions.rules.askHint": "한 줄에 하나씩, 내 말로: 항상 승인을 기다리는 전송. 예: «고객에게 보내는 모든 것».",
   "permissions.rules.allow": "묻지 않고 허용",
   "permissions.rules.allowHint": "한 줄에 하나씩: 카드 없이 나가는 전송. 예: «팀에게 보내는 WhatsApp 답장». 빠른 검사가 각 전송을 규칙과 비교하고, 애매하면 묻습니다.",
-  "permissions.rules.payments": "결제는 항상 승인을 기다립니다."
+  "permissions.rules.payments": "결제는 항상 승인을 기다립니다.",
+  "chat.notice.hiddenInstructions": "{app}에서 돌아온 내용이 봇에게 지시하려 했습니다(«{excerpt}»). 이는 사용자가 아니라 그 내용에서 온 것이므로 봇은 따르지 않아야 합니다."
 }

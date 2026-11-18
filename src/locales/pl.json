@@ -7145,5 +7145,6 @@
   "permissions.rules.askHint": "Jedna w wierszu, własnymi słowami: wysyłki, które zawsze czekają na zgodę, np. „Wszystko do klienta”.",
   "permissions.rules.allow": "Zezwalaj bez pytania",
   "permissions.rules.allowHint": "Jedna w wierszu: wysyłki bez karty, np. „Odpowiedzi WhatsApp do mojego zespołu”. Szybka kontrola porównuje każdą wysyłkę z regułami; w razie wątpliwości pyta.",
-  "permissions.rules.payments": "Płatności zawsze czekają na Twoją zgodę."
+  "permissions.rules.payments": "Płatności zawsze czekają na Twoją zgodę.",
+  "chat.notice.hiddenInstructions": "To, co zwróciła aplikacja {app}, próbowało wydać botowi polecenia („{excerpt}”). Pochodzą z tej treści, nie od Ciebie: bot nie powinien ich wykonywać."
 }

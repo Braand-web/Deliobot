@@ -33,6 +33,7 @@ export const CHAT_NOTICE = {
   "chat.notice.part.computerToolsHelperFailed": "their helper did not answer properly",
   "chat.notice.part.chooseModel": "choose another model for this bot",
   "chat.notice.part.switchAccount": "switch this bot to another AI or Claude account",
+  "chat.notice.hiddenInstructions": "What {app} returned tried to give the bot instructions (\"{excerpt}\"). They come from that content, not from you: the bot should not follow them.",
   "chat.notice.appSignedOut": "{app} is signed out: its sign-in expired or was revoked. Reconnect it so your bots can use it again.",
   "chat.notice.webhookHome":
     "I'm back on this computer, so my webhook \"{name}\" has an address here again. Open Automations, choose Copy address on \"{name}\", and paste it into the app that sends to it.",

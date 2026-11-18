@@ -1,4 +1,4 @@
-import { Info, RefreshCw } from "lucide-react";
+import { Info, RefreshCw, ShieldAlert } from "lucide-react";
 import { statusActivity } from "@/lib/activity-runs";
 import { t } from "@/lib/i18n";
 import { useStore, type Message } from "@/state/store";
@@ -15,6 +15,14 @@ export function StatusActivityRow({ message }: { message: Message }) {
   if (status.kind === "stopped") return <CancelledTurnRow name={message.tool?.name} stoppedBy={message.stoppedBy} />;
   if (message.tool?.rescue) return <FirstReplyRescueRow rescue={message.tool.rescue} text={status.text} at={message.at} />;
   const Icon = status.kind === "recovery" ? RefreshCw : Info;
+  if (status.kind === "notice" && message.tool?.hiddenInstruction) {
+    return (
+      <div role="alert" data-hidden-instruction className="flex w-fit max-w-full items-start gap-2 rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-[13px] text-ink">
+        <ShieldAlert size={14} aria-hidden="true" className="mt-0.5 shrink-0 text-danger" />
+        <span dir="auto" className="min-w-0 break-words">{status.text}</span>
+      </div>
+    );
+  }
   if (status.kind === "notice" && message.tool?.reconnectApp) {
     return (
       <div role="status" data-app-signed-out={message.tool.reconnectApp} className="flex w-fit max-w-full flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-warning/30 bg-warning/10 px-3 py-2 text-[13px] text-ink">

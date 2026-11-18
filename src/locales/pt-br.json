@@ -11262,5 +11262,6 @@
   "permissions.rules.askHint": "Uma por linha, com suas palavras: envios que sempre esperam sua aprovação, ex.: «Qualquer coisa para um cliente».",
   "permissions.rules.allow": "Permitir sem perguntar",
   "permissions.rules.allowHint": "Uma por linha: envios que saem sem cartão, ex.: «Respostas no WhatsApp para minha equipe». Uma verificação rápida compara cada envio com suas regras; na dúvida, pergunta.",
-  "permissions.rules.payments": "Pagamentos sempre esperam sua aprovação."
+  "permissions.rules.payments": "Pagamentos sempre esperam sua aprovação.",
+  "chat.notice.hiddenInstructions": "O que {app} retornou tentou dar instruções ao bot («{excerpt}»). Elas vêm desse conteúdo, não de você: o bot não deve segui-las."
 }

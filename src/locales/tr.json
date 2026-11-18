@@ -5938,5 +5938,6 @@
   "permissions.rules.askHint": "Satır başına bir tane, kendi sözlerinizle: her zaman onayınızı bekleyen gönderimler, ör. «Müşteriye giden her şey».",
   "permissions.rules.allow": "Sormadan izin ver",
   "permissions.rules.allowHint": "Satır başına bir tane: kartsız giden gönderimler, ör. «Ekibime WhatsApp yanıtları». Hızlı bir kontrol her gönderimi kurallarınızla karşılaştırır; şüphede sorar.",
-  "permissions.rules.payments": "Ödemeler her zaman onayınızı bekler."
+  "permissions.rules.payments": "Ödemeler her zaman onayınızı bekler.",
+  "chat.notice.hiddenInstructions": "{app} uygulamasının döndürdüğü içerik bota talimat vermeye çalıştı («{excerpt}»). Bunlar sizden değil, o içerikten geliyor: bot bunlara uymamalı."
 }

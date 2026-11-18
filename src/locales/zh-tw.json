@@ -10168,5 +10168,6 @@
   "permissions.rules.askHint": "每行一條，用你自己的話：一律等你核准的傳送，例如「寄給客戶的任何內容」。",
   "permissions.rules.allow": "不詢問直接允許",
   "permissions.rules.allowHint": "每行一條：不需卡片就送出的傳送，例如「回覆團隊的 WhatsApp」。快速檢查會比對每次傳送與你的規則；有疑慮就詢問。",
-  "permissions.rules.payments": "付款一律等你核准。"
+  "permissions.rules.payments": "付款一律等你核准。",
+  "chat.notice.hiddenInstructions": "{app} 回傳的內容試圖對機器人下指令（「{excerpt}」）。這些來自該內容，不是你：機器人不應照做。"
 }

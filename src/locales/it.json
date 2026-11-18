@@ -7014,5 +7014,6 @@
   "permissions.rules.askHint": "Una per riga, con parole tue: invii che aspettano sempre la tua conferma, ad es. «Qualsiasi cosa a un cliente».",
   "permissions.rules.allow": "Consenti senza chiedere",
   "permissions.rules.allowHint": "Una per riga: invii che partono senza scheda, ad es. «Risposte WhatsApp al mio team». Un controllo rapido confronta ogni invio con le tue regole; nel dubbio, chiede.",
-  "permissions.rules.payments": "I pagamenti aspettano sempre la tua approvazione."
+  "permissions.rules.payments": "I pagamenti aspettano sempre la tua approvazione.",
+  "chat.notice.hiddenInstructions": "Quello che {app} ha restituito cercava di dare istruzioni al bot («{excerpt}»). Vengono da quel contenuto, non da te: il bot non deve seguirle."
 }

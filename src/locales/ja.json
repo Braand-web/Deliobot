@@ -7939,5 +7939,6 @@
   "permissions.rules.askHint": "1行に1つ、自分の言葉で：必ず承認を待つ送信。例「顧客へのすべて」。",
   "permissions.rules.allow": "確認なしで許可",
   "permissions.rules.allowHint": "1行に1つ：カードなしで送る送信。例「チームへのWhatsApp返信」。各送信をルールと照合し、迷ったら確認します。",
-  "permissions.rules.payments": "支払いは常に承認を待ちます。"
+  "permissions.rules.payments": "支払いは常に承認を待ちます。",
+  "chat.notice.hiddenInstructions": "{app} から返った内容がボットに指示を与えようとしていました（「{excerpt}」）。これはあなたではなくその内容からのものです。ボットは従うべきではありません。"
 }

@@ -3,7 +3,7 @@ import type { ServerToolText } from "./server-text.ts";
 
 /** An activity chip serialized beside a transcript line. */
 export interface WireTool extends ServerToolText {
-  name: string; ok?: boolean; spoken?: string; setup?: boolean; /** A connected app that signed out: the row offers to reconnect it. */ reconnectApp?: string; terminal?: boolean; summary?: string; input?: string; output?: string;
+  name: string; ok?: boolean; spoken?: string; setup?: boolean; /** A connected app that signed out: the row offers to reconnect it. */ reconnectApp?: string; /** Content the bot read tried to steer it: the row is a warning. */ hiddenInstruction?: boolean; terminal?: boolean; summary?: string; input?: string; output?: string;
   /** What the call works on, as its live status said it: the chip's and the "Now" card's specific words. `whose`: the person whose own app or MCP server the call used. */
   step?: import("./turn-progress.ts").LiveStep; whose?: { person: string; app: string };
   /** error rows: the installed Claude Code is too old for the model, and
