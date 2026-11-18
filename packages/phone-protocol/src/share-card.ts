@@ -85,7 +85,7 @@ export interface TemplateRepoPublish {
 }
 
 /** The community repository a published template lands in, and the page anyone can upload a folder through. */
-export const COMMUNITY_REPOSITORY_URL = "https://github.com/alex-soni/opendeliobot-teams";
+export const COMMUNITY_REPOSITORY_URL = "https://github.com/Braand-web/opendeliobot-teams";
 export const COMMUNITY_UPLOAD_URL = `${COMMUNITY_REPOSITORY_URL}/upload/main/teams`;
 
 /** The chat message the bot's Share button sends, and the one Update sends. */

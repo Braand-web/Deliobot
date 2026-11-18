@@ -8,7 +8,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 const SCRIPT = join(import.meta.dirname, "..", "..", "deploy", "podman", "install.sh");
-const REPO = "ghcr.io/alex-soni/opendeliobot";
+const REPO = "ghcr.io/braand-web/deliobot";
 const DIGEST = `${REPO}@sha256:${"2".repeat(64)}`;
 const STABLE = `${REPO}@sha256:${"5".repeat(64)}`;
 const posix = process.platform !== "win32";
@@ -148,7 +148,7 @@ describe.skipIf(!posix)("deploy/podman/install.sh", () => {
     expect(stable.unit()).toContain(`Image=${STABLE}\n`);
 
     for (const [env, words] of [
-      [{ FAKE_STABLE_CODE: "500" }, "The stable channel could not be read (https://raw.githubusercontent.com/alex-soni/OpenDeliobot/channels/stable.json answered 500)."],
+      [{ FAKE_STABLE_CODE: "500" }, "The stable channel could not be read (https://raw.githubusercontent.com/Braand-web/Deliobot/channels/stable.json answered 500)."],
       [{ FAKE_STABLE_CODE: "000" }, "answered 000"],
       [{ FAKE_STABLE_CODE: "200", FAKE_STABLE_BODY: `{"image": "${REPO}:stable"}` }, "names no image this installer accepts"],
     ] as const) {

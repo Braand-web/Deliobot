@@ -110,11 +110,11 @@ describe("publishing", () => {
       access: () => ({ kind: "desktop", url: "https://admin.example.com/api/cloud/pages/token", token: "odb_pd_token" }),
       fetch: (async (url: string, init: RequestInit) => {
         sent = { url, init };
-        return Response.json({ link: "https://github.com/alex-soni/opendeliobot-teams/tree/abc/teams/helper", prUrl: "https://github.com/alex-soni/opendeliobot-teams/pull/7" });
+        return Response.json({ link: "https://github.com/Braand-web/opendeliobot-teams/tree/abc/teams/helper", prUrl: "https://github.com/Braand-web/opendeliobot-teams/pull/7" });
       }) as typeof fetch,
     });
     const result = await publisher.submit({ slug: "helper", files: { "bot.md": "x", "avatars/helper.png": { base64: "iVBORw0K" } } });
-    expect(result).toEqual({ ok: true, link: "https://github.com/alex-soni/opendeliobot-teams/tree/abc/teams/helper", prUrl: "https://github.com/alex-soni/opendeliobot-teams/pull/7" });
+    expect(result).toEqual({ ok: true, link: "https://github.com/Braand-web/opendeliobot-teams/tree/abc/teams/helper", prUrl: "https://github.com/Braand-web/opendeliobot-teams/pull/7" });
     expect(sent!.url).toBe("https://admin.example.com/api/cloud/community/submissions");
     expect(sent!.init.redirect).toBe("error");
     expect((sent!.init.headers as Record<string, string>).authorization).toBe("Bearer odb_pd_token");
@@ -131,8 +131,8 @@ describe("publishing", () => {
     const expected = pagesHomeSignature(home.secret, home.machineId, headers["x-odb-cloud-timestamp"]!, headers["x-odb-cloud-nonce"]!, body, "odb-community-v1");
     expect(headers["x-odb-cloud-signature"]).toBe(`v1=${expected}`);
     expect(expected).not.toBe(pagesHomeSignature(home.secret, home.machineId, headers["x-odb-cloud-timestamp"]!, headers["x-odb-cloud-nonce"]!, body));
-    answer = Response.json({ prUrl: "https://github.com/alex-soni/opendeliobot-teams/pull/2", link: "https://github.com/alex-soni/opendeliobot-teams/tree/b/teams/a", updated: true });
-    expect(await publisher.submit({ slug: "a", files: { "bot.md": "x" } })).toMatchObject({ ok: true, prUrl: "https://github.com/alex-soni/opendeliobot-teams/pull/2" });
+    answer = Response.json({ prUrl: "https://github.com/Braand-web/opendeliobot-teams/pull/2", link: "https://github.com/Braand-web/opendeliobot-teams/tree/b/teams/a", updated: true });
+    expect(await publisher.submit({ slug: "a", files: { "bot.md": "x" } })).toMatchObject({ ok: true, prUrl: "https://github.com/Braand-web/opendeliobot-teams/pull/2" });
   });
 
   it("sends a folder the Admin's checks accept: BotMRR v2 frontmatter, skills named as their folders, pictures as base64, paused routines, under the caps", async () => {
@@ -169,7 +169,7 @@ describe("publishing", () => {
 
   it("never shows a link outside the community repository", async () => {
     const publisher = createCommunityPublisher({ access: () => ({ kind: "desktop", url: "https://admin.example.com/x", token: "t" }),
-      fetch: (async () => Response.json({ link: "https://github.com/someone/else/tree/main/teams/a", prUrl: "https://github.com/alex-soni/opendeliobot-teams/pull/1" })) as typeof fetch });
+      fetch: (async () => Response.json({ link: "https://github.com/someone/else/tree/main/teams/a", prUrl: "https://github.com/Braand-web/opendeliobot-teams/pull/1" })) as typeof fetch });
     expect(await publisher.submit({ slug: "a", files: {} })).toMatchObject({ ok: false, reason: "failed" });
   });
 
@@ -180,7 +180,7 @@ describe("publishing", () => {
     share.shown(made.card.id, "thread-1", "message-1");
     expect(await share.publish(made.card.id)).toMatchObject({ status: "failed", error: "You've published a lot today. Try again tomorrow." });
     expect(patches.map((patch) => patch.card.status)).toEqual(["publishing", "failed"]);
-    answer = { ok: true, link: "https://github.com/alex-soni/opendeliobot-teams/tree/a/teams/helper", prUrl: "https://github.com/alex-soni/opendeliobot-teams/pull/1" };
+    answer = { ok: true, link: "https://github.com/Braand-web/opendeliobot-teams/tree/a/teams/helper", prUrl: "https://github.com/Braand-web/opendeliobot-teams/pull/1" };
     expect(await share.publish(made.card.id)).toMatchObject({ status: "published", link: answer.link });
     expect(share.delete(made.card.id).status).toBe("gone");
     expect(existsSync(made.dir)).toBe(false);

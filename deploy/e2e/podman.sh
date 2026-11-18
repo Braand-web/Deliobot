@@ -17,7 +17,7 @@ fi
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 OUT=${OUT:-$(mktemp -d)}
 mkdir -p "$OUT"
-REPO=ghcr.io/alex-soni/opendeliobot
+REPO=ghcr.io/braand-web/deliobot
 OLD_VERSION=${ODB_E2E_OLD_VERSION:-0.1.165}
 NEW_VERSION=${ODB_E2E_NEW_VERSION:-0.1.166}
 DIR="$HOME/.local/share/opendeliobot"

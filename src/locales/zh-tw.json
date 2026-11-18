@@ -8867,7 +8867,7 @@
   "native.dialog.share.choose": "選擇存取權",
   "native.dialog.share.notNow": "暫時不要",
   "native.lend.own.title": "要讓 {name} 使用這台電腦嗎？",
-  "native.lend.own.detail": "在這個 App 開著時，它的機器人就能看到並使用你螢幕上的 App。你也可以在「設定 → 伺服器」中讓它們使用你選的資料夾，並在終端機執行指令。你隨時可以在那裡關閉，或從 Deliobot 圖示的選單中暫停。",
+  "native.lend.own.detail": "在這個 App 開著時，它的機器人就能看到並使用你螢幕上的 App。你也可以在「設定 → 這個應用程式 → 你的電腦」中讓它們使用你選的資料夾，並在終端機執行指令。你隨時可以在那裡關閉，或從 Deliobot 圖示的選單中暫停。",
   "native.lend.own.allow": "允許",
   "native.lend.notOwnServer": "只有你自己的伺服器能使用這台電腦。請以擁有者身分再次將這個 App 與它配對。",
   "native.dialog.updateServers.title": "無法更新伺服器",

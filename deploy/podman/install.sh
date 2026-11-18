@@ -1,7 +1,7 @@
 #!/bin/sh
 # Delio's server as your own user's service, with rootless Podman: no root, no Docker. One line, run as yourself:
 #
-#   curl -fsSL https://raw.githubusercontent.com/alex-soni/OpenDeliobot/main/deploy/podman/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/Braand-web/Deliobot/main/deploy/podman/install.sh | sh
 #   ... | sh -s -- --lan                 also answer other devices on this network (private addresses only)
 #   ... | sh -s -- --uninstall           stops and removes the service; keeps your data
 #
@@ -20,11 +20,11 @@
 set -eu
 
 settings() {
-  IMAGE_REPO=ghcr.io/alex-soni/opendeliobot
-  STABLE_URL=https://raw.githubusercontent.com/alex-soni/OpenDeliobot/channels/stable.json
-  RELEASES_URL=https://api.github.com/repos/alex-soni/OpenDeliobot/releases/latest
-  REPOSITORY_FILES=https://raw.githubusercontent.com/alex-soni/OpenDeliobot
-  PINNED='^ghcr\.io/alex-soni/opendeliobot@sha256:[0-9a-f]{64}$'
+  IMAGE_REPO=ghcr.io/braand-web/deliobot
+  STABLE_URL=https://raw.githubusercontent.com/Braand-web/Deliobot/channels/stable.json
+  RELEASES_URL=https://api.github.com/repos/Braand-web/Deliobot/releases/latest
+  REPOSITORY_FILES=https://raw.githubusercontent.com/Braand-web/Deliobot
+  PINNED='^ghcr\.io/braand-web/deliobot@sha256:[0-9a-f]{64}$'
   # One copy of this repository's files to use instead (https://… or file:///…), as deploy/install.sh takes it.
   SOURCE_ASKED="${ODB_INSTALL_SOURCE:-}"
   INSTALL_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/opendeliobot"
@@ -368,7 +368,7 @@ unit_text() {
 # settings are in $INSTALL_DIR/server.env; update.sh changes Image= below.
 [Unit]
 Description=Delio server (rootless Podman)
-Documentation=https://github.com/alex-soni/OpenDeliobot/blob/main/docs/self-hosting.md#podman-rootless-as-a-service
+Documentation=https://github.com/Braand-web/Deliobot/blob/main/docs/self-hosting.md#podman-rootless-as-a-service
 
 [Container]
 ContainerName=$NAME
@@ -492,7 +492,7 @@ finish() {
   say "  - Every account and program on this machine counts as the owner on port $SERVER_PORT, and can attach to Chrome's"
   say "    debugging port."
   say "Use it on a machine only you sign in to, behind a host firewall:"
-  say "https://github.com/alex-soni/OpenDeliobot/blob/main/docs/self-hosting.md#podman-rootless-as-a-service"
+  say "https://github.com/Braand-web/Deliobot/blob/main/docs/self-hosting.md#podman-rootless-as-a-service"
   say ""
   if linger_on; then
     say "It starts at boot, without anyone logged in."
@@ -529,7 +529,7 @@ run_uninstall() {
   say "To remove the data too (some files belong to the container's other ids, so through Podman):"
   say "  podman unshare rm -rf $INSTALL_DIR"
   say "The copies of the data update.sh kept: podman volume ls --filter label=com.delio.role=update-backup"
-  say "The downloaded images: podman image ls ghcr.io/alex-soni/opendeliobot"
+  say "The downloaded images: podman image ls ghcr.io/braand-web/deliobot"
 }
 
 main() {

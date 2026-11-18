@@ -21,7 +21,7 @@ describe a setting from memory: read the setting, the file, or the page.
   check the value the running process actually loaded, and after a restart for
   what is read at boot: reading the file back alone proves nothing.
 - **The docs.** One page per area: in a repo checkout under `docs/`, otherwise
-  at `https://github.com/alex-soni/OpenDeliobot/blob/main/docs/<page>.md`. A
+  at `https://github.com/Braand-web/Deliobot/blob/main/docs/<page>.md`. A
   page explains why something is built that way and what happens if.
 - When the two disagree the app wins, and say which one you checked. When
   neither has the setting, say it does not exist instead of inventing a name.

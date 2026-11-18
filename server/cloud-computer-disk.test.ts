@@ -67,7 +67,7 @@ function harness(over: Partial<World> = {}, shared?: { world: World; clock: { at
   const clock = shared?.clock ?? { at: 1_700_000_000_000 };
   const world: World = shared?.world ?? {
     percent: 50, homePercent: null, cleansTo: null, df: "ok", survey: "ok", cleanup: "ok", capacityTo: null, capacity: "ok",
-    capacityReport: "odb-disk:tmp\nomb-disk:end\n", capacityAtMs: Number.NEGATIVE_INFINITY, folderListing: "ok", tools: ["sudo", "apt-get"],
+    capacityReport: "odb-disk:tmp\nodb-disk:end\n", capacityAtMs: Number.NEGATIVE_INFINITY, folderListing: "ok", tools: ["sudo", "apt-get"],
     folders: "home:/home/user\n100\t/home/user\n", stamp: null, stampAtMs: 0, commands: false, ...over,
   };
   const sent: Array<{ command: string; timeoutMs: number; long: boolean }> = [];
@@ -1087,7 +1087,7 @@ describe("what the capacity tier reports", () => {
     expect(parseCapacityReport("odb-disk:recent\n")).toBeNull();
     expect(parseCapacityReport("odb-disk:below\n")).toBeNull();
     expect(parseCapacityReport("")).toEqual({ containers: [], images: [], items: [] });
-    expect(parseCapacityReport("odb-disk:tmp\nomb-disk:end\n")).toEqual({ containers: [], images: [], items: [] });
+    expect(parseCapacityReport("odb-disk:tmp\nodb-disk:end\n")).toEqual({ containers: [], images: [], items: [] });
   });
 
   it("is told to the bot with every name as quoted data and the lists bounded", () => {
@@ -1121,7 +1121,7 @@ describe("what the capacity tier reports", () => {
 });
 
 describe("the capacity tier", () => {
-  const REPORT = "odb-disk:containers\nold-db\nomb-disk:images\nuntagged: node:20\nomb-disk:tmp\n4194304\tbuild-old\n1024\tscratch\nomb-disk:end\n";
+  const REPORT = "odb-disk:containers\nold-db\nodb-disk:images\nuntagged: node:20\nodb-disk:tmp\n4194304\tbuild-old\n1024\tscratch\nodb-disk:end\n";
 
   it("never runs under 95%, however often the disk is read", async () => {
     const h = harness({ percent: 94 });

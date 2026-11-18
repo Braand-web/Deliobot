@@ -43,7 +43,7 @@ export const MEDIA_SPECS: Record<MediaKind, MediaSpec> = {
     limits: (cfg) => ({ maxPerTurn: cfg.videoGen?.maxPerTurn ?? VIDEO_MAX_PER_TURN_DEFAULT, dailyCap: cfg.videoGen?.dailyCap ?? VIDEO_DAILY_CAP_DEFAULT }),
     generate: (cfg, request, options) => generateVideo(cfg, request, options),
     messages: {
-      notSetUp: "Video generation isn't turned on here. Ask the person to add a fal.ai key and turn videos on in Settings → AI → Image generation.",
+      notSetUp: "Video generation isn't turned on here. Ask the person to add a fal.ai key and turn videos on in Settings → AI → Images.",
       notPerson: "Videos are made only for a person's own message in a chat. This turn was started another way, so no video was made. Tell the person they can ask for the video in a chat.",
       perTurn: (limit) => `This turn already has ${limit === 1 ? "a video" : `${limit} videos`}, the most the person allows per reply. Send what you have.`,
       dailyCap: (cap) => `Bots here have made ${cap} videos today, the most allowed in one day, so no video was made. Tell the person it starts again after midnight.`,
@@ -59,7 +59,7 @@ export const MEDIA_SPECS: Record<MediaKind, MediaSpec> = {
     limits: (cfg) => ({ maxPerTurn: cfg.musicGen?.maxPerTurn ?? MUSIC_MAX_PER_TURN_DEFAULT, dailyCap: cfg.musicGen?.dailyCap ?? MUSIC_DAILY_CAP_DEFAULT }),
     generate: (cfg, request, options) => generateMusic(cfg, request, options),
     messages: {
-      notSetUp: "Music generation isn't turned on here. Ask the person to add a fal.ai key and turn music on in Settings → AI → Image generation.",
+      notSetUp: "Music generation isn't turned on here. Ask the person to add a fal.ai key and turn music on in Settings → AI → Images.",
       notPerson: "Music is made only for a person's own message in a chat. This turn was started another way, so none was made. Tell the person they can ask for it in a chat.",
       perTurn: (limit) => `This turn already has ${limit === 1 ? "a track" : `${limit} tracks`}, the most the person allows per reply. Send what you have.`,
       dailyCap: (cap) => `Bots here have made ${cap} tracks today, the most allowed in one day, so none was made. Tell the person it starts again after midnight.`,

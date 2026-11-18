@@ -22,7 +22,7 @@ const details: TemplateDetails = {
   scope: "bot", name: "Quill", tagline: "Writes outreach.", bots: [{ key: "quill", name: "Quill", color: "purple", skills: [] }],
   skills: [], routines: [], apps: [{ label: "Gmail" }], groupChats: [],
 };
-const LINK = "https://github.com/alex-soni/opendeliobot-teams/tree/abc123/teams/quill";
+const LINK = "https://github.com/Braand-web/opendeliobot-teams/tree/abc123/teams/quill";
 
 function mount(element: ReturnType<typeof createElement>) {
   const container = document.createElement("div");
@@ -128,7 +128,7 @@ describe("a department's Share", () => {
 
   it("makes the template at once and publishes it to the community, then shows the link and the pull request", async () => {
     api.mockImplementation(async (path: string) => path === "/api/share/export" ? card
-      : { ...card, status: "published", link: LINK, prUrl: "https://github.com/alex-soni/opendeliobot-teams/pull/9" });
+      : { ...card, status: "published", link: LINK, prUrl: "https://github.com/Braand-web/opendeliobot-teams/pull/9" });
     const view = mount(createElement(ShareDepartmentDialog, { department: "Sales desk", onClose: vi.fn() }));
     try {
       await vi.waitFor(() => expect(document.body.textContent).toContain("2 bots · 1 skill · 1 routine (paused)"));

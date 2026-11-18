@@ -9080,7 +9080,7 @@
   "native.dialog.share.choose": "Escolher acesso",
   "native.dialog.share.notNow": "Agora não",
   "native.lend.own.title": "Deixar {name} usar este computador?",
-  "native.lend.own.detail": "Os bots dele poderão ver e usar os apps da sua tela enquanto este app estiver aberto. Em Configurações → Servidores você também pode deixá-los usar as pastas que escolher e executar comandos em um terminal. Desligue isso lá quando quiser ou pause no menu do ícone do Deliobot.",
+  "native.lend.own.detail": "Os bots dele poderão ver e usar os apps da sua tela enquanto este app estiver aberto. Em Configurações → Este app → Seus computadores você também pode deixá-los usar as pastas que escolher e executar comandos em um terminal. Desligue isso lá quando quiser ou pause no menu do ícone do Deliobot.",
   "native.lend.own.allow": "Permitir",
   "native.lend.notOwnServer": "Só o seu próprio servidor pode usar este computador. Pareie este app com ele de novo como dono.",
   "native.dialog.updateServers.title": "Não foi possível atualizar os servidores",

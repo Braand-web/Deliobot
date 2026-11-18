@@ -182,7 +182,7 @@ without `sudo`, installs the published server image as your user's systemd
 service:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/alex-soni/OpenDeliobot/main/deploy/podman/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/Braand-web/Deliobot/main/deploy/podman/install.sh | sh
 podman exec -it opendeliobot opendeliobot pair      # a code, and a sign-in link for this machine's browser
 ```
 
@@ -544,7 +544,7 @@ docker compose build --build-arg CHROME_CACHE_TAG=$(date +%F) odb && docker comp
 
 These platforms run the image's own command, with no `--init`, and usually
 with a 64 MB `/dev/shm` and a limit on how many processes the container may
-hold. The server image (`ghcr.io/alex-soni/opendeliobot`) is built for that:
+hold. The server image (`ghcr.io/braand-web/deliobot`) is built for that:
 
 - **It brings its own init.** tini is the image's entrypoint and collects
   the processes that bots' engines, browsers and shell commands leave behind.
@@ -556,7 +556,7 @@ hold. The server image (`ghcr.io/alex-soni/opendeliobot`) is built for that:
   init of the platform's own on top (`docker run --init`, Compose's
   `init: true`) does no harm. A command you give the container runs as
   written, so start it with `opendeliobot …` or `node …`
-  (`docker run --rm ghcr.io/alex-soni/opendeliobot opendeliobot --version`):
+  (`docker run --rm ghcr.io/braand-web/deliobot opendeliobot --version`):
   a bare `--version` or `dist-server/opendeliobot.js`, which older images
   passed on to Node, no longer starts.
 - **Chrome does not need a larger `/dev/shm`.** Where `/dev/shm` is under

@@ -192,6 +192,6 @@ export function labelledLine(line: ProvenanceLine, text: string, labels: LineLab
 }
 
 export function peerProvenanceAuthor(text: string): string | null {
-  const opening = /^\[(?:Message from @(.+?), another bot in this Deliobot workspace|From @(.+?) \(bot\) · message · )/.exec(text);
+  const opening = /^\[(?:Message from @(.+?), another bot in this (?:Open)?Deliobot workspace|From @(.+?) \(bot\) · message · )/.exec(text);
   return opening?.[1] ?? opening?.[2] ?? null;
 }

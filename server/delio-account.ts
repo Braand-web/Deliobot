@@ -11,7 +11,7 @@ export const DELIO_TOKEN_ENV = "ODB_DELIO_TOKEN";
 /** Set by the packaged desktop app: the customer's own AI (their keys, their Claude, ChatGPT or other sign-ins) then
  * needs a Max or BYOK plan. */
 export const DELIO_PLAN_GATE_ENV = "ODB_DELIO_PLAN_GATE";
-export const OWN_AI_REFUSAL = "Your own AI accounts and keys come with the Max and BYOK plans. Choose a plan in Settings → Plans and top-ups, or use Delio.";
+export const OWN_AI_REFUSAL = "Your own AI accounts and keys come with the Max and BYOK plans. Choose a plan in Settings → Plan & billing, or use Delio.";
 
 export interface DelioAccountView { email: string | null; credits: number; usedThisMonth: number; plan: string | null; ownAi: boolean; paymentVersion?: number; ambassador?: boolean }
 const DEVICE_TOKEN = /^odb_device_[A-Za-z0-9_-]{43}$/;

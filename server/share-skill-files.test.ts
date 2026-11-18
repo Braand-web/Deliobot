@@ -34,7 +34,7 @@ function host(stored: Array<{ path: string; content: string | Uint8Array }> | nu
     skillFiles: () => stored, picture: () => undefined, botFolder: (id) => join(botFolder, id),
     publisher: { ...publisher, submit: async (submission) => {
       submitted.push(submission);
-      return { ok: true, link: "https://github.com/alex-soni/opendeliobot-teams/tree/main/teams/reporter", prUrl: "https://github.com/alex-soni/opendeliobot-teams/pull/1" };
+      return { ok: true, link: "https://github.com/Braand-web/opendeliobot-teams/tree/main/teams/reporter", prUrl: "https://github.com/Braand-web/opendeliobot-teams/pull/1" };
     } },
     patch: () => {},
   });
