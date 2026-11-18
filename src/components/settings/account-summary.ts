@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { CloudAccountState, CloudPlanSnapshot } from "../../../electron/cloud-account.mjs";
 import { cloudPlanLabel, cloudPlanView } from "@/lib/cloud-plan";
 import { t } from "@/lib/i18n";
+import { useDelioAccount, type DelioAccount } from "@/lib/delio-account";
 import { profileForSession, readSessionState, type SessionState } from "@/lib/session";
 import { useStore } from "@/state/store";
 
@@ -29,8 +30,23 @@ function fromPlan(plan: CloudPlanSnapshot | null): AccountSummary {
   return { signedIn: plan.status !== "none" && plan.status !== "signin", email: null, plan: paid ? cloudPlanLabel(plan.tier) : null, paid };
 }
 
-/** Who is signed in to Delio on this device, as far as this page may know. */
+const PLAN_NAMES: Record<string, string> = { starter: "Starter", pro: "Pro", max: "Max", byok: "BYOK" };
+
+/** The Deliobot account this app is connected to, as the summary reads it. */
+export function fromDelio(account: DelioAccount): AccountSummary {
+  if (!account.connected) return { signedIn: false, email: null, plan: null, paid: false };
+  const plan = account.plan === "trial" ? t("delioMenu.trial") : account.plan ? PLAN_NAMES[account.plan] ?? account.plan : null;
+  return { signedIn: true, email: account.email ?? null, plan, paid: Boolean(account.plan) };
+}
+
+/** Who is signed in to Delio on this device, as far as this page may know: the Deliobot account first. */
 export function useAccountSummary(): AccountSummary {
+  const delio = useDelioAccount();
+  const cloud = useCloudAccountSummary();
+  return delio ? fromDelio(delio) : cloud;
+}
+
+function useCloudAccountSummary(): AccountSummary {
   const account = typeof window === "undefined" || window.odb?.remoteClient?.active ? undefined : window.odb?.cloudAccount;
   const planBridge = account ? undefined : typeof window === "undefined" ? undefined : window.odb?.cloudPlan;
   const [summary, setSummary] = useState<AccountSummary>({ signedIn: null, email: null, plan: null, paid: false });
