@@ -55,6 +55,8 @@ function structuredData(path, title, description, html) {
     crumbs.push({ name: title.replace(/\s*·\s*Deliobot$/, ""), path });
     graph.push({ "@type": "BreadcrumbList", itemListElement: crumbs.map((crumb, index) => ({ "@type": "ListItem", position: index + 1, name: crumb.name, item: `${ORIGIN}${crumb.path === "/" ? "/" : crumb.path}` })) });
     if (path === "/a-propos") graph.push({ "@type": "AboutPage", name: title, description, url: `${ORIGIN}${path}`, inLanguage: "fr", about: { "@id": `${ORIGIN}/#organization` } });
+    const questions = faqEntries(html);
+    if (questions.length) graph.push({ "@type": "FAQPage", mainEntity: questions.map((entry) => ({ "@type": "Question", name: entry.question, acceptedAnswer: { "@type": "Answer", text: entry.answer } })) });
     if (path.startsWith("/guides/")) graph.push({ "@type": "Article", headline: title.replace(/\s*·\s*Deliobot$/, ""), description, inLanguage: "fr", image: SHARE_IMAGE, author: { "@type": "Organization", name: "Deliobot" }, mainEntityOfPage: `${ORIGIN}${path}` });
   }
   return JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replace(/</g, "\\u003c");
@@ -94,7 +96,7 @@ export function withSeo(html, file) {
 /** Every indexable page, for sitemap.xml. */
 export function sitemap(files, lastmod) {
   const pages = files.filter((file) => file.endsWith(".html") && !file.endsWith("404.html")).map(pagePath).sort((a, b) => (a === "/" ? -1 : b === "/" ? 1 : a.localeCompare(b)));
-  const priority = (path) => (path === "/" ? "1.0" : path.startsWith("/guides") || path === "/a-propos" ? "0.8" : "0.3");
+  const priority = (path) => (path === "/" ? "1.0" : path.startsWith("/guides") || path === "/a-propos" || path === "/ambassadeurs" ? "0.8" : "0.3");
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${pages.map((path) =>
     `  <url><loc>${ORIGIN}${path}</loc><lastmod>${lastmod}</lastmod><priority>${priority(path)}</priority></url>`).join("\n")}\n</urlset>\n`;
 }

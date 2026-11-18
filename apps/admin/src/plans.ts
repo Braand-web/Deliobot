@@ -112,6 +112,7 @@ export class Billing {
   private readonly wallet: Wallet;
   private readonly now: () => number;
   private readonly settings: OperatorSettings | null;
+  private paidListeners: Array<(order: Order) => void> = [];
 
   constructor(wallet: Wallet, now: () => number = Date.now, settings: OperatorSettings | null = null) {
     this.wallet = wallet;
@@ -128,6 +129,11 @@ CREATE INDEX IF NOT EXISTS orders_status ON orders (status, created_at);
 CREATE TABLE IF NOT EXISTS trial_uses (email TEXT PRIMARY KEY, workspace TEXT NOT NULL, at INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT NULL);`);
     try { this.db.prepare("SELECT promo FROM orders LIMIT 0").all(); } catch { this.db.exec("ALTER TABLE orders ADD COLUMN promo TEXT"); }
+  }
+
+  /** Tells `listener` of every order the moment it is applied as paid, inside the same transaction. */
+  onPaid(listener: (order: Order) => void): void {
+    this.paidListeners.push(listener);
   }
 
   /** The plan as sold now, with the operator's prices and allowances. */
@@ -225,6 +231,7 @@ CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT N
       if (Number(claimed.changes) !== 1) return false;
       if (order.kind === "plan" && order.plan) this.startPeriod(order);
       else if (order.credits > 0) this.wallet.credit(order.workspace, order.credits * MICRO, "topup", `Top-up · ${order.id}`);
+      for (const listener of this.paidListeners) listener(order);
       return true;
     });
   }

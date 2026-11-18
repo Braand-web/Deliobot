@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Programme ambassadeurs · Deliobot</title>
+<meta name="description" content="Devenez ambassadeur Deliobot : recommandez Deliobot à votre communauté et gagnez 15 à 25 % de chaque abonnement, pendant 6 à 24 mois. Aucun investissement, payé en Mobile Money.">
+<link rel="icon" href="/assets/delio-idle.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/site.css">
+<style>
+.levels{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:18px 0}
+.levels div{background:var(--card);border-radius:18px;padding:16px 18px}.levels b{display:block;font-size:30px;color:var(--ink);line-height:1.2}
+.levels .tag{font-size:13px;color:var(--ink-2)}.levels .gold{outline:2px solid var(--accent)}
+.sim{background:var(--card);border-radius:20px;padding:20px 22px;margin:22px 0}.sim label{display:block;margin:10px 0 4px;color:var(--ink);font-weight:500}
+.sim input[type=range]{width:100%}.sim select{font:inherit;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.sim output{display:block;font-size:30px;font-weight:600;color:var(--ink);margin-top:12px}.sim small{color:var(--ink-2)}
+.perks{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;padding:0;list-style:none}.perks li{background:var(--card);border-radius:16px;padding:14px 16px;margin:0}
+.steps{counter-reset:s;list-style:none;padding:0}.steps li{counter-increment:s;display:flex;gap:12px;margin:12px 0}.steps li::before{content:counter(s);flex:none;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:600}
+details{border-bottom:1px solid var(--line);padding:12px 0}summary{cursor:pointer;color:var(--ink);font-weight:500}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="brand" href="/"><img src="/assets/delio-idle.webp" alt="">Deliobot</a>
+  <nav aria-label="Navigation"><a href="/#fonctions">Produit</a><a href="/#tarifs">Tarifs</a><a href="/guides">Guides</a><a href="/#telecharger">Télécharger</a></nav>
+  <a class="pill soft" href="https://compte.deliobot.fun/login">Se connecter</a>
+</div></header>
+<main><div class="wrap">
+<article>
+<div class="kicker">Programme ambassadeurs</div>
+<h1>Gagnez de l'argent en recommandant Deliobot</h1>
+<p class="lede">Partagez Deliobot avec votre communauté et touchez <strong>15 à 25 % de chaque abonnement</strong>, pendant 6 mois et jusqu'à 24 mois. Aucun investissement, aucun frais : vous êtes payé en Mobile Money ou en crédits.</p>
+<div class="cta"><a class="pill" href="https://compte.deliobot.fun/ambassadeur/rejoindre">Devenir ambassadeur</a><a class="pill soft" href="https://compte.deliobot.fun/ambassadeur">Mon espace ambassadeur</a></div>
+
+<h2>Comment ça marche</h2>
+<ol class="steps">
+<li><span><strong>Vous recevez votre lien et votre code</strong>, que vous pouvez personnaliser (jusqu'à 3 codes, par exemple un par réseau).</span></li>
+<li><span><strong>Votre communauté s'abonne avec</strong> et reçoit <strong>+500 crédits offerts</strong> à son premier abonnement.</span></li>
+<li><span><strong>Vous touchez une part de chaque abonnement</strong> qu'elle paie, chaque mois, et vous suivez tout en temps réel dans votre espace.</span></li>
+</ol>
+
+<h2>Combien pouvez-vous gagner ?</h2>
+<div class="sim" data-sim>
+<label for="sim-count">Abonnés que vous amenez : <span data-count>10</span></label>
+<input id="sim-count" type="range" min="1" max="200" value="10" data-range>
+<label for="sim-plan">Forfait moyen</label>
+<select id="sim-plan" data-plan><option value="15">Starter · 15 $/mois</option><option value="49" selected>Pro · 49 $/mois</option><option value="99">Max · 99 $/mois</option></select>
+<output data-result>98 $ par mois</output>
+<small data-detail>≈ 58 800 FCFA par mois · 588 $ sur 6 mois (niveau Argent, 20 %)</small>
+</div>
+
+<h2>Plus vous amenez de clients, plus vous gagnez</h2>
+<div class="levels">
+<div><span class="tag">Bronze · au départ</span><b>15 %</b>pendant 6 mois par client</div>
+<div><span class="tag">Argent · 10 clients payants ou 1 000 $ de CA</span><b>20 %</b>pendant 6 mois par client</div>
+<div class="gold"><span class="tag">Or · 5 000 $ de CA en 6 mois (≈ 3 M FCFA)</span><b>20 %</b>jusqu'à <strong>12 mois</strong> par client</div>
+<div class="gold"><span class="tag">Diamant · 15 000 $ de CA en 6 mois (≈ 9 M FCFA)</span><b>25 %</b>jusqu'à <strong>24 mois</strong> par client</div>
+</div>
+<p>Aux niveaux Or et Diamant, vous demandez la prolongation depuis votre espace : une fois acceptée, vous continuez à toucher 10 % de chaque abonnement de vos clients après leur 6e mois.</p>
+
+<h2>Vos avantages</h2>
+<ul class="perks">
+<li><strong>Aucun frais, aucun stock</strong><br>Vous partagez un lien, c'est tout.</li>
+<li><strong>Payé en Mobile Money</strong><br>Dès 5 000 FCFA, ou en crédits Delio à tout moment.</li>
+<li><strong>Votre public est gagnant</strong><br>+500 crédits offerts à son premier abonnement.</li>
+<li><strong>Suivi en temps réel</strong><br>Visites, inscrits, clients payants et gains dans votre espace.</li>
+<li><strong>Kit prêt à partager</strong><br>Textes WhatsApp, Instagram et TikTok avec votre lien.</li>
+<li><strong>Vos propres codes</strong><br>Créez jusqu'à 3 codes à votre nom.</li>
+</ul>
+
+<h2>Les règles, simplement</h2>
+<ul>
+<li>Seuls les <strong>abonnements</strong> comptent (Starter, Pro, Max, BYOK). Les achats de crédits seuls ne rapportent pas de commission.</li>
+<li>Chaque gain devient disponible <strong>14 jours</strong> après le paiement du client.</li>
+<li>Retrait en Mobile Money dès <strong>5 000 FCFA</strong>, ou en crédits Delio sans minimum.</li>
+<li>Pas de gain sur votre propre compte.</li>
+<li>Un client reste à l'ambassadeur dont il a utilisé le lien ou le code <strong>en premier</strong> (30 jours après le clic).</li>
+</ul>
+
+<h2>Questions</h2>
+<details><summary>Qui peut devenir ambassadeur ?</summary><p>Créateurs de contenu, formateurs, consultants, communautés : toute personne qui parle à un public intéressé par l'IA, le business ou la productivité. Envoyez votre candidature, nous répondons sous 48 h.</p></details>
+<details><summary>Combien gagne un ambassadeur Deliobot ?</summary><p>15 à 25 % de chaque abonnement payé par les clients qu'il amène, pendant 6 mois, et jusqu'à 24 mois aux niveaux Or et Diamant. Par exemple, 10 abonnés Pro rapportent environ 98 $ par mois au niveau Argent.</p></details>
+<details><summary>Comment suis-je payé ?</summary><p>Par Mobile Money dès 5 000 FCFA, ou en crédits Delio à tout moment, depuis votre espace ambassadeur.</p></details>
+<details><summary>Que reçoivent les personnes qui utilisent mon code ?</summary><p>500 crédits offerts, ajoutés à leur premier abonnement Deliobot.</p></details>
+<details><summary>Les achats de crédits me rapportent-ils une commission ?</summary><p>Non : seuls les abonnements (Starter, Pro, Max, BYOK) comptent pour vos gains et vos niveaux.</p></details>
+
+<div class="cta"><a class="pill" href="https://compte.deliobot.fun/ambassadeur/rejoindre">Devenir ambassadeur</a><a class="pill soft" href="/">Découvrir Deliobot</a></div>
+</article>
+</div></main>
+<footer><div class="wrap">
+  <span class="grow">© 2026 Deliobot</span>
+  <a href="/guides">Guides</a><a href="/conditions">Conditions</a><a href="/confidentialite">Confidentialité</a><a href="mailto:support@deliobot.fun">Contact</a>
+</div></footer>
+<script>
+(() => {
+  const sim = document.querySelector("[data-sim]");
+  const range = sim.querySelector("[data-range]"), plan = sim.querySelector("[data-plan]");
+  let rate = 600;
+  const level = (clients, revenue6) => revenue6 >= 15000 ? ["Diamant", 0.25] : revenue6 >= 5000 ? ["Or", 0.2] : clients >= 10 || revenue6 >= 1000 ? ["Argent", 0.2] : ["Bronze", 0.15];
+  const show = () => {
+    const clients = Number(range.value), price = Number(plan.value), monthly = clients * price;
+    const [name, share] = level(clients, monthly * 6);
+    const earn = monthly * share;
+    sim.querySelector("[data-count]").textContent = clients;
+    sim.querySelector("[data-result]").textContent = `${earn.toLocaleString("fr-FR", { maximumFractionDigits: 0 })} $ par mois`;
+    sim.querySelector("[data-detail]").textContent = `≈ ${Math.round(earn * rate).toLocaleString("fr-FR")} FCFA par mois · ${(earn * 6).toLocaleString("fr-FR", { maximumFractionDigits: 0 })} $ sur 6 mois (niveau ${name}, ${Math.round(share * 100)} %)`;
+  };
+  range.addEventListener("input", show);
+  plan.addEventListener("change", show);
+  show();
+  fetch("https://compte.deliobot.fun/api/public/site").then((r) => r.ok ? r.json() : null).then((site) => {
+    if (!site) return;
+    const plans = site.catalog.plans.filter((one) => one.listed);
+    plan.replaceChildren(...plans.map((one) => Object.assign(document.createElement("option"), { value: one.usd, textContent: `${one.name} · ${one.usd} $/mois`, selected: one.id === "pro" })));
+    const pro = plans.find((one) => one.id === "pro");
+    if (pro) rate = pro.francs / pro.usd;
+    show();
+  }).catch(() => {});
+})();
+</script>
+</body>
+</html>

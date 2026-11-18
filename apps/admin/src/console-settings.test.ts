@@ -137,3 +137,26 @@ describe("the console's settings pages", () => {
     expect((store.db.prepare("SELECT text FROM broadcasts").get() as { text: string }).text).toContain("répondez simplement « STOP »");
   });
 });
+
+describe("the console's ambassadors", () => {
+  it("creates an active ambassador with a first code and a welcome e-mail, then approves an application", async () => {
+    const setup = base();
+    const mail: MailMessage[] = [];
+    const ops = await operatorConsole({ store: setup.store, operators: new Set(["ops@delio.test"]), mailer: { send: async (message) => void mail.push(message) }, now: () => setup.clock.now }, mail);
+    cleanups.push(() => ops.close());
+    const created = await ops.post("/ambassadeurs", { name: "Awa Diallo", email: "awa@influence.test", phone: "+221700000000", code: "awa" });
+    expect(created.headers.get("location")).toMatch(/^\/ambassadeurs\/amb_[a-f0-9]{16}\?ok=amb-created$/);
+    expect(setup.promos.get("AWA")).toMatchObject({ kind: "credits", value: 500 });
+    const welcome = setup.store.db.prepare("SELECT b.subject, b.text FROM broadcasts b JOIN outbox o ON o.broadcast = b.id WHERE o.email = 'awa@influence.test'").get() as { subject: string; text: string };
+    expect(welcome.text).toContain("https://deliobot.fun/?ref=awa");
+    expect((await ops.get("/ambassadeurs")).status).toBe(200);
+    expect(await (await ops.get(created.headers.get("location")!.split("?")[0]!)).text()).toContain("Awa Diallo");
+
+    const { Ambassadors } = await import("./ambassadors.ts");
+    const ambassadors = new Ambassadors({ wallet: setup.wallet, promos: setup.promos, settings: setup.settings, now: () => setup.clock.now });
+    const pending = ambassadors.apply({ name: "Moussa Ba", email: "moussa@influence.test" })!;
+    expect((await ops.post(`/ambassadeurs/${pending.id}/valider`, {})).headers.get("location")).toBe(`/ambassadeurs/${pending.id}?ok=amb-approved`);
+    expect(ambassadors.get(pending.id)?.status).toBe("active");
+    expect(ambassadors.codes(pending.id).map((code) => code.code)).toEqual(["MOUSSA"]);
+  });
+});

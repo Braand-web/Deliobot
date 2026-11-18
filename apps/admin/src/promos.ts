@@ -9,6 +9,8 @@ export interface Promo {
   code: string; kind: PromoKind; value: number; maxUses: number | null; expiresAt: number | null;
   /** Plans a percentage applies to; null for all paid plans. */
   plans: PlanId[] | null; note: string | null; active: boolean; createdAt: number; createdBy: string; uses: number;
+  /** The ambassador this code belongs to: their customers get credits at their first plan, and the ambassador a share. */
+  ambassador: string | null;
 }
 
 export const PROMO_CODE = /^[A-Z0-9][A-Z0-9_-]{2,31}$/;
@@ -29,6 +31,7 @@ export class Promos {
 CREATE TABLE IF NOT EXISTS promo_codes (code TEXT PRIMARY KEY, kind TEXT NOT NULL, value INTEGER NOT NULL, max_uses INTEGER, expires_at INTEGER,
   plans TEXT, note TEXT, active INTEGER NOT NULL DEFAULT 1, created_at INTEGER NOT NULL, created_by TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS promo_redemptions (code TEXT NOT NULL, workspace TEXT NOT NULL, at INTEGER NOT NULL, PRIMARY KEY (code, workspace));`);
+    try { this.db.prepare("SELECT ambassador FROM promo_codes LIMIT 0").all(); } catch { this.db.exec("ALTER TABLE promo_codes ADD COLUMN ambassador TEXT"); }
   }
 
   private uses(code: string): number {
@@ -45,7 +48,8 @@ CREATE TABLE IF NOT EXISTS promo_redemptions (code TEXT NOT NULL, workspace TEXT
     const code = String(raw.code);
     return { code, kind: raw.kind as PromoKind, value: Number(raw.value), maxUses: raw.max_uses === null ? null : Number(raw.max_uses),
       expiresAt: raw.expires_at === null ? null : Number(raw.expires_at), plans: raw.plans ? String(raw.plans).split(",") as PlanId[] : null,
-      note: raw.note === null ? null : String(raw.note), active: Number(raw.active) === 1, createdAt: Number(raw.created_at), createdBy: String(raw.created_by), uses: this.uses(code) };
+      note: raw.note === null ? null : String(raw.note), active: Number(raw.active) === 1, createdAt: Number(raw.created_at), createdBy: String(raw.created_by), uses: this.uses(code),
+      ambassador: raw.ambassador ? String(raw.ambassador) : null };
   }
 
   get(code: string): Promo | null {
@@ -57,15 +61,15 @@ CREATE TABLE IF NOT EXISTS promo_redemptions (code TEXT NOT NULL, workspace TEXT
     return (this.db.prepare("SELECT * FROM promo_codes ORDER BY created_at DESC").all() as Array<Record<string, unknown>>).map((raw) => this.row(raw));
   }
 
-  create(input: { code: string; kind: PromoKind; value: number; maxUses: number | null; expiresAt: number | null; plans: PlanId[] | null; note: string | null }, actor: string): "ok" | "exists" | "invalid" {
+  create(input: { code: string; kind: PromoKind; value: number; maxUses: number | null; expiresAt: number | null; plans: PlanId[] | null; note: string | null; ambassador?: string }, actor: string): "ok" | "exists" | "invalid" {
     const code = normalizeCode(input.code);
     const valid = PROMO_CODE.test(code) && Number.isInteger(input.value)
       && (input.kind === "percent" ? input.value >= 1 && input.value <= 100 : input.value >= 1 && input.value <= 1_000_000)
       && (input.maxUses === null || (Number.isInteger(input.maxUses) && input.maxUses >= 1));
     if (!valid) return "invalid";
     if (this.get(code)) return "exists";
-    this.db.prepare("INSERT INTO promo_codes (code, kind, value, max_uses, expires_at, plans, note, active, created_at, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)")
-      .run(code, input.kind, input.value, input.maxUses, input.expiresAt, input.plans?.length ? input.plans.join(",") : null, input.note, this.now(), actor);
+    this.db.prepare("INSERT INTO promo_codes (code, kind, value, max_uses, expires_at, plans, note, active, created_at, created_by, ambassador) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)")
+      .run(code, input.kind, input.value, input.maxUses, input.expiresAt, input.plans?.length ? input.plans.join(",") : null, input.note, this.now(), actor, input.ambassador ?? null);
     return "ok";
   }
 

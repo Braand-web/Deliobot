@@ -1,5 +1,6 @@
 // What the operator changes from the console without a redeploy: plan prices and allowances, the franc rate, what is open
 // to new customers, and the announcement the site and the portal show.
+import type { AmbassadorRules } from "./ambassadors.ts";
 import { PLANS, type Plan, type PlanId } from "./plans.ts";
 import type { SqlDatabase } from "./sql.ts";
 
@@ -76,6 +77,16 @@ export class OperatorSettings {
 
   setXofPerUsd(value: number | null): void {
     this.write("xof_per_usd", value && value > 0 ? String(value) : null);
+  }
+
+  /** The ambassador programme's levels, rates and limits the operator set; null keeps the defaults. */
+  ambassadorRules(): AmbassadorRules | null {
+    const raw = this.read("ambassador_rules");
+    return raw ? JSON.parse(raw) as AmbassadorRules : null;
+  }
+
+  setAmbassadorRules(rules: AmbassadorRules | null): void {
+    this.write("ambassador_rules", rules ? JSON.stringify(rules) : null);
   }
 
   /** The announcement still running, or null. */

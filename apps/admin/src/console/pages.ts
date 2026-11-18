@@ -18,19 +18,20 @@ const ICONS: Record<string, string> = {
   security: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z M9 12l2 2 4-4",
   journal: "M8 6h13 M8 12h13 M8 18h13 M3 6h.01 M3 12h.01 M3 18h.01",
   reports: "M4 22V4a1 1 0 0 1 1-1h11l-2 4 2 4H5",
+  ambassadors: "M12 2l3 6 6 .9-4.5 4.4 1 6.2L12 16.6 6.5 19.5l1-6.2L3 8.9 9 8z",
   sites: "M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18 M3 12h18 M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18",
   search: "M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14 M21 21l-4.3-4.3",
   theme: "M12 3a6 6 0 0 0 9 9a9 9 0 1 1-9-9z",
   out: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9",
 };
 
-export type ConsoleSection = "dash" | "traffic" | "clients" | "orders" | "reports" | "sites" | "promos" | "comms" | "pricing" | "system" | "security" | "journal";
+export type ConsoleSection = "dash" | "traffic" | "clients" | "orders" | "reports" | "sites" | "promos" | "comms" | "pricing" | "system" | "security" | "journal" | "ambassadors";
 
 const NAV: ReadonlyArray<[ConsoleSection, string, string]> = [
   ["dash", "Tableau de bord", "/"], ["traffic", "Trafic", "/trafic"], ["clients", "Clients", "/clients"], ["orders", "Commandes", "/commandes"],
   ["reports", "Signalements", "/signalements"],
   ["sites", "Sites publiés", "/sites"],
-  ["promos", "Codes promo", "/promos"], ["comms", "Communication", "/communication"], ["pricing", "Forfaits & prix", "/forfaits"], ["system", "Système", "/systeme"],
+  ["ambassadors", "Ambassadeurs", "/ambassadeurs"], ["promos", "Codes promo", "/promos"], ["comms", "Communication", "/communication"], ["pricing", "Forfaits & prix", "/forfaits"], ["system", "Système", "/systeme"],
   ["security", "Sécurité", "/securite"], ["journal", "Journal", "/journal"],
 ];
 
@@ -156,9 +157,9 @@ var b=f.querySelector("button[type=submit],button:not([type])");if(b)setTimeout(
 export interface Flash { kind: "ok" | "bad"; text: string }
 
 export function consolePage(input: { title: string; subtitle?: string; section: ConsoleSection; email: string; body: Html; nonce: string; period?: Period;
-  periodPath?: string; flash?: Flash | null; pendingOrders?: number; unreadReports?: number; tools?: Html }): string {
+  periodPath?: string; flash?: Flash | null; pendingOrders?: number; unreadReports?: number; pendingAmbassadors?: number; tools?: Html }): string {
   const nav = NAV.map(([id, label, href]) => h`<a class="nav" href="${href}" ${id === input.section ? raw('aria-current="page"') : ""} title="${label}">${icon(id)}<span class="label">${label}</span>
-${id === "orders" && input.pendingOrders ? h`<span class="count">${input.pendingOrders}</span>` : ""}${id === "reports" && input.unreadReports ? h`<span class="count">${input.unreadReports}</span>` : ""}</a>`);
+${id === "orders" && input.pendingOrders ? h`<span class="count">${input.pendingOrders}</span>` : ""}${id === "reports" && input.unreadReports ? h`<span class="count">${input.unreadReports}</span>` : ""}${id === "ambassadors" && input.pendingAmbassadors ? h`<span class="count">${input.pendingAmbassadors}</span>` : ""}</a>`);
   const periods = input.period ? PERIODS.map(([id, label]) => h`<a class="chip" href="${input.periodPath ?? ""}?p=${id}" ${id === input.period!.id ? raw('aria-current="true"') : ""}>${label}</a>`) : [];
   const flash = input.flash ? h`<div class="toast ${input.flash.kind === "bad" ? "bad" : ""}" role="status"><img src="/assets/delio-${input.flash.kind === "bad" ? "sad" : "happy"}.webp" alt="">${input.flash.text}</div>` : "";
   const commands = NAV.map(([id, label, href]) => h`<li><a href="${href}">${icon(id, 16)}<span>${label}</span></a></li>`);

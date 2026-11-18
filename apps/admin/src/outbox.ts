@@ -33,10 +33,15 @@ CREATE INDEX IF NOT EXISTS outbox_state ON outbox (state, id);`);
     });
   }
 
+  /** One message to one person, sent with the next batch; kept out of the operator's list of broadcasts. */
+  notify(email: string, subject: string, text: string): void {
+    this.queue({ subject, text, audience: "system", emails: [email] }, "system");
+  }
+
   broadcasts(limit = 20): Broadcast[] {
     return (this.db.prepare(`SELECT b.id, b.subject, b.audience, b.actor, b.at, COUNT(o.id) AS total,
       SUM(CASE WHEN o.state = 'sent' THEN 1 ELSE 0 END) AS sent, SUM(CASE WHEN o.state = 'failed' THEN 1 ELSE 0 END) AS failed
-      FROM broadcasts b LEFT JOIN outbox o ON o.broadcast = b.id GROUP BY b.id ORDER BY b.id DESC LIMIT ?`).all(limit) as Array<Record<string, unknown>>)
+      FROM broadcasts b LEFT JOIN outbox o ON o.broadcast = b.id WHERE b.audience != 'system' GROUP BY b.id ORDER BY b.id DESC LIMIT ?`).all(limit) as Array<Record<string, unknown>>)
       .map((row) => ({ id: Number(row.id), subject: String(row.subject), audience: String(row.audience), actor: String(row.actor), at: Number(row.at),
         total: Number(row.total), sent: Number(row.sent ?? 0), failed: Number(row.failed ?? 0) }));
   }

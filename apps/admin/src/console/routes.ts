@@ -13,6 +13,9 @@ import type { Outbox } from "../outbox.ts";
 import { normalizeCode, type Promos } from "../promos.ts";
 import { DEFAULT_XOF_PER_USD } from "../plans.ts";
 import { Metrics, period } from "./metrics.ts";
+import type { Ambassador, Ambassadors } from "../ambassadors.ts";
+import { linkFor, SITE_URL } from "../ambassador-pages.ts";
+import { ambassadorPage, ambassadorsPage } from "./ambassador-pages.ts";
 import { AUDIENCES, commsPage, pricingPage, promosPage, securityPage, systemPage } from "./settings-pages.ts";
 import { CLIENT_FILTERS, clientPage, clientsPage, consolePage, dashboardPage, journalPage, n, ORDER_FILTERS, ordersPage, reportPage, reportsPage, sitesPage, trafficPage, type ClientRow, type ConsoleSection, type Flash } from "./pages.ts";
 
@@ -21,7 +24,9 @@ export interface ConsoleContext {
   operators: ReadonlySet<string>; now: () => number;
   /** Included app hosting; absent where no bucket is bound. */
   sites?: AppHosting;
-  settings: OperatorSettings; promos: Promos; outbox: Outbox;
+  settings: OperatorSettings; promos: Promos; outbox: Outbox; ambassadors: Ambassadors;
+  /** CFA francs to the dollar, as checkouts charge them now. */
+  xofRate: () => number;
   /** Each provider or feature the portal can use, and whether its key or binding is set. */
   services: Record<string, boolean>;
   /** The environment's franc rate, when set. */
@@ -40,13 +45,15 @@ const ORDER_ID = "(?:ord|man)_[A-Za-z0-9_-]{8,40}";
 const CLIENT_ACTION = new RegExp(`^/clients/(${SLUG})/(credits|forfait|suspendre|bloquer|appareil|jeton|supprimer)$`);
 const CLIENT = new RegExp(`^/clients/(${SLUG})$`);
 const ORDER_ACTION = new RegExp(`^/commandes/(${ORDER_ID})/(verifier|payee)$`);
-const PAGES = new Set(["/", "/trafic", "/clients", "/commandes", "/signalements", "/journal", "/sites", "/promos", "/communication", "/forfaits", "/systeme", "/securite"]);
+const PAGES = new Set(["/ambassadeurs", "/", "/trafic", "/clients", "/commandes", "/signalements", "/journal", "/sites", "/promos", "/communication", "/forfaits", "/systeme", "/securite"]);
 const SETTINGS_ACTION = /^\/(?:promos(?:\/([A-Z0-9_-]{3,32})\/(activer|desactiver|supprimer))?|communication\/(annonce|annonce\/retirer|envoyer)|forfaits\/(taux|trial|starter|pro|max|byok)(\/retablir)?|systeme\/(signups|payments|trial)|securite\/(sessions|debloquer))$/;
 /** Audit actions the security page lists. */
 const SENSITIVE = ["credits.add", "plan.grant", "gateway.token", "device.revoke", "account.block", "account.unblock", "workspace.delete", "workspace.suspend", "site.taken_down",
   "promo.created", "promo.deleted", "plan.price", "settings.switch", "settings.rate", "broadcast.sent", "security.sessions"];
 const UNSUBSCRIBE = "\n\n—\nVous recevez cet e-mail parce que vous avez un compte Deliobot. Pour ne plus en recevoir, répondez simplement « STOP ».";
 const SITE_ACTION = /^\/sites\/([a-z2-9]{10})\/retirer$/;
+const AMBASSADOR = /^\/ambassadeurs\/(amb_[a-f0-9]{16})$/;
+const AMBASSADOR_ACTION = /^\/ambassadeurs(?:\/(amb_[a-f0-9]{16})\/(valider|suspendre|modifier|prolongation)|\/retraits\/(\d{1,9}))?$/;
 const REPORT = /^\/signalements\/([A-Za-z0-9_-]{8,20})(\/supprimer)?$/;
 const PAGE_SIZE = 25;
 /** Per-workspace tables the portal keeps besides the store's own; a deleted workspace leaves no row in them. */
@@ -54,7 +61,7 @@ const WORKSPACE_TABLES = ["wallets", "gateway_tokens", "holds", "subscriptions",
 
 /** Whether a path belongs to the console's own pages and actions. */
 export function consoleServes(path: string): boolean {
-  return PAGES.has(path) || SETTINGS_ACTION.test(path) || SITE_ACTION.test(path) || REPORT.test(path) || CLIENT.test(path) || CLIENT_ACTION.test(path) || ORDER_ACTION.test(path);
+  return PAGES.has(path) || AMBASSADOR.test(path) || AMBASSADOR_ACTION.test(path) || SETTINGS_ACTION.test(path) || SITE_ACTION.test(path) || REPORT.test(path) || CLIENT.test(path) || CLIENT_ACTION.test(path) || ORDER_ACTION.test(path);
 }
 
 const FLASH: Record<string, (count: string) => Flash> = {
@@ -80,6 +87,10 @@ const FLASH: Record<string, (count: string) => Flash> = {
   "plan-saved": () => ({ kind: "ok", text: "Forfait enregistré : appliqué aux prochains paiements" }), "plan-reset": () => ({ kind: "ok", text: "Valeurs d'origine rétablies" }),
   "bad-plan": () => ({ kind: "bad", text: "Valeurs invalides : des nombres positifs" }), "rate-saved": () => ({ kind: "ok", text: "Taux enregistré" }),
   switched: () => ({ kind: "ok", text: "Réglage appliqué" }), "sessions-closed": (count) => ({ kind: "ok", text: `${n(Number(count))} session${Number(count) > 1 ? "s" : ""} fermée${Number(count) > 1 ? "s" : ""}` }),
+  "amb-created": () => ({ kind: "ok", text: "Ambassadeur créé : il a reçu son accès par e-mail" }), "amb-exists": () => ({ kind: "bad", text: "Cette adresse a déjà un compte ambassadeur" }),
+  "amb-approved": () => ({ kind: "ok", text: "Ambassadeur validé : il a reçu son accès par e-mail" }), "amb-suspended": () => ({ kind: "ok", text: "Ambassadeur suspendu" }),
+  "amb-saved": () => ({ kind: "ok", text: "Informations enregistrées" }), "amb-extended": () => ({ kind: "ok", text: "Décision envoyée à l'ambassadeur" }),
+  "amb-paid": () => ({ kind: "ok", text: "Retrait marqué payé : l'ambassadeur est prévenu" }), "amb-bad": () => ({ kind: "bad", text: "Remplissez au moins le nom et un e-mail valide" }),
   "bad-confirm": () => ({ kind: "bad", text: "L'identifiant tapé ne correspond pas : rien n'a été supprimé" }),
   operator: () => ({ kind: "bad", text: "Un compte opérateur ne peut pas être bloqué ici" }),
 };
@@ -97,7 +108,7 @@ export function createConsole(ctx: ConsoleContext) {
     const flashCode = url.searchParams.get("ok") ?? url.searchParams.get("erreur");
     const flash = flashCode && Object.hasOwn(FLASH, flashCode) ? FLASH[flashCode]!(url.searchParams.get("n") ?? "0") : null;
     const pendingOrders = Number((store.db.prepare("SELECT COUNT(*) AS n FROM orders WHERE status = 'pending' AND created_at > ?").get(now() - 2 * 86_400_000) as { n: number }).n);
-    const html = consolePage({ ...page, body: page.body({ now: now() }), email: user.email, nonce, flash, pendingOrders, unreadReports: reports.unread() });
+    const html = consolePage({ ...page, body: page.body({ now: now() }), email: user.email, nonce, flash, pendingOrders, unreadReports: reports.unread(), pendingAmbassadors: ctx.ambassadors.pendingCount() });
     ctx.send(res, status, html, "text/html; charset=utf-8", {
       "content-security-policy": `default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; script-src 'nonce-${nonce}'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'`,
     });
@@ -288,6 +299,113 @@ export function createConsole(ctx: ConsoleContext) {
     return (store.db.prepare(sql).all(...(audience === "paying" ? [now() - GRACE] : [])) as Array<{ email: string }>).map((row) => row.email);
   }
 
+  const ambassadorRow = (ambassador: Ambassador) => ({ ambassador, stats: ctx.ambassadors.stats(ambassador), codes: ctx.ambassadors.codes(ambassador.id).filter((code) => code.active).map((code) => code.code) });
+
+  /** The welcome an approved ambassador gets: their link, their code, how it works and where their space is. */
+  function welcome(ambassador: Ambassador, code: string | null): void {
+    const rules = ctx.ambassadors.rules();
+    ctx.outbox.notify(ambassador.email, "Bienvenue dans le programme ambassadeurs Deliobot 🎉", `Bonjour ${ambassador.name},
+
+Votre compte ambassadeur Deliobot est actif !
+${code ? `\nVotre code : ${code}\nVotre lien : ${linkFor(code)}\n` : ""}
+Comment ça marche :
+1. Partagez votre lien ou votre code avec votre communauté.
+2. Elle s'abonne avec, et reçoit +${rules.welcomeCredits} crédits offerts à son premier abonnement.
+3. Vous touchez ${Math.round(rules.levels[0]!.rate * 100)} à ${Math.round(rules.levels.at(-1)!.rate * 100)} % de chaque abonnement pendant 6 mois, jusqu'à 24 mois pour les meilleurs.
+
+Vos gains sont disponibles ${rules.holdDays} jours après chaque paiement : retrait en Mobile Money dès ${rules.minPayoutXof.toLocaleString("fr-FR")} FCFA, ou en crédits Delio à tout moment.
+
+Votre espace (codes, liens, gains, textes prêts à partager) : ${ctx.customerUrl}/ambassadeur
+Connectez-vous avec cette adresse e-mail.
+
+Le programme en détail : ${SITE_URL}/ambassadeurs
+
+Merci de faire grandir Deliobot avec nous !`);
+  }
+
+  function ambassadorPages(res: ServerResponse, user: Account, url: URL): boolean {
+    if (url.pathname === "/ambassadeurs") {
+      const asked = url.searchParams.get("filtre") ?? "all";
+      const filter = ["pending", "active", "suspended"].includes(asked) ? asked : "all";
+      const all = ctx.ambassadors.all(filter === "all" ? undefined : filter as Ambassador["status"]);
+      const names = new Map(ctx.ambassadors.all().map((one) => [one.id, one]));
+      render(res, user, url, { title: "Ambassadeurs", subtitle: "Programme d'affiliation : codes, liens et commissions", section: "ambassadors", body: ({ now: at }) => ambassadorsPage({
+        rows: all.map(ambassadorRow), filter, totals: ctx.ambassadors.totals(), rate: ctx.xofRate(), now: at,
+        payouts: ctx.ambassadors.payouts().map((payout) => ({ ...payout, name: names.get(payout.ambassador)?.name ?? "?", phone: names.get(payout.ambassador)?.phone ?? "" })) }) });
+      return true;
+    }
+    const id = AMBASSADOR.exec(url.pathname)?.[1];
+    const ambassador = id ? ctx.ambassadors.get(id) : null;
+    if (!ambassador) return false;
+    render(res, user, url, { title: ambassador.name, subtitle: "Ambassadeur", section: "ambassadors", body: ({ now: at }) => ambassadorPage({ row: ambassadorRow(ambassador), rules: ctx.ambassadors.rules(),
+      commissions: ctx.ambassadors.commissions(ambassador.id), payouts: ctx.ambassadors.payouts(ambassador.id), codes: ctx.ambassadors.codes(ambassador.id), now: at }) });
+    return true;
+  }
+
+  async function ambassadorAction(req: IncomingMessage, res: ServerResponse, user: Account, match: RegExpExecArray): Promise<void> {
+    const body = await ctx.readForm(req);
+    const [, id, action, payoutId] = match;
+    const firstCode = (ambassador: Ambassador): string | null => {
+      if (ctx.ambassadors.codes(ambassador.id).length) return ctx.ambassadors.codes(ambassador.id)[0]!.code;
+      const made = ctx.ambassadors.createCode(ambassador, field(body, "code", 20) || ctx.ambassadors.suggestCode(ambassador));
+      return made.ok ? made.code : (() => { const fallback = ctx.ambassadors.createCode(ambassador, ctx.ambassadors.suggestCode(ambassador)); return fallback.ok ? fallback.code : null; })();
+    };
+    if (payoutId) {
+      const payout = ctx.ambassadors.markPayoutPaid(Number(payoutId), field(body, "reference", 80), user.email);
+      const ambassador = payout ? ctx.ambassadors.get(payout.ambassador) : null;
+      if (payout && ambassador) {
+        store.audit(null, user.email, "ambassador.payout.paid", `${ambassador.email}:${payout.usd}`);
+        ctx.outbox.notify(ambassador.email, "Votre retrait Deliobot a été envoyé 💸", `Bonjour ${ambassador.name},\n\nNous vous avons envoyé ${payout.usd.toFixed(2)} $ (≈ ${Math.round(payout.usd * ctx.xofRate()).toLocaleString("fr-FR")} FCFA) en Mobile Money au ${ambassador.phone}${payout.reference ? ` (réf. ${payout.reference})` : ""}.\n\nMerci et bonne continuation !\n${ctx.customerUrl}/ambassadeur`);
+      }
+      return ctx.redirect(res, "/ambassadeurs?ok=amb-paid");
+    }
+    if (!id) {
+      const email = field(body, "email", 160).toLowerCase();
+      if (!field(body, "name", 80) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return ctx.redirect(res, "/ambassadeurs?erreur=amb-bad");
+      const made = ctx.ambassadors.apply({ name: field(body, "name", 80), email, phone: field(body, "phone", 30), social: field(body, "social", 200) }, "active");
+      if (!made) return ctx.redirect(res, "/ambassadeurs?erreur=amb-exists");
+      store.audit(null, user.email, "ambassador.created", made.email);
+      welcome(made, firstCode(made));
+      return ctx.redirect(res, `/ambassadeurs/${made.id}?ok=amb-created`);
+    }
+    const ambassador = ctx.ambassadors.get(id);
+    if (!ambassador) return ctx.redirect(res, "/ambassadeurs");
+    const back = (code: string) => ctx.redirect(res, `/ambassadeurs/${ambassador.id}?ok=${code}`);
+    switch (action) {
+      case "valider": {
+        const first = ambassador.status === "pending";
+        ctx.ambassadors.update(ambassador.id, { status: "active" });
+        store.audit(null, user.email, "ambassador.approved", ambassador.email);
+        const active = ctx.ambassadors.get(ambassador.id)!;
+        const code = firstCode(active);
+        if (first) welcome(active, code);
+        return back("amb-approved");
+      }
+      case "suspendre":
+        ctx.ambassadors.update(ambassador.id, { status: "suspended" });
+        store.audit(null, user.email, "ambassador.suspended", ambassador.email);
+        return back("amb-suspended");
+      case "modifier": {
+        const rate = Number(field(body, "rate", 4));
+        ctx.ambassadors.update(ambassador.id, { name: field(body, "name", 80) || ambassador.name, phone: field(body, "phone", 30), social: field(body, "social", 200),
+          rateOverride: rate >= 1 && rate <= 50 ? rate / 100 : null });
+        store.audit(null, user.email, "ambassador.updated", ambassador.email);
+        return back("amb-saved");
+      }
+      case "prolongation": {
+        const accept = field(body, "accept", 1) === "1";
+        const months = ambassador.extensionRequest;
+        ctx.ambassadors.decideExtension(ambassador.id, accept);
+        store.audit(null, user.email, accept ? "ambassador.extended" : "ambassador.extension_refused", `${ambassador.email}:${months}`);
+        if (months) ctx.outbox.notify(ambassador.email, accept ? `Prolongation accordée : ${months} mois par client 🎉` : "Votre demande de prolongation",
+          accept ? `Bonjour ${ambassador.name},\n\nBonne nouvelle : vous touchez désormais vos commissions pendant ${months} mois pour chaque client (${Math.round(ctx.ambassadors.rules().extendedRate * 100)} % après le 6e mois).\n\n${ctx.customerUrl}/ambassadeur`
+            : `Bonjour ${ambassador.name},\n\nNous ne pouvons pas accorder la prolongation pour le moment. Continuez comme ça : vous pourrez la redemander bientôt.\n\n${ctx.customerUrl}/ambassadeur`);
+        return back("amb-extended");
+      }
+    }
+    return back("amb-saved");
+  }
+
   function settingsPage(res: ServerResponse, user: Account, url: URL, req: IncomingMessage): boolean {
     const { settings, promos, outbox } = ctx;
     const queued = count("SELECT COUNT(*) AS n FROM outbox WHERE state = 'queued'");
@@ -424,6 +542,7 @@ export function createConsole(ctx: ConsoleContext) {
       if (path === "/journal") { journal(res, user, url); return true; }
       if (path === "/signalements") { reportList(res, user, url); return true; }
       if (settingsPage(res, user, url, req)) return true;
+      if (ambassadorPages(res, user, url)) return true;
       if (path === "/sites") {
         const rows = ctx.sites?.all() ?? [];
         render(res, user, url, { title: "Sites publiés", subtitle: "Ce que les bots de vos clients ont mis en ligne", section: "sites", body: ({ now: at }) => sitesPage({ rows, now: at, available: Boolean(ctx.sites) }) });
@@ -437,6 +556,8 @@ export function createConsole(ctx: ConsoleContext) {
       return false;
     }
     if (method !== "POST") return false;
+    const ambassadorMatch = AMBASSADOR_ACTION.exec(path);
+    if (ambassadorMatch) { await ambassadorAction(req, res, user, ambassadorMatch); return true; }
     const settingsMatch = SETTINGS_ACTION.exec(path);
     if (settingsMatch) { await settingsAction(req, res, user, settingsMatch); return true; }
     const siteAct = SITE_ACTION.exec(path);

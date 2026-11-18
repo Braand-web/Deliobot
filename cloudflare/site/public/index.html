@@ -731,7 +731,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
       <div><a class="brand" href="/"><img loading="lazy" decoding="async" src="/assets/delio-idle.webp" alt="">Deliobot</a><p style="margin:14px 0 0;max-width:260px">Des collègues IA qui terminent le travail.</p></div>
       <div><h4>Produit</h4><a href="#fonctions">Fonctions</a><a href="#metiers">Solutions</a><a href="#tarifs">Tarifs</a><a href="#telecharger">Télécharger</a></div>
       <div><h4>Ressources</h4><a href="/guides">Guides</a><a href="#faq">Questions</a></div>
-      <div><h4>Entreprise</h4><a href="/a-propos">À propos</a><a href="mailto:support@deliobot.fun">Support</a><a href="https://compte.deliobot.fun/login">Se connecter</a></div>
+      <div><h4>Entreprise</h4><a href="/a-propos">À propos</a><a href="/ambassadeurs">Devenir ambassadeur</a><a href="mailto:support@deliobot.fun">Support</a><a href="https://compte.deliobot.fun/login">Se connecter</a></div>
       <div><h4>Légal</h4><a href="/conditions">Conditions</a><a href="/confidentialite">Confidentialité</a></div>
     </div>
     <div class="fine"><span>© 2026 Deliobot</span><span>Vos bots, votre équipe.</span></div>
@@ -740,7 +740,17 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
 
 <script>
   const portal = document.documentElement.dataset.portal;
-  if (portal) document.querySelectorAll("[data-portal-path]").forEach((link) => { link.href = portal + link.dataset.portalPath; });
+  // An ambassador's ?ref= is kept 30 days and carried to the account pages, so the customer it brought stays theirs.
+  const ref = (() => {
+    const fresh = new URLSearchParams(location.search).get("ref");
+    try {
+      if (fresh && /^[a-z0-9-]{3,20}$/i.test(fresh)) localStorage.setItem("delio-ref", JSON.stringify({ code: fresh.toLowerCase(), until: Date.now() + 30 * 864e5 }));
+      const kept = JSON.parse(localStorage.getItem("delio-ref") || "null");
+      return kept && kept.until > Date.now() ? kept.code : null;
+    } catch { return fresh; }
+  })();
+  const withRef = (path) => ref ? path + (path.includes("?") ? "&" : "?") + "ref=" + encodeURIComponent(ref) : path;
+  document.querySelectorAll("[data-portal-path]").forEach((link) => { link.href = (portal || "https://compte.deliobot.fun") + withRef(link.dataset.portalPath); });
   let shownCycle = "month";
   const showCycle = (cycle) => {
     shownCycle = cycle;
@@ -752,7 +762,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
       francs.textContent = francs.dataset[cycle];
       const signup = plan.querySelector("[data-signup]");
       signup.dataset.portalPath = `/pay?plan=${signup.dataset.signup}&cycle=${cycle}`;
-      signup.href = (portal || "https://compte.deliobot.fun") + signup.dataset.portalPath;
+      signup.href = (portal || "https://compte.deliobot.fun") + withRef(signup.dataset.portalPath);
     });
   };
   document.querySelectorAll("[data-cycle]").forEach((button) => button.addEventListener("click", () => showCycle(button.dataset.cycle)));

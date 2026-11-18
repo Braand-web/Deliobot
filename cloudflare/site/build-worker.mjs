@@ -40,7 +40,7 @@ function count(request, env, ctx, kind, path) {
   const range = request.headers.get("range");
   if (kind === "download" && range && !/^bytes=0-/.test(range)) return;
   const url = new URL(request.url);
-  const visit = { site: "site", kind, path, referrer: request.headers.get("referer"), utmSource: url.searchParams.get("utm_source"),
+  const visit = { site: "site", kind, path, referrer: request.headers.get("referer"), utmSource: url.searchParams.get("utm_source") ?? (url.searchParams.get("ref") ? "ref." + url.searchParams.get("ref").toLowerCase().slice(0, 30) : null),
     ip: request.headers.get("cf-connecting-ip") ?? "", userAgent: request.headers.get("user-agent") ?? "", country: request.cf?.country ?? null, city: request.cf?.city ?? null };
   ctx.waitUntil(env.TRAFFIC.record([visit]).catch(() => 0));
 }

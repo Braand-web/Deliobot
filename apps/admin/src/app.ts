@@ -5,6 +5,8 @@ import { consoleMailer, type Mailer } from "./mail.ts";
 import { OperatorSettings } from "./operator-settings.ts";
 import { Outbox } from "./outbox.ts";
 import { normalizeCode, Promos } from "./promos.ts";
+import { Ambassadors } from "./ambassadors.ts";
+import { ambassadorDashboard, ambassadorJoinPage } from "./ambassador-pages.ts";
 import { discover, exchangeCode, pkceChallenge, verifyIdToken } from "./oidc.ts";
 import { createAppHosting, hostingAccess, type SiteBucket } from "./app-hosting.ts";
 import { createGateway, type GatewayOptions } from "./gateway.ts";
@@ -12,7 +14,7 @@ import { DEVICE_POLL_SECONDS, Devices } from "./devices.ts";
 import { personalWorkspaces } from "./personal-workspaces.ts";
 import { BILLING_REFRESH_SCRIPT } from "./billing-refresh.ts";
 import { Hosting, hostingRunner, RESERVED_SLUGS, socketFleet, type Fleet } from "./hosting.ts";
-import { Billing, PLANS, reconcileOrders, TOPUPS, TRIAL_DAYS, type Cycle, type PlanId, type TopupId } from "./plans.ts";
+import { Billing, DEFAULT_XOF_PER_USD, PLANS, reconcileOrders, TOPUPS, TRIAL_DAYS, type Cycle, type PlanId, type TopupId } from "./plans.ts";
 import { createSasPay, verifySasPayWebhook } from "./saspay.ts";
 import { Reports } from "./reports.ts";
 import { MICRO, Wallet } from "./wallet.ts";
@@ -160,6 +162,17 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   const plans = new Billing(wallet, now, settings);
   const promos = new Promos(wallet, now);
   const outbox = new Outbox(store.db, now);
+  const ambassadors = new Ambassadors({ wallet, promos, settings, now });
+  plans.onPaid((order) => ambassadors.recordPaid(order));
+  const xofRate = () => settings.xofPerUsd() ?? options.payments?.xofPerUsd ?? DEFAULT_XOF_PER_USD;
+  const REF_COOKIE = secure ? "__Host-delio-ref" : "delio-ref";
+  /** The ambassador code a visitor arrived with, from this request or the cookie their first visit left. */
+  const refOf = (req: IncomingMessage, url: URL) => url.searchParams.get("ref") ?? parseCookies(req.headers.cookie).get(REF_COOKIE) ?? null;
+  /** Ties the workspace to the ambassador whose link or code brought this person, if none has it yet. */
+  const attributeRef = (req: IncomingMessage, url: URL, slug: string) => {
+    const ref = refOf(req, url);
+    if (ref) ambassadors.attribute(slug, ref, "link", store.members(slug).map((member) => member.email));
+  };
   const personal = personalWorkspaces(store, plans, wallet, publicUrl.origin);
   const saspay = options.payments?.saspayKey ? createSasPay({ key: options.payments.saspayKey, apiUrl: options.payments.apiUrl, fetchImpl }) : null;
   const currency = options.payments?.currency ?? "XOF";
@@ -246,7 +259,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   const billingRefresh = (workspace: Workspace) => operatorConsole ? {} : { billingRefresh: { workspace: workspace.slug, paymentVersion: plans.paidCount(workspace.slug) } };
 
   /** Opens SasPay's checkout for a plan or a top-up of this workspace, or shows the billing page with what stopped it. */
-  async function openCheckout(res: ServerResponse, user: Account, workspace: Workspace, input: { kind: string; plan: string; topup: string; cycle: string; code?: string }): Promise<void> {
+  async function openCheckout(res: ServerResponse, user: Account, workspace: Workspace, input: { kind: string; plan: string; topup: string; cycle: string; code?: string; req?: IncomingMessage; url?: URL }): Promise<void> {
     workspace = store.workspace(personal.resolve(user, workspace.slug))!;
     const fail = (status: number, error: string) => html(res, status, { title: "Facturation", email: user.email, ...billingRefresh(workspace), body: billing(workspace, user, { error }) });
     if (!saspay) return fail(503, "Les paiements ne sont pas encore activés.");
@@ -259,10 +272,13 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     if (kind === "plan" && !Object.hasOwn(PLANS, plan)) return fail(400, "Choisissez un forfait.");
     if (kind === "topup" && !TOPUPS.some((pack) => pack.id === topup)) return fail(400, "Choisissez une recharge.");
     if (kind !== "plan" && kind !== "topup") return fail(400, "Choisissez un forfait ou une recharge.");
+    if (input.req && input.url) attributeRef(input.req, input.url, workspace.slug);
     if (kind === "plan" && plan === "trial" && !settings.isOpen("trial")) return fail(409, "L'essai n'est plus proposé pour le moment. Choisissez un forfait.");
     if (kind === "plan" && plan === "trial" && plans.trialUsed(user.email, workspace.slug)) return fail(409, "L'essai a déjà été utilisé pour ce compte ou cet espace.");
     let promo: { code: string; percent: number } | undefined;
-    if (input.code && kind === "plan") {
+    const ambassadorCode = input.code ? ambassadors.ambassadorForCode(input.code) : null;
+    if (ambassadorCode) ambassadors.attribute(workspace.slug, ambassadorCode.code, "code", store.members(workspace.slug).map((member) => member.email));
+    else if (input.code && kind === "plan") {
       const checked = promos.check(input.code, workspace.slug, plan);
       if (!checked.ok) return fail(409, checked.error);
       if (checked.promo.kind !== "percent") return fail(409, "Ce code donne des crédits : utilisez-le sur la page Code promo.");
@@ -470,6 +486,24 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
 
     if (method === "POST" && !sameOrigin(req)) throw new HttpError(403, "Ce formulaire ne vient pas du portail Delio.");
     const user = account(req);
+    const ref = method === "GET" && !operatorConsole ? url.searchParams.get("ref") : null;
+    if (ref && ambassadors.ambassadorForCode(ref)) res.setHeader("set-cookie", `${REF_COOKIE}=${encodeURIComponent(normalizeCode(ref))}; Path=/; Max-Age=${30 * 24 * 3600}; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}`);
+
+    if (!operatorConsole && path === "/ambassadeur/rejoindre") {
+      const form = method === "POST" ? await readBody(req) : null;
+      const values = form ? Object.fromEntries(["name", "email", "phone", "social", "audience", "why"].map((key) => [key, text(form, key, key === "why" ? 1000 : 200)])) : { email: user?.email ?? "" };
+      const show = (status: number, extra: { sent?: boolean; error?: string } = {}) =>
+        html(res, status, { title: "Devenir ambassadeur", email: user?.email, mascot: "happy", body: ambassadorJoinPage({ rules: ambassadors.rules(), rate: xofRate(), values, ...extra }) });
+      if (!form) return show(200);
+      const email = normalizeEmail(values.email ?? "");
+      if (!values.name || !validEmail(email) || !values.phone || !values.social) return show(400, { error: "Remplissez votre nom, votre e-mail, votre numéro et le lien de votre réseau." });
+      if (!store.allow(`ambassador-apply:${clientAddress(req)}`, 5, 24 * 60 * 60_000)) return show(429, { error: "Trop de candidatures envoyées. Réessayez demain." });
+      const made = ambassadors.apply({ ...values, email } as { name: string; email: string });
+      if (!made) return show(409, { error: "Cette adresse a déjà une candidature ou un compte ambassadeur. Connectez-vous pour le voir." });
+      store.audit(null, email, "ambassador.applied", made.id);
+      for (const operator of operators) outbox.notify(operator, `Nouvelle candidature ambassadeur : ${made.name}`, `${made.name} (${email}, ${made.phone}) veut devenir ambassadeur.\nRéseau : ${made.social}\nCommunauté : ${made.audience}\n\n${made.why}\n\nÀ valider dans la console : Ambassadeurs.`);
+      return show(200, { sent: true });
+    }
 
     if (method === "GET" && path === "/login") {
       if (user) return redirect(res, localPath(url.searchParams.get("next")));
@@ -733,7 +767,45 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       const workspace = asked ? requireWorkspaceAdmin(user, personal.resolve(user, asked)) : personal.existing(user) ?? store.workspacesOf(user.id).find((item) => item.role === "admin") ?? personalWorkspace(user);
       const pick = (name: string, max: number) => (url.searchParams.get(name) ?? "").slice(0, max);
       const topup = pick("topup", 16);
-      return openCheckout(res, user, workspace, { kind: topup ? "topup" : "plan", plan: pick("plan", 16), topup, cycle: pick("cycle", 8), code: pick("code", 40) });
+      return openCheckout(res, user, workspace, { kind: topup ? "topup" : "plan", plan: pick("plan", 16), topup, cycle: pick("cycle", 8), code: pick("code", 40), req, url });
+    }
+    if (path === "/ambassadeur" || path.startsWith("/ambassadeur/")) {
+      const ambassador = ambassadors.byEmail(user.email);
+      if (!ambassador) return redirect(res, "/ambassadeur/rejoindre");
+      const back = (key: "ok" | "erreur", value: string) => redirect(res, `/ambassadeur?${key}=${encodeURIComponent(value)}`);
+      if (method === "GET" && path === "/ambassadeur") {
+        return html(res, 200, { title: "Espace ambassadeur", email: user.email, body: ambassadorDashboard({ ambassador, stats: ambassadors.stats(ambassador), rules: ambassadors.rules(), rate: xofRate(), now: now(),
+          codes: ambassadors.codes(ambassador.id), payouts: ambassadors.payouts(ambassador.id), message: url.searchParams.get("ok") ?? undefined, error: url.searchParams.get("erreur") ?? undefined }) });
+      }
+      if (method !== "POST" || ambassador.status !== "active") throw new HttpError(404, "Not found.");
+      const body = await readBody(req);
+      if (path === "/ambassadeur/codes") {
+        const made = ambassadors.createCode(ambassador, text(body, "code", 40));
+        if (!made.ok) return back("erreur", made.error);
+        store.audit(null, user.email, "ambassador.code", made.code);
+        return back("ok", `Code ${made.code} créé. Partagez-le avec son lien !`);
+      }
+      const codeAction = /^\/ambassadeur\/codes\/([A-Z0-9-]{3,20})\/(activer|desactiver)$/.exec(path);
+      if (codeAction) {
+        ambassadors.setCodeActive(ambassador.id, codeAction[1]!, codeAction[2] === "activer");
+        return back("ok", codeAction[2] === "activer" ? "Code réactivé." : "Code désactivé : il ne donne plus de crédits ni de gains.");
+      }
+      if (path === "/ambassadeur/retrait") {
+        const mode = text(body, "mode", 20) === "credits" ? "credits" : "mobile_money";
+        const own = personal.existing(user) ?? personalWorkspace(user);
+        const paid = ambassadors.requestPayout(ambassador, mode, own.slug, xofRate());
+        if (!paid.ok) return back("erreur", paid.error);
+        store.audit(own.slug, user.email, `ambassador.payout.${mode}`, String(paid.usd));
+        if (mode === "credits") return back("ok", "Vos gains ont été ajoutés en crédits à votre compte Delio.");
+        for (const operator of operators) outbox.notify(operator, `Retrait ambassadeur : ${ambassador.name}`, `${ambassador.name} demande ${paid.usd.toFixed(2)} $ (≈ ${Math.round(paid.usd * xofRate()).toLocaleString("fr-FR")} FCFA) en Mobile Money au ${ambassador.phone}.\n\nAprès l'envoi, marquez-le payé dans la console : Ambassadeurs.`);
+        return back("ok", "Demande de retrait envoyée : vous recevez l'argent en Mobile Money sous quelques jours.");
+      }
+      if (path === "/ambassadeur/prolongation") {
+        if (!ambassadors.requestExtension(ambassador)) return back("erreur", "La prolongation n'est pas encore disponible pour votre niveau.");
+        for (const operator of operators) outbox.notify(operator, `Demande de prolongation : ${ambassador.name}`, `${ambassador.name} a atteint un niveau qui permet de toucher ses commissions plus longtemps. À accepter ou refuser dans la console : Ambassadeurs.`);
+        return back("ok", "Demande envoyée. Nous vous répondons par e-mail.");
+      }
+      throw new HttpError(404, "Not found.");
     }
     if (path === "/code") {
       const workspace = personal.existing(user) ?? store.workspacesOf(user.id).find((item) => item.role === "admin") ?? personalWorkspace(user);
@@ -744,6 +816,15 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       if (method !== "POST") throw new HttpError(405, "Méthode non autorisée.");
       const code = normalizeCode(text(await readBody(req), "code", 40));
       if (!store.allow(`promo:${user.id}`, 20, 60 * 60_000)) return show(429, { code, error: "Trop d'essais. Patientez une heure et réessayez." });
+      const forAmbassador = ambassadors.ambassadorForCode(code);
+      if (forAmbassador) {
+        const tied = ambassadors.attribute(slug, forAmbassador.code, "code", store.members(slug).map((member) => member.email));
+        const own = forAmbassador.ambassador.email === user.email;
+        if (tied) store.audit(slug, user.email, "promo.ambassador", forAmbassador.code);
+        return show(own ? 400 : 200, own ? { code, error: "C'est votre propre code : partagez-le avec votre communauté." }
+          : { message: tied ? `Code ${forAmbassador.code} accepté : vos ${ambassadors.rules().welcomeCredits.toLocaleString("fr-FR")} crédits offerts seront ajoutés à votre premier abonnement.`
+            : "Votre compte est déjà lié à un code ambassadeur : vos crédits offerts arrivent avec votre premier abonnement." });
+      }
       const checked = promos.check(code, slug);
       if (!checked.ok) return show(400, { code, error: checked.error });
       if (checked.promo.kind === "credits") {
@@ -854,7 +935,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     "Hébergement des sites": Boolean(sites),
   };
   const operatorPages = createConsole({ store, wallet, devices, reports, billing: plans, hosting, saspay, currency, operators, now, ...(sites ? { sites } : {}), readForm: readBody,
-    settings, promos, outbox, services, xofPerUsd: options.payments?.xofPerUsd, customerUrl: publicUrl.origin.replace("//admin.", "//compte."), cookie: (req) => parseCookies(req.headers.cookie).get(cookieName),
+    settings, promos, outbox, ambassadors, xofRate, services, xofPerUsd: options.payments?.xofPerUsd, customerUrl: publicUrl.origin.replace("//admin.", "//compte."), cookie: (req) => parseCookies(req.headers.cookie).get(cookieName),
     redirect: (res, location) => redirect(res, location), send });
 
   const handler = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
@@ -871,6 +952,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   };
   async function sweep(): Promise<void> {
     await gateway.sweep();
+    ambassadors.sweep();
     await outbox.drain(mailer).catch((error: unknown) => console.error("delio-admin: announcement e-mails failed", error));
     traffic.purge();
     reports.purge();
