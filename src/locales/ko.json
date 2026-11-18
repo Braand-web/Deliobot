@@ -7668,5 +7668,7 @@
   "outboundDraft.edit": "수정",
   "outboundDraft.cancelEdit": "취소",
   "outboundDraft.resend": "내 버전 보내기",
-  "outboundDraft.edited": "수정됨, 승인을 위해 다시 보냄"
+  "outboundDraft.edited": "수정됨, 승인을 위해 다시 보냄",
+  "chat.notice.appSignedOut": "{app}에서 로그아웃되었습니다. 로그인이 만료되었거나 취소되었습니다. 봇이 다시 사용할 수 있도록 다시 연결하세요.",
+  "chat.notice.reconnect": "다시 연결"
 }

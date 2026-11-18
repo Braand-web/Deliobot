@@ -9978,5 +9978,7 @@
   "outboundDraft.edit": "编辑",
   "outboundDraft.cancelEdit": "取消",
   "outboundDraft.resend": "发送我的版本",
-  "outboundDraft.edited": "已编辑，重新提交等待批准"
+  "outboundDraft.edited": "已编辑，重新提交等待批准",
+  "chat.notice.appSignedOut": "{app} 已退出登录：登录已过期或被撤销。请重新连接，让你的机器人可以再次使用。",
+  "chat.notice.reconnect": "重新连接"
 }

@@ -7138,5 +7138,7 @@
   "outboundDraft.edit": "Edytuj",
   "outboundDraft.cancelEdit": "Anuluj",
   "outboundDraft.resend": "Wyślij moją wersję",
-  "outboundDraft.edited": "Zmieniono, odesłano do zatwierdzenia"
+  "outboundDraft.edited": "Zmieniono, odesłano do zatwierdzenia",
+  "chat.notice.appSignedOut": "{app} jest wylogowany: logowanie wygasło lub zostało cofnięte. Połącz ponownie, aby boty mogły z niego korzystać.",
+  "chat.notice.reconnect": "Połącz ponownie"
 }

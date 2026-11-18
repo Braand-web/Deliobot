@@ -7007,5 +7007,7 @@
   "outboundDraft.edit": "Modifica",
   "outboundDraft.cancelEdit": "Annulla",
   "outboundDraft.resend": "Invia la mia versione",
-  "outboundDraft.edited": "Modificato, rimandato per l'approvazione"
+  "outboundDraft.edited": "Modificato, rimandato per l'approvazione",
+  "chat.notice.appSignedOut": "{app} è disconnesso: l'accesso è scaduto o è stato revocato. Ricollegalo perché i tuoi bot possano usarlo di nuovo.",
+  "chat.notice.reconnect": "Ricollega"
 }

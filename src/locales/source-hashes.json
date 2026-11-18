@@ -4066,7 +4066,9 @@
       "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
       "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
-      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
+      "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
     },
     "es": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -10494,7 +10496,9 @@
       "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
       "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
-      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
+      "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
     },
     "fr": {
       "delioMenu.checking": "ee7fdea20d0b8d3d566f24f6e7b11b62f71cc8fc95748cd8d4c5431ab3947185",
@@ -14629,7 +14633,9 @@
       "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
       "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
-      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
+      "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
     },
     "hi": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -18319,7 +18325,9 @@
       "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
       "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
-      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
+      "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
     },
     "ja": {
       "connectedWorkspaces.localTitle": "7d6deafeab011d734c3fdd1bfd6f69544fbb746a004019269bdb48544b01164b",
@@ -26247,7 +26255,9 @@
       "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
       "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
-      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
+      "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
     },
     "pt-br": {
       "delioMenu.checking": "ee7fdea20d0b8d3d566f24f6e7b11b62f71cc8fc95748cd8d4c5431ab3947185",
@@ -37443,7 +37453,9 @@
       "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
       "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
-      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
+      "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
     },
     "zh": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -47412,7 +47424,9 @@
       "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
       "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
-      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
+      "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
     },
     "zh-tw": {
       "connectedWorkspaces.localTitle": "7d6deafeab011d734c3fdd1bfd6f69544fbb746a004019269bdb48544b01164b",
@@ -57569,7 +57583,9 @@
       "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
       "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
-      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
+      "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
     },
     "uk": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -61679,7 +61695,9 @@
       "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
       "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
-      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
+      "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
     },
     "vi": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -67604,7 +67622,9 @@
       "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
       "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
-      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
+      "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
     },
     "tr": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -73529,7 +73549,9 @@
       "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
       "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
-      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
+      "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
     },
     "pl": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -80662,7 +80684,9 @@
       "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
       "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
-      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
+      "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
     },
     "ru": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -87849,7 +87873,9 @@
       "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
       "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
-      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
+      "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
     },
     "it": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -94851,7 +94877,9 @@
       "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
       "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
-      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
+      "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
     },
     "ko": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -102514,7 +102542,9 @@
       "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
       "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
       "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
-      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db",
+      "chat.notice.appSignedOut": "8e0c956ea221bcb4ab27e194f06ac5f435d2b3e28ffcb4f09551c43e28eaedd7",
+      "chat.notice.reconnect": "bf8a9eab9e7e141bfb81f0ca9244a5f68f476ed0b57f03538410417298169d18"
     }
   }
 }

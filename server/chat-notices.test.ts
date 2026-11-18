@@ -10,7 +10,7 @@ import { stoppedLine } from "./host/person-first.ts";
 
 describe("chat notices", () => {
   it("the catalog's chat notices are exactly the ones the server writes", () => {
-    const clientLabels = new Set(["chat.notice.signIn", "chat.notice.signInHint"]);
+    const clientLabels = new Set(["chat.notice.signIn", "chat.notice.signInHint", "chat.notice.reconnect"]);
     const catalog = Object.fromEntries(Object.entries(englishCatalog).filter(([key]) => key.startsWith("chat.notice.") && !clientLabels.has(key)));
     expect(catalog).toEqual(CHAT_NOTICE);
   });

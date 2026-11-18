@@ -4073,5 +4073,7 @@
   "outboundDraft.edit": "Bearbeiten",
   "outboundDraft.cancelEdit": "Abbrechen",
   "outboundDraft.resend": "Meine Version senden",
-  "outboundDraft.edited": "Bearbeitet, zur Freigabe zurückgeschickt"
+  "outboundDraft.edited": "Bearbeitet, zur Freigabe zurückgeschickt",
+  "chat.notice.appSignedOut": "{app} ist abgemeldet: Die Anmeldung ist abgelaufen oder wurde widerrufen. Verbinde es neu, damit deine Bots es wieder nutzen können.",
+  "chat.notice.reconnect": "Neu verbinden"
 }

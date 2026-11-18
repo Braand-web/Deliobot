@@ -7932,5 +7932,7 @@
   "outboundDraft.edit": "編集",
   "outboundDraft.cancelEdit": "キャンセル",
   "outboundDraft.resend": "自分の版を送る",
-  "outboundDraft.edited": "編集済み、承認のため再送"
+  "outboundDraft.edited": "編集済み、承認のため再送",
+  "chat.notice.appSignedOut": "{app} からサインアウトしました。サインインの期限切れか取り消しです。ボットが再び使えるよう、もう一度接続してください。",
+  "chat.notice.reconnect": "再接続"
 }

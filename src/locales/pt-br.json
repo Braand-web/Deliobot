@@ -11255,5 +11255,7 @@
   "outboundDraft.edit": "Editar",
   "outboundDraft.cancelEdit": "Cancelar",
   "outboundDraft.resend": "Enviar minha versão",
-  "outboundDraft.edited": "Editado, reenviado para aprovação"
+  "outboundDraft.edited": "Editado, reenviado para aprovação",
+  "chat.notice.appSignedOut": "{app} foi desconectado: o login expirou ou foi revogado. Reconecte para que seus bots possam usá-lo de novo.",
+  "chat.notice.reconnect": "Reconectar"
 }

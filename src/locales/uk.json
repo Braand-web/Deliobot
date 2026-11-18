@@ -4116,5 +4116,7 @@
   "outboundDraft.edit": "Змінити",
   "outboundDraft.cancelEdit": "Скасувати",
   "outboundDraft.resend": "Надіслати мою версію",
-  "outboundDraft.edited": "Змінено, надіслано на підтвердження"
+  "outboundDraft.edited": "Змінено, надіслано на підтвердження",
+  "chat.notice.appSignedOut": "{app} відключено: вхід завершився або його скасовано. Підключіть знову, щоб боти могли ним користуватися.",
+  "chat.notice.reconnect": "Підключити знову"
 }

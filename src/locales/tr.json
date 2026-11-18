@@ -5931,5 +5931,7 @@
   "outboundDraft.edit": "Düzenle",
   "outboundDraft.cancelEdit": "İptal",
   "outboundDraft.resend": "Benim sürümümü gönder",
-  "outboundDraft.edited": "Düzenlendi, onay için geri gönderildi"
+  "outboundDraft.edited": "Düzenlendi, onay için geri gönderildi",
+  "chat.notice.appSignedOut": "{app} oturumu kapandı: girişin süresi doldu veya iptal edildi. Botlarınızın yeniden kullanabilmesi için tekrar bağlayın.",
+  "chat.notice.reconnect": "Yeniden bağla"
 }

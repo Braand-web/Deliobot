@@ -5931,5 +5931,7 @@
   "outboundDraft.edit": "Sửa",
   "outboundDraft.cancelEdit": "Hủy",
   "outboundDraft.resend": "Gửi bản của tôi",
-  "outboundDraft.edited": "Đã sửa, gửi lại để duyệt"
+  "outboundDraft.edited": "Đã sửa, gửi lại để duyệt",
+  "chat.notice.appSignedOut": "{app} đã đăng xuất: phiên đăng nhập hết hạn hoặc bị thu hồi. Hãy kết nối lại để bot có thể dùng tiếp.",
+  "chat.notice.reconnect": "Kết nối lại"
 }

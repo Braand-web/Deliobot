@@ -7192,5 +7192,7 @@
   "outboundDraft.edit": "Изменить",
   "outboundDraft.cancelEdit": "Отмена",
   "outboundDraft.resend": "Отправить мою версию",
-  "outboundDraft.edited": "Изменено, отправлено на подтверждение"
+  "outboundDraft.edited": "Изменено, отправлено на подтверждение",
+  "chat.notice.appSignedOut": "{app} отключён: вход истёк или был отозван. Подключите его снова, чтобы боты могли им пользоваться.",
+  "chat.notice.reconnect": "Подключить снова"
 }

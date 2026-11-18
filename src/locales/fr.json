@@ -4141,5 +4141,7 @@
   "outboundDraft.edit": "Modifier",
   "outboundDraft.cancelEdit": "Annuler",
   "outboundDraft.resend": "Envoyer ma version",
-  "outboundDraft.edited": "Modifié, renvoyé pour validation"
+  "outboundDraft.edited": "Modifié, renvoyé pour validation",
+  "chat.notice.appSignedOut": "{app} est déconnecté : sa connexion a expiré ou a été révoquée. Reconnectez-le pour que vos bots puissent l'utiliser.",
+  "chat.notice.reconnect": "Reconnecter"
 }

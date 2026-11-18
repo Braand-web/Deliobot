@@ -10161,5 +10161,7 @@
   "outboundDraft.edit": "編輯",
   "outboundDraft.cancelEdit": "取消",
   "outboundDraft.resend": "傳送我的版本",
-  "outboundDraft.edited": "已編輯，重新送出等待核准"
+  "outboundDraft.edited": "已編輯，重新送出等待核准",
+  "chat.notice.appSignedOut": "{app} 已登出：登入已過期或被撤銷。請重新連線，讓你的機器人能再次使用。",
+  "chat.notice.reconnect": "重新連線"
 }

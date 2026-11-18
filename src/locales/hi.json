@@ -3696,5 +3696,7 @@
   "outboundDraft.edit": "बदलें",
   "outboundDraft.cancelEdit": "रद्द करें",
   "outboundDraft.resend": "मेरा संस्करण भेजें",
-  "outboundDraft.edited": "बदला गया, मंज़ूरी के लिए वापस भेजा गया"
+  "outboundDraft.edited": "बदला गया, मंज़ूरी के लिए वापस भेजा गया",
+  "chat.notice.appSignedOut": "{app} से साइन आउट हो गया है: साइन-इन की अवधि खत्म हो गई या उसे रद्द कर दिया गया। इसे फिर से जोड़ें ताकि आपके बॉट इसका उपयोग कर सकें।",
+  "chat.notice.reconnect": "फिर से जोड़ें"
 }

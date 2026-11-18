@@ -15,6 +15,19 @@ export function StatusActivityRow({ message }: { message: Message }) {
   if (status.kind === "stopped") return <CancelledTurnRow name={message.tool?.name} stoppedBy={message.stoppedBy} />;
   if (message.tool?.rescue) return <FirstReplyRescueRow rescue={message.tool.rescue} text={status.text} at={message.at} />;
   const Icon = status.kind === "recovery" ? RefreshCw : Info;
+  if (status.kind === "notice" && message.tool?.reconnectApp) {
+    return (
+      <div role="status" data-app-signed-out={message.tool.reconnectApp} className="flex w-fit max-w-full flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-warning/30 bg-warning/10 px-3 py-2 text-[13px] text-ink">
+        <span className="flex min-w-0 items-start gap-2">
+          <Info size={13} aria-hidden="true" className="mt-0.5 shrink-0 text-warning" />
+          <span className="min-w-0 break-words">{status.text}</span>
+        </span>
+        <button type="button" className={pill} onClick={() => dispatch({ type: "togglePlugins", open: true, surface: "apps" })}>
+          {t("chat.notice.reconnect")}
+        </button>
+      </div>
+    );
+  }
   // A notice that signing in fixes (an AI signed out) opens the place to sign in again.
   if (status.kind === "notice" && message.tool?.setup === true) {
     return (
