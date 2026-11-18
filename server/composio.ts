@@ -937,9 +937,7 @@ export async function listToolkits(cfg: AppConfig): Promise<{ cards: ToolkitCard
           : await brokerRequest(cursor ? `/v1/catalog?cursor=${encodeURIComponent(cursor)}` : "/v1/catalog", {
               signal: AbortSignal.timeout(15_000),
             });
-        if (!backendKey && res.status === 403 && page === 0 && await relinkBroker()) {
-          res = await brokerRequest("/v1/catalog", { signal: AbortSignal.timeout(15_000) });
-        }
+        if (!backendKey && res.status === 403 && page === 0 && await relinkBroker()) res = await brokerRequest("/v1/catalog", { signal: AbortSignal.timeout(15_000) });
         if (!res.ok) {
           stop = "http-error";
           break;
