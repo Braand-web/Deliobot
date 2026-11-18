@@ -2,8 +2,10 @@
 // is a prepaid period, a month or a year: paying grants the first month's credits and moves the end date, a yearly plan
 // grants the next months' credits every 30 days; a reminder with a payment link goes out before the period ends; after
 // a short grace the gateway stops spending Delio credits for the workspace.
+import type { OperatorSettings } from "./operator-settings.ts";
 import type { SqlDatabase } from "./sql.ts";
 
+import { discounted } from "./promos.ts";
 import type { SasPay } from "./saspay.ts";
 import { token } from "./store.ts";
 import { MICRO, type Wallet } from "./wallet.ts";
@@ -74,6 +76,8 @@ export interface Subscription { workspace: string; plan: PlanId; cycle: Cycle; p
 export interface Order {
   id: string; workspace: string; email: string; kind: "plan" | "topup"; plan: PlanId | null; cycle: Cycle; credits: number;
   usd: number; amount: string; currency: string; sessionId: string | null; checkoutUrl: string | null; status: "pending" | "paid" | "failed"; createdAt: number;
+  /** The promo code whose percentage was taken off, if any. */
+  promo?: string | null;
 }
 
 /** A dollar price in the currency SasPay charges: francs rounded up to a whole franc, dollars to the cent. */
@@ -92,26 +96,28 @@ export interface Catalog {
 }
 
 /** The plans and top-ups as the site and the apps show them: dollars, with the francs a payer is charged. */
-export function catalog(xofPerUsd = DEFAULT_XOF_PER_USD): Catalog {
+export function catalog(xofPerUsd = DEFAULT_XOF_PER_USD, plans: Record<PlanId, Plan> = PLANS): Catalog {
   const francs = (usd: number) => Math.ceil(usd * xofPerUsd);
   return {
     currency: "USD", trialDays: TRIAL_DAYS, recommended: RECOMMENDED,
-    plans: Object.values(PLANS).map((plan) => ({ ...plan, francs: francs(plan.usd), francsYear: plan.usdYear === null ? null : francs(plan.usdYear) })),
+    plans: Object.values(plans).map((plan) => ({ ...plan, francs: francs(plan.usd), francsYear: plan.usdYear === null ? null : francs(plan.usdYear) })),
     topups: TOPUPS.map((pack) => ({ ...pack, francs: francs(pack.usd) })),
   };
 }
 
-const ORDER_COLUMNS = `id, workspace, email, kind, plan, cycle, credits, usd, amount, currency, session_id AS sessionId, checkout_url AS checkoutUrl, status, created_at AS createdAt`;
+const ORDER_COLUMNS = `id, workspace, email, kind, plan, cycle, credits, usd, amount, currency, session_id AS sessionId, checkout_url AS checkoutUrl, status, created_at AS createdAt, promo`;
 
 export class Billing {
   private readonly db: SqlDatabase;
   private readonly wallet: Wallet;
   private readonly now: () => number;
+  private readonly settings: OperatorSettings | null;
 
-  constructor(wallet: Wallet, now: () => number = Date.now) {
+  constructor(wallet: Wallet, now: () => number = Date.now, settings: OperatorSettings | null = null) {
     this.wallet = wallet;
     this.db = wallet.db;
     this.now = now;
+    this.settings = settings;
     this.db.exec(`
 CREATE TABLE IF NOT EXISTS subscriptions (workspace TEXT PRIMARY KEY REFERENCES workspaces(slug) ON DELETE CASCADE, plan TEXT NOT NULL, cycle TEXT NOT NULL,
   period_end INTEGER NOT NULL, reminded INTEGER NOT NULL DEFAULT 0, monthly_credits INTEGER NOT NULL, next_grant_at INTEGER, grants_left INTEGER NOT NULL);
@@ -121,6 +127,21 @@ CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, workspace TEXT NOT NULL,
 CREATE INDEX IF NOT EXISTS orders_status ON orders (status, created_at);
 CREATE TABLE IF NOT EXISTS trial_uses (email TEXT PRIMARY KEY, workspace TEXT NOT NULL, at INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT NULL);`);
+    try { this.db.prepare("SELECT promo FROM orders LIMIT 0").all(); } catch { this.db.exec("ALTER TABLE orders ADD COLUMN promo TEXT"); }
+  }
+
+  /** The plan as sold now, with the operator's prices and allowances. */
+  plan(id: PlanId): Plan {
+    return this.settings?.plan(id) ?? PLANS[id];
+  }
+
+  planUsd(id: PlanId, cycle: Cycle): number {
+    const spec = this.plan(id);
+    return cycle === "year" && spec.usdYear !== null ? spec.usdYear : spec.usd;
+  }
+
+  catalog(xofPerUsd?: number): Catalog {
+    return catalog(this.settings?.xofPerUsd() ?? xofPerUsd, this.settings?.plans() ?? PLANS);
   }
 
   subscription(workspace: string): Subscription {
@@ -139,7 +160,7 @@ CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT N
     const subscription = this.subscription(workspace);
     if (subscription.status === "none") return { gateway: true, computers: 1, computerHours: 0, plan: null, ownAi: false };
     if (subscription.status === "expired") return { gateway: false, computers: 0, computerHours: 0, plan: null, ownAi: false, reason: "This workspace's plan has ended. An admin can renew it in Delio Admin → Billing." };
-    const plan = PLANS[subscription.plan];
+    const plan = this.plan(subscription.plan);
     const ownAi = OWN_AI_PLANS.has(subscription.plan);
     if (!plan.gateway) return { gateway: false, computers: 0, computerHours: 0, plan: subscription.plan, ownAi, reason: "This workspace's plan uses its own AI keys, not Delio credits." };
     return { gateway: true, computers: plan.computers, computerHours: plan.computerHours, plan: subscription.plan, ownAi };
@@ -149,23 +170,26 @@ CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT N
     return Boolean(this.db.prepare("SELECT 1 FROM trial_uses WHERE email = ? OR workspace = ?").get(email, workspace));
   }
 
-  createOrder(input: { workspace: string; email: string; kind: "plan"; plan: PlanId; cycle: Cycle } | { workspace: string; email: string; kind: "topup"; topup: TopupId },
+  /** `promo` takes its percentage off a plan's price. */
+  createOrder(input: { workspace: string; email: string; kind: "plan"; plan: PlanId; cycle: Cycle; promo?: { code: string; percent: number } } | { workspace: string; email: string; kind: "topup"; topup: TopupId },
     currency: string, xofPerUsd?: number): Order {
     const id = `ord_${token(12)}`;
     let plan: PlanId | null = null, cycle: Cycle = "month", credits: number, usd: number;
     if (input.kind === "plan") {
       plan = input.plan;
-      cycle = input.cycle === "year" && PLANS[plan].usdYear !== null ? "year" : "month";
-      credits = PLANS[plan].credits;
-      usd = planUsd(plan, cycle);
+      cycle = input.cycle === "year" && this.plan(plan).usdYear !== null ? "year" : "month";
+      credits = this.plan(plan).credits;
+      usd = this.planUsd(plan, cycle);
+      if (input.promo) usd = discounted(usd, input.promo.percent);
     } else {
       const pack = TOPUPS.find((item) => item.id === input.topup)!;
       credits = pack.credits;
       usd = pack.usd;
     }
-    const amount = priceIn(usd, currency, xofPerUsd);
-    this.db.prepare("INSERT INTO orders (id, workspace, email, kind, plan, cycle, credits, usd, amount, currency, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)")
-      .run(id, input.workspace, input.email, input.kind, plan, cycle, credits, usd, amount, currency, this.now());
+    const amount = priceIn(usd, currency, this.settings?.xofPerUsd() ?? xofPerUsd);
+    const promo = input.kind === "plan" ? input.promo?.code ?? null : null;
+    this.db.prepare("INSERT INTO orders (id, workspace, email, kind, plan, cycle, credits, usd, amount, currency, status, created_at, promo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)")
+      .run(id, input.workspace, input.email, input.kind, plan, cycle, credits, usd, amount, currency, this.now(), promo);
     return this.order(id)!;
   }
 
@@ -262,9 +286,9 @@ CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT N
   /** An operator's grant: a free order applied like a paid one, so it shows among the orders and moves the period the same way. */
   grantPlan(workspace: string, email: string, plan: PlanId, cycle: Cycle, currency: string): Order {
     const id = `${MANUAL_ORDER_PREFIX}${token(12)}`;
-    const period = cycle === "year" && PLANS[plan].usdYear !== null ? "year" : "month";
+    const period = cycle === "year" && this.plan(plan).usdYear !== null ? "year" : "month";
     this.db.prepare("INSERT INTO orders (id, workspace, email, kind, plan, cycle, credits, usd, amount, currency, status, created_at) VALUES (?, ?, ?, 'plan', ?, ?, ?, 0, '0', ?, 'pending', ?)")
-      .run(id, workspace, email, plan, period, PLANS[plan].credits, currency, this.now());
+      .run(id, workspace, email, plan, period, this.plan(plan).credits, currency, this.now());
     this.fulfil(id);
     return this.order(id)!;
   }

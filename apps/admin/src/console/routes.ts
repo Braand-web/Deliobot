@@ -4,11 +4,16 @@ import type { Devices } from "../devices.ts";
 import type { AppHosting } from "../app-hosting.ts";
 import type { Hosting } from "../hosting.ts";
 import type { Reports } from "../reports.ts";
-import { MANUAL_ORDER_PREFIX, PLANS, type Billing, type Cycle, type Order, type PlanId } from "../plans.ts";
+import { GRACE_MS as GRACE, MANUAL_ORDER_PREFIX, PLANS, type Billing, type Cycle, type Order, type PlanId } from "../plans.ts";
 import type { SasPay } from "../saspay.ts";
 import { token, type Account, type AdminStore, type Workspace } from "../store.ts";
 import { MICRO, type Wallet } from "../wallet.ts";
+import { PLAN_FIELDS, SWITCHES, type AnnouncementLevel, type OperatorSettings, type PlanOverride, type Switch } from "../operator-settings.ts";
+import type { Outbox } from "../outbox.ts";
+import { normalizeCode, type Promos } from "../promos.ts";
+import { DEFAULT_XOF_PER_USD } from "../plans.ts";
 import { Metrics, period } from "./metrics.ts";
+import { AUDIENCES, commsPage, pricingPage, promosPage, securityPage, systemPage } from "./settings-pages.ts";
 import { CLIENT_FILTERS, clientPage, clientsPage, consolePage, dashboardPage, journalPage, n, ORDER_FILTERS, ordersPage, reportPage, reportsPage, sitesPage, trafficPage, type ClientRow, type ConsoleSection, type Flash } from "./pages.ts";
 
 export interface ConsoleContext {
@@ -16,6 +21,15 @@ export interface ConsoleContext {
   operators: ReadonlySet<string>; now: () => number;
   /** Included app hosting; absent where no bucket is bound. */
   sites?: AppHosting;
+  settings: OperatorSettings; promos: Promos; outbox: Outbox;
+  /** Each provider or feature the portal can use, and whether its key or binding is set. */
+  services: Record<string, boolean>;
+  /** The environment's franc rate, when set. */
+  xofPerUsd?: number;
+  /** The customers' portal, where promo codes are typed. */
+  customerUrl: string;
+  /** The signed-in operator's session cookie, kept when they close their other sessions. */
+  cookie: (req: IncomingMessage) => string | undefined;
   readForm: (req: IncomingMessage) => Promise<Record<string, unknown>>;
   redirect: (res: ServerResponse, location: string) => void;
   send: (res: ServerResponse, status: number, body: string, type: string, headers: Record<string, string>) => void;
@@ -26,7 +40,12 @@ const ORDER_ID = "(?:ord|man)_[A-Za-z0-9_-]{8,40}";
 const CLIENT_ACTION = new RegExp(`^/clients/(${SLUG})/(credits|forfait|suspendre|bloquer|appareil|jeton|supprimer)$`);
 const CLIENT = new RegExp(`^/clients/(${SLUG})$`);
 const ORDER_ACTION = new RegExp(`^/commandes/(${ORDER_ID})/(verifier|payee)$`);
-const PAGES = new Set(["/", "/trafic", "/clients", "/commandes", "/signalements", "/journal", "/sites"]);
+const PAGES = new Set(["/", "/trafic", "/clients", "/commandes", "/signalements", "/journal", "/sites", "/promos", "/communication", "/forfaits", "/systeme", "/securite"]);
+const SETTINGS_ACTION = /^\/(?:promos(?:\/([A-Z0-9_-]{3,32})\/(activer|desactiver|supprimer))?|communication\/(annonce|annonce\/retirer|envoyer)|forfaits\/(taux|trial|starter|pro|max|byok)(\/retablir)?|systeme\/(signups|payments|trial)|securite\/(sessions|debloquer))$/;
+/** Audit actions the security page lists. */
+const SENSITIVE = ["credits.add", "plan.grant", "gateway.token", "device.revoke", "account.block", "account.unblock", "workspace.delete", "workspace.suspend", "site.taken_down",
+  "promo.created", "promo.deleted", "plan.price", "settings.switch", "settings.rate", "broadcast.sent", "security.sessions"];
+const UNSUBSCRIBE = "\n\n—\nVous recevez cet e-mail parce que vous avez un compte Deliobot. Pour ne plus en recevoir, répondez simplement « STOP ».";
 const SITE_ACTION = /^\/sites\/([a-z2-9]{10})\/retirer$/;
 const REPORT = /^\/signalements\/([A-Za-z0-9_-]{8,20})(\/supprimer)?$/;
 const PAGE_SIZE = 25;
@@ -35,7 +54,7 @@ const WORKSPACE_TABLES = ["wallets", "gateway_tokens", "holds", "subscriptions",
 
 /** Whether a path belongs to the console's own pages and actions. */
 export function consoleServes(path: string): boolean {
-  return PAGES.has(path) || SITE_ACTION.test(path) || REPORT.test(path) || CLIENT.test(path) || CLIENT_ACTION.test(path) || ORDER_ACTION.test(path);
+  return PAGES.has(path) || SETTINGS_ACTION.test(path) || SITE_ACTION.test(path) || REPORT.test(path) || CLIENT.test(path) || CLIENT_ACTION.test(path) || ORDER_ACTION.test(path);
 }
 
 const FLASH: Record<string, (count: string) => Flash> = {
@@ -52,6 +71,15 @@ const FLASH: Record<string, (count: string) => Flash> = {
   "no-payments": () => ({ kind: "bad", text: "Les paiements SasPay ne sont pas configurés" }),
   "bad-credits": () => ({ kind: "bad", text: "Entrez un nombre de crédits (non nul)" }),
   hosted: () => ({ kind: "bad", text: "Arrêtez d'abord l'hébergement et les ordinateurs cloud de cet espace" }),
+  "promo-created": () => ({ kind: "ok", text: "Code créé" }), "promo-exists": () => ({ kind: "bad", text: "Ce code existe déjà" }),
+  "promo-invalid": () => ({ kind: "bad", text: "Code invalide : 3 à 32 lettres, chiffres, tirets ; réduction de 1 à 100 %" }),
+  "promo-on": () => ({ kind: "ok", text: "Code activé" }), "promo-off": () => ({ kind: "ok", text: "Code désactivé" }), "promo-deleted": () => ({ kind: "ok", text: "Code supprimé" }),
+  announced: () => ({ kind: "ok", text: "Annonce publiée : le site l'affiche d'ici une minute" }), unannounced: () => ({ kind: "ok", text: "Annonce retirée" }),
+  "bad-announcement": () => ({ kind: "bad", text: "Écrivez un texte, et un lien en https:// s'il y en a un" }),
+  queued: (count) => ({ kind: "ok", text: `${n(Number(count))} e-mails en cours d'envoi` }), "no-recipients": () => ({ kind: "bad", text: "Aucun destinataire, ou objet et message vides" }),
+  "plan-saved": () => ({ kind: "ok", text: "Forfait enregistré : appliqué aux prochains paiements" }), "plan-reset": () => ({ kind: "ok", text: "Valeurs d'origine rétablies" }),
+  "bad-plan": () => ({ kind: "bad", text: "Valeurs invalides : des nombres positifs" }), "rate-saved": () => ({ kind: "ok", text: "Taux enregistré" }),
+  switched: () => ({ kind: "ok", text: "Réglage appliqué" }), "sessions-closed": (count) => ({ kind: "ok", text: `${n(Number(count))} session${Number(count) > 1 ? "s" : ""} fermée${Number(count) > 1 ? "s" : ""}` }),
   "bad-confirm": () => ({ kind: "bad", text: "L'identifiant tapé ne correspond pas : rien n'a été supprimé" }),
   operator: () => ({ kind: "bad", text: "Un compte opérateur ne peut pas être bloqué ici" }),
 };
@@ -250,6 +278,140 @@ export function createConsole(ctx: ConsoleContext) {
     return true;
   }
 
+  const count = (sql: string, ...params: Array<string | number>) => Number((store.db.prepare(sql).get(...params) as { n: number }).n);
+
+  function audienceEmails(audience: string): string[] {
+    const paying = "SELECT workspace FROM subscriptions WHERE plan != 'trial' AND period_end > ?";
+    const sql = audience === "all" ? "SELECT a.email FROM accounts a WHERE a.id NOT IN (SELECT account_id FROM blocked_accounts)"
+      : `SELECT DISTINCT a.email FROM members m JOIN accounts a ON a.id = m.account_id WHERE m.role = 'admin' AND a.id NOT IN (SELECT account_id FROM blocked_accounts)${
+        audience === "paying" ? ` AND m.workspace IN (${paying})` : audience === "trial" ? " AND m.workspace IN (SELECT workspace FROM trial_uses)" : ""}`;
+    return (store.db.prepare(sql).all(...(audience === "paying" ? [now() - GRACE] : [])) as Array<{ email: string }>).map((row) => row.email);
+  }
+
+  function settingsPage(res: ServerResponse, user: Account, url: URL, req: IncomingMessage): boolean {
+    const { settings, promos, outbox } = ctx;
+    const queued = count("SELECT COUNT(*) AS n FROM outbox WHERE state = 'queued'");
+    switch (url.pathname) {
+      case "/promos":
+        render(res, user, url, { title: "Codes promo", subtitle: "Réductions et crédits offerts", section: "promos",
+          body: ({ now: at }) => promosPage({ promos: promos.all(), plans: Object.values(settings.plans()), now: at, customerUrl: ctx.customerUrl }) });
+        return true;
+      case "/communication":
+        render(res, user, url, { title: "Communication", subtitle: "Annonce du site et e-mails aux clients", section: "comms", body: ({ now: at }) => commsPage({
+          announcement: settings.announcement(), broadcasts: outbox.broadcasts(), mail: ctx.services["E-mails (codes, rappels, annonces)"] ?? false, queued, now: at,
+          audiences: Object.fromEntries(AUDIENCES.map(([id]) => [id, audienceEmails(id).length])) }) });
+        return true;
+      case "/forfaits": {
+        const fromEnv = ctx.xofPerUsd ?? DEFAULT_XOF_PER_USD;
+        render(res, user, url, { title: "Forfaits & prix", subtitle: "Prix, crédits et ordinateurs de chaque forfait", section: "pricing", body: () => pricingPage({
+          plans: (Object.keys(PLANS) as PlanId[]).map((id) => ({ plan: settings.plan(id), base: PLANS[id], changed: settings.overridden(id),
+            subscribers: count("SELECT COUNT(*) AS n FROM subscriptions WHERE plan = ? AND period_end > ?", id, now()) })),
+          xof: { value: settings.xofPerUsd() ?? fromEnv, fromEnv, overridden: settings.xofPerUsd() !== null } }) });
+        return true;
+      }
+      case "/systeme":
+        render(res, user, url, { title: "Système", subtitle: "Ouvertures, services et données", section: "system", body: () => systemPage({
+          services: ctx.services, queued,
+          switches: SWITCHES.map(([id, label, detail]) => ({ id, label, detail, open: settings.isOpen(id) })),
+          counts: [["Comptes", count("SELECT COUNT(*) AS n FROM accounts")], ["Espaces", count("SELECT COUNT(*) AS n FROM workspaces")],
+            ["Abonnements en cours", count("SELECT COUNT(*) AS n FROM subscriptions WHERE period_end > ?", now())], ["Commandes", count("SELECT COUNT(*) AS n FROM orders")],
+            ["Applications connectées", count("SELECT COUNT(*) AS n FROM device_tokens")], ["Sessions ouvertes", count("SELECT COUNT(*) AS n FROM sessions WHERE expires_at > ?", now())],
+            ["Signalements", count("SELECT COUNT(*) AS n FROM problem_reports")], ["Codes promo", count("SELECT COUNT(*) AS n FROM promo_codes")]] }) });
+        return true;
+      case "/securite": {
+        const self = ctx.cookie(req);
+        const operators = [...ctx.operators].sort().map((email) => {
+          const id = (store.db.prepare("SELECT id FROM accounts WHERE email = ?").get(email) as { id: string } | undefined)?.id ?? null;
+          return { email, id, sessions: id ? store.sessionCount(id) : 0, self: email === user.email && Boolean(self) };
+        });
+        const blocked = store.db.prepare("SELECT a.id, a.email, b.at FROM blocked_accounts b JOIN accounts a ON a.id = b.account_id ORDER BY b.at DESC LIMIT 100").all() as Array<{ id: string; email: string; at: number }>;
+        const logins = store.db.prepare("SELECT actor, target, at FROM audit WHERE action = 'console.login' ORDER BY id DESC LIMIT 15").all() as Array<{ actor: string | null; target: string | null; at: number }>;
+        const actions = store.db.prepare(`SELECT workspace, actor, action, target, at FROM audit WHERE action IN (${SENSITIVE.map(() => "?").join(", ")}) ORDER BY id DESC LIMIT 25`).all(...SENSITIVE) as
+          Array<{ workspace: string | null; actor: string | null; action: string; target: string | null; at: number }>;
+        render(res, user, url, { title: "Sécurité", subtitle: "Opérateurs, sessions et comptes bloqués", section: "security",
+          body: ({ now: at }) => securityPage({ operators, blocked: blocked.map((row) => ({ ...row, at: Number(row.at) })), logins, actions, now: at }) });
+        return true;
+      }
+    }
+    return false;
+  }
+
+  async function settingsAction(req: IncomingMessage, res: ServerResponse, user: Account, match: RegExpExecArray): Promise<void> {
+    const { settings, promos, outbox } = ctx;
+    const body = await ctx.readForm(req);
+    const go = (page: string, code: string, extra = "") => ctx.redirect(res, `${page}?ok=${code}${extra}`);
+    const [, promoCode, promoAction, comms, planTarget, planReset, switchName, security] = match;
+    if (match[0] === "/promos") {
+      const day = field(body, "expires", 10);
+      const expiresAt = /^\d{4}-\d{2}-\d{2}$/.test(day) ? Date.parse(`${day}T23:59:59Z`) : null;
+      const max = field(body, "max", 9);
+      const chosen = ([] as unknown[]).concat(body.plans ?? []).map(String).filter((id) => Object.hasOwn(PLANS, id) && id !== "trial") as PlanId[];
+      const outcome = promos.create({ code: field(body, "code", 40), kind: field(body, "kind", 8) === "credits" ? "credits" : "percent", value: Number(field(body, "value", 9)),
+        maxUses: max ? Number(max) : null, expiresAt, plans: chosen.length ? chosen : null, note: field(body, "note", 120) || null }, user.email);
+      if (outcome === "ok") store.audit(null, user.email, "promo.created", normalizeCode(field(body, "code", 40)));
+      return go("/promos", outcome === "ok" ? "promo-created" : outcome === "exists" ? "promo-exists" : "promo-invalid");
+    }
+    if (promoCode) {
+      if (promoAction === "supprimer") { promos.remove(promoCode); store.audit(null, user.email, "promo.deleted", promoCode); return go("/promos", "promo-deleted"); }
+      promos.setActive(promoCode, promoAction === "activer");
+      return go("/promos", promoAction === "activer" ? "promo-on" : "promo-off");
+    }
+    if (comms === "annonce/retirer") { settings.setAnnouncement(null); store.audit(null, user.email, "announcement.removed", null); return go("/communication", "unannounced"); }
+    if (comms === "annonce") {
+      const text = field(body, "text", 140), link = field(body, "link", 300), until = field(body, "until", 10);
+      const level = (["info", "promo", "warning"] as const).find((value) => value === field(body, "level", 10)) ?? "info";
+      if (!text || (link && !/^https:\/\/[^\s"'<>]+$/.test(link))) return ctx.redirect(res, "/communication?erreur=bad-announcement");
+      settings.setAnnouncement({ text, link: link || null, level: level as AnnouncementLevel, until: /^\d{4}-\d{2}-\d{2}$/.test(until) ? Date.parse(`${until}T23:59:59Z`) : null });
+      store.audit(null, user.email, "announcement.published", text);
+      return go("/communication", "announced");
+    }
+    if (comms === "envoyer") {
+      const audience = AUDIENCES.find(([id]) => id === field(body, "audience", 10))?.[0];
+      const subject = field(body, "subject", 140), text = field(body, "body", 8000);
+      const queued = audience && subject && text ? outbox.queue({ subject, text: `${text}${UNSUBSCRIBE}`, audience, emails: audienceEmails(audience) }, user.email) : 0;
+      if (!queued) return ctx.redirect(res, "/communication?erreur=no-recipients");
+      store.audit(null, user.email, "broadcast.sent", `${audience}:${queued}`);
+      return go("/communication", "queued", `&n=${queued}`);
+    }
+    if (planTarget === "taux") {
+      const rate = Number(field(body, "rate", 12));
+      settings.setXofPerUsd(rate >= 100 && rate <= 2000 ? rate : null);
+      store.audit(null, user.email, "settings.rate", String(settings.xofPerUsd() ?? "env"));
+      return go("/forfaits", "rate-saved");
+    }
+    if (planTarget) {
+      const id = planTarget as PlanId;
+      if (planReset) { settings.setPlan(id, {}); store.audit(null, user.email, "plan.price", `${id}:reset`); return go("/forfaits", "plan-reset"); }
+      const values: PlanOverride = {};
+      for (const key of PLAN_FIELDS) {
+        const raw = field(body, key, 12);
+        if (!raw) continue;
+        const value = Number(raw);
+        const money = key === "usd" || key === "usdYear";
+        if (!Number.isFinite(value) || value < 0 || value > 1_000_000 || (money && value < 0.5) || (!money && !Number.isInteger(value))) return ctx.redirect(res, "/forfaits?erreur=bad-plan");
+        values[key] = money ? Math.round(value * 100) / 100 : value;
+      }
+      settings.setPlan(id, values);
+      store.audit(null, user.email, "plan.price", `${id}:${JSON.stringify(values)}`);
+      return go("/forfaits", "plan-saved");
+    }
+    if (switchName) {
+      const open = field(body, "open", 1) === "1";
+      settings.setOpen(switchName as Switch, open);
+      store.audit(null, user.email, "settings.switch", `${switchName}:${open ? "open" : "closed"}`);
+      return go("/systeme", "switched");
+    }
+    const account = store.account(field(body, "account", 64));
+    if (security === "debloquer") {
+      if (account) store.setBlocked(account.id, false, user.email);
+      return go("/securite", "unblocked");
+    }
+    if (!account || !ctx.operators.has(account.email)) return ctx.redirect(res, "/securite");
+    const closed = store.endSessions(account.id, account.id === user.id ? ctx.cookie(req) : undefined);
+    store.audit(null, user.email, "security.sessions", `${account.email}:${closed}`);
+    return go("/securite", "sessions-closed", `&n=${closed}`);
+  }
+
   /** Serves a console page or action for a signed-in operator; false when the path is not the console's. */
   return async function handle(req: IncomingMessage, res: ServerResponse, url: URL, user: Account): Promise<boolean> {
     const method = req.method ?? "GET";
@@ -261,6 +423,7 @@ export function createConsole(ctx: ConsoleContext) {
       if (path === "/commandes") { orders(res, user, url); return true; }
       if (path === "/journal") { journal(res, user, url); return true; }
       if (path === "/signalements") { reportList(res, user, url); return true; }
+      if (settingsPage(res, user, url, req)) return true;
       if (path === "/sites") {
         const rows = ctx.sites?.all() ?? [];
         render(res, user, url, { title: "Sites publiés", subtitle: "Ce que les bots de vos clients ont mis en ligne", section: "sites", body: ({ now: at }) => sitesPage({ rows, now: at, available: Boolean(ctx.sites) }) });
@@ -274,6 +437,8 @@ export function createConsole(ctx: ConsoleContext) {
       return false;
     }
     if (method !== "POST") return false;
+    const settingsMatch = SETTINGS_ACTION.exec(path);
+    if (settingsMatch) { await settingsAction(req, res, user, settingsMatch); return true; }
     const siteAct = SITE_ACTION.exec(path);
     if (siteAct) {
       const taken = await ctx.sites?.takeDown(siteAct[1]!);

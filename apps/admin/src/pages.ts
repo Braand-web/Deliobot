@@ -162,6 +162,19 @@ export function messagePage(title: string, text: string, link?: { href: string; 
   return h`<div class="narrow center"><h1>${title}</h1><p class="muted">${text}</p>${link ? h`<p><a href="${link.href}">${link.label}</a></p>` : ""}</div>`;
 }
 
+/** Where a customer types a promo code: credits land at once, a percentage shows the plans at their new price. */
+export function promoPage(input: { code?: string; error?: string; message?: string;
+  offers?: Array<{ id: string; name: string; usd: number; usdYear: number | null; percent: number }> }): Html {
+  const price = (usd: number, percent: number) => `${(Math.max(0.01, Math.round(usd * (100 - percent)) / 100)).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} $`;
+  const offers = input.offers?.length ? h`<div class="card">${input.offers.map((offer) => h`<div class="row"><div class="grow"><b>${offer.name}</b><br>
+<span class="muted"><s>${offer.usd} $</s> ${price(offer.usd, offer.percent)} par mois${offer.usdYear !== null ? h` · <s>${offer.usdYear} $</s> ${price(offer.usdYear, offer.percent)} par an` : ""}</span></div>
+<a class="button primary" href="/pay?plan=${offer.id}&cycle=month&code=${input.code ?? ""}">Mensuel</a>${offer.usdYear !== null ? h` <a class="button" href="/pay?plan=${offer.id}&cycle=year&code=${input.code ?? ""}">Annuel</a>` : ""}</div>`)}</div>` : "";
+  return h`<div class="narrow"><h1 class="center">Code promo</h1><p class="muted center">Entrez votre code : des crédits sont ajoutés tout de suite, une réduction s'applique au forfait que vous choisissez.</p>
+${notice(input.error, "error")}${notice(input.message)}${offers}<form method="post" action="/code" class="card">
+<label for="code">Votre code</label><input id="code" name="code" value="${input.code ?? ""}" autocomplete="off" autocapitalize="characters" maxlength="32" required ${input.offers?.length ? "" : raw("autofocus")}>
+<p><button class="primary" style="width:100%">Utiliser ce code</button></p></form></div>`;
+}
+
 /** A workspace link opened while signed in with another address: say so, and offer to switch address and come back. */
 export function otherAccountPage(email: string, next: string): Html {
   return h`<div class="narrow center"><h1>Cet espace appartient à une autre adresse</h1>

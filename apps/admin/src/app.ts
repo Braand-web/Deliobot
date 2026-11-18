@@ -1,7 +1,10 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 import { HOSTED_CONTRACT_HEADER, HOSTED_CONTRACT_METADATA, HOSTED_CONTRACT_MISMATCH, HOSTED_CONTRACT_VERSION, hostedContractCompatible } from "../../../server/hosted-contract.ts";
-import type { Mailer } from "./mail.ts";
+import { consoleMailer, type Mailer } from "./mail.ts";
+import { OperatorSettings } from "./operator-settings.ts";
+import { Outbox } from "./outbox.ts";
+import { normalizeCode, Promos } from "./promos.ts";
 import { discover, exchangeCode, pkceChallenge, verifyIdToken } from "./oidc.ts";
 import { createAppHosting, hostingAccess, type SiteBucket } from "./app-hosting.ts";
 import { createGateway, type GatewayOptions } from "./gateway.ts";
@@ -9,13 +12,13 @@ import { DEVICE_POLL_SECONDS, Devices } from "./devices.ts";
 import { personalWorkspaces } from "./personal-workspaces.ts";
 import { BILLING_REFRESH_SCRIPT } from "./billing-refresh.ts";
 import { Hosting, hostingRunner, RESERVED_SLUGS, socketFleet, type Fleet } from "./hosting.ts";
-import { Billing, catalog, PLANS, reconcileOrders, TOPUPS, TRIAL_DAYS, type Cycle, type PlanId, type TopupId } from "./plans.ts";
+import { Billing, PLANS, reconcileOrders, TOPUPS, TRIAL_DAYS, type Cycle, type PlanId, type TopupId } from "./plans.ts";
 import { createSasPay, verifySasPayWebhook } from "./saspay.ts";
 import { Reports } from "./reports.ts";
 import { MICRO, Wallet } from "./wallet.ts";
 import { consoleServes, createConsole } from "./console/routes.ts";
 import { Traffic, type VisitInput } from "./traffic.ts";
-import { billingPage, codePage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, otherAccountPage, signupPage, slackPage, ssoPage, SUPPORT_EMAIL, type Html } from "./pages.ts";
+import { billingPage, codePage, promoPage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, otherAccountPage, signupPage, slackPage, ssoPage, SUPPORT_EMAIL, type Html } from "./pages.ts";
 import { normalizeEmail, token, validEmail, validSlug, type Account, type AdminStore, type Role, type Workspace } from "./store.ts";
 
 export interface AdminAppOptions {
@@ -97,7 +100,12 @@ async function readBody(req: IncomingMessage): Promise<Record<string, unknown>> 
     } catch { /* answered below */ }
     throw new HttpError(400, "JSON mal formé.");
   }
-  return Object.fromEntries(new URLSearchParams(text));
+  const form: Record<string, string | string[]> = {};
+  for (const [key, value] of new URLSearchParams(text)) {
+    const seen = form[key];
+    form[key] = seen === undefined ? value : ([] as string[]).concat(seen, value);
+  }
+  return form;
 }
 
 const text = (body: Record<string, unknown>, key: string, max = 512): string => {
@@ -148,7 +156,10 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   const ssoRedirectUri = new URL(SSO_CALLBACK_PATH, publicUrl).href;
   const wallet = new Wallet(store.db, { now, creditUsd: options.gateway?.creditUsd });
   const devices = new Devices(store.db, now);
-  const plans = new Billing(wallet, now);
+  const settings = new OperatorSettings(store.db, now);
+  const plans = new Billing(wallet, now, settings);
+  const promos = new Promos(wallet, now);
+  const outbox = new Outbox(store.db, now);
   const personal = personalWorkspaces(store, plans, wallet, publicUrl.origin);
   const saspay = options.payments?.saspayKey ? createSasPay({ key: options.payments.saspayKey, apiUrl: options.payments.apiUrl, fetchImpl }) : null;
   const currency = options.payments?.currency ?? "XOF";
@@ -235,10 +246,11 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   const billingRefresh = (workspace: Workspace) => operatorConsole ? {} : { billingRefresh: { workspace: workspace.slug, paymentVersion: plans.paidCount(workspace.slug) } };
 
   /** Opens SasPay's checkout for a plan or a top-up of this workspace, or shows the billing page with what stopped it. */
-  async function openCheckout(res: ServerResponse, user: Account, workspace: Workspace, input: { kind: string; plan: string; topup: string; cycle: string }): Promise<void> {
+  async function openCheckout(res: ServerResponse, user: Account, workspace: Workspace, input: { kind: string; plan: string; topup: string; cycle: string; code?: string }): Promise<void> {
     workspace = store.workspace(personal.resolve(user, workspace.slug))!;
     const fail = (status: number, error: string) => html(res, status, { title: "Facturation", email: user.email, ...billingRefresh(workspace), body: billing(workspace, user, { error }) });
     if (!saspay) return fail(503, "Les paiements ne sont pas encore activés.");
+    if (!settings.isOpen("payments")) return fail(503, "Les paiements sont en pause pour quelques instants. Réessayez un peu plus tard.");
     if (!store.allow(`checkout:${user.id}`, 20, 60 * 60_000)) return fail(429, "Trop de paiements ouverts en peu de temps. Patientez une heure et réessayez.");
     const kind = input.kind;
     const plan = input.plan as PlanId;
@@ -247,12 +259,20 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     if (kind === "plan" && !Object.hasOwn(PLANS, plan)) return fail(400, "Choisissez un forfait.");
     if (kind === "topup" && !TOPUPS.some((pack) => pack.id === topup)) return fail(400, "Choisissez une recharge.");
     if (kind !== "plan" && kind !== "topup") return fail(400, "Choisissez un forfait ou une recharge.");
+    if (kind === "plan" && plan === "trial" && !settings.isOpen("trial")) return fail(409, "L'essai n'est plus proposé pour le moment. Choisissez un forfait.");
     if (kind === "plan" && plan === "trial" && plans.trialUsed(user.email, workspace.slug)) return fail(409, "L'essai a déjà été utilisé pour ce compte ou cet espace.");
+    let promo: { code: string; percent: number } | undefined;
+    if (input.code && kind === "plan") {
+      const checked = promos.check(input.code, workspace.slug, plan);
+      if (!checked.ok) return fail(409, checked.error);
+      if (checked.promo.kind !== "percent") return fail(409, "Ce code donne des crédits : utilisez-le sur la page Code promo.");
+      promo = { code: checked.promo.code, percent: checked.promo.value };
+    }
     const order = kind === "plan"
-      ? plans.createOrder({ workspace: workspace.slug, email: user.email, kind, plan, cycle }, currency, options.payments?.xofPerUsd)
+      ? plans.createOrder({ workspace: workspace.slug, email: user.email, kind, plan, cycle, ...(promo ? { promo } : {}) }, currency, options.payments?.xofPerUsd)
       : plans.createOrder({ workspace: workspace.slug, email: user.email, kind, topup }, currency, options.payments?.xofPerUsd);
     const description = kind === "plan"
-      ? `Delio ${PLANS[plan].name} · ${plan === "trial" ? `${TRIAL_DAYS} jours` : order.cycle === "year" ? "1 an" : "1 mois"}`
+      ? `Delio ${PLANS[plan].name} · ${plan === "trial" ? `${TRIAL_DAYS} jours` : order.cycle === "year" ? "1 an" : "1 mois"}${promo ? ` · code ${promo.code} (-${promo.percent} %)` : ""}`
       : `Crédits Delio · ${order.credits}`;
     try {
       const session = await saspay.createCheckout({ amount: order.amount, currency, description, email: user.email, name: user.email,
@@ -403,7 +423,14 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     if (await gateway.handle(req, res, url)) return;
     if (path === "/api/public/plans") {
       if (method !== "GET") return json(res, 405, { error: "method not allowed" });
-      return json(res, 200, catalog(options.payments?.xofPerUsd), { "access-control-allow-origin": "*", "cache-control": "public, max-age=300" });
+      return json(res, 200, plans.catalog(options.payments?.xofPerUsd), { "access-control-allow-origin": "*", "cache-control": "public, max-age=300" });
+    }
+    if (path === "/api/public/site") {
+      if (method !== "GET") return json(res, 405, { error: "method not allowed" });
+      const announcement = settings.announcement();
+      return json(res, 200, { catalog: plans.catalog(options.payments?.xofPerUsd), trial: settings.isOpen("trial"),
+        announcement: announcement && { text: announcement.text, link: announcement.link, level: announcement.level } },
+      { "access-control-allow-origin": "*", "cache-control": "public, max-age=60" });
     }
     if (path === "/api/saspay/webhook") {
       if (method !== "POST") return json(res, 405, { error: "method not allowed" });
@@ -457,6 +484,9 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       if (sso) return startSso(res, sso.workspace, next);
       // The console sends codes to the team only, and says the same thing to anyone else so no address is revealed.
       if (operatorConsole && !operators.has(email)) return html(res, 200, { title: "Vérifiez vos e-mails", body: codePage(email, next), mascot: "curious" });
+      if (!operatorConsole && !settings.isOpen("signups") && !operators.has(email) && !store.hasAccount(email)) {
+        return html(res, 403, { title: "Connexion", body: loginPage(next, "Les nouvelles inscriptions sont fermées pour le moment. Revenez bientôt."), mascot: "sad" });
+      }
       if (!store.allow(`otp-ip:${clientAddress(req)}`, 20, 15 * 60_000) || !store.allow(`otp-email:${email}`, 5, 15 * 60_000)) {
         return html(res, 429, { title: "Connexion", body: loginPage(next, "Trop de codes demandés. Patientez quelques minutes et réessayez."), mascot: "sad" });
       }
@@ -478,6 +508,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
         const message = result.reason === "expired" ? "Ce code a expiré. Demandez-en un nouveau." : result.reason === "locked" ? "Trop de codes erronés. Demandez-en un nouveau." : "Ce code n'est pas le bon.";
         return html(res, 401, { title: "Vérifiez vos e-mails", body: codePage(email, next, message), mascot: "sad" });
       }
+      if (operatorConsole) store.audit(null, result.account.email, "console.login", clientAddress(req));
       return signIn(res, result.account, next);
     }
     if (method === "POST" && path === "/logout") {
@@ -702,7 +733,29 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       const workspace = asked ? requireWorkspaceAdmin(user, personal.resolve(user, asked)) : personal.existing(user) ?? store.workspacesOf(user.id).find((item) => item.role === "admin") ?? personalWorkspace(user);
       const pick = (name: string, max: number) => (url.searchParams.get(name) ?? "").slice(0, max);
       const topup = pick("topup", 16);
-      return openCheckout(res, user, workspace, { kind: topup ? "topup" : "plan", plan: pick("plan", 16), topup, cycle: pick("cycle", 8) });
+      return openCheckout(res, user, workspace, { kind: topup ? "topup" : "plan", plan: pick("plan", 16), topup, cycle: pick("cycle", 8), code: pick("code", 40) });
+    }
+    if (path === "/code") {
+      const workspace = personal.existing(user) ?? store.workspacesOf(user.id).find((item) => item.role === "admin") ?? personalWorkspace(user);
+      const slug = personal.resolve(user, workspace.slug);
+      const show = (status: number, extra: { code?: string; error?: string; message?: string; offers?: Parameters<typeof promoPage>[0]["offers"] } = {}) =>
+        html(res, status, { title: "Code promo", email: user.email, mascot: extra.error ? "sad" : "happy", body: promoPage(extra) });
+      if (method === "GET") return show(200, { code: normalizeCode(url.searchParams.get("code") ?? "").slice(0, 32) });
+      if (method !== "POST") throw new HttpError(405, "Méthode non autorisée.");
+      const code = normalizeCode(text(await readBody(req), "code", 40));
+      if (!store.allow(`promo:${user.id}`, 20, 60 * 60_000)) return show(429, { code, error: "Trop d'essais. Patientez une heure et réessayez." });
+      const checked = promos.check(code, slug);
+      if (!checked.ok) return show(400, { code, error: checked.error });
+      if (checked.promo.kind === "credits") {
+        const redeemed = promos.redeemCredits(code, slug);
+        if (!redeemed.ok) return show(400, { code, error: redeemed.error });
+        store.audit(slug, user.email, "promo.redeemed", code);
+        return show(200, { message: `${checked.promo.value.toLocaleString("fr-FR")} crédits ajoutés à votre compte. Ils sont déjà disponibles dans l'application.` });
+      }
+      const priced = plans.catalog(options.payments?.xofPerUsd).plans
+        .filter((plan) => plan.id !== "trial" && plan.listed && (!checked.promo.plans || checked.promo.plans.includes(plan.id)));
+      return show(200, { code, message: `Code ${checked.promo.code} : -${checked.promo.value} % sur votre forfait. Choisissez-le ci-dessous.`,
+        offers: priced.map((plan) => ({ id: plan.id, name: plan.name, usd: plan.usd, usdYear: plan.usdYear, percent: checked.promo.value })) });
     }
     if (method === "GET" && path === "/api/billing/status") {
       const workspace = requireWorkspaceAdmin(user, url.searchParams.get("workspace") ?? "");
@@ -778,7 +831,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     if (!operatorConsole) return messagePage("Forfaits et crédits dans Delio", extra.error ?? extra.message ?? "Consultez votre forfait et vos crédits dans l'application Delio.", { href: "opendeliobot://cloud", label: "Ouvrir Delio" });
     return billingPage({ workspace, operator: isOperator(user), balance: wallet.balance(workspace.slug) / MICRO,
       subscription: plans.subscription(workspace.slug), orders: plans.orders(workspace.slug, 10), payments: Boolean(saspay), currency,
-      trialAvailable: !plans.trialUsed(user.email, workspace.slug), catalog: catalog(options.payments?.xofPerUsd),
+      trialAvailable: settings.isOpen("trial") && !plans.trialUsed(user.email, workspace.slug), catalog: plans.catalog(options.payments?.xofPerUsd),
       hosting: hostingView(workspace.slug),
       usedThisMonth: wallet.usedThisMonth(workspace.slug) / MICRO, hasToken: wallet.hasToken(workspace.slug), ledger: wallet.ledger(workspace.slug, 30),
       gatewayUrl: new URL(`/api/gateway/${workspace.slug}`, publicUrl).href, devices: devices.list(workspace.slug), ...extra });
@@ -794,7 +847,14 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       audit: store.auditLog(workspace.slug, 20), ...extra });
   }
 
+  const services = {
+    "OpenRouter (texte)": Boolean(options.gateway?.openrouterKey), "fal.ai (images, vidéo, musique)": Boolean(options.gateway?.falKey),
+    "ElevenLabs (voix)": Boolean(options.gateway?.elevenlabsKey), "Fish Audio (voix, appels Live)": Boolean(options.gateway?.fishKey),
+    "Ordinateurs cloud (Boat)": Boolean(options.gateway?.boatKey), "Paiements SasPay": Boolean(saspay), "E-mails (codes, rappels, annonces)": mailer !== consoleMailer,
+    "Hébergement des sites": Boolean(sites),
+  };
   const operatorPages = createConsole({ store, wallet, devices, reports, billing: plans, hosting, saspay, currency, operators, now, ...(sites ? { sites } : {}), readForm: readBody,
+    settings, promos, outbox, services, xofPerUsd: options.payments?.xofPerUsd, customerUrl: publicUrl.origin.replace("//admin.", "//compte."), cookie: (req) => parseCookies(req.headers.cookie).get(cookieName),
     redirect: (res, location) => redirect(res, location), send });
 
   const handler = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
@@ -811,6 +871,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   };
   async function sweep(): Promise<void> {
     await gateway.sweep();
+    await outbox.drain(mailer).catch((error: unknown) => console.error("delio-admin: announcement e-mails failed", error));
     traffic.purge();
     reports.purge();
     if (saspay) await reconcileOrders(plans, saspay);

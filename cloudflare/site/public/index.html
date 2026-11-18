@@ -60,7 +60,8 @@ nav.main a{color:var(--ink);opacity:.86}nav.main a:hover{opacity:1}
 /* hero */
 .hero{text-align:center;padding:72px 0 0}
 .announce{display:inline-flex;align-items:center;gap:8px;padding:6px 6px 6px 14px;border-radius:999px;background:var(--soft);font-size:14px;color:var(--ink-2)}
-.announce b{color:var(--ink);font-weight:500}
+.announce b{color:var(--ink);font-weight:500}.announce.warning{background:rgba(217,45,63,.14)}.announce.promo{background:rgba(16,104,232,.14)}
+.promo-line{text-align:center;margin:18px 0 0;color:var(--ink-2);font-size:14px}
 .announce i{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--bg);font-style:normal;font-size:12px}
 h1{font-size:clamp(44px,7.4vw,92px);font-weight:500;letter-spacing:-.035em;line-height:1;margin:34px 0 0;display:flex;align-items:center;justify-content:center;gap:.16em;flex-wrap:wrap}
 h1 .face{width:1.02em;height:1.02em;flex:none;animation:bob 4s ease-in-out infinite}
@@ -408,7 +409,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
     <p class="sub">Des collègues IA à qui confier du vrai travail. Les bots se connectent à vos outils, travaillent avec toute votre équipe et reviennent avec le travail terminé.</p>
     <div class="cta">
       <a class="pill dark lg" href="#telecharger" data-os-label="hero">Télécharger</a>
-      <a class="pill soft lg" href="https://compte.deliobot.fun/pay?plan=trial" data-portal-path="/pay?plan=trial">Essayer 3 jours pour 5 $</a>
+      <a class="pill soft lg" href="https://compte.deliobot.fun/pay?plan=trial" data-portal-path="/pay?plan=trial" data-trial-cta>Essayer 3 jours pour 5 $</a>
     </div>
     <p class="release" data-release hidden><i></i><span></span></p>
 
@@ -635,7 +636,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
         <div class="fcfa" data-month="≈ 9 000 FCFA" data-year="≈ 99 000 FCFA · 13,75 $ par mois">≈ 9 000 FCFA</div>
         <a class="pill dark" data-signup="starter" href="https://compte.deliobot.fun/pay?plan=starter&amp;cycle=month" data-portal-path="/pay?plan=starter&amp;cycle=month">Choisir Starter</a>
         <div class="inc">Inclus :</div>
-        <ul><li>1 300 crédits IA par mois</li><li>15 h d'ordinateur cloud par mois</li><li>Le mode Auto : texte, images, vidéo, musique, voix</li><li>Vos outils connectés</li><li>Application Windows et Linux</li></ul>
+        <ul><li data-credits>1 300 crédits IA par mois</li><li data-hours>15 h d'ordinateur cloud par mois</li><li>Le mode Auto : texte, images, vidéo, musique, voix</li><li>Vos outils connectés</li><li>Application Windows et Linux</li></ul>
       </div>
       <div class="plan reveal featured" data-plan>
         <div class="nm">Pro <span class="tag">Le plus populaire</span></div>
@@ -643,7 +644,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
         <div class="fcfa" data-month="≈ 29 400 FCFA" data-year="≈ 323 400 FCFA · 44,92 $ par mois">≈ 29 400 FCFA</div>
         <a class="pill dark" data-signup="pro" href="https://compte.deliobot.fun/pay?plan=pro&amp;cycle=month" data-portal-path="/pay?plan=pro&amp;cycle=month">Choisir Pro</a>
         <div class="inc">Tout Starter, plus :</div>
-        <ul><li>5 500 crédits IA par mois</li><li>90 h d'ordinateur cloud par mois</li><li>2 ordinateurs cloud en même temps</li><li>Routines planifiées</li><li>Plus de bots en parallèle</li></ul>
+        <ul><li data-credits>5 500 crédits IA par mois</li><li data-hours>90 h d'ordinateur cloud par mois</li><li data-computers>2 ordinateurs cloud en même temps</li><li>Routines planifiées</li><li>Plus de bots en parallèle</li></ul>
       </div>
       <div class="plan reveal" data-plan>
         <div class="nm">Max</div>
@@ -651,7 +652,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
         <div class="fcfa" data-month="≈ 59 400 FCFA" data-year="≈ 653 400 FCFA · 90,75 $ par mois">≈ 59 400 FCFA</div>
         <a class="pill dark" data-signup="max" href="https://compte.deliobot.fun/pay?plan=max&amp;cycle=month" data-portal-path="/pay?plan=max&amp;cycle=month">Choisir Max</a>
         <div class="inc">Tout Pro, plus :</div>
-        <ul><li>13 500 crédits IA par mois</li><li>180 h d'ordinateur cloud par mois</li><li>5 ordinateurs cloud en même temps</li><li>Pour les bots qui travaillent toute la journée</li></ul>
+        <ul><li data-credits>13 500 crédits IA par mois</li><li data-hours>180 h d'ordinateur cloud par mois</li><li data-computers>5 ordinateurs cloud en même temps</li><li>Pour les bots qui travaillent toute la journée</li></ul>
       </div>
     </div>
     <div class="allplans reveal" id="essai">
@@ -659,6 +660,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
       <div>Essayez Deliobot 3 jours pour 5 $ (≈ 3 000 FCFA), avec 300 crédits. <span>Paiement par Mobile Money ou carte, en francs CFA. Prépayé : rien ne se renouvelle sans vous.</span></div>
       <a class="pill" href="https://compte.deliobot.fun/pay?plan=trial" data-portal-path="/pay?plan=trial">Commencer l'essai</a>
     </div>
+    <p class="promo-line reveal">Vous avez un code promo ? <a href="https://compte.deliobot.fun/code" data-portal-path="/code">Utilisez-le ici</a></p>
   </div>
 </section>
 
@@ -739,9 +741,10 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
 <script>
   const portal = document.documentElement.dataset.portal;
   if (portal) document.querySelectorAll("[data-portal-path]").forEach((link) => { link.href = portal + link.dataset.portalPath; });
-  document.querySelectorAll("[data-cycle]").forEach((button) => button.addEventListener("click", () => {
-    const cycle = button.dataset.cycle;
-    document.querySelectorAll("[data-cycle]").forEach((other) => other.setAttribute("aria-checked", String(other === button)));
+  let shownCycle = "month";
+  const showCycle = (cycle) => {
+    shownCycle = cycle;
+    document.querySelectorAll("[data-cycle]").forEach((other) => other.setAttribute("aria-checked", String(other.dataset.cycle === cycle)));
     document.querySelectorAll("[data-plan]").forEach((plan) => {
       const price = plan.querySelector(".pr"), francs = plan.querySelector(".fcfa"), per = price.querySelector("[data-per]");
       price.firstChild.textContent = price.dataset[cycle];
@@ -751,7 +754,48 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
       signup.dataset.portalPath = `/pay?plan=${signup.dataset.signup}&cycle=${cycle}`;
       signup.href = (portal || "https://compte.deliobot.fun") + signup.dataset.portalPath;
     });
-  }));
+  };
+  document.querySelectorAll("[data-cycle]").forEach((button) => button.addEventListener("click", () => showCycle(button.dataset.cycle)));
+  // Prices, the trial and the banner as the operator set them in the admin console; the page's own text stays if this fails.
+  fetch(`${portal || "https://compte.deliobot.fun"}/api/public/site`).then((r) => r.ok ? r.json() : null).then((site) => {
+    if (!site) return;
+    const whole = new Intl.NumberFormat("fr-FR"), cents = (v) => v.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+    const dollars = (v) => "$" + v.toLocaleString("en-US", { maximumFractionDigits: 2 });
+    for (const plan of site.catalog.plans) {
+      const card = document.querySelector(`[data-signup="${plan.id}"]`)?.closest("[data-plan]");
+      if (!card) continue;
+      const price = card.querySelector(".pr"), francs = card.querySelector(".fcfa");
+      price.dataset.month = dollars(plan.usd);
+      francs.dataset.month = `≈ ${whole.format(plan.francs)} FCFA`;
+      if (plan.usdYear !== null) {
+        price.dataset.year = dollars(plan.usdYear);
+        francs.dataset.year = `≈ ${whole.format(plan.francsYear)} FCFA · ${cents(plan.usdYear / 12)} $ par mois`;
+      }
+      const line = (name, text) => { const item = card.querySelector(`[data-${name}]`); if (item) item.textContent = text; };
+      line("credits", `${whole.format(plan.credits)} crédits IA par mois`);
+      line("hours", `${whole.format(plan.computerHours)} h d'ordinateur cloud par mois`);
+      line("computers", `${plan.computers} ordinateurs cloud en même temps`);
+    }
+    showCycle(shownCycle);
+    const trial = site.catalog.plans.find((plan) => plan.id === "trial");
+    const trialBox = document.getElementById("essai");
+    if (!site.trial) {
+      trialBox.style.display = "none";
+      document.querySelectorAll("[data-trial-cta]").forEach((link) => { link.textContent = "Voir les tarifs"; link.href = "#tarifs"; });
+    } else if (trial) {
+      trialBox.querySelector("div").firstChild.textContent = `Essayez Deliobot 3 jours pour ${cents(trial.usd)} $ (≈ ${whole.format(trial.francs)} FCFA), avec ${whole.format(trial.credits)} crédits. `;
+      document.querySelectorAll("[data-trial-cta]").forEach((link) => { link.textContent = `Essayer 3 jours pour ${cents(trial.usd)} $`; });
+    }
+    const banner = document.querySelector(".announce");
+    if (site.announcement && banner) {
+      banner.className = `announce ${site.announcement.level}`;
+      banner.replaceChildren(Object.assign(document.createElement("b"), { textContent: site.announcement.text }));
+      if (site.announcement.link && /^https:\/\//.test(site.announcement.link)) {
+        banner.href = site.announcement.link;
+        banner.append(" ", Object.assign(document.createElement("i"), { textContent: "↗" }));
+      } else banner.removeAttribute("href");
+    }
+  }).catch(() => {});
 (() => {
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const header = document.getElementById("top");

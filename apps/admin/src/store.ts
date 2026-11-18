@@ -103,6 +103,10 @@ export class AdminStore {
     return { ok: true, account: this.ensureAccount(email) };
   }
 
+  hasAccount(email: string): boolean {
+    return Boolean(this.db.prepare("SELECT 1 FROM accounts WHERE email = ?").get(normalizeEmail(email)));
+  }
+
   ensureAccount(email: string): Account {
     const found = this.db.prepare("SELECT id, email FROM accounts WHERE email = ?").get(email) as Account | undefined;
     if (found) return found;
@@ -122,6 +126,16 @@ export class AdminStore {
     if (!value || value.length > 128) return null;
     return (this.db.prepare(`SELECT accounts.id, accounts.email FROM sessions JOIN accounts ON accounts.id = sessions.account_id WHERE token_hash = ? AND expires_at > ?
       AND accounts.id NOT IN (SELECT account_id FROM blocked_accounts)`).get(sha256(value), this.now()) as Account | undefined) ?? null;
+  }
+
+  /** Signed-in sessions still valid for an account. */
+  sessionCount(accountId: string): number {
+    return Number((this.db.prepare("SELECT COUNT(*) AS n FROM sessions WHERE account_id = ? AND expires_at > ?").get(accountId, this.now()) as { n: number }).n);
+  }
+
+  /** Signs an account out everywhere but the session `keep` (a cookie value), if given. Answers how many were closed. */
+  endSessions(accountId: string, keep?: string): number {
+    return Number(this.db.prepare("DELETE FROM sessions WHERE account_id = ? AND token_hash != ?").run(accountId, keep ? sha256(keep) : "").changes);
   }
 
   endSession(value: string): void {

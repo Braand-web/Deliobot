@@ -18,19 +18,20 @@ const ICONS: Record<string, string> = {
   security: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z M9 12l2 2 4-4",
   journal: "M8 6h13 M8 12h13 M8 18h13 M3 6h.01 M3 12h.01 M3 18h.01",
   reports: "M4 22V4a1 1 0 0 1 1-1h11l-2 4 2 4H5",
+  sites: "M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18 M3 12h18 M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18",
   search: "M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14 M21 21l-4.3-4.3",
   theme: "M12 3a6 6 0 0 0 9 9a9 9 0 1 1-9-9z",
   out: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9",
 };
 
-export type ConsoleSection = "dash" | "traffic" | "clients" | "orders" | "reports" | "sites" | "journal";
+export type ConsoleSection = "dash" | "traffic" | "clients" | "orders" | "reports" | "sites" | "promos" | "comms" | "pricing" | "system" | "security" | "journal";
 
-const NAV: ReadonlyArray<[string, string, string | null]> = [
+const NAV: ReadonlyArray<[ConsoleSection, string, string]> = [
   ["dash", "Tableau de bord", "/"], ["traffic", "Trafic", "/trafic"], ["clients", "Clients", "/clients"], ["orders", "Commandes", "/commandes"],
   ["reports", "Signalements", "/signalements"],
   ["sites", "Sites publiés", "/sites"],
-  ["promos", "Codes promo", null], ["comms", "Communication", null], ["pricing", "Forfaits & prix", null], ["system", "Système", null],
-  ["security", "Sécurité", null], ["journal", "Journal", "/journal"],
+  ["promos", "Codes promo", "/promos"], ["comms", "Communication", "/communication"], ["pricing", "Forfaits & prix", "/forfaits"], ["system", "Système", "/systeme"],
+  ["security", "Sécurité", "/securite"], ["journal", "Journal", "/journal"],
 ];
 
 export const icon = (name: string, size = 18) => h`<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${ICONS[name] ?? ""}"/></svg>`;
@@ -53,7 +54,7 @@ a{color:var(--accentInk);text-decoration:none}a:hover{text-decoration:underline}
 .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 16px;font-weight:650;font-size:15px}.brand img{width:30px;height:30px}
 .nav{display:flex;align-items:center;gap:10px;height:38px;padding:0 10px;border-radius:9px;color:var(--ink);font-weight:450}
 .nav:hover{background:var(--surface2);text-decoration:none}.nav[aria-current=page]{background:var(--accentSoft);color:var(--accentInk);font-weight:600}
-.nav.off{color:var(--ink2);opacity:.6;cursor:default}.nav.off:hover{background:none}.nav .soon{margin-left:auto;font-size:10.5px;border:1px solid var(--line);border-radius:999px;padding:0 6px}
+
 .nav .count{margin-left:auto;font-size:11px;font-weight:600;background:var(--accentSoft);color:var(--accentInk);border-radius:999px;padding:1px 8px}
 .side .me{margin-top:auto;border-top:1px solid var(--line);padding:12px 8px 0;font-size:12.5px;color:var(--ink2);display:flex;align-items:center;gap:8px}
 .side .me span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
@@ -98,6 +99,8 @@ label{display:block;font-size:12.5px;color:var(--ink2);margin:10px 0 4px}
 .tabs a[aria-current=true]{color:var(--ink);border-color:var(--accent)}.tabs a:hover{text-decoration:none;color:var(--ink)}
 .head{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.avatar{width:48px;height:48px;border-radius:50%;background:var(--accentSoft);color:var(--accentInk);display:grid;place-items:center;font-size:19px;font-weight:650;flex:none}
 .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}.facts div{background:var(--surface2);border-radius:10px;padding:10px 12px}.facts span{display:block;color:var(--ink2);font-size:12px}.facts b{font-size:15px}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end}.fields label{margin:0 0 4px}.checks{display:flex;flex-wrap:wrap;gap:6px 14px;margin:6px 0}.checks label{display:flex;gap:6px;align-items:center;margin:0;color:var(--ink)}.checks input{width:auto}
+.stack{display:flex;flex-direction:column;gap:14px}.stack>form{display:flex;flex-direction:column;gap:8px}.stack>form>.btn.small{align-self:flex-start}.bar form{display:inline}
 .list{list-style:none;margin:0;padding:0}.list li{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}.list li:last-child{border-bottom:0}.list .grow{flex:1;min-width:0}
 .empty{display:flex;align-items:center;gap:10px;color:var(--ink2);font-size:13px;margin:4px 0}.empty img{width:36px;height:36px}
 .pager{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:12px;font-size:12.5px;color:var(--ink2)}
@@ -154,13 +157,11 @@ export interface Flash { kind: "ok" | "bad"; text: string }
 
 export function consolePage(input: { title: string; subtitle?: string; section: ConsoleSection; email: string; body: Html; nonce: string; period?: Period;
   periodPath?: string; flash?: Flash | null; pendingOrders?: number; unreadReports?: number; tools?: Html }): string {
-  const nav = NAV.map(([id, label, href]) => href
-    ? h`<a class="nav" href="${href}" ${id === input.section ? raw('aria-current="page"') : ""} title="${label}">${icon(id)}<span class="label">${label}</span>
-${id === "orders" && input.pendingOrders ? h`<span class="count">${input.pendingOrders}</span>` : ""}${id === "reports" && input.unreadReports ? h`<span class="count">${input.unreadReports}</span>` : ""}</a>`
-    : h`<span class="nav off" title="${label} : bientôt">${icon(id)}<span class="label">${label}</span><span class="soon">bientôt</span></span>`);
+  const nav = NAV.map(([id, label, href]) => h`<a class="nav" href="${href}" ${id === input.section ? raw('aria-current="page"') : ""} title="${label}">${icon(id)}<span class="label">${label}</span>
+${id === "orders" && input.pendingOrders ? h`<span class="count">${input.pendingOrders}</span>` : ""}${id === "reports" && input.unreadReports ? h`<span class="count">${input.unreadReports}</span>` : ""}</a>`);
   const periods = input.period ? PERIODS.map(([id, label]) => h`<a class="chip" href="${input.periodPath ?? ""}?p=${id}" ${id === input.period!.id ? raw('aria-current="true"') : ""}>${label}</a>`) : [];
   const flash = input.flash ? h`<div class="toast ${input.flash.kind === "bad" ? "bad" : ""}" role="status"><img src="/assets/delio-${input.flash.kind === "bad" ? "sad" : "happy"}.webp" alt="">${input.flash.text}</div>` : "";
-  const commands = NAV.filter(([, , href]) => href).map(([id, label, href]) => h`<li><a href="${href}">${icon(id, 16)}<span>${label}</span></a></li>`);
+  const commands = NAV.map(([id, label, href]) => h`<li><a href="${href}">${icon(id, 16)}<span>${label}</span></a></li>`);
   return `<!doctype html>${h`<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
 <title>${input.title} · Delio Admin</title><link rel="icon" href="/assets/delio-idle.webp"><script nonce="${input.nonce}">${raw(THEME_BOOT)}</script><style>${raw(STYLE)}</style></head>
 <body><div class="app"><aside class="side"><div class="brand"><img src="/assets/delio-idle.webp" alt="">Delio Admin</div>${nav}
@@ -207,7 +208,7 @@ export function kpi(label: string, value: string, sub: string, trendValue?: numb
 <div class="sub">${trendValue !== undefined ? trendTag(trendValue) : ""}<span>${sub}</span></div>${spark ? sparkline(spark) : ""}</div>`;
 }
 
-const empty = (text: string) => h`<p class="empty"><img src="/assets/delio-curious.webp" alt="">${text}</p>`;
+export const empty = (text: string) => h`<p class="empty"><img src="/assets/delio-curious.webp" alt="">${text}</p>`;
 
 export const PLAN_COLORS: Record<PlanId, string> = { trial: "var(--s4)", starter: "var(--s3)", pro: "var(--s1)", max: "var(--s2)", byok: "var(--s5)" };
 
