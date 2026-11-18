@@ -133,7 +133,7 @@ async function readRawBody(req: IncomingMessage): Promise<Buffer> {
 /** Only same-site paths, so a crafted `next` can never send someone elsewhere after sign-in. */
 /** A path on this portal to go back to; anything else, a browser's way of reaching another site included, is "/". */
 export function localPath(value: string | null | undefined): string {
-  if (!value || value.length > 2048 || !value.startsWith("/") || /[\u0000-\u001f\u007f\\]/.test(value)) return "/";
+  if (!value || value.length > 2048 || !value.startsWith("/") || value.includes("\\") || [...value].some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)) return "/";
   try {
     const base = new URL("https://portal.invalid");
     const parsed = new URL(value, base);
