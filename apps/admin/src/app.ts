@@ -15,7 +15,7 @@ import { DEVICE_POLL_SECONDS, Devices } from "./devices.ts";
 import { personalWorkspaces } from "./personal-workspaces.ts";
 import { BILLING_REFRESH_SCRIPT } from "./billing-refresh.ts";
 import { Hosting, hostingRunner, RESERVED_SLUGS, socketFleet, type Fleet } from "./hosting.ts";
-import { Billing, DEFAULT_XOF_PER_USD, PLANS, reconcileOrders, TOPUPS, TRIAL_DAYS, type Cycle, type PlanId, type TopupId } from "./plans.ts";
+import { Billing, DEFAULT_XOF_PER_USD, PAYMENT_WINDOW_DAYS, PLANS, reconcileOrders, TOPUPS, TRIAL_DAYS, type Cycle, type PlanId, type TopupId } from "./plans.ts";
 import { createSasPay, verifySasPayWebhook } from "./saspay.ts";
 import { Reports } from "./reports.ts";
 import { MICRO, Wallet } from "./wallet.ts";
@@ -354,7 +354,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   }
 
   function account(req: IncomingMessage): Account | null {
-    return store.sessionAccount(parseCookies(req.headers.cookie).get(cookieName));
+    return store.sessionAccount(parseCookies(req.headers.cookie).get(cookieName), operatorConsole ? "console" : "portal");
   }
 
   function clientAddress(req: IncomingMessage): string {
@@ -388,7 +388,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     if (store.blocked(user.id)) {
       return html(res, 403, { title: "Compte bloqué", mascot: "sad", body: messagePage("Ce compte est bloqué", `Écrivez à ${SUPPORT_EMAIL} si vous pensez que c'est une erreur.`) });
     }
-    const session = store.createSession(user.id);
+    const session = store.createSession(user.id, operatorConsole ? "console" : "portal");
     store.audit(null, user.email, "account.signin", null);
     redirect(res, localPath(next), [sessionCookie(session.token, session.maxAgeSeconds)]);
   }
@@ -490,8 +490,11 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       let event: { event?: unknown; data?: { id?: unknown } } = {};
       try { event = JSON.parse(raw.toString("utf8")) as typeof event; } catch { return json(res, 400, { error: "invalid JSON" }); }
       const id = `${String(event.event)}:${String(event.data?.id ?? "")}:${header("x-webhook-timestamp")}`;
-      // The event names a transaction, not our order: every pending order is checked against SasPay itself.
-      if (plans.firstSeen(id) && event.event === "transaction.success" && saspay && (await reconcileOrders(plans, saspay)).length) startHosting();
+      // The event names a transaction, not our order: recent pending orders are checked against SasPay itself, after answering.
+      if (plans.firstSeen(id) && event.event === "transaction.success" && saspay) {
+        const work = reconcileOrders(plans, saspay, { days: PAYMENT_WINDOW_DAYS }).then((done) => { if (done.length) startHosting(); }).catch((error: unknown) => console.error("delio-admin: payment check failed", error));
+        if (options.waitUntil) options.waitUntil(work); else await work;
+      }
       return json(res, 200, { ok: true });
     }
     if (path === "/api/device/start" || path === "/api/device/token") {
@@ -522,12 +525,14 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     if (ref && ambassadors.ambassadorForCode(ref)) res.setHeader("set-cookie", `${REF_COOKIE}=${encodeURIComponent(normalizeCode(ref))}; Path=/; Max-Age=${30 * 24 * 3600}; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}`);
 
     if (!operatorConsole && path === "/ambassadeur/rejoindre") {
+      // Applying needs the account the payouts will belong to, so nobody applies in someone else's name.
+      if (method === "POST" && !user) return redirect(res, "/login?next=%2Fambassadeur%2Frejoindre");
       const form = method === "POST" ? await readBody(req) : null;
-      const values = form ? Object.fromEntries(["name", "email", "phone", "social", "audience", "why"].map((key) => [key, text(form, key, key === "why" ? 1000 : 200)])) : { email: user?.email ?? "" };
+      const values = form ? Object.fromEntries(["name", "phone", "social", "audience", "why"].map((key) => [key, text(form, key, key === "why" ? 1000 : 200)])) : {};
       const show = (status: number, extra: { sent?: boolean; error?: string } = {}) =>
-        html(res, status, { title: "Devenir ambassadeur", email: user?.email, mascot: "happy", body: ambassadorJoinPage({ rules: ambassadors.rules(), rate: xofRate(), values, ...extra }) });
-      if (!form) return show(200);
-      const email = normalizeEmail(values.email ?? "");
+        html(res, status, { title: "Devenir ambassadeur", email: user?.email, mascot: "happy", body: ambassadorJoinPage({ rules: ambassadors.rules(), rate: xofRate(), values, email: user?.email ?? null, ...extra }) });
+      if (!form || !user) return show(200);
+      const email = user.email;
       if (!values.name || !validEmail(email) || !values.phone || !values.social) return show(400, { error: "Remplissez votre nom, votre e-mail, votre numéro et le lien de votre réseau." });
       if (!store.allow(`ambassador-apply:${clientAddress(req)}`, 5, 24 * 60 * 60_000)) return show(429, { error: "Trop de candidatures envoyées. Réessayez demain." });
       const made = ambassadors.apply({ ...values, email } as { name: string; email: string });
@@ -555,10 +560,10 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       if (!operatorConsole && !settings.isOpen("signups") && !operators.has(email) && !store.hasAccount(email)) {
         return html(res, 403, { title: "Connexion", body: loginPage(next, "Les nouvelles inscriptions sont fermées pour le moment. Revenez bientôt."), mascot: "sad" });
       }
-      if (!store.allow(`otp-ip:${clientAddress(req)}`, 20, 15 * 60_000) || !store.allow(`otp-email:${email}`, 5, 15 * 60_000)) {
+      if (!store.allow(`otp-ip:${clientAddress(req)}`, 20, 15 * 60_000) || !store.allow(`otp-email:${operatorConsole ? "console:" : ""}${email}`, 5, 15 * 60_000)) {
         return html(res, 429, { title: "Connexion", body: loginPage(next, "Trop de codes demandés. Patientez quelques minutes et réessayez."), mascot: "sad" });
       }
-      const code = store.issueOtp(email);
+      const code = store.issueOtp(email, operatorConsole ? "console" : "portal");
       await mailer.send({ to: email, subject: `${code.slice(0, 4)} ${code.slice(4)} est votre code de connexion Delio`,
         text: `Votre code de connexion Delio est ${code.slice(0, 4)} ${code.slice(4)}.\n\nIl expire dans 10 minutes. Si vous ne l'avez pas demandé, ignorez cet e-mail.\n\nBesoin d'aide ? Écrivez à ${SUPPORT_EMAIL}.` })
         .catch((error: unknown) => console.error(`delio-admin: sign-in email could not be sent (${error instanceof Error ? error.name : "error"})`));
@@ -571,7 +576,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       if (!store.allow(`verify-ip:${clientAddress(req)}`, 60, 15 * 60_000)) {
         return html(res, 429, { title: "Connexion", body: codePage(email, next, "Trop d'essais. Patientez quelques minutes."), mascot: "sad" });
       }
-      const result = validEmail(email) && /^\d{8}$/.test(code) ? store.verifyOtp(email, code) : { ok: false as const, reason: "invalid" as const };
+      const result = validEmail(email) && /^\d{8}$/.test(code) ? store.verifyOtp(email, code, operatorConsole ? "console" : "portal") : { ok: false as const, reason: "invalid" as const };
       if (!result.ok) {
         const message = result.reason === "expired" ? "Ce code a expiré. Demandez-en un nouveau." : result.reason === "locked" ? "Trop de codes erronés. Demandez-en un nouveau." : "Ce code n'est pas le bon.";
         return html(res, 401, { title: "Vérifiez vos e-mails", body: codePage(email, next, message), mascot: "sad" });
@@ -657,7 +662,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       if (method === "GET") return show(200);
       if (method !== "POST") throw new HttpError(405, "Méthode non autorisée.");
       const name = pick("name", 80), slug = pick("slug", 64).toLowerCase();
-      const owned = store.workspacesOf(user.id).filter((item) => item.role === "admin" && hosting.get(item.slug)).length;
+      const owned = store.workspacesOf(user.id).filter((item) => item.role === "admin" && !/^me-[a-z0-9]{8}$/.test(item.slug)).length;
       const error = !name ? "Donnez un nom à l'espace."
         : !validSlug(slug) ? "L'identifiant doit faire 2 à 31 caractères : lettres minuscules, chiffres ou tirets, en commençant par une lettre."
         : RESERVED_SLUGS.has(slug) || store.workspace(slug) ? "Cet identifiant est déjà pris. Essayez-en un autre."
@@ -706,7 +711,8 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       if (path === "/people/invite") {
         const email = normalizeEmail(text(body, "email", 320)), role = text(body, "role", 16) as Role;
         if (!validEmail(email) || !ROLES.includes(role)) return fail(400, "Entrez une adresse e-mail et un rôle.");
-        if (!store.allow(`invite:${workspace.slug}`, 100, 60 * 60_000)) return fail(429, "Trop d'invitations cette heure-ci.");
+        if (!store.allow(`invite:${workspace.slug}`, 100, 60 * 60_000) || !store.allow(`invite-by:${user.id}`, 50, 24 * 60 * 60_000)
+          || !store.allow(`invite-to:${email}`, 3, 24 * 60 * 60_000)) return fail(429, "Trop d'invitations envoyées. Réessayez demain.");
         const { token: value } = store.invite(workspace.slug, email, role, user.email);
         const link = new URL(`/invite?token=${value}`, publicUrl).href;
         await mailer.send({ to: email, subject: `Invitation à rejoindre ${workspace.name} sur Delio`,
@@ -1014,7 +1020,8 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     await outbox.drain(mailer).catch((error: unknown) => console.error("delio-admin: announcement e-mails failed", error));
     traffic.purge();
     reports.purge();
-    if (saspay) await reconcileOrders(plans, saspay);
+    if (saspay) await reconcileOrders(plans, saspay).catch((error: unknown) => console.error("delio-admin: payment check failed", error));
+    plans.expireStale();
     plans.grantDue();
     const repaired = plans.repairUnapplied();
     for (const id of repaired) store.audit(plans.order(id)?.workspace ?? null, null, "order.repaired", id);

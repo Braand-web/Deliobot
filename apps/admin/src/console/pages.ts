@@ -227,7 +227,7 @@ export function subscriptionBadge(subscription: Subscription, suspended: boolean
 
 export function orderBadge(order: Pick<Order, "status" | "id">): Html {
   if (order.id.startsWith(MANUAL_ORDER_PREFIX)) return badge("info", "Offert");
-  return order.status === "paid" ? badge("ok", "Payée") : order.status === "failed" ? badge("bad", "Échouée") : badge("warn", "En attente");
+  return order.status === "paid" ? badge("ok", "Payée") : order.status === "refunded" ? badge("mute", "Remboursée") : order.status === "failed" ? badge("bad", "Échouée") : badge("warn", "En attente");
 }
 
 export const orderWhat = (order: Pick<Order, "kind" | "plan" | "cycle" | "credits">) => order.kind === "plan" && order.plan
@@ -420,7 +420,7 @@ export function ordersTable(orders: Order[], now: number, withClient: boolean, a
 ${orders.map((order) => h`<tr><td class="muted">${ago(order.createdAt, now)}</td>${withClient ? h`<td><a href="/clients/${order.workspace}">${order.workspace}</a><div class="muted small">${order.email}</div></td>` : ""}
 <td>${orderWhat(order)}<div class="muted small mono">${order.id}</div></td>
 <td class="num">${order.usd > 0 ? h`${usd(order.usd)}<div class="muted small">${order.currency === "XOF" || order.currency === "XAF" ? francs(Number(order.amount)) : `${order.amount} ${order.currency}`}</div>` : "0 $"}</td>
-<td>${orderBadge(order)}</td>${actions ? h`<td class="num">${order.status !== "paid" ? h`<div class="bar" style="justify-content:flex-end">
+<td>${orderBadge(order)}</td>${actions ? h`<td class="num">${order.status === "paid" && order.usd > 0 ? h`<form method="post" action="/commandes/${order.id}/rembourser" data-confirm="Marquer ${order.id} comme remboursée ?" data-detail="À faire après avoir remboursé le client. Ses commissions d'ambassadeur sont annulées ; les crédits déjà donnés ne sont pas retirés." data-danger="1" data-action="Remboursée"><button class="btn small">Remboursée</button></form>` : ""}${order.status !== "paid" && order.status !== "refunded" ? h`<div class="bar" style="justify-content:flex-end">
 ${order.sessionId ? h`<form method="post" action="/commandes/${order.id}/verifier"><button class="btn small">Revérifier chez SasPay</button></form>` : ""}
 <form method="post" action="/commandes/${order.id}/payee" data-confirm="Marquer ${order.id} comme payée ?" data-detail="Les crédits et le forfait sont appliqués tout de suite. À faire seulement si vous avez reçu l'argent." data-action="Marquer payée">
 <button class="btn small">Marquer payée</button></form></div>` : ""}</td>` : ""}</tr>`)}</tbody></table></div>`;

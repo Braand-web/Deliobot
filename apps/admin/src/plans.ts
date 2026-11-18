@@ -56,6 +56,8 @@ export type TopupId = (typeof TOPUPS)[number]["id"];
 /** A rough franc rate for a dollar when the operator sets none; the real one follows the euro, to which the franc is pegged. */
 export const DEFAULT_XOF_PER_USD = 600;
 const FRANCS = new Set(["XOF", "XAF"]);
+/** How long a checkout may still be paid: mobile money can confirm days after the person approved it. */
+export const PAYMENT_WINDOW_DAYS = 14;
 export const GRACE_MS = 7 * 24 * 60 * 60_000;
 const REMIND_BEFORE_MS = 3 * 24 * 60 * 60_000;
 const DAY_MS = 24 * 60 * 60_000;
@@ -75,7 +77,7 @@ export type SubscriptionStatus = "none" | "trialing" | "active" | "grace" | "exp
 export interface Subscription { workspace: string; plan: PlanId; cycle: Cycle; periodEnd: number; status: SubscriptionStatus }
 export interface Order {
   id: string; workspace: string; email: string; kind: "plan" | "topup"; plan: PlanId | null; cycle: Cycle; credits: number;
-  usd: number; amount: string; currency: string; sessionId: string | null; checkoutUrl: string | null; status: "pending" | "paid" | "failed"; createdAt: number;
+  usd: number; amount: string; currency: string; sessionId: string | null; checkoutUrl: string | null; status: "pending" | "paid" | "failed" | "refunded"; createdAt: number;
   /** The promo code whose percentage was taken off, if any. */
   promo?: string | null;
 }
@@ -219,8 +221,14 @@ CREATE TABLE IF NOT EXISTS queued_plans (order_id TEXT PRIMARY KEY, workspace TE
   }
 
   /** Pending orders worth asking SasPay about: those with a session, from the last two days. */
-  pending(): Order[] {
-    return this.db.prepare(`SELECT ${ORDER_COLUMNS} FROM orders WHERE status = 'pending' AND session_id IS NOT NULL AND created_at > ?`).all(this.now() - 2 * DAY_MS) as unknown as Order[];
+  /** Pending orders worth asking SasPay about, newest first: those with a session from the last `days` days. */
+  pending(days = 2): Order[] {
+    return this.db.prepare(`SELECT ${ORDER_COLUMNS} FROM orders WHERE status = 'pending' AND session_id IS NOT NULL AND created_at > ? ORDER BY created_at DESC`).all(this.now() - days * DAY_MS) as unknown as Order[];
+  }
+
+  /** Orders nobody paid within `PAYMENT_WINDOW_DAYS` are failed, so they stop waiting and stop being asked about. */
+  expireStale(): number {
+    return Number(this.db.prepare("UPDATE orders SET status = 'failed' WHERE status = 'pending' AND created_at <= ?").run(this.now() - PAYMENT_WINDOW_DAYS * DAY_MS).changes);
   }
 
   /** Applies a paid order once: credits, and for a plan its period. A repeated confirmation changes nothing. */
@@ -359,7 +367,7 @@ CREATE TABLE IF NOT EXISTS queued_plans (order_id TEXT PRIMARY KEY, workspace TE
     const missing = this.db.prepare(`SELECT o.id, o.paid_at FROM orders o WHERE o.status = 'paid' AND o.paid_at > ?
       AND NOT EXISTS (SELECT 1 FROM credit_ledger l WHERE l.workspace = o.workspace AND l.note LIKE '%· ' || o.id)
       AND (o.kind = 'topup' OR NOT EXISTS (SELECT 1 FROM subscriptions s WHERE s.workspace = o.workspace))
-      AND EXISTS (SELECT 1 FROM workspaces w WHERE w.slug = o.workspace)`).all(this.now() - 60 * DAY_MS) as Array<{ id: string; paid_at: number }>;
+      AND EXISTS (SELECT 1 FROM workspaces w WHERE w.slug = o.workspace AND w.created_at <= o.created_at)`).all(this.now() - 60 * DAY_MS) as Array<{ id: string; paid_at: number }>;
     const repaired: string[] = [];
     for (const row of missing) {
       this.db.prepare("UPDATE orders SET status = 'pending' WHERE id = ? AND status = 'paid'").run(row.id);
@@ -369,6 +377,11 @@ CREATE TABLE IF NOT EXISTS queued_plans (order_id TEXT PRIMARY KEY, workspace TE
       }
     }
     return repaired;
+  }
+
+  /** An operator's refund of a paid order: its commissions are voided on the next sweep. Credits already used stay used. */
+  markRefunded(orderId: string): boolean {
+    return Number(this.db.prepare("UPDATE orders SET status = 'refunded' WHERE id = ? AND status = 'paid'").run(orderId).changes) === 1;
   }
 
   markFailed(orderId: string): void {
@@ -390,10 +403,12 @@ CREATE TABLE IF NOT EXISTS queued_plans (order_id TEXT PRIMARY KEY, workspace TE
 }
 
 /** Asks SasPay about pending orders and applies those it reports paid; the webhook and the return page both call it. */
-export async function reconcileOrders(billing: Billing, saspay: SasPay, filter: { order?: string; workspace?: string } = {}): Promise<string[]> {
+export async function reconcileOrders(billing: Billing, saspay: SasPay, filter: { order?: string; workspace?: string; days?: number; limit?: number } = {}): Promise<string[]> {
   const fulfilled: string[] = [];
-  for (const order of billing.pending()) {
+  let asked = 0;
+  for (const order of billing.pending(filter.days)) {
     if ((filter.order && order.id !== filter.order) || (filter.workspace && order.workspace !== filter.workspace)) continue;
+    if (++asked > (filter.limit ?? 40)) break;
     let status: string;
     try { status = await saspay.sessionStatus(order.sessionId!); } catch { continue; }
     if (status === "PAID" && billing.fulfil(order.id)) fulfilled.push(order.id);

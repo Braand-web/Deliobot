@@ -186,6 +186,8 @@ CREATE TABLE IF NOT EXISTS ambassador_payouts (id INTEGER PRIMARY KEY AUTOINCREM
     const found = this.ambassadorForCode(value);
     if (!found) return false;
     if (memberEmails.map((email) => email.toLowerCase()).includes(found.ambassador.email)) return false;
+    // A customer who already paid was not brought by this link: attribution is for new customers only.
+    if (this.db.prepare(`SELECT 1 FROM orders WHERE workspace = ? AND status = 'paid' AND usd > 0 AND id NOT LIKE '${MANUAL_ORDER_PREFIX}%'`).get(workspace)) return false;
     return Number(this.db.prepare("INSERT INTO referrals (workspace, ambassador, code, source, at) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO NOTHING")
       .run(workspace, found.ambassador.id, found.code, source, this.now()).changes) === 1;
   }
@@ -219,7 +221,7 @@ CREATE TABLE IF NOT EXISTS ambassador_payouts (id INTEGER PRIMARY KEY AUTOINCREM
     const referral = this.referral(order.workspace);
     if (!referral) return;
     const ambassador = this.get(referral.ambassador);
-    if (!ambassador || ambassador.status !== "active") return;
+    if (!ambassador || ambassador.status !== "active" || order.email.toLowerCase() === ambassador.email) return;
     const rules = this.rules();
     const at = this.now();
     const insert = (kind: string, rate: number, micro: number, status: string, payableAt: number) =>
@@ -251,7 +253,7 @@ CREATE TABLE IF NOT EXISTS ambassador_payouts (id INTEGER PRIMARY KEY AUTOINCREM
   sweep(): void {
     const at = this.now();
     this.db.prepare("UPDATE commissions SET status = 'payable' WHERE status = 'held' AND payable_at <= ? AND order_id IN (SELECT id FROM orders WHERE status = 'paid')").run(at);
-    this.db.prepare("UPDATE commissions SET status = 'void' WHERE status = 'held' AND order_id IN (SELECT id FROM orders WHERE status != 'paid')").run();
+    this.db.prepare("UPDATE commissions SET status = 'void' WHERE status IN ('held', 'payable') AND order_id IN (SELECT id FROM orders WHERE status != 'paid')").run();
     this.db.prepare("UPDATE commissions SET status = 'void' WHERE status = 'trial' AND payable_at <= ?").run(at);
     for (const ambassador of this.all("active").filter((one) => one.months > 6)) {
       const months = this.level(ambassador.id).level.months;
@@ -275,6 +277,12 @@ CREATE TABLE IF NOT EXISTS ambassador_payouts (id INTEGER PRIMARY KEY AUTOINCREM
     const canExtendTo = level.months > ambassador.months && ambassador.extensionRequest === null ? level.months : null;
     return { clicks, signups, paying, revenueUsd, level, next, heldUsd: sum("held"), payableUsd: payable, paidUsd: paid, availableUsd: Math.max(0, Math.round((payable - payouts) * 100) / 100),
       nextPayableAt: nextPayable.at === null ? null : Number(nextPayable.at), canExtendTo };
+  }
+
+  /** What a customer pays for one credit on the entry plan: gains taken as credits buy what that money would buy. */
+  private creditPrice(): number {
+    const starter = this.settings.plan("starter");
+    return starter.credits > 0 ? starter.usd / starter.credits : this.wallet.creditUsd;
   }
 
   requestExtension(ambassador: Ambassador): boolean {
@@ -307,7 +315,7 @@ CREATE TABLE IF NOT EXISTS ambassador_payouts (id INTEGER PRIMARY KEY AUTOINCREM
     this.db.transaction(() => {
       this.db.prepare("INSERT INTO ambassador_payouts (ambassador, amount, mode, status, at, paid_at) VALUES (?, ?, ?, ?, ?, ?)")
         .run(ambassador.id, amount, mode, mode === "credits" ? "paid" : "requested", this.now(), mode === "credits" ? this.now() : null);
-      if (mode === "credits") this.wallet.credit(creditWorkspace!, Math.round(available / this.wallet.creditUsd) * MICRO, "grant", "Gains ambassadeur");
+      if (mode === "credits") this.wallet.credit(creditWorkspace!, Math.round(available / this.creditPrice()) * MICRO, "grant", "Gains ambassadeur");
     });
     return { ok: true, usd: available };
   }

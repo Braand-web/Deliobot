@@ -47,7 +47,7 @@ const SLUG = "[a-z][a-z0-9-]{1,30}";
 const ORDER_ID = "(?:ord|man)_[A-Za-z0-9_-]{8,40}";
 const CLIENT_ACTION = new RegExp(`^/clients/(${SLUG})/(credits|forfait|suspendre|bloquer|appareil|jeton|supprimer)$`);
 const CLIENT = new RegExp(`^/clients/(${SLUG})$`);
-const ORDER_ACTION = new RegExp(`^/commandes/(${ORDER_ID})/(verifier|payee)$`);
+const ORDER_ACTION = new RegExp(`^/commandes/(${ORDER_ID})/(verifier|payee|rembourser)$`);
 const PAGES = new Set(["/ambassadeurs", "/", "/trafic", "/clients", "/commandes", "/signalements", "/journal", "/sites", "/promos", "/communication", "/forfaits", "/systeme", "/securite"]);
 const SETTINGS_ACTION = /^\/(?:promos(?:\/([A-Z0-9_-]{3,32})\/(activer|desactiver|supprimer))?|communication\/(annonce|annonce\/retirer|envoyer)|forfaits\/(taux|offrir|trial|starter|pro|max|byok)(\/retablir)?|systeme\/(signups|payments|trial)|securite\/(sessions|debloquer))$/;
 /** Audit actions the security page lists. */
@@ -73,7 +73,7 @@ const FLASH: Record<string, (count: string) => Flash> = {
   suspended: () => ({ kind: "ok", text: "Espace suspendu" }), resumed: () => ({ kind: "ok", text: "Espace réactivé" }),
   blocked: () => ({ kind: "ok", text: "Compte bloqué" }), unblocked: () => ({ kind: "ok", text: "Compte débloqué" }),
   device: () => ({ kind: "ok", text: "Application déconnectée" }), "site-down": () => ({ kind: "ok", text: "Site retiré : son adresse ne répond plus" }), "report-deleted": () => ({ kind: "ok", text: "Signalement supprimé" }), deleted: () => ({ kind: "ok", text: "Espace supprimé" }),
-  paid: () => ({ kind: "ok", text: "Commande marquée payée, crédits appliqués" }), "already-paid": () => ({ kind: "bad", text: "Cette commande était déjà payée" }),
+  paid: () => ({ kind: "ok", text: "Commande marquée payée, crédits appliqués" }), refunded: () => ({ kind: "ok", text: "Commande marquée remboursée : ses commissions d'ambassadeur sont annulées" }), "already-paid": () => ({ kind: "bad", text: "Cette commande était déjà payée" }),
   "recheck-paid": () => ({ kind: "ok", text: "SasPay confirme le paiement : commande appliquée" }),
   "recheck-pending": () => ({ kind: "ok", text: "SasPay : paiement toujours en attente" }),
   "recheck-failed": () => ({ kind: "bad", text: "SasPay : paiement échoué ou expiré" }),
@@ -252,6 +252,12 @@ export function createConsole(ctx: ConsoleContext) {
     const order = billing.order(id);
     if (!order) return ctx.redirect(res, "/commandes");
     const back = (code: string) => ctx.redirect(res, `/commandes?ok=${code}`);
+    if (action === "rembourser") {
+      if (!billing.markRefunded(id)) return back("already-paid");
+      store.audit(order.workspace, user.email, "order.refunded", id);
+      ctx.ambassadors.sweep();
+      return back("refunded");
+    }
     if (action === "payee") {
       if (!billing.markPaid(id)) return back("already-paid");
       store.audit(order.workspace, user.email, "order.paid", id);

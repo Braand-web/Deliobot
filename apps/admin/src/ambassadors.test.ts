@@ -146,7 +146,7 @@ describe("the ambassador programme", () => {
     ambassadors.sweep();
     expect(ambassadors.requestPayout(awa, "mobile_money", null, 600)).toMatchObject({ ok: false, error: expect.stringContaining("5") });
     expect(ambassadors.requestPayout(awa, "credits", "awa-own", 600)).toEqual({ ok: true, usd: 2.25 });
-    expect(wallet.balance("awa-own")).toBe(Math.round(2.25 / wallet.creditUsd) * MICRO);
+    expect(wallet.balance("awa-own"), "credits at the price customers pay for them").toBe(Math.round(2.25 / (15 / 1300)) * MICRO);
     expect(ambassadors.stats(awa).availableUsd).toBe(0);
 
     for (let index = 0; index < 4; index++) pay(customer(), "max");
@@ -166,5 +166,17 @@ describe("the ambassador programme", () => {
     ambassadors.update(awa.id, { status: "suspended" });
     expect(promos.get("AWA")?.active).toBe(false);
     expect(promos.redeemCredits("AWA", "farm")).toMatchObject({ ok: false });
+  });
+
+  it("voids the commission of a refunded order, and never ties a customer who already paid", () => {
+    const { ambassadors, awa, billing, store, customer, pay } = setup();
+    const client = customer();
+    const order = pay(client, "pro");
+    expect(billing.markRefunded(order.id)).toBe(true);
+    ambassadors.sweep();
+    expect(ambassadors.commissions(awa.id).map((row) => row.status)).toEqual(["void"]);
+    store.createWorkspace({ slug: "loyal", name: "loyal", tenantUrl: "https://l.test", ownerEmail: "loyal@x.test" }, "test");
+    billing.fulfil(billing.createOrder({ workspace: "loyal", email: "loyal@x.test", kind: "plan", plan: "pro", cycle: "month" }, "XOF").id);
+    expect(ambassadors.attribute("loyal", "AWA", "link", ["loyal@x.test"])).toBe(false);
   });
 });

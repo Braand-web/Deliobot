@@ -42,7 +42,7 @@ describe("operators' console", () => {
   it("answers 404 to a signed-in customer on every page and action", async () => {
     const { store, ops } = await setup();
     const customer = store.ensureAccount("owner@acme.test");
-    const session = store.createSession(customer.id);
+    const session = store.createSession(customer.id, "console");
     for (const path of ["/", "/trafic", "/clients", "/clients/acme", "/commandes", "/journal"]) {
       const response = await fetch(new URL(path, ops.origin), { redirect: "manual", headers: { cookie: `delio-admin=${session.token}` } });
       expect(response.status, path).toBe(404);
@@ -50,6 +50,15 @@ describe("operators' console", () => {
     const action = await fetch(new URL("/clients/acme/credits", ops.origin), { method: "POST", redirect: "manual", body: "credits=1000",
       headers: { origin: ops.origin, cookie: `delio-admin=${session.token}`, "content-type": "application/x-www-form-urlencoded" } });
     expect(action.status).toBe(404);
+  });
+
+  it("never takes a customers' portal session as a console one, even an operator's", async () => {
+    const { store, ops } = await setup();
+    const operator = store.ensureAccount("ops@delio.test");
+    const session = store.createSession(operator.id, "portal");
+    const response = await fetch(new URL("/clients", ops.origin), { redirect: "manual", headers: { cookie: `delio-admin=${session.token}` } });
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toMatch(/^\/login/);
   });
 
   it("shows revenue, subscribers and margin on the dashboard, with a nonce-only script policy", async () => {

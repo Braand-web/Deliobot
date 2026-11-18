@@ -39,8 +39,10 @@ describe("promo codes", () => {
     expect(promos.check("LAUNCH20", "acme", "trial")).toMatchObject({ ok: false });
     const order = billing.createOrder({ workspace: "acme", email: "owner@acme.test", kind: "plan", plan: "pro", cycle: "month", promo: { code: "LAUNCH20", percent: 20 } }, "XOF");
     expect(order).toMatchObject({ usd: 39.2, amount: "23520.00", promo: "LAUNCH20" });
+    expect(promos.check("LAUNCH20", "beta", "pro"), "the waiting checkout holds the only use").toMatchObject({ ok: false });
+    billing.markFailed(order.id);
     expect(promos.check("LAUNCH20", "beta", "pro").ok).toBe(true);
-    billing.fulfil(order.id);
+    billing.markPaid(order.id);
     expect(promos.check("LAUNCH20", "beta", "pro")).toEqual({ ok: false, error: "Ce code a déjà été utilisé le nombre de fois prévu." });
   });
 

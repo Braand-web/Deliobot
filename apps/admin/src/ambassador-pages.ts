@@ -32,19 +32,19 @@ export function howItWorks(rules: AmbassadorRules, rate: number): Html {
 <li>Pas de gain sur votre propre compte.</li><li>Un client reste à l'ambassadeur dont il a utilisé le lien ou le code en premier.</li></ul>`;
 }
 
-export function ambassadorJoinPage(input: { rules: AmbassadorRules; rate: number; sent?: boolean; error?: string; values?: Record<string, string> }): Html {
+export function ambassadorJoinPage(input: { rules: AmbassadorRules; rate: number; email: string | null; sent?: boolean; error?: string; values?: Record<string, string> }): Html {
   if (input.sent) return h`<div class="narrow center"><h1>Merci, c'est envoyé !</h1><p class="muted">Nous étudions votre candidature et vous répondons par e-mail sous 48 h. Une fois validé, vous recevrez votre lien, votre code et l'accès à votre espace ambassadeur.</p><p><a href="${SITE_URL}/ambassadeurs">Revoir le programme</a></p></div>`;
   const v = input.values ?? {};
   return h`<h1>Devenez ambassadeur Deliobot</h1><p class="muted">Recommandez Deliobot à votre communauté et gagnez une part de chaque abonnement. Aucun investissement, payé en Mobile Money.</p>
 <div class="card">${howItWorks(input.rules, input.rate)}</div>${levelCards(input.rules, input.rate)}
 ${notice(input.error, "error")}<form method="post" action="/ambassadeur/rejoindre" class="card"><h2 style="margin-top:0">Votre candidature</h2>
 <label for="name">Nom ou nom de créateur</label><input id="name" name="name" required maxlength="80" value="${v.name ?? ""}">
-<label for="email">E-mail</label><input id="email" name="email" type="email" required maxlength="160" value="${v.email ?? ""}">
+${input.email ? h`<label>E-mail</label><p style="margin:0"><b>${input.email}</b></p>` : h`<p class="notice">Connectez-vous d'abord : votre espace ambassadeur et vos gains seront liés à ce compte. <a href="/login?next=%2Fambassadeur%2Frejoindre">Se connecter ou créer un compte</a></p>`}
 <label for="phone">Numéro WhatsApp / Mobile Money</label><input id="phone" name="phone" required maxlength="30" value="${v.phone ?? ""}" placeholder="+221 70 000 00 00">
 <label for="social">Votre réseau principal (lien)</label><input id="social" name="social" required maxlength="200" value="${v.social ?? ""}" placeholder="https://www.tiktok.com/@…">
 <label for="audience">Taille de votre communauté</label><select id="audience" name="audience">${["Moins de 1 000", "1 000 à 10 000", "10 000 à 50 000", "50 000 à 200 000", "Plus de 200 000"].map((size) => h`<option ${v.audience === size ? raw("selected") : ""}>${size}</option>`)}</select>
 <label for="why">Comment comptez-vous parler de Deliobot ?</label><textarea id="why" name="why" maxlength="1000">${v.why ?? ""}</textarea>
-<p><button class="primary" style="width:100%">Envoyer ma candidature</button></p></form>`;
+<p><button class="primary" style="width:100%" ${input.email ? "" : raw("disabled")}>Envoyer ma candidature</button></p></form>`;
 }
 
 export interface DashboardInput {

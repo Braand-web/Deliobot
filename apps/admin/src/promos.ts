@@ -34,14 +34,15 @@ CREATE TABLE IF NOT EXISTS promo_redemptions (code TEXT NOT NULL, workspace TEXT
     try { this.db.prepare("SELECT ambassador FROM promo_codes LIMIT 0").all(); } catch { this.db.exec("ALTER TABLE promo_codes ADD COLUMN ambassador TEXT"); }
   }
 
+  /** Uses so far: credits given, and orders opened with the code that are paid or still payable, so a limit holds while checkouts wait. */
   private uses(code: string): number {
-    const row = this.db.prepare(`SELECT (SELECT COUNT(*) FROM promo_redemptions WHERE code = ?) + (SELECT COUNT(*) FROM orders WHERE promo = ? AND status = 'paid') AS n`).get(code, code) as { n: number };
+    const row = this.db.prepare(`SELECT (SELECT COUNT(*) FROM promo_redemptions WHERE code = ?) + (SELECT COUNT(*) FROM orders WHERE promo = ? AND status IN ('paid', 'pending')) AS n`).get(code, code) as { n: number };
     return Number(row.n);
   }
 
   private usedBy(code: string, workspace: string): boolean {
     return Boolean(this.db.prepare("SELECT 1 FROM promo_redemptions WHERE code = ? AND workspace = ?").get(code, workspace)
-      ?? this.db.prepare("SELECT 1 FROM orders WHERE promo = ? AND workspace = ? AND status = 'paid'").get(code, workspace));
+      ?? this.db.prepare("SELECT 1 FROM orders WHERE promo = ? AND workspace = ? AND status IN ('paid', 'pending')").get(code, workspace));
   }
 
   private row(raw: Record<string, unknown>): Promo {

@@ -21,6 +21,8 @@ export const PUBLIC_MAIL_DOMAINS: ReadonlySet<string> = new Set(["gmail.com", "g
 const OTP_TTL_MS = 10 * 60_000;
 const OTP_MAX_ATTEMPTS = 5;
 const SESSION_TTL_MS = 14 * 24 * 60 * 60_000;
+/** A hosted workspace asks again after this long, so a leaked grant does not last for as long as its holder stays a member. */
+const GRANT_TTL_MS = 30 * 24 * 60 * 60_000;
 const HANDOFF_CODE_TTL_MS = 60_000;
 const INVITATION_TTL_MS = 7 * 24 * 60 * 60_000;
 
@@ -58,6 +60,9 @@ CREATE TABLE IF NOT EXISTS blocked_accounts (account_id TEXT PRIMARY KEY REFEREN
 CREATE TABLE IF NOT EXISTS suspensions (workspace TEXT PRIMARY KEY REFERENCES workspaces(slug) ON DELETE CASCADE, reason TEXT, at INTEGER NOT NULL);
 `;
 
+export type SessionScope = "portal" | "console";
+const otpKey = (email: string, scope: SessionScope) => scope === "console" ? `console:${email}` : email;
+
 export type OtpResult = { ok: true; account: Account } | { ok: false; reason: "invalid" | "expired" | "locked" };
 
 export class AdminStore {
@@ -68,6 +73,7 @@ export class AdminStore {
   constructor(options: { db: SqlDatabase; secret: Buffer; now?: () => number }) {
     this.db = options.db;
     this.db.exec(SCHEMA);
+    try { this.db.prepare("SELECT scope FROM sessions LIMIT 0").all(); } catch { this.db.exec("ALTER TABLE sessions ADD COLUMN scope TEXT NOT NULL DEFAULT 'portal'"); }
     try { this.db.prepare("SELECT verified FROM sso LIMIT 0").all(); } catch { this.db.exec("ALTER TABLE sso ADD COLUMN verified INTEGER NOT NULL DEFAULT 0"); this.db.exec("ALTER TABLE sso ADD COLUMN verify_token TEXT"); }
     this.secret = options.secret;
     this.now = options.now ?? Date.now;
@@ -90,26 +96,29 @@ export class AdminStore {
     return true;
   }
 
-  issueOtp(email: string): string {
+  /** A sign-in code for the portal or the console: each keeps its own, so asking for one never replaces or locks the other. */
+  issueOtp(email: string, scope: SessionScope = "portal"): string {
+    const key = otpKey(email, scope);
     const code = String(randomInt(0, 100_000_000)).padStart(8, "0");
     this.db.prepare("INSERT INTO otps (email, code_mac, expires_at, attempts) VALUES (?, ?, ?, 0) ON CONFLICT (email) DO UPDATE SET code_mac = excluded.code_mac, expires_at = excluded.expires_at, attempts = 0")
-      .run(email, this.mac(`otp:${email}:${code}`), this.now() + OTP_TTL_MS);
+      .run(key, this.mac(`otp:${key}:${code}`), this.now() + OTP_TTL_MS);
     return code;
   }
 
-  verifyOtp(email: string, code: string): OtpResult {
-    const row = this.db.prepare("SELECT code_mac, expires_at, attempts FROM otps WHERE email = ?").get(email) as { code_mac: string; expires_at: number; attempts: number } | undefined;
+  verifyOtp(email: string, code: string, scope: SessionScope = "portal"): OtpResult {
+    const key = otpKey(email, scope);
+    const row = this.db.prepare("SELECT code_mac, expires_at, attempts FROM otps WHERE email = ?").get(key) as { code_mac: string; expires_at: number; attempts: number } | undefined;
     if (!row) return { ok: false, reason: "invalid" };
     if (row.expires_at <= this.now()) {
-      this.db.prepare("DELETE FROM otps WHERE email = ?").run(email);
+      this.db.prepare("DELETE FROM otps WHERE email = ?").run(key);
       return { ok: false, reason: "expired" };
     }
     if (row.attempts >= OTP_MAX_ATTEMPTS) return { ok: false, reason: "locked" };
-    if (!sameText(row.code_mac, this.mac(`otp:${email}:${code.trim()}`))) {
-      this.db.prepare("UPDATE otps SET attempts = attempts + 1 WHERE email = ?").run(email);
+    if (!sameText(row.code_mac, this.mac(`otp:${key}:${code.trim()}`))) {
+      this.db.prepare("UPDATE otps SET attempts = attempts + 1 WHERE email = ?").run(key);
       return { ok: false, reason: "invalid" };
     }
-    this.db.prepare("DELETE FROM otps WHERE email = ?").run(email);
+    this.db.prepare("DELETE FROM otps WHERE email = ?").run(key);
     return { ok: true, account: this.ensureAccount(email) };
   }
 
@@ -129,17 +138,18 @@ export class AdminStore {
     return account;
   }
 
-  createSession(accountId: string): { token: string; maxAgeSeconds: number } {
+  /** A session for the customers' portal or the operators' console (`scope`); one never opens the other. */
+  createSession(accountId: string, scope: SessionScope = "portal"): { token: string; maxAgeSeconds: number } {
     const value = token();
     this.db.prepare("DELETE FROM sessions WHERE expires_at <= ?").run(this.now());
-    this.db.prepare("INSERT INTO sessions (token_hash, account_id, expires_at) VALUES (?, ?, ?)").run(sha256(value), accountId, this.now() + SESSION_TTL_MS);
+    this.db.prepare("INSERT INTO sessions (token_hash, account_id, expires_at, scope) VALUES (?, ?, ?, ?)").run(sha256(value), accountId, this.now() + SESSION_TTL_MS, scope);
     return { token: value, maxAgeSeconds: SESSION_TTL_MS / 1000 };
   }
 
-  sessionAccount(value: string | undefined): Account | null {
+  sessionAccount(value: string | undefined, scope: SessionScope = "portal"): Account | null {
     if (!value || value.length > 128) return null;
-    return (this.db.prepare(`SELECT accounts.id, accounts.email FROM sessions JOIN accounts ON accounts.id = sessions.account_id WHERE token_hash = ? AND expires_at > ?
-      AND accounts.id NOT IN (SELECT account_id FROM blocked_accounts)`).get(sha256(value), this.now()) as Account | undefined) ?? null;
+    return (this.db.prepare(`SELECT accounts.id, accounts.email FROM sessions JOIN accounts ON accounts.id = sessions.account_id WHERE token_hash = ? AND expires_at > ? AND scope = ?
+      AND accounts.id NOT IN (SELECT account_id FROM blocked_accounts)`).get(sha256(value), this.now(), scope) as Account | undefined) ?? null;
   }
 
   /** Signed-in sessions still valid for an account. */
@@ -281,7 +291,8 @@ export class AdminStore {
   /** The member's current role, so a demotion or removal reaches every open session on its next check. */
   checkGrant(workspace: string, grant: string): { email: string; role: Role } | null {
     return (this.db.prepare(`SELECT a.email, m.role FROM grants g JOIN members m ON m.workspace = g.workspace AND m.account_id = g.account_id
-      JOIN accounts a ON a.id = g.account_id WHERE g.grant_hash = ? AND g.workspace = ? AND g.account_id NOT IN (SELECT account_id FROM blocked_accounts)`).get(sha256(grant), workspace) as { email: string; role: Role } | undefined) ?? null;
+      JOIN accounts a ON a.id = g.account_id WHERE g.grant_hash = ? AND g.workspace = ? AND g.created_at > ? AND g.account_id NOT IN (SELECT account_id FROM blocked_accounts)`)
+      .get(sha256(grant), workspace, this.now() - GRANT_TTL_MS) as { email: string; role: Role } | undefined) ?? null;
   }
 
   sso(workspace: string): SsoConfig | null {

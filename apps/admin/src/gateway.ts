@@ -249,15 +249,16 @@ export function createGateway(options: GatewayOptions) {
     const model = typeof body.model === "string" ? body.model : "unknown";
     if (wallet.balance(workspace) <= 0) return failure(res, 402, OUT_OF_CREDITS, OUT_OF_CREDITS_CODE);
     const price = await textPrice(model) ?? UNKNOWN_TEXT_PRICE;
+    const done = await admit(workspace, limit);
+    if (!done) return failure(res, 429, "Too many requests at once for this workspace. Try again in a moment.");
+    // Measured after admission, from a balance the other requests' holds already took out of, so parallel requests cannot spend it twice.
     const room = Math.floor(((wallet.balance(workspace) / MICRO) * wallet.creditUsd - (bytes / BYTES_PER_TOKEN) * price.prompt) / Math.max(price.completion, 1e-12));
-    if (room < MIN_AFFORDABLE_OUTPUT_TOKENS) return failure(res, 402, OUT_OF_CREDITS, OUT_OF_CREDITS_CODE);
+    if (room < MIN_AFFORDABLE_OUTPUT_TOKENS) { done(); return failure(res, 402, OUT_OF_CREDITS, OUT_OF_CREDITS_CODE); }
     const asked = typeof body.max_completion_tokens === "number" ? "max_completion_tokens" : "max_tokens";
     const requested = typeof body[asked] === "number" && (body[asked] as number) > 0 ? body[asked] as number : TEXT_DEFAULT_OUTPUT_TOKENS;
     if (requested > room) body = { ...body, [asked]: room };
     const holdUsd = await textHoldUsd(model, bytes, body.max_tokens ?? body.max_completion_tokens);
-    const done = await admit(workspace, limit);
-    if (!done) return failure(res, 429, "Too many requests at once for this workspace. Try again in a moment.");
-    const hold = wallet.hold(workspace, wallet.microFor(holdUsd));
+    const hold = wallet.hold(workspace, Math.min(wallet.microFor(holdUsd), Math.max(0, wallet.balance(workspace))), true);
     if (!hold) { done(); return failure(res, 402, OUT_OF_CREDITS, OUT_OF_CREDITS_CODE); }
     let settled = false;
     const finish = (costUsd: number | null, made: boolean) => {
