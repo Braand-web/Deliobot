@@ -32,18 +32,17 @@ describe.each(["Simple", "Advanced"] as const)("%s Settings → Plan & billing o
     const html = render();
     expect(html).not.toContain("CLOUD_PLAN_MARKER"); expect(html).not.toContain(reachable);
   });
-  it("shows the plan, read only, on the person's own Cloud", () => {
+  it("opens the plan page on the person's own Cloud, without the old Cloud account card", () => {
     vi.stubGlobal("window", { odb: { cloudPlan: plan } });
     fixture.config = { cloudHome: true };
     const html = render();
-    expect(html).toContain("CLOUD_PLAN_MARKER home"); expect(html).toContain(reachable);
+    expect(html).not.toContain("CLOUD_PLAN_MARKER"); expect(html).toContain(reachable);
     expect(html).toContain('data-settings-page-open="plan"');
   });
-  it("is the full plan page in the app on this computer, with the offer in both modes", () => {
+  it("is the plan page in the app on this computer, in both modes, with Deliobot's plans instead of the old Cloud card", () => {
     vi.stubGlobal("window", { odb: { cloudAccount: {}, cloudPlan: plan } });
     const html = render();
-    expect(html).toContain("CLOUD_PLAN_MARKER offer");
-    expect(html).not.toContain("CLOUD_PLAN_MARKER home");
+    expect(html).not.toContain("CLOUD_PLAN_MARKER");
     expect(html).toContain(reachable);
   });
 });

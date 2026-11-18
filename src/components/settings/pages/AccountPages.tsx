@@ -5,7 +5,6 @@ import { useState } from "react";
 import { InertRow, useSwitchToComputer } from "../inert";
 import { PlaceBadge, YouAvatar } from "../SettingsNav";
 import { SignOutConfirm } from "../SignOutConfirm";
-import { CloudAccountSettings } from "../../CloudAccountSettings";
 import { useCloudUsageSettings } from "../../CloudUsageMeter";
 import { DelioCreditsCard, useDelioCredits } from "../../UsageBudget";
 import { DelioAccountCard } from "../../keys/DelioAccountCard";
@@ -21,7 +20,6 @@ import { profileLabel } from "../../SidebarProfileMenu";
 
 export function AccountPage() {
   const { ctx, place, go } = useSettingsShell();
-  const { state, dispatch } = useStore();
   const { profile, session } = useYou();
   const summary = useAccountSummary();
   const computer = useSwitchToComputer();
@@ -41,8 +39,9 @@ export function AccountPage() {
           : <SettingsLinkRow title={t("settings.account.nameRow")} badge={<PlaceBadge place={place} size={14} />} value={profileLabel(profile)} onClick={() => go("bots", "about-you")} data={{ "data-account-name-row": "" }} />}
       </SettingsRows>
     </SettingsGroup>
-    {bridge && <CloudAccountSettings part="account" advanced={ctx.advanced} linkRequest={state.appSettingsCloudLink} avatar={<YouAvatar size={32} />}
-      onSignIn={() => dispatch({ type: "openCloudAdd", source: "app_settings", signIn: true })} />}
+    {ctx.desktop && !ctx.client && !elsewhere && (
+      <SettingsGroup label={t("settings.account.delio", { app: productName() })} block="delio-account"><DelioAccountCard /></SettingsGroup>
+    )}
     {elsewhere && (
       <SettingsGroup label={t("settings.account.delio", { app: productName() })} block="delio-account">
         <SettingsRows icons>
@@ -88,8 +87,8 @@ export function AccountPage() {
 
 export function PlanPage() {
   const { ctx, place } = useSettingsShell();
-  const { state, dispatch } = useStore();
-  const { usage, upgrade, dialog } = useCloudUsageSettings();
+  const { dispatch } = useStore();
+  const { dialog } = useCloudUsageSettings();
   const credits = useDelioCredits();
   const admin = useOwnerOrAdmin() !== false;
   const openPlans = () => dispatch({ type: "openCloudAdd", source: "app_settings" });
@@ -118,12 +117,9 @@ export function PlanPage() {
   }
   return <>
     {delio}
-    <CloudAccountSettings part="plan" advanced={ctx.advanced} cloudHome={ctx.cloud} teamHome={state.config?.team} linkRequest={state.appSettingsCloudLink}
-      usage={usage} upgrade={upgrade}
-      // A Cloud's own cost stays off its paid plan's card (§1.3: it must never read as a second bill).
-      extra={!ctx.advanced && !ctx.client && !(ctx.team && !ctx.admin) && (place.kind === "computer" || place.kind === "server") ? <SpentRow place={place.name} /> : undefined}
-      onAddCloud={() => dispatch({ type: "openCloudAdd", source: "app_settings" })}
-      onSignIn={() => dispatch({ type: "openCloudAdd", source: "app_settings", signIn: true })} />
+    {!ctx.advanced && !ctx.client && !(ctx.team && !ctx.admin) && (place.kind === "computer" || place.kind === "server") && (
+      <SettingsGroup block="spent"><SettingsRows><SpentRow place={place.name} /></SettingsRows></SettingsGroup>
+    )}
     <PlacesTogetherSwitch />
     {dialog}
   </>;
