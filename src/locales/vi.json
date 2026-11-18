@@ -5924,5 +5924,12 @@
   "alwaysOn.title": "Dùng máy tính này làm nhà luôn bật",
   "alwaysOn.add.title": "Thêm Mac mini hoặc máy tính luôn bật khác",
   "inbox.settled.title": "Đã xong",
-  "inbox.settled.read": "Đã đọc"
+  "inbox.settled.read": "Đã đọc",
+  "outboundDraft.to": "Đến",
+  "outboundDraft.subject": "Tiêu đề",
+  "outboundDraft.text": "Nội dung",
+  "outboundDraft.edit": "Sửa",
+  "outboundDraft.cancelEdit": "Hủy",
+  "outboundDraft.resend": "Gửi bản của tôi",
+  "outboundDraft.edited": "Đã sửa, gửi lại để duyệt"
 }

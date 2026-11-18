@@ -4109,5 +4109,12 @@
   "alwaysOn.title": "Використовувати цей комп’ютер як завжди увімкнений дім",
   "alwaysOn.add.title": "Додати Mac mini або інший завжди увімкнений комп’ютер",
   "inbox.settled.title": "Завершено",
-  "inbox.settled.read": "Прочитано"
+  "inbox.settled.read": "Прочитано",
+  "outboundDraft.to": "Кому",
+  "outboundDraft.subject": "Тема",
+  "outboundDraft.text": "Текст",
+  "outboundDraft.edit": "Змінити",
+  "outboundDraft.cancelEdit": "Скасувати",
+  "outboundDraft.resend": "Надіслати мою версію",
+  "outboundDraft.edited": "Змінено, надіслано на підтвердження"
 }

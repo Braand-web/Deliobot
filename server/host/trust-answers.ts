@@ -1,6 +1,7 @@
 import type { ServerResponse } from "node:http";
 
 import { appendDecision } from "../decision-log.ts";
+import { editedDraft } from "../outbound-draft.ts";
 import { json } from "../harness/http.ts";
 import type { OutboundRequestService } from "../outbound-requests.ts";
 import type { Store } from "../store.ts";
@@ -23,7 +24,7 @@ export function createTrustAnswers(deps: TrustAnswerDeps) {
   const { store, teamMemoryRequests, outsideWrites, outboundRequests } = deps;
   const DATA_DIR = deps.dataDir;
 
-  function resolveAndSendTrust(res: ServerResponse, threadId: string, requestId: string, behavior: "allow" | "deny" | "answer"): boolean {
+  function resolveAndSendTrust(res: ServerResponse, threadId: string, requestId: string, behavior: "allow" | "deny" | "answer", edits?: unknown): boolean {
     const remembered = teamMemoryRequests.resolve(threadId, requestId, behavior) ?? outsideWrites.resolve(threadId, requestId, behavior);
     if (remembered) {
       json(res, 200, remembered);
@@ -34,7 +35,8 @@ export function createTrustAnswers(deps: TrustAnswerDeps) {
     );
     if (outboundCard?.card?.outboundRequest) {
       const outboundBot = outboundCard.from?.botId ? store.bot(outboundCard.from.botId) : store.botByThread(threadId);
-      const result = outboundRequests.resolve({ threadId, requestId, behavior });
+      const edited = behavior === "deny" ? editedDraft(edits) : null;
+      const result = outboundRequests.resolve({ threadId, requestId, behavior, edited });
       if (!result.claimed) {
         if (!outboundCard.card.answered) {
           store.patchMessage(threadId, outboundCard.id, { card: { ...outboundCard.card, answered: "unavailable", dismissed: true } });
@@ -47,12 +49,12 @@ export function createTrustAnswers(deps: TrustAnswerDeps) {
         return true;
       }
       store.patchMessage(threadId, outboundCard.id, {
-        card: { ...outboundCard.card, answered: result.state === "allowed" ? "allow" : "deny" },
+        card: { ...outboundCard.card, answered: result.state === "allowed" ? "allow" : "deny", ...(edited ? { outboundRequest: { ...outboundCard.card.outboundRequest, edited: true as const } } : {}) },
       });
       appendDecision(DATA_DIR, {
         threadId, requestId, botId: outboundBot?.id, botName: outboundBot?.name,
         tool: outboundCard.card.tool, summary: outboundCard.card.subtitle,
-        decision: result.state === "allowed" ? "user-approved" : "user-denied", source: "user",
+        decision: result.state === "allowed" ? "user-approved" : edited ? "user-edited" : "user-denied", source: "user",
       });
       json(res, 200, { ok: true, outcome: result.state === "allowed" ? "allowed-once" : "rejected" });
       return true;

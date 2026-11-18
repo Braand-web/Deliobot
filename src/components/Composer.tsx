@@ -732,7 +732,7 @@ export function Composer({
           <div className={cn("mb-2 overflow-hidden rounded-[18px]", ELEVATED_CARD)}>
             <PendingApprovalPanel
               key={approval.requestId}
-              pending={approval}
+              pending={approval} threadId={threadId}
               botName={approvalBot?.name} asker={approvalBot}
               count={approvals.length}
               index={0}

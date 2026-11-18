@@ -3689,5 +3689,12 @@
   "alwaysOn.title": "इस कंप्यूटर को हमेशा चालू घर की तरह इस्तेमाल करें",
   "alwaysOn.add.title": "Mac mini या कोई और हमेशा चालू कंप्यूटर जोड़ें",
   "inbox.settled.title": "पूर्ण",
-  "inbox.settled.read": "पढ़ा गया"
+  "inbox.settled.read": "पढ़ा गया",
+  "outboundDraft.to": "प्रति",
+  "outboundDraft.subject": "विषय",
+  "outboundDraft.text": "टेक्स्ट",
+  "outboundDraft.edit": "बदलें",
+  "outboundDraft.cancelEdit": "रद्द करें",
+  "outboundDraft.resend": "मेरा संस्करण भेजें",
+  "outboundDraft.edited": "बदला गया, मंज़ूरी के लिए वापस भेजा गया"
 }

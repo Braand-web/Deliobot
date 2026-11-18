@@ -99,7 +99,7 @@ export interface OptionCardData extends Pick<WireOptionCard, "fixedOptions" | "l
   undone?: boolean;
   routineRequest?: RoutineRequestCardData;
   skillRequest?: SkillRequestCardData;
-  outboundRequest?: { tool: string; app: string | null; calls?: Array<{ app: string | null; label: string }> };
+  outboundRequest?: { tool: string; app: string | null; calls?: Array<{ app: string | null; label: string }>; drafts?: import("../../shared/outbound").OutboundDraft[]; edited?: true };
   teamMemoryRequest?: { section: string; entryId: string; kind: string; revision?: string };
   profileRequest?: ProfileRequestCardData;
   modelRequest?: ModelRequestCardData;
@@ -683,7 +683,7 @@ export type Action =
       threadId: string;
       requestId: string;
       behavior: "allow" | "deny" | "answer";
-      message?: string;
+      message?: string; edited?: { subject?: string; body?: string };
       reviewedSha256?: string;
       alwaysAllow?: { botId: string; key: string };
       always?: boolean;
@@ -2437,7 +2437,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
               body: JSON.stringify({
                 requestId: action.requestId,
                 behavior: action.behavior,
-                message: action.message,
+                message: action.message, edited: action.edited,
                 reviewedSha256: action.reviewedSha256,
                 always: action.always,
                 rememberCommand: action.rememberCommand,

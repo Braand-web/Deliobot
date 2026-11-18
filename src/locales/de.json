@@ -4066,5 +4066,12 @@
   "alwaysOn.title": "Diesen Computer als immer eingeschaltetes Zuhause nutzen",
   "alwaysOn.add.title": "Einen Mac mini oder anderen immer eingeschalteten Computer hinzufügen",
   "inbox.settled.title": "Erledigt",
-  "inbox.settled.read": "Gelesen"
+  "inbox.settled.read": "Gelesen",
+  "outboundDraft.to": "An",
+  "outboundDraft.subject": "Betreff",
+  "outboundDraft.text": "Text",
+  "outboundDraft.edit": "Bearbeiten",
+  "outboundDraft.cancelEdit": "Abbrechen",
+  "outboundDraft.resend": "Meine Version senden",
+  "outboundDraft.edited": "Bearbeitet, zur Freigabe zurückgeschickt"
 }

@@ -6427,5 +6427,12 @@
   "alwaysOn.title": "Usar este ordenador como casa siempre encendida",
   "alwaysOn.add.title": "Añadir un Mac mini u otro ordenador siempre encendido",
   "inbox.settled.title": "Terminado",
-  "inbox.settled.read": "Leído"
+  "inbox.settled.read": "Leído",
+  "outboundDraft.to": "Para",
+  "outboundDraft.subject": "Asunto",
+  "outboundDraft.text": "Texto",
+  "outboundDraft.edit": "Editar",
+  "outboundDraft.cancelEdit": "Cancelar",
+  "outboundDraft.resend": "Enviar mi versión",
+  "outboundDraft.edited": "Editado, enviado de nuevo para aprobar"
 }

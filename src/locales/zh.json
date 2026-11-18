@@ -9971,5 +9971,12 @@
   "chat.unreadContext.images": "图片",
   "chat.unreadContext.files": "文件",
   "chat.unreadContext.moreCitations": "还有 {count} 条引用",
-  "inbox.settled.read": "已读"
+  "inbox.settled.read": "已读",
+  "outboundDraft.to": "收件人",
+  "outboundDraft.subject": "主题",
+  "outboundDraft.text": "正文",
+  "outboundDraft.edit": "编辑",
+  "outboundDraft.cancelEdit": "取消",
+  "outboundDraft.resend": "发送我的版本",
+  "outboundDraft.edited": "已编辑，重新提交等待批准"
 }

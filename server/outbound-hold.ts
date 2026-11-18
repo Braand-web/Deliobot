@@ -3,6 +3,7 @@ import { DEFAULT_OUTBOUND_POLICY } from "../shared/outbound.ts";
 import type { Notification } from "../shared/notification.ts";
 import { HELD_NOTE } from "./auto-approve.ts";
 import { appendDecision } from "./decision-log.ts";
+import { editedRefusal } from "./outbound-draft.ts";
 import { buildNotification } from "./notify.ts";
 import type { OutboundRequestService } from "./outbound-requests.ts";
 import { outboundCard, type CardCall } from "./outbound-requests.ts";
@@ -52,7 +53,7 @@ export function createOutboundHold(deps: OutboundHoldDeps): OutboundHold {
     async hold({ bot: currentSender, threadId, tool: outboundTool, calls: outboundCalls, opaque, fullAccess, active }) {
       const refuseOutbound = (text: string): OutboundHoldAnswer => ({ ok: false, text });
       if (!sendsWithoutAsking(currentSender.outbound, fullAccess, opaque)) {
-        const { app, calls, summary } = outboundCard(outboundCalls);
+        const { app, calls, drafts, summary } = outboundCard(outboundCalls);
         const owner = connectorThread(currentSender.id, threadId);
         const held = outboundRequests.open({ botId: currentSender.id, threadId, tool: outboundTool, timeoutMs: holdMs });
         const card = store.appendMessage(threadId, {
@@ -67,7 +68,7 @@ export function createOutboundHold(deps: OutboundHoldDeps): OutboundHold {
             tool: outboundTool,
             held: HELD_NOTE["approval.held.outbound"],
             heldCode: "approval.held.outbound",
-            outboundRequest: { tool: outboundTool, app, calls },
+            outboundRequest: { tool: outboundTool, app, calls, ...(drafts.length ? { drafts } : {}) },
           },
         });
         appendDecision(DATA_DIR, {
@@ -81,6 +82,7 @@ export function createOutboundHold(deps: OutboundHoldDeps): OutboundHold {
         }
         notify(buildNotification("approval", currentSender, threadId, summary, { avatarUrl: currentSender.avatarUrl }));
         const answer = await held.answer;
+        const edited = outboundRequests.editedOf(held.requestId);
         outboundRequests.forget(held.requestId);
         if (active()) {
           const waiting = store.bot(currentSender.id);
@@ -97,6 +99,7 @@ export function createOutboundHold(deps: OutboundHoldDeps): OutboundHold {
               store.patchMessage(threadId, stale.id, { card: { ...stale.card, answered: "unavailable", dismissed: true } });
             }
           }
+          if (edited) return refuseOutbound(editedRefusal(edited));
           return refuseOutbound(
             answer === "timeout"
               ? "Deliobot did not send this: nobody answered the approval in time. Ask the user before trying again."

@@ -4134,5 +4134,12 @@
   "alwaysOn.title": "Utiliser cet ordinateur comme maison toujours allumée",
   "alwaysOn.add.title": "Ajouter un Mac mini ou un autre ordinateur toujours allumé",
   "inbox.settled.title": "Terminé",
-  "inbox.settled.read": "Lu"
+  "inbox.settled.read": "Lu",
+  "outboundDraft.to": "À",
+  "outboundDraft.subject": "Objet",
+  "outboundDraft.text": "Texte",
+  "outboundDraft.edit": "Modifier",
+  "outboundDraft.cancelEdit": "Annuler",
+  "outboundDraft.resend": "Envoyer ma version",
+  "outboundDraft.edited": "Modifié, renvoyé pour validation"
 }

@@ -11248,5 +11248,12 @@
   "chat.unreadContext.images": "Imagem",
   "chat.unreadContext.files": "Arquivo",
   "chat.unreadContext.moreCitations": "e mais {count}",
-  "inbox.settled.read": "Lido"
+  "inbox.settled.read": "Lido",
+  "outboundDraft.to": "Para",
+  "outboundDraft.subject": "Assunto",
+  "outboundDraft.text": "Texto",
+  "outboundDraft.edit": "Editar",
+  "outboundDraft.cancelEdit": "Cancelar",
+  "outboundDraft.resend": "Enviar minha versão",
+  "outboundDraft.edited": "Editado, reenviado para aprovação"
 }

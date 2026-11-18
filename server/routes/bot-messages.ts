@@ -97,7 +97,7 @@ export interface BotMessageRouteDeps {
   clearUnattended(threadId: string): void;
   drainQueuedSends(): void;
   answeringCardAs(auth: RequestAuth, threadId: string, requestId: string, work: () => Promise<unknown>): Promise<void>;
-  resolveAndSendTrust(res: ServerResponse, threadId: string, requestId: string, behavior: Behavior): boolean;
+  resolveAndSendTrust(res: ServerResponse, threadId: string, requestId: string, behavior: Behavior, edited?: unknown): boolean;
   resolveAndSendTeamSetup(res: ServerResponse, args: { botId: string; threadId: string; requestId: string; behavior: string }, ownerReview: boolean): Promise<boolean>;
   resolveAndSendMcp(res: ServerResponse, args: { botId: string; threadId: string; requestId: string; behavior: string }, ownerReview: boolean): Promise<boolean>;
   resolveAndSendRoutine(res: ServerResponse, args: CardAnswer): boolean;
@@ -601,7 +601,7 @@ export function createBotMessageRoutes(deps: BotMessageRouteDeps): RouteHandler 
       return await answeringCardAs(auth, bot.threadId, String(body.requestId), async () => {
         const access = deps.resolveAccessRequest?.(bot.threadId, String(body.requestId), behavior, body.message);
         if (access) return json(res, access.status, access.body);
-        if (resolveAndSendTrust(res, bot.threadId, String(body.requestId), behavior)) return;
+        if (resolveAndSendTrust(res, bot.threadId, String(body.requestId), behavior, body.edited)) return;
         const answer = { botId: bot.id, threadId: bot.threadId, requestId: String(body.requestId), behavior };
         if (await resolveAndSendTeamSetup(res, answer, ownerReview(auth, req))) return;
         if (await resolveAndSendMcp(res, answer, ownerReview(auth, req))) return;
@@ -672,7 +672,7 @@ export function createBotMessageRoutes(deps: BotMessageRouteDeps): RouteHandler 
       return await answeringCardAs(auth, threadId, requestId, async () => {
         const access = deps.resolveAccessRequest?.(threadId, requestId, behavior, body.message);
         if (access) return json(res, access.status, access.body);
-        if (resolveAndSendTrust(res, threadId, requestId, behavior)) return;
+        if (resolveAndSendTrust(res, threadId, requestId, behavior, body.edited)) return;
         const skillCard = store.messagesFor(threadId).find(
           (message) => message.card?.requestId === requestId && message.card.skillRequest,
         );

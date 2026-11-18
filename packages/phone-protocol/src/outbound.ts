@@ -114,6 +114,16 @@ export function normalizeOutboundPolicy(value: unknown): OutboundPolicy | null {
 /** What a bot without a stored policy does: ask, every time. */
 export const DEFAULT_OUTBOUND_POLICY: OutboundPolicy = { policy: "ask" };
 
+/** What one send on a "Send on your behalf?" card says, read from its arguments: who it goes to, its subject, its text
+ * (cut at a few thousand characters) and the files it uploads. */
+export interface OutboundDraft {
+  app: string | null;
+  to?: string;
+  subject?: string;
+  body?: string;
+  files?: Array<{ name: string; bytes: number }>;
+}
+
 /** Drops from a stored bot's rule what `normalizeOutboundPolicy` drops, so every copy of one rule reads the same; true
  * when it changed. A rule that is not one is left as it is, and asks. */
 export function trimOutboundPolicy(bot: { outbound?: OutboundPolicy }): boolean {

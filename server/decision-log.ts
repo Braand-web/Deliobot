@@ -18,6 +18,7 @@ export type DecisionKind =
   | "card-shown"
   | "user-approved"
   | "user-denied"
+  | "user-edited"
   | "user-undone"
   | "review-would-approve"
   | "review-would-deny";

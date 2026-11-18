@@ -5,6 +5,7 @@ import { cn } from "@/lib/cn";
 import { t, tFromServer } from "@/lib/i18n";
 import type { LocaleKey } from "@/locales";
 import { SkillRequestPreview } from "@/components/SkillRequestPreview";
+import { OutboundDraftPreview } from "./OutboundDraftPreview";
 import { titledCard, titledCardAction, toolLabel } from "./ApprovalCard";
 import { ASK_QUIET_ANSWER, ASK_QUIET_BUTTON, ASK_SECONDARY_BUTTON, AskDetail, AskHeader, askPrimary, type Asker } from "./AskCard";
 import { approvalDetailText, outboundSummary } from "@/lib/approval-summary";
@@ -154,10 +155,13 @@ export const PendingApprovalPanel = memo(function PendingApprovalPanel({
   asker,
   actions,
   more,
+  threadId,
 }: {
   pending: Pending;
   count: number;
   index: number;
+  /** Where an edited draft goes back to; without it the draft is shown but not editable. */
+  threadId?: string;
   botName?: string;
   /** The bot that asks, whose face leads the card. */
   asker?: Asker;
@@ -167,6 +171,7 @@ export const PendingApprovalPanel = memo(function PendingApprovalPanel({
 }) {
   const [open, setOpen] = useState(false);
   const outbound = pending.message.card ? outboundSummary(pending.message.card) : undefined;
+  const drafts = pending.message.card?.outboundRequest?.drafts;
   const heldNote = outbound?.opaque && pending.heldCode === "approval.held.outbound"
     ? t("approval.opaqueCode")
     : tFromServer(pending.heldCode, pending.held);
@@ -217,6 +222,7 @@ export const PendingApprovalPanel = memo(function PendingApprovalPanel({
         )}
       </div>
       {summary && <p dir="auto" className="mt-1.5 break-words text-[15px] font-medium leading-[22px] text-ink">{summary}</p>}
+      {drafts?.length ? threadId ? <EditableDrafts drafts={drafts} threadId={threadId} requestId={pending.requestId} /> : <OutboundDraftPreview drafts={drafts} /> : null}
       {inline && <AskDetail text={inline} mono label={t("approval.aria.reviewDetails")} />}
       {note && <p dir="auto" data-computer-ask-reason className="mt-1 break-words text-[13px] leading-[18px] text-ink-secondary">{note}</p>}
       {heldNote && (outbound ? (
@@ -244,6 +250,11 @@ export const PendingApprovalPanel = memo(function PendingApprovalPanel({
     </div>
   );
 });
+
+function EditableDrafts({ drafts, threadId, requestId }: { drafts: NonNullable<NonNullable<NonNullable<Message["card"]>["outboundRequest"]>["drafts"]>; threadId: string; requestId: string }) {
+  const { dispatch } = useStore();
+  return <OutboundDraftPreview drafts={drafts} onEdit={(edited) => dispatch({ type: "decideRequest", threadId, requestId, behavior: "deny", message: "Edited by the user.", edited })} />;
+}
 
 export function PendingApprovalActions({
   pending,

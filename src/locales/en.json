@@ -11248,5 +11248,12 @@
   "chat.unreadContext.images": "Image",
   "chat.unreadContext.files": "File",
   "chat.unreadContext.moreCitations": "and {count} more",
-  "inbox.settled.read": "Read"
+  "inbox.settled.read": "Read",
+  "outboundDraft.to": "To",
+  "outboundDraft.subject": "Subject",
+  "outboundDraft.text": "Text",
+  "outboundDraft.edit": "Edit",
+  "outboundDraft.cancelEdit": "Cancel",
+  "outboundDraft.resend": "Send my version",
+  "outboundDraft.edited": "Edited, sent back for approval"
 }

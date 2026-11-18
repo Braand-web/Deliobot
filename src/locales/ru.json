@@ -7185,5 +7185,12 @@
   "alwaysOn.title": "Использовать этот компьютер как всегда включённый дом",
   "alwaysOn.add.title": "Добавить Mac mini или другой всегда включённый компьютер",
   "inbox.settled.title": "Завершено",
-  "inbox.settled.read": "Прочитано"
+  "inbox.settled.read": "Прочитано",
+  "outboundDraft.to": "Кому",
+  "outboundDraft.subject": "Тема",
+  "outboundDraft.text": "Текст",
+  "outboundDraft.edit": "Изменить",
+  "outboundDraft.cancelEdit": "Отмена",
+  "outboundDraft.resend": "Отправить мою версию",
+  "outboundDraft.edited": "Изменено, отправлено на подтверждение"
 }

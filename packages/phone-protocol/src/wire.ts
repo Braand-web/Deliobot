@@ -5,7 +5,7 @@ import type { PresenceFrame } from "./team-presence.ts";
 import type { DataBroadcast } from "./data-surface.ts";
 import type { ApprovalMode } from "./approval-mode.ts";
 import type { ToolScope } from "./tool-scope.ts"; import type { ToolGroup } from "./tool-groups.ts";
-import type { CommandAllowlistCandidate } from "./command-allowlist.ts";
+import type { CommandAllowlistCandidate } from "./command-allowlist.ts"; import type { OutboundDraft } from "./outbound.ts";
 import type { TurnDigest } from "./digest.ts";
 import type { BotAvatarCrop, MascotFaceColor } from "./bot-avatar.ts";
 import type { BotBodyId } from "./bot-body.ts";
@@ -637,7 +637,7 @@ export function nextOpenThread<T extends OpenThreadCandidate>(tasks: readonly T[
 export interface OptionCardData extends WaitCardField, ComputerAskField, AccessRequestCardField, OutsideWriteCardField, AppSettingCardField {
   /** The harness asks the owner to let this line of theirs use the lent computer (server/host/lending-lifts.ts). */ lendingLift?: { requestMessageId: string; memoryToken?: string; outside?: true; botOpened?: true; allowedAt?: number };
   /** calls: one per outbound call the card covers, in subtitle order. */
-  outboundRequest?: { tool: string; app: string | null; calls?: Array<{ app: string | null; label: string }> };
+  outboundRequest?: { tool: string; app: string | null; calls?: Array<{ app: string | null; label: string }>; drafts?: OutboundDraft[]; edited?: true };
   /** `revision`: the entry as it applied without a person, so Undo can tell it changed since. */
   teamMemoryRequest?: { section: string; entryId: string; kind: string; revision?: string };
   title: string;

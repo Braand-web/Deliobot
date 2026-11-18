@@ -136,6 +136,17 @@ describe("createOutboundHold", () => {
     await expect(mutedPending).resolves.toEqual({ ok: true, approved: true });
   });
 
+  it("shows the draft on the card, and hands the bot the person's edited version instead of a send", async () => {
+    const held = setup(bot(undefined));
+    const pending = held.hold.hold({ ...held.input, active: () => true });
+    const card = held.appended[0].message.card!;
+    expect(card.outboundRequest).toMatchObject({ drafts: [{ app: "Gmail", to: "ana@example.com", subject: "Hello" }] });
+    held.outboundRequests.resolve({ threadId: "t1", requestId: card.requestId as string, behavior: "deny", edited: { subject: "Bonjour", body: "Le texte revu" } });
+    const answer = await pending;
+    expect(answer).toEqual({ ok: false, text: expect.stringMatching(/edited it first/) });
+    expect(answer.ok ? "" : answer.text).toContain("Text:\nLe texte revu");
+  });
+
   it("deny answers the decline text; timeout marks the card unavailable", async () => {
     const denied = setup(bot(undefined));
     const pending = denied.hold.hold({ ...denied.input, active: () => true });

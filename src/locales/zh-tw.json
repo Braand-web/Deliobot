@@ -10154,5 +10154,12 @@
   "alwaysOn.title": "將這台電腦當作常開的家",
   "alwaysOn.add.title": "加入 Mac mini 或其他常開的電腦",
   "inbox.settled.title": "已完成",
-  "inbox.settled.read": "已讀"
+  "inbox.settled.read": "已讀",
+  "outboundDraft.to": "收件人",
+  "outboundDraft.subject": "主旨",
+  "outboundDraft.text": "內文",
+  "outboundDraft.edit": "編輯",
+  "outboundDraft.cancelEdit": "取消",
+  "outboundDraft.resend": "傳送我的版本",
+  "outboundDraft.edited": "已編輯，重新送出等待核准"
 }

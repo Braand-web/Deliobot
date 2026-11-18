@@ -95,6 +95,7 @@ export function approvalCardOutcome(card: OptionCardData): string | undefined {
   if (card.expired === true || staleRoutineCard(card)) return t(isProposal || !card.tool ? "approval.status.expired" : "approval.status.timedOut");
   if (!card.answered) return undefined;
   if (card.undone === true) return t("approval.status.undone");
+  if (card.outboundRequest?.edited) return t("outboundDraft.edited");
   if (card.answered !== "allow") return isProposal ? t("approval.status.cancelled") : t("approval.status.denied");
   if (card.teamSetupRequest) return t(card.teamSetupRequest.deletion ? "approval.status.botDeleted" : "approval.status.teamApplied");
   const routineAction = card.routineRequest?.operation.action;

@@ -4059,7 +4059,14 @@
       "imageGen.complexity.low": "f793de205ead5ac302c4a1627829dea41f176b1068b993a32373fc869918374b",
       "imageGen.complexity.medium": "8e588cd187741f1cd76f5fab77b7208782a8c21d764ce7d7a4cf3ac4e0968873",
       "imageGen.complexity.high": "c4ebc6d4a5832cd9415f906ad03661110c705a72381c8b8b145761d02e2dd23a",
-      "server.connect.secretSavedAsRef": "388e1fef810628bd83b7358f1861008d525cb7bb30a75232221386462558d66a"
+      "server.connect.secretSavedAsRef": "388e1fef810628bd83b7358f1861008d525cb7bb30a75232221386462558d66a",
+      "outboundDraft.to": "f4b06ef6d3c81436f60a318c81c42f8f7e2d774d45a22f3b9b5f3b6980d28146",
+      "outboundDraft.subject": "68971283841aecdf1da48428849b3b33164ec5c41d0f3c4d6cea624db5aff8f2",
+      "outboundDraft.text": "71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3",
+      "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
+      "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
+      "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
     },
     "es": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -10480,7 +10487,14 @@
       "imageGen.complexity.low": "f793de205ead5ac302c4a1627829dea41f176b1068b993a32373fc869918374b",
       "imageGen.complexity.medium": "8e588cd187741f1cd76f5fab77b7208782a8c21d764ce7d7a4cf3ac4e0968873",
       "imageGen.complexity.high": "c4ebc6d4a5832cd9415f906ad03661110c705a72381c8b8b145761d02e2dd23a",
-      "server.connect.secretSavedAsRef": "388e1fef810628bd83b7358f1861008d525cb7bb30a75232221386462558d66a"
+      "server.connect.secretSavedAsRef": "388e1fef810628bd83b7358f1861008d525cb7bb30a75232221386462558d66a",
+      "outboundDraft.to": "f4b06ef6d3c81436f60a318c81c42f8f7e2d774d45a22f3b9b5f3b6980d28146",
+      "outboundDraft.subject": "68971283841aecdf1da48428849b3b33164ec5c41d0f3c4d6cea624db5aff8f2",
+      "outboundDraft.text": "71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3",
+      "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
+      "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
+      "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
     },
     "fr": {
       "delioMenu.checking": "ee7fdea20d0b8d3d566f24f6e7b11b62f71cc8fc95748cd8d4c5431ab3947185",
@@ -14608,7 +14622,14 @@
       "imageGen.complexity.low": "f793de205ead5ac302c4a1627829dea41f176b1068b993a32373fc869918374b",
       "imageGen.complexity.medium": "8e588cd187741f1cd76f5fab77b7208782a8c21d764ce7d7a4cf3ac4e0968873",
       "imageGen.complexity.high": "c4ebc6d4a5832cd9415f906ad03661110c705a72381c8b8b145761d02e2dd23a",
-      "server.connect.secretSavedAsRef": "388e1fef810628bd83b7358f1861008d525cb7bb30a75232221386462558d66a"
+      "server.connect.secretSavedAsRef": "388e1fef810628bd83b7358f1861008d525cb7bb30a75232221386462558d66a",
+      "outboundDraft.to": "f4b06ef6d3c81436f60a318c81c42f8f7e2d774d45a22f3b9b5f3b6980d28146",
+      "outboundDraft.subject": "68971283841aecdf1da48428849b3b33164ec5c41d0f3c4d6cea624db5aff8f2",
+      "outboundDraft.text": "71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3",
+      "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
+      "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
+      "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
     },
     "hi": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -18291,7 +18312,14 @@
       "imageGen.complexity.low": "f793de205ead5ac302c4a1627829dea41f176b1068b993a32373fc869918374b",
       "imageGen.complexity.medium": "8e588cd187741f1cd76f5fab77b7208782a8c21d764ce7d7a4cf3ac4e0968873",
       "imageGen.complexity.high": "c4ebc6d4a5832cd9415f906ad03661110c705a72381c8b8b145761d02e2dd23a",
-      "server.connect.secretSavedAsRef": "388e1fef810628bd83b7358f1861008d525cb7bb30a75232221386462558d66a"
+      "server.connect.secretSavedAsRef": "388e1fef810628bd83b7358f1861008d525cb7bb30a75232221386462558d66a",
+      "outboundDraft.to": "f4b06ef6d3c81436f60a318c81c42f8f7e2d774d45a22f3b9b5f3b6980d28146",
+      "outboundDraft.subject": "68971283841aecdf1da48428849b3b33164ec5c41d0f3c4d6cea624db5aff8f2",
+      "outboundDraft.text": "71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3",
+      "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
+      "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
+      "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
     },
     "ja": {
       "connectedWorkspaces.localTitle": "7d6deafeab011d734c3fdd1bfd6f69544fbb746a004019269bdb48544b01164b",
@@ -26212,7 +26240,14 @@
       "imageGen.complexity.high": "c4ebc6d4a5832cd9415f906ad03661110c705a72381c8b8b145761d02e2dd23a",
       "server.connect.secretSavedAsRef": "388e1fef810628bd83b7358f1861008d525cb7bb30a75232221386462558d66a",
       "cloudAccount.teamPeopleOwner": "efa2b247c11a35db58d644a8e739a913a7283ac585bd03dd9b4b9b760519a283",
-      "cloudAccount.teamPeopleAdmin": "e93dc3717d0bf288125c66c8b91f57031ae8efdd3ea2fa45702a77b105eb2b58"
+      "cloudAccount.teamPeopleAdmin": "e93dc3717d0bf288125c66c8b91f57031ae8efdd3ea2fa45702a77b105eb2b58",
+      "outboundDraft.to": "f4b06ef6d3c81436f60a318c81c42f8f7e2d774d45a22f3b9b5f3b6980d28146",
+      "outboundDraft.subject": "68971283841aecdf1da48428849b3b33164ec5c41d0f3c4d6cea624db5aff8f2",
+      "outboundDraft.text": "71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3",
+      "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
+      "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
+      "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
     },
     "pt-br": {
       "delioMenu.checking": "ee7fdea20d0b8d3d566f24f6e7b11b62f71cc8fc95748cd8d4c5431ab3947185",
@@ -37401,7 +37436,14 @@
       "cloudWelcome.invite.bodySeats": "1f5cf3eb16c3a29546c39fddd961dfe7e0e6d5408e71a926ec04f9219557961c",
       "computer.recovery.restoring": "51279d3a9f18d97d74debf7f369e80ed753d8b88c2ce7c239d6ba48fcce85abd",
       "chat.settingsCard.elsewhere": "ac3798d30dbab6d7d9f34ae889ac20c67b724a5b78fc568b039108c1369cf60c",
-      "template.signInToPublish": "b5d58e97eb6742b993c8aaf3df3699abeb1be065438a78eb0679ac49cff34013"
+      "template.signInToPublish": "b5d58e97eb6742b993c8aaf3df3699abeb1be065438a78eb0679ac49cff34013",
+      "outboundDraft.to": "f4b06ef6d3c81436f60a318c81c42f8f7e2d774d45a22f3b9b5f3b6980d28146",
+      "outboundDraft.subject": "68971283841aecdf1da48428849b3b33164ec5c41d0f3c4d6cea624db5aff8f2",
+      "outboundDraft.text": "71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3",
+      "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
+      "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
+      "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
     },
     "zh": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -47363,7 +47405,14 @@
       "cloudAccount.teamPeopleAdmin": "e93dc3717d0bf288125c66c8b91f57031ae8efdd3ea2fa45702a77b105eb2b58",
       "routines.unreadable": "93887cbecb5943796ed36ebed9362f247ca9618b2c551d98a1a80d4fc61427fe",
       "routines.server.part.computerOff": "9ca1769b2c48263776294f006cdacb4bbe4821bb3f9a28b558cfe790d621cc6e",
-      "computer.recovery.restoring": "51279d3a9f18d97d74debf7f369e80ed753d8b88c2ce7c239d6ba48fcce85abd"
+      "computer.recovery.restoring": "51279d3a9f18d97d74debf7f369e80ed753d8b88c2ce7c239d6ba48fcce85abd",
+      "outboundDraft.to": "f4b06ef6d3c81436f60a318c81c42f8f7e2d774d45a22f3b9b5f3b6980d28146",
+      "outboundDraft.subject": "68971283841aecdf1da48428849b3b33164ec5c41d0f3c4d6cea624db5aff8f2",
+      "outboundDraft.text": "71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3",
+      "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
+      "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
+      "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
     },
     "zh-tw": {
       "connectedWorkspaces.localTitle": "7d6deafeab011d734c3fdd1bfd6f69544fbb746a004019269bdb48544b01164b",
@@ -57513,7 +57562,14 @@
       "imageGen.complexity.high": "c4ebc6d4a5832cd9415f906ad03661110c705a72381c8b8b145761d02e2dd23a",
       "server.connect.secretSavedAsRef": "388e1fef810628bd83b7358f1861008d525cb7bb30a75232221386462558d66a",
       "cloudAccount.teamPeopleOwner": "efa2b247c11a35db58d644a8e739a913a7283ac585bd03dd9b4b9b760519a283",
-      "cloudAccount.teamPeopleAdmin": "e93dc3717d0bf288125c66c8b91f57031ae8efdd3ea2fa45702a77b105eb2b58"
+      "cloudAccount.teamPeopleAdmin": "e93dc3717d0bf288125c66c8b91f57031ae8efdd3ea2fa45702a77b105eb2b58",
+      "outboundDraft.to": "f4b06ef6d3c81436f60a318c81c42f8f7e2d774d45a22f3b9b5f3b6980d28146",
+      "outboundDraft.subject": "68971283841aecdf1da48428849b3b33164ec5c41d0f3c4d6cea624db5aff8f2",
+      "outboundDraft.text": "71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3",
+      "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
+      "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
+      "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
     },
     "uk": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -61616,7 +61672,14 @@
       "imageGen.complexity.low": "f793de205ead5ac302c4a1627829dea41f176b1068b993a32373fc869918374b",
       "imageGen.complexity.medium": "8e588cd187741f1cd76f5fab77b7208782a8c21d764ce7d7a4cf3ac4e0968873",
       "imageGen.complexity.high": "c4ebc6d4a5832cd9415f906ad03661110c705a72381c8b8b145761d02e2dd23a",
-      "server.connect.secretSavedAsRef": "388e1fef810628bd83b7358f1861008d525cb7bb30a75232221386462558d66a"
+      "server.connect.secretSavedAsRef": "388e1fef810628bd83b7358f1861008d525cb7bb30a75232221386462558d66a",
+      "outboundDraft.to": "f4b06ef6d3c81436f60a318c81c42f8f7e2d774d45a22f3b9b5f3b6980d28146",
+      "outboundDraft.subject": "68971283841aecdf1da48428849b3b33164ec5c41d0f3c4d6cea624db5aff8f2",
+      "outboundDraft.text": "71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3",
+      "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
+      "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
+      "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
     },
     "vi": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -67534,7 +67597,14 @@
       "imageGen.complexity.low": "f793de205ead5ac302c4a1627829dea41f176b1068b993a32373fc869918374b",
       "imageGen.complexity.medium": "8e588cd187741f1cd76f5fab77b7208782a8c21d764ce7d7a4cf3ac4e0968873",
       "imageGen.complexity.high": "c4ebc6d4a5832cd9415f906ad03661110c705a72381c8b8b145761d02e2dd23a",
-      "server.connect.secretSavedAsRef": "388e1fef810628bd83b7358f1861008d525cb7bb30a75232221386462558d66a"
+      "server.connect.secretSavedAsRef": "388e1fef810628bd83b7358f1861008d525cb7bb30a75232221386462558d66a",
+      "outboundDraft.to": "f4b06ef6d3c81436f60a318c81c42f8f7e2d774d45a22f3b9b5f3b6980d28146",
+      "outboundDraft.subject": "68971283841aecdf1da48428849b3b33164ec5c41d0f3c4d6cea624db5aff8f2",
+      "outboundDraft.text": "71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3",
+      "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
+      "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
+      "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
     },
     "tr": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -73452,7 +73522,14 @@
       "imageGen.complexity.low": "f793de205ead5ac302c4a1627829dea41f176b1068b993a32373fc869918374b",
       "imageGen.complexity.medium": "8e588cd187741f1cd76f5fab77b7208782a8c21d764ce7d7a4cf3ac4e0968873",
       "imageGen.complexity.high": "c4ebc6d4a5832cd9415f906ad03661110c705a72381c8b8b145761d02e2dd23a",
-      "server.connect.secretSavedAsRef": "388e1fef810628bd83b7358f1861008d525cb7bb30a75232221386462558d66a"
+      "server.connect.secretSavedAsRef": "388e1fef810628bd83b7358f1861008d525cb7bb30a75232221386462558d66a",
+      "outboundDraft.to": "f4b06ef6d3c81436f60a318c81c42f8f7e2d774d45a22f3b9b5f3b6980d28146",
+      "outboundDraft.subject": "68971283841aecdf1da48428849b3b33164ec5c41d0f3c4d6cea624db5aff8f2",
+      "outboundDraft.text": "71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3",
+      "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
+      "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
+      "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
     },
     "pl": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -80578,7 +80655,14 @@
       "imageGen.complexity.high": "c4ebc6d4a5832cd9415f906ad03661110c705a72381c8b8b145761d02e2dd23a",
       "server.connect.secretSavedAsRef": "388e1fef810628bd83b7358f1861008d525cb7bb30a75232221386462558d66a",
       "cloudAccount.teamPeopleOwner": "efa2b247c11a35db58d644a8e739a913a7283ac585bd03dd9b4b9b760519a283",
-      "cloudAccount.teamPeopleAdmin": "e93dc3717d0bf288125c66c8b91f57031ae8efdd3ea2fa45702a77b105eb2b58"
+      "cloudAccount.teamPeopleAdmin": "e93dc3717d0bf288125c66c8b91f57031ae8efdd3ea2fa45702a77b105eb2b58",
+      "outboundDraft.to": "f4b06ef6d3c81436f60a318c81c42f8f7e2d774d45a22f3b9b5f3b6980d28146",
+      "outboundDraft.subject": "68971283841aecdf1da48428849b3b33164ec5c41d0f3c4d6cea624db5aff8f2",
+      "outboundDraft.text": "71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3",
+      "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
+      "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
+      "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
     },
     "ru": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -87758,7 +87842,14 @@
       "imageGen.complexity.high": "c4ebc6d4a5832cd9415f906ad03661110c705a72381c8b8b145761d02e2dd23a",
       "server.connect.secretSavedAsRef": "388e1fef810628bd83b7358f1861008d525cb7bb30a75232221386462558d66a",
       "cloudAccount.teamPeopleOwner": "efa2b247c11a35db58d644a8e739a913a7283ac585bd03dd9b4b9b760519a283",
-      "cloudAccount.teamPeopleAdmin": "e93dc3717d0bf288125c66c8b91f57031ae8efdd3ea2fa45702a77b105eb2b58"
+      "cloudAccount.teamPeopleAdmin": "e93dc3717d0bf288125c66c8b91f57031ae8efdd3ea2fa45702a77b105eb2b58",
+      "outboundDraft.to": "f4b06ef6d3c81436f60a318c81c42f8f7e2d774d45a22f3b9b5f3b6980d28146",
+      "outboundDraft.subject": "68971283841aecdf1da48428849b3b33164ec5c41d0f3c4d6cea624db5aff8f2",
+      "outboundDraft.text": "71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3",
+      "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
+      "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
+      "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
     },
     "it": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -94753,7 +94844,14 @@
       "imageGen.complexity.high": "c4ebc6d4a5832cd9415f906ad03661110c705a72381c8b8b145761d02e2dd23a",
       "server.connect.secretSavedAsRef": "388e1fef810628bd83b7358f1861008d525cb7bb30a75232221386462558d66a",
       "cloudAccount.teamPeopleOwner": "efa2b247c11a35db58d644a8e739a913a7283ac585bd03dd9b4b9b760519a283",
-      "cloudAccount.teamPeopleAdmin": "e93dc3717d0bf288125c66c8b91f57031ae8efdd3ea2fa45702a77b105eb2b58"
+      "cloudAccount.teamPeopleAdmin": "e93dc3717d0bf288125c66c8b91f57031ae8efdd3ea2fa45702a77b105eb2b58",
+      "outboundDraft.to": "f4b06ef6d3c81436f60a318c81c42f8f7e2d774d45a22f3b9b5f3b6980d28146",
+      "outboundDraft.subject": "68971283841aecdf1da48428849b3b33164ec5c41d0f3c4d6cea624db5aff8f2",
+      "outboundDraft.text": "71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3",
+      "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
+      "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
+      "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
     },
     "ko": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -102409,7 +102507,14 @@
       "imageGen.complexity.high": "c4ebc6d4a5832cd9415f906ad03661110c705a72381c8b8b145761d02e2dd23a",
       "server.connect.secretSavedAsRef": "388e1fef810628bd83b7358f1861008d525cb7bb30a75232221386462558d66a",
       "cloudAccount.teamPeopleOwner": "efa2b247c11a35db58d644a8e739a913a7283ac585bd03dd9b4b9b760519a283",
-      "cloudAccount.teamPeopleAdmin": "e93dc3717d0bf288125c66c8b91f57031ae8efdd3ea2fa45702a77b105eb2b58"
+      "cloudAccount.teamPeopleAdmin": "e93dc3717d0bf288125c66c8b91f57031ae8efdd3ea2fa45702a77b105eb2b58",
+      "outboundDraft.to": "f4b06ef6d3c81436f60a318c81c42f8f7e2d774d45a22f3b9b5f3b6980d28146",
+      "outboundDraft.subject": "68971283841aecdf1da48428849b3b33164ec5c41d0f3c4d6cea624db5aff8f2",
+      "outboundDraft.text": "71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3",
+      "outboundDraft.edit": "464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344",
+      "outboundDraft.cancelEdit": "19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27",
+      "outboundDraft.resend": "2bd3af76cd206b5abe8b5592352868d40de6f8fd1558efc0b8c64dfa091d00a7",
+      "outboundDraft.edited": "f5b4710e813b30eee724038c7c7e89007238d193917c02de769de9a0435e19db"
     }
   }
 }

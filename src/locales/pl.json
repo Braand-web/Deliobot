@@ -7131,5 +7131,12 @@
   "alwaysOn.title": "Używaj tego komputera jako zawsze włączonego domu",
   "alwaysOn.add.title": "Dodaj Maca mini lub inny zawsze włączony komputer",
   "inbox.settled.title": "Zakończone",
-  "inbox.settled.read": "Przeczytane"
+  "inbox.settled.read": "Przeczytane",
+  "outboundDraft.to": "Do",
+  "outboundDraft.subject": "Temat",
+  "outboundDraft.text": "Treść",
+  "outboundDraft.edit": "Edytuj",
+  "outboundDraft.cancelEdit": "Anuluj",
+  "outboundDraft.resend": "Wyślij moją wersję",
+  "outboundDraft.edited": "Zmieniono, odesłano do zatwierdzenia"
 }
