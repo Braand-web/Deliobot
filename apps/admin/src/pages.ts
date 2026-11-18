@@ -326,13 +326,12 @@ ${running ? h`<p class="muted">Un autre forfait choisi maintenant commence à la
 }
 
 /** The code is always typed from the app's own screen: a link that carries one could come from someone else's app. */
-export function devicePage(input: { email: string; workspaces: Array<Workspace & { role: Role }>; error?: string }): Html {
+export function devicePage(input: { email: string; error?: string }): Html {
   return h`<div class="narrow"><h1 class="center">Connecter une application</h1>
 <p class="muted center">Tapez le code affiché <b>dans votre application Deliobot</b>, sur votre ordinateur. Si quelqu'un vous a envoyé ce lien ou un code, ne continuez pas : cette application pourrait utiliser vos crédits.</p>
 ${notice(input.error, "error")}<form method="post" action="/device" class="card">
 <label for="code">Code</label><input id="code" name="code" required autocomplete="off" autofocus placeholder="BCDF-GHJK" style="font-size:20px;letter-spacing:.12em;text-transform:uppercase">
-<label for="workspace">Utiliser les crédits de</label><select id="workspace" name="workspace">
-<option value="personal">Mon compte personnel</option>${input.workspaces.map((workspace) => h`<option value="${workspace.slug}">${workspace.name}</option>`)}</select>
+<p class="muted">L'application utilisera le forfait et les crédits de votre compte <b>${input.email}</b>.</p>
 <p style="display:flex;gap:8px"><button class="primary" name="decision" value="allow" style="flex:1">Connecter</button><button name="decision" value="deny">Refuser</button></p></form>
 <p class="center muted"><a href="/appareils">Voir et déconnecter mes appareils</a></p>
 <form method="post" action="/logout" class="center muted"><input type="hidden" name="next" value="/device">

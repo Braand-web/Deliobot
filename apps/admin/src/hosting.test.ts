@@ -170,15 +170,15 @@ describe("self-serve workspaces", () => {
     expect(target.hosting("acme")?.state).toBe("ready");
   });
 
-  it("creates a BYOK workspace without Delio's token, and caps self-serve workspaces per account", async () => {
+  it("creates a BYOK workspace without Delio's token, and gives one e-mail one account only", async () => {
     const target = await portal();
     await target.signIn("founder@acme.test");
     await target.post("/signup", { name: "Mine", slug: "mine" });
     await target.buy("mine", "byok", "cs_1");
     expect(target.fleet.calls[0]!.input).not.toHaveProperty("delioToken");
 
-    await target.post("/signup", { name: "Two", slug: "two" });
-    await target.post("/signup", { name: "Three", slug: "three" });
-    expect(await (await target.post("/signup", { name: "Four", slug: "four" })).text()).toContain("Vous avez déjà 3 espaces");
+    const again = await target.post("/signup", { name: "Two", slug: "two" });
+    expect(again.headers.get("location")).toBe("/billing?workspace=mine");
+    expect(target.workspace("two")).toBeNull();
   });
 });

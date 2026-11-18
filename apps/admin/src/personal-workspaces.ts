@@ -24,6 +24,21 @@ export function personalWorkspaces(store: AdminStore, plans: Billing, wallet: Wa
     return candidates(user)[0] ?? null;
   }
 
+  /** The one account an e-mail has: of the workspaces it administers, the one with a running plan, then one holding
+   * credits or orders, then its personal one, then the oldest. */
+  function primary(user: Account): Workspace | null {
+    const personalSlugs = new Set(candidates(user).map((workspace) => workspace.slug));
+    const rank = (workspace: Workspace) => {
+      const status = plans.subscription(workspace.slug).status;
+      if (status === "active") return 0;
+      if (status === "grace" || status === "trialing") return 1;
+      if (!empty(workspace.slug)) return 2;
+      return personalSlugs.has(workspace.slug) ? 3 : 4;
+    };
+    return store.workspacesOf(user.id).filter((workspace) => workspace.role === "admin")
+      .sort((a, b) => rank(a) - rank(b) || a.createdAt - b.createdAt || a.slug.localeCompare(b.slug))[0] ?? null;
+  }
+
   function ensure(user: Account): Workspace {
     return store.db.transaction(() => {
       const found = existing(user);
@@ -40,5 +55,5 @@ export function personalWorkspaces(store: AdminStore, plans: Billing, wallet: Wa
     return personal[0]?.slug ?? slug;
   }
 
-  return { existing, ensure, resolve };
+  return { existing, primary, ensure, resolve };
 }

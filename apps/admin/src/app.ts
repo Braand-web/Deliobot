@@ -348,7 +348,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
 
   /** The person's own workspace, for an app or a payment that needs one before they made any. */
   function personalWorkspace(user: Account): Workspace {
-    const found = personal.existing(user);
+    const found = personal.primary(user);
     if (found) return found;
     if (!store.allow(`personal:${user.id}`, 3, 24 * 60 * 60_000)) throw new HttpError(429, "Trop d'espaces créés aujourd'hui. Utilisez un espace existant ou réessayez demain.");
     return personal.ensure(user);
@@ -675,6 +675,8 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       const cycle = pick("cycle", 8) === "year" ? "year" : "month";
       const show = (status: number, extra: { name?: string; slug?: string; error?: string } = {}) =>
         html(res, status, { title: "Créer votre espace", email: user.email, mascot: "happy", body: signupPage({ domain: selfServe?.domain, plan, cycle, ...extra }) });
+      const own = personal.primary(user);
+      if (own) return redirect(res, `/billing?workspace=${own.slug}${plan ? `&plan=${plan}&cycle=${cycle}` : ""}`);
       if (method === "GET") return show(200);
       if (method !== "POST") throw new HttpError(405, "Méthode non autorisée.");
       const name = pick("name", 80), slug = pick("slug", 64).toLowerCase();
@@ -810,25 +812,18 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     }
     if (method === "GET" && path === "/device") {
       return html(res, 200, { title: "Connecter une application", email: user.email, mascot: "curious",
-        body: devicePage({ email: user.email, workspaces: store.workspacesOf(user.id).filter((item) => item.role === "admin") }) });
+        body: devicePage({ email: user.email }) });
     }
     if (method === "POST" && path === "/device") {
       const body = await readBody(req);
       const code = text(body, "code", 16);
-      const admin = store.workspacesOf(user.id).filter((item) => item.role === "admin");
-      const again = (status: number, error: string) => html(res, status, { title: "Connecter une application", email: user.email, mascot: "sad", body: devicePage({ email: user.email, workspaces: admin, error }) });
+      const again = (status: number, error: string) => html(res, status, { title: "Connecter une application", email: user.email, mascot: "sad", body: devicePage({ email: user.email, error }) });
       if (!devices.pendingLabel(code)) return again(400, "Ce code a expiré ou a déjà servi. Recommencez depuis l'application.");
       if (text(body, "decision", 8) === "deny") {
         devices.decide(code, "deny");
         return html(res, 200, { title: "Connecter une application", email: user.email, body: messagePage("Connexion refusée", "L'application n'a pas été connectée. Vous pouvez fermer cette page.") });
       }
-      let slug = text(body, "workspace", 64);
-      if (slug === "personal") {
-        slug = personalWorkspace(user).slug;
-      } else if (!admin.some((item) => item.slug === slug)) {
-        return again(403, "Choisissez un espace que vous administrez.");
-      }
-      slug = personal.resolve(user, slug);
+      const slug = personalWorkspace(user).slug;
       const label = devices.pendingLabel(code);
       if (!devices.decide(code, { workspace: slug, accountId: user.id })) return again(400, "Ce code a expiré ou a déjà servi. Recommencez depuis l'application.");
       store.audit(slug, user.email, "device.connect", label);
@@ -844,7 +839,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     if (method === "GET" && path === "/pay") {
       const asked = url.searchParams.get("workspace");
       if (asked && !administers(user, asked)) return otherAccount(res, user, path + url.search);
-      const workspace = asked ? requireWorkspaceAdmin(user, personal.resolve(user, asked)) : personal.existing(user) ?? store.workspacesOf(user.id).find((item) => item.role === "admin") ?? personalWorkspace(user);
+      const workspace = asked ? requireWorkspaceAdmin(user, personal.resolve(user, asked)) : personalWorkspace(user);
       const pick = (name: string, max: number) => (url.searchParams.get(name) ?? "").slice(0, max);
       const topup = pick("topup", 16);
       return openCheckout(res, user, workspace, { kind: topup ? "topup" : "plan", plan: pick("plan", 16), topup, cycle: pick("cycle", 8), code: pick("code", 40), req, url });
@@ -872,7 +867,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       }
       if (path === "/ambassadeur/retrait") {
         const mode = text(body, "mode", 20) === "credits" ? "credits" : "mobile_money";
-        const own = personal.existing(user) ?? personalWorkspace(user);
+        const own = personalWorkspace(user);
         const paid = ambassadors.requestPayout(ambassador, mode, own.slug, xofRate());
         if (!paid.ok) return back("erreur", paid.error);
         store.audit(own.slug, user.email, `ambassador.payout.${mode}`, String(paid.usd));
@@ -888,7 +883,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       throw new HttpError(404, "Not found.");
     }
     if (path === "/code") {
-      const workspace = personal.existing(user) ?? store.workspacesOf(user.id).find((item) => item.role === "admin") ?? personalWorkspace(user);
+      const workspace = personalWorkspace(user);
       const slug = personal.resolve(user, workspace.slug);
       const show = (status: number, extra: { code?: string; error?: string; message?: string; offers?: Parameters<typeof promoPage>[0]["offers"] } = {}) =>
         html(res, status, { title: "Code promo", email: user.email, mascot: extra.error ? "sad" : "happy", body: promoPage(extra) });
@@ -931,7 +926,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       return html(res, 200, { title: "Paiement", email: user.email, mascot: plans.order(order.id)?.status === "failed" ? "sad" : "happy", body: paymentReturnPage(plans.order(order.id)?.status ?? "pending") });
     }
     if (method === "GET" && path === "/abonnement" && !operatorConsole) {
-      const workspace = personal.existing(user) ?? store.workspacesOf(user.id).find((item) => item.role === "admin") ?? null;
+      const workspace = personal.primary(user);
       if (workspace) await refreshAccount(workspace.slug);
       const subscription = workspace ? plans.subscription(workspace.slug) : null;
       const catalogNow = plans.catalog(options.payments?.xofPerUsd);
@@ -953,7 +948,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     if (method === "GET" && path === "/billing") {
       const asked = url.searchParams.get("workspace");
       if (!asked) {
-        const first = personal.existing(user) ?? store.workspacesOf(user.id).find((item) => item.role === "admin");
+        const first = personal.primary(user);
         if (!first && signupOpen) return redirect(res, `/signup?${new URLSearchParams([...url.searchParams].filter(([name]) => name === "plan" || name === "cycle"))}`);
         if (!first) return html(res, 200, { title: "Facturation", email: user.email, body: messagePage("Pas encore d'espace", "Un forfait s'achète pour un espace que vous administrez. Demandez à son administrateur, ou créez-en un d'abord.", { href: "/", label: "Retour" }) });
         const next = new URLSearchParams(url.searchParams);

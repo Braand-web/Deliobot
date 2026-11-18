@@ -161,12 +161,11 @@ describe("connecting a desktop app to a Delio account", () => {
     expect(refused.status, "the signed-out app's token no longer works").toBe(401);
   });
 
-  it("tells the app when the person refuses, and only an administrator's workspace can be chosen", async () => {
+  it("tells the app when the person refuses", async () => {
     const target = await portal();
     const app = desktop(target.origin);
     const started = await app.start();
     await target.signIn("bob@acme.test");
-    expect((await target.request("/device", { code: started.userCode, workspace: "someone-elses", decision: "allow" })).status).toBe(403);
     await target.request("/device", { code: started.userCode, decision: "deny" });
     expect(await app.account.status()).toEqual({ state: "disconnected", reason: "denied" });
     expect(delioConnection(app.config)).toBeNull();
