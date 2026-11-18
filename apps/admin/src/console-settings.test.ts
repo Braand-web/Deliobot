@@ -160,3 +160,19 @@ describe("the console's ambassadors", () => {
     expect(ambassadors.codes(pending.id).map((code) => code.code)).toEqual(["MOUSSA"]);
   });
 });
+
+describe("a plan given by e-mail", () => {
+  it("makes the account and its workspace, and gives Max for three days without Delio credits", async () => {
+    const setup = base();
+    const mail: MailMessage[] = [];
+    const ops = await operatorConsole({ store: setup.store, operators: new Set(["ops@delio.test"]), mailer: { send: async (message) => void mail.push(message) }, now: () => setup.clock.now }, mail);
+    cleanups.push(() => ops.close());
+    const given = await ops.post("/forfaits/offrir", { email: "Friend@Example.test", plan: "max", days: "3", credits: "0" });
+    const slug = /^\/clients\/(me-[a-z0-9]{8})\?ok=plan$/.exec(given.headers.get("location") ?? "")?.[1];
+    expect(slug).toBeTruthy();
+    expect(setup.billing.subscription(slug!)).toMatchObject({ plan: "max", status: "active", periodEnd: setup.clock.now + 3 * 24 * 60 * 60_000 });
+    expect(setup.wallet.balance(slug!)).toBe(0);
+    expect(setup.billing.allowance(slug!)).toMatchObject({ plan: "max", ownAi: true });
+    expect((await ops.post("/forfaits/offrir", { email: "nope", plan: "max", days: "3" })).headers.get("location")).toBe("/forfaits?erreur=bad-gift");
+  });
+});

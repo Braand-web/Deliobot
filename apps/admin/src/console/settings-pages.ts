@@ -77,6 +77,14 @@ ${input.plans.map(({ plan, base, changed, subscribers }) => h`<tr><td><b>${plan.
 <td><div class="bar"><form id="plan-${plan.id}" method="post" action="/forfaits/${plan.id}" data-confirm="Enregistrer ${plan.name} ?" data-detail="Les prochains paiements et la page Tarifs utilisent ces valeurs. Les abonnements déjà payés ne changent pas." data-action="Enregistrer"><button class="btn small primary">Enregistrer</button></form>
 ${changed ? h`<form method="post" action="/forfaits/${plan.id}/retablir"><button class="btn small">Rétablir</button></form>` : ""}</div></td></tr>`)}
 </tbody></table></div><p class="muted small">Les crédits d'un mois s'appliquent au prochain paiement ou renouvellement. Les recharges restent à 4 500 crédits pour 20 $ et 13 500 pour 50 $.</p></section>
+<section class="card"><h2>Offrir un forfait par e-mail<small>Le compte et son espace sont créés s'ils n'existent pas ; la personne se connecte avec cet e-mail</small></h2>
+<form method="post" action="/forfaits/offrir" class="fields" data-confirm="Offrir ce forfait ?" data-detail="Il s'applique tout de suite, comme un paiement à 0 $." data-action="Offrir">
+<div><label for="g-email">E-mail</label><input id="g-email" name="email" type="email" required maxlength="160"></div>
+<div><label for="g-plan">Forfait</label><select id="g-plan" name="plan">${input.plans.map(({ plan }) => h`<option value="${plan.id}" ${plan.id === "max" ? raw("selected") : ""}>${plan.name}</option>`)}</select></div>
+<div><label for="g-days">Durée (jours)</label><input id="g-days" name="days" type="number" min="1" max="400" value="30" required></div>
+<div><label for="g-credits">Crédits Delio</label><input id="g-credits" name="credits" type="number" min="0" value="0"></div>
+<div><button class="btn primary">Offrir</button></div></form>
+<p class="muted small">0 crédit : la personne a les droits du forfait (propres comptes et clés IA avec Max ou BYOK) sans utiliser les crédits Delio.</p></section>
 <section class="card"><h2>Francs CFA<small>Le montant facturé par SasPay vient du prix en dollars multiplié par ce taux</small></h2>
 <form method="post" action="/forfaits/taux" class="fields"><div><label for="rate">Francs CFA pour 1 $</label><input id="rate" name="rate" type="number" min="100" max="2000" step="0.01" value="${String(input.xof.value)}"></div>
 <div><button class="btn primary">Enregistrer le taux</button></div></form>

@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 import { HOSTED_CONTRACT_HEADER, HOSTED_CONTRACT_METADATA, HOSTED_CONTRACT_MISMATCH, HOSTED_CONTRACT_VERSION, hostedContractCompatible } from "../../../server/hosted-contract.ts";
+import type { Gift } from "./env-config.ts";
 import { consoleMailer, type Mailer } from "./mail.ts";
 import { OperatorSettings } from "./operator-settings.ts";
 import { Outbox } from "./outbox.ts";
@@ -21,7 +22,8 @@ import { MICRO, Wallet } from "./wallet.ts";
 import { consoleServes, createConsole } from "./console/routes.ts";
 import { Traffic, type VisitInput } from "./traffic.ts";
 import { billingPage, codePage, promoPage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, otherAccountPage, signupPage, slackPage, ssoPage, SUPPORT_EMAIL, type Html } from "./pages.ts";
-import { normalizeEmail, token, validEmail, validSlug, type Account, type AdminStore, type Role, type Workspace } from "./store.ts";
+import { domainHoldsToken } from "./sso-verify.ts";
+import { normalizeEmail, PUBLIC_MAIL_DOMAINS, sha256, token, validEmail, validSlug, type Account, type AdminStore, type Role, type Workspace } from "./store.ts";
 
 export interface AdminAppOptions {
   store: AdminStore;
@@ -50,6 +52,8 @@ export interface AdminAppOptions {
   hosting?: { domain: string; models: string[]; fleet?: Fleet; fleetSocket?: string };
   /** Self-serve sign-up without hosting: customers pay here and use the desktop app, downloaded from `downloadUrl`. */
   signup?: { downloadUrl: string };
+  /** Plans given by e-mail, each applied once (see env-config's `gifts`). */
+  gifts?: readonly Gift[];
 }
 
 /** What the operators' console serves; everything else there is 404, customer pages and public APIs included. */
@@ -155,6 +159,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   const now = options.now ?? Date.now;
   const secure = publicUrl.protocol === "https:";
   const cookieName = secure ? "__Host-delio-admin" : "delio-admin";
+  const SSO_COOKIE = secure ? "__Host-delio-sso" : "delio-sso";
   const ssoRedirectUri = new URL(SSO_CALLBACK_PATH, publicUrl).href;
   const wallet = new Wallet(store.db, { now, creditUsd: options.gateway?.creditUsd });
   const devices = new Devices(store.db, now);
@@ -183,6 +188,19 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     fleet: selfServe.fleet ?? socketFleet(selfServe.fleetSocket ?? "/run/opendeliobot/fleet.sock") }) : null;
   const startHosting = () => { void runHosting?.().catch((error: unknown) => console.error("delio-admin: hosting pass failed", error)); };
   const traffic = new Traffic(store.db, now);
+  store.db.exec("CREATE TABLE IF NOT EXISTS gifts_applied (key TEXT PRIMARY KEY, workspace TEXT NOT NULL, at INTEGER NOT NULL)");
+  /** Gives `gift` to its e-mail's personal workspace, making the account and workspace if needed; false when already given. */
+  function giveGift(gift: Gift, actor: string, once: boolean): string | null {
+    const key = `${gift.email}|${gift.plan}|${gift.days}|${gift.credits}`;
+    if (once && store.db.prepare("SELECT 1 FROM gifts_applied WHERE key = ?").get(key)) return null;
+    const account = store.ensureAccount(gift.email);
+    const workspace = personal.ensure(account);
+    plans.giftPlan(workspace.slug, gift.email, gift.plan, gift.days, gift.credits);
+    store.db.prepare("INSERT INTO gifts_applied (key, workspace, at) VALUES (?, ?, ?) ON CONFLICT (key) DO UPDATE SET at = excluded.at").run(key, workspace.slug, now());
+    store.audit(workspace.slug, actor, "plan.gift", `${gift.plan}:${gift.days}d:${gift.credits}cr`);
+    return workspace.slug;
+  }
+  if (!operatorConsole) for (const gift of options.gifts ?? []) giveGift(gift, "config", true);
   const reports = new Reports(store.db, now);
   const paymentChecks = new Map<string, { at: number; running: Promise<void> | null }>();
   async function refreshPayments(workspace: string): Promise<void> {
@@ -367,11 +385,12 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     if (!config) throw new HttpError(404, "La connexion unique (SSO) n'est pas configurée pour cet espace.");
     const provider = await discover(fetchImpl, config.issuer, options.allowHttpProviders);
     const state = token(), verifier = token(48), nonce = token();
+    if (!config.verified) throw new HttpError(403, "Le domaine de cette connexion unique n'est pas encore vérifié.");
     store.saveSsoState({ state, workspace, verifier, nonce, next: localPath(next) });
     const target = new URL(provider.authorization_endpoint);
     for (const [key, value] of Object.entries({ response_type: "code", client_id: config.clientId, redirect_uri: ssoRedirectUri, scope: "openid email profile",
       state, nonce, code_challenge: pkceChallenge(verifier), code_challenge_method: "S256" })) target.searchParams.set(key, value);
-    redirect(res, target.href);
+    redirect(res, target.href, [`${SSO_COOKIE}=${sha256(state)}; Path=/; Max-Age=600; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}`]);
   }
 
   async function handoff(req: IncomingMessage, res: ServerResponse, kind: "consume" | "check"): Promise<void> {
@@ -514,8 +533,10 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       const email = normalizeEmail(text(body, "email", 320)), next = localPath(text(body, "next", 2048));
       if (!validEmail(email)) return html(res, 400, { title: "Connexion", body: loginPage(next, "Entrez une adresse e-mail valide."), mascot: "sad" });
       const domain = email.slice(email.lastIndexOf("@") + 1);
-      const sso = operatorConsole ? undefined : store.ssoForDomain(domain)[0];
-      if (sso) return startSso(res, sso.workspace, next);
+      const ssoConfig = operatorConsole ? undefined : store.ssoForDomain(domain)[0];
+      const existingAccount = ssoConfig ? store.accountByEmail(email) : null;
+      // An account made before the domain chose single sign-on keeps its e-mail codes unless it belongs to that workspace.
+      if (ssoConfig && (!existingAccount || store.role(ssoConfig.workspace, existingAccount.id))) return startSso(res, ssoConfig.workspace, next);
       // The console sends codes to the team only, and says the same thing to anyone else so no address is revealed.
       if (operatorConsole && !operators.has(email)) return html(res, 200, { title: "Vérifiez vos e-mails", body: codePage(email, next), mascot: "curious" });
       if (!operatorConsole && !settings.isOpen("signups") && !operators.has(email) && !store.hasAccount(email)) {
@@ -559,10 +580,12 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       return startSso(res, slug, url.searchParams.get("next") ?? "/");
     }
     if (method === "GET" && path === SSO_CALLBACK_PATH) {
-      const pending = store.takeSsoState(url.searchParams.get("state") ?? "");
+      const returnedState = url.searchParams.get("state") ?? "";
+      const sameBrowser = parseCookies(req.headers.cookie).get(SSO_COOKIE) === sha256(returnedState);
+      const pending = sameBrowser ? store.takeSsoState(returnedState) : null;
       const code = url.searchParams.get("code") ?? "";
       const config = pending ? store.sso(pending.workspace) : null;
-      if (!pending || !config || !code) {
+      if (!pending || !config?.verified || !code) {
         return html(res, 400, { title: "Connexion échouée", body: messagePage("La connexion unique n'a pas abouti", "La connexion a pris trop de temps ou a déjà servi. Recommencez.", { href: "/login", label: "Se connecter" }), mascot: "sad" });
       }
       let email: string;
@@ -703,12 +726,22 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       return html(res, 200, { title: "Connexion unique (SSO)", email: user.email, body: ssoPage({ workspace, sso: store.sso(workspace.slug), redirectUri: ssoRedirectUri,
         message: url.searchParams.get("done") ? "Enregistré." : undefined }) });
     }
-    if (method === "POST" && (path === "/sso" || path === "/sso/remove")) {
+    if (method === "POST" && (path === "/sso" || path === "/sso/remove" || path === "/sso/verify")) {
       const body = await readBody(req);
       const workspace = requireWorkspaceAdmin(user, text(body, "workspace", 64));
       if (path === "/sso/remove") {
         store.removeSso(workspace.slug, user.email);
         return redirect(res, `/sso?workspace=${workspace.slug}&done=1`);
+      }
+      if (path === "/sso/verify") {
+        const config = store.sso(workspace.slug);
+        if (!config) return redirect(res, `/sso?workspace=${workspace.slug}`);
+        if (!store.allow(`sso-verify:${workspace.slug}`, 20, 60 * 60_000)) throw new HttpError(429, "Trop d'essais. Patientez une heure.");
+        const proven = await domainHoldsToken(config.domain, config.verifyToken ?? "", fetchImpl);
+        const taken = store.ssoForDomain(config.domain).some((other) => other.workspace !== workspace.slug);
+        if (proven && !taken) store.markSsoVerified(workspace.slug, user.email);
+        return html(res, proven && !taken ? 200 : 400, { title: "Connexion unique (SSO)", email: user.email, body: ssoPage({ workspace, sso: store.sso(workspace.slug), redirectUri: ssoRedirectUri,
+          ...(proven && !taken ? { message: "Domaine vérifié : la connexion unique est active." } : { error: taken ? "Ce domaine est déjà vérifié par un autre espace." : "L'enregistrement TXT n'a pas été trouvé. La propagation DNS peut prendre quelques minutes : réessayez ensuite." }) }) });
       }
       const existing = store.sso(workspace.slug);
       const issuer = text(body, "issuer", 512).replace(/\/$/, ""), clientId = text(body, "clientId", 512);
@@ -717,6 +750,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       const fail = (error: string) => html(res, 400, { title: "Connexion unique (SSO)", email: user.email,
         body: ssoPage({ workspace, sso: existing, redirectUri: ssoRedirectUri, error }) });
       if (!clientId || !clientSecret || !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(domain)) return fail("Remplissez tous les champs.");
+      if (PUBLIC_MAIL_DOMAINS.has(domain)) return fail("Ce domaine est celui d'un service de messagerie public : la connexion unique ne peut pas l'utiliser.");
       const claimed = store.ssoForDomain(domain).find((config) => config.workspace !== workspace.slug);
       if (claimed) return fail(`${domain} already signs in through another workspace.`);
       try {
@@ -935,7 +969,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     "Hébergement des sites": Boolean(sites),
   };
   const operatorPages = createConsole({ store, wallet, devices, reports, billing: plans, hosting, saspay, currency, operators, now, ...(sites ? { sites } : {}), readForm: readBody,
-    settings, promos, outbox, ambassadors, xofRate, services, xofPerUsd: options.payments?.xofPerUsd, customerUrl: publicUrl.origin.replace("//admin.", "//compte."), cookie: (req) => parseCookies(req.headers.cookie).get(cookieName),
+    settings, promos, outbox, ambassadors, xofRate, services, gift: (gift, actor) => giveGift(gift, actor, false), xofPerUsd: options.payments?.xofPerUsd, customerUrl: publicUrl.origin.replace("//admin.", "//compte."), cookie: (req) => parseCookies(req.headers.cookie).get(cookieName),
     redirect: (res, location) => redirect(res, location), send });
 
   const handler = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {

@@ -7,7 +7,16 @@ export interface Account { id: string; email: string }
 export interface Workspace { slug: string; name: string; tenantUrl: string; createdAt: number }
 export interface Member { accountId: string; email: string; role: Role; joinedAt: number }
 export interface Invitation { id: string; workspace: string; email: string; role: Role; expiresAt: number }
-export interface SsoConfig { workspace: string; issuer: string; clientId: string; clientSecret: string; domain: string; autoJoin: boolean }
+export interface SsoConfig {
+  workspace: string; issuer: string; clientId: string; clientSecret: string; domain: string; autoJoin: boolean;
+  /** Whether the domain's DNS holds `verifyToken`; until then nobody signs in through this provider. */
+  verified?: boolean;
+  verifyToken?: string;
+}
+
+/** Mail providers whose domain no workspace may claim for single sign-on. */
+export const PUBLIC_MAIL_DOMAINS: ReadonlySet<string> = new Set(["gmail.com", "googlemail.com", "yahoo.com", "yahoo.fr", "hotmail.com", "hotmail.fr", "outlook.com", "outlook.fr",
+  "live.com", "live.fr", "msn.com", "icloud.com", "me.com", "aol.com", "proton.me", "protonmail.com", "gmx.com", "gmx.fr", "orange.fr", "free.fr", "laposte.net", "sfr.fr", "yandex.com", "mail.ru", "zoho.com"]);
 
 const OTP_TTL_MS = 10 * 60_000;
 const OTP_MAX_ATTEMPTS = 5;
@@ -59,6 +68,7 @@ export class AdminStore {
   constructor(options: { db: SqlDatabase; secret: Buffer; now?: () => number }) {
     this.db = options.db;
     this.db.exec(SCHEMA);
+    try { this.db.prepare("SELECT verified FROM sso LIMIT 0").all(); } catch { this.db.exec("ALTER TABLE sso ADD COLUMN verified INTEGER NOT NULL DEFAULT 0"); this.db.exec("ALTER TABLE sso ADD COLUMN verify_token TEXT"); }
     this.secret = options.secret;
     this.now = options.now ?? Date.now;
   }
@@ -101,6 +111,10 @@ export class AdminStore {
     }
     this.db.prepare("DELETE FROM otps WHERE email = ?").run(email);
     return { ok: true, account: this.ensureAccount(email) };
+  }
+
+  accountByEmail(email: string): Account | null {
+    return (this.db.prepare("SELECT id, email FROM accounts WHERE email = ?").get(normalizeEmail(email)) as Account | undefined) ?? null;
   }
 
   hasAccount(email: string): boolean {
@@ -271,20 +285,30 @@ export class AdminStore {
   }
 
   sso(workspace: string): SsoConfig | null {
-    const row = this.db.prepare("SELECT workspace, issuer, client_id AS clientId, client_secret AS clientSecret, domain, auto_join AS autoJoin FROM sso WHERE workspace = ?")
-      .get(workspace) as (Omit<SsoConfig, "autoJoin"> & { autoJoin: number }) | undefined;
-    return row ? { ...row, autoJoin: row.autoJoin === 1 } : null;
+    const row = this.db.prepare("SELECT workspace, issuer, client_id AS clientId, client_secret AS clientSecret, domain, auto_join AS autoJoin, verified, verify_token AS verifyToken FROM sso WHERE workspace = ?")
+      .get(workspace) as (Omit<SsoConfig, "autoJoin" | "verified" | "verifyToken"> & { autoJoin: number; verified: number; verifyToken: string | null }) | undefined;
+    return row ? { ...row, autoJoin: row.autoJoin === 1, verified: Number(row.verified) === 1, verifyToken: row.verifyToken ?? "" } : null;
   }
 
-  ssoForDomain(domain: string): SsoConfig[] {
-    return (this.db.prepare("SELECT workspace FROM sso WHERE domain = ?").all(domain) as Array<{ workspace: string }>).map((row) => this.sso(row.workspace)!);
+  /** Workspaces whose single sign-on owns this domain; only verified ones, unless `all`. */
+  ssoForDomain(domain: string, all = false): SsoConfig[] {
+    return (this.db.prepare(`SELECT workspace FROM sso WHERE domain = ? ${all ? "" : "AND verified = 1"}`).all(domain) as Array<{ workspace: string }>).map((row) => this.sso(row.workspace)!);
   }
 
+  /** Saves the provider; a new domain needs proving again, with a fresh token. */
   setSso(config: SsoConfig, actor: string): void {
-    this.db.prepare(`INSERT INTO sso (workspace, issuer, client_id, client_secret, domain, auto_join) VALUES (?, ?, ?, ?, ?, ?)
+    const before = this.sso(config.workspace);
+    const keep = before?.domain === config.domain;
+    this.db.prepare(`INSERT INTO sso (workspace, issuer, client_id, client_secret, domain, auto_join, verified, verify_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT (workspace) DO UPDATE SET issuer = excluded.issuer, client_id = excluded.client_id, client_secret = excluded.client_secret,
-      domain = excluded.domain, auto_join = excluded.auto_join`).run(config.workspace, config.issuer, config.clientId, config.clientSecret, config.domain, config.autoJoin ? 1 : 0);
+      domain = excluded.domain, auto_join = excluded.auto_join, verified = excluded.verified, verify_token = excluded.verify_token`)
+      .run(config.workspace, config.issuer, config.clientId, config.clientSecret, config.domain, config.autoJoin ? 1 : 0, keep && before?.verified ? 1 : 0, keep && before?.verifyToken ? before.verifyToken : token(18));
     this.audit(config.workspace, actor, "sso.set", config.issuer);
+  }
+
+  markSsoVerified(workspace: string, actor: string): void {
+    this.db.prepare("UPDATE sso SET verified = 1 WHERE workspace = ?").run(workspace);
+    this.audit(workspace, actor, "sso.verified", this.sso(workspace)?.domain ?? null);
   }
 
   removeSso(workspace: string, actor: string): void {

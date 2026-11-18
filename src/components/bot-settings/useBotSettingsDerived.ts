@@ -30,6 +30,7 @@ export type BotPatch = Partial<
     | "approvalMode"
     | "outbound"
     | "fallback"
+    | "media"
     | "speakReplies"
     | "replyStyle"
     | "memoryEnabled"

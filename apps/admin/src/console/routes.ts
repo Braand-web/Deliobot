@@ -9,6 +9,7 @@ import type { SasPay } from "../saspay.ts";
 import { token, type Account, type AdminStore, type Workspace } from "../store.ts";
 import { MICRO, type Wallet } from "../wallet.ts";
 import { PLAN_FIELDS, SWITCHES, type AnnouncementLevel, type OperatorSettings, type PlanOverride, type Switch } from "../operator-settings.ts";
+import { parseGifts, type Gift } from "../env-config.ts";
 import type { Outbox } from "../outbox.ts";
 import { normalizeCode, type Promos } from "../promos.ts";
 import { DEFAULT_XOF_PER_USD } from "../plans.ts";
@@ -25,6 +26,8 @@ export interface ConsoleContext {
   /** Included app hosting; absent where no bucket is bound. */
   sites?: AppHosting;
   settings: OperatorSettings; promos: Promos; outbox: Outbox; ambassadors: Ambassadors;
+  /** Gives a plan to an e-mail's personal workspace, made if needed; answers the workspace. */
+  gift: (gift: Gift, actor: string) => string | null;
   /** CFA francs to the dollar, as checkouts charge them now. */
   xofRate: () => number;
   /** Each provider or feature the portal can use, and whether its key or binding is set. */
@@ -46,7 +49,7 @@ const CLIENT_ACTION = new RegExp(`^/clients/(${SLUG})/(credits|forfait|suspendre
 const CLIENT = new RegExp(`^/clients/(${SLUG})$`);
 const ORDER_ACTION = new RegExp(`^/commandes/(${ORDER_ID})/(verifier|payee)$`);
 const PAGES = new Set(["/ambassadeurs", "/", "/trafic", "/clients", "/commandes", "/signalements", "/journal", "/sites", "/promos", "/communication", "/forfaits", "/systeme", "/securite"]);
-const SETTINGS_ACTION = /^\/(?:promos(?:\/([A-Z0-9_-]{3,32})\/(activer|desactiver|supprimer))?|communication\/(annonce|annonce\/retirer|envoyer)|forfaits\/(taux|trial|starter|pro|max|byok)(\/retablir)?|systeme\/(signups|payments|trial)|securite\/(sessions|debloquer))$/;
+const SETTINGS_ACTION = /^\/(?:promos(?:\/([A-Z0-9_-]{3,32})\/(activer|desactiver|supprimer))?|communication\/(annonce|annonce\/retirer|envoyer)|forfaits\/(taux|offrir|trial|starter|pro|max|byok)(\/retablir)?|systeme\/(signups|payments|trial)|securite\/(sessions|debloquer))$/;
 /** Audit actions the security page lists. */
 const SENSITIVE = ["credits.add", "plan.grant", "gateway.token", "device.revoke", "account.block", "account.unblock", "workspace.delete", "workspace.suspend", "site.taken_down",
   "promo.created", "promo.deleted", "plan.price", "settings.switch", "settings.rate", "broadcast.sent", "security.sessions"];
@@ -85,6 +88,7 @@ const FLASH: Record<string, (count: string) => Flash> = {
   "bad-announcement": () => ({ kind: "bad", text: "Écrivez un texte, et un lien en https:// s'il y en a un" }),
   queued: (count) => ({ kind: "ok", text: `${n(Number(count))} e-mails en cours d'envoi` }), "no-recipients": () => ({ kind: "bad", text: "Aucun destinataire, ou objet et message vides" }),
   "plan-saved": () => ({ kind: "ok", text: "Forfait enregistré : appliqué aux prochains paiements" }), "plan-reset": () => ({ kind: "ok", text: "Valeurs d'origine rétablies" }),
+  "bad-gift": () => ({ kind: "bad", text: "Vérifiez l'e-mail, le forfait, le nombre de jours (1 à 400) et les crédits" }),
   "bad-plan": () => ({ kind: "bad", text: "Valeurs invalides : des nombres positifs" }), "rate-saved": () => ({ kind: "ok", text: "Taux enregistré" }),
   switched: () => ({ kind: "ok", text: "Réglage appliqué" }), "sessions-closed": (count) => ({ kind: "ok", text: `${n(Number(count))} session${Number(count) > 1 ? "s" : ""} fermée${Number(count) > 1 ? "s" : ""}` }),
   "amb-created": () => ({ kind: "ok", text: "Ambassadeur créé : il a reçu son accès par e-mail" }), "amb-exists": () => ({ kind: "bad", text: "Cette adresse a déjà un compte ambassadeur" }),
@@ -490,6 +494,13 @@ Merci de faire grandir Deliobot avec nous !`);
       if (!queued) return ctx.redirect(res, "/communication?erreur=no-recipients");
       store.audit(null, user.email, "broadcast.sent", `${audience}:${queued}`);
       return go("/communication", "queued", `&n=${queued}`);
+    }
+    if (planTarget === "offrir") {
+      let gift: Gift;
+      try { [gift] = parseGifts([{ email: field(body, "email", 160), plan: field(body, "plan", 10), days: Number(field(body, "days", 4)), credits: Number(field(body, "credits", 9) || "0") }]) as [Gift]; }
+      catch { return ctx.redirect(res, "/forfaits?erreur=bad-gift"); }
+      const workspace = ctx.gift(gift, user.email);
+      return ctx.redirect(res, workspace ? `/clients/${workspace}?ok=plan` : "/forfaits?erreur=bad-gift");
     }
     if (planTarget === "taux") {
       const rate = Number(field(body, "rate", 12));

@@ -301,6 +301,17 @@ CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT N
     return this.order(id)!;
   }
 
+  /** An operator's gift: `plan` for `days` days with `credits` credits (none means the Delio AI is not paid for, only the
+   * plan's rights such as using one's own AI), recorded as a free order. */
+  giftPlan(workspace: string, email: string, plan: PlanId, days: number, credits: number): Order {
+    const id = `${MANUAL_ORDER_PREFIX}${token(12)}`;
+    this.db.prepare("INSERT INTO orders (id, workspace, email, kind, plan, cycle, credits, usd, amount, currency, status, created_at) VALUES (?, ?, ?, 'plan', ?, 'month', ?, 0, '0', 'XOF', 'pending', ?)")
+      .run(id, workspace, email, plan, credits, this.now());
+    this.fulfil(id);
+    this.db.prepare("UPDATE subscriptions SET period_end = ?, next_grant_at = NULL, grants_left = 0, monthly_credits = ? WHERE workspace = ?").run(this.now() + days * DAY_MS, credits, workspace);
+    return this.order(id)!;
+  }
+
   /** Applies an order the payer settled outside the checkout's confirmation; a failed one is reopened first. False when it was already paid. */
   markPaid(orderId: string): boolean {
     this.db.prepare("UPDATE orders SET status = 'pending' WHERE id = ? AND status = 'failed'").run(orderId);

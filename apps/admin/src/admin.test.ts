@@ -284,8 +284,31 @@ describe("Delio Admin single sign-on", () => {
     const boss = await workspaceWithAdmin(target);
     const saved = await boss.post("/sso", { workspace: "acme", issuer: provider.issuer, clientId: "client-1", clientSecret: "top-secret", domain: "acme.test", autoJoin: "1" });
     expect(saved.status).toBe(303);
+    target.store.markSsoVerified("acme", "test");
     return target;
   }
+
+  it("keeps a domain's sign-in on e-mail codes until its DNS proves ownership, never takes a public mail domain, and leaves outside accounts alone", async () => {
+    const provider = await identityProvider();
+    const target = await portal();
+    const boss = await workspaceWithAdmin(target);
+    await boss.post("/sso", { workspace: "acme", issuer: provider.issuer, clientId: "client-1", clientSecret: "top-secret", domain: "acme.test" });
+    const ana = browser(target);
+    expect((await ana.post("/login", { email: "ana@acme.test", next: "/" })).status).toBe(200);
+    expect(target.store.sso("acme")?.verifyToken).toMatch(/^[A-Za-z0-9_-]{20,}$/);
+    expect(await (await boss.post("/sso", { workspace: "acme", issuer: provider.issuer, clientId: "client-1", clientSecret: "top-secret", domain: "gmail.com" })).text()).toContain("messagerie public");
+    target.store.ensureAccount("old@acme.test");
+    target.store.markSsoVerified("acme", "test");
+    expect((await browser(target).post("/login", { email: "old@acme.test", next: "/" })).status).toBe(200);
+    expect((await browser(target).post("/login", { email: "new@acme.test", next: "/" })).status).toBe(303);
+  });
+
+  it("refuses an identity provider's answer that comes back to another browser", async () => {
+    const provider = await identityProvider();
+    const target = await configured(provider);
+    const authorize = (await browser(target).post("/login", { email: "ana@acme.test", next: "/" })).headers.get("location")!;
+    expect((await browser(target).go(provider.approve(authorize))).status).toBe(400);
+  });
 
   it("signs a company address in through the identity provider and adds it as a member", async () => {
     const provider = await identityProvider();
@@ -310,7 +333,7 @@ describe("Delio Admin single sign-on", () => {
     const ana = browser(target);
     const started = await ana.post("/login", { email: "ana@acme.test", next: "/" });
     expect((await ana.go(provider.approve(started.headers.get("location")!))).status).toBe(401);
-    expect(ana.cookie).toBe("");
+    expect(ana.cookie).not.toMatch(/delio-admin=/);
   });
 
   it("refuses an identity outside the configured domain", async () => {

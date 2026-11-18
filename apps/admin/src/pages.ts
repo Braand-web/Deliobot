@@ -158,6 +158,11 @@ ${notice(input.message)}${notice(input.error, "error")}
 <label for="domain">Domaine e-mail</label><input id="domain" name="domain" required value="${sso?.domain ?? ""}" placeholder="acme.com">
 <label><input type="checkbox" name="autoJoin" value="1" style="width:auto"${sso?.autoJoin ? raw(" checked") : ""}> Ajouter les personnes de ce domaine comme membres à leur première connexion</label>
 <p><button class="primary">Enregistrer</button></p></form>
+${sso && !sso.verified ? h`<div class="card"><b>Dernière étape : prouver que ${sso.domain} vous appartient</b>
+<p class="muted">Ajoutez cet enregistrement DNS chez l'hébergeur de votre domaine, puis cliquez sur « Vérifier ». Tant que ce n'est pas fait, personne ne se connecte par ce fournisseur.</p>
+<label>Type</label><code>TXT</code><label>Nom</label><code>_deliobot.${sso.domain}</code><label>Valeur</label><code>deliobot-verify=${sso.verifyToken ?? ""}</code>
+<form method="post" action="/sso/verify"><input type="hidden" name="workspace" value="${input.workspace.slug}"><p><button class="primary">Vérifier</button></p></form></div>`
+  : sso ? h`<div class="notice">Domaine ${sso.domain} vérifié : la connexion unique est active.</div>` : ""}
 ${sso ? h`<form method="post" action="/sso/remove"><input type="hidden" name="workspace" value="${input.workspace.slug}"><button class="danger">Désactiver la connexion unique</button></form>` : ""}`;
 }
 

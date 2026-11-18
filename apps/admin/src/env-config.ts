@@ -1,9 +1,24 @@
 // The portal's settings from its environment, the same on a server (process.env) and on Cloudflare (the Worker's env).
 import { DEFAULT_WORKSPACE_MODELS } from "./hosting.ts";
 import { consoleMailer, httpMailer, type Mailer } from "./mail.ts";
-import { normalizeEmail } from "./store.ts";
+import { PLANS, type PlanId } from "./plans.ts";
+import { normalizeEmail, validEmail } from "./store.ts";
 
 export type PortalEnv = Record<string, string | undefined>;
+
+export interface Gift { email: string; plan: PlanId; days: number; credits: number }
+
+/** Gifts from JSON; an entry with a bad e-mail, plan, length or credit count is an error, never skipped. */
+export function parseGifts(raw: unknown): Gift[] {
+  if (!Array.isArray(raw)) throw new Error("not a list");
+  return raw.map((entry: Record<string, unknown>) => {
+    const email = normalizeEmail(String(entry?.email ?? ""));
+    const plan = String(entry?.plan ?? "");
+    const days = Number(entry?.days), credits = Number(entry?.credits ?? 0);
+    if (!validEmail(email) || !Object.hasOwn(PLANS, plan) || !Number.isInteger(days) || days < 1 || days > 400 || !Number.isInteger(credits) || credits < 0 || credits > 1_000_000) throw new Error("bad gift");
+    return { email, plan: plan as PlanId, days, credits };
+  });
+}
 
 export interface PortalSettings {
   publicUrl: URL;
@@ -16,6 +31,8 @@ export interface PortalSettings {
   payments: { saspayKey?: string; webhookSecret?: string; currency: string; xofPerUsd?: number };
   hosting?: { domain: string; models: string[]; fleetSocket?: string };
   signup?: { downloadUrl: string };
+  /** Plans the operator gives by e-mail: the account and its personal workspace are made if needed, applied once each. */
+  gifts: Gift[];
   warnings: string[];
 }
 
@@ -74,5 +91,10 @@ export function portalSettings(env: PortalEnv): PortalSettings {
   const signup = !hosting && download ? { downloadUrl: download } : undefined;
   if (!hosting && !signup) warnings.push("no DELIO_ADMIN_WORKSPACE_DOMAIN or DELIO_ADMIN_DOWNLOAD_URL, so self-serve sign-up is off and only operators create workspaces");
 
-  return { publicUrl, production, secret, mailer, operators, gateway, payments, ...(hosting ? { hosting } : {}), ...(signup ? { signup } : {}), warnings };
+  let gifts: Gift[] = [];
+  if (env.DELIO_ADMIN_GIFTS?.trim()) {
+    try { gifts = parseGifts(JSON.parse(env.DELIO_ADMIN_GIFTS)); } catch { fail('DELIO_ADMIN_GIFTS must be JSON such as [{"email":"a@b.c","plan":"max","days":3,"credits":0}]'); }
+  }
+
+  return { publicUrl, production, secret, mailer, operators, gateway, payments, ...(hosting ? { hosting } : {}), ...(signup ? { signup } : {}), gifts, warnings };
 }

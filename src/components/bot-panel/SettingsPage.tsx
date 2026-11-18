@@ -26,6 +26,7 @@ import { useSlackManagementUrl } from "../bot-settings/useSlackManagement";
 import type { useBotSettingsDerived } from "../bot-settings/useBotSettingsDerived";
 import { useThreadApproval } from "../thread-approval";
 import { AdvancedSettingsRow } from "./AdvancedSettingsRow";
+import { MediaModelsCard } from "../bot-settings/MediaModelsCard";
 import { BackupAis } from "./BackupAis";
 import { HeavyBotRow } from "./HeavyBotRow";
 import { SoulChanges } from "./SoulChanges";
@@ -193,6 +194,8 @@ export function SettingsPage({ bot, derived, onOpen, editingInstructions = false
       </Card>
 
       <BackupAis bot={bot} onChange={(fallback) => patch({ fallback })} />
+
+      {(state.config?.imageGen?.falConfigured || state.config?.imageGen?.delioMedia) && <MediaModelsCard bot={bot} onChange={(media) => patch({ media })} />}
 
       <Card anchor="call">
         <ColRow data-panel-row="call-mode">
