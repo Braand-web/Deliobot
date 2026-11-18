@@ -52,7 +52,9 @@ const PAGES = new Set(["/ambassadeurs", "/", "/trafic", "/clients", "/commandes"
 const SETTINGS_ACTION = /^\/(?:promos(?:\/([A-Z0-9_-]{3,32})\/(activer|desactiver|supprimer))?|communication\/(annonce|annonce\/retirer|envoyer)|forfaits\/(taux|offrir|trial|starter|pro|max|byok)(\/retablir)?|systeme\/(signups|payments|trial)|securite\/(sessions|debloquer))$/;
 /** Audit actions the security page lists. */
 const SENSITIVE = ["credits.add", "plan.grant", "gateway.token", "device.revoke", "account.block", "account.unblock", "workspace.delete", "workspace.suspend", "site.taken_down",
-  "promo.created", "promo.deleted", "plan.price", "settings.switch", "settings.rate", "broadcast.sent", "security.sessions"];
+  "promo.created", "promo.deleted", "promo.enabled", "promo.disabled", "plan.price", "plan.gift", "settings.switch", "settings.rate", "broadcast.sent", "security.sessions",
+  "order.paid", "order.refunded", "order.recheck", "ambassador.created", "ambassador.approved", "ambassador.suspended", "ambassador.extended", "ambassador.payout.paid",
+  "announcement.published", "announcement.removed", "sso.set", "sso.verified", "console.login"];
 const UNSUBSCRIBE = "\n\n—\nVous recevez cet e-mail parce que vous avez un compte Deliobot. Pour ne plus en recevoir, répondez simplement « STOP ».";
 const SITE_ACTION = /^\/sites\/([a-z2-9]{10})\/retirer$/;
 const AMBASSADOR = /^\/ambassadeurs\/(amb_[a-f0-9]{16})$/;
@@ -482,6 +484,7 @@ Merci de faire grandir Deliobot avec nous !`);
     if (promoCode) {
       if (promoAction === "supprimer") { promos.remove(promoCode); store.audit(null, user.email, "promo.deleted", promoCode); return go("/promos", "promo-deleted"); }
       promos.setActive(promoCode, promoAction === "activer");
+      store.audit(null, user.email, promoAction === "activer" ? "promo.enabled" : "promo.disabled", promoCode);
       return go("/promos", promoAction === "activer" ? "promo-on" : "promo-off");
     }
     if (comms === "annonce/retirer") { settings.setAnnouncement(null); store.audit(null, user.email, "announcement.removed", null); return go("/communication", "unannounced"); }

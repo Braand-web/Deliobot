@@ -229,7 +229,9 @@ describe("plans paid through SasPay", () => {
     saspay.pay("cs_2");
     const order = /order=(ord_[^&"]+)/.exec(String((saspay.calls.at(-1)!.body as { return_url: string }).return_url))![1];
     expect(new URL(pro.headers.get("location")!).pathname).toBe("/checkout/cs_2");
-    expect((await target.get(`/billing/return?order=${order}`)).headers.get("location"), "the return confirms with SasPay and opens the app").toBe("opendeliobot://cloud");
+    const returned = await (await target.get(`/billing/return?order=${order}`)).text();
+    expect(returned, "the return confirms with SasPay, says so, and offers the app").toContain("Paiement reçu");
+    expect(returned).toContain('href="opendeliobot://cloud"');
     expect((await target.account()).credits).toBe(5800);
     expect(target.subscription()).toMatchObject({ plan: "pro", cycle: "month" });
 

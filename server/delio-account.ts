@@ -65,6 +65,9 @@ interface PendingFlow { portal: string; deviceCode: string; userCode: string; ve
 const REPORT_NOTE_MAX = 2000;
 const REPORT_TRANSCRIPT_MAX = 200_000;
 
+/** How long a Max or BYOK plan last seen by the portal keeps the person's own AI working while the portal is unreachable. */
+const OWN_AI_GRACE_MS = 24 * 60 * 60_000;
+
 export function createDelioAccount(deps: {
   config: () => AppConfig;
   save: (delio: AppConfig["delio"] | null) => void;
@@ -79,6 +82,7 @@ export function createDelioAccount(deps: {
   let flowVersion = 0;
   /** Set when the portal refused this app's token (revoked, expired or its account blocked): the app asks to connect again. */
   let tokenRefused = false;
+  let lastOwnAi = 0;
   let credits: { key: string; at: number; view: DelioAccountView | null } | null = null;
   const connectionKey = (connection: DelioConnection) => `${connection.portal}/${connection.workspace}/${connection.token}`;
   const planGate = (deps.env ?? process.env)[DELIO_PLAN_GATE_ENV] === "1";
@@ -193,7 +197,13 @@ export function createDelioAccount(deps: {
   /** Whether this app may run AI other than Delio's: always without the plan gate, else only on a Max or BYOK plan. */
   async function ownAiAllowed(): Promise<boolean> {
     if (!planGate) return true;
-    return (await balance())?.ownAi === true;
+    const account = await balance();
+    if (account) {
+      lastOwnAi = account.ownAi ? now() : 0;
+      return account.ownAi;
+    }
+    // The portal cannot be reached: a plan seen allowing it a little while ago still does, so a short outage stops nobody.
+    return lastOwnAi > 0 && now() - lastOwnAi < OWN_AI_GRACE_MS;
   }
 
   async function ownAiVisible(): Promise<boolean> {
@@ -207,8 +217,9 @@ export function createDelioAccount(deps: {
   async function assertOwnAi(instanceId: string): Promise<void> {
     if (instanceId === DELIO_INSTANCE || !planGate) return;
     const account = await balance();
+    if (!account && await ownAiAllowed()) return;
     if (!account) throw Object.assign(new Error("Your Deliobot account could not be verified. Try again in a moment."), { status: 503, code: "account_unavailable" });
-    if (account.ownAi) return;
+    if (account.ownAi) { lastOwnAi = now(); return; }
     throw Object.assign(new Error(OWN_AI_REFUSAL), { status: 402, code: "plan_required" });
   }
 

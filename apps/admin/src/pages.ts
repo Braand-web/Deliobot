@@ -295,6 +295,33 @@ ${notice(input.message)}<div class="card">${input.rows.length ? input.rows.map((
   : h`<p class="muted">Aucune application connectée.</p>`}</div>`;
 }
 
+const longDay = (at: number) => new Intl.DateTimeFormat("fr-FR", { dateStyle: "long", timeZone: "UTC" }).format(new Date(at));
+
+/** Where a payment comes back to: what became of it, and the way back into the app. */
+export function paymentReturnPage(status: string): Html {
+  const [title, text] = status === "paid" ? ["Paiement reçu ✅", "Votre forfait ou vos crédits sont actifs. Retournez dans l'application : elle se met à jour toute seule."]
+    : status === "failed" ? ["Paiement non abouti", "Le paiement a échoué ou a été annulé. Aucun montant n'a été pris. Vous pouvez réessayer depuis l'application ou depuis votre abonnement."]
+    : ["Paiement en cours de confirmation", "Mobile Money confirme parfois après quelques minutes. Vous pouvez fermer cette page : votre forfait s'active dès la confirmation, et l'application se met à jour toute seule."];
+  return h`<div class="narrow center"><h1>${title}</h1><p class="muted">${text}</p>
+<p><a class="button primary" href="opendeliobot://cloud">Ouvrir Deliobot</a> <a class="button" href="/abonnement">Mon abonnement</a></p></div>`;
+}
+
+/** A customer's plan on the web, for anyone without the app at hand: what runs, until when, renewing, payments and apps. */
+export function subscriptionPage(input: { plan: string | null; status: string; periodEnd: number; credits: number; plans: Array<{ id: string; name: string; usd: number; francs: number }>;
+  orders: Array<{ what: string; usd: number; status: string; at: number }>; devices: number }): Html {
+  const running = input.status === "active" || input.status === "trialing" || input.status === "grace";
+  return h`<h1>Mon abonnement</h1>
+<div class="stats"><div><span>Forfait</span><b>${input.plan ?? "Aucun"}</b><small>${running ? `${input.status === "grace" ? "terminé, renouvelez avant le" : "jusqu'au"} ${longDay(input.status === "grace" ? input.periodEnd + 7 * 24 * 60 * 60_000 : input.periodEnd)}` : "aucun forfait en cours"}</small></div>
+<div><span>Crédits</span><b>${Math.round(input.credits).toLocaleString("fr-FR")}</b><small>disponibles</small></div>
+<div><span>Appareils connectés</span><b>${input.devices}</b><small><a href="/appareils">Gérer</a></small></div></div>
+<h2>${running ? "Renouveler ou changer de forfait" : "Choisir un forfait"}</h2><div class="card">${input.plans.map((plan) => h`<div class="row"><div class="grow"><b>${plan.name}</b><div class="muted">${plan.usd} $ par mois · ≈ ${plan.francs.toLocaleString("fr-FR")} FCFA</div></div>
+<a class="button primary" href="/pay?plan=${plan.id}&cycle=month">Mensuel</a> <a class="button" href="/pay?plan=${plan.id}&cycle=year">Annuel</a></div>`)}</div>
+${running ? h`<p class="muted">Un autre forfait choisi maintenant commence à la fin de celui en cours, sauf une montée vers un forfait mensuel plus cher, qui commence tout de suite.</p>` : ""}
+<p><a class="button" href="/pay?topup=small">Recharger des crédits</a> <a class="button" href="/code">J'ai un code promo</a></p>
+<h2>Mes paiements</h2><div class="card">${input.orders.length ? input.orders.map((order) => h`<div class="row"><span class="grow">${longDay(order.at)} · ${order.what}</span><b>${order.usd > 0 ? `${order.usd} $` : "offert"}</b><span class="muted">${order.status === "paid" ? "payé" : order.status === "pending" ? "en attente" : order.status === "refunded" ? "remboursé" : "non abouti"}</span></div>`)
+  : h`<p class="muted">Aucun paiement pour l'instant.</p>`}</div>`;
+}
+
 /** The code is always typed from the app's own screen: a link that carries one could come from someone else's app. */
 export function devicePage(input: { email: string; workspaces: Array<Workspace & { role: Role }>; error?: string }): Html {
   return h`<div class="narrow"><h1 class="center">Connecter une application</h1>

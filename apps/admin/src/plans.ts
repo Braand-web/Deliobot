@@ -176,8 +176,10 @@ CREATE TABLE IF NOT EXISTS queued_plans (order_id TEXT PRIMARY KEY, workspace TE
     return { gateway: true, media: true, computers: plan.computers, computerHours: plan.computerHours, plan: subscription.plan, ownAi };
   }
 
+  /** A trial used, or one already waiting to be paid, by this address or for this workspace. */
   trialUsed(email: string, workspace: string): boolean {
-    return Boolean(this.db.prepare("SELECT 1 FROM trial_uses WHERE email = ? OR workspace = ?").get(email, workspace));
+    return Boolean(this.db.prepare("SELECT 1 FROM trial_uses WHERE email = ? OR workspace = ?").get(email, workspace)
+      ?? this.db.prepare("SELECT 1 FROM orders WHERE plan = 'trial' AND status = 'pending' AND (email = ? OR workspace = ?)").get(email, workspace));
   }
 
   /** `promo` takes its percentage off a plan's price. */
@@ -390,6 +392,7 @@ CREATE TABLE IF NOT EXISTS queued_plans (order_id TEXT PRIMARY KEY, workspace TE
 
   /** Records a payment event once; false when it was already seen. */
   firstSeen(eventId: string): boolean {
+    this.db.prepare("DELETE FROM payment_events WHERE at < ?").run(this.now() - 90 * DAY_MS);
     return Number(this.db.prepare("INSERT INTO payment_events (id, at) VALUES (?, ?) ON CONFLICT DO NOTHING").run(eventId, this.now()).changes) === 1;
   }
 

@@ -21,7 +21,7 @@ import { Reports } from "./reports.ts";
 import { MICRO, Wallet } from "./wallet.ts";
 import { consoleServes, createConsole } from "./console/routes.ts";
 import { Traffic, type VisitInput } from "./traffic.ts";
-import { billingPage, codePage, devicesPage, promoPage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, otherAccountPage, signupPage, slackPage, ssoPage, SUPPORT_EMAIL, type Html } from "./pages.ts";
+import { billingPage, codePage, devicesPage, paymentReturnPage, promoPage, subscriptionPage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, otherAccountPage, signupPage, slackPage, ssoPage, SUPPORT_EMAIL, type Html } from "./pages.ts";
 import { domainHoldsToken } from "./sso-verify.ts";
 import { normalizeEmail, PUBLIC_MAIL_DOMAINS, sha256, token, validEmail, validSlug, type Account, type AdminStore, type Role, type Workspace } from "./store.ts";
 
@@ -556,6 +556,10 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       // An account made before the domain chose single sign-on keeps its e-mail codes unless it belongs to that workspace.
       if (ssoConfig && (!existingAccount || store.role(ssoConfig.workspace, existingAccount.id))) return startSso(res, ssoConfig.workspace, next);
       // The console sends codes to the team only, and says the same thing to anyone else so no address is revealed.
+      // Everyone is limited the same way here, so the answer never tells an operator's address from another one.
+      if (operatorConsole && !store.allow(`console-login:${clientAddress(req)}`, 20, 15 * 60_000)) {
+        return html(res, 429, { title: "Connexion", body: loginPage(next, "Trop de codes demandés. Patientez quelques minutes et réessayez."), mascot: "sad" });
+      }
       if (operatorConsole && !operators.has(email)) return html(res, 200, { title: "Vérifiez vos e-mails", body: codePage(email, next), mascot: "curious" });
       if (!operatorConsole && !settings.isOpen("signups") && !operators.has(email) && !store.hasAccount(email)) {
         return html(res, 403, { title: "Connexion", body: loginPage(next, "Les nouvelles inscriptions sont fermées pour le moment. Revenez bientôt."), mascot: "sad" });
@@ -912,7 +916,19 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       if (!order) throw new HttpError(404, "Ce paiement n'existe pas.");
       const workspace = requireWorkspaceAdmin(user, order.workspace);
       if (order.status === "pending") await refreshAccount(workspace.slug);
-      return redirect(res, "opendeliobot://cloud");
+      return html(res, 200, { title: "Paiement", email: user.email, mascot: plans.order(order.id)?.status === "failed" ? "sad" : "happy", body: paymentReturnPage(plans.order(order.id)?.status ?? "pending") });
+    }
+    if (method === "GET" && path === "/abonnement" && !operatorConsole) {
+      const workspace = personal.existing(user) ?? store.workspacesOf(user.id).find((item) => item.role === "admin") ?? null;
+      if (workspace) await refreshAccount(workspace.slug);
+      const subscription = workspace ? plans.subscription(workspace.slug) : null;
+      const catalogNow = plans.catalog(options.payments?.xofPerUsd);
+      return html(res, 200, { title: "Mon abonnement", email: user.email, body: subscriptionPage({
+        plan: subscription && subscription.status !== "none" ? PLANS[subscription.plan].name : null, status: subscription?.status ?? "none", periodEnd: subscription?.periodEnd ?? 0,
+        credits: workspace ? wallet.balance(workspace.slug) / MICRO : 0, devices: workspace ? devices.list(workspace.slug).length : 0,
+        plans: catalogNow.plans.filter((plan) => plan.listed).map((plan) => ({ id: plan.id, name: plan.name, usd: plan.usd, francs: plan.francs })),
+        orders: workspace ? plans.orders(workspace.slug, 30).map((order) => ({ what: order.kind === "plan" && order.plan ? PLANS[order.plan].name : `Recharge ${order.credits.toLocaleString("fr-FR")} crédits`, usd: order.usd, status: order.status, at: order.createdAt })) : [],
+      }) });
     }
     if (method === "POST" && path === "/billing/device") {
       const body = await readBody(req);
@@ -1017,7 +1033,6 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   async function sweep(): Promise<void> {
     await gateway.sweep();
     ambassadors.sweep();
-    await outbox.drain(mailer).catch((error: unknown) => console.error("delio-admin: announcement e-mails failed", error));
     traffic.purge();
     reports.purge();
     if (saspay) await reconcileOrders(plans, saspay).catch((error: unknown) => console.error("delio-admin: payment check failed", error));
@@ -1026,22 +1041,20 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     const repaired = plans.repairUnapplied();
     for (const id of repaired) store.audit(plans.order(id)?.workspace ?? null, null, "order.repaired", id);
     if (repaired.length) startHosting();
-    if (runHosting) await runHosting();
+    if (runHosting) await runHosting().catch((error: unknown) => console.error("delio-admin: hosting pass failed", error));
     for (const due of plans.dueReminders()) {
       const workspace = store.workspace(due.workspace);
       if (!workspace) continue;
-      const link = new URL(`/billing?workspace=${due.workspace}`, publicUrl).href;
+      const link = new URL("/abonnement", publicUrl).href;
       const day = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long", timeZone: "UTC" }).format(new Date(due.periodEnd));
       const message = due.plan === "trial"
         ? { subject: `Votre essai Delio pour ${workspace.name} se termine bientôt`,
           text: `L'essai de ${workspace.name} se termine le ${day}.\n\nChoisissez un forfait ici pour que vos bots continuent d'utiliser l'IA de Delio : ${link}\n\nBesoin d'aide ? Écrivez à ${SUPPORT_EMAIL}.` }
         : { subject: `Votre forfait Delio ${PLANS[due.plan].name} pour ${workspace.name} se termine bientôt`,
           text: `Le forfait ${PLANS[due.plan].name} de ${workspace.name} se termine le ${day}.\n\nRenouvelez-le ici pour continuer à recevoir ses crédits : ${link}\n\nAprès cette date, l'espace a 7 jours de grâce ; ensuite ses bots n'utilisent plus les crédits Delio jusqu'au renouvellement.\n\nBesoin d'aide ? Écrivez à ${SUPPORT_EMAIL}.` };
-      for (const admin of store.members(due.workspace).filter((member) => member.role === "admin")) {
-        await mailer.send({ to: admin.email, ...message })
-          .catch(() => console.error("delio-admin: a renewal reminder could not be sent"));
-      }
+      for (const admin of store.members(due.workspace).filter((member) => member.role === "admin")) outbox.notify(admin.email, message.subject, message.text);
     }
+    await outbox.drain(mailer).catch((error: unknown) => console.error("delio-admin: e-mails failed", error));
   }
   return Object.assign(handler, { sweep, recordVisits: (visits: readonly VisitInput[]) => traffic.record(visits) });
 }
