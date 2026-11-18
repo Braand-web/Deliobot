@@ -10065,5 +10065,6 @@
   "media.bot.music": "音乐",
   "media.bot.auto": "Auto（推荐）",
   "media.bot.recommended": "推荐",
-  "media.bot.more": "更多模型"
+  "media.bot.more": "更多模型",
+  "sidebar.menu.ambassador": "大使专区"
 }

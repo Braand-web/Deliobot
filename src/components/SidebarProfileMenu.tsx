@@ -25,6 +25,7 @@ import {
   UsersRound,
   Zap,
   Compass,
+  Award,
 } from "lucide-react";
 
 import { accountMenuItems, AccountsSheet, useAccounts } from "./AccountMenu";
@@ -442,6 +443,7 @@ export function profileMenuItems({
   onSettings,
   onShortcuts,
   onTour,
+  onAmbassador,
   onAbout,
   onHelp,
   onFeedback,
@@ -465,6 +467,8 @@ export function profileMenuItems({
   onShortcuts: () => void;
   /** Starts the guided tour over; absent where this window cannot draw it. */
   onTour?: () => void;
+  /** opens the ambassador's space on the portal; only for an account that is an active ambassador */
+  onAmbassador?: () => void;
   onAbout: () => void;
   onHelp: () => void;
   onFeedback: () => void;
@@ -492,6 +496,8 @@ export function profileMenuItems({
   ];
   const account: SidebarMenuItem = { key: "account", label: header.name, subtitle: header.line, icon: header.avatar, large: true, chevron: true, onSelect: header.onOpen };
   const settings: SidebarMenuItem = { key: "settings", label: t("sidebar.menu.settings"), icon: <SettingsIcon size={16} />, trailing: settingsKeyHint(), onSelect: onSettings };
+  const ambassador: SidebarMenuItem | null = onAmbassador ? { key: "ambassador", label: t("sidebar.menu.ambassador"), icon: <Award size={16} />,
+    trailing: <ArrowUpRight size={12} aria-hidden="true" className="text-ink-tertiary" />, onSelect: onAmbassador } : null;
   const support: SidebarMenuItem = { key: "support", label: t("sidebar.menu.helpShort"), icon: <LifeBuoy size={16} />, submenu: help, onSelect: () => {} };
   const present = (...items: Array<SidebarMenuItem | null | false>) => items.filter((item): item is SidebarMenuItem => Boolean(item));
   const out: SidebarMenuItem[] = [...accounts.filter((item) => item.key !== "accounts-sign-out"),
@@ -502,8 +508,8 @@ export function profileMenuItems({
       : accounts.filter((item) => item.key === "accounts-sign-out"))];
   // Plan & billing follows Settings (Simple's own places sit between them); both modes end with Help, then Sign out.
   const groups = simple
-    ? [move, present(raised), [account], present(phone, settings), simple.tools, present(plan, switchPlace), [support], out]
-    : [move, present(raised), [account], present(phone, settings, plan), present(switchPlace, support), out];
+    ? [move, present(raised), [account], present(phone, settings), simple.tools, present(plan, ambassador, switchPlace), [support], out]
+    : [move, present(raised), [account], present(phone, settings, plan, ambassador), present(switchPlace, support), out];
   return groups.filter((group) => group.length > 0)
     .flatMap((group, at) => group.map((item, index) => (at > 0 && index === 0 ? { ...item, separatorBefore: true } : item)));
 }
@@ -626,6 +632,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     },
     ...(!remote ? { onTour: () => void api("/api/config", { method: "PUT", body: JSON.stringify(replayTourPatch(state.config?.onboarding)), signal: AbortSignal.timeout(10_000) })
       .then((config) => { dispatch({ type: "configStatus", config }); dispatch({ type: "toggleTour", open: true }); }).catch(() => {}) } : {}),
+    ...(delio?.connected && delio.ambassador ? { onAmbassador: () => void openExternalLink(`${delio.portal}/ambassadeur`) } : {}),
     onAbout: () => setAboutOpen(true),
     onHelp: () => void openExternalLink(HELP_CENTER_URL),
     onFeedback: () => void openExternalLink(FEEDBACK_URL),

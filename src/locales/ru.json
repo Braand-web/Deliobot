@@ -7326,5 +7326,6 @@
   "media.bot.music": "Музыка",
   "media.bot.auto": "Auto (рекомендуется)",
   "media.bot.recommended": "Рекомендуемые",
-  "media.bot.more": "Другие модели"
+  "media.bot.more": "Другие модели",
+  "sidebar.menu.ambassador": "Кабинет амбассадора"
 }

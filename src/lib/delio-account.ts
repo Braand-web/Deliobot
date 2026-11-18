@@ -6,7 +6,7 @@ import { api } from "@/state/store";
 export type DelioAccount = {
   planGate: boolean;
   ownAi: boolean;
-} & ({ connected: false } | { connected: true; workspace: string; portal: string; billingUrl?: string; email?: string | null; checking?: boolean; credits?: number; usedThisMonth?: number; plan?: string | null; paymentVersion?: number });
+} & ({ connected: false } | { connected: true; workspace: string; portal: string; billingUrl?: string; email?: string | null; checking?: boolean; credits?: number; usedThisMonth?: number; plan?: string | null; paymentVersion?: number; ambassador?: boolean });
 
 export type DelioConnectFlow = { state: "connected"; workspace: string } | { state: "waiting"; userCode: string; verification: string }
   | { state: "disconnected"; reason?: "denied" | "expired" };

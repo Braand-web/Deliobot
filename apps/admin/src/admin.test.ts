@@ -344,3 +344,24 @@ describe("Delio Admin single sign-on", () => {
     expect((await eve.go(provider.approve(started.headers.get("location")!))).status).toBe(403);
   });
 });
+
+describe("the way back to an ambassador's space", () => {
+  it("shows an active ambassador a card on the portal's home page, and nobody else", async () => {
+    const target = await portal();
+    const { Ambassadors } = await import("./ambassadors.ts");
+    const { OperatorSettings } = await import("./operator-settings.ts");
+    const { Promos } = await import("./promos.ts");
+    const { Wallet } = await import("./wallet.ts");
+    const wallet = new Wallet(target.store.db);
+    const ambassadors = new Ambassadors({ wallet, promos: new Promos(wallet), settings: new OperatorSettings(target.store.db) });
+    ambassadors.apply({ name: "Awa", email: "awa@influence.test" }, "active");
+    const awa = browser(target);
+    await awa.signIn("awa@influence.test");
+    const home = await (await awa.go("/")).text();
+    expect(home).toContain("Espace ambassadeur");
+    expect(home).toContain('href="/ambassadeur"');
+    const other = browser(target);
+    await other.signIn("someone@else.test");
+    expect(await (await other.go("/")).text()).not.toContain("Espace ambassadeur");
+  });
+});

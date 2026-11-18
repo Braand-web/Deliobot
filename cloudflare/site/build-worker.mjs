@@ -118,6 +118,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.hostname === "www.deliobot.fun") return Response.redirect(\`https://deliobot.fun\${url.pathname}\${url.search}\`, 301);
+    if (url.pathname === "/ambassadeur" || url.pathname === "/ambassadeur/") return Response.redirect("https://compte.deliobot.fun/ambassadeur", 302);
     const path = url.pathname;
     if (decoded(path) === null) return new Response("bad request", { status: 400, headers: SECURITY });
     if (env.DOWNLOADS && path.startsWith("/__upload/")) return upload(request, env, decodeURIComponent(path.slice("/__upload/".length)));

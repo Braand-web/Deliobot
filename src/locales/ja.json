@@ -8060,5 +8060,6 @@
   "media.bot.music": "音楽",
   "media.bot.auto": "Auto（おすすめ）",
   "media.bot.recommended": "おすすめ",
-  "media.bot.more": "その他のモデル"
+  "media.bot.more": "その他のモデル",
+  "sidebar.menu.ambassador": "アンバサダーページ"
 }

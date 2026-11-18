@@ -252,7 +252,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       store.audit(input.workspace, input.email, "report.sent", reports.add(input));
       return true;
     },
-    allowance: (slug) => plans.allowance(slug), refreshAccount, paymentVersion: slug => plans.paidCount(slug),
+    allowance: (slug) => plans.allowance(slug), refreshAccount, isAmbassador: (email) => Boolean(email) && ambassadors.byEmail(email)?.status === "active", paymentVersion: slug => plans.paidCount(slug),
     ...(sites ? { hosting: sites } : {}) });
 
   function sessionCookie(value: string, maxAgeSeconds: number): string {
@@ -653,8 +653,10 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     }
 
     if (method === "GET" && path === "/") {
+      const asAmbassador = operatorConsole ? null : ambassadors.byEmail(user.email);
+      const ambassadorCard = asAmbassador?.status === "active" ? (({ level, availableUsd }) => ({ level: level.name, availableUsd }))(ambassadors.stats(asAmbassador)) : null;
       return html(res, 200, { title: "Vos espaces", email: user.email, body: homePage({ workspaces: store.workspacesOf(user.id), operator: isOperator(user), signup: signupOpen && !operatorConsole,
-        all: isOperator(user) ? store.allWorkspaces() : [], message: url.searchParams.get("created") ? "Espace créé." : undefined }) });
+        all: isOperator(user) ? store.allWorkspaces() : [], message: url.searchParams.get("created") ? "Espace créé." : undefined, ambassador: ambassadorCard }) });
     }
     if (signupOpen && path === "/signup") {
       const form = method === "POST" ? await readBody(req) : null;

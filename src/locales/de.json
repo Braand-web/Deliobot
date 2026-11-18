@@ -3998,5 +3998,6 @@
   "media.bot.music": "Musik",
   "media.bot.auto": "Auto (empfohlen)",
   "media.bot.recommended": "Empfohlen",
-  "media.bot.more": "Weitere Modelle"
+  "media.bot.more": "Weitere Modelle",
+  "sidebar.menu.ambassador": "Botschafter-Bereich"
 }

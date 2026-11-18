@@ -10846,5 +10846,6 @@
   "media.bot.auto": "Auto (recomendado)",
   "media.bot.recommended": "Recomendados",
   "media.bot.more": "Mais modelos",
-  "imageGen.provider.delioMedia": "Mídia Delio"
+  "imageGen.provider.delioMedia": "Mídia Delio",
+  "sidebar.menu.ambassador": "Área de embaixador"
 }

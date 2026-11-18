@@ -13,7 +13,7 @@ export const DELIO_TOKEN_ENV = "ODB_DELIO_TOKEN";
 export const DELIO_PLAN_GATE_ENV = "ODB_DELIO_PLAN_GATE";
 export const OWN_AI_REFUSAL = "Your own AI accounts and keys come with the Max and BYOK plans. Choose a plan in Settings → Plans and top-ups, or use Delio.";
 
-export interface DelioAccountView { email: string | null; credits: number; usedThisMonth: number; plan: string | null; ownAi: boolean; paymentVersion?: number }
+export interface DelioAccountView { email: string | null; credits: number; usedThisMonth: number; plan: string | null; ownAi: boolean; paymentVersion?: number; ambassador?: boolean }
 const DEVICE_TOKEN = /^odb_device_[A-Za-z0-9_-]{43}$/;
 const SLUG = /^[a-z][a-z0-9-]{1,30}$/;
 export const DEFAULT_DELIO_PORTAL = "https://compte.deliobot.fun";
@@ -159,14 +159,14 @@ export function createDelioAccount(deps: {
         }
         return null;
       }
-      const body = response.ok ? await response.json() as { workspace?: unknown; email?: unknown; credits?: unknown; usedThisMonth?: unknown; plan?: unknown; ownAi?: unknown; paymentVersion?: unknown } : null;
+      const body = response.ok ? await response.json() as { workspace?: unknown; email?: unknown; credits?: unknown; usedThisMonth?: unknown; plan?: unknown; ownAi?: unknown; paymentVersion?: unknown; ambassador?: unknown } : null;
       if (body && typeof body.credits === "number" && typeof body.usedThisMonth === "number") {
         const current = delioConnection(deps.config());
         if (!current || connectionKey(current) !== connectionKey(connection)) return null;
         const email = typeof body.email === "string" && body.email.includes("@") && body.email.length <= 320 ? body.email.trim() : deps.config().delio?.email;
         const workspace = typeof body.workspace === "string" && SLUG.test(body.workspace) ? body.workspace : connection.workspace;
         if (email !== deps.config().delio?.email || workspace !== connection.workspace) deps.save({ ...deps.config().delio, portal: connection.portal, token: connection.token, workspace, ...(email ? { email } : {}) });
-        view = { email: email ?? null, credits: body.credits, usedThisMonth: body.usedThisMonth, plan: typeof body.plan === "string" ? body.plan : null, ownAi: body.ownAi === true,
+        view = { email: email ?? null, credits: body.credits, usedThisMonth: body.usedThisMonth, plan: typeof body.plan === "string" ? body.plan : null, ownAi: body.ownAi === true, ...(body.ambassador === true ? { ambassador: true } : {}),
           ...(Number.isSafeInteger(body.paymentVersion) && (body.paymentVersion as number) >= 0 ? { paymentVersion: body.paymentVersion as number } : {}) };
       }
     } catch { view = null; }

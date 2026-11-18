@@ -102,5 +102,6 @@ ${main ? h`<h2>Textes prêts à partager</h2><div class="card">
 <p><b>WhatsApp / statut</b><br>${shareText(main.code, rules.welcomeCredits)}</p>
 <p><b>Instagram / TikTok (légende)</b><br>Je confie mes tâches répétitives à des bots IA avec Deliobot 🤖 Messages, rapports, contenus… ils reviennent avec le travail fini. Code ${main.code} = +${rules.welcomeCredits} crédits offerts 👉 lien en bio : ${linkFor(main.code)}</p>
 <p><b>Idée de vidéo</b><br>Montrez une vraie tâche faite par un bot en 30 secondes (une réponse client, un post, un rapport), puis votre code à l'écran.</p></div>` : ""}
+<p class="muted center">Pour revenir ici : <b>deliobot.fun/ambassadeur</b>, ou le menu de votre application Deliobot. Pensez à l'ajouter à vos favoris.</p>
 <details class="card"><summary>Comment ça marche</summary>${howItWorks(rules, rate)}${levelCards(rules, rate, stats.level)}<p><a href="${SITE_URL}/ambassadeurs">Le programme en détail</a></p></details>`;
 }

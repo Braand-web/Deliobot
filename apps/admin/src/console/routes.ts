@@ -327,7 +327,7 @@ Comment ça marche :
 
 Vos gains sont disponibles ${rules.holdDays} jours après chaque paiement : retrait en Mobile Money dès ${rules.minPayoutXof.toLocaleString("fr-FR")} FCFA, ou en crédits Delio à tout moment.
 
-Votre espace (codes, liens, gains, textes prêts à partager) : ${ctx.customerUrl}/ambassadeur
+Votre espace (codes, liens, gains, textes prêts à partager) : ${SITE_URL}/ambassadeur
 Connectez-vous avec cette adresse e-mail.
 
 Le programme en détail : ${SITE_URL}/ambassadeurs
@@ -367,7 +367,7 @@ Merci de faire grandir Deliobot avec nous !`);
       const ambassador = payout ? ctx.ambassadors.get(payout.ambassador) : null;
       if (payout && ambassador) {
         store.audit(null, user.email, "ambassador.payout.paid", `${ambassador.email}:${payout.usd}`);
-        ctx.outbox.notify(ambassador.email, "Votre retrait Deliobot a été envoyé 💸", `Bonjour ${ambassador.name},\n\nNous vous avons envoyé ${payout.usd.toFixed(2)} $ (≈ ${Math.round(payout.usd * ctx.xofRate()).toLocaleString("fr-FR")} FCFA) en Mobile Money au ${ambassador.phone}${payout.reference ? ` (réf. ${payout.reference})` : ""}.\n\nMerci et bonne continuation !\n${ctx.customerUrl}/ambassadeur`);
+        ctx.outbox.notify(ambassador.email, "Votre retrait Deliobot a été envoyé 💸", `Bonjour ${ambassador.name},\n\nNous vous avons envoyé ${payout.usd.toFixed(2)} $ (≈ ${Math.round(payout.usd * ctx.xofRate()).toLocaleString("fr-FR")} FCFA) en Mobile Money au ${ambassador.phone}${payout.reference ? ` (réf. ${payout.reference})` : ""}.\n\nMerci et bonne continuation !\n${SITE_URL}/ambassadeur`);
       }
       return ctx.redirect(res, "/ambassadeurs?ok=amb-paid");
     }
@@ -410,8 +410,8 @@ Merci de faire grandir Deliobot avec nous !`);
         ctx.ambassadors.decideExtension(ambassador.id, accept);
         store.audit(null, user.email, accept ? "ambassador.extended" : "ambassador.extension_refused", `${ambassador.email}:${months}`);
         if (months) ctx.outbox.notify(ambassador.email, accept ? `Prolongation accordée : ${months} mois par client 🎉` : "Votre demande de prolongation",
-          accept ? `Bonjour ${ambassador.name},\n\nBonne nouvelle : vous touchez désormais vos commissions pendant ${months} mois pour chaque client (${Math.round(ctx.ambassadors.rules().extendedRate * 100)} % après le 6e mois).\n\n${ctx.customerUrl}/ambassadeur`
-            : `Bonjour ${ambassador.name},\n\nNous ne pouvons pas accorder la prolongation pour le moment. Continuez comme ça : vous pourrez la redemander bientôt.\n\n${ctx.customerUrl}/ambassadeur`);
+          accept ? `Bonjour ${ambassador.name},\n\nBonne nouvelle : vous touchez désormais vos commissions pendant ${months} mois pour chaque client (${Math.round(ctx.ambassadors.rules().extendedRate * 100)} % après le 6e mois).\n\n${SITE_URL}/ambassadeur`
+            : `Bonjour ${ambassador.name},\n\nNous ne pouvons pas accorder la prolongation pour le moment. Continuez comme ça : vous pourrez la redemander bientôt.\n\n${SITE_URL}/ambassadeur`);
         return back("amb-extended");
       }
     }

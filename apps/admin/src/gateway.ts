@@ -42,6 +42,8 @@ export interface GatewayOptions {
   /** Included app hosting; absent where no bucket is bound. */
   hosting?: AppHosting;
   /** What the workspace's plan allows: spending Delio credits, and cloud computers awake at once. */
+  /** Whether this address belongs to an active ambassador, so the app can link to their space. */
+  isAmbassador?: (email: string) => boolean;
   allowance?: (workspace: string) => { gateway: boolean; media?: boolean; computers: number; computerHours?: number; plan?: string | null; ownAi?: boolean; reason?: string };
   now?: () => number;
 }
@@ -427,7 +429,8 @@ export function createGateway(options: GatewayOptions) {
       const allowed = options.allowance?.(workspace) ?? { gateway: true, computers: 1 };
       if (account) {
         send(res, 200, { email: device?.email ?? options.deviceEmail?.(presented, requested) ?? null, workspace, credits: wallet.balance(workspace) / MICRO, usedThisMonth: wallet.usedThisMonth(workspace) / MICRO, creditUsd: wallet.creditUsd, gateway: allowed.gateway, media: allowed.media ?? allowed.gateway,
-          plan: allowed.plan ?? null, ownAi: allowed.ownAi ?? false, paymentVersion: options.paymentVersion?.(workspace) });
+          plan: allowed.plan ?? null, ownAi: allowed.ownAi ?? false, paymentVersion: options.paymentVersion?.(workspace),
+          ambassador: options.isAmbassador?.(device?.email ?? options.deviceEmail?.(presented, requested) ?? "") ?? false });
         return true;
       }
       const provider = gateway![2]!;

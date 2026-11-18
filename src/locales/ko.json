@@ -7793,5 +7793,6 @@
   "media.bot.music": "음악",
   "media.bot.auto": "Auto(권장)",
   "media.bot.recommended": "권장",
-  "media.bot.more": "더 많은 모델"
+  "media.bot.more": "더 많은 모델",
+  "sidebar.menu.ambassador": "앰배서더 공간"
 }

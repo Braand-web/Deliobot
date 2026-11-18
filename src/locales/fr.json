@@ -4113,5 +4113,6 @@
   "videoGen.model.help": "Auto choisit un modèle rapide, ou un modèle cinématographique quand la demande le précise. Vous pouvez aussi choisir n'importe quel modèle vidéo de la liste.",
   "musicGen.intro": "Les bots peuvent créer de la musique de fond, des jingles, des chansons avec paroles et des effets sonores quand vous le demandez. Le morceau se lit dans le chat.",
   "musicGen.model.help": "Auto choisit une musique instrumentale, un modèle de chanson quand il y a des paroles, ou un modèle d'effets sonores. Vous pouvez aussi choisir n'importe quel modèle audio de la liste.",
-  "imageGen.provider.delioMedia": "Médias Delio"
+  "imageGen.provider.delioMedia": "Médias Delio",
+  "sidebar.menu.ambassador": "Espace ambassadeur"
 }

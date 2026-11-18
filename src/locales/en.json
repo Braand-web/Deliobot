@@ -10846,5 +10846,6 @@
   "media.bot.auto": "Auto (recommended)",
   "media.bot.recommended": "Recommended",
   "media.bot.more": "More models",
-  "imageGen.provider.delioMedia": "Delio Media"
+  "imageGen.provider.delioMedia": "Delio Media",
+  "sidebar.menu.ambassador": "Ambassador space"
 }

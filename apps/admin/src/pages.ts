@@ -101,7 +101,8 @@ ${notice(error, "error")}<form method="post" action="/login/verify" class="card"
 <p><button class="primary" style="width:100%">Se connecter</button></p></form><p class="center muted"><a href="/login?next=${encodeURIComponent(next)}">Utiliser une autre adresse</a></p></div>`;
 }
 
-export function homePage(input: { workspaces: Array<Workspace & { role: Role }>; operator: boolean; all: Workspace[]; signup?: boolean; message?: string; error?: string }): Html {
+export function homePage(input: { workspaces: Array<Workspace & { role: Role }>; operator: boolean; all: Workspace[]; signup?: boolean; message?: string; error?: string;
+  ambassador?: { level: string; availableUsd: number } | null }): Html {
   const mine = input.workspaces.length === 0
     ? h`<p class="muted">Vous n'êtes encore dans aucun espace. ${input.signup ? h`<a href="/signup">Créez-en un</a>, ou demandez` : "Demandez"} une invitation à un administrateur.</p>`
     : input.workspaces.map((workspace) => h`<div class="row"><div class="grow"><b>${workspace.name}</b><div class="muted">${workspace.slug} · ${workspace.role === "admin" ? "administrateur" : "membre"}</div></div>
@@ -114,7 +115,9 @@ export function homePage(input: { workspaces: Array<Workspace & { role: Role }>;
 <label for="tenant">Adresse de l'espace</label><input id="tenant" name="tenantUrl" type="url" required placeholder="https://acme.deliobot.com">
 <label for="owner">E-mail du premier administrateur</label><input id="owner" name="ownerEmail" type="email" required>
 <p><button class="primary">Créer l'espace</button></p></form>` : raw("");
-  return h`<h1>Vos espaces</h1>${notice(input.message)}${notice(input.error, "error")}<div class="card">${mine}</div>
+  const ambassador = input.ambassador ? h`<div class="card row"><div class="grow"><b>Espace ambassadeur</b><div class="muted">Niveau ${input.ambassador.level} · ${input.ambassador.availableUsd.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $ disponibles</div></div>
+<a class="button primary" href="/ambassadeur">Ouvrir mon espace</a></div>` : "";
+  return h`<h1>Vos espaces</h1>${notice(input.message)}${notice(input.error, "error")}${ambassador}<div class="card">${mine}</div>
 ${input.signup && input.workspaces.length ? h`<p><a href="/signup">Créer un autre espace</a></p>` : ""}${operator}`;
 }
 
