@@ -97,6 +97,7 @@ CREATE TABLE IF NOT EXISTS promo_redemptions (code TEXT NOT NULL, workspace TEXT
     const checked = this.check(value, workspace);
     if (!checked.ok) return checked;
     if (checked.promo.kind !== "credits") return { ok: false, error: "Ce code donne une réduction : choisissez un forfait pour l'utiliser." };
+    if (checked.promo.ambassador) return { ok: false, error: "Ce code n'est plus valable." };
     return this.db.transaction((): PromoCheck => {
       const claimed = this.db.prepare("INSERT INTO promo_redemptions (code, workspace, at) VALUES (?, ?, ?) ON CONFLICT DO NOTHING").run(checked.promo.code, workspace, this.now());
       if (Number(claimed.changes) !== 1) return { ok: false, error: "Ce code a déjà été utilisé pour cet espace." };

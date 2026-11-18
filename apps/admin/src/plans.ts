@@ -127,7 +127,8 @@ CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, workspace TEXT NOT NULL,
   created_at INTEGER NOT NULL, paid_at INTEGER);
 CREATE INDEX IF NOT EXISTS orders_status ON orders (status, created_at);
 CREATE TABLE IF NOT EXISTS trial_uses (email TEXT PRIMARY KEY, workspace TEXT NOT NULL, at INTEGER NOT NULL);
-CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT NULL);`);
+CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS queued_plans (order_id TEXT PRIMARY KEY, workspace TEXT NOT NULL, at INTEGER NOT NULL);`);
     try { this.db.prepare("SELECT promo FROM orders LIMIT 0").all(); } catch { this.db.exec("ALTER TABLE orders ADD COLUMN promo TEXT"); }
   }
 
@@ -237,9 +238,24 @@ CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT N
   }
 
   /** A plan's period starts now, or after the current one when the same plan is renewed early; a month's credits come at its start. */
+  /** When a paid order for a different plan or cycle starts: now, or once the paid plan running today ends (it is never cut short). */
+  startsAt(workspace: string, plan: PlanId, cycle: Cycle): number {
+    const current = this.subscription(workspace);
+    const queued = this.db.prepare("SELECT MAX(o.created_at) AS at FROM queued_plans q JOIN orders o ON o.id = q.order_id WHERE q.workspace = ?").get(workspace) as { at: number | null };
+    if (queued.at !== null) return Math.max(this.now(), current.periodEnd);
+    const sameKind = current.plan === plan && current.cycle === cycle;
+    // A monthly plan moves up to a dearer one at once; the credits already given stay. Anything else would throw paid time away.
+    const upgrade = current.cycle === "month" && this.plan(plan).usd > this.plan(current.plan).usd;
+    return current.status === "active" && current.plan !== "trial" && !sameKind && !upgrade ? current.periodEnd : this.now();
+  }
+
   private startPeriod(order: Order): void {
     const plan = order.plan!;
     const current = this.subscription(order.workspace);
+    if (plan !== "trial" && this.startsAt(order.workspace, plan, order.cycle) > this.now()) {
+      this.db.prepare("INSERT INTO queued_plans (order_id, workspace, at) VALUES (?, ?, ?) ON CONFLICT DO NOTHING").run(order.id, order.workspace, this.now());
+      return;
+    }
     const continuing = current.plan === plan && current.cycle === order.cycle && (current.status === "active" || current.status === "grace" || current.status === "trialing");
     const start = continuing ? Math.max(this.now(), current.periodEnd) : this.now();
     const months = order.cycle === "year" ? YEAR_MONTHS : 1;
@@ -271,7 +287,22 @@ CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT N
 
   /** Grants the monthly credits of yearly plans whose next month has begun; run from the sweep. */
   grantDue(): number {
-    return this.db.transaction(() => this.grantDueWithinTransaction());
+    return this.db.transaction(() => { this.startQueued(); return this.grantDueWithinTransaction(); });
+  }
+
+  /** Plans paid for while another was running begin once it ends, oldest first. */
+  private startQueued(): void {
+    const due = this.db.prepare(`SELECT q.order_id AS id FROM queued_plans q JOIN subscriptions s ON s.workspace = q.workspace
+      WHERE s.period_end <= ? ORDER BY q.at`).all(this.now()) as Array<{ id: string }>;
+    const started = new Set<string>();
+    for (const row of due) {
+      const order = this.order(row.id);
+      if (order && started.has(order.workspace)) continue;
+      this.db.prepare("DELETE FROM queued_plans WHERE order_id = ?").run(row.id);
+      if (!order) continue;
+      started.add(order.workspace);
+      this.startPeriod(order);
+    }
   }
 
   private grantDueWithinTransaction(): number {
@@ -305,10 +336,14 @@ CREATE TABLE IF NOT EXISTS payment_events (id TEXT PRIMARY KEY, at INTEGER NOT N
    * plan's rights such as using one's own AI), recorded as a free order. */
   giftPlan(workspace: string, email: string, plan: PlanId, days: number, credits: number): Order {
     const id = `${MANUAL_ORDER_PREFIX}${token(12)}`;
-    this.db.prepare("INSERT INTO orders (id, workspace, email, kind, plan, cycle, credits, usd, amount, currency, status, created_at) VALUES (?, ?, ?, 'plan', ?, 'month', ?, 0, '0', 'XOF', 'pending', ?)")
-      .run(id, workspace, email, plan, credits, this.now());
-    this.fulfil(id);
-    this.db.prepare("UPDATE subscriptions SET period_end = ?, next_grant_at = NULL, grants_left = 0, monthly_credits = ? WHERE workspace = ?").run(this.now() + days * DAY_MS, credits, workspace);
+    this.db.transaction(() => {
+      this.db.prepare("INSERT INTO orders (id, workspace, email, kind, plan, cycle, credits, usd, amount, currency, status, created_at, paid_at) VALUES (?, ?, ?, 'plan', ?, 'month', ?, 0, '0', 'XOF', 'paid', ?, ?)")
+        .run(id, workspace, email, plan, credits, this.now(), this.now());
+      if (credits > 0) this.grant(workspace, plan, credits, id);
+      this.db.prepare(`INSERT INTO subscriptions (workspace, plan, cycle, period_end, reminded, monthly_credits, next_grant_at, grants_left) VALUES (?, ?, 'month', ?, 0, ?, NULL, 0)
+        ON CONFLICT (workspace) DO UPDATE SET plan = excluded.plan, cycle = excluded.cycle, period_end = excluded.period_end, reminded = 0,
+          monthly_credits = excluded.monthly_credits, next_grant_at = NULL, grants_left = 0`).run(workspace, plan, this.now() + days * DAY_MS, credits);
+    });
     return this.order(id)!;
   }
 

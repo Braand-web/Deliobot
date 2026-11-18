@@ -132,6 +132,7 @@ CREATE TABLE IF NOT EXISTS ambassador_payouts (id INTEGER PRIMARY KEY AUTOINCREM
     const next = { ...current, ...input };
     this.db.prepare("UPDATE ambassadors SET name = ?, phone = ?, social = ?, status = ?, rate_override = ? WHERE id = ?")
       .run(next.name, next.phone, next.social, next.status, next.rateOverride, id);
+    if (next.status !== "active") this.db.prepare("UPDATE promo_codes SET active = 0 WHERE ambassador = ?").run(id);
   }
 
   /** A first code from the ambassador's name, made when they are approved, if they have none. */

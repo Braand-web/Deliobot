@@ -131,8 +131,16 @@ async function readRawBody(req: IncomingMessage): Promise<Buffer> {
 }
 
 /** Only same-site paths, so a crafted `next` can never send someone elsewhere after sign-in. */
-function localPath(value: string | null | undefined): string {
-  return value && value.startsWith("/") && !value.startsWith("//") && !value.startsWith("/\\") && value.length <= 2048 ? value : "/";
+/** A path on this portal to go back to; anything else, a browser's way of reaching another site included, is "/". */
+export function localPath(value: string | null | undefined): string {
+  if (!value || value.length > 2048 || !value.startsWith("/") || /[\u0000-\u001f\u007f\\]/.test(value)) return "/";
+  try {
+    const base = new URL("https://portal.invalid");
+    const parsed = new URL(value, base);
+    return parsed.origin === base.origin ? parsed.pathname + parsed.search + parsed.hash : "/";
+  } catch {
+    return "/";
+  }
 }
 
 function tenantOrigin(value: string): string | null {
@@ -293,6 +301,10 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     if (input.req && input.url) attributeRef(input.req, input.url, workspace.slug);
     if (kind === "plan" && plan === "trial" && !settings.isOpen("trial")) return fail(409, "L'essai n'est plus proposé pour le moment. Choisissez un forfait.");
     if (kind === "plan" && plan === "trial" && plans.trialUsed(user.email, workspace.slug)) return fail(409, "L'essai a déjà été utilisé pour ce compte ou cet espace.");
+    const running = plans.subscription(workspace.slug);
+    if (kind === "plan" && plan === "trial" && running.plan !== "trial" && (running.status === "active" || running.status === "grace")) {
+      return fail(409, "Vous avez déjà un forfait en cours : l'essai est réservé aux nouveaux comptes.");
+    }
     let promo: { code: string; percent: number } | undefined;
     const ambassadorCode = input.code ? ambassadors.ambassadorForCode(input.code) : null;
     if (ambassadorCode) ambassadors.attribute(workspace.slug, ambassadorCode.code, "code", store.members(workspace.slug).map((member) => member.email));
@@ -306,7 +318,8 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       ? plans.createOrder({ workspace: workspace.slug, email: user.email, kind, plan, cycle, ...(promo ? { promo } : {}) }, currency, options.payments?.xofPerUsd)
       : plans.createOrder({ workspace: workspace.slug, email: user.email, kind, topup }, currency, options.payments?.xofPerUsd);
     const description = kind === "plan"
-      ? `Delio ${PLANS[plan].name} · ${plan === "trial" ? `${TRIAL_DAYS} jours` : order.cycle === "year" ? "1 an" : "1 mois"}${promo ? ` · code ${promo.code} (-${promo.percent} %)` : ""}`
+      ? `Delio ${PLANS[plan].name} · ${plan === "trial" ? `${TRIAL_DAYS} jours` : order.cycle === "year" ? "1 an" : "1 mois"}${promo ? ` · code ${promo.code} (-${promo.percent} %)` : ""}${
+        plan !== "trial" && plans.startsAt(workspace.slug, plan, order.cycle) > now() ? ` · commence le ${new Intl.DateTimeFormat("fr-FR", { dateStyle: "long", timeZone: "UTC" }).format(new Date(plans.startsAt(workspace.slug, plan, order.cycle)))}, à la fin de votre forfait actuel` : ""}`
       : `Crédits Delio · ${order.credits}`;
     try {
       const session = await saspay.createCheckout({ amount: order.amount, currency, description, email: user.email, name: user.email,
@@ -860,7 +873,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
             : "Votre compte est déjà lié à un code ambassadeur : vos crédits offerts arrivent avec votre premier abonnement." });
       }
       const checked = promos.check(code, slug);
-      if (!checked.ok) return show(400, { code, error: checked.error });
+      if (!checked.ok || checked.promo.ambassador) return show(400, { code, error: checked.ok ? "Ce code n'est plus valable." : checked.error });
       if (checked.promo.kind === "credits") {
         const redeemed = promos.redeemCredits(code, slug);
         if (!redeemed.ok) return show(400, { code, error: redeemed.error });

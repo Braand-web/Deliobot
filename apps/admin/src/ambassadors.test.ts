@@ -158,4 +158,13 @@ describe("the ambassador programme", () => {
     expect(payout).toMatchObject({ mode: "mobile_money", status: "requested" });
     expect(ambassadors.markPayoutPaid(payout.id, "OM-12345", "ops@delio.test")).toMatchObject({ status: "paid", reference: "OM-12345" });
   });
+
+  it("turns a suspended ambassador's codes off, and never gives their credits away as a plain code", () => {
+    const { ambassadors, awa, promos, store } = setup();
+    store.createWorkspace({ slug: "farm", name: "farm", tenantUrl: "https://f.test", ownerEmail: "farm@x.test" }, "test");
+    expect(promos.redeemCredits("AWA", "farm")).toMatchObject({ ok: false });
+    ambassadors.update(awa.id, { status: "suspended" });
+    expect(promos.get("AWA")?.active).toBe(false);
+    expect(promos.redeemCredits("AWA", "farm")).toMatchObject({ ok: false });
+  });
 });
