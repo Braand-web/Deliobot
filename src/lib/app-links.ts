@@ -8,6 +8,14 @@ export const PASSKEY_HELP_URL = HELP_CENTER_URL;
 export const FEEDBACK_URL = `mailto:${SUPPORT_EMAIL}`;
 export const RELEASES_URL = `${APP_REPOSITORY}/releases`;
 export const PRICING_URL = "https://deliobot.fun/#tarifs";
+export const TEAM_PLANS_URL = PRICING_URL;
+export const CLOUD_PLAN_URL = "https://compte.deliobot.fun/";
+/** The account portal's team People page: `invite` opens its invite box, `seats` its seat stepper. */
+export const TEAM_PEOPLE_PAGES = { invite: "people?do=invite", seats: "people?do=seats" } as const;
+/** `cloudPage`: the portal's pages for this team, sent by the server. */
+export function teamPeoplePage(team: { id: string; cloudPage?: string } | null | undefined, open: keyof typeof TEAM_PEOPLE_PAGES = "invite"): string | null {
+  return team?.cloudPage ? `${team.cloudPage}/team/${encodeURIComponent(team.id)}/${TEAM_PEOPLE_PAGES[open]}` : null;
+}
 export function withSource(url: string, source: string): string {
   const target = new URL(url);
   target.searchParams.set("src", source);

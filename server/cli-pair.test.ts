@@ -146,7 +146,7 @@ describe("opendeliobot pair", () => {
     expect(failure).toBeInstanceOf(Error);
     const message = (failure as Error).message;
     expect(message).toContain("The OpenDeliobot desktop app runs this server");
-    expect(message).toContain("Settings → Remote access");
+    expect(message).toContain("Settings → Phone & devices");
     // A terminal `serve` would not get the keys the app keeps in its own credential store, so it is not offered.
     expect(message).not.toContain("opendeliobot serve");
     expect(message).not.toContain("server refused to mint a pairing code");

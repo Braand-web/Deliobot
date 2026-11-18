@@ -1,3 +1,5 @@
+import { toolsOffFromEnv, type ToolGroup } from "../../shared/tool-groups.ts";
+
 // The ODB_* switches the harness gives the agents proxy, read into the profile agents-catalog.ts lists tools for.
 
 /** Which tools a conversation is shown, the same on every one of its turns. Presentation only: the server still
@@ -25,6 +27,9 @@ export interface CatalogProfile {
   /** A direct chat whose bot may pick where it works (Works on is not Off and no team computer is its own): select_computer
    * is mounted, and the harness refuses a pick on any turn but a person's own message. */
   computerSelection?: boolean;
+  /** This server can give a bot a Local VM: a supported container runtime is installed on the host.
+   * Absent means it can. */
+  localVm?: boolean;
   /** A room's thread: the wait tools are not mounted, since a room holds no wait. */
   room?: boolean;
   imageGeneration?: boolean;
@@ -34,6 +39,8 @@ export interface CatalogProfile {
   meetings?: boolean;
   /** The plan's included app hosting reaches this server: publish_app is mounted. */
   appHosting?: boolean;
+  /** The tool groups this bot's person turned off: none of their tools is mounted. */
+  toolsOff?: readonly ToolGroup[];
 }
 
 /** Everything is off unless the harness says "1". */
@@ -51,11 +58,13 @@ export function catalogProfileFromEnv(env: NodeJS.ProcessEnv): CatalogProfile {
     team: env.ODB_TEAM_PEOPLE === "1",
     delio: env.ODB_DELIO === "1",
     computerSelection: env.ODB_COMPUTER_SELECTION === "1",
+    localVm: env.ODB_LOCAL_VM !== "0",
     room: env.ODB_ROOM === "1",
     imageGeneration: env.ODB_IMAGE_GENERATION === "1",
     videoGeneration: env.ODB_VIDEO_GENERATION === "1",
     musicGeneration: env.ODB_MUSIC_GENERATION === "1",
     meetings: env.ODB_MEETINGS === "1",
     appHosting: env.ODB_APP_HOSTING === "1",
+    toolsOff: toolsOffFromEnv(env.ODB_TOOLS_OFF),
   };
 }

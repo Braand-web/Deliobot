@@ -12,7 +12,9 @@ import { applyStandaloneSpawnEnv } from "../../engine-install.ts";
 import { OPENCODE_STANDALONE } from "./opencode-release.ts";
 import { createAcpDriver, type AccountErrorCode, type AcpConfig, type AcpSupport } from "./core.ts";
 import { offeredModels } from "./config-options.ts";
+import type { AcpRequestSteer } from "./steer.ts";
 import { declareTypedOpenCodeModel } from "./opencode-typed-model.ts";
+import { OPENCODE_GO_MODEL_PREFIX } from "../../../shared/opencode-model-id.ts";
 import {
   declareLiveOpenCodeModels,
   keepOpenCodeModelsFresh,
@@ -39,6 +41,13 @@ import {
 
 export { catalogFromOpenCodeSession, surveyOpenCodeEfforts } from "./opencode-probe.ts";
 export { openCodePromptUnreachedModel } from "./opencode-unreached.ts";
+
+/** OpenCode 2.3.0 has the ACP request `_session/steering` and reports it at `initialize` in `_meta.steering.supported`. */
+export const OPENCODE_STEER: AcpRequestSteer = {
+  kind: "request",
+  method: "_session/steering",
+  supported: (init) => (init as { _meta?: { steering?: { supported?: unknown } } } | null)?._meta?.steering?.supported === true,
+};
 
 const NO_MODELS: ModelCatalog = { default: "", options: [] };
 
@@ -617,9 +626,9 @@ export function describeOpenCodeAccountError(
   switch (code) {
     case "invalid_credentials":
       return zen || go || !provider
-        ? "OpenCode rejected its key, or has none for this model. Add or replace the OpenCode key in Settings → API keys."
+        ? "OpenCode rejected its key, or has none for this model. Add or replace the OpenCode key in Settings → AI → Providers."
         : where.cloudHome
-          ? `OpenCode's ${name} key for this model is missing or was rejected. Save it under Keys for other OpenCode providers in Settings → API keys.`
+          ? `OpenCode's ${name} key for this model is missing or was rejected. Save it under Keys for other OpenCode providers in Settings → AI.`
           : `OpenCode's ${name} key for this model is missing or was rejected. Fix it with \`opencode auth login\`, or choose another model.`;
     case "insufficient_funds":
       return zen || !provider
@@ -666,7 +675,7 @@ const support = (
     models: NO_MODELS,
     defaultCli: "opencode",
     nativeSource: "opencode.acp",
-    loginNote: "OpenCode has no usable models. Add an OpenCode key in Settings → API keys.",
+    loginNote: "OpenCode has no usable models. Add an OpenCode key in Settings → AI → Providers.",
     install: {
       command: {
         darwin: "npm install -g @opencode/cli",
@@ -684,6 +693,7 @@ const support = (
     // shares: a connection check or memory upkeep would show up in their history there.
     oneShotFolder: discoveryDirectory,
     shareProcess: true,
+    steer: OPENCODE_STEER,
     credentialEnv: ["OPENCODE_API_KEY", ...OPENCODE_PROVIDER_ENV],
     selectModel: { configId: "model" },
     fallbackModel: (sessionConfig, catalogDefault) => {
@@ -761,18 +771,14 @@ const ACCOUNT_ERROR_TEXT: ReadonlyArray<readonly [RegExp, AccountErrorCode]> = [
  * refusal holds that login's free models and leaves the account available. */
 const FREE_MODEL_LIMIT = /\bfree(?:UsageLimitError|\s+usage\s+limit)\b/iu;
 
-/** OpenCode Go's subscription models: its weekly or monthly allowance holds them all, never Zen's free models on the same
- * login, which have an allowance of their own. */
-const GO_PROVIDER = "opencode-go/";
-
 /** How far a usage limit OpenCode reported reaches: one provider's shared free allowance (with the free models that
  * allowance holds), the Go subscription's models, or the whole account. */
 export function openCodeLimitFacts(text: string, model?: string, catalog?: ModelCatalog): { limit: "engine" | "model"; limitModels?: string[] } {
   if (!FREE_MODEL_LIMIT.test(text)) {
-    if (!model?.startsWith(GO_PROVIDER)) return { limit: "engine" };
+    if (!model?.startsWith(OPENCODE_GO_MODEL_PREFIX)) return { limit: "engine" };
     const listed = [...lastSuccessfulCatalog.values(), ...(catalog ? [catalog] : [])].flatMap((known) => known.options.map((option) => option.id));
     const paid = (catalog && catalogPrices.get(catalog)?.paid) ?? [];
-    return { limit: "model", limitModels: [...new Set([model, ...paid, ...listed].filter((id) => id.startsWith(GO_PROVIDER)))] };
+    return { limit: "model", limitModels: [...new Set([model, ...paid, ...listed].filter((id) => id.startsWith(OPENCODE_GO_MODEL_PREFIX)))] };
   }
   const provider = model?.includes("/") ? model.slice(0, model.indexOf("/")) : "";
   const offered = new Set(catalog?.options.map((option) => option.id));

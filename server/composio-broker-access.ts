@@ -57,6 +57,17 @@ export function brokerAccess(): BrokerAccess | null {
   return { url: normalizeManagedBrokerUrl(url), token };
 }
 
+let relink: (() => Promise<void>) | null = null;
+/** Who links this installation to its Deliobot account again when the service refuses it for want of one. */
+export function setBrokerRelink(fn: (() => Promise<void>) | null): void {
+  relink = fn;
+}
+export async function relinkBroker(): Promise<boolean> {
+  if (!relink) return false;
+  await relink().catch(() => undefined);
+  return true;
+}
+
 const ERASE_MAX_CALLS = 40;
 const ERASE_CALL_TIMEOUT_MS = 120_000;
 const eraseResponseSchema = z.object({ erased: z.boolean().optional(), sharedUserKept: z.boolean().optional(), error: z.string().optional() });

@@ -22,7 +22,13 @@ export const VERB_HELP: Record<string, string> = {
 opendeliobot doctor --host [--data-dir DIR] [--port 8799] [--domain HOST]
   Check this Linux machine can run the server and the bots' sandbox: the system, Docker or Podman, user
   namespaces, seccomp, cgroup v2, free disk, size, ports and the clock. Each problem says its fix.
-  Exit 0 ready (warnings allowed), 7 something is missing. On macOS and Windows it says it is for Linux.`,
+  Exit 0 ready (warnings allowed), 7 something is missing. On macOS and Windows it says it is for Linux.
+opendeliobot doctor --data [--fix] [--data-dir DIR]
+  Check this computer's data folder without the server: the data format, the folder's lease, folders, bots.json and
+  groups.json, saves that did not finish, engine-run records, messages.db, private files' modes and config.json.
+  --fix applies the repairs that cannot lose data, only while no server uses the folder; whatever a repair changes is
+  copied to DIR/doctor-backups/<time>/ first. Anything else is reported with what to do.
+  Exit 0 fine (after --fix: fine now), 8 a problem is left.`,
   bots: "opendeliobot bots\n  Your bots and what each is doing.",
   channels: "opendeliobot channels\n  Your rooms (group chats) and who is in them.",
   models: "opendeliobot models\n  The engines and the models each offers (use them as INSTANCE/MODEL).",
@@ -81,7 +87,7 @@ opendeliobot doctor --host [--data-dir DIR] [--port 8799] [--domain HOST]
   "engine list": "opendeliobot engine list\n  The engines, whether each is ready, and which keys are set (never their values).",
   connect: `opendeliobot connect [URL] [--code CODE] --out FILE [--label NAME] [--client] [--force]
   Get a token for a workspace you reach over the network, saved to FILE (only you can read it).
-  On this computer's own server the code is made for you; elsewhere, get one from Settings → Phone.
+  On this computer's own server the code is made for you; elsewhere, get one from Settings → Phone & devices.
   Then use it: --url URL --token-file FILE (or OPENDELIOBOT_URL and OPENDELIOBOT_TOKEN).`,
   mcp: "opendeliobot mcp\n  Serve the Deliobot MCP tools on stdin and stdout, for an agent (docs/mcp-server.md).",
   token: "opendeliobot token create NAME --out FILE … | token list | token revoke ID   (see help token create)",

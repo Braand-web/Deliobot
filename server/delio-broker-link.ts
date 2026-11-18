@@ -32,9 +32,9 @@ export function startDelioBrokerLink(options: {
   const failed = new Map<string, number>();
   let running = false;
 
-  async function link(broker: { url: string; token: string }, account: DelioBrokerAccount): Promise<void> {
+  async function link(broker: { url: string; token: string }, account: DelioBrokerAccount, force: boolean): Promise<void> {
     const key = `${broker.url}\n${broker.token}\n${account.workspace}\n${account.token}`;
-    if (now() - (linked.get(key) ?? -Infinity) < REFRESH_MS || now() - (failed.get(key) ?? -Infinity) < RETRY_MS) return;
+    if (!force && now() - (linked.get(key) ?? -Infinity) < REFRESH_MS || now() - (failed.get(key) ?? -Infinity) < RETRY_MS) return;
     try {
       const response = await fetchImpl(`${broker.url}/v1/installation/delio`, {
         method: "POST", redirect: "error", signal: AbortSignal.timeout(15_000),
@@ -50,13 +50,13 @@ export function startDelioBrokerLink(options: {
     }
   }
 
-  async function tick(): Promise<void> {
+  async function tick(force = false): Promise<void> {
     if (running) return;
     const account = options.account();
     if (!account) return;
     running = true;
     try {
-      for (const broker of installations()) await link(broker, account);
+      for (const broker of installations()) await link(broker, account, force);
     } finally {
       running = false;
     }

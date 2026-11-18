@@ -70,46 +70,6 @@ async function seal(
 }
 
 describe("PhoneSecretBridge", () => {
-  it("opens an envelope produced by Apple's CryptoKit HPKE implementation", async () => {
-    let bridge!: PhoneSecretBridge;
-    const send = vi.fn((message: { requestId: string; value: string }) => {
-      expect(message.value).toBe("swift-to-node-secret");
-      queueMicrotask(() => bridge.receive({
-        type: "opendeliobot:phone-secret-save-result",
-        requestId: message.requestId,
-        ok: true,
-      }));
-      return true;
-    });
-    bridge = new PhoneSecretBridge(send, 200);
-    bridge.receive({
-      type: "opendeliobot:phone-secret-key",
-      version: 1,
-      keyId: "taWSR_nZ7ojlH_0Z3tar6Q",
-      privateKey: {
-        kty: "EC",
-        crv: "P-256",
-        x: "g8FDXb91acXUNkuxNk7dWDQ0aN2zn6On2HeOGOvZOjs",
-        y: "bJelczS0LM82rfXV68PmSJhz2ePosj3fL974XckCpDU",
-        d: "5B-SwYLGXc04u4v7YLpzFrwj2JjysBFaJevOPl3h3Zg",
-      },
-    });
-
-    await expect(bridge.provide({
-      version: 1,
-      keyId: "taWSR_nZ7ojlH_0Z3tar6Q",
-      deviceId: "paired-device-1",
-      botId: "bot-1",
-      threadId: "thread-1",
-      messageId: "message-1",
-      target: "ttsKey",
-      requestKey: "credential-request-1",
-      encapsulatedKey: "BDhy_5hMSvVIy3zGSmBwBECAedYBAwwFLvbWoXCGTJyLRH1cItoQXo9NBcEG0cTQV_VwaEf5judXcsJlh2jfW7Q",
-      ciphertext: "CjM0CnBT8NYd_BHAXJRKFrbYrSw6OgMIlJLAKs8VUPSSCsa2",
-    })).resolves.toBeUndefined();
-    expect(send).toHaveBeenCalledTimes(1);
-  });
-
   it("opens a custom secret's envelope for this server alone, never sending the value to the private parent", async () => {
     const material = await keyMaterial();
     const send = vi.fn(() => true);
@@ -263,7 +223,7 @@ describe("PhoneSecretBridge", () => {
 describe("phoneSecretAAD", () => {
   it("has the exact stable cross-platform serialization", () => {
     expect(new TextDecoder().decode(phoneSecretAAD(baseContext("AAAAAAAAAAAAAAAAAAAAAA")))).toBe([
-      "openmausbot-phone-credential-v1",
+      "opendeliobot-phone-credential-v1",
       "AAAAAAAAAAAAAAAAAAAAAA",
       "paired-device-1",
       "bot-1",

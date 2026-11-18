@@ -928,7 +928,7 @@ export const CursorAvatar = React.forwardRef<CursorAvatarHandle, CursorAvatarPro
       paused = false,
       silhouette = DEFAULT_SILHOUETTE,
       gradient = DEFAULT_GRADIENT, picture, pictureBlink, pictureGlow,
-      eyeColor = "#ffffff",
+      eyeColor,
       title,
       className,
       style,
@@ -1231,6 +1231,16 @@ export const CursorAvatar = React.forwardRef<CursorAvatarHandle, CursorAvatarPro
     const dimension = typeof size === 'number' ? `${size}px` : size
     const label = title === undefined ? mascotLabel(silhouette.name) : title
     const body = silhouette.body.replace(/\{\{GRADIENT\}\}/g, `url(#${uid}-grad)`)
+    const cutFace = !eyeColor && !picture
+    const ink = cutFace ? 'black' : eyeColor
+    const face = (
+      <g clipPath={`url(#${uid}-clip)`} visibility={picture ? 'hidden' : undefined}>
+        <g transform={anchorTransform(silhouette.anchor)}>
+          <path ref={eye0} fill={ink} /><path ref={eye1} fill={ink} />
+          {showMouth && <path ref={mouth} fill="none" stroke={ink} strokeWidth={mouthStroke} strokeLinecap="round" />}
+        </g>
+      </g>
+    )
 
     return (
       <svg
@@ -1257,6 +1267,8 @@ export const CursorAvatar = React.forwardRef<CursorAvatarHandle, CursorAvatarPro
             transform={silhouette.fit || undefined}
             dangerouslySetInnerHTML={{ __html: silhouette.clip }}
           />
+          {cutFace && <mask id={`${uid}-face`} maskUnits="userSpaceOnUse" x={-VIEW_SPAN} y={-VIEW_SPAN} width={VIEW_SPAN * 3} height={VIEW_SPAN * 3}>
+            <rect x={-VIEW_SPAN} y={-VIEW_SPAN} width={VIEW_SPAN * 3} height={VIEW_SPAN * 3} fill="white" />{face}</mask>}
         </defs>
         <g transform={flip ? `translate(${FACE_BOX} 0) scale(-1 1)` : undefined}>
           <g ref={trailLayer} />
@@ -1264,22 +1276,10 @@ export const CursorAvatar = React.forwardRef<CursorAvatarHandle, CursorAvatarPro
           <g ref={bodyContent}>
           {picture
             ? <DelioPicture uid={uid} picture={picture} blink={pictureBlink} glow={pictureGlow} phase={picturePhase} paused={Boolean(paused)} reduced={Boolean(reduced)} />
-            : <g transform={silhouette.fit || undefined} dangerouslySetInnerHTML={{ __html: body }} />}
-          <g clipPath={`url(#${uid}-clip)`} visibility={picture ? 'hidden' : undefined}>
-            <g transform={anchorTransform(silhouette.anchor)}>
-              <path ref={eye0} fill={eyeColor} />
-              <path ref={eye1} fill={eyeColor} />
-              {showMouth && (
-                <path
-                  ref={mouth}
-                  fill="none"
-                  stroke={eyeColor}
-                  strokeWidth={mouthStroke}
-                  strokeLinecap="round"
-                />
-              )}
-            </g>
-          </g>
+            : <g mask={cutFace ? `url(#${uid}-face)` : undefined}>
+            <g transform={silhouette.fit || undefined} dangerouslySetInnerHTML={{ __html: body }} />
+          </g>}
+          {!cutFace && face}
           </g>
           <g ref={glyphLayer} style={{ opacity: 0 }} />
           </g>

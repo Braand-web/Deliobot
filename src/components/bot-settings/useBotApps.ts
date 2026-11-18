@@ -6,6 +6,7 @@ import { api, type Bot } from "@/state/store";
 import type { ConnectorScope } from "../../../shared/connector-scopes";
 import { EMAIL_SLUG, type EmailStatus } from "../../../shared/email";
 import { preloadConnectedApps, type ConnectorInventory } from "@/lib/connected-apps";
+import type { ConnectorAccount } from "@/lib/connector-status";
 import type { ToolkitCard } from "../ServiceIcon";
 
 export interface BotApp {
@@ -14,6 +15,8 @@ export interface BotApp {
   blurb: string;
   card: Pick<ToolkitCard, "logo" | "domain" | "label">;
   scope: ConnectorScope | null;
+  /** the app's connected accounts, when the inventory lists them */
+  accounts?: ConnectorAccount[];
 }
 
 export interface BotApps {
@@ -25,7 +28,10 @@ export interface BotApps {
 let cardsRequest: Promise<Map<string, ToolkitCard>> | null = null;
 export function loadAppCards(): Promise<Map<string, ToolkitCard>> {
   cardsRequest ??= api("/api/connectors/catalog")
-    .then((response: { cards?: ToolkitCard[] }) => new Map((response.cards ?? []).map((card) => [card.slug, card])))
+    .then((response: { cards?: ToolkitCard[]; source?: string }) => {
+      if (response.source !== "api") cardsRequest = null;
+      return new Map((response.cards ?? []).map((card) => [card.slug, card]));
+    })
     .catch(() => {
       cardsRequest = null;
       return new Map<string, ToolkitCard>();
@@ -68,6 +74,7 @@ export function botAppsFrom(
       blurb: card?.blurb ?? "",
       card: { logo: card?.logo ?? null, domain: card?.domain ?? null, label },
       scope: botAppScope(bot, slug),
+      accounts: inventory.services[slug]?.accounts ?? [],
     };
   });
   return { phase: "ready", apps, connectedSlugs };

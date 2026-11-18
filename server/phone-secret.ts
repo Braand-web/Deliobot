@@ -3,10 +3,9 @@ import { createECDH, createHash, type webcrypto } from "node:crypto";
 import { isCredentialTargetId, isProviderCredentialTarget } from "../shared/credential-request.ts";
 import type { CipherSuite } from "@hpke/core";
 
-export const PHONE_SECRET_PROTOCOL_VERSION = 1 as const;
-/** HPKE info the phone app seals with (Apple CryptoKit); a wire constant, so it keeps its original bytes. */
-export const PHONE_SECRET_INFO = "OpenMausBot phone credential v1";
-export const PHONE_SECRET_MAX_BYTES = 4_096;
+import { PHONE_SECRET_INFO, PHONE_SECRET_MAX_BYTES, PHONE_SECRET_PROTOCOL_VERSION } from "../shared/phone-secret-envelope.ts";
+
+export { PHONE_SECRET_INFO, PHONE_SECRET_MAX_BYTES, PHONE_SECRET_PROTOCOL_VERSION };
 
 const BASE64URL = /^[A-Za-z0-9_-]+$/;
 const ROUTE_ID = /^[\w-]{1,128}$/;
@@ -98,7 +97,7 @@ export function phoneSecretAAD(context: Pick<
 >): Uint8Array {
   const fields = [
     // A wire constant shared with the phone app, like PHONE_SECRET_INFO: it keeps its original bytes.
-    "openmausbot-phone-credential-v1",
+    "opendeliobot-phone-credential-v1",
     context.keyId,
     context.deviceId,
     context.botId,

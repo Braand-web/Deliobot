@@ -2,17 +2,19 @@ import { useCallback, useId, useState } from "react";
 
 import { GEMINI_LIVE_VOICE_OPTIONS, geminiLiveVoice, LIVE_VOICE_OPTIONS } from "../../shared/live-call";
 import { t } from "@/lib/i18n";
-import { liveDisclosure, liveKeyCopy } from "@/lib/call-mode";
-import { api, useStore, type ConfigStatus } from "@/state/store";
+import { liveDisclosure, liveKeyCopy, liveKeyFormKey } from "@/lib/call-mode";
+import { api, useStore, type Bot, type ConfigStatus } from "@/state/store";
 import type { LiveSettings } from "../../shared/wire";
 import { LiveKeySetup } from "./LiveKeySetup";
 import { LiveProviderSettings } from "./LiveProviderSettings";
+import { BotLiveVoiceSelect } from "./BotLiveVoiceSelect";
 import { KeysLink } from "./keys/KeysLink";
 import { Select } from "./Select";
 
 const IDLE_CHOICES = [1, 2, 3, 5, 10, 15, 30, 60];
 
-export function LiveCallSettings({ onClose }: { onClose: () => void }) {
+/** With `bot`, the bot on the call: it can have a voice of its own, and the other voice is the default for every other bot. */
+export function LiveCallSettings({ bot, onClose }: { bot?: Pick<Bot, "id" | "name" | "liveVoice">; onClose: () => void }) {
   const { state, dispatch } = useStore();
   const live: LiveSettings = state.config?.live ?? { configured: false, voice: "", readTypedReplies: true, idleMinutes: 5 };
   const [saving, setSaving] = useState(false);
@@ -26,6 +28,7 @@ export function LiveCallSettings({ onClose }: { onClose: () => void }) {
     dialog?.querySelector<HTMLElement>("select, input, button")?.focus();
   }, []);
   const azure = live.provider === "azure";
+  const custom = live.provider === "custom";
   const fish = live.provider === "fish";
   const gemini = live.provider === "gemini";
   const elevenlabs = live.provider === "elevenlabs";
@@ -80,8 +83,11 @@ export function LiveCallSettings({ onClose }: { onClose: () => void }) {
       <LiveProviderSettings locked={keySaving} onSaving={setProviderSaving} />
       {/* Fish Audio and ElevenLabs calls speak in their agent's own voice. */}
       {!fish && !elevenlabs && <>
+      {bot && (
+        <BotLiveVoiceSelect bot={bot} gemini={gemini} onChange={(liveVoice) => dispatch({ type: "updateBot", botId: bot.id, patch: { liveVoice } })} />
+      )}
       <label className="flex items-center justify-between gap-2">
-        <span className="text-ink-secondary">{t("call.live.voice")}</span>
+        <span className="text-ink-secondary">{t(bot ? "call.live.defaultVoice" : "call.live.voice")}</span>
         <Select
           size="sm"
           value={voice}
@@ -131,13 +137,13 @@ export function LiveCallSettings({ onClose }: { onClose: () => void }) {
           )}
         </span>
       </div>
-      {!hasKey && (azure || fish || gemini || elevenlabs) && <div className="-mt-2 text-[12px] text-ink-tertiary">{t(copy.missing)}</div>}
-      {live.keySource !== "live" && !azure && !fish && !gemini && !elevenlabs && (
+      {!hasKey && (azure || custom || fish || gemini || elevenlabs) && <div className="-mt-2 text-[12px] text-ink-tertiary">{t(copy.missing)}</div>}
+      {live.keySource !== "live" && !azure && !custom && !fish && !gemini && !elevenlabs && (
         <div className="-mt-2 text-[12px] text-ink-tertiary">{t(live.keySource === "openai" ? "call.live.keyFromApiKeys" : "call.live.needsKey")} <KeysLink id="openai" purpose="liveCalls" /></div>
       )}
-      {/* Keyed by provider: a key typed for one provider is never saved for another. */}
-      {changingKey && <LiveKeySetup key={state.config?.live?.provider ?? "openai"} compact locked={providerSaving} onSaving={setKeySaving} onSaved={() => setChangingKey(false)} />}
-      <div className="text-[12px] text-ink-tertiary">{liveDisclosure({ cloudHome: state.config?.cloudHome === true, azure, fish, gemini, elevenlabs })} {t(copy.cost)}</div>
+      {/* Keyed by provider and endpoint: a key typed for one is never saved for another. */}
+      {changingKey && <LiveKeySetup key={liveKeyFormKey(state.config?.live)} compact locked={providerSaving} onSaving={setKeySaving} onSaved={() => setChangingKey(false)} />}
+      <div className="text-[12px] text-ink-tertiary">{liveDisclosure({ cloudHome: state.config?.cloudHome === true, azure, custom, fish, gemini, elevenlabs })} {t(copy.cost)}</div>
       {error && <div className="text-[12px] text-danger">{error}</div>}
     </div>
   );

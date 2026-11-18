@@ -50,7 +50,9 @@ describe("a person's own Delio reaching the team's bots", () => {
     const unknown = resolveTeammate(bots, delio, "Nobody", undefined, undefined, wider());
     expect(resolveTeammate(bots, delio, "Payroll", undefined, undefined, wider())).toEqual({ error: (unknown as { error: string }).error.replaceAll("Nobody", "Payroll") });
     expect(resolveTeammate(bots, delio, "payroll", undefined, undefined, wider())).not.toEqual({ id: "payroll", byName: false });
-    expect(resolveTeammate(bots, delio, "Sales", undefined, undefined, wider())).toEqual({ id: "sales", byName: true });
+    // "Sales" is this bot's id in another case, which names it as its id would (byName false).
+    expect(resolveTeammate(bots, delio, "Sales", undefined, undefined, wider())).toEqual({ id: "sales", byName: false });
+    expect(resolveTeammate(bots, delio, "@sales", undefined, undefined, wider())).toEqual({ id: "sales", byName: true });
   });
 
   it("refuses a bot its person can only view, and says so", () => {

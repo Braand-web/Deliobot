@@ -69,6 +69,12 @@ export const localFilePath = (href?: string): string | null => {
   return href;
 };
 
+// A plain-path link as the server reads it: cut at ? or #, then percent-decoded once.
+export const decodedLinkPath = (href: string): string => {
+  try { return decodeURIComponent(href.split(/[?#]/, 1)[0]!); }
+  catch { return href; }
+};
+
 export function chatUrlTransform(value: string, key = "href"): string {
   if (looksLikeThreadRefUrl(value) || isUseMyComputerUrl(value)) return value;
   // Markdown-to-HTML percent-encodes a destination's backslashes (C:%5CUsers…); restore them and leave other escapes
@@ -105,14 +111,16 @@ const normalizationParseOptions: MarkdownParseOptions = {
   mdastExtensions: [...(gfmParseData.fromMarkdownExtensions ?? []), windowsPathDestinations],
 };
 
-/** A single line break in a reply is a line break, as chat apps show it, not a space. */
+/** A reply's newlines and a table cell's attribute-free <br> tags become Markdown breaks, without parsing raw HTML. */
 function remarkSoftBreaks() {
   return (tree: { children?: any[] }) => {
-    const visit = (node: { children?: any[] }) => {
+    const visit = (node: { type?: string; children?: any[] }, inTableCell = false) => {
       if (!node.children) return;
+      const tableCell = inTableCell || node.type === "tableCell";
       node.children = node.children.flatMap((child) => {
+        if (tableCell && child?.type === "html" && /^<br\s*\/?>$/i.test(child.value)) return [{ type: "break" }];
         if (child?.type !== "text" || !child.value.includes("\n")) {
-          visit(child);
+          visit(child, tableCell);
           return [child];
         }
         return (child.value as string).split("\n").flatMap((value, index) => [
@@ -331,9 +339,9 @@ export function MermaidDiagram({ code }: MermaidDiagramProps) {
 // Security: no href at all, since an <a href="file://…"> reaches setWindowOpenHandler on a middle or modifier click,
 // which calls shell.openExternal without main's containment check.
 // source: the original a delivered copy came from, offered on right-click (Show in Finder) like in the gallery.
-function LocalFileLink({ filePath, name, source, children, message }: { filePath: string; name?: string; source?: string; children?: ReactNode; message?: MessageAttachmentContext }) {
+function LocalFileLink({ filePath, shownPath, shownName, name, source, children, message }: { filePath: string; shownPath: string; shownName: string; name?: string; source?: string; children?: ReactNode; message?: MessageAttachmentContext }) {
   const save = useLocalFileSave(filePath, name, message);
-  const preview = useHtmlPreview(filePath, name ?? fileName(filePath), message);
+  const preview = useHtmlPreview(filePath, shownName, message);
   const revealMenu = useRevealOriginalMenu();
   if (!message) {
     return <span title={t("chat.file.legacy")} className="break-words text-ink-secondary">{children}</span>;
@@ -350,8 +358,8 @@ function LocalFileLink({ filePath, name, source, children, message }: { filePath
     <span dir="ltr" className="inline-flex flex-wrap items-center gap-x-1.5 [unicode-bidi:isolate]" {...revealMenu.targetProps(source)}>
       {revealMenu.menu}
       {preview.opens
-        ? <SaveIconButton name={name ?? fileName(filePath)} save={save} retryable={save.retryable} />
-        : <FilePreviewButton path={filePath} name={name ?? fileName(filePath)} message={message} />}
+        ? <SaveIconButton name={shownName} save={save} retryable={save.retryable} />
+        : <FilePreviewButton path={filePath} name={shownName} message={message} />}
       <button
         type="button"
         onClick={preview.opens ? preview.show : () => void save.save()}
@@ -383,7 +391,7 @@ function LocalFileLink({ filePath, name, source, children, message }: { filePath
       )}
       {save.state === "failed" && save.outsideWorkspace && (
         <span className="inline-flex flex-wrap items-center gap-x-1.5 text-[12px]">
-          <OutsideWorkspaceFile filePath={filePath} />
+          <OutsideWorkspaceFile filePath={shownPath} />
         </span>
       )}
       {save.folder && <MessageFolderFiles folderPath={filePath} listing={save.folder} message={message} />}
@@ -651,7 +659,11 @@ function MarkdownLink({ href, children, ...rest }: { href?: string; children?: R
   if (localPath) {
     const copy = delivered && Object.hasOwn(delivered, fileName(localPath)) ? delivered[fileName(localPath)] : undefined;
     const source = copy && originals && Object.hasOwn(originals, copy) ? originals[copy] : undefined;
-    return <LocalFileLink filePath={copy ?? localPath} name={copy ? fileName(localPath) : undefined} source={source} message={message}>{children}</LocalFileLink>;
+    // localFilePath already decodes a file:// URL; a plain path link is still encoded and gets the server's single decode.
+    // A delivered copy keeps its literal name.
+    const shownPath = copy ?? (/^file:\/\//i.test(href) ? localPath : decodedLinkPath(localPath));
+    const shownName = copy ? fileName(localPath) : fileName(shownPath);
+    return <LocalFileLink filePath={copy ?? localPath} shownPath={shownPath} shownName={shownName} name={copy ? fileName(localPath) : undefined} source={source} message={message}>{children}</LocalFileLink>;
   }
   if (!/^https?:\/\//i.test(href)) {
     return (

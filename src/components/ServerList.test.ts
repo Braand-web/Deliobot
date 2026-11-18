@@ -76,6 +76,7 @@ it("the update note shows only for a server behind this app, with the command th
   expect(updateCommand("npx", "0.1.147")).toBe("npx opendeliobot@0.1.147 serve");
   expect(updateCommand(null, "0.1.147")).toBe("npx opendeliobot@0.1.147 serve");
   expect(updateCommand("global", "0.1.147")).toBe("npm install -g opendeliobot@0.1.147");
+  expect(updateCommand("podman-service", "0.1.147")).toBe("~/.local/share/opendeliobot/update.sh");
 });
 
 it("Pair again opens the Connect sheet with the address locked and the code field ready; Remove only asks main", async () => {

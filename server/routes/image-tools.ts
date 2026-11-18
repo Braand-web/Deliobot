@@ -1,12 +1,16 @@
+import { readFile, stat } from "node:fs/promises";
 import type { ServerResponse } from "node:http";
+import { extname } from "node:path";
 import { z } from "zod";
 
 import { IMAGE_MAX_PER_TURN_DEFAULT, IMAGE_PROVIDERS } from "../../shared/image-generation.ts";
 import { IMAGE_PROMPT_MAX_CHARS } from "../drivers/agents-image-tools.ts";
 import {
-  generateImage, imageGenerationReady, imageProviderName, imageSlots,
-  type GeneratedImage, type ImageCredentials,
+  generateImage, imageGenerationReady, imageProviderName, imageSlots, markupProblem,
+  type GeneratedImage, type ImageCredentials, type ImageInput,
 } from "../image-generation.ts";
+import { IMAGE_MAX_BYTES } from "../attachments.ts";
+import { botFileSource, PageBundleError, type BotFolders } from "../pages/bundle.ts";
 import { createImageDailyCap, type ImageDailyCap } from "../image-daily-cap.ts";
 import type { FalModelCatalog } from "../fal-models.ts";
 import { chooseMediaModel, type BotMedia } from "../media-choice.ts";
@@ -14,7 +18,7 @@ import type { json } from "../harness/http.ts";
 import { PASS } from "./table.ts";
 
 export const IMAGE_MESSAGES = {
-  notSetUp: "Image generation isn't set up on this computer. Ask the person to choose an image provider in Settings → AI → Image generation (shown in advanced mode).",
+  notSetUp: "Image generation isn't set up on this computer. Ask the person to choose an image provider in Settings → AI → Images (shown in Advanced mode).",
   noTurn: "This turn has not started yet or already ended, so the image could not be attached.",
   notSaved: "The image could not be saved on this computer. Try again shortly.",
   notPerson: "Images are made only for a person's own message in a chat. This turn was started another way (a routine, a webhook, an app, a guest or a room goal's coordinator), so no image was made. Tell the person they can ask for the image in a chat.",
@@ -26,7 +30,35 @@ const requestSchema = z.object({
   aspect: z.enum(["1:1", "16:9", "9:16"]).optional(),
   provider: z.enum(IMAGE_PROVIDERS).optional(),
   model: z.string().trim().max(200).optional(),
+  format: z.literal("gif").optional(),
+  frames: z.number().int().min(2).max(16).optional(),
+  frameDurationMs: z.number().int().min(20).max(2000).optional(),
 });
+
+const editSchema = z.object({
+  prompt: z.string().trim().min(1).max(IMAGE_PROMPT_MAX_CHARS),
+  image: z.string().trim().min(1).max(1000),
+  markup: z.string().trim().min(1).max(1000).optional(),
+});
+
+const EDIT_IMAGE_TYPES: Record<string, string> = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp" };
+
+/** A PNG, JPEG or WebP in the bot's own folders, or a sentence saying what is wrong with the path. */
+async function readEditImage(file: string, folders: BotFolders): Promise<ImageInput | string> {
+  let target: string;
+  try {
+    target = await botFileSource(file, folders);
+  } catch (error) {
+    if (!(error instanceof PageBundleError)) throw error;
+    return error.status === 403 ? "Only files in your working folder can be read. Save it there first." : `Nothing was found at ${file.slice(0, 200)}.`;
+  }
+  const mime = EDIT_IMAGE_TYPES[extname(target).toLowerCase()];
+  if (!mime) return `${file.slice(0, 200)} is not a PNG, JPEG or WebP image.`;
+  const info = await stat(target);
+  if (!info.isFile()) return "An image must be a file, not a folder.";
+  if (info.size > IMAGE_MAX_BYTES) return `${file.slice(0, 200)} is over ${IMAGE_MAX_BYTES / 1024 / 1024} MB. Make it smaller first.`;
+  return { bytes: await readFile(target), mime };
+}
 
 export interface ImageTurn {
   key: string;
@@ -54,12 +86,12 @@ export interface ImageToolDeps {
 
 type Outcome = { status: number; body: { text: string } | { error: string } };
 
-export async function generateImageForTurn(raw: unknown, deps: ImageToolDeps): Promise<Outcome> {
+export async function generateImageForTurn(raw: unknown, deps: ImageToolDeps, edit?: { image: ImageInput; markup?: ImageInput }): Promise<Outcome> {
   const parsed = requestSchema.safeParse(raw);
   if (!parsed.success) {
     return { status: 400, body: { error: `generate_image takes a prompt (1 to ${IMAGE_PROMPT_MAX_CHARS} characters), an optional aspect (1:1, 16:9 or 9:16), an optional model and an optional provider.` } };
   }
-  const { prompt, aspect } = parsed.data;
+  const { prompt, aspect, format, frames, frameDurationMs } = parsed.data;
   let provider = parsed.data.provider;
   let cfg = deps.cfg;
   if (!deps.personTurn) return { status: 403, body: { error: IMAGE_MESSAGES.notPerson } };
@@ -96,7 +128,7 @@ export async function generateImageForTurn(raw: unknown, deps: ImageToolDeps): P
   let made = false;
   deps.inFlight.set(turn.key, (deps.inFlight.get(turn.key) ?? 0) + 1);
   try {
-    const image = await generateImage(cfg, { prompt, aspect }, { slot, fetchImpl: deps.fetchImpl, signal: deps.signal });
+    const image = await generateImage(cfg, { prompt, aspect, ...(format && { gif: { frames, frameDurationMs } }), ...(edit && { edit }) }, { slot, fetchImpl: deps.fetchImpl, signal: deps.signal });
     made = true;
     deps.made?.({ provider: image.provider, model: image.model });
     if (!turn.attach({ bytes: image.bytes, mime: image.mime })) return { status: 409, body: { error: IMAGE_MESSAGES.noTurn } };
@@ -124,6 +156,7 @@ export interface ImageRouteContext {
   requireActive: () => void;
   personTurn: boolean;
   botId?: string;
+  folders: BotFolders;
 }
 
 export interface ImageTurnStore {
@@ -156,13 +189,25 @@ export function createImageToolRoutes(deps: ImageTurnStore & { config: () => Ima
   const daily = createImageDailyCap(deps.dataDir);
   return {
     async internal(ctx: ImageRouteContext): Promise<typeof PASS | void> {
-      if (ctx.method !== "POST" || ctx.path !== "/api/internal/images/generate") return PASS;
+      const editing = ctx.path === "/api/internal/images/edit";
+      if (ctx.method !== "POST" || (!editing && ctx.path !== "/api/internal/images/generate")) return PASS;
       const turn = imageTurn(deps, ctx.threadId, ctx.requireActive);
       const call = new AbortController();
       ctx.res.once("close", () => { if (!ctx.res.writableEnded) call.abort(); });
-      const outcome = await generateImageForTurn(await ctx.readBody(), { cfg: deps.config(), personTurn: ctx.personTurn, daily, fetchImpl: deps.fetchImpl, turn, inFlight, signal: call.signal,
+      const body = await ctx.readBody();
+      let edit: { image: ImageInput; markup?: ImageInput } | undefined;
+      if (editing) {
+        const parsed = editSchema.safeParse(body);
+        if (!parsed.success) return ctx.json(ctx.res, 400, { error: "edit_image takes a prompt, the path of the image to change and, optionally, the path of a transparent PNG of marks drawn over it." });
+        const image = await readEditImage(parsed.data.image, ctx.folders);
+        const markup = parsed.data.markup ? await readEditImage(parsed.data.markup, ctx.folders) : undefined;
+        const problem = typeof image === "string" ? image : typeof markup === "string" ? markup : markup && markupProblem(image, markup);
+        if (problem) return ctx.json(ctx.res, 400, { error: problem });
+        edit = { image: image as ImageInput, ...(markup && { markup: markup as ImageInput }) };
+      }
+      const outcome = await generateImageForTurn(editing ? { prompt: (body as { prompt: string }).prompt } : body, { cfg: deps.config(), personTurn: ctx.personTurn, daily, fetchImpl: deps.fetchImpl, turn, inFlight, signal: call.signal,
         botMedia: ctx.botId ? deps.botMedia?.(ctx.botId) : undefined, catalog: deps.catalog,
-        made: (image) => { if (ctx.botId) deps.made?.(image, { botId: ctx.botId, threadId: ctx.threadId }); } });
+        made: (image) => { if (ctx.botId) deps.made?.(image, { botId: ctx.botId, threadId: ctx.threadId }); } }, edit);
       ctx.json(ctx.res, outcome.status, outcome.body);
     },
   };

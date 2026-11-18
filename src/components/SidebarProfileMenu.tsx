@@ -15,8 +15,10 @@ import {
   LifeBuoy,
   Loader2,
   LogOut,
+  Megaphone,
   MessageSquare,
   Sparkles,
+  FolderTree,
   RefreshCw,
   Rocket,
   Settings as SettingsIcon,
@@ -312,7 +314,7 @@ export function phoneDevicesItem(state: PhonePlaceState, place: string, onSelect
   };
 }
 
-export function toolMenuItems({ activeView, automationsNeedYou, onAutomations, onTeamMap, onFiles, onPublishedApps, archived }: {
+export function toolMenuItems({ activeView, automationsNeedYou, onAutomations, onTeamMap, onFiles, onPublishedApps, onTeamFiles, archived }: {
   activeView: string;
   automationsNeedYou: boolean;
   onAutomations: () => void;
@@ -320,6 +322,8 @@ export function toolMenuItems({ activeView, automationsNeedYou, onAutomations, o
   /** set once My Cloud's files are ready to open */
   onFiles?: () => void;
   onPublishedApps?: () => void;
+  /** set only on a Team Cloud: its shared folder */
+  onTeamFiles?: () => void;
   archived?: ArchivedBots;
 }): SidebarMenuItem[] {
   return [
@@ -327,26 +331,32 @@ export function toolMenuItems({ activeView, automationsNeedYou, onAutomations, o
     { key: "team-map", label: t("sidebar.nav.teamMap"), icon: <UsersRound size={16} />, active: activeView === "team-map", onSelect: onTeamMap },
     ...(onFiles ? [{ key: "files", label: t("sidebar.nav.files"), icon: <FolderOpen size={16} />, active: activeView === "files", onSelect: onFiles }] : []),
     ...(onPublishedApps ? [{ key: "published-apps", label: t("sidebar.nav.publishedApps"), icon: <Rocket size={16} />, active: activeView === "published-apps", onSelect: onPublishedApps }] : []),
+    ...(onTeamFiles ? [{ key: "team-files", label: t("sidebar.nav.teamFiles"), icon: <FolderTree size={16} />, active: activeView === "team-files", onSelect: onTeamFiles }] : []),
     ...(archived?.count ? [{ key: "archived", label: t("sidebar.archived.title"), icon: <Archive size={16} />, value: String(archived.count), onSelect: archived.open }] : []),
   ];
 }
 
 /** The account button's name: the person, then whatever its dot is raised for, then the move to My Cloud while it goes.
  * A failing move and automations that need the person share one segment. */
-export function accountLabel(name: string, { automationsNeedYou, update, move = null }: { automationsNeedYou: boolean; update: string | null; move?: AccountMoveKind | null }): string {
+export function accountLabel(name: string, { automationsNeedYou, update, move = null, announcements = false }: {
+  automationsNeedYou: boolean; update: string | null; move?: AccountMoveKind | null; announcements?: boolean;
+}): string {
   const needsYou = move === "failed"
     ? t(automationsNeedYou ? "sidebar.account.moveAndAutomationsNeedYou" : "sidebar.account.moveNeedsYou")
     : automationsNeedYou ? t("sidebar.account.automationsNeedYou") : "";
-  return [name, needsYou, move === "sending" ? t("sidebar.account.moving") : "", update ?? ""].filter(Boolean).join(" · ");
+  return [name, needsYou, move === "sending" ? t("sidebar.account.moving") : "", update ?? "", announcements ? t("announcements.new") : ""].filter(Boolean).join(" · ");
 }
 
 export type AccountDot = "danger" | "accent";
 const DOT_COLOR: Record<AccountDot, string> = { danger: "bg-danger", accent: "bg-accent" };
 
-/** The avatar's dot: red while automations, a failed update or the failing move to My Cloud need the person, the accent
- * for an update; none for the move on its way or done (what it brought waits in the menu). */
-export function accountDot({ automationsNeedYou, update, move }: { automationsNeedYou: boolean; update: "failed" | "news" | null; move: AccountMoveKind | null }): AccountDot | null {
-  if (automationsNeedYou || update === "failed" || move === "failed") return "danger";
+/** The avatar's dot: red while automations, a failed update or the failing move to My Cloud need the person, or while
+ * an announcement is new to them; the accent for an update; none for the move on its way or done (what it brought waits
+ * in the menu). */
+export function accountDot({ automationsNeedYou, update, move, announcements = false }: {
+  automationsNeedYou: boolean; update: "failed" | "news" | null; move: AccountMoveKind | null; announcements?: boolean;
+}): AccountDot | null {
+  if (automationsNeedYou || update === "failed" || move === "failed" || announcements) return "danger";
   return update ? "accent" : null;
 }
 
@@ -448,6 +458,7 @@ export function profileMenuItems({
   onHelp,
   onFeedback,
   onWhatsNew,
+  announcements = null,
   signOut = null,
   signOutElsewhere = null,
 }: {
@@ -473,6 +484,8 @@ export function profileMenuItems({
   onHelp: () => void;
   onFeedback: () => void;
   onWhatsNew?: () => void;
+  /** Announcements, with its red dot while one is new to the person */
+  announcements?: { unread: boolean; onSelect: () => void; active: boolean } | null;
   /** the last row while someone is signed in, where signing out can work from this page */
   signOut?: (() => void) | null;
   /** a Cloud's page in the desktop window: Sign out happens on This computer, and this row goes there */
@@ -499,6 +512,8 @@ export function profileMenuItems({
   const ambassador: SidebarMenuItem | null = onAmbassador ? { key: "ambassador", label: t("sidebar.menu.ambassador"), icon: <Award size={16} />,
     trailing: <ArrowUpRight size={12} aria-hidden="true" className="text-ink-tertiary" />, onSelect: onAmbassador } : null;
   const support: SidebarMenuItem = { key: "support", label: t("sidebar.menu.helpShort"), icon: <LifeBuoy size={16} />, submenu: help, onSelect: () => {} };
+  const news: SidebarMenuItem | null = announcements ? { key: "announcements", label: t("announcements.title"), icon: <Megaphone size={16} />, active: announcements.active,
+    attention: announcements.unread, onSelect: announcements.onSelect } : null;
   const present = (...items: Array<SidebarMenuItem | null | false>) => items.filter((item): item is SidebarMenuItem => Boolean(item));
   const out: SidebarMenuItem[] = [...accounts.filter((item) => item.key !== "accounts-sign-out"),
     ...(signOut ? [{ key: "sign-out", label: t("accounts.signOut"), icon: <LogOut size={16} />, onSelect: signOut }]
@@ -508,8 +523,8 @@ export function profileMenuItems({
       : accounts.filter((item) => item.key === "accounts-sign-out"))];
   // Plan & billing follows Settings (Simple's own places sit between them); both modes end with Help, then Sign out.
   const groups = simple
-    ? [move, present(raised), [account], present(phone, settings), simple.tools, present(plan, ambassador, switchPlace), [support], out]
-    : [move, present(raised), [account], present(phone, settings, plan, ambassador), present(switchPlace, support), out];
+    ? [move, present(raised), [account], present(phone, settings), simple.tools, present(plan, ambassador, switchPlace), present(news, support), out]
+    : [move, present(raised), [account], present(phone, settings, plan, ambassador), present(switchPlace, news, support), out];
   return groups.filter((group) => group.length > 0)
     .flatMap((group, at) => group.map((item, index) => (at > 0 && index === 0 ? { ...item, separatorBefore: true } : item)));
 }
@@ -622,6 +637,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
         onTeamMap: () => dispatch({ type: "showTeamMap" }),
         onFiles: filesReady ? () => dispatch({ type: "showFiles" }) : undefined,
         onPublishedApps: () => dispatch({ type: "showPublishedApps" }),
+        onTeamFiles: state.config?.team ? () => dispatch({ type: "showTeamFiles" }) : undefined,
         archived: account?.archived,
       }),
     } } : {}),
@@ -651,7 +667,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
   const nameless = simple && initials === "?" ? <UserRound size={18} strokeWidth={1.75} aria-hidden /> : undefined;
   const label = accountLabel(name, { automationsNeedYou: needsYou, update: simple && noteworthy && update ? update.label : null, move: move.kind });
   const dot = accountDot({ automationsNeedYou: needsYou, update: noteworthy ? (update.phase === "error" ? "failed" : "news") : null, move: move.kind });
-  // Advanced's full row has its own update badge: its avatar's dot is the move's alone.
+  // Advanced's full row has its own update badge: its avatar's dot is the move's and the announcements' alone.
   const moveDot = accountDot({ automationsNeedYou: false, update: null, move: move.kind });
 
   return (

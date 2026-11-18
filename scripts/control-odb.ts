@@ -178,8 +178,14 @@ export function verificationServerEnvironment(parentEnv: NodeJS.ProcessEnv, data
   if (parentEnv.ODB_BROWSER_TIMING === "1") childEnv.ODB_BROWSER_TIMING = "1";
   // A share on the tailnet (server/tailnet-listener.ts): a test names one of this machine's own addresses as its stand-in.
   for (const key of ["ODB_TAILNET_NAME", "ODB_TAILNET_ADDRESSES", "ODB_TEST_TAILNET_STAND_IN"]) if (parentEnv[key]) childEnv[key] = parentEnv[key];
+  // The limits of a turn nobody is watching (server/host/unattended-turns.ts), brought within a test's reach.
+  for (const key of ["ODB_UNATTENDED_TURN_MAX_MS", "ODB_UNATTENDED_TURN_MAX_REQUESTS", "ODB_UNATTENDED_TURN_MAX_DENIALS", "ODB_LOOP_GUARD_UNATTENDED_STOP_AT"]) if (parentEnv[key]) childEnv[key] = parentEnv[key];
   // Warm summaries' minutes as seconds (server/warm-summary.ts), and the switch that turns them off.
   for (const key of ["ODB_WARM_SUMMARY_TIME_SCALE", "ODB_WARM_SUMMARY"]) if (parentEnv[key]) childEnv[key] = parentEnv[key];
+  // A headless server's usage caps (server/usage-caps.ts).
+  for (const key of ["ODB_USAGE_CAP_DAILY_USD", "ODB_USAGE_CAP_MONTHLY_USD", "ODB_USAGE_CAP_DAILY_TOKENS", "ODB_USAGE_CAP_MONTHLY_TOKENS", "ODB_USAGE_CAP_STOPS"]) if (parentEnv[key]) childEnv[key] = parentEnv[key];
+  // Claude Code's tool search (server/drivers/claude-tool-search.ts): a test turns it off to see a bridged Claude turn.
+  if (parentEnv.ENABLE_TOOL_SEARCH) childEnv.ENABLE_TOOL_SEARCH = parentEnv.ENABLE_TOOL_SEARCH;
   // A loopback fake only: the key never reaches a real provider.
   const liveUrl = parentEnv.ODB_OPENAI_LIVE_URL?.trim() ?? "";
   if (/^http:\/\/127\.0\.0\.1:\d{1,5}$/.test(liveUrl)) {
@@ -285,7 +291,7 @@ export async function launchVerificationServer(
   enterprise?: { dir: string; licenseKey: string },
   room?: { scripted: boolean },
   /** Optional repository-owned fake providers for multi-engine setup checks. */
-  extraProviders: Array<"codex" | "cline" | "copilot" | "customAcp" | "opencode"> = [],
+  extraProviders: Array<"codex" | "cline" | "copilot" | "customAcp" | "opencode" | "kimi"> = [],
   /** Programmatic tests only: an owned loopback Boat provider, never a live account. */
   boatFixtureApi?: string,
   /** Programmatic web UI qualification against the fixture's static server. */
@@ -328,6 +334,10 @@ export async function launchVerificationServer(
     // A setup card's answers would be one more engine call at every new bot, taking replies a test scripts for its turns.
     features: { smartSetupChoices: false },
     instances: {
+      ...(extraProviders.includes("kimi") ? { kimi: {
+        driver: "kimiAgent", displayName: "Verification Kimi",
+        config: { cli: fileURLToPath(new URL("../server/testing/fake-acp-cli.ts", import.meta.url)) },
+      } } : {}),
       ...(extraProviders.includes("codex") ? { codex: {
         driver: "codex", displayName: "Verification Codex", config: { cli: fileURLToPath(new URL("../server/testing/fake-codex-app-server.ts", import.meta.url)) },
       } } : {}),

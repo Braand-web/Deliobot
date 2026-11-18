@@ -11,6 +11,7 @@ import { DelioCreditsCard, useDelioCredits } from "../../UsageBudget";
 import { DelioAccountCard } from "../../keys/DelioAccountCard";
 import { useOwnerOrAdmin } from "@/lib/use-owner-or-admin";
 import { OrganizationSettings } from "../../OrganizationSettings";
+import { PlacesTogetherSwitch } from "../../PlacesTogetherSwitch";
 import { SettingRow, SettingsGroup, SettingsLinkRow, SettingsRows } from "../../SettingsPrimitives";
 import { UpdatesConsentRow } from "../../UpdatesConsent";
 import { useAccountSummary, useYou } from "../account-summary";
@@ -123,6 +124,7 @@ export function PlanPage() {
       extra={!ctx.advanced && !ctx.client && !(ctx.team && !ctx.admin) && (place.kind === "computer" || place.kind === "server") ? <SpentRow place={place.name} /> : undefined}
       onAddCloud={() => dispatch({ type: "openCloudAdd", source: "app_settings" })}
       onSignIn={() => dispatch({ type: "openCloudAdd", source: "app_settings", signIn: true })} />
+    <PlacesTogetherSwitch />
     {dialog}
   </>;
 }

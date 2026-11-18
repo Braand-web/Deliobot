@@ -15,5 +15,6 @@ it("a Team admin link from the Admin opens a Team Cloud's apps, MCP servers, key
   expect(takeConnectRequest("https://odb-t-1.fly.dev/?connect=keys")).toEqual({ rest: "/", section: "connections" });
   expect(takeConnectRequest("https://odb-t-1.fly.dev/?connect=ai")).toEqual({ rest: "/", section: "engines" });
   expect(takeConnectRequest("https://odb-t-1.fly.dev/?connect=bots&x=1")).toEqual({ rest: "/?x=1", teamAdminSection: "botAccess" });
+  expect(takeConnectRequest("https://odb-t-1.fly.dev/?connect=vault")).toEqual({ rest: "/", teamAdminSection: "logins" });
   expect(takeConnectRequest("https://odb-t-1.fly.dev/?connect=mcp%3ABad%20Name")).toEqual({ rest: "/", surface: "apps" });
 });

@@ -1,0 +1,31 @@
+{
+  "id": "opendeliobot-docs",
+  "name": "OpenDeliobot Docs",
+  "version": "0.1.0",
+  "description": "Answer how OpenDeliobot itself is configured, from this install's files and the app's own docs.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "opendeliobot",
+    "open delio",
+    "delio settings",
+    "delio config",
+    "delio 设置",
+    "delio 配置",
+    "odb settings",
+    "odb config",
+    "approval level",
+    "bot's routines",
+    "bot routines",
+    "bot's memory",
+    "bot memory",
+    "multi-device",
+    "multiple devices",
+    "more than one device",
+    "between devices",
+    "bots on my second computer",
+    "bots on my other computer",
+    "bots on more than one computer",
+    "bots on my phone"
+  ],
+  "requiredCapabilities": []
+}

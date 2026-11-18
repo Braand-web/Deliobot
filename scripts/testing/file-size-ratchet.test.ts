@@ -24,10 +24,11 @@ const LINES: Record<string, number> = {
   "server/drivers/claude.ts": 2087,
   "server/drivers/acp/core.ts": 1703,
   "server/drivers/codex.ts": 1718,
-  "server/routines.ts": 1555,
+  "server/routines.ts": 1553,
   "src/components/ComputerPanel.tsx": 1782,
   "src/components/RoutineCalendarPage.tsx": 1622,
   "server/config.ts": 1257,
+  "packages/phone-protocol/src/wire.ts": 1002,
   "src/components/ChatView.tsx": 1282,
   "server/routine-requests.ts": 1474,
   "src/components/GroupView.tsx": 1215,
@@ -41,13 +42,14 @@ const LINES: Record<string, number> = {
   "server/drivers/pi.ts": 1033,
   "server/drivers/agents-call.ts": 1004,
   "server/drivers/agents-catalog.ts": 1006,
-  "server/plan-usage.ts": 1046,
+  "server/plan-usage.ts": 1045,
   "server/container-computer.ts": 1175,
   "src/components/ModelPicker.tsx": 1039,
-  "src/components/PhoneSetupFlow.tsx": 1089,
+  "src/components/PhoneSetupFlow.tsx": 1088,
   "server/cli.ts": 1053,
   "src/components/AttachmentPreview.tsx": 1034,
   "server/meetings/meetbot.ts": 1047,
+  "electron/data-dir-lease.node-test.mjs": 846, // the data-folder lease's own tests: many platform cases (Windows probes in data-dir-lease-windows.node-test.mjs)
 };
 
 function sourceFiles(): string[] {

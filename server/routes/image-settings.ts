@@ -9,6 +9,7 @@ import { parseBotProfilePatch } from "../bot-profile.ts";
 import { createOpenRouterModelCatalog } from "../decider/openrouter-models.ts";
 import { FAL_API_URL } from "../fal.ts";
 import { createFalModelCatalog } from "../fal-models.ts";
+import { higgsfieldReady } from "../higgsfield-mcp.ts";
 import { customImageUrl, imageProviderKey, imageSlots, type ImageCredentials } from "../image-generation.ts";
 import { checkProviderKey, type ProviderKeyKind } from "../provider-key-check.ts";
 import { PASS, type RouteHandler } from "./table.ts";
@@ -17,7 +18,7 @@ const GEMINI_OPENAI_BASE = "https://generativelanguage.googleapis.com/v1beta/ope
 const testSchema = z.object({ provider: z.enum(IMAGE_PROVIDERS) });
 
 /** Every openaiCompat target carries its own URL: without one, the key check would fall back to OpenRouter. */
-function keyCheckTarget(cfg: ImageCredentials, provider: Exclude<ImageProvider, "fal">): { provider: ProviderKeyKind; url?: string } | null {
+function keyCheckTarget(cfg: ImageCredentials, provider: Exclude<ImageProvider, "fal" | "higgsfield">): { provider: ProviderKeyKind; url?: string } | null {
   if (provider === "gemini") return { provider: "openaiCompat", url: GEMINI_OPENAI_BASE };
   if (provider === "custom") {
     const url = customImageUrl(cfg);
@@ -58,6 +59,7 @@ export async function testFalKey(key: string, fetchImpl: typeof fetch = fetch): 
 
 export async function testImageProvider(cfg: ImageCredentials, provider: ImageProvider, fetchImpl: typeof fetch = fetch): Promise<ImageProviderTest> {
   if (provider === "fal") return testFalKey(imageProviderKey(cfg, provider), fetchImpl);
+  if (provider === "higgsfield") return higgsfieldReady() ? { ok: true, check: "authentication" } : { ok: false, reason: "not_connected" };
   const target = keyCheckTarget(cfg, provider);
   if (!target) return { ok: false, reason: "no_url" };
   const key = imageProviderKey(cfg, provider);

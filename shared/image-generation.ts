@@ -1,16 +1,24 @@
 export type AvatarImageProvider = "openai" | "xai" | "custom";
-export const IMAGE_PROVIDERS = ["openai", "xai", "gemini", "openrouter", "fal", "custom"] as const;
+export const IMAGE_PROVIDERS = ["openai", "xai", "gemini", "openrouter", "higgsfield", "fal", "custom"] as const;
 export type ImageProvider = (typeof IMAGE_PROVIDERS)[number];
 
 export const IMAGE_MAX_PER_TURN_DEFAULT = 4;
+export const IMAGE_COMPLEXITIES = ["low", "medium", "high"] as const;
+export type ImageComplexity = (typeof IMAGE_COMPLEXITIES)[number];
+
+/** `complexity` is a GPT-Image-2.6 request field; other models would reject it. */
+export function supportsImageComplexity(slot: { provider: ImageProvider; model: string }): boolean {
+  return slot.provider === "openai" && slot.model.startsWith("gpt-image-2.6-");
+}
+
 export const IMAGE_DEFAULT_MODELS: Record<ImageProvider, string> = {
-  openai: "gpt-image-2", xai: "grok-imagine-image-2.0", gemini: "gemini-2.5-flash-image", openrouter: "google/gemini-2.5-flash-image", fal: "auto", custom: "",
+  openai: "gpt-image-2", xai: "grok-imagine-image-2.0", gemini: "gemini-2.5-flash-image", openrouter: "google/gemini-2.5-flash-image", higgsfield: "nano_banana_pro", fal: "auto", custom: "",
 };
 
 /** What Settings' Test learns about a provider; no image is made. */
 export type ImageProviderTest =
   | { ok: true; check: "authentication" | "models"; freeTier?: boolean }
-  | { ok: false; reason: "no_key" | "no_url" | "rejected" | "unreachable" | "unexpected"; status?: number }
+  | { ok: false; reason: "no_key" | "no_url" | "not_connected" | "rejected" | "unreachable" | "unexpected"; status?: number }
   | { ok: false; reason: "model_missing"; model: string };
 
 export interface ImageModelChoice {
@@ -21,6 +29,8 @@ export interface ImageModelChoice {
 /** Offered first in Settings; OpenRouter and fal.ai add the rest of their live image catalogs, and any other ID can be typed. */
 export const IMAGE_MODEL_CHOICES: Record<ImageProvider, readonly ImageModelChoice[]> = {
   openai: [
+    { id: "gpt-image-2.6-sunburst", name: "GPT Image 2.6 Sunburst" },
+    { id: "gpt-image-2.6-flare", name: "GPT Image 2.6 Flare" },
     { id: "gpt-image-2", name: "GPT Image 2" },
     { id: "gpt-image-1", name: "GPT Image 1" },
     { id: "gpt-image-1-mini", name: "GPT Image 1 Mini" },
@@ -47,6 +57,12 @@ export const IMAGE_MODEL_CHOICES: Record<ImageProvider, readonly ImageModelChoic
     { id: "openai/gpt-image-2", name: "GPT Image 2" },
     { id: "fal-ai/flux-pro/v1.1-ultra", name: "FLUX1.1 [pro] ultra" },
   ],
+  higgsfield: [
+    { id: "nano_banana_pro", name: "Nano Banana Pro" },
+    { id: "gpt_image_2_6", name: "GPT Image 2.6" },
+    { id: "seedream_v5_pro", name: "Seedream 5.0 Pro" },
+    { id: "flux_3_image", name: "FLUX 3 Image" },
+  ],
   custom: [],
 };
 
@@ -59,6 +75,8 @@ export interface ImageGenerationConfig {
   primary?: ImageSlotConfig;
   fallback?: ImageSlotConfig;
   maxPerTurn?: number;
+  /** Sent only to GPT-Image-2.6 models; they use high when it is unset. */
+  complexity?: ImageComplexity;
   /** An OpenAI key; never sent to another provider. */
   key?: string;
   geminiKey?: string;

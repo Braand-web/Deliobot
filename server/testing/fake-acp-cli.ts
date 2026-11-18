@@ -30,6 +30,7 @@
 //   FAKE_ACP_MCP_TRANSPORTS  remote MCP transports advertised in initialize, e.g. "http,sse"
 //   FAKE_ACP_PERMISSION_OPTIONS  JSON options override in permission mode
 //   FAKE_ACP_DUMP  path for {argv, env}; with FAKE_ACP_MODES or FAKE_ACP_MODELS also <dump>.prompts.jsonl
+//     and <dump>.initialize.json for the initialize params
 //   FAKE_ACP_LAUNCH_COUNT_FILE  process counter incremented at startup
 //   FAKE_ACP_VERSION  what `--version` prints (default "fake-acp 1.0.0"); a CLI the driver checks the shape of needs its own
 //   FAKE_ACP_RPC_DUMP  this process's method list, rewritten after every request
@@ -74,11 +75,20 @@
 //   FAKE_ACP_CANCEL_STOP_REASON  the stopReason a cancelled hanging prompt answers (default cancelled; OpenCode answers end_turn)
 //   FAKE_ACP_HANG_ONCE_FILE  with FAKE_ACP_HANG_ON, only the first matching prompt hangs; it writes this file
 //   FAKE_ACP_HOLD_FILE  while this file exists, a session/prompt waits before it is answered
+//   FAKE_ACP_AGY_STEPS_FILE  JSON [[stepType, text], …] re-read per prompt and appended to the session's log under
+//     GEMINI_HOME (antigravity-acp/conversations/<session>.db, a folder made at startup), as agy_acp_server 1.4.5
+//     writes its trajectory
 //   FAKE_ACP_MODE=hermes-steer  hermes-agent's ACP `/steer`: sessions advertise `steer`; a prompt says "working. ", waits for
 //     FAKE_ACP_GATE_FILE, then says "done" and every steer it took; `/steer <text>` during it answers "⏩ Steer queued for
 //     the active turn: …" (FAKE_ACP_STEER_FAIL=1: "⚠️ Steer failed: …"; =rpc: a JSON-RPC error), and with no prompt running it runs <text>
 //     as a prompt that says "ran: <text>". FAKE_ACP_STEER_HOLD_FILE holds a `/steer` while it exists;
 //     FAKE_ACP_HERMES_COMMANDS lists the commands sessions advertise (default help,steer,queue).
+//   FAKE_ACP_MODE=opencode-steer  OpenCode 2.3's `_session/steering`: initialize reports _meta.steering.supported; a prompt says
+//     "working. ", waits for FAKE_ACP_GATE_FILE, then says "done" and every steer it took. `_session/steering` answers
+//     {outcome:"steered"}, or {outcome:"promptRequired"} with no prompt running (FAKE_ACP_STEER_FAIL=rpc: a JSON-RPC error).
+//   FAKE_ACP_MODE=devin-steer  Devin's second `session/prompt`: initialize reports agentCapabilities._meta["cognition.ai/midTurnPrompts"];
+//     a prompt during a running one joins it, and both end together with the same usage and _meta["cognition.ai/userMessageId"].
+//   FAKE_ACP_STEERING=off  the two steer modes above report no steering capability.
 import { AsyncLocalStorage } from "node:async_hooks";
 import { spawn } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
@@ -269,6 +279,8 @@ const dumpEnv = Object.fromEntries(
     "PATH",
     "HOME",
     "USERPROFILE",
+    "NO_PROXY",
+    "no_proxy",
     "PI_CODING_AGENT_SESSION_DIR",
     "TEMP",
     "TMP",
@@ -605,6 +617,24 @@ function failRpc(msg: { method: string; id: unknown }): boolean {
   return true;
 }
 
+const antigravityConversations = process.env.FAKE_ACP_AGY_STEPS_FILE && process.env.GEMINI_HOME
+  ? `${process.env.GEMINI_HOME}/antigravity-acp/conversations` : null;
+if (antigravityConversations) mkdirSync(antigravityConversations, { recursive: true });
+
+function appendAntigravitySteps(sessionId: unknown): void {
+  const file = process.env.FAKE_ACP_AGY_STEPS_FILE, directory = antigravityConversations;
+  if (!file || !directory || typeof sessionId !== "string" || !existsSync(file)) return;
+  const { DatabaseSync } = process.getBuiltinModule("node:sqlite");
+  const database = new DatabaseSync(`${directory}/${sessionId}.db`);
+  try {
+    database.exec("CREATE TABLE IF NOT EXISTS steps (idx INTEGER PRIMARY KEY, step_type INTEGER, step_payload BLOB)");
+    const insert = database.prepare("INSERT INTO steps (step_type, step_payload) VALUES (?, ?)");
+    for (const [type, text] of JSON.parse(readFileSync(file, "utf8")) as Array<[number, string]>) insert.run(type, Buffer.from(text));
+  } finally {
+    database.close();
+  }
+}
+
 function driveMcp(entry: McpEntry, calls: Array<{ name: string | (() => string); args: (prev: string) => object }>, strict = false): Promise<string> {
   return new Promise((resolve, reject) => {
     const env = { ...process.env };
@@ -717,6 +747,51 @@ function advertiseHermesCommands(sessionId: string) {
     availableCommands: (process.env.FAKE_ACP_HERMES_COMMANDS ?? "help,steer,queue").split(",").map((name) => ({ name, description: name })) } } });
 }
 
+let gatedTurn: { run: string; steers: string[]; pending: unknown[] } | null = null;
+let gatedRuns = 0;
+/** A prompt that says "working. " and waits for FAKE_ACP_GATE_FILE. devin-steer: a prompt during it joins the run and is
+ * answered with the first one, with the same usage and run id, as Devin does. opencode-steer: only `_session/steering` joins it. */
+function gatedPrompt(msg: any) {
+  const text = (Array.isArray(msg.params?.prompt) ? msg.params.prompt : []).map((block: any) => block?.text ?? "").join("");
+  if (gatedTurn && mode === "devin-steer") {
+    recordMethod("session/prompt.steer");
+    gatedTurn.steers.push(text);
+    gatedTurn.pending.push(msg.id);
+    return;
+  }
+  const turn = { run: `run-${++gatedRuns}`, steers: [] as string[], pending: [msg.id] as unknown[] };
+  gatedTurn = turn;
+  const say = (line: string) => out({ jsonrpc: "2.0", method: "session/update",
+    params: { sessionId: msg.params.sessionId, update: { sessionUpdate: "agent_message_chunk", content: { type: "text", text: line } } } });
+  say("working. ");
+  const finish = () => {
+    gatedTurn = null;
+    say(`done${turn.steers.length ? `; steered: ${turn.steers.join(" | ")}` : ""}`);
+    for (const id of turn.pending) {
+      result(id, { stopReason: "end_turn", usage: { inputTokens: 10, outputTokens: 5 }, _meta: { "cognition.ai/userMessageId": turn.run } });
+    }
+  };
+  const gate = process.env.FAKE_ACP_GATE_FILE;
+  if (!gate || existsSync(gate)) return finish();
+  const poll = setInterval(() => {
+    if (!existsSync(gate)) return;
+    clearInterval(poll);
+    finish();
+  }, 50);
+}
+
+/** OpenCode's `_session/steering`: promptRequired when no turn runs; FAKE_ACP_STEER_FAIL=rpc answers a JSON-RPC error. */
+function sessionSteering(msg: any) {
+  if (process.env.FAKE_ACP_STEER_FAIL === "rpc") {
+    out({ jsonrpc: "2.0", id: msg.id, error: { code: -32603, message: "unsupported_control" } });
+    return;
+  }
+  if (!gatedTurn) return result(msg.id, { outcome: "promptRequired" });
+  const prompt = Array.isArray(msg.params?.prompt) ? msg.params.prompt : [];
+  gatedTurn.steers.push(prompt.map((block: any) => block?.text ?? "").join(""));
+  result(msg.id, { outcome: "steered" });
+}
+
 let hermesTurn: { steers: string[] } | null = null;
 /** hermes-agent's prompt, `/steer` included, as acp_adapter/server.py and commands.py answer them. */
 function hermesPrompt(msg: any) {
@@ -797,6 +872,7 @@ function handle(msg: any) {
 
   switch (msg.method) {
     case "initialize": {
+      if (process.env.FAKE_ACP_DUMP) writeFileSync(`${process.env.FAKE_ACP_DUMP}.initialize.json`, JSON.stringify(msg.params));
       if (failRpc(msg)) break;
       if (mode === "hang-initialize") {
         setInterval(() => {}, 1_000);
@@ -821,8 +897,9 @@ function handle(msg: any) {
         agentInfo: agentName
           ? { name: agentName, version: process.env.FAKE_ACP_AGENT_VERSION ?? "test" }
           : undefined,
-        agentCapabilities: agentName || acceptsImages || mcpTransports.length || closesSessions || deletesSessions
+        agentCapabilities: agentName || acceptsImages || mcpTransports.length || closesSessions || deletesSessions || mode === "devin-steer"
           ? {
+              ...(mode === "devin-steer" && process.env.FAKE_ACP_STEERING !== "off" ? { _meta: { "cognition.ai/midTurnPrompts": true } } : {}),
               ...(agentName ? { loadSession: true, sessionCapabilities: { resume: true }, auth: { logout: true } } : {}),
               ...(closesSessions || deletesSessions
                 ? { sessionCapabilities: { ...(closesSessions ? { close: {} } : {}), ...(deletesSessions ? { delete: {} } : {}) } }
@@ -833,6 +910,7 @@ function handle(msg: any) {
           : undefined,
         _meta: {
           modelState: { currentModelId: "fake-acp-model" },
+          ...(mode === "opencode-steer" && process.env.FAKE_ACP_STEERING !== "off" ? { steering: { supported: true } } : {}),
           ...(process.env.FAKE_ACP_GROK_VERSION ? { grokShell: true, agentVersion: process.env.FAKE_ACP_GROK_VERSION } : {}),
         },
       });
@@ -1056,9 +1134,14 @@ function handle(msg: any) {
       if (process.env.FAKE_ACP_DUMP && process.env.FAKE_ACP_DUMP_PROMPT === "1") {
         writeFileSync(`${process.env.FAKE_ACP_DUMP}.prompt.json`, JSON.stringify(msg.params?.prompt ?? null, null, 2));
       }
+      appendAntigravitySteps(msg.params?.sessionId);
       if (failRpc(msg)) return;
       if (mode === "hermes-steer") {
         hermesPrompt(msg);
+        return;
+      }
+      if (mode === "opencode-steer" || mode === "devin-steer") {
+        gatedPrompt(msg);
         return;
       }
       if (process.env.FAKE_ACP_TOOL_LIMIT) {
@@ -1605,7 +1688,14 @@ function handle(msg: any) {
       complete();
       break;
     }
+    case "_session/steering":
+      sessionSteering(msg);
+      break;
     case "session/cancel":
+      if (gatedTurn) {
+        for (const id of gatedTurn.pending) result(id, { stopReason: "cancelled", _meta: {} });
+        gatedTurn = null;
+      }
       if (streamingPromptId !== null) {
         result(streamingPromptId, { stopReason: "cancelled", _meta: {} });
         streamingPromptId = null;

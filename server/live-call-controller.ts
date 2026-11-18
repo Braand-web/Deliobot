@@ -4,11 +4,13 @@ import { spokenConsent } from "../shared/call-consent.ts";
 import {
   LIVE_COPY, liveCardKind, liveStepLabel, spokenApprovalPrompt, spokenConnectorPrompt, spokenQuestionPrompt, spokenReviewPrompt, spokenSecretPrompt, spokenSignInPrompt,
 } from "../shared/live-approval.ts";
-import { clampAppend, commentaryChunks, geminiLiveVoice, LiveTranscript } from "../shared/live-call.ts";
+import { botCallVoice, clampAppend, commentaryChunks, geminiLiveVoice, LiveTranscript, SpokenLines } from "../shared/live-call.ts";
 import { signInWaits } from "../shared/sign-in-request.ts";
 import type { LiveCallRecord, LiveCallState, LiveClient, LiveElevenLabsTransport, LiveEndReason, LiveFishTransport, LiveGeminiTransport, LiveProvider } from "../shared/wire.ts";
 import { FISH_AGENT_VOICE } from "./live-fish.ts";
 import { LIVE_NEEDS_KEY, liveAuthHeaders, liveCallSummaryLine, liveProviderName, LiveSessionError, liveVoice, spokenHangUp, type LiveEndpoint } from "./live-call.ts";
+import { LIVE_CUSTOM_REFUSAL } from "./live-access.ts";
+import { scrubHeldSecrets } from "./redact.ts";
 import type { RequestAuth } from "./request-auth.ts";
 import type { Message, StoreChange } from "./store.ts";
 
@@ -69,6 +71,8 @@ export interface LiveCallDeps {
   broadcast(frame: { kind: "live.call"; botId: string; threadId: string; call: LiveCallState | null }): void;
   /** `endpoint` null, or a `setupProblem`, refuses the call with that message (409). */
   settings(): { key: string; endpoint: LiveEndpoint | null; setupProblem?: string | null; provider?: LiveProvider; voice: string; geminiVoice?: string; readTypedReplies: boolean; idleMinutes: number };
+  /** The called bot's own Live call voice, used over the app's when it is the call provider's. */
+  botVoice?(botId: string): string | undefined;
   /** Why this caller may not hold a call through Azure OpenAI; null when they may. Required, so no wiring can leave it out. */
   azureRefusal(auth: RequestAuth): string | null;
   /** The same for the relayed providers, where the harness hears the call only through its client's reports. Required too. */
@@ -125,6 +129,7 @@ interface Call {
   socket: LiveSocket | null;
   attached: boolean;
   transcript: LiveTranscript;
+  spoken: SpokenLines;
   heardThroughMs: number;
   lastDecision: { throughMs: number; copy: string } | null;
   eventCounter: number;
@@ -184,17 +189,20 @@ export class LiveCallController {
     // First: someone refused here is not told about a running call, or sent to set Azure or a relayed service up.
     // The chosen relayed service comes before a key's endpoint, so its refusal and its mismatch check apply.
     const relayedChoice = relayedProvider(settings.provider);
+    // A custom endpoint is held to Azure's limit (LIVE_DATA_CHANNEL), with its own words.
     const limited = settings.provider === "azure" || settings.endpoint?.provider === "azure" ? "azure"
+      : settings.provider === "custom" || settings.endpoint?.provider === "custom" ? "custom"
       : relayedChoice ?? relayedProvider(settings.endpoint?.provider);
     if (limited) {
-      const refusal = limited === "azure" ? this.deps.azureRefusal(input.auth) : limited === "fish" ? this.deps.fishRefusal(input.auth)
+      const refusal = limited === "azure" ? this.deps.azureRefusal(input.auth) : limited === "custom" ? this.deps.azureRefusal(input.auth) && LIVE_CUSTOM_REFUSAL
+        : limited === "fish" ? this.deps.fishRefusal(input.auth)
         : limited === "gemini" ? this.deps.geminiRefusal(input.auth) : this.deps.elevenlabsRefusal(input.auth);
       if (refusal) {
         this.deps.log(`[live] call refused bot=${input.botId} client=${input.client} provider=${limited}`);
         throw new LiveSessionError(refusal, 403);
       }
     }
-    const relayed = limited === "azure" ? null : limited;
+    const relayed = limited === "azure" || limited === "custom" ? null : limited;
     if (relayed && (input.client === "ios" || input.client === "android")) throw new LiveSessionError(relayed === "fish" ? LIVE_FISH_NEEDS_APP : relayed === "gemini" ? LIVE_GEMINI_NEEDS_APP : LIVE_ELEVENLABS_NEEDS_APP, 400);
     if (!relayed && !input.sdp) throw new LiveSessionError("The call request was not valid.", 400);
     if (this.call && this.call.state.status !== "ended") throw new LiveCallBusyError({ ...this.call.state });
@@ -203,7 +211,9 @@ export class LiveCallController {
     const endpoint = settings.endpoint;
     if (settings.setupProblem || !key || !endpoint) throw new LiveSessionError(settings.setupProblem || LIVE_NEEDS_KEY, 409);
     if (relayed !== relayedProvider(endpoint.provider)) throw new LiveSessionError(settings.setupProblem || LIVE_NEEDS_KEY, 409);
-    const voice = relayed === "gemini" ? geminiLiveVoice(settings.geminiVoice) : relayed ? FISH_AGENT_VOICE : liveVoice(settings.voice);
+    const botVoice = this.deps.botVoice?.(input.botId);
+    const voice = relayed === "gemini" ? geminiLiveVoice(botCallVoice(botVoice, settings.geminiVoice, true))
+      : relayed ? FISH_AGENT_VOICE : liveVoice(botCallVoice(botVoice, settings.voice, false));
     const call = this.newCall(input, key, endpoint, voice);
     // Taken before the first await: a second start in the same tick is refused.
     this.call = call;
@@ -287,6 +297,7 @@ export class LiveCallController {
       socket: null,
       attached: false,
       transcript: new LiveTranscript(),
+      spoken: new SpokenLines(scrubHeldSecrets),
       heardThroughMs: 0,
       lastDecision: null,
       eventCounter: 0,
@@ -427,6 +438,7 @@ export class LiveCallController {
   private writeRecord(call: Call, reason: LiveEndReason): void {
     if (!call.attached || !this.deps.recordCall) return;
     const endedAt = this.now();
+    const spoken = call.spoken.list();
     const record: LiveCallRecord = {
       callId: call.state.callId,
       botId: call.state.botId,
@@ -435,6 +447,7 @@ export class LiveCallController {
       endedAt,
       seconds: Math.max(0, Math.round(call.stats.seconds ?? (endedAt - call.state.startedAt) / 1000)),
       endReason: reason,
+      ...(spoken.length ? { spoken } : {}),
     };
     try {
       this.deps.recordCall({ threadId: call.state.threadId, botName: call.botName, record });
@@ -486,6 +499,7 @@ export class LiveCallController {
         return;
       case "session.output_transcript.delta":
         call.transcript.addOutput(Number(event.start_ms), Number(event.end_ms));
+        call.spoken.add(String(event.delta ?? ""), this.now(), Number(event.start_ms), Number(event.end_ms));
         this.touch(call);
         return;
       case "session.delegation.created": {

@@ -19,7 +19,7 @@ import {
   responseError,
   type ConnectedAccountResponse,
 } from "./composio-project.ts";
-import { MULTI_ACCOUNT_CONFIG, authConfigRefusal, ensureProjectSession, projectApiKey, sessionForToolkit } from "./composio-session.ts";
+import { MULTI_ACCOUNT_CONFIG, authConfigRefusal, ensureProjectSession, projectApiKey, raiseAccountCap, sessionForToolkit } from "./composio-session.ts";
 import { authConfigUseLine, noManagedAuthToolkit } from "./connector-auth-config-hint.ts";
 import { planAccountLink } from "../shared/connector-account-link.ts";
 import type { CuratedConnectorSlug } from "../shared/connector-curated.ts";
@@ -35,7 +35,7 @@ import {
 import { connectedAppGrantSlugs, serviceSlugFor, serviceSlugForCandidates } from "./connector-verdict.ts";
 import { parseMcpResponse, withToolsListFallback } from "./connector-tools-list.ts";
 import { withConnectorResponseHints } from "./connector-response-hints.ts";
-import { brokerAccess, managedComposioBrokerOff, type BrokerAccess } from "./composio-broker-access.ts";
+import { brokerAccess, managedComposioBrokerOff, relinkBroker, type BrokerAccess } from "./composio-broker-access.ts";
 export { applyManagedBrokerMessage, brokerAccess, setManagedBrokerAccess, type BrokerAccess } from "./composio-broker-access.ts";
 export { prepareProjectSession, trustedSessionMcpUrl } from "./composio-session.ts";
 
@@ -260,7 +260,7 @@ export async function relayMcp(
   cfg: AppConfig,
   payload: JsonValue,
   transportSessionId?: string,
-  beforeSend?: () => void, signal?: AbortSignal, as?: BrokerAccess,
+  beforeSend?: () => void | JsonValue | Promise<void | JsonValue>, signal?: AbortSignal, as?: BrokerAccess,
 ): Promise<{ status: number; bytes: Uint8Array; contentType: string; transportSessionId?: string }> {
   const apiKey = as ? null : projectApiKey(cfg);
   let url: string;
@@ -292,7 +292,7 @@ export async function relayMcp(
     headers.set("mcp-session-id", forwardedTransportSessionId);
   }
   // Discovery may await I/O: check turn authority and permissions after it, right before dispatch.
-  beforeSend?.();
+  const sent = await beforeSend?.(); if (sent !== undefined) payload = sent; // beforeSend may answer the frame to send instead (files it uploaded)
   const response = await withToolsListFallback(identity, payload, () => fetch(url, {
     method: "POST",
     headers,
@@ -805,8 +805,8 @@ export async function authorizeService(cfg: AppConfig, slug: string, requestedAl
   const plan = planAccountLink(toolkit, serviceAccounts, alias, MULTI_ACCOUNT_CONFIG.max_accounts_per_toolkit, () => `odb-retry-${randomUUID()}`);
   if (!plan.ok) throw inputError(plan.error, plan.status);
   for (const id of plan.replace) await deleteConnectedAccount(apiKey, id);
-  const linkRequest: AccountLinkRequest = { toolkit };
-  if (plan.alias) linkRequest.alias = plan.alias;
+  await raiseAccountCap(apiKey, session);
+  const linkRequest: AccountLinkRequest = plan.alias ? { toolkit, alias: plan.alias } : { toolkit };
   const link = (sessionId: string) =>
     fetch(`${apiBase()}/tool_router/session/${encodeURIComponent(sessionId)}/link`, {
       method: "POST",
@@ -929,7 +929,7 @@ export async function listToolkits(cfg: AppConfig): Promise<{ cards: ToolkitCard
       for (let page = 0; page < MAX_CONNECTED_ACCOUNT_PAGES; page += 1) {
         const params = new URLSearchParams({ limit: "500", sort_by: "usage" });
         if (cursor) params.set("cursor", cursor);
-        const res = backendKey
+        let res = backendKey
           ? await fetch(`${toolkitBase()}/toolkits?${params}`, {
               headers: { "x-api-key": backendKey },
               signal: AbortSignal.timeout(15_000),
@@ -937,6 +937,9 @@ export async function listToolkits(cfg: AppConfig): Promise<{ cards: ToolkitCard
           : await brokerRequest(cursor ? `/v1/catalog?cursor=${encodeURIComponent(cursor)}` : "/v1/catalog", {
               signal: AbortSignal.timeout(15_000),
             });
+        if (!backendKey && res.status === 403 && page === 0 && await relinkBroker()) {
+          res = await brokerRequest("/v1/catalog", { signal: AbortSignal.timeout(15_000) });
+        }
         if (!res.ok) {
           stop = "http-error";
           break;

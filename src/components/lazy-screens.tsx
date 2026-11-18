@@ -86,8 +86,11 @@ export const PublishedAppsPage = lazyScreen("PublishedAppsPage", async () => (aw
 export const CloudAddDialog = lazyScreen("CloudAddDialog", async () => (await import("./CloudAddDialog")).CloudAddDialog);
 export const DelioPlansDialog = lazyScreen("DelioPlansDialog", async () => (await import("./DelioPlansDialog")).DelioPlansDialog);
 export const PhoneAppDialog = lazyScreen("PhoneAppDialog", async () => (await import("./PhoneAppDialog")).PhoneAppDialog);
-export const ShareTeamDialog = lazyScreen("ShareTeamDialog", async () => (await import("./ShareTeamDialog")).ShareTeamDialog);
+export const ShareDepartmentDialog = lazyScreen("ShareDepartmentDialog", async () => (await import("./ShareDepartmentDialog")).ShareDepartmentDialog);
+export const ImportDialog = lazyScreen("ImportDialog", async () => (await import("./ImportDialog")).ImportDialog);
 export const TeamLibraryPanel = lazyScreen("TeamLibraryPanel", async () => (await import("./TeamLibraryPanel")).TeamLibraryPanel);
+// Only a Team Cloud has it, so no page fetches it ahead.
+export const TeamFilesPage = lazyScreen("TeamFilesPage", async () => (await import("./team-files/TeamFilesPage")).TeamFilesPage);
 
 // Most opened first: a Cloud page fetches these in this order.
 const SCREENS = [

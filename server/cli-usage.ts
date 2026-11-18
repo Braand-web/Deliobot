@@ -3,6 +3,7 @@ export { HEADLESS_VERBS as HEADLESS_VERB_NAMES } from "./headless/args.ts";
 export const HEADLESS_USAGE = `Drive a running workspace (scripts, CI, other agents):
   opendeliobot doctor                    check the server answers and an engine is ready
   opendeliobot doctor --host             check this Linux machine can run a server (exit 7 if not)
+  opendeliobot doctor --data [--fix]     check (and safely repair) this computer's data folder (exit 8 if a problem is left)
   opendeliobot bots | channels | models  your bots, your rooms, the engines and their models
   opendeliobot run BOT "do this"         give a bot one job and wait until it and every teammate it asked are done
   opendeliobot send BOT "text"           send one message and return at once
@@ -43,6 +44,7 @@ export const USAGE = `opendeliobot — your team of AI bots, ready in a few step
   opendeliobot service install [the same way-in options as serve] [--port N] [--data-dir DIR] | uninstall
                     [--sentinel]   (the health scan below, every two minutes, instead of the server)
   opendeliobot sentinel [--data-dir DIR] [--out DIR] [--once] [--json]   (read-only health scan; see --help)
+  opendeliobot config backups | restore NAME    (dated copies of the settings file; see --help)
   opendeliobot browser install [--with-deps] | status
   opendeliobot fleet init --domain HOST [--operator USER] | create NAME --admin EMAIL [--member EMAIL] [--brand FILE]
                     [--anthropic-key-file FILE] [--cap USD] [--license-key KEY] [--memory 1G]

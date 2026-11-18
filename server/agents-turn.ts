@@ -4,11 +4,12 @@
 // when it calls it.
 import { AGENTS_PROXY_ENV } from "./agents-bridge-switch.ts";
 import { roleToolEnv } from "./chief-level.ts";
+import { TOOLS_OFF_ENV } from "../shared/tool-groups.ts";
 
 /** The facts of a conversation that decide its agents tools. A settings change may change them; a turn never does. */
 export interface AgentsConversation {
   threadId: string;
-  bot: NonNullable<Parameters<typeof roleToolEnv>[0]> & { id: string; computer?: string; memoryEnabled?: boolean; xResearch?: boolean };
+  bot: NonNullable<Parameters<typeof roleToolEnv>[0]> & { id: string; computer?: string; memoryEnabled?: boolean; xResearch?: boolean; toolsOff?: readonly string[] };
   /** A room's thread: rooms refuse widgets, pages and a computer pick. */
   room: boolean;
   /** The bot works on its team's cloud computer, so it has no computer of its own to pick. */
@@ -17,7 +18,7 @@ export interface AgentsConversation {
   botDriven?: boolean;
   /** `x`: a research credential is held (a treg key or a plan's); `research`: research works for it too; `appHosting`:
    * the plan's included app hosting reaches this server. */
-  host: { skillAuthoring: boolean; sharedComputers: boolean; cloudHome: boolean; team: boolean; voiceNotes: boolean; x: boolean; research: boolean; imageGeneration: boolean; videoGeneration?: boolean; musicGeneration?: boolean; meetings?: boolean; appHosting?: boolean };
+  host: { skillAuthoring: boolean; sharedComputers: boolean; cloudHome: boolean; team: boolean; voiceNotes: boolean; x: boolean; research: boolean; imageGeneration: boolean; videoGeneration?: boolean; musicGeneration?: boolean; meetings?: boolean; appHosting?: boolean; localVm: boolean };
 }
 
 /** What one turn may do. Its bearer carries this to the harness, which checks it on every call. */
@@ -54,6 +55,8 @@ export function agentsServerEnv(conversation: AgentsConversation, turn: AgentsTu
     ODB_MEETINGS: flag(host.meetings === true && !conversation.room),
     ODB_APP_HOSTING: flag(host.appHosting === true),
     ODB_COMPUTER_SELECTION: flag(!conversation.room && bot.computer !== "off" && !conversation.teamComputer && !conversation.botDriven),
+    ODB_LOCAL_VM: flag(host.localVm),
+    [TOOLS_OFF_ENV]: (bot.toolsOff ?? []).join(","),
   };
 }
 

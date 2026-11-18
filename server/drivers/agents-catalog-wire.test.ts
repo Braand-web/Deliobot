@@ -66,6 +66,8 @@ function profiles(): Record<string, Profile> {
   // The plan's included app hosting reaches only a Cloud home the Admin wired for it; the fullest profile carries it.
   all["skills+shared+voice+x+team+images+hosting"] = { env: { ...all["skills+shared+voice+x+team+images"]!.env, ODB_APP_HOSTING: "1" } };
   all["default+hosting"] = { env: { ...all.default!.env, ODB_APP_HOSTING: "1" } };
+  // A bot whose person turned groups off; the fullest profile has every group on.
+  all["default+tools-off"] = { env: { ...all.default!.env, ODB_TOOLS_OFF: "pages,meetings" } };
   return all;
 }
 
@@ -85,36 +87,37 @@ const FULL = "skills+shared+voice+x+team+images+hosting";
 
 /** Bytes when the budget was last set; a profile may move at most 2% either way (lower it to lock in a win). */
 const BUDGET_BASELINE: Record<string, number> = {
-  "default": 65052,
-  "voice": 65833,
-  "shared": 67317,
-  "shared+voice": 68098,
-  "skills": 68128,
-  "skills+voice": 68909,
-  "skills+shared": 70393,
-  "skills+shared+voice": 71174,
-  "non-chief": 55555,
-  "voice+non-chief": 56336,
-  "shared+non-chief": 57820,
-  "shared+voice+non-chief": 58601,
-  "skills+non-chief": 58631,
-  "skills+voice+non-chief": 59412,
-  "skills+shared+non-chief": 60896,
-  "skills+shared+voice+non-chief": 61677,
-  "skills+shared+voice+cloud-home": 70940,
-  "skills+shared+voice+non-chief+cloud-home": 61443,
-  "default+legacy-switches": 65052,
-  "default+delio": 65703,
-  "skills+shared+voice+delio": 71825,
-  "skills+shared+voice+x": 75013,
-  "skills+shared+voice+x+team": 75013,
-  "default+no-computer-pick": 63840,
-  "default+room": 60836,
-  "non-chief+room": 51339,
-  "skills+shared+voice+x+team+images": 75786,
-  "default+images": 65825,
-  "skills+shared+voice+x+team+images+hosting": 77649,
-  "default+hosting": 66915,
+  "default": 57945,
+  "voice": 58726,
+  "shared": 60210,
+  "shared+voice": 60991,
+  "skills": 60031,
+  "skills+voice": 60812,
+  "skills+shared": 62296,
+  "skills+shared+voice": 63077,
+  "non-chief": 49528,
+  "voice+non-chief": 50309,
+  "shared+non-chief": 51793,
+  "shared+voice+non-chief": 52574,
+  "skills+non-chief": 51614,
+  "skills+voice+non-chief": 52395,
+  "skills+shared+non-chief": 53879,
+  "skills+shared+voice+non-chief": 54660,
+  "skills+shared+voice+cloud-home": 62843,
+  "skills+shared+voice+non-chief+cloud-home": 54426,
+  "default+legacy-switches": 57945,
+  "default+delio": 58596,
+  "skills+shared+voice+delio": 63728,
+  "skills+shared+voice+x": 67179,
+  "skills+shared+voice+x+team": 67179,
+  "default+no-computer-pick": 56733,
+  "default+room": 53729,
+  "non-chief+room": 45312,
+  "skills+shared+voice+x+team+images": 69244,
+  "default+images": 60010,
+  "skills+shared+voice+x+team+images+hosting": 71107,
+  "default+hosting": 59808,
+  "default+tools-off": 53081,
 };
 
 const RPC_PREFIX = '{"jsonrpc":"2.0","id":1,"result":';
@@ -231,7 +234,7 @@ describe("agents proxy tools/list golden", () => {
       for (const alias of ["delegate_bot", "ask_bot", "send_to_bot", "check_delegation", "wait_delegation"]) expect(tools.has(alias), `${name}: ${alias}`).toBe(false);
       expect(JSON.stringify([...tools.values()])).not.toMatch(/Deprecated alias|works for this release/);
       const coordinate = tools.get("coordinate_bots")!.inputSchema.properties;
-      expect(Object.keys(coordinate)).toEqual(["group_id", "bot_ids", "message", "reason", "rework", "thread", "title", "in_my_folder", "reply", "consult", "done_when", "answers"]);
+      expect(Object.keys(coordinate)).toEqual(["group_id", "bot_ids", "message", "reason", "rework", "thread", "title", "in_my_folder", "reply", "consult", "done_when", "answers", "files"]);
       expect(coordinate.thread).toMatchObject({ type: "string", description: expect.stringContaining("threadId") });
       expect(coordinate.thread!.enum).toBeUndefined();
       expect(coordinate.reply!.enum).toEqual(["resume", "none"]);
@@ -274,11 +277,20 @@ describe("agents proxy tools/list golden", () => {
     }
   });
 
-  it("mounts generate_image only when an image provider is set up, and adds nothing else", () => {
+  it("mounts generate_image and edit_image only when an image provider is set up, and adds nothing else", () => {
     const names = (wire: string) => toolsOf(wire).map((tool) => tool.name);
-    expect(names(wires["default+images"]!).filter((tool) => tool !== "generate_image")).toEqual(names(wires.default!));
+    expect(names(wires["default+images"]!).filter((tool) => tool !== "generate_image" && tool !== "edit_image")).toEqual(names(wires.default!));
     for (const [name, profile] of Object.entries(PROFILES)) {
       expect(names(wires[name]!).includes("generate_image"), name).toBe(profile.env.ODB_IMAGE_GENERATION === "1");
+    }
+  });
+
+  it("leaves out only the tools of the groups a bot has off", () => {
+    const names = (wire: string) => toolsOf(wire).map((tool) => tool.name);
+    const PAGE_TOOLS = ["show_html", "publish_page", "unpublish_page", "share"];
+    expect(names(wires["default+tools-off"]!)).toEqual(names(wires.default!).filter((tool) => !PAGE_TOOLS.includes(tool)));
+    for (const [name, profile] of Object.entries(PROFILES)) {
+      expect(names(wires[name]!).includes("show_html"), name).toBe(profile.env.ODB_TOOLS_OFF === undefined);
     }
   });
 
@@ -347,7 +359,7 @@ describe("agents proxy tools/list golden", () => {
     for (const [name, profile] of Object.entries(PROFILES)) {
       expect(names(name).includes("select_computer"), name).toBe(profile.env.ODB_COMPUTER_SELECTION === "1");
       expect(names(name).includes("show_widget"), name).toBe(true);
-      expect(names(name).includes("show_html"), name).toBe(true);
+      expect(names(name).includes("show_html"), name).toBe(profile.env.ODB_TOOLS_OFF === undefined);
       expect(names(name).includes("wait_until"), name).toBe(profile.env.ODB_ROOM !== "1");
     }
   });
