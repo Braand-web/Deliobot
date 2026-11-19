@@ -105,6 +105,17 @@ const DASHBOARD_STYLE = `
 .amb .meter i{transition:width .8s cubic-bezier(.22,1,.36,1)}
 .amb-share p{margin:0;padding:12px 0;border-bottom:1px solid var(--hairline)}.amb-share p:last-child{border-bottom:0}
 .amb-share .head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+.amb-code{flex-wrap:wrap;align-items:flex-start;gap:12px}.amb-code .grow{flex:1 1 280px}.amb-code>.actions{flex:0 1 auto;justify-content:flex-end}
+.amb-link{display:block;margin:6px 0 4px;padding:6px 10px;border-radius:8px;background:color-mix(in srgb,var(--ink) 6%,transparent);font-size:12.5px;overflow-wrap:anywhere}
+.amb-paid{flex-wrap:wrap;gap:4px 10px}
+@media (max-width:560px){main.wide{padding:16px 12px 48px}.amb-main h1{font-size:21px}.amb-sec{margin-bottom:24px}
+.amb .stats{grid-template-columns:1fr 1fr;gap:8px}.amb .stats div{padding:11px 12px;min-width:0}.amb .stats div.lead,.amb .stats:not(:has(.lead))>div:last-child:nth-child(odd){grid-column:1/-1}
+.amb .stats b{font-size:20px}.amb .levels{grid-template-columns:1fr 1fr;gap:8px}.amb .levels>div{min-width:0}
+.amb .card{padding:14px}.amb-code>.actions,.amb-payout,.amb-new{display:grid;grid-template-columns:1fr 1fr;width:100%}
+.amb-code>.actions>*,.amb-payout>*,.amb-new>*{width:100%;min-width:0!important}.amb-code>.actions .button,.amb-code>.actions button,.amb-payout button,.amb-new button{width:100%;text-align:center;justify-content:center;white-space:nowrap;padding:8px 6px;font-size:13.5px}
+.amb-code>.actions>form:last-child:nth-child(odd),.amb-new>input{grid-column:1/-1}.amb-payout{grid-template-columns:1fr}.amb-new{grid-template-columns:1fr}
+.amb-share .head{flex-wrap:wrap}.amb-long{display:none}.amb-paid .grow{flex-basis:100%}
+.notice .inline,.notice .inline button{width:100%}}
 .js-only{display:none!important}.js .js-only{display:inline-block!important}
 @keyframes amb-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
@@ -155,15 +166,15 @@ ${ambassador.extensionRequest ? h`<div class="notice">Votre demande de prolongat
 <div><span>En attente</span><b>${money(stats.heldUsd)}</b><small>${stats.nextPayableAt ? `disponible dès le ${day(stats.nextPayableAt)}` : "rien en attente"}</small></div>
 <div><span>Déjà versé</span><b>${money(stats.paidUsd)}</b><small>${francs(stats.paidUsd, rate)}</small></div></div>
 <div class="card"><b>Retirer mes gains</b><p class="muted">Mobile Money dès ${rules.minPayoutXof.toLocaleString("fr-FR")} FCFA, envoyé sous quelques jours au ${ambassador.phone || "numéro de votre candidature"}. Ou en crédits Delio, tout de suite.</p>
-<div class="actions"><form class="inline" method="post" action="/ambassadeur/retrait"><input type="hidden" name="mode" value="mobile_money"><button class="primary" ${stats.availableUsd > 0 ? "" : raw("disabled")}>Recevoir en Mobile Money</button></form>
+<div class="actions amb-payout"><form class="inline" method="post" action="/ambassadeur/retrait"><input type="hidden" name="mode" value="mobile_money"><button class="primary" ${stats.availableUsd > 0 ? "" : raw("disabled")}>Recevoir en Mobile Money</button></form>
 <form class="inline" method="post" action="/ambassadeur/retrait"><input type="hidden" name="mode" value="credits"><button ${stats.availableUsd > 0 ? "" : raw("disabled")}>Recevoir en crédits</button></form></div>
-${input.payouts.length ? h`<details><summary>Historique des retraits</summary>${input.payouts.map((payout) => h`<div class="row"><span class="grow">${day(payout.at)} · ${payout.mode === "credits" ? "en crédits" : "Mobile Money"}${payout.reference ? ` · réf. ${payout.reference}` : ""}</span><b>${money(payout.usd)}</b><span class="muted">${payout.status === "paid" ? "versé" : "en cours"}</span></div>`)}</details>` : h`<p class="muted" style="margin-bottom:0">Aucun retrait pour l'instant.</p>`}</div></section>
+${input.payouts.length ? h`<details><summary>Historique des retraits</summary>${input.payouts.map((payout) => h`<div class="row amb-paid"><span class="grow">${day(payout.at)} · ${payout.mode === "credits" ? "en crédits" : "Mobile Money"}${payout.reference ? ` · réf. ${payout.reference}` : ""}</span><b>${money(payout.usd)}</b><span class="muted">${payout.status === "paid" ? "versé" : "en cours"}</span></div>`)}</details>` : h`<p class="muted" style="margin-bottom:0">Aucun retrait pour l'instant.</p>`}</div></section>
 <section id="codes" class="amb-sec"><h2>Mes codes et mes liens</h2>
-<div class="card">${input.codes.map((code) => h`<div class="row"><div class="grow"><code style="font-size:16px"><b>${code.code}</b></code>${code.active ? "" : h` <span class="muted">· désactivé</span>`}<br><code>${linkFor(code.code)}</code>
+<div class="card">${input.codes.map((code) => h`<div class="row amb-code"><div class="grow"><code style="font-size:16px"><b>${code.code}</b></code>${code.active ? "" : h` <span class="muted">· désactivé</span>`}<code class="amb-link">${linkFor(code.code)}</code>
 <div class="muted">${code.signups.toLocaleString("fr-FR")} inscrits · ${code.paying.toLocaleString("fr-FR")} clients payants</div></div>
-<div class="actions">${code.active ? h`${copyButton(linkFor(code.code), "Copier le lien")}<a class="button" target="_blank" rel="noopener noreferrer" href="https://wa.me/?text=${encodeURIComponent(shareText(code.code, rules.welcomeCredits))}">Partager sur WhatsApp</a>` : ""}
+<div class="actions">${code.active ? h`${copyButton(linkFor(code.code), "Copier le lien")}<a class="button" target="_blank" rel="noopener noreferrer" href="https://wa.me/?text=${encodeURIComponent(shareText(code.code, rules.welcomeCredits))}"><span class="amb-long">Partager sur </span>WhatsApp</a>` : ""}
 <form class="inline" method="post" action="/ambassadeur/codes/${code.code}/${code.active ? "desactiver" : "activer"}"><button>${code.active ? "Désactiver" : "Réactiver"}</button></form></div></div>`)}
-${input.codes.length < rules.maxCodes ? h`<form method="post" action="/ambassadeur/codes" class="actions" style="margin-top:12px"><input name="code" required maxlength="20" pattern="[A-Za-z0-9\\-]{3,20}" placeholder="Votre code, ex. AWA ou AWA-TIKTOK" style="flex:1;min-width:200px;text-transform:uppercase">
+${input.codes.length < rules.maxCodes ? h`<form method="post" action="/ambassadeur/codes" class="actions amb-new" style="margin-top:12px"><input name="code" required maxlength="20" pattern="[A-Za-z0-9\\-]{3,20}" placeholder="Votre code, ex. AWA ou AWA-TIKTOK" style="flex:1;min-width:200px;text-transform:uppercase">
 <button class="primary">Créer ce code</button></form><p class="muted">3 à 20 lettres, chiffres ou tirets. Jusqu'à ${rules.maxCodes} codes, par exemple un par réseau, pour voir lequel marche le mieux.</p>` : h`<p class="muted">Vous avez vos ${rules.maxCodes} codes.</p>`}</div></section>
 <section id="partager" class="amb-sec"><h2>Textes prêts à partager</h2>
 ${main ? h`<div class="card amb-share">
