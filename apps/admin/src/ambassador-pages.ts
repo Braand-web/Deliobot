@@ -78,8 +78,8 @@ const ICON: Record<string, string> = {
   help: '<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h0"/>',
 };
 const icon = (name: string) => raw(`<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[name]}</svg>`);
-const SECTIONS: Array<[string, string, string]> = [["apercu", "Vue d'ensemble", "overview"], ["gains", "Gains et retraits", "earnings"], ["codes", "Mes codes", "codes"],
-  ["partager", "Partager", "share"], ["niveaux", "Niveaux", "levels"], ["aide", "Comment ça marche", "help"]];
+const SECTIONS: Array<[string, string, string, string]> = [["apercu", "Vue d'ensemble", "Aperçu", "overview"], ["gains", "Gains et retraits", "Gains", "earnings"],
+  ["codes", "Mes codes", "Codes", "codes"], ["partager", "Partager", "Partager", "share"], ["niveaux", "Niveaux", "Niveaux", "levels"], ["aide", "Comment ça marche", "Aide", "help"]];
 
 const DASHBOARD_STYLE = `
 .amb{--soft:color-mix(in srgb,var(--ink) 5%,transparent);--line:var(--hairline);display:grid;grid-template-columns:220px minmax(0,1fr);gap:56px;align-items:start}
@@ -113,7 +113,7 @@ const DASHBOARD_STYLE = `
 .amb .levels>div{background:none;border:0;border-left:1px solid var(--line);border-radius:0;padding:16px}
 .amb .levels>div:first-child{border-left:0}
 .amb .levels>div.on{background:var(--soft)}
-.amb .levels>div>div[style]{font-size:20px!important;font-weight:500!important;margin:4px 0}
+.amb .levels>div>div[style*="font-size"]{font-size:20px!important;font-weight:500!important;margin:4px 0}.amb .levels .muted{font-size:12.5px}
 .amb .notice{background:none;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
 .amb .steps li::before{background:none;border:1px solid var(--line);color:var(--ink);font-weight:500}
 .amb button,.amb a.button{background:none;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:7px 13px;font-size:13.5px;transition:background .15s,border-color .15s}
@@ -129,8 +129,11 @@ const DASHBOARD_STYLE = `
 .amb-link{display:block;margin:6px 0 4px;padding:6px 10px;border-radius:8px;background:var(--soft);font-size:12.5px;color:var(--ink-2);overflow-wrap:anywhere}
 .amb-paid{flex-wrap:wrap;gap:4px 10px}
 details summary{font-weight:500}
-@media (max-width:860px){.amb{grid-template-columns:minmax(0,1fr);gap:20px}.amb-side{position:static;gap:16px}.amb-quick{display:none}
-.amb-nav{position:sticky;top:0;z-index:5;flex-direction:row;gap:4px;overflow-x:auto;scrollbar-width:none;background:var(--canvas);padding:6px 0;border-bottom:1px solid var(--line)}.amb-nav::-webkit-scrollbar{display:none}
+@media (max-width:860px){.amb{grid-template-columns:minmax(0,1fr);gap:20px}.amb-side{display:contents}.amb-me{margin-bottom:-4px}.amb-quick{display:none}
+.amb-nav{position:sticky;top:0;z-index:5;flex-direction:row;gap:2px;overflow-x:auto;scrollbar-width:none;scroll-behavior:smooth;background:var(--canvas);padding:8px 0;border-bottom:1px solid var(--line);
+-webkit-mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 28px),transparent)}.amb-nav::-webkit-scrollbar{display:none}
+.amb-nav a{flex:none;margin:0;padding:7px 12px}.amb-nav a .amb-l{display:none}.amb-nav a .amb-s{display:inline}.amb-sec{scroll-margin-top:64px}
+.amb .levels{grid-template-columns:1fr 1fr}.amb .levels>div:nth-child(3){border-left:0}.amb .levels>div:nth-child(n+3){border-top:1px solid var(--line)}}
 .amb-nav a{flex:none;margin:0;padding:7px 11px}.amb-sec{scroll-margin-top:64px}
 .amb .levels{grid-template-columns:1fr 1fr}.amb .levels>div:nth-child(3){border-left:0}.amb .levels>div:nth-child(n+3){border-top:1px solid var(--line)}}
 @media (max-width:560px){main.wide{padding:16px 16px 48px}.amb-main h1{font-size:22px}.amb-sec{padding:28px 0}
@@ -141,6 +144,15 @@ details summary{font-weight:500}
 .amb-code>.actions>form:last-child:nth-child(odd),.amb-new>input{grid-column:1/-1}.amb-payout{grid-template-columns:1fr}.amb-new{grid-template-columns:1fr}
 .amb-share .head{flex-wrap:wrap}.amb-long{display:none}.amb-paid .grow{flex-basis:100%}
 .notice .inline,.notice .inline button{width:100%}}
+.amb-s{display:none}
+.amb-nav a:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+@media (max-width:560px){body{padding-bottom:calc(68px + env(safe-area-inset-bottom))}
+.amb-nav{position:fixed;top:auto;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(6,1fr);gap:0;overflow:visible;padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+border-bottom:0;border-top:1px solid var(--line);background:color-mix(in srgb,var(--canvas) 88%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);-webkit-mask-image:none;mask-image:none}
+.amb-nav a{flex-direction:column;gap:3px;padding:6px 0;border-radius:10px;font-size:10.5px;line-height:1.1;text-align:center;color:var(--ink-2);background:none!important}
+.amb-nav a svg{width:20px;height:20px;opacity:.75}.amb-nav a.on{color:var(--ink);font-weight:500}.amb-nav a.on svg{opacity:1;stroke-width:2.1}
+.amb-nav a.on::before{content:"";position:absolute;top:-7px;width:18px;height:2px;border-radius:2px;background:var(--ink)}.amb-nav a{position:relative;align-items:center}
+.amb-sec{scroll-margin-top:16px}}
 .js-only{display:none!important}.js .js-only{display:inline-block!important}
 @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
 @media (prefers-reduced-motion:reduce){.amb .meter i{transition:none}}
@@ -148,10 +160,15 @@ details summary{font-weight:500}
 
 /** Marks the section in view in the sidebar, and copies a link or a text with one click. */
 export const DASHBOARD_SCRIPT = `document.documentElement.classList.add("js");
-(function(){var links=[].slice.call(document.querySelectorAll(".amb-nav a"));if(!links.length||!("IntersectionObserver" in window))return;
-var mark=function(id){links.forEach(function(a){var on=a.getAttribute("href")==="#"+id;a.classList.toggle("on",on);if(on)a.setAttribute("aria-current","true");else a.removeAttribute("aria-current")})};
-var seen={};var io=new IntersectionObserver(function(entries){entries.forEach(function(e){seen[e.target.id]=e.isIntersecting});var first=links.map(function(a){return a.getAttribute("href").slice(1)}).filter(function(id){return seen[id]})[0];if(first)mark(first)},{rootMargin:"-10% 0px -55% 0px"});
-links.forEach(function(a){var s=document.getElementById(a.getAttribute("href").slice(1));if(s)io.observe(s)})})();
+(function(){var nav=document.querySelector(".amb-nav");var links=[].slice.call(document.querySelectorAll(".amb-nav a"));if(!nav||!links.length)return;
+var current=null,lock=0;
+var reveal=function(a){if(nav.scrollWidth<=nav.clientWidth)return;var left=a.offsetLeft-nav.clientWidth/2+a.offsetWidth/2;nav.scrollTo({left:Math.max(0,left),behavior:"smooth"})};
+var mark=function(id){if(id===current)return;current=id;links.forEach(function(a){var on=a.getAttribute("href")==="#"+id;a.classList.toggle("on",on);if(on){a.setAttribute("aria-current","true");reveal(a)}else a.removeAttribute("aria-current")})};
+links.forEach(function(a){a.addEventListener("click",function(){mark(a.getAttribute("href").slice(1));lock=Date.now()+900})});
+if(!("IntersectionObserver" in window))return;
+var seen={};var io=new IntersectionObserver(function(entries){entries.forEach(function(e){seen[e.target.id]=e.isIntersecting});if(Date.now()<lock)return;var first=links.map(function(a){return a.getAttribute("href").slice(1)}).filter(function(id){return seen[id]})[0];if(first)mark(first)},{rootMargin:"-15% 0px -60% 0px"});
+links.forEach(function(a){var s=document.getElementById(a.getAttribute("href").slice(1));if(s)io.observe(s)});
+window.addEventListener("scroll",function(){if(Date.now()<lock)return;if(window.innerHeight+window.scrollY>=document.documentElement.scrollHeight-4)mark(links[links.length-1].getAttribute("href").slice(1))},{passive:true})})();
 document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-copy]");if(!b||!navigator.clipboard)return;navigator.clipboard.writeText(b.getAttribute("data-copy")).then(function(){var t=b.textContent;b.textContent="Copié ✓";setTimeout(function(){b.textContent=t},1600)})});`;
 
 const copyButton = (text: string, label = "Copier") => h`<button type="button" class="js-only" data-copy="${text}">${label}</button>`;
@@ -168,7 +185,7 @@ export function ambassadorDashboard(input: DashboardInput): Html {
 <div class="amb-me"><div class="amb-avatar" aria-hidden="true">${first.slice(0, 1).toUpperCase()}</div><b>${ambassador.name}</b><span class="amb-chip">${stats.level.name} · ${share}</span>
 <div class="meter" style="margin-top:12px"><i style="width:${String(stats.next ? Math.round(Math.max(stats.next.revenueUsd ? Math.min(1, stats.revenueUsd / stats.next.revenueUsd) : 0, stats.next.clients ? Math.min(1, stats.paying / stats.next.clients) : 0) * 100) : 100)}%"></i></div>
 <div class="muted">${stats.next ? `Prochain niveau : ${stats.next.name}` : "Niveau maximum atteint"}</div></div>
-<nav class="amb-nav" aria-label="Espace ambassadeur">${SECTIONS.map(([id, label, name]) => h`<a href="#${id}" class="${id === "apercu" ? "on" : ""}">${icon(name)}<span>${label}</span></a>`)}</nav>
+<nav class="amb-nav" aria-label="Espace ambassadeur">${SECTIONS.map(([id, label, short, name]) => h`<a href="#${id}" class="${id === "apercu" ? "on" : ""}" ${id === "apercu" ? raw('aria-current="true"') : ""}>${icon(name)}<span class="amb-l">${label}</span><span class="amb-s">${short}</span></a>`)}</nav>
 ${main ? h`<div class="amb-quick"><span class="muted">Votre code principal</span><code>${main.code}</code><div class="actions">${copyButton(linkFor(main.code), "Copier le lien")}<a class="button" target="_blank" rel="noopener noreferrer" href="https://wa.me/?text=${encodeURIComponent(shareText(main.code, rules.welcomeCredits))}">WhatsApp</a></div></div>` : ""}
 </aside>
 <div class="amb-main">
