@@ -82,47 +82,68 @@ const SECTIONS: Array<[string, string, string]> = [["apercu", "Vue d'ensemble", 
   ["partager", "Partager", "share"], ["niveaux", "Niveaux", "levels"], ["aide", "Comment ça marche", "help"]];
 
 const DASHBOARD_STYLE = `
-.amb{display:grid;grid-template-columns:260px minmax(0,1fr);gap:28px;align-items:start}
-.amb-side{position:sticky;top:16px;display:flex;flex-direction:column;gap:12px}
-.amb-me{background:var(--surface);border:1px solid var(--hairline);border-radius:14px;padding:16px}
-.amb-avatar{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:18px;color:#fff;background:var(--accent);margin-bottom:10px}
-.amb-me b{display:block;font-size:16px}.amb-chip{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:600;color:var(--accent-text);background:color-mix(in srgb,var(--accent) 14%,transparent)}
-.amb-nav{display:flex;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--hairline);border-radius:14px;padding:6px}
-.amb-nav a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;color:var(--ink-2);text-decoration:none;font-size:14px;transition:background .15s,color .15s}
-.amb-nav a:hover{background:color-mix(in srgb,var(--ink) 6%,transparent);color:var(--ink)}
-.amb-nav a.on{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent-text);font-weight:600}
-.amb-quick{background:var(--surface);border:1px solid var(--hairline);border-radius:14px;padding:14px;font-size:13px}
-.amb-quick code{display:block;margin:4px 0 10px;font-size:15px;font-weight:600}
-.amb-main h1{font-size:24px}
-.amb-sec{scroll-margin-top:16px;margin-bottom:32px;animation:amb-rise .35s cubic-bezier(.22,1,.36,1) both}
-.amb-sec:nth-child(2){animation-delay:.04s}.amb-sec:nth-child(3){animation-delay:.08s}.amb-sec:nth-child(4){animation-delay:.12s}.amb-sec:nth-child(5){animation-delay:.16s}
-.amb-sec>h2{margin-top:0;font-size:17px}
-.amb .card,.amb .stats div,.amb .levels>div{transition:border-color .15s,transform .15s}
-.amb .stats div:hover,.amb .levels>div:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--hairline));transform:translateY(-1px)}
-.amb .stats div.lead{background:color-mix(in srgb,var(--accent) 10%,var(--surface));border-color:color-mix(in srgb,var(--accent) 35%,var(--hairline))}
-.amb button,.amb a.button{transition:filter .15s,background .15s,border-color .15s}.amb button:hover:not(:disabled),.amb a.button:hover{filter:brightness(1.08)}
-.amb button:disabled{opacity:.5;cursor:not-allowed}
-.amb .meter i{transition:width .8s cubic-bezier(.22,1,.36,1)}
-.amb-share p{margin:0;padding:12px 0;border-bottom:1px solid var(--hairline)}.amb-share p:last-child{border-bottom:0}
-.amb-share .head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
-.amb-code{flex-wrap:wrap;align-items:flex-start;gap:12px}.amb-code .grow{flex:1 1 280px}.amb-code>.actions{flex:0 1 auto;justify-content:flex-end}
-.amb-link{display:block;margin:6px 0 4px;padding:6px 10px;border-radius:8px;background:color-mix(in srgb,var(--ink) 6%,transparent);font-size:12.5px;overflow-wrap:anywhere}
+.amb{--soft:color-mix(in srgb,var(--ink) 5%,transparent);--line:var(--hairline);display:grid;grid-template-columns:220px minmax(0,1fr);gap:56px;align-items:start}
+.amb-side{position:sticky;top:24px;display:flex;flex-direction:column;gap:28px}
+.amb-me{display:grid;grid-template-columns:auto 1fr;column-gap:12px;align-items:center}
+.amb-avatar{grid-row:span 2;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:500;font-size:15px;color:var(--ink);background:var(--soft)}
+.amb-me b{display:block;font-size:15px;font-weight:500;line-height:1.3}
+.amb-chip{font-size:13px;color:var(--ink-2)}
+.amb-me .meter,.amb-me>.muted{grid-column:1/-1}.amb-me>.muted{font-size:12.5px}
+.amb .meter{height:3px;background:var(--line);margin:14px 0 6px}.amb .meter i{background:var(--ink);transition:width .8s cubic-bezier(.22,1,.36,1)}
+.amb-nav{display:flex;flex-direction:column;gap:1px}
+.amb-nav a{display:flex;align-items:center;gap:10px;padding:7px 10px;margin-left:-10px;border-radius:8px;color:var(--ink-2);text-decoration:none;font-size:14px;transition:color .15s,background .15s}
+.amb-nav a svg{opacity:.7}
+.amb-nav a:hover{color:var(--ink);background:var(--soft)}
+.amb-nav a.on{color:var(--ink);background:var(--soft);font-weight:500}.amb-nav a.on svg{opacity:1}
+.amb-quick{font-size:13px;padding-top:20px;border-top:1px solid var(--line)}
+.amb-quick code{display:block;margin:4px 0 12px;font-size:15px;font-weight:500;letter-spacing:.02em}
+.amb-main{max-width:760px}
+.amb-main h1{font-size:26px;font-weight:500;letter-spacing:-.02em;margin-bottom:6px}
+.amb-sec{scroll-margin-top:24px;padding:36px 0;border-top:1px solid var(--line)}
+.amb-sec:first-child{border-top:0;padding-top:0}
+.amb-sec>h2{margin:0 0 18px;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.amb .muted{color:var(--ink-2)}
+.amb .card{background:none;border:1px solid var(--line);border-radius:12px;padding:18px;margin:14px 0}
+.amb .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:22px 0 4px;border:1px solid var(--line);border-radius:12px}
+.amb .stats div{background:none;border:0;border-left:1px solid var(--line);border-radius:0;padding:16px 18px}
+.amb .stats div:first-child{border-left:0}
+.amb .stats span{font-size:12.5px;color:var(--ink-2)}.amb .stats b{display:block;margin:4px 0 2px;font-size:22px;font-weight:500;letter-spacing:-.01em}
+.amb .stats small{font-size:12px;color:var(--ink-2)}
+.amb .levels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:12px}
+.amb .levels>div{background:none;border:0;border-left:1px solid var(--line);border-radius:0;padding:16px}
+.amb .levels>div:first-child{border-left:0}
+.amb .levels>div.on{background:var(--soft)}
+.amb .levels>div>div[style]{font-size:20px!important;font-weight:500!important;margin:4px 0}
+.amb .notice{background:none;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.amb .steps li::before{background:none;border:1px solid var(--line);color:var(--ink);font-weight:500}
+.amb button,.amb a.button{background:none;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:7px 13px;font-size:13.5px;transition:background .15s,border-color .15s}
+.amb button:hover:not(:disabled),.amb a.button:hover{background:var(--soft);border-color:color-mix(in srgb,var(--ink) 20%,transparent)}
+.amb button.primary{background:var(--ink);border-color:var(--ink);color:var(--canvas)}
+.amb button.primary:hover:not(:disabled){background:var(--ink);opacity:.88}
+.amb button:disabled{opacity:.4;cursor:not-allowed}
+.amb input{border-radius:9px}
+.amb-share p{margin:0;padding:14px 0;border-bottom:1px solid var(--line);line-height:1.6}.amb-share p:last-child{border-bottom:0}
+.amb-share .head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}.amb-share .head b{font-weight:500}
+.amb-code{flex-wrap:wrap;align-items:flex-start;gap:12px;padding:14px 0}.amb-code .grow{flex:1 1 280px}.amb-code>.actions{flex:0 1 auto;justify-content:flex-end}
+.amb-code code b{font-weight:500}
+.amb-link{display:block;margin:6px 0 4px;padding:6px 10px;border-radius:8px;background:var(--soft);font-size:12.5px;color:var(--ink-2);overflow-wrap:anywhere}
 .amb-paid{flex-wrap:wrap;gap:4px 10px}
-@media (max-width:560px){main.wide{padding:16px 12px 48px}.amb-main h1{font-size:21px}.amb-sec{margin-bottom:24px}
-.amb .stats{grid-template-columns:1fr 1fr;gap:8px}.amb .stats div{padding:11px 12px;min-width:0}.amb .stats div.lead,.amb .stats:not(:has(.lead))>div:last-child:nth-child(odd){grid-column:1/-1}
-.amb .stats b{font-size:20px}.amb .levels{grid-template-columns:1fr 1fr;gap:8px}.amb .levels>div{min-width:0}
+details summary{font-weight:500}
+@media (max-width:860px){.amb{grid-template-columns:minmax(0,1fr);gap:20px}.amb-side{position:static;gap:16px}.amb-quick{display:none}
+.amb-nav{position:sticky;top:0;z-index:5;flex-direction:row;gap:4px;overflow-x:auto;scrollbar-width:none;background:var(--canvas);padding:6px 0;border-bottom:1px solid var(--line)}.amb-nav::-webkit-scrollbar{display:none}
+.amb-nav a{flex:none;margin:0;padding:7px 11px}.amb-sec{scroll-margin-top:64px}
+.amb .levels{grid-template-columns:1fr 1fr}.amb .levels>div:nth-child(3){border-left:0}.amb .levels>div:nth-child(n+3){border-top:1px solid var(--line)}}
+@media (max-width:560px){main.wide{padding:16px 16px 48px}.amb-main h1{font-size:22px}.amb-sec{padding:28px 0}
+.amb .stats{grid-template-columns:1fr 1fr}.amb .stats div{padding:13px 14px;min-width:0}
+.amb .stats div:first-child{grid-column:1/-1;border-bottom:1px solid var(--line)}.amb .stats div:nth-child(2){border-left:0}
 .amb .card{padding:14px}.amb-code>.actions,.amb-payout,.amb-new{display:grid;grid-template-columns:1fr 1fr;width:100%}
-.amb-code>.actions>*,.amb-payout>*,.amb-new>*{width:100%;min-width:0!important}.amb-code>.actions .button,.amb-code>.actions button,.amb-payout button,.amb-new button{width:100%;text-align:center;justify-content:center;white-space:nowrap;padding:8px 6px;font-size:13.5px}
+.amb-code>.actions>*,.amb-payout>*,.amb-new>*{width:100%;min-width:0!important}.amb-code>.actions .button,.amb-code>.actions button,.amb-payout button,.amb-new button{width:100%;text-align:center;justify-content:center;white-space:nowrap;padding:8px 6px}
 .amb-code>.actions>form:last-child:nth-child(odd),.amb-new>input{grid-column:1/-1}.amb-payout{grid-template-columns:1fr}.amb-new{grid-template-columns:1fr}
 .amb-share .head{flex-wrap:wrap}.amb-long{display:none}.amb-paid .grow{flex-basis:100%}
 .notice .inline,.notice .inline button{width:100%}}
 .js-only{display:none!important}.js .js-only{display:inline-block!important}
-@keyframes amb-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
-@media (prefers-reduced-motion:reduce){.amb-sec{animation:none}.amb .meter i,.amb .stats div,.amb .levels>div{transition:none}}
-@media (max-width:860px){.amb{grid-template-columns:minmax(0,1fr);gap:16px}.amb-side{position:static}.amb-quick{display:none}
-.amb-nav{position:sticky;top:0;z-index:5;flex-direction:row;overflow-x:auto;scrollbar-width:none;border-radius:12px}.amb-nav::-webkit-scrollbar{display:none}
-.amb-nav a{flex:none;padding:8px 12px}.amb-me{display:grid;grid-template-columns:auto 1fr;column-gap:12px;align-items:center;padding:12px 14px}.amb-avatar{grid-row:span 2;margin:0}.amb-chip{justify-self:start}.amb-me .meter,.amb-me>.muted{grid-column:1/-1}.amb-me .meter{margin-top:10px!important}.amb-sec{scroll-margin-top:64px}}
+@media (prefers-reduced-motion:reduce){.amb .meter i{transition:none}}
 `;
 
 /** Marks the section in view in the sidebar, and copies a link or a text with one click. */
@@ -151,14 +172,14 @@ export function ambassadorDashboard(input: DashboardInput): Html {
 ${main ? h`<div class="amb-quick"><span class="muted">Votre code principal</span><code>${main.code}</code><div class="actions">${copyButton(linkFor(main.code), "Copier le lien")}<a class="button" target="_blank" rel="noopener noreferrer" href="https://wa.me/?text=${encodeURIComponent(shareText(main.code, rules.welcomeCredits))}">WhatsApp</a></div></div>` : ""}
 </aside>
 <div class="amb-main">
-<section id="apercu" class="amb-sec"><h1>Bonjour ${first} 👋</h1>
+<section id="apercu" class="amb-sec"><h1>Bonjour ${first}</h1>
 <p class="muted">Niveau <b>${stats.level.name}</b> · ${share} de chaque abonnement pendant ${Math.max(6, ambassador.months)} mois par client.</p>
 ${progress(input)}
 ${notice(input.error, "error")}${notice(input.message)}
 ${stats.canExtendTo ? h`<div class="notice"><b>Bravo, vous avez atteint le niveau ${stats.level.name} !</b> Vous pouvez demander à toucher vos commissions pendant ${stats.canExtendTo} mois par client au lieu de 6.
 <form class="inline" method="post" action="/ambassadeur/prolongation"><button class="primary">Demander la prolongation à ${stats.canExtendTo} mois</button></form></div>` : ""}
 ${ambassador.extensionRequest ? h`<div class="notice">Votre demande de prolongation à ${ambassador.extensionRequest} mois est en cours d'examen.</div>` : ""}
-<div class="stats"><div class="lead"><span>Disponible</span><b>${money(stats.availableUsd)}</b><small>${francs(stats.availableUsd, rate)}</small></div>
+<div class="stats"><div><span>Disponible</span><b>${money(stats.availableUsd)}</b><small>${francs(stats.availableUsd, rate)}</small></div>
 <div><span>Clients payants</span><b>${stats.paying.toLocaleString("fr-FR")}</b><small>${stats.signups.toLocaleString("fr-FR")} inscrits · ${stats.clicks.toLocaleString("fr-FR")} visiteurs</small></div>
 <div><span>CA amené (6 mois)</span><b>${money(stats.revenueUsd)}</b><small>${francs(stats.revenueUsd, rate)}</small></div></div></section>
 <section id="gains" class="amb-sec"><h2>Gains et retraits</h2>
