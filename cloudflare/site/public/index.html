@@ -230,64 +230,13 @@ h2.c{text-align:center}
 
 /* models and accounts */
 .models .eyebrow{margin:0 0 14px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
-.brain{margin:48px auto 0;max-width:1080px}
-.brain-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.mdl{all:unset;box-sizing:border-box;cursor:pointer;position:relative;display:flex;align-items:center;gap:14px;padding:16px;border-radius:20px;background:var(--card);border:1px solid transparent;transition:transform .35s cubic-bezier(.3,1.4,.5,1),border-color .3s,box-shadow .3s,background .3s}
-.mdl:hover{transform:translateY(-2px)}
-.mdl:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
-.mdl.on{background:var(--bg);border-color:var(--ink);box-shadow:0 18px 40px -22px rgba(0,0,0,.45)}
-.mdl.pick{background:var(--bg);border-color:var(--line);box-shadow:0 0 0 4px rgba(91,51,201,.12)}
-.mdl-logo{flex:none;width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.04),0 8px 20px -12px rgba(0,0,0,.35);border:1px solid rgba(0,0,0,.06)}
-.mdl-logo .ai{margin:0;width:26px;height:26px}
-.mdl-logo .ai-mono{filter:none!important}
-.mdl-logo.auto{color:#fff;background:linear-gradient(140deg,#8357ff,#3d86ff 55%,#4fbfa8);border:0}
-.mdl-tx{display:flex;flex-direction:column;min-width:0}
-.mdl-tx b{font-weight:500;font-size:15.5px;color:var(--ink)}
-.mdl-tx small{font-size:12.5px;color:var(--ink-3);line-height:1.35}
-.mdl-badge{position:absolute;top:-9px;right:14px;font-size:11px;font-weight:500;background:var(--btn);color:var(--btn-ink);border-radius:999px;padding:2px 9px}
-.brain-demo{margin:22px auto 0;max-width:760px;border-radius:22px;padding:18px 20px;background:linear-gradient(180deg,var(--card),var(--bg));border:1px solid var(--line);display:flex;flex-direction:column;gap:12px}
-.bd-ask{display:flex;align-items:flex-start;gap:10px}
-.bd-who{flex:none;font-size:12px;color:var(--ink-3);padding-top:3px;min-width:42px}
-.bd-ask p{margin:0;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:14px 14px 14px 4px;padding:8px 13px;transition:opacity .3s}
-.bd-route{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding-left:52px;font-size:14px;color:var(--ink-2)}
-.bd-mode{font-size:12px;font-weight:500;border-radius:999px;padding:3px 10px;color:#fff;background:linear-gradient(140deg,#8357ff,#3d86ff)}
-.bd-mode.fixed{background:var(--btn);color:var(--btn-ink)}
-.bd-arrow{color:var(--ink-3)}
-.bd-chip{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#111;border:1px solid rgba(0,0,0,.08);border-radius:999px;padding:5px 12px 5px 8px;box-shadow:0 8px 20px -14px rgba(0,0,0,.4)}
-.bd-chip b{font-weight:500}
-.bd-why{color:var(--ink-3)}
-.brain-demo.swap p,.brain-demo.swap .bd-chip,.brain-demo.swap .bd-why{opacity:.15}
-.bd-chip,.bd-why{transition:opacity .3s}
-@media (max-width:900px){.brain-grid{grid-template-columns:1fr 1fr}}
-@media (max-width:560px){.brain-grid{gap:8px}.mdl{flex-direction:column;align-items:flex-start;gap:10px;padding:14px}.mdl-logo{width:42px;height:42px}.bd-route{padding-left:0}.bd-who{display:none}}
-.mdl-logo.auto{background:linear-gradient(140deg,#8357ff,#3d86ff,#4fbfa8,#ec4fa6,#8357ff);background-size:300% 300%;animation:autoflow 6s ease-in-out infinite}
-.mdl-logo.auto svg{animation:twinkle 2.6s ease-in-out infinite}
-@keyframes autoflow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
-@keyframes twinkle{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.12) rotate(12deg)}}
-.mdl.pick::after{content:"";position:absolute;inset:-1px;border-radius:20px;pointer-events:none;border:1.5px solid transparent;background:linear-gradient(140deg,#8357ff,#3d86ff,#4fbfa8) border-box;-webkit-mask:linear-gradient(#000 0 0) padding-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:ringin .5s ease both}
-.mdl.pick .mdl-logo{animation:logopop .55s cubic-bezier(.3,1.6,.5,1) both}
-@keyframes ringin{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
-@keyframes logopop{0%{transform:scale(1)}40%{transform:scale(1.14) rotate(-4deg)}100%{transform:scale(1)}}
-.bd-arrow{overflow:visible}
-.bd-link{position:relative;display:inline-flex}
-.bd-pulse{position:absolute;left:0;top:calc(50% - 3.5px);width:7px;height:7px;border-radius:50%;background:#3d86ff;box-shadow:0 0 10px 2px rgba(61,134,255,.7);opacity:0;pointer-events:none}
-.brain-demo.go .bd-pulse{animation:travel .7s ease-out both}
-@keyframes travel{0%{opacity:0;transform:translateX(0)}20%{opacity:1}100%{opacity:0;transform:translateX(30px)}}
-.brain-demo.go .bd-chip{animation:chipin .5s .35s cubic-bezier(.3,1.5,.5,1) both}
-@keyframes chipin{from{opacity:0;transform:translateY(6px) scale(.92)}to{opacity:1;transform:none}}
-.brain.in .mdl{animation:tilein .6s cubic-bezier(.2,.9,.3,1) both}
-.brain.in .mdl:nth-child(2){animation-delay:.05s}.brain.in .mdl:nth-child(3){animation-delay:.1s}.brain.in .mdl:nth-child(4){animation-delay:.15s}
-.brain.in .mdl:nth-child(5){animation-delay:.2s}.brain.in .mdl:nth-child(6){animation-delay:.25s}.brain.in .mdl:nth-child(7){animation-delay:.3s}.brain.in .mdl:nth-child(8){animation-delay:.35s}
-@keyframes tilein{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
-.way-h{display:flex;align-items:center;justify-content:space-between}
-.way-ic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:var(--card);color:var(--ink)}
-.way-ic.delio{background:linear-gradient(140deg,#e1f6ec,#c7ecd9)}
-.way-ic.delio img{width:30px;height:30px;object-fit:contain}
-.key{gap:10px}.key code{flex:1}.key .ok{color:var(--success);display:grid}
-.key .or{font:600 10px/1 "Geist",system-ui;border-radius:6px;background:var(--card);padding:4px 5px;color:var(--ink-2)}
-.acct .ai{margin-right:0}
+.picker{position:relative;margin:44px auto 0;display:flex;flex-wrap:wrap;justify-content:center;gap:4px;width:fit-content;max-width:100%;padding:5px;border:1px solid var(--line);border-radius:999px;background:var(--bg)}
+.pk{padding:9px 16px;border-radius:999px;font-size:14.5px;color:var(--ink-2);transition:background .35s,color .35s}
+.pk.on{background:var(--btn);color:var(--btn-ink)}
+.pick-note{text-align:center;margin:16px 0 0;font-size:14px;color:var(--ink-3);min-height:22px}
+.pick-note [data-pick-model]{color:var(--ink);font-weight:500}.pick-note .sep{margin:0 8px}
 .ways{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:56px}
-.way{border:1px solid var(--line);border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:10px;background:var(--bg);transition:transform .35s,box-shadow .35s}.way:hover{transform:translateY(-3px);box-shadow:0 24px 50px -30px rgba(0,0,0,.35)}
+.way{border:1px solid var(--line);border-radius:22px;padding:24px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
 .way h3{margin:6px 0 0;font-size:19px;font-weight:500;letter-spacing:-.01em}
 .way p{margin:0;color:var(--ink-2);font-size:14.5px;line-height:1.55}
 .way .tag{align-self:flex-start;font-size:11.5px;font-weight:500;border-radius:999px;padding:3px 10px;background:var(--soft);color:var(--ink-2)}
@@ -730,18 +679,13 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
     <p class="eyebrow c reveal">Toutes les IA, au même endroit</p>
     <h2 class="c reveal">Choisissez le cerveau de chaque bot.</h2>
     <p class="lede c reveal">Laissez Auto prendre le bon modèle à chaque message, ou fixez celui que vous préférez. Vous changez quand vous voulez, sans rien réinstaller.</p>
-    <div class="brain reveal">
-      <div class="brain-grid" role="group" aria-label="Choisir le modèle du bot">
-        <button type="button" class="mdl on" data-model="Auto" aria-pressed="true"><span class="mdl-logo auto"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 3.5 12.8 8.2 17.5 10l-4.7 1.8L11 16.5l-1.8-4.7L4.5 10l4.7-1.8Z"/><path d="m18.5 14.5.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7Z"/></svg></span><span class="mdl-tx"><b>Auto</b><small>Le bon modèle à chaque message</small></span><span class="mdl-badge">Recommandé</span></button><button type="button" class="mdl" data-model="Claude" aria-pressed="false"><span class="mdl-logo"><img class="ai" src="/assets/ai/claude-color.svg" width="26" height="26" alt="" loading="lazy" decoding="async"></span><span class="mdl-tx"><b>Claude</b><small>Textes longs et soignés</small></span></button><button type="button" class="mdl" data-model="GPT" aria-pressed="false"><span class="mdl-logo"><img class="ai ai-mono" src="/assets/ai/openai.svg" width="26" height="26" alt="" loading="lazy" decoding="async"></span><span class="mdl-tx"><b>GPT</b><small>Analyse et tableaux</small></span></button><button type="button" class="mdl" data-model="Gemini" aria-pressed="false"><span class="mdl-logo"><img class="ai" src="/assets/ai/gemini-color.svg" width="26" height="26" alt="" loading="lazy" decoding="async"></span><span class="mdl-tx"><b>Gemini</b><small>Très longs documents</small></span></button><button type="button" class="mdl" data-model="Grok" aria-pressed="false"><span class="mdl-logo"><img class="ai ai-mono" src="/assets/ai/grok.svg" width="26" height="26" alt="" loading="lazy" decoding="async"></span><span class="mdl-tx"><b>Grok</b><small>Actualité en temps réel</small></span></button><button type="button" class="mdl" data-model="DeepSeek" aria-pressed="false"><span class="mdl-logo"><img class="ai" src="/assets/ai/deepseek-color.svg" width="26" height="26" alt="" loading="lazy" decoding="async"></span><span class="mdl-tx"><b>DeepSeek</b><small>Rapide et économique</small></span></button><button type="button" class="mdl" data-model="Mistral" aria-pressed="false"><span class="mdl-logo"><img class="ai" src="/assets/ai/mistral-color.svg" width="26" height="26" alt="" loading="lazy" decoding="async"></span><span class="mdl-tx"><b>Mistral</b><small>Un français impeccable</small></span></button><button type="button" class="mdl" data-model="Llama" aria-pressed="false"><span class="mdl-logo"><img class="ai" src="/assets/ai/meta-color.svg" width="26" height="26" alt="" loading="lazy" decoding="async"></span><span class="mdl-tx"><b>Llama</b><small>Tâches simples, petit prix</small></span></button>
-      </div>
-      <div class="brain-demo" aria-live="polite">
-        <div class="bd-ask"><span class="bd-who">Vous</span><p data-pick-ask>Rédige une proposition commerciale pour Acme</p></div>
-        <div class="bd-route"><span class="bd-mode" data-pick-mode>Auto</span><span class="bd-link"><span class="bd-pulse" aria-hidden="true"></span><svg class="bd-arrow" width="28" height="12" viewBox="0 0 28 12" aria-hidden="true"><path d="M1 6h24m-5-4 5 4-5 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="bd-chip"><img data-pick-logo src="/assets/ai/claude-color.svg" width="18" height="18" alt=""><b data-pick-model>Claude</b></span><span class="bd-why" data-pick-why>pour un long texte bien écrit</span></div>
-      </div>
+    <div class="picker reveal" role="img" aria-label="Sélecteur de modèle : Auto, Claude, GPT, Gemini, Grok, DeepSeek, Mistral, Llama">
+      <span class="pk on" data-model="Auto">✦ Auto</span><span class="pk" data-model="Claude"><img class="ai" src="/assets/ai/claude-color.svg" width="16" height="16" alt="" loading="lazy" decoding="async">Claude</span><span class="pk" data-model="GPT"><img class="ai ai-mono" src="/assets/ai/openai.svg" width="16" height="16" alt="" loading="lazy" decoding="async">GPT</span><span class="pk" data-model="Gemini"><img class="ai" src="/assets/ai/gemini-color.svg" width="16" height="16" alt="" loading="lazy" decoding="async">Gemini</span><span class="pk" data-model="Grok"><img class="ai ai-mono" src="/assets/ai/grok.svg" width="16" height="16" alt="" loading="lazy" decoding="async">Grok</span><span class="pk" data-model="DeepSeek"><img class="ai" src="/assets/ai/deepseek-color.svg" width="16" height="16" alt="" loading="lazy" decoding="async">DeepSeek</span><span class="pk" data-model="Mistral"><img class="ai" src="/assets/ai/mistral-color.svg" width="16" height="16" alt="" loading="lazy" decoding="async">Mistral</span><span class="pk" data-model="Llama"><img class="ai" src="/assets/ai/meta-color.svg" width="16" height="16" alt="" loading="lazy" decoding="async">Llama</span>
     </div>
+    <p class="pick-note reveal" aria-live="polite"><span data-pick-model>Auto</span><span class="sep">·</span><span data-pick-why>choisit le bon modèle pour chaque message</span></p>
     <div class="ways">
       <article class="way reveal">
-        <div class="way-h"><span class="way-ic delio"><img src="/assets/delio-happy.webp" width="30" height="30" alt="" loading="lazy" decoding="async"></span><span class="tag">Tous les forfaits</span></div>
+        <span class="tag">Tous les forfaits</span>
         <h3>Avec Delio</h3>
         <p>Des centaines de modèles, sans clé ni compte à créer. Chaque message est payé avec les crédits de votre forfait.</p>
         <div class="cloud"><span><img class="ai" src="/assets/ai/claude-color.svg" width="13" height="13" alt="" loading="lazy" decoding="async">Claude</span><span><img class="ai ai-mono" src="/assets/ai/openai.svg" width="13" height="13" alt="" loading="lazy" decoding="async">GPT</span><span><img class="ai" src="/assets/ai/gemini-color.svg" width="13" height="13" alt="" loading="lazy" decoding="async">Gemini</span><span><img class="ai" src="/assets/ai/deepseek-color.svg" width="13" height="13" alt="" loading="lazy" decoding="async">DeepSeek</span><span><img class="ai" src="/assets/ai/mistral-color.svg" width="13" height="13" alt="" loading="lazy" decoding="async">Mistral</span><span><img class="ai" src="/assets/ai/meta-color.svg" width="13" height="13" alt="" loading="lazy" decoding="async">Llama</span><span><img class="ai" src="/assets/ai/qwen-color.svg" width="13" height="13" alt="" loading="lazy" decoding="async">Qwen</span><span>+ 300</span></div>
@@ -749,7 +693,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
         <small>4 120 crédits restants ce mois-ci</small>
       </article>
       <article class="way reveal">
-        <div class="way-h"><span class="way-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></span><span class="tag dark">Max · BYOK</span></div>
+        <span class="tag dark">Max · BYOK</span>
         <h3>Vos comptes</h3>
         <p>Connectez les abonnements que vous payez déjà : vos bots les utilisent directement.</p>
         <ul class="acct">
@@ -760,11 +704,11 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
         </ul>
       </article>
       <article class="way reveal">
-        <div class="way-h"><span class="way-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="m11 12 8.5-8.5M16 7l2.5 2.5M14 9l2 2"/></svg></span><span class="tag dark">Max · BYOK</span></div>
+        <span class="tag dark">Max · BYOK</span>
         <h3>Vos clés API</h3>
         <p>OpenRouter, Anthropic, OpenAI, xAI, Mistral et d'autres. Vos clés restent sur votre ordinateur.</p>
-        <div class="key"><img class="ai ai-mono" src="/assets/ai/openrouter.svg" width="16" height="16" alt="" loading="lazy" decoding="async"><code>sk-or-v1-••••••••a91f</code><span class="ok"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span></div>
-        <div class="key"><img class="ai" src="/assets/ai/claude-color.svg" width="16" height="16" alt="" loading="lazy" decoding="async"><code>sk-ant-••••••••7c20</code><span class="ok"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span></div>
+        <div class="key"><code>sk-or-v1-••••••••a91f</code><span>✓</span></div>
+        <div class="key"><code>sk-ant-••••••••7c20</code><span>✓</span></div>
       </article>
     </div>
   </div>
@@ -1053,46 +997,18 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
   }, { rootMargin: "200px 0px", threshold: .35 }).observe(film);
   mute.addEventListener("click", () => { if (film.muted) withSound(); else sound(false); });
 
-  const asks = [
-    ["Rédige une proposition commerciale pour Acme", "Claude", "pour un long texte bien écrit"],
-    ["Analyse ce tableau des ventes du trimestre", "GPT", "pour analyser des chiffres"],
-    ["Résume ce rapport de 200 pages", "Gemini", "pour lire un très long document"],
-    ["Que dit-on de notre marque aujourd'hui ?", "Grok", "pour suivre l'actualité"],
-    ["Trie ces 500 lignes de contacts", "DeepSeek", "rapide et économique"],
-    ["Corrige ce courrier officiel", "Mistral", "pour un français impeccable"],
-    ["Classe ces reçus par mois", "Llama", "une tâche simple, à petit prix"]];
-  const logos = { Claude: "claude-color", GPT: "openai", Gemini: "gemini-color", Grok: "grok", DeepSeek: "deepseek-color", Mistral: "mistral-color", Llama: "meta-color" };
-  const tiles = [...document.querySelectorAll(".brain .mdl")];
-  const demo = document.querySelector(".brain-demo");
-  const pickAsk = document.querySelector("[data-pick-ask]"), pickModel = document.querySelector("[data-pick-model]");
-  const pickWhy = document.querySelector("[data-pick-why]"), pickLogo = document.querySelector("[data-pick-logo]"), pickMode = document.querySelector("[data-pick-mode]");
-  let askAt = 0, fixed = null, timer = 0;
-  const showRoute = (ask, model, why) => {
-    demo.classList.add("swap");
-    setTimeout(() => {
-      pickAsk.textContent = ask; pickModel.textContent = model; pickWhy.textContent = why;
-      pickLogo.src = `/assets/ai/${logos[model]}.svg`;
-      demo.classList.remove("swap", "go"); void demo.offsetWidth; demo.classList.add("go");
-    }, reduce ? 0 : 250);
-  };
-  const paint = (model) => tiles.forEach((tile) => {
-    const name = tile.dataset.model;
-    tile.classList.toggle("on", fixed ? name === fixed : name === "Auto");
-    tile.classList.toggle("pick", !fixed && name === model);
-    tile.setAttribute("aria-pressed", String(fixed ? name === fixed : name === "Auto"));
-  });
-  const step = () => { const [ask, model, why] = asks[askAt]; showRoute(ask, model, why); paint(model); askAt = (askAt + 1) % asks.length; };
-  const auto = () => { fixed = null; pickMode.textContent = "Auto"; pickMode.classList.remove("fixed"); clearInterval(timer); step(); if (!reduce) timer = setInterval(step, 2600); };
-  tiles.forEach((tile) => tile.addEventListener("click", () => {
-    const name = tile.dataset.model;
-    if (name === "Auto") return auto();
-    clearInterval(timer); fixed = name; pickMode.textContent = "Choisi par vous"; pickMode.classList.add("fixed");
-    const [ask] = asks[(askAt + asks.length - 1) % asks.length];
-    showRoute(ask, name, "pour tous les messages de ce bot"); paint(name);
-  }));
-  const brain = document.querySelector(".brain");
-  if (brain) new IntersectionObserver(([entry], observer) => { if (entry.isIntersecting) { brain.classList.add("in"); observer.disconnect(); } }, { threshold: .25 }).observe(brain);
-  if (tiles.length) auto();
+  const picks = [["Auto", "choisit le bon modèle pour chaque message"], ["Claude", "pour un long texte bien écrit"], ["GPT", "pour analyser un tableau"],
+    ["Gemini", "pour lire un document de 200 pages"], ["Grok", "pour suivre l'actualité"], ["DeepSeek", "pour un calcul rapide et économique"],
+    ["Mistral", "pour un français impeccable"], ["Llama", "pour une tâche simple, à petit prix"]];
+  const modelChips = [...document.querySelectorAll(".picker .pk")];
+  const pickModel = document.querySelector("[data-pick-model]"), pickWhy = document.querySelector("[data-pick-why]");
+  let pickAt = 0;
+  if (!reduce && modelChips.length) setInterval(() => {
+    pickAt = (pickAt + 1) % picks.length;
+    modelChips.forEach((chip, index) => chip.classList.toggle("on", index === pickAt));
+    pickModel.textContent = picks[pickAt][0];
+    pickWhy.textContent = picks[pickAt][1];
+  }, 2200);
 
   const jobs = [
     { name: "Prospection", c: "#4fbfa8", img: "happy", desc: "<b>Remplissez votre pipeline.</b> Il étudie les comptes, note les contacts selon leur intérêt, rédige e-mails et messages LinkedIn dans votre ton, et vous laisse une liste à valider.",
