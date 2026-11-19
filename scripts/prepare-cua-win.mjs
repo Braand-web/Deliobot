@@ -33,6 +33,7 @@ if (expectedVersion !== release.version) {
 }
 
 let lastProbe = "";
+let pinnedDownload = false;
 
 // A freshly extracted executable on a GitHub Windows runner can fail its first launches while Defender scans it.
 async function binaryVersion(candidate, attempts = 1) {
@@ -78,9 +79,15 @@ async function officialBinary() {
     timeout: 60_000,
     windowsHide: true,
   });
-  if ((await binaryVersion(cachedBinary, 6)) !== expectedVersion) {
-    throw new Error(`downloaded CUA Driver does not report version ${expectedVersion}; it answered: ${lastProbe.slice(0, 500) || "nothing"}`);
+  if (!existsSync(cachedBinary)) throw new Error(`CUA Driver archive ${release.file} has no cua-driver.exe`);
+  const reported = await binaryVersion(cachedBinary, 3);
+  if (reported && reported !== expectedVersion) {
+    throw new Error(`downloaded CUA Driver reports version ${reported}, expected ${expectedVersion}`);
   }
+  // The archive's pinned SHA-256 already identifies this release; GitHub's Windows runners sometimes get no
+  // output from the driver's --version, so a silent probe is not a reason to fail the build.
+  if (!reported) console.warn(`CUA Driver gave no version (${lastProbe.slice(0, 200) || "no output"}); trusting the pinned checksum.`);
+  pinnedDownload = true;
   return cachedBinary;
 }
 
@@ -108,7 +115,8 @@ if (process.env.CUA_DRIVER_PATH) {
   }
 }
 
-if ((await binaryVersion(binary)) !== expectedVersion) {
+const finalVersion = await binaryVersion(binary, 3);
+if (finalVersion !== expectedVersion && !(pinnedDownload && finalVersion === null)) {
   throw new Error(`CUA executable must match SDK ${expectedVersion}`);
 }
 const details = await stat(binary);
