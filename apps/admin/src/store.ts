@@ -361,7 +361,7 @@ export class AdminStore {
     });
   }
 
-  /** A suspended workspace keeps its data, but spends no Delio credits until it is resumed. */
+  /** A suspended workspace keeps its data, but spends no Deliobot credits until it is resumed. */
   suspension(slug: string): { reason: string | null; at: number } | null {
     return (this.db.prepare("SELECT reason, at FROM suspensions WHERE workspace = ?").get(slug) as { reason: string | null; at: number } | undefined) ?? null;
   }

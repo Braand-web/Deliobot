@@ -1,4 +1,4 @@
-// A real Delio Admin portal and a real workspace server; only the portal's HTTPS origin is rewritten to its loopback port.
+// A real Deliobot Admin portal and a real workspace server; only the portal's HTTPS origin is rewritten to its loopback port.
 import { spawn, type ChildProcess } from "node:child_process";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { createServer, request, type IncomingMessage, type Server } from "node:http";
@@ -57,7 +57,7 @@ function person() {
     go(path, { method: "POST", headers: { origin: portalOrigin, "content-type": "application/x-www-form-urlencoded" }, body: new URLSearchParams(form).toString() });
   async function signIn(email: string) {
     await post("/login", { email, next: "/" });
-    const code = /Delio est (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
+    const code = /Deliobot est (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
     expect((await post("/login/verify", { email, code: code[1]! + code[2]!, next: "/" })).status).toBe(303);
   }
   /** Opens the workspace address and follows the handoff through the portal; returns the workspace session cookie. */
@@ -124,7 +124,7 @@ afterAll(async () => {
   await removeTempDir(home);
 });
 
-describe("Delio Admin portal with a real workspace server", () => {
+describe("Deliobot Admin portal with a real workspace server", () => {
   const boss = person(), dev = person();
   let devId: string;
 

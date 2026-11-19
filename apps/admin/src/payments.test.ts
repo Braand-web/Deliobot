@@ -68,7 +68,7 @@ async function portal(saspay: ReturnType<typeof fakeSasPay>, clock: { now: numbe
   const signIn = async (email: string) => {
     cookie = "";
     await post("/login", { email, next: "/" });
-    const code = /Delio est (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
+    const code = /Deliobot est (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
     await post("/login/verify", { email, code: code[1]! + code[2]!, next: "/" });
   };
   const ops = await operatorConsole({ store, operators: new Set(["ops@delio.test"]), mailer: { send: async (message) => void mail.push(message) }, now: () => clock.now }, mail);
@@ -255,7 +255,7 @@ describe("plans paid through SasPay", () => {
     const saspay = fakeSasPay();
     const target = await portal(saspay, clock);
     await target.post("/billing/checkout", { workspace: "acme", kind: "plan", plan: "starter", cycle: "year" });
-    expect(saspay.calls.at(-1)!.body).toMatchObject({ amount: "99000.00", description: "Delio Starter · 1 an" });
+    expect(saspay.calls.at(-1)!.body).toMatchObject({ amount: "99000.00", description: "Deliobot Starter · 1 an" });
     saspay.pay("cs_1");
     await target.sweep();
     expect((await target.account()).credits).toBe(1300);
@@ -273,7 +273,7 @@ describe("plans paid through SasPay", () => {
     expect((await target.account()).gateway, "the year and its grace week are over").toBe(false);
   });
 
-  it("reminds admins before a period ends, keeps a week of grace, then stops the gateway; BYOK never spends Delio credits", async () => {
+  it("reminds admins before a period ends, keeps a week of grace, then stops the gateway; BYOK never spends Deliobot credits", async () => {
     const clock = { now: Date.now() };
     const saspay = fakeSasPay();
     const target = await portal(saspay, clock);

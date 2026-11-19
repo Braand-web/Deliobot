@@ -1,5 +1,5 @@
 // The included voice: a connected Deliobot app reads replies aloud and transcribes meetings through ElevenLabs with
-// Delio's key, and the workspace pays in Delio credits. Only the calls the app makes are relayed.
+// Deliobot's key, and the workspace pays in Deliobot credits. Only the calls the app makes are relayed.
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 import type { Wallet } from "./wallet.ts";
@@ -12,9 +12,9 @@ export const VOICE_PRICES = { speechPer1kChars: 0.12, transcriptionPerMb: 0.03, 
 const MAX_SPEECH_BODY = 64 * 1024;
 const MAX_AUDIO_BODY = 25 * 1024 * 1024;
 const VOICE_ID = /^[A-Za-z0-9]{1,64}$/;
-/** Security: a voice added from the library stays in Delio's ElevenLabs account, whose slots are shared by every workspace. */
+/** Security: a voice added from the library stays in Deliobot's ElevenLabs account, whose slots are shared by every workspace. */
 const VOICES_ADDED_PER_DAY = 10;
-const OUT_OF_CREDITS = "This workspace is out of Delio credits. Open Plans and credits in Deliobot to top up.";
+const OUT_OF_CREDITS = "This workspace is out of Deliobot credits. Open Plans and credits in Deliobot to top up.";
 
 async function readBody(req: IncomingMessage, max: number): Promise<Buffer> {
   const chunks: Buffer[] = [];
@@ -72,7 +72,7 @@ export function createVoiceRelay(options: { wallet: Wallet; key?: string; apiUrl
 
     /** Serves /api/gateway/<workspace>/elevenlabs/v1/<rest> for an authenticated workspace whose plan spends credits. */
     async handle(req: IncomingMessage, res: ServerResponse, workspace: string, rest: string): Promise<void> {
-      if (!options.key) return refuse(res, 503, "Delio's included voice is not set up yet.");
+      if (!options.key) return refuse(res, 503, "Deliobot's included voice is not set up yet.");
       const [path, query = ""] = rest.split("?", 2) as [string, string?];
       const method = req.method ?? "GET";
       const route = voiceRoute(method, path);

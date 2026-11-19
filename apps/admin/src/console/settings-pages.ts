@@ -82,7 +82,7 @@ ${changed ? h`<form method="post" action="/forfaits/${plan.id}/retablir"><button
 <div><label for="g-email">E-mail</label><input id="g-email" name="email" type="email" required maxlength="160"></div>
 <div><label for="g-plan">Forfait</label><select id="g-plan" name="plan">${input.plans.map(({ plan }) => h`<option value="${plan.id}" ${plan.id === "max" ? raw("selected") : ""}>${plan.name}</option>`)}</select></div>
 <div><label for="g-days">Durée (jours)</label><input id="g-days" name="days" type="number" min="1" max="400" value="30" required></div>
-<div><label for="g-credits">Crédits Delio</label><input id="g-credits" name="credits" type="number" min="0" value="0"></div>
+<div><label for="g-credits">Crédits Deliobot</label><input id="g-credits" name="credits" type="number" min="0" value="0"></div>
 <div><button class="btn primary">Offrir</button></div></form>
 <p class="muted small">0 crédit : la personne a les droits du forfait (propres comptes et clés IA avec Max ou BYOK) sans utiliser les crédits Delio.</p></section>
 <section class="card"><h2>Francs CFA<small>Le montant facturé par SasPay vient du prix en dollars multiplié par ce taux</small></h2>

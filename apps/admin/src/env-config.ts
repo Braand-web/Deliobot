@@ -51,8 +51,8 @@ export function portalSettings(env: PortalEnv): PortalSettings {
 
   let mailer: Mailer = consoleMailer;
   if (env.DELIO_ADMIN_MAIL_API_KEY) {
-    if (!env.DELIO_ADMIN_MAIL_FROM) fail("set DELIO_ADMIN_MAIL_FROM, such as Delio <signin@deliobot.fun>");
-    mailer = httpMailer({ endpoint: env.DELIO_ADMIN_MAIL_ENDPOINT ?? "https://api.resend.com/emails", apiKey: env.DELIO_ADMIN_MAIL_API_KEY, from: env.DELIO_ADMIN_MAIL_FROM! });
+    if (!env.DELIO_ADMIN_MAIL_FROM) fail("set DELIO_ADMIN_MAIL_FROM, such as Deliobot <signin@deliobot.fun>");
+    mailer = httpMailer({ endpoint: env.DELIO_ADMIN_MAIL_ENDPOINT ?? "https://api.resend.com/emails", apiKey: env.DELIO_ADMIN_MAIL_API_KEY, from: env.DELIO_ADMIN_MAIL_FROM!.replace(/^\s*"?Delio"?\s*</, "Deliobot <") });
   } else if (!production || env.DELIO_ADMIN_MAIL === "console") {
     warnings.push("sign-in codes and invitations are printed here, not emailed");
   } else {

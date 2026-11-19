@@ -39,7 +39,7 @@ describe("the portal behind a Fetch API Request", () => {
     const form = (fields: Record<string, string>, cookie = "") => ({ method: "POST", body: new URLSearchParams(fields).toString(), redirect: "manual" as const,
       headers: { origin: ORIGIN, "content-type": "application/x-www-form-urlencoded", ...(cookie ? { cookie } : {}) } });
     expect((await target.send("/login", form({ email: "founder@acme.test", next: "/signup" }))).status).toBe(200);
-    const code = /Delio est (\d{4}) (\d{4})/.exec(target.mail.at(-1)!.text)!;
+    const code = /Deliobot est (\d{4}) (\d{4})/.exec(target.mail.at(-1)!.text)!;
     const verified = await target.send("/login/verify", form({ email: "founder@acme.test", code: code[1]! + code[2]!, next: "/signup" }));
     expect(verified.status).toBe(303);
     const cookie = verified.headers.get("set-cookie")!.split(";")[0]!;
@@ -69,7 +69,7 @@ describe("the portal behind a Fetch API Request", () => {
     const form = (fields: Record<string, string>, cookie = "") => ({ method: "POST", body: new URLSearchParams(fields).toString(), redirect: "manual" as const,
       headers: { origin: ORIGIN, "content-type": "application/x-www-form-urlencoded", ...(cookie ? { cookie } : {}) } });
     await target.send("/login", form({ email: "loop@influence.test", next: "/ambassadeur" }));
-    const code = /Delio est (\d{4}) (\d{4})/.exec(target.mail.at(-1)!.text)!;
+    const code = /Deliobot est (\d{4}) (\d{4})/.exec(target.mail.at(-1)!.text)!;
     const verified = await target.send("/login/verify", form({ email: "loop@influence.test", code: code[1]! + code[2]!, next: "/ambassadeur" }));
     const cookie = verified.headers.get("set-cookie")!.split(";")[0]!;
     const page = await (await target.send("/ambassadeur", { headers: { cookie } })).text();

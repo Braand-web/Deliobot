@@ -72,7 +72,7 @@ async function portal() {
   const signIn = async (email: string) => {
     cookie = "";
     await post("/login", { email, next: "/" });
-    const code = /Delio est (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
+    const code = /Deliobot est (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
     await post("/login/verify", { email, code: code[1]! + code[2]!, next: "/" });
   };
   /** Checks out a plan and has SasPay call it paid; the return page confirms it as a person coming back would. */
@@ -170,7 +170,7 @@ describe("self-serve workspaces", () => {
     expect(target.hosting("acme")?.state).toBe("ready");
   });
 
-  it("creates a BYOK workspace without Delio's token, and gives one e-mail one account only", async () => {
+  it("creates a BYOK workspace without Deliobot's token, and gives one e-mail one account only", async () => {
     const target = await portal();
     await target.signIn("founder@acme.test");
     await target.post("/signup", { name: "Mine", slug: "mine" });

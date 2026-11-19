@@ -42,7 +42,7 @@ async function portal() {
   const signIn = async (email: string) => {
     cookie = "";
     await request("/login", { email, next: "/" });
-    const code = /Delio est (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
+    const code = /Deliobot est (\d{4}) (\d{4})/.exec(mail.at(-1)!.text)!;
     await request("/login/verify", { email, code: code[1]! + code[2]!, next: "/" });
   };
   return { origin, request, signIn, store };
@@ -99,7 +99,7 @@ describe("connecting the app with only the e-mail code", () => {
   });
 });
 
-describe("connecting a desktop app to a Delio account", () => {
+describe("connecting a desktop app to a Deliobot account", () => {
   it("reuses the same personal account on reconnect and keeps it when a switch is refused", async () => {
     const target = await portal();
     const app = desktop(target.origin);
@@ -240,7 +240,7 @@ describe("a problem report sent from the app", () => {
   it("reaches the portal under the sender's workspace with secrets masked, and is refused without an account or past ten a day", async () => {
     const target = await portal();
     const app = desktop(target.origin);
-    const report = { note: "Le bot s'arrête avant la fin. Ma clé : sk-ant-api03-abcdefghijklmnopqrstuvwxyz0123456789", transcript: "Moi: fais le rapport\nDelio: …", bot: "Delio", appVersion: "0.1.161", platform: "win32" };
+    const report = { note: "Le bot s'arrête avant la fin. Ma clé : sk-ant-api03-abcdefghijklmnopqrstuvwxyz0123456789", transcript: "Moi: fais le rapport\nDelio: …", bot: "Deliobot", appVersion: "0.1.161", platform: "win32" };
     expect(await app.account.report(report)).toBe("not-connected");
 
     const started = await app.start();
@@ -251,7 +251,7 @@ describe("a problem report sent from the app", () => {
 
     const reports = new Reports(target.store.db);
     const [listed] = reports.list(10);
-    expect(listed).toMatchObject({ email: "ana@acme.test", bot: "Delio", appVersion: "0.1.161", platform: "win32", readAt: null });
+    expect(listed).toMatchObject({ email: "ana@acme.test", bot: "Deliobot", appVersion: "0.1.161", platform: "win32", readAt: null });
     const opened = reports.open(listed!.id)!;
     expect(opened.transcript).toContain("fais le rapport");
     expect(opened.note).toContain("Le bot s'arrête avant la fin");

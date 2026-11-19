@@ -53,7 +53,7 @@ function browser(target: Portal, at = target.origin) {
     go(path, { method: "POST", headers: { origin, "content-type": "application/x-www-form-urlencoded" }, body: new URLSearchParams(form).toString() });
   async function signIn(email: string) {
     await post("/login", { email, next: "/" });
-    const code = /Delio est (\d{4}) (\d{4})/.exec(target.mail.at(-1)!.text)!;
+    const code = /Deliobot est (\d{4}) (\d{4})/.exec(target.mail.at(-1)!.text)!;
     const response = await post("/login/verify", { email, code: code[1]! + code[2]!, next: "/" });
     expect(response.status).toBe(303);
     return response;
@@ -92,7 +92,7 @@ async function connect(person: ReturnType<typeof browser>, verifier = randomByte
   return { response, verifier, code: response.headers.get("location")?.startsWith(CALLBACK) ? new URL(response.headers.get("location")!).searchParams.get("code") : null };
 }
 
-describe("Delio Admin accounts", () => {
+describe("Deliobot Admin accounts", () => {
   it("signs in with an emailed one-time code, locks a code after five wrong tries, and limits how often codes are sent", async () => {
     const target = await portal();
     const visitor = browser(target);
@@ -100,7 +100,7 @@ describe("Delio Admin accounts", () => {
     await visitor.post("/login", { email: "Someone@Example.test", next: "/" });
     expect(target.mail.at(-1)!.to).toBe("someone@example.test");
     for (let attempt = 0; attempt < 5; attempt++) expect((await visitor.post("/login/verify", { email: "someone@example.test", code: "00000000", next: "/" })).status).toBe(401);
-    const code = /Delio est (\d{4}) (\d{4})/.exec(target.mail.at(-1)!.text)!;
+    const code = /Deliobot est (\d{4}) (\d{4})/.exec(target.mail.at(-1)!.text)!;
     const locked = await visitor.post("/login/verify", { email: "someone@example.test", code: code[1]! + code[2]!, next: "/" });
     expect(await locked.text()).toContain("Trop de codes erronés");
     await visitor.signIn("someone@example.test");
@@ -116,7 +116,7 @@ describe("Delio Admin accounts", () => {
     expect((await visitor.post("/login", { email: "a@b.test", next: "/" }, "https://evil.example.test")).status).toBe(403);
     expect(target.mail).toEqual([]);
     await visitor.post("/login", { email: "a@b.test", next: "//evil.example.test/" });
-    const code = /Delio est (\d{4}) (\d{4})/.exec(target.mail.at(-1)!.text)!;
+    const code = /Deliobot est (\d{4}) (\d{4})/.exec(target.mail.at(-1)!.text)!;
     const signedIn = await visitor.post("/login/verify", { email: "a@b.test", code: code[1]! + code[2]!, next: "//evil.example.test/" });
     expect(signedIn.headers.get("location")).toBe("/");
   });
@@ -153,7 +153,7 @@ describe("Delio Admin accounts", () => {
     expect((await ops.post("/workspaces", { slug: "other", name: "Other", tenantUrl: "https://other.example.test", ownerEmail: "ops@delio.test" })).status).toBe(404);
     expect((await ops.post("/billing/credit", { workspace: "acme", credits: "1000" })).status).toBe(403);
     expect((await ops.go("/billing?workspace=acme")).status, "nor any customer's billing").toBe(403);
-    expect(await (await boss.go("/")).text()).not.toContain("Delio Admin");
+    expect(await (await boss.go("/")).text()).not.toContain("Deliobot Admin");
   });
 
   it("accepts an invitation only for the invited address, and always keeps one admin", async () => {
@@ -172,7 +172,7 @@ describe("Delio Admin accounts", () => {
   });
 });
 
-describe("Delio Admin hosted handoff", () => {
+describe("Deliobot Admin hosted handoff", () => {
   it("sends a signed-out visitor to sign in, refuses a callback address other than the workspace's own, and refuses non-members", async () => {
     const target = await portal();
     await workspaceWithAdmin(target);
@@ -235,7 +235,7 @@ describe("Delio Admin hosted handoff", () => {
   });
 });
 
-describe("Delio Admin single sign-on", () => {
+describe("Deliobot Admin single sign-on", () => {
   async function identityProvider(overrides: { nonce?: string; emailVerified?: boolean; email?: string } = {}) {
     const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
     const jwk = { ...publicKey.export({ format: "jwk" }), kid: "k1", alg: "RS256", use: "sig" };

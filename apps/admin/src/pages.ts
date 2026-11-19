@@ -58,10 +58,10 @@ window.addEventListener("pageshow",function(){document.querySelectorAll("button[
 /** Where customers write for help; the sign-in emails name it too. */
 export const SUPPORT_EMAIL = "support@deliobot.fun";
 
-/** `brand`: "Delio" for customers, "Delio Admin" on the operators' console. */
+/** `brand`: "Deliobot" for customers, "Deliobot Admin" on the operators' console. */
 /** `nonce`: the page's script nonce, for the one script that shows a form is on its way. */
 export function page(input: { title: string; body: Html; email?: string | null; wide?: boolean; script?: string; mascot?: "idle" | "happy" | "sad" | "curious"; brand?: string; nonce?: string; billingRefresh?: { workspace: string; paymentVersion: number } }): string {
-  const brand = input.brand ?? "Delio";
+  const brand = input.brand ?? "Deliobot";
   const mascot = input.mascot ? h`<img class="mascot" src="/assets/delio-${input.mascot}.webp" alt="">` : raw("");
   return `<!doctype html>${h`<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${input.title} · ${brand}</title><link rel="icon" href="/assets/delio-idle.webp"><style>${raw(STYLE)}</style>${input.billingRefresh && input.nonce ? h`<script nonce="${input.nonce}" src="/assets/billing-refresh.js" defer data-workspace="${input.billingRefresh.workspace}" data-payment-version="${input.billingRefresh.paymentVersion}"></script>` : ""}</head><body>
@@ -73,11 +73,18 @@ export function page(input: { title: string; body: Html; email?: string | null; 
 
 export const notice = (text: string | null | undefined, kind: "info" | "error" = "info") => text ? h`<div class="notice ${kind}">${text}</div>` : raw("");
 
-export function loginPage(next: string, error?: string): Html {
-  return h`<div class="narrow"><h1 class="center">Connexion à Delio</h1><p class="muted center">Nous vous envoyons un code à usage unique par e-mail. Les comptes d'entreprise passent par la connexion unique (SSO).</p>
-${notice(error, "error")}<form method="post" action="/login" class="card"><input type="hidden" name="next" value="${next}">
+/** The plan a visitor picked on the site before signing in, shown back to them on the way to paying. */
+export interface ChosenOffer { name: string; price: string }
+
+const offerNote = (offer: ChosenOffer) => h`<div class="card row" style="margin:16px 0 0;padding:12px 16px"><div class="grow"><span class="muted" style="font-size:12px">Votre choix</span><br><b>${offer.name}</b></div><b>${offer.price}</b></div>`;
+
+export function loginPage(next: string, error?: string, offer?: ChosenOffer): Html {
+  return h`<div class="narrow"><h1 class="center">${offer ? "Créez votre compte ou connectez-vous" : "Connexion ou inscription"}</h1>
+<p class="muted center">Pas de mot de passe : nous vous envoyons un code par e-mail. Nouveau ? Votre compte est créé avec ce premier code.</p>
+${offer ? offerNote(offer) : ""}${notice(error, "error")}<form method="post" action="/login" class="card"><input type="hidden" name="next" value="${next}">
 <label for="email">Adresse e-mail</label><input id="email" name="email" type="email" autocomplete="email" required autofocus>
-<p><button class="primary" style="width:100%">Continuer</button></p></form></div>`;
+<p><button class="primary" style="width:100%">${offer ? "Recevoir mon code et continuer" : "Recevoir mon code"}</button></p></form>
+<p class="muted center" style="font-size:12px">Les comptes d'entreprise passent par la connexion unique (SSO).</p></div>`;
 }
 
 /** A customer names a workspace; it is created on the server once its plan is paid. */
@@ -94,11 +101,11 @@ ${input.domain ? h`<span class="muted">.${input.domain}</span>` : ""}</div>
 <p><button class="primary" style="width:100%">Continuer vers le paiement</button></p></form></div>`;
 }
 
-export function codePage(email: string, next: string, error?: string): Html {
+export function codePage(email: string, next: string, error?: string, offer?: ChosenOffer): Html {
   return h`<div class="narrow"><h1 class="center">Vérifiez vos e-mails</h1><p class="muted center">Nous avons envoyé un code à 8 chiffres à <b>${email}</b>. Il expire dans 10 minutes.</p>
-${notice(error, "error")}<form method="post" action="/login/verify" class="card"><input type="hidden" name="email" value="${email}"><input type="hidden" name="next" value="${next}">
+${offer ? offerNote(offer) : ""}${notice(error, "error")}<form method="post" action="/login/verify" class="card"><input type="hidden" name="email" value="${email}"><input type="hidden" name="next" value="${next}">
 <label for="code">Code</label><input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{8,9}" required autofocus>
-<p><button class="primary" style="width:100%">Se connecter</button></p></form><p class="center muted"><a href="/login?next=${encodeURIComponent(next)}">Utiliser une autre adresse</a></p></div>`;
+<p><button class="primary" style="width:100%">${offer ? "Valider et passer au paiement" : "Valider"}</button></p></form><p class="center muted"><a href="/login?next=${encodeURIComponent(next)}">Utiliser une autre adresse</a></p></div>`;
 }
 
 export function homePage(input: { workspaces: Array<Workspace & { role: Role }>; operator: boolean; all: Workspace[]; signup?: boolean; message?: string; error?: string;
@@ -205,7 +212,7 @@ function hostingCard(workspace: Workspace, hosting: { state: HostingState; error
     waiting: "Choisissez un forfait ci-dessous : l'espace est créé dès qu'il est payé.",
     creating: "En cours de création. Cela prend quelques minutes ; vous recevrez un e-mail quand il sera prêt.",
     ready: "Prêt.",
-    failed: "La création n'a pas encore abouti. Elle est relancée automatiquement, et l'équipe Delio est prévenue si l'échec persiste.",
+    failed: "La création n'a pas encore abouti. Elle est relancée automatiquement, et l'équipe Deliobot est prévenue si l'échec persiste.",
     suspended: "En pause car son forfait est terminé. Renouvelez-le ci-dessous : vos bots et vos données sont conservés.",
   };
   return h`<h2>Espace</h2><div class="card" data-hosting="${hosting.state}"><div class="row"><div class="grow"><b>${workspace.tenantUrl}</b><div class="muted">${line[hosting.state]}</div>
@@ -256,7 +263,7 @@ ${yearly ? h`<div class="muted" style="font-size:12px">Un mois offert · ${(plan
   };
   const trial = input.catalog.plans.find((plan) => plan.id === "trial")!;
   const sold = input.catalog.plans.filter((plan) => plan.id !== "trial");
-  return h`<h1>Facturation · ${input.workspace.name}</h1><p class="muted">Les crédits Delio paient l'IA que cet espace utilise avec les clés de Delio : texte, images, vidéo et musique.</p>
+  return h`<h1>Facturation · ${input.workspace.name}</h1><p class="muted">Les crédits Deliobot paient l'IA que cet espace utilise avec les clés de Deliobot : texte, images, vidéo et musique.</p>
 ${notice(input.message)}${notice(input.error, "error")}
 <div class="card"><div class="row"><div class="grow"><div class="muted">Solde</div><div style="font-size:28px;font-weight:600">${credits(input.balance)} crédits</div></div>
 <div class="grow"><div class="muted">Utilisés ce mois-ci</div><div style="font-size:20px">${credits(input.usedThisMonth)} crédits</div></div></div></div>
@@ -264,13 +271,13 @@ ${input.operator ? h`<h2>Ajouter des crédits</h2><form method="post" action="/b
 <label for="credits">Crédits (un nombre négatif en retire)</label><input id="credits" name="credits" inputmode="decimal" required placeholder="2000">
 <label for="note">Note</label><input id="note" name="note" maxlength="200" placeholder="Crédits Pro du mois">
 <p><button class="primary">Ajouter</button></p></form>
-<h2>Jeton de l'espace</h2><div class="card"><p class="muted">Le serveur de l'espace utilise ce jeton pour joindre la passerelle IA de Delio à <code>${input.gatewayUrl}</code>. En créer un nouveau révoque l'ancien.</p>
+<h2>Jeton de l'espace</h2><div class="card"><p class="muted">Le serveur de l'espace utilise ce jeton pour joindre la passerelle IA de Deliobot à <code>${input.gatewayUrl}</code>. En créer un nouveau révoque l'ancien.</p>
 ${input.token ? h`<div class="notice">Copiez-le maintenant, il n'est affiché qu'une fois : <code>${input.token}</code></div>` : input.hasToken ? h`<p>Un jeton est actif.</p>` : h`<p>Pas encore de jeton.</p>`}
 <form method="post" action="/billing/token"><input type="hidden" name="workspace" value="${slug}"><button>${input.hasToken ? "Créer un nouveau jeton" : "Créer un jeton"}</button></form></div>` : ""}
 ${input.hosting ? hostingCard(input.workspace, input.hosting) : ""}
 <h2>Forfait</h2><div class="card"><b>${status}</b>${!input.payments ? h`<p class="muted">Les paiements ne sont pas encore activés.</p>` : ""}</div>
 ${input.trialAvailable && sub.status === "none" ? h`<form method="post" action="/billing/checkout" target="_blank" rel="noopener" class="card">${hidden({ workspace: slug, kind: "plan", plan: "trial" })}
-<div class="row"><div class="grow"><b>Essayez Delio pendant ${TRIAL_DAYS} jours</b><div class="muted">${trial.credits} crédits IA · ${trial.computerHours} heures d'ordinateur cloud</div></div>
+<div class="row"><div class="grow"><b>Essayez Deliobot pendant ${TRIAL_DAYS} jours</b><div class="muted">${trial.credits} crédits IA · ${trial.computerHours} heures d'ordinateur cloud</div></div>
 <div style="text-align:right">${price(trial.usd, trial.francs, `pour ${TRIAL_DAYS} jours`)}</div></div>
 <p><button class="primary"${disabled}>Commencer l'essai</button></p></form>` : ""}
 <div class="row" style="margin:8px 0 12px">${cycleLink("month", "Mensuel")}${cycleLink("year", "Annuel · 1 mois offert")}</div>
@@ -301,12 +308,38 @@ ${notice(input.message)}<div class="card">${input.rows.length ? input.rows.map((
 const longDay = (at: number) => new Intl.DateTimeFormat("fr-FR", { dateStyle: "long", timeZone: "UTC" }).format(new Date(at));
 
 /** Where a payment comes back to: what became of it, and the way back into the app. */
-export function paymentReturnPage(status: string): Html {
-  const [title, text] = status === "paid" ? ["Paiement reçu ✅", "Votre forfait ou vos crédits sont actifs. Retournez dans l'application : elle se met à jour toute seule."]
-    : status === "failed" ? ["Paiement non abouti", "Le paiement a échoué ou a été annulé. Aucun montant n'a été pris. Vous pouvez réessayer depuis l'application ou depuis votre abonnement."]
-    : ["Paiement en cours de confirmation", "Mobile Money confirme parfois après quelques minutes. Vous pouvez fermer cette page : votre forfait s'active dès la confirmation, et l'application se met à jour toute seule."];
+/** The computer a browser runs on, from its user agent, to offer the right download. */
+export type VisitorDevice = "windows" | "linux" | "mac" | "phone" | "other";
+
+export function visitorDevice(userAgent: string | undefined): VisitorDevice {
+  const agent = userAgent ?? "";
+  if (/Android|iPhone|iPad|Mobile/i.test(agent)) return "phone";
+  if (/Windows/i.test(agent)) return "windows";
+  if (/Macintosh|Mac OS X/i.test(agent)) return "mac";
+  if (/Linux|X11/i.test(agent)) return "linux";
+  return "other";
+}
+
+const DOWNLOAD = "https://deliobot.fun/download";
+
+function getTheApp(device: VisitorDevice): Html {
+  const primary = device === "linux"
+    ? h`<a class="button primary" href="${DOWNLOAD}/Deliobot.deb">Télécharger pour Linux (.deb)</a> <a class="button" href="${DOWNLOAD}/Deliobot.AppImage">AppImage</a>`
+    : h`<a class="button primary" href="${DOWNLOAD}/Deliobot-Setup.exe">Télécharger pour Windows</a> <a class="button" href="https://deliobot.fun/#telecharger">Autres systèmes</a>`;
+  const lead = device === "phone" ? "Deliobot s'installe sur un ordinateur Windows ou Linux. Ouvrez deliobot.fun sur votre ordinateur pour le télécharger."
+    : device === "mac" ? "La version macOS arrive bientôt. Vous pouvez dès maintenant l'installer sur un ordinateur Windows ou Linux."
+    : "Installez l'application, puis connectez-vous avec la même adresse e-mail : votre forfait est déjà dedans.";
+  return h`<div class="card" style="text-align:left;margin-top:20px"><b>Pas encore l'application ?</b><p class="muted" style="margin:6px 0 12px">${lead}</p>
+${device === "phone" ? "" : h`<p style="margin:0 0 12px">${primary}</p>`}<ol class="steps"><li><span>Installez Deliobot sur votre ordinateur.</span></li><li><span>Ouvrez-le et entrez votre adresse e-mail, puis le code reçu.</span></li><li><span>C'est prêt : vos bots utilisent votre forfait.</span></li></ol></div>`;
+}
+
+export function paymentReturnPage(status: string, device: VisitorDevice = "other"): Html {
+  const [title, text] = status === "paid" ? ["Paiement reçu ✅", "Votre forfait ou vos crédits sont actifs."]
+    : status === "failed" ? ["Paiement non abouti", "Le paiement a échoué ou a été annulé. Aucun montant n'a été pris. Vous pouvez réessayer depuis votre abonnement."]
+    : ["Paiement en cours de confirmation", "Mobile Money confirme parfois après quelques minutes. Vous pouvez fermer cette page : votre forfait s'active dès la confirmation."];
   return h`<div class="narrow center"><h1>${title}</h1><p class="muted">${text}</p>
-<p><a class="button primary" href="opendeliobot://cloud">Ouvrir Deliobot</a> <a class="button" href="/abonnement">Mon abonnement</a></p></div>`;
+${status === "failed" ? h`<p><a class="button primary" href="/abonnement">Réessayer</a></p>` : h`${getTheApp(device)}
+<p class="muted" style="margin-top:18px">Vous avez déjà l'application ? <a href="opendeliobot://cloud">Ouvrir Deliobot</a> · <a href="/abonnement">Mon abonnement</a></p>`}</div>`;
 }
 
 /** A customer's plan on the web, for anyone without the app at hand: what runs, until when, renewing, payments and apps. */

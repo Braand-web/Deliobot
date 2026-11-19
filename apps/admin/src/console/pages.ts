@@ -164,8 +164,8 @@ ${id === "orders" && input.pendingOrders ? h`<span class="count">${input.pending
   const flash = input.flash ? h`<div class="toast ${input.flash.kind === "bad" ? "bad" : ""}" role="status"><img src="/assets/delio-${input.flash.kind === "bad" ? "sad" : "happy"}.webp" alt="">${input.flash.text}</div>` : "";
   const commands = NAV.map(([id, label, href]) => h`<li><a href="${href}">${icon(id, 16)}<span>${label}</span></a></li>`);
   return `<!doctype html>${h`<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
-<title>${input.title} · Delio Admin</title><link rel="icon" href="/assets/delio-idle.webp"><script nonce="${input.nonce}">${raw(THEME_BOOT)}</script><style>${raw(STYLE)}</style></head>
-<body><div class="app"><aside class="side"><div class="brand"><img src="/assets/delio-idle.webp" alt="">Delio Admin</div>${nav}
+<title>${input.title} · Deliobot Admin</title><link rel="icon" href="/assets/delio-idle.webp"><script nonce="${input.nonce}">${raw(THEME_BOOT)}</script><style>${raw(STYLE)}</style></head>
+<body><div class="app"><aside class="side"><div class="brand"><img src="/assets/delio-idle.webp" alt="">Deliobot Admin</div>${nav}
 <div class="me"><span title="${input.email}">${input.email}</span><form method="post" action="/logout"><button class="iconbtn" title="Se déconnecter" aria-label="Se déconnecter">${icon("out", 16)}</button></form></div></aside>
 <div class="main"><header class="top"><div><h1>${input.title}</h1>${input.subtitle ? h`<p>${input.subtitle}</p>` : ""}</div>
 <div class="tools">${periods}${input.tools ?? ""}<button class="iconbtn" type="button" data-palette title="Rechercher (Ctrl+K)">${icon("search", 16)}<kbd>Ctrl K</kbd></button>
@@ -370,7 +370,7 @@ export function clientPage(c: ClientDetail, tab: string, now: number): Html {
     : current === "commandes" ? ordersTable(c.orders, now, false)
     : current === "appareils" ? devicesList(c, now)
     : current === "journal" ? auditTable(c.audit.map((row) => ({ ...row, workspace: null })), now)
-    : h`${facts}${c.suspension ? h`<div class="notice bad" style="margin-top:14px">Espace suspendu ${ago(c.suspension.at, now)}${c.suspension.reason ? ` : ${c.suspension.reason}` : ""}. L'IA Delio est coupée, les données restent.</div>` : ""}
+    : h`${facts}${c.suspension ? h`<div class="notice bad" style="margin-top:14px">Espace suspendu ${ago(c.suspension.at, now)}${c.suspension.reason ? ` : ${c.suspension.reason}` : ""}. L'IA Deliobot est coupée, les données restent.</div>` : ""}
 <h2 style="margin:20px 0 8px">Membres</h2><ul class="list">${c.members.map((member) => h`<li><span class="grow"><b>${member.email}</b> <span class="muted small">· ${member.role === "admin" ? "administrateur" : "membre"} depuis ${date(member.joinedAt)}</span></span>
 ${member.blocked ? badge("bad", "Bloqué") : ""}${member.operator ? badge("info", "Opérateur") : h`<form method="post" action="/clients/${c.slug}/bloquer" data-confirm="${member.blocked ? `Débloquer ${member.email} ?` : `Bloquer ${member.email} ?`}"
   data-detail="${member.blocked ? "Ce compte pourra de nouveau se connecter." : "Ce compte ne pourra plus se connecter ; ses sessions et ses applications connectées sont coupées."}" ${member.blocked ? "" : raw('data-danger="1"')} data-action="${member.blocked ? "Débloquer" : "Bloquer"}">
@@ -388,7 +388,7 @@ ${c.token ? h`<div class="notice info">Copiez ce jeton maintenant, il ne sera pl
 <button class="btn">Offrir</button></form><hr>
 ${c.suspension
   ? h`<form method="post" action="/clients/${c.slug}/suspendre" data-confirm="Réactiver ${c.name} ?" data-detail="Ses applications pourront de nouveau utiliser l'IA Delio." data-action="Réactiver"><h3>Suspension</h3><input type="hidden" name="suspended" value="0"><button class="btn">Réactiver l'espace</button></form>`
-  : h`<form method="post" action="/clients/${c.slug}/suspendre" data-confirm="Suspendre ${c.name} ?" data-detail="L'IA Delio s'arrête pour cet espace ; ses données et ses crédits restent." data-danger="1" data-action="Suspendre">
+  : h`<form method="post" action="/clients/${c.slug}/suspendre" data-confirm="Suspendre ${c.name} ?" data-detail="L'IA Deliobot s'arrête pour cet espace ; ses données et ses crédits restent." data-danger="1" data-action="Suspendre">
 <h3>Suspendre l'espace</h3><input type="hidden" name="suspended" value="1"><input name="reason" maxlength="200" placeholder="Motif (facultatif)" aria-label="Motif"><button class="btn danger">Suspendre</button></form>`}<hr>
 <form method="post" action="/clients/${c.slug}/jeton" data-confirm="Créer un nouveau jeton de passerelle ?" data-detail="${c.hasToken ? "L'ancien jeton cessera de fonctionner." : "Il permet d'utiliser les crédits de cet espace hors de l'application."}" data-action="Créer">
 <h3>Jeton de passerelle</h3><button class="btn">${c.hasToken ? "Remplacer le jeton" : "Créer un jeton"}</button></form><hr>

@@ -37,7 +37,7 @@ function setup(upstreamStatus = 200) {
 }
 
 describe("the included voice", () => {
-  it("speaks with Delio's key on Flash and charges the workspace by the characters spoken", async () => {
+  it("speaks with Deliobot's key on Flash and charges the workspace by the characters spoken", async () => {
     const { wallet, calls, call } = setup();
     wallet.credit("acme", 100 * MICRO, "grant", null);
     const reply = await call("POST", "text-to-speech/JBFqnCBsd6RMkjVDRZzb/stream?output_format=mp3_44100_128", JSON.stringify({ text: "x".repeat(1000), model_id: "eleven_v3" }));

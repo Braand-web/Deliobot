@@ -1,8 +1,8 @@
 // The included Fish Audio voice: a connected Deliobot app speaks, transcribes and holds Live 3 calls through Fish Audio
-// with Delio's key, and the workspace pays in Delio credits. Only the calls the app makes are relayed.
+// with Deliobot's key, and the workspace pays in Deliobot credits. Only the calls the app makes are relayed.
 //
-// Security: Fish agents and sessions live on Delio's one Fish account, so each is recorded for the workspace that made
-// it and no other workspace can change, publish or end it. A voice listing never shows Delio's own voices.
+// Security: Fish agents and sessions live on Deliobot's one Fish account, so each is recorded for the workspace that made
+// it and no other workspace can change, publish or end it. A voice listing never shows Deliobot's own voices.
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 import type { SqlDatabase } from "./sql.ts";
@@ -14,10 +14,10 @@ export const FISH_PRICES = { speechPer1kChars: 0.05, transcriptionPerMb: 0.03, t
 const MAX_JSON_BODY = 64 * 1024;
 const MAX_AUDIO_BODY = 25 * 1024 * 1024;
 const ID = /^[\w-]{1,128}$/;
-/** Security: setting up agents is free but leaves them on Delio's Fish account, so each workspace gets a few a day. */
+/** Security: setting up agents is free but leaves them on Deliobot's Fish account, so each workspace gets a few a day. */
 const FREE_CALLS_PER_DAY = 20;
 const DAY_MS = 24 * 60 * 60_000;
-const OUT_OF_CREDITS = "This workspace is out of Delio credits. Open Plans and credits in Deliobot to top up.";
+const OUT_OF_CREDITS = "This workspace is out of Deliobot credits. Open Plans and credits in Deliobot to top up.";
 
 type Route =
   | { kind: "voices" }
@@ -126,7 +126,7 @@ export function createFishRelay(options: { db: SqlDatabase; wallet: Wallet; key?
 
     /** Serves /api/gateway/<workspace>/fish/<rest> for an authenticated workspace whose plan spends credits. */
     async handle(req: IncomingMessage, res: ServerResponse, workspace: string, rest: string): Promise<void> {
-      if (!options.key) return refuse(res, 503, "Delio's included Fish Audio voice is not set up yet.");
+      if (!options.key) return refuse(res, 503, "Deliobot's included Fish Audio voice is not set up yet.");
       const [path, query = ""] = rest.split("?", 2) as [string, string?];
       const method = req.method ?? "GET";
       const route = fishRoute(method, path);

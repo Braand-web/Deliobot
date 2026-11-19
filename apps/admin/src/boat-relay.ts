@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS boat_included (workspace TEXT NOT NULL, month TEXT NO
     },
 
     async handle(req: IncomingMessage, res: ServerResponse, workspace: string, rest: string): Promise<void> {
-      if (!options.key) return reply(res, 503, { error: "Cloud computers are not available on this Delio deployment." });
+      if (!options.key) return reply(res, 503, { error: "Cloud computers are not available on this Deliobot deployment." });
       const [pathOnly, query = ""] = rest.split("?");
       const parts = pathOnly!.split("/").filter(Boolean);
       const method = req.method ?? "GET";
@@ -153,7 +153,7 @@ CREATE TABLE IF NOT EXISTS boat_included (workspace TEXT NOT NULL, month TEXT NO
         return;
       }
       if (parts.length === 1 && method === "POST") {
-        if (wallet.balance(workspace) <= 0) return reply(res, 402, { error: "This workspace is out of Delio credits, so no cloud computer can start. Ask an admin to top up." });
+        if (wallet.balance(workspace) <= 0) return reply(res, 402, { error: "This workspace is out of Deliobot credits, so no cloud computer can start. Ask an admin to top up." });
         if (awakeCount(workspace) >= limit(workspace)) return reply(res, 409, { error: `This workspace's plan allows ${limit(workspace)} cloud computer${limit(workspace) === 1 ? "" : "s"} awake at once. Put one to sleep first.` });
         const created = await pass(res, await upstream("POST", `/sandboxes${search}`, body, type));
         const id = (created?.sandbox as { id?: unknown } | undefined)?.id;
@@ -167,7 +167,7 @@ CREATE TABLE IF NOT EXISTS boat_included (workspace TEXT NOT NULL, month TEXT NO
       if (!BOAT_ID.test(id) || !owned(workspace, id)) return reply(res, 404, { error: "No such cloud computer." });
       const action = parts.slice(2).join("/");
       if (action === "resume" && method === "POST") {
-        if (wallet.balance(workspace) <= 0) return reply(res, 402, { error: "This workspace is out of Delio credits, so the cloud computer cannot wake up. Ask an admin to top up." });
+        if (wallet.balance(workspace) <= 0) return reply(res, 402, { error: "This workspace is out of Deliobot credits, so the cloud computer cannot wake up. Ask an admin to top up." });
         if (awakeCount(workspace) >= limit(workspace)) return reply(res, 409, { error: `This workspace's plan allows ${limit(workspace)} cloud computer${limit(workspace) === 1 ? "" : "s"} awake at once. Put one to sleep first.` });
       }
       if ((action === "stop" && method === "POST") || (!action && method === "DELETE")) bill(id, true);

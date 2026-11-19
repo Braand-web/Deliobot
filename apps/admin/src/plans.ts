@@ -1,7 +1,7 @@
 // Plans and payments. SasPay takes one-off payments (mobile money cannot be charged again without the payer), so a plan
 // is a prepaid period, a month or a year: paying grants the first month's credits and moves the end date, a yearly plan
 // grants the next months' credits every 30 days; a reminder with a payment link goes out before the period ends; after
-// a short grace the gateway stops spending Delio credits for the workspace.
+// a short grace the gateway stops spending Deliobot credits for the workspace.
 import type { OperatorSettings } from "./operator-settings.ts";
 import type { SqlDatabase } from "./sql.ts";
 
@@ -26,7 +26,7 @@ export interface Plan {
   computerHours: number;
   /** Cloud computers awake at once. */
   computers: number;
-  /** Whether the workspace spends Delio credits through the gateway; BYOK uses its own keys. */
+  /** Whether the workspace spends Deliobot credits through the gateway; BYOK uses its own keys. */
   gateway: boolean;
   /** Shown on the public site; the others only to signed-in admins. */
   listed: boolean;
@@ -161,7 +161,7 @@ CREATE TABLE IF NOT EXISTS queued_plans (order_id TEXT PRIMARY KEY, workspace TE
     return { workspace, plan: row.plan, cycle: row.cycle, periodEnd: row.period_end, status };
   }
 
-  /** What the gateway may do for a workspace: spend Delio credits on text (`gateway`) and on media (`media`: images, video, music,
+  /** What the gateway may do for a workspace: spend Deliobot credits on text (`gateway`) and on media (`media`: images, video, music,
    * voice; every plan in force, those on their own AI included), keep how many computers awake, with how many free hours a month. */
   allowance(workspace: string): { gateway: boolean; media: boolean; computers: number; computerHours: number; plan: PlanId | null; ownAi: boolean; reason?: string } {
     if (this.db.prepare("SELECT 1 FROM suspensions WHERE workspace = ?").get(workspace)) {
@@ -169,10 +169,10 @@ CREATE TABLE IF NOT EXISTS queued_plans (order_id TEXT PRIMARY KEY, workspace TE
     }
     const subscription = this.subscription(workspace);
     if (subscription.status === "none") return { gateway: true, media: true, computers: 1, computerHours: 0, plan: null, ownAi: false };
-    if (subscription.status === "expired") return { gateway: false, media: false, computers: 0, computerHours: 0, plan: null, ownAi: false, reason: "This workspace's plan has ended. An admin can renew it in Delio Admin → Billing." };
+    if (subscription.status === "expired") return { gateway: false, media: false, computers: 0, computerHours: 0, plan: null, ownAi: false, reason: "This workspace's plan has ended. An admin can renew it in Deliobot Admin → Billing." };
     const plan = this.plan(subscription.plan);
     const ownAi = OWN_AI_PLANS.has(subscription.plan);
-    if (!plan.gateway) return { gateway: false, media: true, computers: 0, computerHours: 0, plan: subscription.plan, ownAi, reason: "This workspace's plan uses its own AI keys for text, not Delio credits." };
+    if (!plan.gateway) return { gateway: false, media: true, computers: 0, computerHours: 0, plan: subscription.plan, ownAi, reason: "This workspace's plan uses its own AI keys for text, not Deliobot credits." };
     return { gateway: true, media: true, computers: plan.computers, computerHours: plan.computerHours, plan: subscription.plan, ownAi };
   }
 
@@ -342,7 +342,7 @@ CREATE TABLE IF NOT EXISTS queued_plans (order_id TEXT PRIMARY KEY, workspace TE
     return this.order(id)!;
   }
 
-  /** An operator's gift: `plan` for `days` days with `credits` credits (none means the Delio AI is not paid for, only the
+  /** An operator's gift: `plan` for `days` days with `credits` credits (none means the Deliobot AI is not paid for, only the
    * plan's rights such as using one's own AI), recorded as a free order. */
   giftPlan(workspace: string, email: string, plan: PlanId, days: number, credits: number): Order {
     const id = `${MANUAL_ORDER_PREFIX}${token(12)}`;

@@ -1,4 +1,4 @@
-// Delio's customers' portal on Cloudflare: one Durable Object holds the portal and its SQLite database, every request
+// Deliobot's customers' portal on Cloudflare: one Durable Object holds the portal and its SQLite database, every request
 // goes through it, and an alarm runs the once-a-minute billing sweep and the Composio broker's hourly one.
 import { DurableObject, WorkerEntrypoint } from "cloudflare:workers";
 
@@ -43,7 +43,7 @@ function r2Sites(bucket: R2Bucket): SiteBucket {
 }
 
 const unavailable = () => new Response(
-  "<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>Delio</title>" +
+  "<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><title>Deliobot</title>" +
   "<body style='font:16px system-ui;display:grid;place-items:center;min-height:90vh;text-align:center'><div><h1>Bientôt disponible</h1>" +
   "<p>Les inscriptions ouvrent très prochainement. <a href='https://deliobot.fun'>Retour à deliobot.fun</a></p></div>",
   { status: 503, headers: { "content-type": "text/html; charset=utf-8", "retry-after": "3600" } });

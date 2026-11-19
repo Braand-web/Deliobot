@@ -21,7 +21,7 @@ import { Reports } from "./reports.ts";
 import { MICRO, Wallet } from "./wallet.ts";
 import { consoleServes, createConsole } from "./console/routes.ts";
 import { Traffic, type VisitInput } from "./traffic.ts";
-import { billingPage, codePage, devicesPage, paymentReturnPage, promoPage, subscriptionPage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, otherAccountPage, signupPage, slackPage, ssoPage, SUPPORT_EMAIL, type Html } from "./pages.ts";
+import { billingPage, codePage, devicesPage, paymentReturnPage, visitorDevice, type ChosenOffer, promoPage, subscriptionPage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, otherAccountPage, signupPage, slackPage, ssoPage, SUPPORT_EMAIL, type Html } from "./pages.ts";
 import { domainHoldsToken } from "./sso-verify.ts";
 import { normalizeEmail, PUBLIC_MAIL_DOMAINS, sha256, token, validEmail, validSlug, type Account, type AdminStore, type Role, type Workspace } from "./store.ts";
 
@@ -29,7 +29,7 @@ export interface AdminAppOptions {
   store: AdminStore;
   /** The portal's own public origin; https in production. */
   publicUrl: URL;
-  /** The Delio team: the only addresses the operators' console lets in; also who is told when a workspace cannot be created. */
+  /** The Deliobot team: the only addresses the operators' console lets in; also who is told when a workspace cannot be created. */
   operators: ReadonlySet<string>;
   /** The operators' console: every workspace, credits and tokens, for the team only. Customers' portal otherwise, where nobody is an operator. */
   console?: boolean;
@@ -134,6 +134,18 @@ async function readRawBody(req: IncomingMessage): Promise<Buffer> {
 
 /** Only same-site paths, so a crafted `next` can never send someone elsewhere after sign-in. */
 /** A path on this portal to go back to; anything else, a browser's way of reaching another site included, is "/". */
+/** What a visitor chose on the site, read back from the payment link they are signing in to reach. */
+export function chosenOffer(next: string): ChosenOffer | undefined {
+  if (!next.startsWith("/pay?")) return undefined;
+  const query = new URLSearchParams(next.slice(5));
+  const plan = PLANS[query.get("plan") as PlanId];
+  if (!plan || !Object.hasOwn(PLANS, query.get("plan") ?? "")) return undefined;
+  const usd = (amount: number) => `${amount.toLocaleString("fr-FR")} $`;
+  if (plan.id === "trial") return { name: `Essai Deliobot ${TRIAL_DAYS} jours`, price: usd(plan.usd) };
+  const yearly = query.get("cycle") === "year" && plan.usdYear !== null;
+  return { name: `Forfait ${plan.name}${yearly ? " annuel" : ""}`, price: yearly ? `${usd(plan.usdYear!)}/an` : `${usd(plan.usd)}/mois` };
+}
+
 export function localPath(value: string | null | undefined): string {
   if (!value || value.length > 2048 || !value.startsWith("/") || value.includes("\\") || [...value].some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)) return "/";
   try {
@@ -290,7 +302,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     send(res, status, JSON.stringify(body), "application/json; charset=utf-8", headers);
   const html = (res: ServerResponse, status: number, input: Parameters<typeof page>[0], headers: Record<string, string | string[]> = {}) => {
     const nonce = token(16);
-    send(res, status, page({ ...input, nonce, brand: operatorConsole ? "Delio Admin" : "Delio" }), "text/html; charset=utf-8", headers, nonce);
+    send(res, status, page({ ...input, nonce, brand: operatorConsole ? "Deliobot Admin" : "Deliobot" }), "text/html; charset=utf-8", headers, nonce);
   };
   const billingRefresh = (workspace: Workspace) => operatorConsole ? {} : { billingRefresh: { workspace: workspace.slug, paymentVersion: plans.paidCount(workspace.slug) } };
 
@@ -328,9 +340,9 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       ? plans.createOrder({ workspace: workspace.slug, email: user.email, kind, plan, cycle, ...(promo ? { promo } : {}) }, currency, options.payments?.xofPerUsd)
       : plans.createOrder({ workspace: workspace.slug, email: user.email, kind, topup }, currency, options.payments?.xofPerUsd);
     const description = kind === "plan"
-      ? `Delio ${PLANS[plan].name} · ${plan === "trial" ? `${TRIAL_DAYS} jours` : order.cycle === "year" ? "1 an" : "1 mois"}${promo ? ` · code ${promo.code} (-${promo.percent} %)` : ""}${
+      ? `Deliobot ${PLANS[plan].name} · ${plan === "trial" ? `${TRIAL_DAYS} jours` : order.cycle === "year" ? "1 an" : "1 mois"}${promo ? ` · code ${promo.code} (-${promo.percent} %)` : ""}${
         plan !== "trial" && plans.startsAt(workspace.slug, plan, order.cycle) > now() ? ` · commence le ${new Intl.DateTimeFormat("fr-FR", { dateStyle: "long", timeZone: "UTC" }).format(new Date(plans.startsAt(workspace.slug, plan, order.cycle)))}, à la fin de votre forfait actuel` : ""}`
-      : `Crédits Delio · ${order.credits}`;
+      : `Crédits Deliobot · ${order.credits}`;
     try {
       const session = await saspay.createCheckout({ amount: order.amount, currency, description, email: user.email, name: user.email,
         returnUrl: new URL(`/billing/return?order=${order.id}`, publicUrl).href, metadata: { order: order.id, workspace: workspace.slug } });
@@ -565,12 +577,12 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
 
     if (method === "GET" && path === "/login") {
       if (user) return redirect(res, localPath(url.searchParams.get("next")));
-      return html(res, 200, { title: "Connexion", body: loginPage(localPath(url.searchParams.get("next"))), mascot: "idle" });
+      return html(res, 200, { title: "Connexion", body: loginPage(localPath(url.searchParams.get("next")), undefined, chosenOffer(localPath(url.searchParams.get("next")))), mascot: "idle" });
     }
     if (method === "POST" && path === "/login") {
       const body = await readBody(req);
       const email = normalizeEmail(text(body, "email", 320)), next = localPath(text(body, "next", 2048));
-      if (!validEmail(email)) return html(res, 400, { title: "Connexion", body: loginPage(next, "Entrez une adresse e-mail valide."), mascot: "sad" });
+      if (!validEmail(email)) return html(res, 400, { title: "Connexion", body: loginPage(next, "Entrez une adresse e-mail valide.", chosenOffer(next)), mascot: "sad" });
       const domain = email.slice(email.lastIndexOf("@") + 1);
       const ssoConfig = operatorConsole ? undefined : store.ssoForDomain(domain)[0];
       const existingAccount = ssoConfig ? store.accountByEmail(email) : null;
@@ -579,32 +591,32 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       // The console sends codes to the team only, and says the same thing to anyone else so no address is revealed.
       // Everyone is limited the same way here, so the answer never tells an operator's address from another one.
       if (operatorConsole && !store.allow(`console-login:${clientAddress(req)}`, 20, 15 * 60_000)) {
-        return html(res, 429, { title: "Connexion", body: loginPage(next, "Trop de codes demandés. Patientez quelques minutes et réessayez."), mascot: "sad" });
+        return html(res, 429, { title: "Connexion", body: loginPage(next, "Trop de codes demandés. Patientez quelques minutes et réessayez.", chosenOffer(next)), mascot: "sad" });
       }
-      if (operatorConsole && !operators.has(email)) return html(res, 200, { title: "Vérifiez vos e-mails", body: codePage(email, next), mascot: "curious" });
+      if (operatorConsole && !operators.has(email)) return html(res, 200, { title: "Vérifiez vos e-mails", body: codePage(email, next, undefined, chosenOffer(next)), mascot: "curious" });
       if (!operatorConsole && !settings.isOpen("signups") && !operators.has(email) && !store.hasAccount(email)) {
-        return html(res, 403, { title: "Connexion", body: loginPage(next, "Les nouvelles inscriptions sont fermées pour le moment. Revenez bientôt."), mascot: "sad" });
+        return html(res, 403, { title: "Connexion", body: loginPage(next, "Les nouvelles inscriptions sont fermées pour le moment. Revenez bientôt.", chosenOffer(next)), mascot: "sad" });
       }
       if (!store.allow(`otp-ip:${clientAddress(req)}`, 20, 15 * 60_000) || !store.allow(`otp-email:${operatorConsole ? "console:" : ""}${email}`, 5, 15 * 60_000)) {
-        return html(res, 429, { title: "Connexion", body: loginPage(next, "Trop de codes demandés. Patientez quelques minutes et réessayez."), mascot: "sad" });
+        return html(res, 429, { title: "Connexion", body: loginPage(next, "Trop de codes demandés. Patientez quelques minutes et réessayez.", chosenOffer(next)), mascot: "sad" });
       }
       const code = store.issueOtp(email, operatorConsole ? "console" : "portal");
-      await mailer.send({ to: email, subject: `${code.slice(0, 4)} ${code.slice(4)} est votre code de connexion Delio`,
-        text: `Votre code de connexion Delio est ${code.slice(0, 4)} ${code.slice(4)}.\n\nIl expire dans 10 minutes. Si vous ne l'avez pas demandé, ignorez cet e-mail.\n\nBesoin d'aide ? Écrivez à ${SUPPORT_EMAIL}.` })
+      await mailer.send({ to: email, subject: `${code.slice(0, 4)} ${code.slice(4)} est votre code de connexion Deliobot`,
+        text: `Votre code de connexion Deliobot est ${code.slice(0, 4)} ${code.slice(4)}.\n\nIl expire dans 10 minutes. Si vous ne l'avez pas demandé, ignorez cet e-mail.\n\nBesoin d'aide ? Écrivez à ${SUPPORT_EMAIL}.` })
         .catch((error: unknown) => console.error(`delio-admin: sign-in email could not be sent (${error instanceof Error ? error.name : "error"})`));
-      return html(res, 200, { title: "Vérifiez vos e-mails", body: codePage(email, next), mascot: "curious" });
+      return html(res, 200, { title: "Vérifiez vos e-mails", body: codePage(email, next, undefined, chosenOffer(next)), mascot: "curious" });
     }
     if (method === "POST" && path === "/login/verify") {
       const body = await readBody(req);
       const email = normalizeEmail(text(body, "email", 320)), next = localPath(text(body, "next", 2048));
       const code = text(body, "code", 16).replace(/\s/g, "");
       if (!store.allow(`verify-ip:${clientAddress(req)}`, 60, 15 * 60_000)) {
-        return html(res, 429, { title: "Connexion", body: codePage(email, next, "Trop d'essais. Patientez quelques minutes."), mascot: "sad" });
+        return html(res, 429, { title: "Connexion", body: codePage(email, next, "Trop d'essais. Patientez quelques minutes.", chosenOffer(next)), mascot: "sad" });
       }
       const result = validEmail(email) && /^\d{8}$/.test(code) ? store.verifyOtp(email, code, operatorConsole ? "console" : "portal") : { ok: false as const, reason: "invalid" as const };
       if (!result.ok) {
         const message = result.reason === "expired" ? "Ce code a expiré. Demandez-en un nouveau." : result.reason === "locked" ? "Trop de codes erronés. Demandez-en un nouveau." : "Ce code n'est pas le bon.";
-        return html(res, 401, { title: "Vérifiez vos e-mails", body: codePage(email, next, message), mascot: "sad" });
+        return html(res, 401, { title: "Vérifiez vos e-mails", body: codePage(email, next, message, chosenOffer(next)), mascot: "sad" });
       }
       if (operatorConsole) store.audit(null, result.account.email, "console.login", clientAddress(req));
       return signIn(res, result.account, next);
@@ -695,7 +707,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       const error = !name ? "Donnez un nom à l'espace."
         : !validSlug(slug) ? "L'identifiant doit faire 2 à 31 caractères : lettres minuscules, chiffres ou tirets, en commençant par une lettre."
         : RESERVED_SLUGS.has(slug) || store.workspace(slug) ? "Cet identifiant est déjà pris. Essayez-en un autre."
-        : owned >= SELF_SERVE_LIMIT ? `Vous avez déjà ${SELF_SERVE_LIMIT} espaces. Écrivez à l'équipe Delio pour en avoir plus.` : null;
+        : owned >= SELF_SERVE_LIMIT ? `Vous avez déjà ${SELF_SERVE_LIMIT} espaces. Écrivez à l'équipe Deliobot pour en avoir plus.` : null;
       if (error) return show(400, { name, slug, error });
       if (!store.allow(`signup:${user.id}`, 10, 60 * 60_000)) return show(429, { name, slug, error: "Trop d'espaces créés en peu de temps. Patientez une heure et réessayez." });
       store.createWorkspace({ slug, name, tenantUrl: selfServe ? `https://${slug}.${selfServe.domain}` : options.signup!.downloadUrl, ownerEmail: user.email }, user.email);
@@ -744,8 +756,8 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
           || !store.allow(`invite-to:${email}`, 3, 24 * 60 * 60_000)) return fail(429, "Trop d'invitations envoyées. Réessayez demain.");
         const { token: value } = store.invite(workspace.slug, email, role, user.email);
         const link = new URL(`/invite?token=${value}`, publicUrl).href;
-        await mailer.send({ to: email, subject: `Invitation à rejoindre ${workspace.name} sur Delio`,
-          text: `${user.email} vous invite dans l'espace ${workspace.name} sur Delio en tant que ${role === "admin" ? "administrateur" : "membre"}.\n\nAccepter : ${link}\n\nCe lien expire dans 7 jours.` })
+        await mailer.send({ to: email, subject: `Invitation à rejoindre ${workspace.name} sur Deliobot`,
+          text: `${user.email} vous invite dans l'espace ${workspace.name} sur Deliobot en tant que ${role === "admin" ? "administrateur" : "membre"}.\n\nAccepter : ${link}\n\nCe lien expire dans 7 jours.` })
           .catch(() => console.error("delio-admin: invitation email could not be sent"));
         return html(res, 200, { title: "Membres", email: user.email, body: people(workspace, user, { message: `Invitation envoyée à ${email}.`, inviteLink: link }) });
       }
@@ -853,7 +865,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       if (!devices.decide(code, { workspace: slug, accountId: user.id })) return again(400, "Ce code a expiré ou a déjà servi. Recommencez depuis l'application.");
       store.audit(slug, user.email, "device.connect", label);
       return html(res, 200, { title: "Connectée", email: user.email, mascot: "happy",
-        body: messagePage("L'application est connectée", "Retournez dans l'application : elle termine toute seule en quelques secondes. Elle utilise les crédits Delio de cet espace.") });
+        body: messagePage("L'application est connectée", "Retournez dans l'application : elle termine toute seule en quelques secondes. Elle utilise les crédits Deliobot de cet espace.") });
     }
     if (method === "POST" && path === "/billing/checkout") {
       const body = await readBody(req);
@@ -948,7 +960,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       if (!order) throw new HttpError(404, "Ce paiement n'existe pas.");
       const workspace = requireWorkspaceAdmin(user, order.workspace);
       if (order.status === "pending") await refreshAccount(workspace.slug);
-      return html(res, 200, { title: "Paiement", email: user.email, mascot: plans.order(order.id)?.status === "failed" ? "sad" : "happy", body: paymentReturnPage(plans.order(order.id)?.status ?? "pending") });
+      return html(res, 200, { title: "Paiement", email: user.email, mascot: plans.order(order.id)?.status === "failed" ? "sad" : "happy", body: paymentReturnPage(plans.order(order.id)?.status ?? "pending", visitorDevice(req.headers["user-agent"])) });
     }
     if (method === "GET" && path === "/abonnement" && !operatorConsole) {
       const workspace = personal.primary(user);
@@ -1021,7 +1033,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   }
 
   function billing(workspace: Workspace, user: Account, extra: { message?: string; error?: string; token?: string; chosen?: PlanId; cycle?: Cycle }): Html {
-    if (!operatorConsole) return messagePage("Forfaits et crédits dans Delio", extra.error ?? extra.message ?? "Consultez votre forfait et vos crédits dans l'application Delio.", { href: "opendeliobot://cloud", label: "Ouvrir Delio" });
+    if (!operatorConsole) return messagePage("Forfaits et crédits dans Deliobot", extra.error ?? extra.message ?? "Consultez votre forfait et vos crédits dans l'application Delio.", { href: "opendeliobot://cloud", label: "Ouvrir Deliobot" });
     return billingPage({ workspace, operator: isOperator(user), balance: wallet.balance(workspace.slug) / MICRO,
       subscription: plans.subscription(workspace.slug), orders: plans.orders(workspace.slug, 10), payments: Boolean(saspay), currency,
       trialAvailable: settings.isOpen("trial") && !plans.trialUsed(user.email, workspace.slug), catalog: plans.catalog(options.payments?.xofPerUsd),
@@ -1080,10 +1092,10 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       const link = new URL("/abonnement", publicUrl).href;
       const day = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long", timeZone: "UTC" }).format(new Date(due.periodEnd));
       const message = due.plan === "trial"
-        ? { subject: `Votre essai Delio pour ${workspace.name} se termine bientôt`,
-          text: `L'essai de ${workspace.name} se termine le ${day}.\n\nChoisissez un forfait ici pour que vos bots continuent d'utiliser l'IA de Delio : ${link}\n\nBesoin d'aide ? Écrivez à ${SUPPORT_EMAIL}.` }
-        : { subject: `Votre forfait Delio ${PLANS[due.plan].name} pour ${workspace.name} se termine bientôt`,
-          text: `Le forfait ${PLANS[due.plan].name} de ${workspace.name} se termine le ${day}.\n\nRenouvelez-le ici pour continuer à recevoir ses crédits : ${link}\n\nAprès cette date, l'espace a 7 jours de grâce ; ensuite ses bots n'utilisent plus les crédits Delio jusqu'au renouvellement.\n\nBesoin d'aide ? Écrivez à ${SUPPORT_EMAIL}.` };
+        ? { subject: `Votre essai Deliobot pour ${workspace.name} se termine bientôt`,
+          text: `L'essai de ${workspace.name} se termine le ${day}.\n\nChoisissez un forfait ici pour que vos bots continuent d'utiliser l'IA de Deliobot : ${link}\n\nBesoin d'aide ? Écrivez à ${SUPPORT_EMAIL}.` }
+        : { subject: `Votre forfait Deliobot ${PLANS[due.plan].name} pour ${workspace.name} se termine bientôt`,
+          text: `Le forfait ${PLANS[due.plan].name} de ${workspace.name} se termine le ${day}.\n\nRenouvelez-le ici pour continuer à recevoir ses crédits : ${link}\n\nAprès cette date, l'espace a 7 jours de grâce ; ensuite ses bots n'utilisent plus les crédits Deliobot jusqu'au renouvellement.\n\nBesoin d'aide ? Écrivez à ${SUPPORT_EMAIL}.` };
       for (const admin of store.members(due.workspace).filter((member) => member.role === "admin")) outbox.notify(admin.email, message.subject, message.text);
     }
     await outbox.drain(mailer).catch((error: unknown) => console.error("delio-admin: e-mails failed", error));

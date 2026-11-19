@@ -41,7 +41,7 @@ export interface GatewayOptions {
   elevenlabsUrl?: string;
   /** Included app hosting; absent where no bucket is bound. */
   hosting?: AppHosting;
-  /** What the workspace's plan allows: spending Delio credits, and cloud computers awake at once. */
+  /** What the workspace's plan allows: spending Deliobot credits, and cloud computers awake at once. */
   /** Whether this address belongs to an active ambassador, so the app can link to their space. */
   isAmbassador?: (email: string) => boolean;
   allowance?: (workspace: string) => { gateway: boolean; media?: boolean; computers: number; computerHours?: number; plan?: string | null; ownAi?: boolean; reason?: string };
@@ -72,8 +72,8 @@ const FAL_MODEL = /^[A-Za-z0-9][A-Za-z0-9._-]*(\/[A-Za-z0-9][A-Za-z0-9._-]*){1,5
 const SEGMENT = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 /** Providers every plan in force may pay for in credits, those on their own AI for text included. */
 const MEDIA_PROVIDERS: ReadonlySet<string> = new Set(["fal", "elevenlabs/v1", "fish", "boat/v1"]);
-const OUT_OF_CREDITS = "This workspace is out of Delio credits. Open Plans and credits in Deliobot to top up.";
-const NOT_CONFIGURED = "This provider is not available on this Delio deployment.";
+const OUT_OF_CREDITS = "This workspace is out of Deliobot credits. Open Plans and credits in Deliobot to top up.";
+const NOT_CONFIGURED = "This provider is not available on this Deliobot deployment.";
 
 export const OUT_OF_CREDITS_CODE = "credits_exhausted";
 
@@ -300,7 +300,7 @@ export function createGateway(options: GatewayOptions) {
       if (response.status === 402) {
         await response.body?.cancel();
         finish(null, false);
-        return failure(res, 503, "Delio's AI provider is temporarily unavailable. Your Deliobot credits were not charged. Try again shortly.", "provider_unavailable");
+        return failure(res, 503, "Deliobot's AI provider is temporarily unavailable. Your Deliobot credits were not charged. Try again shortly.", "provider_unavailable");
       }
       res.statusCode = response.status;
       res.setHeader("content-type", response.headers.get("content-type") ?? "application/json");

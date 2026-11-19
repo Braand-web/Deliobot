@@ -164,7 +164,7 @@ describe("the console's ambassadors", () => {
 });
 
 describe("a plan given by e-mail", () => {
-  it("makes the account and its workspace, and gives Max for three days without Delio credits", async () => {
+  it("makes the account and its workspace, and gives Max for three days without Deliobot credits", async () => {
     const setup = base();
     const mail: MailMessage[] = [];
     const ops = await operatorConsole({ store: setup.store, operators: new Set(["ops@delio.test"]), mailer: { send: async (message) => void mail.push(message) }, now: () => setup.clock.now }, mail);

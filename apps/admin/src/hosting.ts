@@ -112,7 +112,7 @@ export function hostingRunner(deps: HostingDeps): () => Promise<void> {
           deps.hosting.set(row.workspace, { state: "ready", attempts: 0, error: null, delio });
           deps.store.audit(row.workspace, null, "hosting.ready", workspace.tenantUrl);
           for (const email of admins) {
-            await deps.mailer.send({ to: email, subject: `Votre espace Delio ${workspace.name} est prêt`,
+            await deps.mailer.send({ to: email, subject: `Votre espace Deliobot ${workspace.name} est prêt`,
               text: `${workspace.name} est prêt à l'adresse ${workspace.tenantUrl}\n\nConnectez-vous-y avec cette adresse e-mail : un code vous est envoyé à chaque fois.` })
               .catch(() => console.error("delio-admin: a workspace-ready email could not be sent"));
           }
@@ -123,7 +123,7 @@ export function hostingRunner(deps: HostingDeps): () => Promise<void> {
           deps.store.audit(row.workspace, null, "hosting.failed", message.slice(0, 200));
           if (attempts === MAX_ATTEMPTS) {
             for (const email of deps.operators) {
-              await deps.mailer.send({ to: email, subject: `Delio could not create the workspace ${row.workspace}`,
+              await deps.mailer.send({ to: email, subject: `Deliobot could not create the workspace ${row.workspace}`,
                 text: `After ${attempts} attempts the fleet agent still refuses ${row.workspace} (${workspace.tenantUrl}):\n\n${message}\n\nIts plan is paid. Fix the server, then retry it from the workspace's Billing page.` })
                 .catch(() => console.error("delio-admin: an operator alert could not be sent"));
             }
@@ -154,5 +154,5 @@ export function hostingRunner(deps: HostingDeps): () => Promise<void> {
   };
 }
 
-/** What a new Delio workspace may use through the gateway, cheapest first; Auto picks among them per message. */
+/** What a new Deliobot workspace may use through the gateway, cheapest first; Auto picks among them per message. */
 export const DEFAULT_WORKSPACE_MODELS = ["google/gemini-2.5-flash", "openai/gpt-5-mini", "anthropic/claude-sonnet-4.5", "openai/gpt-5", "google/gemini-2.5-pro", "anthropic/claude-opus-4.1"];

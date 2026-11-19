@@ -68,7 +68,7 @@ describe("the included Fish Audio voice", () => {
     expect(wallet.balance("other")).toBe(100 * MICRO);
   });
 
-  it("charges speech by the characters spoken, refuses without credits, and never lists Delio's own voices", async () => {
+  it("charges speech by the characters spoken, refuses without credits, and never lists Deliobot's own voices", async () => {
     const { wallet, calls, call } = setup();
     expect((await call("acme", "POST", "v1/tts", JSON.stringify({ text: "Bonjour" }))).status).toBe(402);
     wallet.credit("acme", 10 * MICRO, "grant", null);

@@ -118,7 +118,7 @@ describe("cost and length readers", () => {
   });
 });
 
-describe("Delio AI gateway", () => {
+describe("Deliobot AI gateway", () => {
   it.each(["max_tokens", "max_completion_tokens"])("reduces an unaffordable %s once without changing models or charging the refusal", async field => {
     const upstream = upstreams({ textRefusal: { message: "This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 26345. To increase, add credits." } });
     const target = await portal(upstream);
@@ -260,7 +260,7 @@ describe("Delio AI gateway", () => {
   });
 });
 
-describe("Delio Boat relay", () => {
+describe("Deliobot Boat relay", () => {
   it("ties each cloud computer to its workspace, holds the plan's limit, bills awake minutes and puts it to sleep at zero", async () => {
     const clock = { now: Date.now() };
     const upstream = upstreams();

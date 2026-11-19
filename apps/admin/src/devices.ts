@@ -1,4 +1,4 @@
-// Connecting a desktop app to a Delio account (RFC 8628's device flow): the app asks for a code and polls; the person
+// Connecting a desktop app to a Deliobot account (RFC 8628's device flow): the app asks for a code and polls; the person
 // approves it signed in on the portal. An app on the person's own computer also names its loopback address: once signed
 // in, the portal sends the browser there with a one-time nonce, and only the app holding both that nonce and its device
 // code can finish, so nothing is typed. The app then holds its own revocable device token for the gateway.

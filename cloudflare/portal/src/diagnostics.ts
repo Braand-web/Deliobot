@@ -38,8 +38,8 @@ export async function diagnose(settings: Record<string, string>, publicUrl: stri
   const [saspay, openrouter, fal, boat, resend] = await Promise.all([
     probe(saspayKey, "https://api.saspay.me/api/v1/checkout-sessions/", {
       method: "POST", headers: { authorization: `Bearer ${saspayKey}`, accept: "application/json", "content-type": "application/json" },
-      body: JSON.stringify({ amount: "500", currency: settings.DELIO_ADMIN_CURRENCY || "XOF", description: "Delio diagnostic (not a sale)",
-        customer_email: "support@deliobot.fun", customer_name: "Delio diagnostic", return_url: `${publicUrl}/billing`, metadata: { diagnostic: "1" } }),
+      body: JSON.stringify({ amount: "500", currency: settings.DELIO_ADMIN_CURRENCY || "XOF", description: "Deliobot diagnostic (not a sale)",
+        customer_email: "support@deliobot.fun", customer_name: "Deliobot diagnostic", return_url: `${publicUrl}/billing`, metadata: { diagnostic: "1" } }),
     }, (body) => pick(body, ["id", "checkout_url", ...errorFields])),
     probe(openrouterKey, "https://openrouter.ai/api/v1/key", { headers: { authorization: `Bearer ${openrouterKey}` } },
       (body) => pick(body, ["label", "limit", "limit_remaining", "usage", "is_free_tier", ...errorFields])),

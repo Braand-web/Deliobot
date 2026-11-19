@@ -6,7 +6,7 @@ import { portalSettings } from "../../../apps/admin/src/env-config.ts";
 /** The settings the form takes, in the order it shows them; empty fields keep what is already set. */
 export const SETUP_FIELDS = [
   { name: "DELIO_ADMIN_MAIL_API_KEY", label: "Clé API Resend (envoi des codes de connexion)", secret: true },
-  { name: "DELIO_ADMIN_MAIL_FROM", label: "Expéditeur des e-mails", secret: false, placeholder: "Delio <signin@deliobot.fun>" },
+  { name: "DELIO_ADMIN_MAIL_FROM", label: "Expéditeur des e-mails", secret: false, placeholder: "Deliobot <signin@deliobot.fun>" },
   { name: "DELIO_ADMIN_OPENROUTER_KEY", label: "Clé API OpenRouter (texte)", secret: true },
   { name: "DELIO_ADMIN_FAL_KEY", label: "Clé API fal.ai (images, vidéo, musique, voix)", secret: true },
   { name: "DELIO_ADMIN_BOAT_KEY", label: "Clé API Boat (ordinateurs cloud)", secret: true },
@@ -36,7 +36,7 @@ const escape = (text: string) => text.replace(/[&<>"']/g, (c) => `&#${c.charCode
 
 function page(body: string, status = 200): Response {
   return new Response(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex"><title>Installation · Delio</title><style>
+<meta name="robots" content="noindex"><title>Installation · Deliobot</title><style>
 :root{color-scheme:light dark}body{margin:0;font:15px/1.55 system-ui,sans-serif;background:Canvas;color:CanvasText}main{max-width:560px;margin:40px auto;padding:0 20px}
 label{display:block;font-weight:600;margin:16px 0 6px}input{width:100%;box-sizing:border-box;font:inherit;padding:10px 12px;border:1px solid #8886;border-radius:10px;background:Field;color:FieldText}
 button{margin-top:22px;width:100%;font:inherit;font-weight:600;padding:12px;border:0;border-radius:999px;background:#0b0b0c;color:#fff;cursor:pointer}
@@ -51,7 +51,7 @@ function form(token: string, current: Record<string, string>, locked: ReadonlySe
     return `<label for="${field.name}">${escape(field.label)}</label><input id="${field.name}" name="${field.name}" type="${field.secret ? "password" : "text"}"
 autocomplete="off" spellcheck="false" placeholder="${escape(placeholder)}" value="${field.secret ? "" : escape(current[field.name] ?? "")}">`;
   }).join("\n");
-  return page(`<h1>Installer le portail Delio</h1>
+  return page(`<h1>Installer le portail Deliobot</h1>
 <p class="muted">Ces clés vont directement de votre navigateur à votre portail sur Cloudflare. Personne d'autre ne les voit. Cette page se ferme après l'enregistrement. Un champ laissé vide garde la valeur déjà enregistrée, et vous pourrez compléter plus tard avec un nouveau lien.</p>
 ${error ? `<p class="error">${escape(error)}</p>` : ""}
 <form method="post" action="/setup"><input type="hidden" name="token" value="${escape(token)}">${fields}
@@ -94,7 +94,7 @@ export async function handleSetup(request: Request, deps: {
     const value = (body.get(field.name) ?? "").trim();
     if (value) next[field.name] = value.slice(0, 2000);
   }
-  if (!next.DELIO_ADMIN_MAIL_FROM && next.DELIO_ADMIN_MAIL_API_KEY) next.DELIO_ADMIN_MAIL_FROM = "Delio <signin@deliobot.fun>";
+  if (!next.DELIO_ADMIN_MAIL_FROM && next.DELIO_ADMIN_MAIL_API_KEY) next.DELIO_ADMIN_MAIL_FROM = "Deliobot <signin@deliobot.fun>";
   try {
     portalSettings({ ...deps.baseEnv, ...next });
   } catch (error) {

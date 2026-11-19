@@ -28,7 +28,7 @@ export function howItWorks(rules: AmbassadorRules, rate: number): Html {
 <li><span>Votre communauté s'abonne avec, et reçoit <b>+${rules.welcomeCredits.toLocaleString("fr-FR")} crédits offerts</b> à son premier abonnement.</span></li>
 <li><span>Vous touchez <b>${pct(rules.levels[0]!.rate)} à ${pct(rules.levels.at(-1)!.rate)} de chaque abonnement</b> pendant 6 mois, jusqu'à 24 mois pour les meilleurs.</span></li></ol>
 <ul class="muted"><li>Seuls les abonnements comptent, pas les achats de crédits.</li><li>Chaque gain devient disponible ${rules.holdDays} jours après le paiement du client.</li>
-<li>Retrait en Mobile Money dès ${rules.minPayoutXof.toLocaleString("fr-FR")} FCFA (${money(rules.minPayoutXof / rate)}), ou en crédits Delio à tout moment.</li>
+<li>Retrait en Mobile Money dès ${rules.minPayoutXof.toLocaleString("fr-FR")} FCFA (${money(rules.minPayoutXof / rate)}), ou en crédits Deliobot à tout moment.</li>
 <li>Pas de gain sur votre propre compte.</li><li>Un client reste à l'ambassadeur dont il a utilisé le lien ou le code en premier.</li></ul>`;
 }
 
@@ -203,7 +203,7 @@ ${ambassador.extensionRequest ? h`<div class="notice">Votre demande de prolongat
 <div class="stats"><div><span>Total gagné</span><b>${money(stats.availableUsd + stats.heldUsd + stats.paidUsd)}</b><small>${francs(stats.availableUsd + stats.heldUsd + stats.paidUsd, rate)}</small></div>
 <div><span>En attente</span><b>${money(stats.heldUsd)}</b><small>${stats.nextPayableAt ? `disponible dès le ${day(stats.nextPayableAt)}` : "rien en attente"}</small></div>
 <div><span>Déjà versé</span><b>${money(stats.paidUsd)}</b><small>${francs(stats.paidUsd, rate)}</small></div></div>
-<div class="card"><b>Retirer mes gains</b><p class="muted">Mobile Money dès ${rules.minPayoutXof.toLocaleString("fr-FR")} FCFA, envoyé sous quelques jours au ${ambassador.phone || "numéro de votre candidature"}. Ou en crédits Delio, tout de suite.</p>
+<div class="card"><b>Retirer mes gains</b><p class="muted">Mobile Money dès ${rules.minPayoutXof.toLocaleString("fr-FR")} FCFA, envoyé sous quelques jours au ${ambassador.phone || "numéro de votre candidature"}. Ou en crédits Deliobot, tout de suite.</p>
 <div class="actions amb-payout"><form class="inline" method="post" action="/ambassadeur/retrait"><input type="hidden" name="mode" value="mobile_money"><button class="primary" ${stats.availableUsd > 0 ? "" : raw("disabled")}>Recevoir en Mobile Money</button></form>
 <form class="inline" method="post" action="/ambassadeur/retrait"><input type="hidden" name="mode" value="credits"><button ${stats.availableUsd > 0 ? "" : raw("disabled")}>Recevoir en crédits</button></form></div>
 ${input.payouts.length ? h`<details><summary>Historique des retraits</summary>${input.payouts.map((payout) => h`<div class="row amb-paid"><span class="grow">${day(payout.at)} · ${payout.mode === "credits" ? "en crédits" : "Mobile Money"}${payout.reference ? ` · réf. ${payout.reference}` : ""}</span><b>${money(payout.usd)}</b><span class="muted">${payout.status === "paid" ? "versé" : "en cours"}</span></div>`)}</details>` : h`<p class="muted" style="margin-bottom:0">Aucun retrait pour l'instant.</p>`}</div></section>

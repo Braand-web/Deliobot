@@ -325,7 +325,7 @@ Comment ça marche :
 2. Elle s'abonne avec, et reçoit +${rules.welcomeCredits} crédits offerts à son premier abonnement.
 3. Vous touchez ${Math.round(rules.levels[0]!.rate * 100)} à ${Math.round(rules.levels.at(-1)!.rate * 100)} % de chaque abonnement pendant 6 mois, jusqu'à 24 mois pour les meilleurs.
 
-Vos gains sont disponibles ${rules.holdDays} jours après chaque paiement : retrait en Mobile Money dès ${rules.minPayoutXof.toLocaleString("fr-FR")} FCFA, ou en crédits Delio à tout moment.
+Vos gains sont disponibles ${rules.holdDays} jours après chaque paiement : retrait en Mobile Money dès ${rules.minPayoutXof.toLocaleString("fr-FR")} FCFA, ou en crédits Deliobot à tout moment.
 
 Votre espace (codes, liens, gains, textes prêts à partager) : ${SITE_URL}/ambassadeur
 Connectez-vous avec cette adresse e-mail.
