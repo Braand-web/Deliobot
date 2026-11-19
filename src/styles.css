@@ -730,6 +730,168 @@
   --identity-chrome: #B3BAC4;
 }
 
+/* ── Sahara ── Warm sand by day, lit in terracotta. */
+[data-skin="sahara"] {
+  --code-color-scheme: light;
+  --color-app: #f6efe4;
+  --color-panel: #fbf6ee;
+  --color-raised: #ffffff;
+  --color-raised-hover: #f1e3cf;
+  --color-composer: #ffffff;
+  --color-card: #ffffff;
+  --color-menu: #ffffff;
+  --color-inset: #f6efe4;
+  --color-control: #eadac3;
+  --color-hairline: #cdb79a;
+  --color-ink: #1f1a14;
+  --color-ink-secondary: #6a5b48;
+  --color-ink-tertiary: #6c5e4c;
+  --color-accent: #a8461c;
+  --color-accent-border: #c75a2a;
+  --color-accent-text: #9a3f17;
+  --color-focus: #9a3f17;
+  --color-accent-ink: #ffffff;
+  --color-bubble-user: #f3e1cb;
+  --color-bubble-user-ink: #1f1a14;
+  --color-success: #3c6b45;
+  --color-danger: #a3342c;
+  --color-danger-ink: #ffffff;
+  --color-success-ink: #ffffff;
+  --color-warning: #7a5a22;
+  --color-scrollbar: #cfbea5;
+  --color-delio-line: #6a5b48;
+  --color-menu-hover: color-mix(in srgb, var(--color-raised) 70%, transparent);
+  --color-menu-active: var(--color-raised);
+  --color-composer-ring: transparent;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+  --radius-lg: 6px;
+  --radius-xl: 10px;
+  --radius-xs: 2px; --radius-sm: 4px; --radius-md: 6px;
+  --radius-2xl: 16px; --radius-3xl: 24px; --radius-4xl: 32px;
+  --color-edge: color-mix(in srgb, var(--color-ink) 8%, transparent);
+  --identity-green: #007f48;
+  --identity-blue: #1b6adc;
+  --identity-red: #d12c34;
+  --identity-orange: #a95914;
+  --identity-purple: #8057C8;
+  --identity-cyan: #0a7891;
+  --identity-pink: #ca2d72;
+  --identity-yellow: #896a19;
+  --identity-teal: #017c6f;
+  --identity-coral: #cd361e;
+  --identity-silver: #686f79;
+  --identity-chrome: #646f80;
+}
+
+/* ── Abyss ── Deep-sea navy, lit in cyan. */
+[data-skin="abyss"] {
+  --code-color-scheme: dark;
+  --color-app: #070d16;
+  --color-panel: #0b1320;
+  --color-raised: #172235;
+  --color-raised-hover: #1f2c42;
+  --color-composer: #172235;
+  --color-card: #111a29;
+  --color-menu: #111a29;
+  --color-inset: #050a12;
+  --color-control: #172235;
+  --color-hairline: #263449;
+  --color-ink: #eaf2fb;
+  --color-ink-secondary: #a6b4c6;
+  --color-ink-tertiary: #95a3b6;
+  --color-accent: #0e7490;
+  --color-accent-border: #22a3c2;
+  --color-accent-text: #5fd0ea;
+  --color-focus: #5fd0ea;
+  --color-accent-ink: #ffffff;
+  --color-bubble-user: #15283a;
+  --color-bubble-user-ink: #eaf2fb;
+  --color-success: #5fb38a;
+  --color-danger: #e0727a;
+  --color-danger-ink: #1d0b0e;
+  --color-success-ink: #0b1712;
+  --color-warning: #d6a85a;
+  --color-scrollbar: #2c3b52;
+  --color-delio-line: #a6b4c6;
+  --color-menu-hover: color-mix(in srgb, var(--color-raised) 70%, transparent);
+  --color-menu-active: var(--color-raised);
+  --color-composer-ring: transparent;
+  --font-sans: "Geist Variable", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", system-ui, sans-serif;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-xs: 2px; --radius-sm: 4px; --radius-md: 6px;
+  --radius-2xl: 16px; --radius-3xl: 24px; --radius-4xl: 32px;
+  --color-edge: color-mix(in srgb, var(--color-ink) 8%, transparent);
+  --identity-green: #009957;
+  --identity-blue: #377FE6;
+  --identity-red: #D94B52;
+  --identity-orange: #E78531;
+  --identity-purple: #8d68ce;
+  --identity-cyan: #0EA5C6;
+  --identity-pink: #D84F8B;
+  --identity-yellow: #D8A729;
+  --identity-teal: #01A492;
+  --identity-coral: #E5634E;
+  --identity-silver: #A8ADB4;
+  --identity-chrome: #B3BAC4;
+}
+
+/* ── Sakura ── Blush paper with a deep rose accent. */
+[data-skin="sakura"] {
+  --code-color-scheme: light;
+  --color-app: #fbf3f5;
+  --color-panel: #fff8fa;
+  --color-raised: #ffffff;
+  --color-raised-hover: #f7e3e9;
+  --color-composer: #ffffff;
+  --color-card: #ffffff;
+  --color-menu: #ffffff;
+  --color-inset: #fbf3f5;
+  --color-control: #f1dbe2;
+  --color-hairline: #d9b8c3;
+  --color-ink: #22171b;
+  --color-ink-secondary: #6e5560;
+  --color-ink-tertiary: #705863;
+  --color-accent: #a8325f;
+  --color-accent-border: #c94f80;
+  --color-accent-text: #9a2b57;
+  --color-focus: #9a2b57;
+  --color-accent-ink: #ffffff;
+  --color-bubble-user: #f7e0e8;
+  --color-bubble-user-ink: #22171b;
+  --color-success: #3b6b4c;
+  --color-danger: #a8323b;
+  --color-danger-ink: #ffffff;
+  --color-success-ink: #ffffff;
+  --color-warning: #7d5b26;
+  --color-scrollbar: #dcc2cb;
+  --color-delio-line: #6e5560;
+  --color-menu-hover: color-mix(in srgb, var(--color-raised) 70%, transparent);
+  --color-menu-active: var(--color-raised);
+  --color-composer-ring: transparent;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+  --radius-lg: 8px;
+  --radius-xl: 14px;
+  --radius-xs: 2px; --radius-sm: 4px; --radius-md: 6px;
+  --radius-2xl: 16px; --radius-3xl: 24px; --radius-4xl: 32px;
+  --color-edge: color-mix(in srgb, var(--color-ink) 8%, transparent);
+  --identity-green: #007f48;
+  --identity-blue: #1b6adc;
+  --identity-red: #d12c34;
+  --identity-orange: #a95914;
+  --identity-purple: #8057C8;
+  --identity-cyan: #0a7891;
+  --identity-pink: #ca2d72;
+  --identity-yellow: #896a19;
+  --identity-teal: #017c6f;
+  --identity-coral: #cd361e;
+  --identity-silver: #686f79;
+  --identity-chrome: #646f80;
+}
+
 /* ── Daylight ─────────────────────────────────────────────────────────────
    Midnight's twin in light: near-white chrome, a neutral sidebar, white
    floating surfaces and translucent ink for text and hairlines, so every
@@ -3430,11 +3592,11 @@ button:disabled.bg-danger {
   outline-offset: -1.5px;
 }
 :root,
-:is([data-skin="midnight"], [data-skin="foundry"], [data-skin="graphite"], [data-skin="dusk"], [data-skin="halloween"], [data-skin="diwali"], [data-skin="aurora"]) {
+:is([data-skin="midnight"], [data-skin="foundry"], [data-skin="graphite"], [data-skin="dusk"], [data-skin="halloween"], [data-skin="diwali"], [data-skin="aurora"], [data-skin="abyss"]) {
   --radius-menu: 12px;
   --menu-shadow: 0 14px 32px -10px rgb(0 0 0 / 0.7), 0 2px 8px rgb(0 0 0 / 0.35);
 }
-:is([data-skin="atelier"], [data-skin="lagoon"], [data-skin="linen"], [data-skin="meadow"], [data-skin="pop"]) {
+:is([data-skin="atelier"], [data-skin="lagoon"], [data-skin="linen"], [data-skin="meadow"], [data-skin="pop"], [data-skin="sahara"], [data-skin="sakura"]) {
   --menu-shadow: 0 8px 24px -6px rgb(0 0 0 / 0.12), 0 1px 2px rgb(0 0 0 / 0.04);
 }
 :is([data-skin="daylight"]) {

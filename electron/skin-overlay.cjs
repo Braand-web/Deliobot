@@ -16,6 +16,9 @@ const SKIN_CHROME = Object.freeze({
   halloween: Object.freeze({ color: "#110d16", symbolColor: "#c2b3cc" }),
   diwali: Object.freeze({ color: "#100d1f", symbolColor: "#cdbfdc" }),
   aurora: Object.freeze({ color: "#0b0c0b", symbolColor: "#b4bab4" }),
+  sahara: Object.freeze({ color: "#f6efe4", symbolColor: "#6a5b48" }),
+  abyss: Object.freeze({ color: "#070d16", symbolColor: "#a6b4c6" }),
+  sakura: Object.freeze({ color: "#fbf3f5", symbolColor: "#6e5560" }),
 });
 
 const DEFAULT_SKIN = "midnight";

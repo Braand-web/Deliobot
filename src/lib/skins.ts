@@ -25,6 +25,9 @@ export const SKINS: readonly Skin[] = [
   { id: "pop", name: "Pop", tagline: "Cream paper, thick ink outlines, hard shadows. Chunky and cheerful." },
   { id: "halloween", name: "Halloween", tagline: "Plum after dark, lit in pumpkin orange. Bats optional." },
   { id: "diwali", name: "Diwali", tagline: "Indigo night, lit in marigold and diya gold. Fireworks optional." },
+  { id: "sahara", name: "Sahara", tagline: "Warm sand by day, lit in terracotta." },
+  { id: "abyss", name: "Abyss", tagline: "Deep-sea navy, lit in cyan." },
+  { id: "sakura", name: "Sakura", tagline: "Blush paper with a deep rose accent." },
   { id: "aurora", name: "Aurora", tagline: "Near-black, crossed by a band of green light. Glass on top." },
 ];
 
