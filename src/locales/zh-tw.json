@@ -10171,5 +10171,6 @@
   "permissions.rules.payments": "付款一律等你核准。",
   "chat.notice.hiddenInstructions": "{app} 回傳的內容試圖對機器人下指令（「{excerpt}」）。這些來自該內容，不是你：機器人不應照做。",
   "delioAccount.waitingLink": "在瀏覽器中完成：輸入電子郵件，再輸入郵件收到的驗證碼。應用程式會自動連線。",
-  "delioStart.connect.note": "瀏覽器會開啟你的 Delio 帳戶頁面：輸入電子郵件（登入或建立帳戶），再輸入郵件收到的驗證碼。應用程式會自動連線。"
+  "delioStart.connect.note": "瀏覽器會開啟你的 Delio 帳戶頁面：輸入電子郵件（登入或建立帳戶），再輸入郵件收到的驗證碼。應用程式會自動連線。",
+  "delioMenu.trial": "試用"
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { installCredentialStoreIpc, readSecureCredentials, resetUnreadableCredentials } from "./secure-credentials.mjs";
+import { healUnreadableCredentials, installCredentialStoreIpc, readSecureCredentials, resetUnreadableCredentials } from "./secure-credentials.mjs";
 
 const transient = () =>
   new Error("safeStorage.decryptStringAsync is temporarily unavailable. Please try again.");
@@ -191,5 +191,42 @@ describe("installCredentialStoreIpc", () => {
     await expect(handlers.get("credential-store:reset")({ sender: {} })).resolves.toBe("failed");
     expect(deps.dialog.showMessageBox).toHaveBeenLastCalledWith(expect.objectContaining({ type: "error", message: "native.dialog.resetSavedKeys.failed", detail: busy.message }));
     expect(deps.relaunch).not.toHaveBeenCalled();
+  });
+});
+
+describe("a store that stays unreadable", () => {
+  const unreadable = { status: "unavailable", credentials: {}, error: "the credential store is not readable" };
+  const setup = (failures, available = true) => {
+    const calls = [];
+    let count = failures;
+    return {
+      calls, count: () => count,
+      options: (result) => ({
+        result, isAvailable: async () => available, failures: () => count,
+        recordFailure: () => { count += 1; calls.push("record"); }, clearFailures: () => { count = 0; calls.push("clear"); },
+        moveAside: () => calls.push("move"),
+      }),
+    };
+  };
+
+  it("waits one launch, since a busy keychain can recover", async () => {
+    const first = setup(0);
+    expect(await healUnreadableCredentials(first.options(unreadable))).toEqual(unreadable);
+    expect(first.calls).toEqual(["record"]);
+  });
+
+  it("moves it aside at the next unreadable launch and starts with an empty store it can write", async () => {
+    const second = setup(1);
+    expect(await healUnreadableCredentials(second.options(unreadable))).toEqual({ status: "empty", credentials: {} });
+    expect(second.calls).toEqual(["move", "clear"]);
+  });
+
+  it("leaves it alone when the system cannot encrypt at all, and forgets the count once it reads", async () => {
+    const locked = setup(3, false);
+    expect(await healUnreadableCredentials(locked.options(unreadable))).toEqual(unreadable);
+    expect(locked.calls).toEqual(["record"]);
+    const read = setup(2);
+    expect(await healUnreadableCredentials(read.options({ status: "ok", credentials: { a: 1 } }))).toEqual({ status: "ok", credentials: { a: 1 } });
+    expect(read.calls).toEqual(["clear"]);
   });
 });

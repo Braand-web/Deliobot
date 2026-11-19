@@ -75,11 +75,14 @@ const type = async (input: HTMLInputElement, value: string) => {
     input.dispatchEvent(new Event("input", { bubbles: true }));
   });
 };
-/** Presses Connect, names the account, and lets one poll read the answer. */
+/** Presses Connect (a first account needs no name) and lets one poll read the answer. */
 const connectApollo = async () => {
   await click(tile().querySelector("button")!);
-  await type(tile().querySelector("form input") as HTMLInputElement, "work");
-  await act(async () => { tile().querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); });
+  const form = tile().querySelector("form");
+  if (form) {
+    await type(form.querySelector("input") as HTMLInputElement, "work");
+    await act(async () => { form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); });
+  }
   await flush();
   await settlePoll();
 };
@@ -194,8 +197,6 @@ describe("after connecting an app", () => {
     await act(async () => root.render(createElement(Fragment, null, createElement(PluginsPanel), createElement(AppGrantNotice))));
     await mounted();
     await click(tile().querySelector("button")!);
-    await type(tile().querySelector("form input") as HTMLInputElement, "work");
-    await act(async () => { tile().querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); });
     await mounted();
     await act(async () => {
       await vi.advanceTimersByTimeAsync(5_000);

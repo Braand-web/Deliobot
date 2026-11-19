@@ -844,7 +844,8 @@ export function PluginsPanel() {
                 }
               } else if (reconnect) {
                 void connect(card.slug, reconnect.alias, reconnect);
-              } else {
+              } else if (accounts.length === 0) void connect(card.slug);
+              else {
                 setAliasSlug((current) => current === card.slug ? null : card.slug);
                 setAliasDraft("");
               }

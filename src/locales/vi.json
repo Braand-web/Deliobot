@@ -5941,5 +5941,6 @@
   "permissions.rules.payments": "Thanh toán luôn chờ bạn duyệt.",
   "chat.notice.hiddenInstructions": "Nội dung {app} trả về đã cố đưa chỉ dẫn cho bot («{excerpt}»). Chúng đến từ nội dung đó, không phải từ bạn: bot không nên làm theo.",
   "delioAccount.waitingLink": "Hoàn tất trong trình duyệt: nhập email, rồi nhập mã nhận qua email. Ứng dụng sẽ tự kết nối.",
-  "delioStart.connect.note": "Trình duyệt mở trang tài khoản Delio của bạn: nhập email (để đăng nhập hoặc tạo tài khoản), rồi nhập mã nhận qua email. Ứng dụng sẽ tự kết nối."
+  "delioStart.connect.note": "Trình duyệt mở trang tài khoản Delio của bạn: nhập email (để đăng nhập hoặc tạo tài khoản), rồi nhập mã nhận qua email. Ứng dụng sẽ tự kết nối.",
+  "delioMenu.trial": "Dùng thử"
 }

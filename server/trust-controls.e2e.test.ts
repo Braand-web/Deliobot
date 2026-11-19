@@ -447,6 +447,7 @@ it("shows each outbound batch recipient and amount with explicit preview truncat
     tool: "GMAIL_SEND_EMAIL",
     app: "Gmail",
     calls: [{ app: "Gmail", label: "Send email" }, { app: "Stripe", label: "Create refund" }],
+    drafts: [{ app: "Gmail", to: "first@fixture.test", body: "x".repeat(450) }, { app: "Stripe", to: "second@fixture.test" }],
   });
   await api("POST", `/api/threads/${b.threadId}/respond`, { requestId: card.card.requestId, behavior: "deny" });
   expect((await held).body.result.isError).toBe(true);

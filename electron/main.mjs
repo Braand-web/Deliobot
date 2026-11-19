@@ -77,7 +77,7 @@ import {
   withoutDesktopCompanionAccess,
 } from "./desktop-companion-client.mjs";
 import { isKnownSkin, skinChrome } from "./skin-overlay.cjs";
-import { installCredentialStoreIpc, readSecureCredentials } from "./secure-credentials.mjs";
+import { healUnreadableCredentials, installCredentialStoreIpc, readSecureCredentials } from "./secure-credentials.mjs";
 import { createControlPlaneClient } from "./control-plane-client.mjs";
 import {
   companionAccountCleanupPending, companionTunnelRetired,
@@ -368,12 +368,24 @@ const nativeText = createDesktopText(app), nativeT = nativeText.t; const createC
 let credentialStoreUnavailable = false;
 
 async function loadSecureCredentials() {
-  const result = await readSecureCredentials({
-    exists: () => fs.existsSync(CREDENTIALS_FILE),
+  const failuresFile = `${CREDENTIALS_FILE}.unreadable-launches`;
+  const readFailures = () => { try { return Number(fs.readFileSync(failuresFile, "utf8")) || 0; } catch { return 0; } };
+  const result = await healUnreadableCredentials({
+    result: await readSecureCredentials({
+      exists: () => fs.existsSync(CREDENTIALS_FILE),
+      isAvailable: () => safeStorage.isAsyncEncryptionAvailable(),
+      readFile: () => fs.readFileSync(CREDENTIALS_FILE),
+      decrypt: (buffer) => safeStorage.decryptStringAsync(buffer),
+      sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+    }),
     isAvailable: () => safeStorage.isAsyncEncryptionAvailable(),
-    readFile: () => fs.readFileSync(CREDENTIALS_FILE),
-    decrypt: (buffer) => safeStorage.decryptStringAsync(buffer),
-    sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+    failures: () => readFailures(),
+    recordFailure: () => { try { fs.writeFileSync(failuresFile, String(readFailures() + 1)); } catch { /* the next launch counts from what it reads */ } },
+    clearFailures: () => fs.rmSync(failuresFile, { force: true }),
+    moveAside: () => {
+      fs.renameSync(CREDENTIALS_FILE, `${CREDENTIALS_FILE}.unreadable-${Date.now()}`);
+      slog("credential store unreadable two launches in a row; moved aside, starting with a new one");
+    },
   });
   credentialStoreUnavailable = result.status === "unavailable";
   if (credentialStoreUnavailable) {

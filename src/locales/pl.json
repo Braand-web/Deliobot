@@ -7148,5 +7148,6 @@
   "permissions.rules.payments": "Płatności zawsze czekają na Twoją zgodę.",
   "chat.notice.hiddenInstructions": "To, co zwróciła aplikacja {app}, próbowało wydać botowi polecenia („{excerpt}”). Pochodzą z tej treści, nie od Ciebie: bot nie powinien ich wykonywać.",
   "delioAccount.waitingLink": "Dokończ w przeglądarce: wpisz e-mail, a potem kod otrzymany e-mailem. Aplikacja połączy się sama.",
-  "delioStart.connect.note": "Przeglądarka otworzy stronę Twojego konta Delio: wpisz e-mail (aby się zalogować lub założyć konto), a potem kod otrzymany e-mailem. Aplikacja połączy się sama."
+  "delioStart.connect.note": "Przeglądarka otworzy stronę Twojego konta Delio: wpisz e-mail (aby się zalogować lub założyć konto), a potem kod otrzymany e-mailem. Aplikacja połączy się sama.",
+  "delioMenu.trial": "Okres próbny"
 }

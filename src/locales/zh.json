@@ -9988,5 +9988,6 @@
   "permissions.rules.payments": "付款始终等你批准。",
   "chat.notice.hiddenInstructions": "{app} 返回的内容试图给机器人下指令（“{excerpt}”）。这些来自该内容，而不是你：机器人不应照做。",
   "delioAccount.waitingLink": "在浏览器中完成：输入邮箱，再输入邮件收到的验证码。应用会自动连接。",
-  "delioStart.connect.note": "浏览器会打开你的 Delio 账户页面：输入邮箱（登录或创建账户），再输入邮件收到的验证码。应用会自动连接。"
+  "delioStart.connect.note": "浏览器会打开你的 Delio 账户页面：输入邮箱（登录或创建账户），再输入邮件收到的验证码。应用会自动连接。",
+  "delioMenu.trial": "试用"
 }

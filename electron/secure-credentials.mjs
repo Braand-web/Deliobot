@@ -40,6 +40,28 @@ export async function readSecureCredentials({
   return { status: "unavailable", credentials: {}, error: lastError };
 }
 
+/** A store that is still unreadable at the next launch, while the system can encrypt again, is moved aside (kept, not
+ * deleted) so this launch starts with an empty store it can write: connected apps and keys are set up again instead of
+ * staying broken for good. One unreadable launch alone changes nothing, since a busy keychain can recover. */
+export async function healUnreadableCredentials({ result, isAvailable, failures, recordFailure, clearFailures, moveAside }) {
+  if (result.status !== "unavailable") {
+    clearFailures();
+    return result;
+  }
+  if (failures() < 1 || !(await isAvailable())) {
+    recordFailure();
+    return result;
+  }
+  try {
+    moveAside();
+  } catch {
+    recordFailure();
+    return result;
+  }
+  clearFailures();
+  return { status: "empty", credentials: {} };
+}
+
 /** "Reset saved keys" for a store that cannot be read: after the person confirms, the file is moved aside (kept, not
  * deleted) and the app restarts with an empty store it can write again. A store that was read is never touched, and
  * nothing moves once the app has begun to quit while the person was deciding, since no restart would follow. */

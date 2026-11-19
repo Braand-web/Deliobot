@@ -4076,7 +4076,8 @@
       "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7",
       "chat.notice.hiddenInstructions": "b5765076df5880224e5fb0feac4f5c53d0132ca0f6d00cad726978e750049247",
       "delioAccount.waitingLink": "413d91330263c0ad94389008e27d83542d4829b821d477500212380ba5c3ea26",
-      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03"
+      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03",
+      "delioMenu.trial": "98a66e9745c9cb5e5fdd92f61d20d803eee090f81fce7da85e5f2b55ef0da147"
     },
     "es": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -10514,7 +10515,8 @@
       "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7",
       "chat.notice.hiddenInstructions": "b5765076df5880224e5fb0feac4f5c53d0132ca0f6d00cad726978e750049247",
       "delioAccount.waitingLink": "413d91330263c0ad94389008e27d83542d4829b821d477500212380ba5c3ea26",
-      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03"
+      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03",
+      "delioMenu.trial": "98a66e9745c9cb5e5fdd92f61d20d803eee090f81fce7da85e5f2b55ef0da147"
     },
     "fr": {
       "delioMenu.checking": "ee7fdea20d0b8d3d566f24f6e7b11b62f71cc8fc95748cd8d4c5431ab3947185",
@@ -18358,7 +18360,8 @@
       "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7",
       "chat.notice.hiddenInstructions": "b5765076df5880224e5fb0feac4f5c53d0132ca0f6d00cad726978e750049247",
       "delioAccount.waitingLink": "413d91330263c0ad94389008e27d83542d4829b821d477500212380ba5c3ea26",
-      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03"
+      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03",
+      "delioMenu.trial": "98a66e9745c9cb5e5fdd92f61d20d803eee090f81fce7da85e5f2b55ef0da147"
     },
     "ja": {
       "connectedWorkspaces.localTitle": "7d6deafeab011d734c3fdd1bfd6f69544fbb746a004019269bdb48544b01164b",
@@ -26296,7 +26299,8 @@
       "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7",
       "chat.notice.hiddenInstructions": "b5765076df5880224e5fb0feac4f5c53d0132ca0f6d00cad726978e750049247",
       "delioAccount.waitingLink": "413d91330263c0ad94389008e27d83542d4829b821d477500212380ba5c3ea26",
-      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03"
+      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03",
+      "delioMenu.trial": "98a66e9745c9cb5e5fdd92f61d20d803eee090f81fce7da85e5f2b55ef0da147"
     },
     "pt-br": {
       "delioMenu.checking": "ee7fdea20d0b8d3d566f24f6e7b11b62f71cc8fc95748cd8d4c5431ab3947185",
@@ -47480,7 +47484,8 @@
       "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7",
       "chat.notice.hiddenInstructions": "b5765076df5880224e5fb0feac4f5c53d0132ca0f6d00cad726978e750049247",
       "delioAccount.waitingLink": "413d91330263c0ad94389008e27d83542d4829b821d477500212380ba5c3ea26",
-      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03"
+      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03",
+      "delioMenu.trial": "98a66e9745c9cb5e5fdd92f61d20d803eee090f81fce7da85e5f2b55ef0da147"
     },
     "zh-tw": {
       "connectedWorkspaces.localTitle": "7d6deafeab011d734c3fdd1bfd6f69544fbb746a004019269bdb48544b01164b",
@@ -57647,7 +57652,8 @@
       "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7",
       "chat.notice.hiddenInstructions": "b5765076df5880224e5fb0feac4f5c53d0132ca0f6d00cad726978e750049247",
       "delioAccount.waitingLink": "413d91330263c0ad94389008e27d83542d4829b821d477500212380ba5c3ea26",
-      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03"
+      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03",
+      "delioMenu.trial": "98a66e9745c9cb5e5fdd92f61d20d803eee090f81fce7da85e5f2b55ef0da147"
     },
     "uk": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -61767,7 +61773,8 @@
       "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7",
       "chat.notice.hiddenInstructions": "b5765076df5880224e5fb0feac4f5c53d0132ca0f6d00cad726978e750049247",
       "delioAccount.waitingLink": "413d91330263c0ad94389008e27d83542d4829b821d477500212380ba5c3ea26",
-      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03"
+      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03",
+      "delioMenu.trial": "98a66e9745c9cb5e5fdd92f61d20d803eee090f81fce7da85e5f2b55ef0da147"
     },
     "vi": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -67702,7 +67709,8 @@
       "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7",
       "chat.notice.hiddenInstructions": "b5765076df5880224e5fb0feac4f5c53d0132ca0f6d00cad726978e750049247",
       "delioAccount.waitingLink": "413d91330263c0ad94389008e27d83542d4829b821d477500212380ba5c3ea26",
-      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03"
+      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03",
+      "delioMenu.trial": "98a66e9745c9cb5e5fdd92f61d20d803eee090f81fce7da85e5f2b55ef0da147"
     },
     "tr": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -73637,7 +73645,8 @@
       "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7",
       "chat.notice.hiddenInstructions": "b5765076df5880224e5fb0feac4f5c53d0132ca0f6d00cad726978e750049247",
       "delioAccount.waitingLink": "413d91330263c0ad94389008e27d83542d4829b821d477500212380ba5c3ea26",
-      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03"
+      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03",
+      "delioMenu.trial": "98a66e9745c9cb5e5fdd92f61d20d803eee090f81fce7da85e5f2b55ef0da147"
     },
     "pl": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -80780,7 +80789,8 @@
       "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7",
       "chat.notice.hiddenInstructions": "b5765076df5880224e5fb0feac4f5c53d0132ca0f6d00cad726978e750049247",
       "delioAccount.waitingLink": "413d91330263c0ad94389008e27d83542d4829b821d477500212380ba5c3ea26",
-      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03"
+      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03",
+      "delioMenu.trial": "98a66e9745c9cb5e5fdd92f61d20d803eee090f81fce7da85e5f2b55ef0da147"
     },
     "ru": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -87977,7 +87987,8 @@
       "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7",
       "chat.notice.hiddenInstructions": "b5765076df5880224e5fb0feac4f5c53d0132ca0f6d00cad726978e750049247",
       "delioAccount.waitingLink": "413d91330263c0ad94389008e27d83542d4829b821d477500212380ba5c3ea26",
-      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03"
+      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03",
+      "delioMenu.trial": "98a66e9745c9cb5e5fdd92f61d20d803eee090f81fce7da85e5f2b55ef0da147"
     },
     "it": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -94989,7 +95000,8 @@
       "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7",
       "chat.notice.hiddenInstructions": "b5765076df5880224e5fb0feac4f5c53d0132ca0f6d00cad726978e750049247",
       "delioAccount.waitingLink": "413d91330263c0ad94389008e27d83542d4829b821d477500212380ba5c3ea26",
-      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03"
+      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03",
+      "delioMenu.trial": "98a66e9745c9cb5e5fdd92f61d20d803eee090f81fce7da85e5f2b55ef0da147"
     },
     "ko": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -102662,7 +102674,8 @@
       "permissions.rules.payments": "a2b2957dbb41dd52e896cae685f916ba5b76076e5470294d57c491fc8c1d52d7",
       "chat.notice.hiddenInstructions": "b5765076df5880224e5fb0feac4f5c53d0132ca0f6d00cad726978e750049247",
       "delioAccount.waitingLink": "413d91330263c0ad94389008e27d83542d4829b821d477500212380ba5c3ea26",
-      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03"
+      "delioStart.connect.note": "e20ea0b1fcef2f31d372f04d0ac945618152a9b67e655725b8d485c29fac5c03",
+      "delioMenu.trial": "98a66e9745c9cb5e5fdd92f61d20d803eee090f81fce7da85e5f2b55ef0da147"
     }
   }
 }
