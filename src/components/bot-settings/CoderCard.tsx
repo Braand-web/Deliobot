@@ -13,6 +13,7 @@ export function CoderCard({ bot, onChange }: { bot: Bot; onChange: (coder: Coder
   const { state } = useStore();
   const coder: Coder = bot.coder ?? { enabled: false };
   const [commands, setCommands] = useState((coder.verify ?? []).join("\n"));
+  const [previewUrl, setPreviewUrl] = useState(coder.previewUrl ?? "");
   const set = (patch: Partial<Coder>) => onChange({ ...coder, ...patch });
   const reviewers = state.instances
     .filter((instance) => instance.snapshot.state === "available" && instance.snapshot.authenticated !== false)
@@ -31,6 +32,13 @@ export function CoderCard({ bot, onChange }: { bot: Bot; onChange: (coder: Coder
       </div>
       {coder.enabled && (
         <div className="mt-4 flex flex-col gap-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="text-[13px] text-ink">{t("coder.planFirst")}</div>
+              <div className="mt-0.5 text-[12px] text-ink-secondary">{t("coder.planFirstHelp")}</div>
+            </div>
+            <Switch checked={coder.planFirst === true} aria-label={t("coder.planFirst")} onClick={() => set({ planFirst: !coder.planFirst })} />
+          </div>
           <label className="flex flex-col gap-1 text-[13px] text-ink-secondary">
             {t("coder.reviewer")}
             <Select id="bot-coder-reviewer" className="max-w-full" value={reviewValue}
@@ -44,12 +52,22 @@ export function CoderCard({ bot, onChange }: { bot: Bot; onChange: (coder: Coder
             </Select>
             <span className="text-[12px]">{t("coder.reviewerHelp")}</span>
           </label>
+          {coder.review && (
+            <label className="flex flex-col gap-1 text-[13px] text-ink-secondary">
+              {t("coder.previewUrl")}
+              <input type="url" value={previewUrl} placeholder="http://localhost:5173"
+                onChange={(event) => setPreviewUrl(event.target.value)}
+                onBlur={() => set({ previewUrl: /^https?:\/\/\S+$/.test(previewUrl.trim()) ? previewUrl.trim() : undefined })}
+                className="rounded-lg border border-hairline bg-inset px-2.5 py-1.5 font-mono text-[12px] text-ink" />
+              <span className="text-[12px]">{t("coder.previewUrlHelp")}</span>
+            </label>
+          )}
           <label className="flex flex-col gap-1 text-[13px] text-ink-secondary">
             {t("coder.checks")}
             <textarea rows={3} value={commands} placeholder={t("coder.checksPlaceholder")}
               onChange={(event) => setCommands(event.target.value)}
               onBlur={() => set({ verify: commands.split("\n").map((line: string) => line.trim()).filter(Boolean).slice(0, 8) })}
-              className="rounded-lg border border-hairline bg-inset px-2.5 py-1.5 font-mono text-[12.5px] text-ink" />
+              className="rounded-lg border border-hairline bg-inset px-2.5 py-1.5 font-mono text-[12px] text-ink" />
             <span className="text-[12px]">{t("coder.checksHelp")}</span>
           </label>
           <label className="flex flex-col gap-1 text-[13px] text-ink-secondary">

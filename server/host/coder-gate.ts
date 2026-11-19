@@ -24,6 +24,8 @@ export interface CoderGateDeps {
   diffText(botId: string, cwd: string, fromHash: string): Promise<string | null>;
   detectChecks?: (cwd: string) => string[];
   runChecks?: (cwd: string, commands: readonly string[]) => Promise<CheckRun>;
+  /** The project's checks just passed: worth remembering for its next conversations. */
+  checksPassed?: (cwd: string, commands: readonly string[]) => void;
   sleep?: (ms: number) => Promise<void>;
 }
 
@@ -131,6 +133,7 @@ export function createCoderGate(deps: CoderGateDeps) {
           return;
         }
         row(turn.threadId, "chat.notice.coderPassed", { checks: commands.join(", ") }, true);
+        deps.checksPassed?.(turn.cwd, commands);
       }
       if (coder.review && state.reviewRound < MAX_REVIEW_ROUNDS) return review(bot, coder, turn.threadId, turn.cwd, state, commands);
       states.delete(turn.threadId);

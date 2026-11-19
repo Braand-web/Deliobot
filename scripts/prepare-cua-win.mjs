@@ -1,9 +1,9 @@
 // Stage the Windows CUA executable and native SDK outside ASAR.
 import { createHash } from "node:crypto";
-import { copyFile, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { existsSync, realpathSync } from "node:fs";
 import { execFile } from "node:child_process";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { build } from "esbuild";
@@ -73,12 +73,20 @@ async function officialBinary() {
   }
   const archive = join(cache, release.file);
   await writeFile(archive, bytes);
-  await run("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command",
-    "Expand-Archive -LiteralPath $env:ODB_CUA_ARCHIVE -DestinationPath $env:ODB_CUA_EXTRACT"], {
-    env: { ...process.env, ODB_CUA_ARCHIVE: archive, ODB_CUA_EXTRACT: cache },
-    timeout: 60_000,
-    windowsHide: true,
-  });
+  for (let attempt = 1; attempt <= 2 && !existsSync(cachedBinary); attempt += 1) {
+    if (attempt > 1) {
+      console.warn("CUA Driver: cua-driver.exe missing after extraction; extracting again.");
+      await new Promise((done) => setTimeout(done, 15_000));
+    }
+    await run("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command",
+      "Expand-Archive -Force -LiteralPath $env:ODB_CUA_ARCHIVE -DestinationPath $env:ODB_CUA_EXTRACT"], {
+      env: { ...process.env, ODB_CUA_ARCHIVE: archive, ODB_CUA_EXTRACT: cache },
+      timeout: 60_000,
+      windowsHide: true,
+    });
+    const nested = (await readdir(cache, { recursive: true })).find((entry) => basename(entry).toLowerCase() === "cua-driver.exe");
+    if (!existsSync(cachedBinary) && nested) await copyFile(join(cache, nested), cachedBinary);
+  }
   if (!existsSync(cachedBinary)) throw new Error(`CUA Driver archive ${release.file} has no cua-driver.exe`);
   const reported = await binaryVersion(cachedBinary, 3);
   if (reported && reported !== expectedVersion) {

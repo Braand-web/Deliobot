@@ -39,6 +39,8 @@ export interface CatalogProfile {
   meetings?: boolean;
   /** The plan's included app hosting reaches this server: publish_app is mounted. */
   appHosting?: boolean;
+  /** The bot is in coder mode: project_note is mounted. */
+  coder?: boolean;
   /** The tool groups this bot's person turned off: none of their tools is mounted. */
   toolsOff?: readonly ToolGroup[];
 }
@@ -65,6 +67,7 @@ export function catalogProfileFromEnv(env: NodeJS.ProcessEnv): CatalogProfile {
     musicGeneration: env.ODB_MUSIC_GENERATION === "1",
     meetings: env.ODB_MEETINGS === "1",
     appHosting: env.ODB_APP_HOSTING === "1",
+    coder: env.ODB_CODER === "1",
     toolsOff: toolsOffFromEnv(env.ODB_TOOLS_OFF),
   };
 }

@@ -20,6 +20,7 @@ import { MUSIC_TOOL_DEFINITIONS, MUSIC_TOOL_NAMES } from "./agents-music-tools.t
 import { HOSTING_TOOL_DEFINITIONS, HOSTING_TOOL_NAMES } from "./agents-hosting-tools.ts";
 import { MEETING_TOOL_DEFINITIONS, MEETING_TOOL_NAMES } from "./agents-meeting-tools.ts";
 import { DELIO_TOOL_DEFINITIONS } from "./agents-delio-tools.ts";
+import { CODER_TOOL_DEFINITIONS } from "./agents-coder-tools.ts";
 import { PERSON_TOOL_DEFINITIONS } from "./agents-person-tools.ts";
 import { RESEARCH_TOOL_DEFINITIONS, RESEARCH_TOOL_NAMES, X_TOOL_NAMES } from "./agents-research-tools.ts";
 import { SHARE_TOOL_DEFINITIONS } from "./agents-share-tool.ts";
@@ -843,7 +844,7 @@ export function availableTools(profile: CatalogProfile) {
   return placed.map((tool) => ({ ...tool, inputSchema: advertisedSchema(tool.inputSchema, tool.description) }));
 }
 
-const FULL_INPUT_SCHEMAS = new Map<string, unknown>([...TOOL_DEFINITIONS, ...DELIO_TOOL_DEFINITIONS].map((tool) => [tool.name, tool.inputSchema]));
+const FULL_INPUT_SCHEMAS = new Map<string, unknown>([...TOOL_DEFINITIONS, ...DELIO_TOOL_DEFINITIONS, ...CODER_TOOL_DEFINITIONS].map((tool) => [tool.name, tool.inputSchema]));
 
 /** A tool's input schema as the catalog writes it, before tools/list leaves anything out: what every call is held to. */
 export function fullInputSchema(name: string): unknown {
@@ -879,5 +880,5 @@ function catalogTools(profile: CatalogProfile) {
       const properties = Object.fromEntries(Object.entries(tool.inputSchema.properties).filter(([key]) => !CHIEF_TARGET_FIELDS.has(key)));
       return { ...tool, description: tool.description.replace(CHIEF_PROFILE_TARGET, ""), inputSchema: { ...tool.inputSchema, properties } };
     });
-  return [...ROLE_TOOLS, ...(profile.delio === true ? DELIO_TOOL_DEFINITIONS : [])];
+  return [...ROLE_TOOLS, ...(profile.delio === true ? DELIO_TOOL_DEFINITIONS : []), ...(profile.coder === true ? CODER_TOOL_DEFINITIONS : [])];
 }

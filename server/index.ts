@@ -74,7 +74,7 @@ import {
 import { avatarImageStatus } from "./avatar-image.ts"; import { assignmentReadRefusal } from "./assignment-read.ts";
 import { imageGenerationReady } from "./image-generation.ts"; import { configureHiggsfield, createHiggsfieldBackend } from "./higgsfield-mcp.ts";
 import { withAutoModel } from "./auto-model.ts";
-import { createDelioAccount, DELIO_LINKED_PATH, delioConnection, delioPlanTurnsFor, withDelioMedia } from "./delio-account.ts"; import { hostedDelioAccount, startDelioBrokerLink } from "./delio-broker-link.ts"; import { createAppSignedOutNotice } from "./app-signed-out-notice.ts"; import { createCoderGate } from "./host/coder-gate.ts"; import { createCoderUndoRoutes } from "./routes/coder-undo.ts"; import { createOutboundReview } from "./outbound-review.ts"; import { createHiddenInstructionNotice } from "./hidden-instructions.ts"; import { setBrokerRelink } from "./composio-broker-access.ts"; import { startPythonRuntime } from "./python-runtime.ts";
+import { createDelioAccount, DELIO_LINKED_PATH, delioConnection, delioPlanTurnsFor, withDelioMedia } from "./delio-account.ts"; import { hostedDelioAccount, startDelioBrokerLink } from "./delio-broker-link.ts"; import { createAppSignedOutNotice } from "./app-signed-out-notice.ts"; import { coderRulesPrompt, projectNotesPrompt, readNotes, rememberChecks } from "./coder/project-notes.ts"; import { detectChecks } from "./coder/verify.ts"; import { createCoderGate } from "./host/coder-gate.ts"; import { createCoderUndoRoutes } from "./routes/coder-undo.ts"; import { createOutboundReview } from "./outbound-review.ts"; import { createHiddenInstructionNotice } from "./hidden-instructions.ts"; import { setBrokerRelink } from "./composio-broker-access.ts"; import { startPythonRuntime } from "./python-runtime.ts";
 import { createDelioAccountRoutes } from "./routes/delio-account.ts";
 import { videoGenerationReady } from "./video-generation.ts";
 import { createMediaToolRoutes, type MediaKind } from "./routes/media-tools.ts";
@@ -8307,7 +8307,7 @@ async function beginTurn(
       const routinePrompt = integrations.agents ? TRIGGER_PROMPT : "";
       const profilePrompt = integrations.agents ? PROFILE_PROMPT : "";
       const recallPrompt = integrations.agents && bot.memoryEnabled !== false ? SESSION_SEARCH_SYSTEM_PROMPT : "";
-      const learnPrompt = skillAuthoring ? profilePrompt ? LEARN_RULES_PROMPT : LEARN_PROMPT : "";
+      const liveCoder = (store.bot(bot.id) ?? bot).coder; const learnPrompt = skillAuthoring ? profilePrompt ? LEARN_RULES_PROMPT : LEARN_PROMPT : "";
 
       // Wait for the snapshot right before dispatch: the engine must not edit the project until it settles.
       if (checkpointCwd) {
@@ -8422,6 +8422,8 @@ async function beginTurn(
         { id: "routine-execution", label: "Routine execution", text: opts?.automationSource === "schedule" || opts?.automationSource === "manual" || opts?.automationSource === "startup" ? (confined ? READ_ONLY_ROUTINE_EXECUTION_PROMPT : ROUTINE_EXECUTION_PROMPT) : "" },
         { id: "profile", label: "Profile changes", text: profilePrompt },
         { id: "learn", label: "Skill authoring", text: learnPrompt },
+        { id: "coder", label: "Coder mode", text: liveCoder?.enabled && checkpointCwd && !coderGate.isReviewThread(threadId) ? coderRulesPrompt({ ...liveCoder, checks: liveCoder.verify?.length ? liveCoder.verify : detectChecks(checkpointCwd), review: Boolean(liveCoder.review) }) : "" },
+        { id: "project-notes", label: "Project notes", text: liveCoder?.enabled && checkpointCwd ? projectNotesPrompt(readNotes(DATA_DIR, checkpointCwd)) : "" },
         { id: "section-context", label: "Section context", text: sectionContextSystemPrompt(bot.section) },
         { id: "team-memory", label: "Team memory", text: teamMemory.systemPrompt(bot.section) + (integrations.agents ? TEAM_MEMORY_PROMPT : "") },
         // Volatile, so a teammate starting or finishing never changes the stable half.
@@ -9232,6 +9234,7 @@ const coderGate = createCoderGate({
   bot: (botId) => store.bot(botId) ?? undefined, request: (threadId) => store.activePath(threadId).filter((row) => row.role === "user").at(-1)?.text ?? "",
   append: (threadId, tool) => { store.appendMessage(threadId, { role: "bot", kind: "activity", tool }); }, startTurn, diffText: (botId, cwd, fromHash) => checkpoints.diffText(botId, cwd, fromHash),
   openReviewThread: (botId, review, cwd) => store.createTask(botId, "Code review", false, undefined, undefined, undefined, { instanceId: review.instanceId, model: review.model }, cwd)?.threadId ?? null,
+  checksPassed: (cwd, commands) => rememberChecks(DATA_DIR, cwd, commands),
 });
 const outboundHold = createOutboundHold({ store, dataDir: DATA_DIR, outboundRequests, holdMs: OUTBOUND_HOLD_MS, connectorThread, activeGroupTurnForBot, notify, review: createOutboundReview(decider, () => deciderEnabled(cfg)) }); const appSignedOut = createAppSignedOutNotice({ append: (threadId, tool) => { store.appendMessage(threadId, { role: "bot", kind: "activity", tool }); } }); const hiddenInstructions = createHiddenInstructionNotice({ append: (threadId, tool) => { store.appendMessage(threadId, { role: "bot", kind: "activity", tool }); } });
 
@@ -12450,7 +12453,7 @@ ROUTES.push(createBrowserViewerRoutes({
   restartRefusal: (session) => browserRestartRefusal(browserRuntime.interrupted(session), store.bots.filter((candidate) => candidate.busy
     && browserSessionsOf(candidate.id, candidate.browserProfile).includes(session)).map((candidate) => ({ waitingOnBrowser: computerControl.snapshot(candidate.id).help?.place === "browser" }))),
 }));
-const internalToolRoutes = createInternalToolRoutes({ engineLimits: { instances: () => registry.instances(), configs: () => instanceConfigs(cfg), status: (instanceId) => registry.knownSnapshot(instanceId), load: (accounts) => loadPlanUsage({ accounts }), audienceOf: (threadId) => teamHost.audienceOf(threadId), guestDriven: cloudGuestDriven, dataDir: DATA_DIR }, helpers: { decider, extractor }, notifications: { bot: (id) => store.bot(id), team: sharedMembership, broadcast }, xResearch: { credential: () => researchCredential(cfg.treg?.key), botEnabled: (botId) => store.bot(botId)?.xResearch !== false, cloudHome: CLOUD_HOME !== null, researchOff: () => researchAvailability.refused() }, appPublisher }); const waitRoutes = createWaitRoutes({ waits: botWaits, cloudHome: Boolean(CLOUD_HOME), sleeps: Boolean(CLOUD_HOME) && CLOUD_TEAM === null }); ROUTES.push(createXConnectorRoutes({ credential: () => researchCredential(cfg.treg?.key), included: () => xCredential(), unavailable: () => xResearchStatus().unavailable === true }));
+const internalToolRoutes = createInternalToolRoutes({ engineLimits: { instances: () => registry.instances(), configs: () => instanceConfigs(cfg), status: (instanceId) => registry.knownSnapshot(instanceId), load: (accounts) => loadPlanUsage({ accounts }), audienceOf: (threadId) => teamHost.audienceOf(threadId), guestDriven: cloudGuestDriven, dataDir: DATA_DIR }, helpers: { decider, extractor }, notifications: { bot: (id) => store.bot(id), team: sharedMembership, broadcast }, xResearch: { credential: () => researchCredential(cfg.treg?.key), botEnabled: (botId) => store.bot(botId)?.xResearch !== false, cloudHome: CLOUD_HOME !== null, researchOff: () => researchAvailability.refused() }, appPublisher, projectNotes: { dataDir: DATA_DIR, projectFolder: (botId, threadId) => { const bot = store.bot(botId); return bot?.coder?.enabled ? store.taskByThread(botId, threadId)?.cwd ?? bot.cwd ?? null : null; } } }); const waitRoutes = createWaitRoutes({ waits: botWaits, cloudHome: Boolean(CLOUD_HOME), sleeps: Boolean(CLOUD_HOME) && CLOUD_TEAM === null }); ROUTES.push(createXConnectorRoutes({ credential: () => researchCredential(cfg.treg?.key), included: () => xCredential(), unavailable: () => xResearchStatus().unavailable === true }));
 
 // Live calls: the client holds the WebRTC audio; the key never leaves the harness, which creates the session.
 function liveBotFor(botId: string): LiveBot {

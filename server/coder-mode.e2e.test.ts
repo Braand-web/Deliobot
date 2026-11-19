@@ -30,6 +30,15 @@ it("checks a change, sends the failure back, sees the fix pass, then puts the fo
       .toEqual(["chat.notice.coderChecking", "chat.notice.coderFailed", "chat.notice.coderChecking", "chat.notice.coderPassed"]);
     expect(existsSync(join(project, "fixed.txt"))).toBe(true);
 
+    await api(`/api/bots/${bot.id}`, "PATCH", { coder: { enabled: true, verify: ["test -f fixed.txt"], planFirst: true } });
+    await cli("send", "--bot", bot.id, "--task", bot.activeTaskId, "--text", "What do you know about this project?");
+    await expect.poll(() => JSON.stringify(JSON.parse(readFileSync(fixture.fixtureDumpPath, "utf8")).prompt), { timeout: 30_000 }).toContain("What do you know");
+    const { systemPrompt } = JSON.parse(readFileSync(fixture.fixtureDumpPath, "utf8"));
+    expect(systemPrompt).toContain("Coder mode is on");
+    expect(systemPrompt).toContain("ask_user");
+    expect(systemPrompt).toContain("- Checks that pass: `test -f fixed.txt`");
+    await expect.poll(() => api<any>(`/api/bots/${bot.id}`).then((body) => body.bot.busy), { timeout: 30_000 }).toBe(false);
+
     const first = (await rows(bot.activeTaskId)).find((row) => row.kind === "digest" && row.undo);
     expect(first, "the first turn's summary offers to undo").toBeTruthy();
     await api(`/api/bots/${bot.id}/threads/${bot.activeTaskId}/messages/${first.id}/undo`, "POST", {});
