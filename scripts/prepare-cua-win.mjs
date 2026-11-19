@@ -32,14 +32,23 @@ if (expectedVersion !== release.version) {
   );
 }
 
-async function binaryVersion(candidate) {
+let lastProbe = "";
+
+// A freshly extracted executable on a GitHub Windows runner can fail its first launches while Defender scans it.
+async function binaryVersion(candidate, attempts = 1) {
   if (!candidate || !existsSync(candidate)) return null;
-  try {
-    const { stdout } = await run(candidate, ["--version"], { timeout: 60_000, windowsHide: true });
-    return stdout.match(/cua-driver\s+([\d.]+)/)?.[1] ?? null;
-  } catch {
-    return null;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      const { stdout, stderr } = await run(candidate, ["--version"], { timeout: 60_000, windowsHide: true });
+      lastProbe = `${stdout}${stderr}`.trim();
+      const found = `${stdout}\n${stderr}`.match(/cua-driver(?:-rs)?\s+v?([\d.]+)/i)?.[1];
+      if (found) return found;
+    } catch (error) {
+      lastProbe = error instanceof Error ? error.message : String(error);
+    }
+    if (attempt < attempts) await new Promise((done) => setTimeout(done, 5_000));
   }
+  return null;
 }
 
 async function officialBinary() {
@@ -69,8 +78,8 @@ async function officialBinary() {
     timeout: 60_000,
     windowsHide: true,
   });
-  if ((await binaryVersion(cachedBinary)) !== expectedVersion) {
-    throw new Error(`downloaded CUA Driver does not report version ${expectedVersion}`);
+  if ((await binaryVersion(cachedBinary, 6)) !== expectedVersion) {
+    throw new Error(`downloaded CUA Driver does not report version ${expectedVersion}; it answered: ${lastProbe.slice(0, 500) || "nothing"}`);
   }
   return cachedBinary;
 }
