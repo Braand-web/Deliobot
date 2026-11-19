@@ -8,7 +8,7 @@ import { json, type InstallationRow } from "./common";
 export const DELIO_LINK_TTL_MS = 8 * 24 * 60 * 60_000;
 const WORKSPACE = /^[a-z][a-z0-9-]{1,30}$/;
 const ACCOUNT_TOKEN = /^odb_(?:device|workspace)_[A-Za-z0-9_-]{43}$/;
-const linkSchema = z.object({ workspace: z.string().regex(WORKSPACE), token: z.string().regex(ACCOUNT_TOKEN) }).strict();
+const linkSchema = z.object({ workspace: z.string().regex(WORKSPACE), token: z.string().regex(ACCOUNT_TOKEN) });
 
 export const DELIO_ACCOUNT_REQUIRED = "Connected apps need a Deliobot account. Connect yours in Deliobot (Plans and credits), then try again.";
 

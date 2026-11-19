@@ -39,7 +39,7 @@ export function startDelioBrokerLink(options: {
       const response = await fetchImpl(`${broker.url}/v1/installation/delio`, {
         method: "POST", redirect: "error", signal: AbortSignal.timeout(15_000),
         headers: { authorization: `Bearer ${broker.token}`, "content-type": "application/json" },
-        body: JSON.stringify(account),
+        body: JSON.stringify({ workspace: account.workspace, token: account.token }),
       });
       await response.body?.cancel().catch(() => undefined);
       if (response.ok) { linked.set(key, now()); failed.delete(key); return; }

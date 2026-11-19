@@ -31,6 +31,13 @@ describe("connected apps for Deliobot accounts", () => {
     expect(delioLinked(row, e)).toBe(true);
   });
 
+  it("links the account as older apps send it, with the portal and gateway addresses alongside", async () => {
+    const { env: e } = env();
+    const fetchImpl = (async () => new Response("{}", { status: 200 })) as unknown as typeof fetch;
+    const body = { portal: "https://compte.example.test", workspace: "acme", token: TOKEN, gateway: "https://compte.example.test/api/gateway/acme" };
+    expect((await linkDelioAccount(link(body), installation(), e, fetchImpl)).status).toBe(200);
+  });
+
   it("refuses an account the portal does not confirm, and a malformed one without asking", async () => {
     const { env: e, runs } = env();
     let asked = 0;

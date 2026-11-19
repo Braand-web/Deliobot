@@ -17,11 +17,12 @@ describe("linking connected apps to the Deliobot account", () => {
     link.stop();
     await link.tick();
     expect(calls).toEqual([]);
-    account = { workspace: "acme", token: `odb_device_${"x".repeat(43)}` };
+    const connection = { portal: "https://compte.example.test", workspace: "acme", token: `odb_device_${"x".repeat(43)}`, gateway: "https://compte.example.test/api/gateway/acme" };
+    account = connection;
     await link.tick();
     await link.tick();
     expect(calls.map((call) => call.auth)).toEqual([`Bearer ${"a".repeat(64)}`, `Bearer ${"b".repeat(64)}`]);
-    expect(calls[0]).toMatchObject({ url: "https://apps.example.test/v1/installation/delio", body: account });
+    expect(calls[0]).toEqual({ url: "https://apps.example.test/v1/installation/delio", auth: `Bearer ${"a".repeat(64)}`, body: { workspace: "acme", token: connection.token } });
     clock += 6 * 60 * 60_000 + 1;
     await link.tick();
     expect(calls).toHaveLength(4);
