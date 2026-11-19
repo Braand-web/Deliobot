@@ -11,6 +11,7 @@ import { isDelioColor, DELIO_COLOR_NAMES, type BotUpdateResponse, type WireBot, 
 import { dropRemovedGrants, MAX_ALWAYS_ALLOW } from "../always-allow.ts";
 import { checkBrowserProfileChange, settleBrowserChange } from "../bot-browser-profile.ts";
 import { validateBotCwd } from "../bot-cwd.ts";
+import { coderPatch } from "../coder/settings.ts";
 import { parseBotProfilePatch } from "../bot-profile.ts";
 import { accessFromVisibility } from "../../shared/bot-access.ts";
 import { parseVisibility } from "../bot-visibility.ts";
@@ -301,6 +302,11 @@ export function createBotPatchRoutes(deps: BotPatchRouteDeps): RouteHandler {
       if (body.composio !== undefined) {
         if (typeof body.composio !== "boolean") return json(res, 400, { error: "composio must be true or false" });
         patch.composio = body.composio;
+      }
+      if (body.coder !== undefined) {
+        const coder = coderPatch(body.coder);
+        if ("error" in coder) return json(res, 400, { error: coder.error });
+        patch.coder = coder.value;
       }
       if (body.media !== undefined) {
         const media = botMediaPatch(body.media);

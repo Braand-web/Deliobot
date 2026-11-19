@@ -10,7 +10,7 @@
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
-import { readdir } from "node:fs/promises";
+import { readdir, rm } from "node:fs/promises";
 import { homedir } from "node:os";
 import { isAbsolute, join, parse, resolve } from "node:path";
 
@@ -549,4 +549,75 @@ export async function diffWorkingTree(botId: string, cwd: string, fromHash: stri
     if (e instanceof GitTimeoutError && !signal?.aborted) disableFolder(shadow, botId, worktree, e.message);
     return null;
   }
+}
+
+async function inShadow<T>(botId: string, cwd: string, signal: AbortSignal | undefined, fn: (worktree: string, env: NodeJS.ProcessEnv) => Promise<T>): Promise<T | null> {
+  if (signal?.aborted || disabledBots.has(botId) || !(await gitAvailable()) || refusalReason(cwd) !== null) return null;
+  const folder = folderShadow(botId, cwd);
+  if (folder === null || disabledFolders.has(folder.shadow)) return null;
+  const { worktree, shadow } = folder;
+  try {
+    const env = gitEnv(shadow, worktree);
+    const run = serialize(shadow, async () => {
+      await ensureShadow(worktree, env, shadow, signal);
+      return fn(worktree, env);
+    });
+    releaseCollection(shadow);
+    return await run;
+  } catch (e) {
+    if (e instanceof GitTimeoutError && !signal?.aborted) disableFolder(shadow, botId, worktree, e.message);
+    return null;
+  }
+}
+
+/** The change since `fromHash` as a unified diff, cut at `maxBytes`. */
+export async function diffText(botId: string, cwd: string, fromHash: string, maxBytes = 60_000, signal?: AbortSignal): Promise<string | null> {
+  if (!COMMIT_HASH.test(fromHash)) return null;
+  return inShadow(botId, cwd, signal, async (worktree, env) => {
+    await stageWorkTree(worktree, env, signal);
+    const out = await runGit(["diff", "--cached", "--no-color", "--no-ext-diff", "--no-renames", fromHash], worktree, env, signal);
+    return out.length > maxBytes ? `${out.slice(0, maxBytes)}\n… (cut)` : out;
+  });
+}
+
+// Kept snapshots survive collections, so a turn can be undone later; they are dropped after KEEP_DAYS.
+const KEPT_REFS = "refs/odb-kept/";
+export const KEEP_DAYS = 7;
+
+export async function keep(botId: string, cwd: string, hash: string, name: string): Promise<boolean> {
+  if (!COMMIT_HASH.test(hash)) return false;
+  const kept = await inShadow(botId, cwd, undefined, async (worktree, env) => {
+    const refs = (await runGit(["for-each-ref", "--format=%(refname) %(committerdate:unix)", KEPT_REFS], worktree, env)).split("\n").filter(Boolean);
+    const oldest = Date.now() / 1000 - KEEP_DAYS * 86_400;
+    for (const line of refs) {
+      const [ref, at] = line.split(" ");
+      if (ref && Number(at) < oldest) await runGit(["update-ref", "-d", ref], worktree, env);
+    }
+    await runGit(["update-ref", KEPT_REFS + createHash("sha256").update(name).digest("hex").slice(0, 16), hash], worktree, env);
+    return true;
+  });
+  return kept === true;
+}
+
+/** Puts the folder back as it was at `hash`: files the turn changed or deleted come back, files it added are removed. */
+export async function restore(botId: string, cwd: string, hash: string): Promise<CheckpointDiff | null> {
+  if (!COMMIT_HASH.test(hash)) return null;
+  return inShadow(botId, cwd, undefined, async (worktree, env) => {
+    await runGit(["cat-file", "-e", `${hash}^{commit}`], worktree, env);
+    await stageWorkTree(worktree, env);
+    const out = await runGit(["diff", "--cached", "--name-status", "--no-renames", "-z", hash], worktree, env);
+    const undone: CheckpointDiff = { changed: [], added: [], deleted: [] };
+    const fields = out.split("\0").filter((field) => field.length > 0);
+    for (let i = 0; i + 1 < fields.length; i += 2) {
+      const status = fields[i]!, path = fields[i + 1]!;
+      if (status.startsWith("A")) undone.added.push(path);
+      else if (status.startsWith("D")) undone.deleted.push(path);
+      else undone.changed.push(path);
+    }
+    for (const path of undone.added) await rm(join(worktree, path), { force: true });
+    const back = [...undone.changed, ...undone.deleted];
+    if (back.length) await runGit(["checkout", hash, "--pathspec-from-file=-", "--pathspec-file-nul"], worktree, env, undefined, back.join("\0"));
+    await stageWorkTree(worktree, env);
+    return undone;
+  });
 }

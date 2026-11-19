@@ -9,6 +9,7 @@ import { t } from "@/lib/i18n";
 import { Select } from "../Select";
 import { backupNote } from "@/lib/engine-rail";
 import { MediaModelsCard } from "./MediaModelsCard";
+import { CoderCard } from "./CoderCard";
 
 export function ModelSection({ bot }: { bot: Bot }) {
   const { state, dispatch } = useStore();
@@ -51,6 +52,7 @@ export function ModelSection({ bot }: { bot: Bot }) {
       {(state.config?.imageGen?.falConfigured || state.config?.imageGen?.delioMedia) && (
         <MediaModelsCard bot={bot} onChange={(media) => dispatch({ type: "updateBot", botId: bot.id, patch: { media } })} />
       )}
+      {!draft && <CoderCard bot={bot} onChange={(coder) => dispatch({ type: "updateBot", botId: bot.id, patch: { coder: coder ?? undefined } })} />}
       {!draft && <FallbackChain bot={bot} onChange={(fallback) => dispatch({ type: "updateBot", botId: bot.id, patch: { fallback } })} />}
       {!draft && state.config?.cacheKeepWarm && (
         <KeepWarmRow bot={bot} workspaceOn={state.config.cacheKeepWarm.enabled}

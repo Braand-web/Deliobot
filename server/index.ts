@@ -74,7 +74,7 @@ import {
 import { avatarImageStatus } from "./avatar-image.ts"; import { assignmentReadRefusal } from "./assignment-read.ts";
 import { imageGenerationReady } from "./image-generation.ts"; import { configureHiggsfield, createHiggsfieldBackend } from "./higgsfield-mcp.ts";
 import { withAutoModel } from "./auto-model.ts";
-import { createDelioAccount, DELIO_LINKED_PATH, delioConnection, delioPlanTurnsFor, withDelioMedia } from "./delio-account.ts"; import { hostedDelioAccount, startDelioBrokerLink } from "./delio-broker-link.ts"; import { createAppSignedOutNotice } from "./app-signed-out-notice.ts"; import { createOutboundReview } from "./outbound-review.ts"; import { createHiddenInstructionNotice } from "./hidden-instructions.ts"; import { setBrokerRelink } from "./composio-broker-access.ts"; import { startPythonRuntime } from "./python-runtime.ts";
+import { createDelioAccount, DELIO_LINKED_PATH, delioConnection, delioPlanTurnsFor, withDelioMedia } from "./delio-account.ts"; import { hostedDelioAccount, startDelioBrokerLink } from "./delio-broker-link.ts"; import { createAppSignedOutNotice } from "./app-signed-out-notice.ts"; import { createCoderGate } from "./host/coder-gate.ts"; import { createCoderUndoRoutes } from "./routes/coder-undo.ts"; import { createOutboundReview } from "./outbound-review.ts"; import { createHiddenInstructionNotice } from "./hidden-instructions.ts"; import { setBrokerRelink } from "./composio-broker-access.ts"; import { startPythonRuntime } from "./python-runtime.ts";
 import { createDelioAccountRoutes } from "./routes/delio-account.ts";
 import { videoGenerationReady } from "./video-generation.ts";
 import { createMediaToolRoutes, type MediaKind } from "./routes/media-tools.ts";
@@ -5575,6 +5575,12 @@ async function scheduleTurnDigest(input: {
     const stored = store.activePath(input.threadId).find(row => row.id === message.id); if (!files || !input.isCurrent() || !stored) return;
     const withFiles = buildTurnDigest({ ...digest, hookCoverage: stored.digest?.hookCoverage ?? digest.hookCoverage, activities, memory, files });
     store.patchMessage(input.threadId, message.id, { digest: withFiles, text: renderDigest(withFiles) }, { kind: "digest.files", key: `${input.threadId}:${input.turnId}` });
+    const changedFiles = files.changed.length + files.added.length + files.deleted.length;
+    if (store.bot(input.botId)?.coder?.enabled && !input.from && !coderGate.isReviewThread(input.threadId)) {
+      if (changedFiles && await checkpoints.keep(input.botId, checkpoint.cwd, checkpoint.hash, `${input.threadId}:${checkpoint.hash}`)) store.patchMessage(input.threadId, message.id, { undo: checkpoint.hash });
+      void coderGate.afterTurn({ botId: input.botId, threadId: input.threadId, cwd: checkpoint.cwd, fromHash: checkpoint.hash, changedFiles, ...(input.succeeded === undefined ? {} : { succeeded: input.succeeded }) })
+        .catch((error) => console.warn(`coder mode: ${error instanceof Error ? error.message : String(error)}`));
+    }
   } catch (error) {
     console.error(`digest: could not record turn ${input.turnId} on ${input.threadId}:`, error instanceof Error ? error.message : error);
   } finally {
@@ -9222,6 +9228,11 @@ const teamMemoryRequests = createTeamMemoryRequests({ teamMemory, store, section
 const outsideWrites = createOutsideWrites({ store, notify, language: (threadId) => threadLanguage(threadId), decide: (row) => appendDecision(DATA_DIR, row),
   writeMemory: (botId, threadId, change) => { const written = botMemoryUpdate(teamHost.layer(botId, threadId), change, { source: memorySourceLabel({ room: store.groupByThread(threadId), task: store.taskByThread(teamHost.baseBotId(botId), threadId), threadId }), aboutMe: null, prefer: null }); return written.ok ? null : written.error; } });
 const outboundRequests = new OutboundRequestService();
+const coderGate = createCoderGate({
+  bot: (botId) => store.bot(botId) ?? undefined, request: (threadId) => store.activePath(threadId).filter((row) => row.role === "user").at(-1)?.text ?? "",
+  append: (threadId, tool) => { store.appendMessage(threadId, { role: "bot", kind: "activity", tool }); }, startTurn, diffText: (botId, cwd, fromHash) => checkpoints.diffText(botId, cwd, fromHash),
+  openReviewThread: (botId, review, cwd) => store.createTask(botId, "Code review", false, undefined, undefined, undefined, { instanceId: review.instanceId, model: review.model }, cwd)?.threadId ?? null,
+});
 const outboundHold = createOutboundHold({ store, dataDir: DATA_DIR, outboundRequests, holdMs: OUTBOUND_HOLD_MS, connectorThread, activeGroupTurnForBot, notify, review: createOutboundReview(decider, () => deciderEnabled(cfg)) }); const appSignedOut = createAppSignedOutNotice({ append: (threadId, tool) => { store.appendMessage(threadId, { role: "bot", kind: "activity", tool }); } }); const hiddenInstructions = createHiddenInstructionNotice({ append: (threadId, tool) => { store.appendMessage(threadId, { role: "bot", kind: "activity", tool }); } });
 
 const { resolveAndSendTrust } = createTrustAnswers({ store, dataDir: DATA_DIR, teamMemoryRequests, outsideWrites, outboundRequests });
@@ -12156,7 +12167,7 @@ const botPatchRoutes = createBotPatchRoutes({ turnBots: directTurnBots,
   broadcast, wireBot, publicGroupState, audienceChanged, storedAvatarExists, requestedTaskBot, threadBusy, activeGroupTurnForBot,
   checkedModelSelection, engineSwitchNeedsAsk, currentBrowserSession, interruptAllDirectThreads, cancelGroupTurnOperations,
   revokeInternalCapabilitiesForThread, runningTurnInstance, closeOpenApprovals, assertTeamComputerChangeIdle, forgetTemporaryBrowser, levelOf, team: Boolean(CLOUD_TEAM), mainThreadTasks, chiefChanged: (changed) => chiefRooms.moved(changed), ...(personRooms.personMarkThread ? { personMarkThread: personRooms.personMarkThread, shownThread: (auth: RequestAuth, bot: BotRecord) => memberBot(wireBot(bot), visibleTo(viewerFor(auth))).threadId } : {}),
-}); ROUTES.push(botPatchRoutes);
+}); ROUTES.push(botPatchRoutes); ROUTES.push(createCoderUndoRoutes({ store, threadBusy, restore: checkpoints.restore }));
 ROUTES.push(createBotLifecycleRoutes({
   store, routines: () => routines, interruptAllDirectThreads, cancelDirectTurnDispatch, revokeInternalCapabilitiesForThread,
   activeGroupTurnForBot, cancelGroupTurnOperations, runningTurnInstance, closeOpenApprovals, deleteBotWithLifecycle, deleteRefusal: (auth, botId) => memberDeleteRefusal(auth, store.bot(botId), Boolean(CLOUD_TEAM)),

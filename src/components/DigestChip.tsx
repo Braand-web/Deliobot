@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ClipboardList } from "lucide-react";
+import { ClipboardList, Undo2 } from "lucide-react";
 
 import { t } from "@/lib/i18n";
 import { memoInLocale } from "@/lib/locale-memo";
@@ -9,6 +9,7 @@ import type { Message } from "@/state/store";
 import { traceRootId } from "../../shared/usage-trace";
 import { EXCERPT_SUMMARY_HEADER } from "../../shared/wire";
 import { TraceDialog } from "./usage/TraceView";
+import { api } from "@/state/api";
 
 const WORK_KEY: Record<"noFiles" | "oneFile" | "files", Record<"oneTool" | "tools", LocaleKey>> = {
   noFiles: { oneTool: "chat.digestChipNoFilesOne", tools: "chat.digestChipNoFiles" },
@@ -17,10 +18,36 @@ const WORK_KEY: Record<"noFiles" | "oneFile" | "files", Record<"oneTool" | "tool
 };
 const one = (count: number | string) => String(count) === "1";
 
-export const DigestChip = memoInLocale(function DigestChip({ message }: { message: Message }) {
+/** Puts a coder-mode turn's folder back as it was before it, after the person confirms. */
+function UndoButton({ message, botId, threadId }: { message: Message; botId: string; threadId: string }) {
+  const [state, setState] = useState<"idle" | "busy" | "error">("idle");
+  const [error, setError] = useState("");
+  if (!message.undo) return null;
+  const undo = () => {
+    if (!window.confirm(t("chat.coderUndoConfirm"))) return;
+    setState("busy");
+    api(`/api/bots/${encodeURIComponent(botId)}/threads/${encodeURIComponent(threadId)}/messages/${encodeURIComponent(message.id)}/undo`, { method: "POST" })
+      .then(() => setState("idle"))
+      .catch((caught: unknown) => { setError(caught instanceof Error ? caught.message : String(caught)); setState("error"); });
+  };
+  return (
+    <span className="inline-flex items-center gap-2">
+      <button type="button" data-coder-undo disabled={state === "busy"} onClick={undo} className="inline-flex shrink-0 items-center gap-1 text-accent hover:underline disabled:opacity-50">
+        <Undo2 size={12} aria-hidden="true" />{t("chat.coderUndo")}
+      </button>
+      {state === "error" && <span className="text-danger">{error}</span>}
+    </span>
+  );
+}
+
+/** `undoIn` is "botId/threadId" when the turn can be undone; `undoOnly` shows just that button (tool rows hidden). */
+export const DigestChip = memoInLocale(function DigestChip({ message, undoIn, undoOnly }: { message: Message; undoIn?: string; undoOnly?: boolean }) {
+  const [undoBot, undoThread] = undoIn?.split("/") ?? [];
+  const undo = undoBot && undoThread ? { botId: undoBot, threadId: undoThread, only: Boolean(undoOnly) } : undefined;
   const [tracing, setTracing] = useState(false);
   const digest = message.digest;
   if (!digest) return null;
+  if (undo?.only) return message.undo ? <div className="flex justify-start text-[12px]"><UndoButton message={message} botId={undo.botId} threadId={undo.threadId} /></div> : null;
   const files = digest.files ? digest.files.changed.length + digest.files.added.length + digest.files.deleted.length + (digest.files.truncated ?? 0) : null;
   const worked = digest.tools.length || digest.toolCalls || digest.toolsDropped || files || digest.memory.length || digest.memoryDropped;
   const tools = digest.toolCalls ?? `${digest.tools.reduce((n, tool) => n + tool.count, 0)}${digest.toolsDropped ? "+" : ""}`;
@@ -40,6 +67,7 @@ export const DigestChip = memoInLocale(function DigestChip({ message }: { messag
         <button type="button" onClick={() => setTracing(true)} className="shrink-0 text-accent hover:underline" data-testid="view-trace">
           {t("trace.view")}
         </button>
+        {undo && <UndoButton message={message} botId={undo.botId} threadId={undo.threadId} />}
       </span>
       {tracing && <TraceDialog id={traceRootId(digest.threadId, digest.turnId)} at={digest.at} onClose={() => setTracing(false)} />}
     </div>

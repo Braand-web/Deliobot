@@ -47,6 +47,7 @@ export type BotUpdatePatch = Partial<
     | "mcpServers"
     | "modelSelection"
     | "media"
+    | "coder"
   >
 > & {
   computer?: Bot["computer"] | null;

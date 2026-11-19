@@ -325,8 +325,8 @@ export interface WireBot extends DefaultBotFields, BotAccessFields {
   replyStyle?: ReplyStyle;
   /** This bot's own voice id, so a room of bots doesn't sound like one person. */
   voice?: string;
-  /** This bot's media models (image, video, music), each a model ID; absent or "auto" lets Auto choose for each request. */
-  media?: { image?: string; video?: string; music?: string };
+  /** This bot's media models (image, video, music), each a model ID; absent or "auto" lets Auto choose for each request. */ media?: { image?: string; video?: string; music?: string };
+  /** Coder mode: checks after a change that edited files, failures sent back, then a review by `review`'s engine. */ coder?: { enabled: boolean; verify?: string[]; maxRounds?: number; review?: { instanceId: string; model: string }; planFirst?: boolean; previewUrl?: string };
   /** This bot's own Live call voice, a GPT-Live or Gemini Live voice id; absent, or not the call provider's, uses the app's. */ liveVoice?: string;
   /** Whether this bot may send voice notes. Absent/true = allowed; false
    * hides the tool and refuses the route even with a voice configured. */
@@ -444,7 +444,7 @@ export interface WireMessage extends ServerTextLine, HelperIntroField, SetupCard
   role: "bot" | "user";
   kind: "text" | "options" | "activity" | "screen" | "connector" | "secret" | "signin" | "routine.run" | "goal.run" | "burst" | "digest" | "compaction" | "call" | "widget" | "app";
   text?: string;
-  digest?: TurnDigest;
+  digest?: TurnDigest; /** A coder-mode turn's pre-turn snapshot while the folder can be put back; `undone` once it was. */ undo?: string; undone?: true;
   /** kind "compaction" with no `compaction` record: the engine condensed its own session. A marker for people, never context. */
   engineCompaction?: true;
   compaction?: { summary: string; firstKeptId: string; foldedThroughId: string; tokensBefore: number; by: "person" | "harness";

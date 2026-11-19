@@ -2,7 +2,7 @@
 // The opendeliobot headless verbs for verifying an isolated fixture. A verb that
 // changes something never runs on a server it merely found.
 import { spawn, type ChildProcess } from "node:child_process";
-import { closeSync, mkdirSync, mkdtempSync, openSync, readFileSync, writeFileSync } from "node:fs";
+import { closeSync, existsSync, mkdirSync, mkdtempSync, openSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { delimiter, dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -169,6 +169,12 @@ export function verificationServerEnvironment(parentEnv: NodeJS.ProcessEnv, data
   for (const [key, value] of Object.entries(parentEnv)) {
     // FAKE_CLAUDE_DUMP stays the launcher's: assertions read fixtureDumpPath.
     if ((key.startsWith("FAKE_CLAUDE_") || key.startsWith("FAKE_CODEX_TEXT_") || key.startsWith("FAKE_CODEX_COMMAND") || key.startsWith("FAKE_STREAM_") || key === "FAKE_ACP_HANG_ON") && key !== "FAKE_CLAUDE_DUMP" && value) childEnv[key] = value;
+  }
+  // Workspace checkpoints (server/checkpoints.ts) need git, which the sealed PATH leaves out.
+  if (parentEnv.ODB_TEST_WITH_GIT === "1") {
+    const gitName = process.platform === "win32" ? "git.exe" : "git";
+    const gitDir = (parentEnv.PATH ?? "").split(delimiter).find((dir) => dir && existsSync(join(dir, gitName)));
+    if (gitDir) childEnv.PATH = `${childEnv.PATH}${delimiter}${gitDir}`;
   }
   // Enables POST /api/testing/org-library; the route does not exist without it.
   if (parentEnv.ODB_TEST_ORG_LIBRARY_KEY) childEnv.ODB_TEST_ORG_LIBRARY_KEY = parentEnv.ODB_TEST_ORG_LIBRARY_KEY;

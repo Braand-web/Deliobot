@@ -747,7 +747,7 @@ const MessagesList = memo(function MessagesList({
               return <ActivityChip message={m} place={place} />;
             }
             case "digest":
-              return showToolCalls ? <DigestChip message={m} /> : null;
+              return showToolCalls || m.undo ? <DigestChip message={m} undoIn={m.undo ? `${botId}/${threadId}` : undefined} undoOnly={!showToolCalls} /> : null;
             case "compaction":
               return <CompactionChip message={m} onNewChat={m.id === lookups.newChatHintId && canReact ? () => dispatch({ type: "newTask", botId }) : undefined} />;
             case "screen":
