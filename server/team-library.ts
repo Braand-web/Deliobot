@@ -4,8 +4,8 @@ import { PACKAGE_V1_VERSION } from "../shared/package-format.ts";
 import { fetchGithubFolder } from "./share-github.ts";
 import { parseTeamManifest, type ParsedTeamManifest } from "./team-manifest.ts";
 
-export const TEAM_LIBRARY_REPOSITORY = "https://github.com/Braand-web/opendeliobot-teams";
-export const TEAM_LIBRARY_RAW_ROOT = "https://raw.githubusercontent.com/Braand-web/opendeliobot-teams/main";
+export const TEAM_LIBRARY_REPOSITORY = "https://deliobot.fun/teams-library";
+export const TEAM_LIBRARY_RAW_ROOT = TEAM_LIBRARY_REPOSITORY;
 export const TEAM_LIBRARY_CATALOG_URL = `${TEAM_LIBRARY_RAW_ROOT}/catalog.json`;
 
 const MAX_CATALOG_BYTES = 256_000;

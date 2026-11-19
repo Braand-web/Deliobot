@@ -1,0 +1,148 @@
+{
+  "format": "opendelio.catalog",
+  "version": 1,
+  "teams": [
+    {
+      "slug": "seo-growth",
+      "name": "SEO Growth Team",
+      "summary": "Turn search opportunities into prioritized technical fixes and useful content.",
+      "category": "Marketing",
+      "outcome": "Find and prioritize the search work most likely to grow qualified traffic.",
+      "setupMinutes": 5,
+      "featured": true,
+      "package": "packages/seo-growth.md",
+      "manifest": "teams/seo-growth/team.delioteam.json",
+      "readme": "teams/seo-growth/README.md",
+      "members": 4,
+      "skills": [
+        "teams/seo-growth/skills/keyword-opportunity-map/SKILL.md",
+        "teams/seo-growth/skills/technical-seo-triage/SKILL.md",
+        "teams/seo-growth/skills/content-brief/SKILL.md"
+      ],
+      "requires": {
+        "apps": [
+          "Google Search Console",
+          "Google Analytics",
+          "Google Sheets"
+        ]
+      }
+    },
+    {
+      "slug": "engineering",
+      "name": "Engineering Team",
+      "summary": "Plan, build, review, test, and ship software with clear ownership.",
+      "category": "Engineering",
+      "outcome": "Take a software change from product intent to a verified release decision.",
+      "setupMinutes": 3,
+      "featured": true,
+      "package": "packages/engineering.md",
+      "manifest": "teams/engineering/team.delioteam.json",
+      "readme": "teams/engineering/README.md",
+      "members": 4,
+      "skills": [
+        "teams/engineering/skills/architecture-decision/SKILL.md",
+        "teams/engineering/skills/implementation-plan/SKILL.md",
+        "teams/engineering/skills/release-readiness/SKILL.md"
+      ],
+      "requires": {
+        "apps": [
+          "GitHub"
+        ]
+      }
+    },
+    {
+      "slug": "100x-marketing",
+      "name": "100x Marketing Team",
+      "summary": "Find a sharp position, ship campaigns quickly, and learn from measured experiments.",
+      "category": "Marketing",
+      "outcome": "Launch one focused campaign and make an evidence-based stop-or-scale decision.",
+      "setupMinutes": 5,
+      "featured": true,
+      "package": "packages/100x-marketing.md",
+      "manifest": "teams/100x-marketing/team.delioteam.json",
+      "readme": "teams/100x-marketing/README.md",
+      "members": 4,
+      "skills": [
+        "teams/100x-marketing/skills/positioning-brief/SKILL.md",
+        "teams/100x-marketing/skills/campaign-sprint/SKILL.md",
+        "teams/100x-marketing/skills/experiment-review/SKILL.md"
+      ],
+      "requires": {
+        "apps": [
+          "Google Analytics",
+          "Google Sheets",
+          "Slack"
+        ]
+      }
+    },
+    {
+      "slug": "reddit-lead-miner",
+      "name": "Reddit Lead Miner",
+      "summary": "Find high-intent public conversations, qualify them against an ICP, and prepare context-first outreach.",
+      "category": "Sales",
+      "outcome": "Surface qualified Reddit leads with evidence and a useful next step each morning.",
+      "setupMinutes": 6,
+      "featured": true,
+      "package": "packages/reddit-lead-miner.md",
+      "manifest": "teams/reddit-lead-miner/team.delioteam.json",
+      "readme": "teams/reddit-lead-miner/README.md",
+      "members": 2,
+      "skills": [
+        "teams/reddit-lead-miner/skills/lead-qualification/SKILL.md",
+        "teams/reddit-lead-miner/skills/safe-outreach/SKILL.md"
+      ],
+      "requires": {
+        "apps": [
+          "Reddit",
+          "Google Sheets"
+        ]
+      }
+    },
+    {
+      "slug": "competitor-watch",
+      "name": "Competitor Watch",
+      "summary": "Monitor public competitor changes and turn meaningful evidence into a calm decision brief.",
+      "category": "Strategy",
+      "outcome": "Know which competitor moves deserve a response and which should be ignored.",
+      "setupMinutes": 4,
+      "featured": true,
+      "package": "packages/competitor-watch.md",
+      "manifest": "teams/competitor-watch/team.delioteam.json",
+      "readme": "teams/competitor-watch/README.md",
+      "members": 2,
+      "skills": [
+        "teams/competitor-watch/skills/change-detection/SKILL.md",
+        "teams/competitor-watch/skills/decision-brief/SKILL.md"
+      ],
+      "requires": {
+        "apps": [
+          "Google Sheets"
+        ]
+      }
+    },
+    {
+      "slug": "inbox-follow-up",
+      "name": "Inbox Follow-up",
+      "summary": "Find genuine sales conversations that went quiet and prepare grounded follow-up drafts.",
+      "category": "Sales",
+      "outcome": "Recover conversations where your team owes the next step without sending automatically.",
+      "setupMinutes": 5,
+      "featured": true,
+      "package": "packages/inbox-follow-up.md",
+      "manifest": "teams/inbox-follow-up/team.delioteam.json",
+      "readme": "teams/inbox-follow-up/README.md",
+      "members": 2,
+      "skills": [
+        "teams/inbox-follow-up/skills/follow-up-triage/SKILL.md",
+        "teams/inbox-follow-up/skills/specific-follow-up/SKILL.md"
+      ],
+      "requires": {
+        "apps": [
+          "Gmail",
+          "HubSpot"
+        ]
+      }
+    }
+  ],
+  "repositoryUrl": "https://deliobot.fun/teams-library"
+}

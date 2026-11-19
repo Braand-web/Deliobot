@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { llms, llmsFull, ROBOTS, sitemap, withSeo } from "./seo.mjs";
 
 const root = fileURLToPath(new URL("./public/", import.meta.url));
-const types = { ".html": "text/html; charset=utf-8", ".webp": "image/webp", ".svg": "image/svg+xml", ".css": "text/css", ".txt": "text/plain; charset=utf-8", ".xml": "application/xml; charset=utf-8" };
+const types = { ".html": "text/html; charset=utf-8", ".webp": "image/webp", ".svg": "image/svg+xml", ".css": "text/css", ".txt": "text/plain; charset=utf-8", ".xml": "application/xml; charset=utf-8", ".json": "application/json; charset=utf-8", ".md": "text/markdown; charset=utf-8" };
 const files = {};
 (function walk(dir) {
   for (const name of readdirSync(dir)) {
