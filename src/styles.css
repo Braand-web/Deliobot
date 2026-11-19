@@ -892,6 +892,114 @@
   --identity-chrome: #646f80;
 }
 
+/* ── Cobalt ── Crisp white and deep black, lit in electric cobalt. */
+[data-skin="cobalt"] {
+  --code-color-scheme: light;
+  --color-app: #ffffff;
+  --color-panel: #f5f5f7;
+  --color-raised: #e7ebff;
+  --color-raised-hover: #d8deff;
+  --color-composer: #ffffff;
+  --color-card: #f5f5f7;
+  --color-menu: #ffffff;
+  --color-inset: #fafafc;
+  --color-control: #e1e6ff;
+  --color-hairline: #d2d2d7;
+  --color-ink: #1d1d1f;
+  --color-ink-secondary: #5f5f66;
+  --color-ink-tertiary: #5a5a62;
+  --color-accent: #2e4fff;
+  --color-accent-border: #5a73ff;
+  --color-accent-text: #243fd6;
+  --color-focus: #243fd6;
+  --color-accent-ink: #ffffff;
+  --color-bubble-user: #2e4fff;
+  --color-bubble-user-ink: #ffffff;
+  --color-success: #1f7a45;
+  --color-danger: #c4302b;
+  --color-danger-ink: #ffffff;
+  --color-success-ink: #ffffff;
+  --color-warning: #8a5a00;
+  --color-scrollbar: #c7c7cc;
+  --color-delio-line: #5f5f66;
+  --color-menu-hover: color-mix(in srgb, var(--color-raised) 70%, transparent);
+  --color-menu-active: var(--color-raised);
+  --color-composer-ring: transparent;
+  --font-sans: "Geist Variable", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", system-ui, sans-serif;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-xs: 2px; --radius-sm: 4px; --radius-md: 6px;
+  --radius-2xl: 16px; --radius-3xl: 24px; --radius-4xl: 32px;
+  --color-edge: color-mix(in srgb, var(--color-ink) 8%, transparent);
+  --identity-green: #007f48;
+  --identity-blue: #1b6adc;
+  --identity-red: #d12c34;
+  --identity-orange: #a95914;
+  --identity-purple: #8057C8;
+  --identity-cyan: #0a7891;
+  --identity-pink: #ca2d72;
+  --identity-yellow: #896a19;
+  --identity-teal: #017c6f;
+  --identity-coral: #cd361e;
+  --identity-silver: #686f79;
+  --identity-chrome: #646f80;
+}
+
+/* ── Sky ── Soft near-white under a sky-blue glow. */
+[data-skin="sky"] {
+  --code-color-scheme: light;
+  --color-app: #f7f9fc;
+  --color-panel: #edf3fb;
+  --color-raised: #e6eef9;
+  --color-raised-hover: #dbe6f6;
+  --color-composer: #ffffff;
+  --color-card: #ffffff;
+  --color-menu: #ffffff;
+  --color-inset: #f3f7fd;
+  --color-control: #e3ebf7;
+  --color-hairline: #bfcbe1;
+  --color-ink: #111112;
+  --color-ink-secondary: #555c6b;
+  --color-ink-tertiary: #58606f;
+  --color-accent: #0a64d6;
+  --color-accent-border: #4b93ff;
+  --color-accent-text: #0a5cc4;
+  --color-focus: #0a5cc4;
+  --color-accent-ink: #ffffff;
+  --color-bubble-user: #e3f0ff;
+  --color-bubble-user-ink: #111112;
+  --color-success: #1d7a44;
+  --color-danger: #c42f36;
+  --color-danger-ink: #ffffff;
+  --color-success-ink: #ffffff;
+  --color-warning: #8a5c00;
+  --color-scrollbar: #bfcbe1;
+  --color-delio-line: #555c6b;
+  --color-menu-hover: color-mix(in srgb, var(--color-raised) 70%, transparent);
+  --color-menu-active: var(--color-raised);
+  --color-composer-ring: transparent;
+  --font-sans: "Geist Variable", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", system-ui, sans-serif;
+  --radius-lg: 12px;
+  --radius-xl: 18px;
+  --radius-xs: 2px; --radius-sm: 4px; --radius-md: 6px;
+  --radius-2xl: 16px; --radius-3xl: 24px; --radius-4xl: 32px;
+  --color-edge: color-mix(in srgb, var(--color-ink) 8%, transparent);
+  --identity-green: #007f48;
+  --identity-blue: #1b6adc;
+  --identity-red: #d12c34;
+  --identity-orange: #a95914;
+  --identity-purple: #8057C8;
+  --identity-cyan: #0a7891;
+  --identity-pink: #ca2d72;
+  --identity-yellow: #896a19;
+  --identity-teal: #017c6f;
+  --identity-coral: #cd361e;
+  --identity-silver: #686f79;
+  --identity-chrome: #646f80;
+}
+
 /* ── Daylight ─────────────────────────────────────────────────────────────
    Midnight's twin in light: near-white chrome, a neutral sidebar, white
    floating surfaces and translucent ink for text and hairlines, so every
@@ -3579,6 +3687,56 @@ html[data-cloud-intent-morph] [data-tour="composer"] { view-transition-name: clo
 [data-skin="sakura"][data-skin-preview] .bg-accent { background-image: linear-gradient(135deg, #b0336f, #7d3aa8); }
 [data-skin="sakura"][data-skin-preview] .bg-bubble-user { background-image: linear-gradient(135deg, #f8dceb, #eadcf8); }
 
+/* ── Cobalt and Sky: their own surfaces. ── */
+@scope ([data-skin="cobalt"]:not([data-skin-preview])) to ([data-skin]) {
+  main.bg-app {
+    background-image: radial-gradient(60% 40% at 100% 100%, rgb(46 79 255 / 0.08), transparent 70%), radial-gradient(40% 30% at 0% 0%, rgb(166 180 250 / 0.12), transparent 70%);
+  }
+  .bg-composer { outline: 1.5px solid rgb(46 79 255 / 0.55); outline-offset: -1.5px; }
+  :is(h1, h2, h3) { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-weight: 500; letter-spacing: -0.015em; }
+  .bg-card { border: 1px solid transparent; box-shadow: 0 0 0 1px rgb(29 29 31 / 0.04), 0 18px 40px -28px rgb(29 29 31 / 0.35); }
+  .bg-bubble-user { box-shadow: 0 12px 28px -16px rgb(46 79 255 / 0.65); }
+  .bg-composer { box-shadow: 0 12px 32px -20px rgb(46 79 255 / 0.5); }
+}
+@scope ([data-skin="sky"]:not([data-skin-preview])) to ([data-skin]) {
+  main.bg-app {
+    isolation: isolate;
+    background-image:
+      radial-gradient(75% 45% at 50% -10%, rgb(124 201 255 / 0.45), transparent 70%),
+      radial-gradient(45% 35% at 100% 0%, rgb(0 136 255 / 0.16), transparent 70%),
+      linear-gradient(180deg, #f5fbff, #fcfcfc 55%);
+  }
+  .bg-accent { background-image: linear-gradient(135deg, #2b8cf5, #0a5cc4); }
+  .bg-composer { border-radius: 26px; box-shadow: 0 1px 0 rgb(255 255 255 / 0.9) inset, 0 14px 36px -22px rgb(10 92 196 / 0.45); }
+  .bg-card { box-shadow: 0 10px 30px -24px rgb(10 92 196 / 0.45); }
+  .bg-bubble-user { background-image: linear-gradient(135deg, #e8f4ff, #dfeaff); }
+}
+@media (prefers-reduced-transparency: no-preference) and (forced-colors: none) {
+  @scope ([data-skin="sky"]:not([data-skin-preview])) to ([data-skin]) {
+    main.bg-app :is(.bg-card, .bg-composer) {
+      -webkit-backdrop-filter: blur(16px) saturate(140%);
+      backdrop-filter: blur(16px) saturate(140%);
+    }
+  }
+  @layer utilities {
+    @scope ([data-skin="sky"]:not([data-skin-preview])) to ([data-skin]) {
+      :where(main.bg-app) :is(.bg-card, .bg-composer) { background-color: color-mix(in srgb, var(--color-card) 78%, transparent); }
+    }
+  }
+}
+@scope (:is([data-skin="cobalt"], [data-skin="sky"]):not([data-skin-preview])) to ([data-skin]) {
+  :is(button, a, .bg-card, .bg-composer) {
+    transition: background-color 180ms ease, border-color 180ms ease, box-shadow 220ms ease, transform 180ms ease, color 180ms ease;
+  }
+}
+[data-skin="cobalt"][data-skin-preview] .bg-inset { box-shadow: 0 0 0 1px rgb(46 79 255 / 0.7); }
+[data-skin="cobalt"][data-skin-preview] .bg-card { box-shadow: 0 4px 10px -6px rgb(29 29 31 / 0.35); }
+[data-skin="cobalt"][data-skin-preview] .bg-bubble-user { box-shadow: 0 3px 8px -3px rgb(46 79 255 / 0.7); }
+[data-skin="sky"][data-skin-preview] {
+  background-image: radial-gradient(90% 60% at 50% -10%, rgb(124 201 255 / 0.6), transparent 70%), linear-gradient(180deg, #eef7ff, #fcfcfc);
+}
+[data-skin="sky"][data-skin-preview] .bg-accent { background-image: linear-gradient(135deg, #2b8cf5, #0a5cc4); }
+
 /* Disabled buttons.
    Upstream fades them with `disabled:opacity-40`. On a dark ground that holds:
    the button stays darker than the page and the white label survives. On a
@@ -3733,7 +3891,7 @@ button:disabled.bg-danger {
   --radius-menu: 12px;
   --menu-shadow: 0 14px 32px -10px rgb(0 0 0 / 0.7), 0 2px 8px rgb(0 0 0 / 0.35);
 }
-:is([data-skin="atelier"], [data-skin="lagoon"], [data-skin="linen"], [data-skin="meadow"], [data-skin="pop"], [data-skin="sahara"], [data-skin="sakura"]) {
+:is([data-skin="atelier"], [data-skin="lagoon"], [data-skin="linen"], [data-skin="meadow"], [data-skin="pop"], [data-skin="sahara"], [data-skin="sakura"], [data-skin="cobalt"], [data-skin="sky"]) {
   --menu-shadow: 0 8px 24px -6px rgb(0 0 0 / 0.12), 0 1px 2px rgb(0 0 0 / 0.04);
 }
 :is([data-skin="daylight"]) {

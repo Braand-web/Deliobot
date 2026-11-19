@@ -28,6 +28,8 @@ export const SKINS: readonly Skin[] = [
   { id: "sahara", name: "Sahara", tagline: "Warm sand by day, lit in terracotta." },
   { id: "abyss", name: "Abyss", tagline: "Deep-sea navy, lit in cyan." },
   { id: "sakura", name: "Sakura", tagline: "Blush paper with a deep rose accent." },
+  { id: "cobalt", name: "Cobalt", tagline: "Crisp white and deep black, lit in electric cobalt. Serif titles." },
+  { id: "sky", name: "Sky", tagline: "Soft near-white under a sky-blue glow. Rounded and airy." },
   { id: "aurora", name: "Aurora", tagline: "Near-black, crossed by a band of green light. Glass on top." },
 ];
 

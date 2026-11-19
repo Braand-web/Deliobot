@@ -44,6 +44,8 @@ export const SKIN_IDS = [
   "sahara",
   "abyss",
   "sakura",
+  "cobalt",
+  "sky",
   "aurora",
 ] as const;
 export const FONT_IDS = ["skin", "system", "inter", "poppins", "serif"] as const;

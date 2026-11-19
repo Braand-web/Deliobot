@@ -19,6 +19,8 @@ const SKIN_CHROME = Object.freeze({
   sahara: Object.freeze({ color: "#f6efe4", symbolColor: "#6a5b48" }),
   abyss: Object.freeze({ color: "#050b18", symbolColor: "#9fbbd6" }),
   sakura: Object.freeze({ color: "#fbf4fa", symbolColor: "#6e5560" }),
+  cobalt: Object.freeze({ color: "#ffffff", symbolColor: "#5f5f66" }),
+  sky: Object.freeze({ color: "#f7f9fc", symbolColor: "#555c6b" }),
 });
 
 const DEFAULT_SKIN = "midnight";

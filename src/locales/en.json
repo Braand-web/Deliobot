@@ -8880,6 +8880,8 @@
   "skins.tagline.sahara": "Warm sand by day, lit in terracotta.",
   "skins.tagline.abyss": "Deep-sea navy, lit in cyan.",
   "skins.tagline.sakura": "Blush paper with a deep rose accent.",
+  "skins.tagline.cobalt": "Crisp white and deep black, lit in electric cobalt. Serif titles.",
+  "skins.tagline.sky": "Soft near-white under a sky-blue glow. Rounded and airy.",
   "automations.calendar.cronMove": "Open this automation to change its repeating schedule.",
   "automations.calendar.moveSeries": "Move every time it repeats?",
   "automations.address.copyAddressFailed": "Couldn't copy the address",

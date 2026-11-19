@@ -8880,6 +8880,8 @@
   "skins.tagline.sahara": "Areia quente de dia, iluminada em terracota.",
   "skins.tagline.abyss": "Azul-marinho das profundezas, iluminado em ciano.",
   "skins.tagline.sakura": "Papel rosa-claro com um toque de rosa intenso.",
+  "skins.tagline.cobalt": "Branco nítido e preto profundo, com azul cobalto elétrico. Títulos com serifa.",
+  "skins.tagline.sky": "Quase branco suave sob um brilho azul-céu. Arredondado e leve.",
   "automations.calendar.cronMove": "Abra esta automação para mudar quando ela se repete.",
   "automations.calendar.moveSeries": "Mover todas as repetições?",
   "automations.address.copyAddressFailed": "Não foi possível copiar o endereço",
