@@ -787,33 +787,33 @@
 /* ── Abyss ── Deep-sea navy, lit in cyan. */
 [data-skin="abyss"] {
   --code-color-scheme: dark;
-  --color-app: #070d16;
-  --color-panel: #0b1320;
-  --color-raised: #172235;
-  --color-raised-hover: #1f2c42;
-  --color-composer: #172235;
-  --color-card: #111a29;
-  --color-menu: #111a29;
-  --color-inset: #050a12;
-  --color-control: #172235;
-  --color-hairline: #263449;
-  --color-ink: #eaf2fb;
-  --color-ink-secondary: #a6b4c6;
-  --color-ink-tertiary: #95a3b6;
-  --color-accent: #0e7490;
-  --color-accent-border: #22a3c2;
-  --color-accent-text: #5fd0ea;
-  --color-focus: #5fd0ea;
-  --color-accent-ink: #ffffff;
-  --color-bubble-user: #15283a;
-  --color-bubble-user-ink: #eaf2fb;
+  --color-app: #050b18;
+  --color-panel: #071226;
+  --color-raised: #0f2340;
+  --color-raised-hover: #16305a;
+  --color-composer: #0f2340;
+  --color-card: #0b1a33;
+  --color-menu: #0b1a33;
+  --color-inset: #030812;
+  --color-control: #0f2340;
+  --color-hairline: #1b3558;
+  --color-ink: #e6f6ff;
+  --color-ink-secondary: #9fbbd6;
+  --color-ink-tertiary: #8eabc7;
+  --color-accent: #22d3ee;
+  --color-accent-border: #67e8f9;
+  --color-accent-text: #67e8f9;
+  --color-focus: #67e8f9;
+  --color-accent-ink: #03202a;
+  --color-bubble-user: #0d3350;
+  --color-bubble-user-ink: #e6f6ff;
   --color-success: #5fb38a;
   --color-danger: #e0727a;
   --color-danger-ink: #1d0b0e;
   --color-success-ink: #0b1712;
   --color-warning: #d6a85a;
-  --color-scrollbar: #2c3b52;
-  --color-delio-line: #a6b4c6;
+  --color-scrollbar: #1e3a60;
+  --color-delio-line: #9fbbd6;
   --color-menu-hover: color-mix(in srgb, var(--color-raised) 70%, transparent);
   --color-menu-active: var(--color-raised);
   --color-composer-ring: transparent;
@@ -841,25 +841,25 @@
 /* ── Sakura ── Blush paper with a deep rose accent. */
 [data-skin="sakura"] {
   --code-color-scheme: light;
-  --color-app: #fbf3f5;
-  --color-panel: #fff8fa;
+  --color-app: #fbf4fa;
+  --color-panel: #f8eef8;
   --color-raised: #ffffff;
-  --color-raised-hover: #f7e3e9;
+  --color-raised-hover: #f3e2f0;
   --color-composer: #ffffff;
   --color-card: #ffffff;
   --color-menu: #ffffff;
-  --color-inset: #fbf3f5;
-  --color-control: #f1dbe2;
-  --color-hairline: #d9b8c3;
+  --color-inset: #f8eef8;
+  --color-control: #efdcec;
+  --color-hairline: #dcc0d8;
   --color-ink: #22171b;
   --color-ink-secondary: #6e5560;
   --color-ink-tertiary: #705863;
-  --color-accent: #a8325f;
-  --color-accent-border: #c94f80;
-  --color-accent-text: #9a2b57;
-  --color-focus: #9a2b57;
+  --color-accent: #a3326b;
+  --color-accent-border: #c25a96;
+  --color-accent-text: #952c62;
+  --color-focus: #952c62;
   --color-accent-ink: #ffffff;
-  --color-bubble-user: #f7e0e8;
+  --color-bubble-user: #f6dbe9;
   --color-bubble-user-ink: #22171b;
   --color-success: #3b6b4c;
   --color-danger: #a8323b;
@@ -3441,6 +3441,143 @@ html[data-cloud-intent-morph] [data-tour="composer"] { view-transition-name: clo
     }
   }
 }
+
+/* ── Abyss, Sahara, Sakura: each carries its own surface treatment, not only a palette. ── */
+@scope ([data-skin="abyss"]:not([data-skin-preview])) to ([data-skin]) {
+  main.bg-app {
+    isolation: isolate;
+    background-image:
+      radial-gradient(70% 55% at 12% 105%, rgb(34 211 238 / 0.16), transparent 70%),
+      radial-gradient(55% 45% at 95% -5%, rgb(56 120 255 / 0.14), transparent 70%),
+      linear-gradient(180deg, #050b18, #04101f 60%, #031426);
+  }
+  main.bg-app::before {
+    content: "";
+    position: absolute;
+    inset: -20%;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(35% 25% at 30% 70%, rgb(34 211 238 / 0.10), transparent 70%),
+      radial-gradient(30% 22% at 70% 35%, rgb(103 232 249 / 0.07), transparent 70%);
+    animation: abyss-drift 28s ease-in-out infinite alternate;
+  }
+  .bg-accent { box-shadow: 0 0 0 1px rgb(103 232 249 / 0.35), 0 6px 22px -8px rgb(34 211 238 / 0.75); }
+}
+@keyframes abyss-drift {
+  from { transform: translate3d(-4%, 2%, 0) scale(1); }
+  to { transform: translate3d(4%, -3%, 0) scale(1.08); }
+}
+
+@scope ([data-skin="sahara"]:not([data-skin-preview])) to ([data-skin]) {
+  main.bg-app {
+    isolation: isolate;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .3 0 0 0 0 .15 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 220' preserveAspectRatio='none'%3E%3Cpath d='M0 150C200 90 360 120 520 150S860 210 1200 120V220H0Z' fill='%23d9a06a' fill-opacity='.16'/%3E%3Cpath d='M0 185C260 140 480 175 700 190S1020 170 1200 160V220H0Z' fill='%23c0663a' fill-opacity='.12'/%3E%3C/svg%3E"),
+      radial-gradient(40% 35% at 88% 6%, rgb(232 132 72 / 0.22), transparent 70%),
+      linear-gradient(180deg, #fbf3e7, #f4e4cd);
+    background-repeat: repeat, no-repeat, no-repeat, no-repeat;
+    background-position: 0 0, bottom, 0 0, 0 0;
+    background-size: 160px 160px, 100% 180px, 100% 100%, 100% 100%;
+  }
+  .bg-card, .bg-composer { box-shadow: 0 1px 0 rgb(255 255 255 / 0.7) inset, 0 14px 34px -22px rgb(120 60 20 / 0.45); border-color: transparent; }
+  .bg-bubble-user { box-shadow: 0 10px 26px -18px rgb(168 70 28 / 0.6); }
+  .bg-accent { background-image: linear-gradient(135deg, #b8501f, #8f3412); }
+  :is(h1, h2, h3) { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; letter-spacing: -0.01em; }
+}
+
+@scope ([data-skin="sakura"]:not([data-skin-preview])) to ([data-skin]) {
+  main.bg-app {
+    isolation: isolate;
+    background-image:
+      radial-gradient(60% 50% at 0% 0%, rgb(255 198 222 / 0.55), transparent 70%),
+      radial-gradient(55% 45% at 100% 20%, rgb(214 196 255 / 0.45), transparent 70%),
+      radial-gradient(60% 50% at 60% 110%, rgb(255 222 200 / 0.5), transparent 70%),
+      linear-gradient(160deg, #fdf6fb, #f9eef8);
+  }
+  main.bg-app::before,
+  main.bg-app::after {
+    content: "";
+    position: absolute;
+    top: -40px;
+    left: 18%;
+    width: 22px;
+    height: 22px;
+    z-index: -1;
+    pointer-events: none;
+    background: no-repeat center / contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2c3 3 5 7 4 11s-4 8-4 9c0-1-3-5-4-9s1-8 4-11z' fill='%23f2a3c4' fill-opacity='.75'/%3E%3C/svg%3E");
+    animation: sakura-fall 16s linear infinite;
+  }
+  main.bg-app::after {
+    left: 72%;
+    width: 16px;
+    height: 16px;
+    animation-duration: 21s;
+    animation-delay: -9s;
+  }
+  .bg-accent { background-image: linear-gradient(135deg, #b0336f, #7d3aa8); }
+  .bg-bubble-user { background-image: linear-gradient(135deg, #f8dceb, #eadcf8); }
+  .bg-composer { border-radius: 22px; }
+}
+@keyframes sakura-fall {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 0; }
+  8% { opacity: 1; }
+  50% { transform: translate3d(60px, 48vh, 0) rotate(160deg); }
+  92% { opacity: 1; }
+  100% { transform: translate3d(-30px, 100vh, 0) rotate(320deg); opacity: 0; }
+}
+
+@media (prefers-reduced-transparency: no-preference) and (forced-colors: none) {
+  @scope ([data-skin="abyss"]:not([data-skin-preview])) to ([data-skin]) {
+    main.bg-app :is(.bg-card, .bg-composer, .bg-bubble-user) {
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      backdrop-filter: blur(24px) saturate(160%);
+    }
+  }
+  @scope ([data-skin="sakura"]:not([data-skin-preview])) to ([data-skin]) {
+    main.bg-app :is(.bg-card, .bg-composer) {
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+      backdrop-filter: blur(18px) saturate(140%);
+    }
+  }
+  @layer utilities {
+    @scope ([data-skin="abyss"]:not([data-skin-preview])) to ([data-skin]) {
+      :where(main.bg-app) :is(.bg-card, .bg-composer) { background-color: color-mix(in srgb, var(--color-card) 58%, transparent); }
+      :where(main.bg-app) .bg-bubble-user { background-color: color-mix(in srgb, var(--color-bubble-user) 72%, transparent); }
+    }
+    @scope ([data-skin="sakura"]:not([data-skin-preview])) to ([data-skin]) {
+      :where(main.bg-app) :is(.bg-card, .bg-composer) { background-color: color-mix(in srgb, var(--color-card) 72%, transparent); }
+    }
+  }
+}
+
+@scope (:is([data-skin="abyss"], [data-skin="sahara"], [data-skin="sakura"]):not([data-skin-preview])) to ([data-skin]) {
+  :is(button, a, .bg-card, .bg-composer) {
+    transition: background-color 180ms ease, border-color 180ms ease, box-shadow 220ms ease, transform 180ms ease, color 180ms ease;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-skin="abyss"] main.bg-app::before,
+  [data-skin="sakura"] main.bg-app::before,
+  [data-skin="sakura"] main.bg-app::after { animation: none; display: none; }
+}
+
+/* The picker's miniatures carry each skin's signature too. */
+[data-skin="abyss"][data-skin-preview] {
+  background-image: radial-gradient(80% 70% at 10% 110%, rgb(34 211 238 / 0.28), transparent 70%), linear-gradient(180deg, #050b18, #031426);
+}
+[data-skin="abyss"][data-skin-preview] .bg-accent { box-shadow: 0 0 6px rgb(34 211 238 / 0.9); }
+[data-skin="sahara"][data-skin-preview] {
+  background-image: radial-gradient(45% 45% at 90% 8%, rgb(232 132 72 / 0.35), transparent 70%), linear-gradient(180deg, #fbf3e7, #efd8b8);
+}
+[data-skin="sahara"][data-skin-preview] .bg-card { box-shadow: 0 4px 10px -6px rgb(120 60 20 / 0.5); }
+[data-skin="sakura"][data-skin-preview] {
+  background-image: radial-gradient(70% 60% at 0% 0%, rgb(255 190 218 / 0.7), transparent 70%), radial-gradient(60% 60% at 100% 30%, rgb(210 190 255 / 0.6), transparent 70%), linear-gradient(160deg, #fdf6fb, #f6e8f6);
+}
+[data-skin="sakura"][data-skin-preview] .bg-accent { background-image: linear-gradient(135deg, #b0336f, #7d3aa8); }
+[data-skin="sakura"][data-skin-preview] .bg-bubble-user { background-image: linear-gradient(135deg, #f8dceb, #eadcf8); }
 
 /* Disabled buttons.
    Upstream fades them with `disabled:opacity-40`. On a dark ground that holds:
