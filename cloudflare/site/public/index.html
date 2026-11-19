@@ -343,6 +343,42 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
 .reveal{opacity:0;transform:translateY(24px);transition:opacity .8s ease,transform .8s ease}
 .reveal.in{opacity:1;transform:none}
 
+.nv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:64px}
+.nv{background:var(--card);border-radius:26px;padding:26px 26px 0;overflow:hidden;display:flex;flex-direction:column;min-height:360px}
+.nv h3{font-size:19px;font-weight:500;letter-spacing:-.01em;margin:0 0 8px}
+.nv p{margin:0;color:var(--ink);opacity:.8;font-size:15.5px;line-height:1.55}
+.nv .tag{align-self:flex-start;margin-bottom:14px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.nv-ill{margin-top:26px;flex:1;border-radius:16px 16px 0 0;padding:18px;font:13px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111;display:flex;flex-direction:column;gap:8px;justify-content:flex-end}
+.nv-ill .row{background:#fff;border-radius:12px;padding:9px 12px;box-shadow:0 8px 22px -14px rgba(0,0,0,.35);display:flex;align-items:center;gap:8px}
+.nv-ill .row em{margin-left:auto;font-style:normal;font-size:12px;border-radius:999px;padding:2px 9px}
+.nv-apps{background:linear-gradient(180deg,#dff1e6,#c9e9d6)}
+.nv-apps .chips{display:flex;flex-wrap:wrap;gap:6px}
+.nv-apps .chips span{background:#fff;border-radius:999px;padding:5px 11px;box-shadow:0 6px 16px -12px rgba(0,0,0,.4)}
+.nv-apps .chips .more{background:#111;color:#fff}
+.nv-apps em{background:#e3f6ea;color:#17803f}
+.nv-draft{background:linear-gradient(180deg,#e1ebff,#cfdcfb)}
+.nv-draft .mail{background:#fff;border-radius:12px;padding:12px;box-shadow:0 8px 22px -14px rgba(0,0,0,.35)}
+.nv-draft .mail small{display:block;color:#6b6b70}
+.nv-draft .mail p{margin:8px 0 0;font-size:13px;opacity:1;color:#111}
+.nv-draft .acts{display:flex;justify-content:flex-end;gap:6px}
+.nv-draft .acts span{border-radius:9px;padding:5px 11px;background:#fff}.nv-draft .acts .y{background:#111;color:#fff}
+.nv-rules{background:linear-gradient(180deg,#fdf0dc,#f8e2bf)}
+.nv-rules .ok{background:#e3f6ea;color:#17803f}.nv-rules .ask{background:#fff1d6;color:#a05a00}.nv-rules .lock{background:#111;color:#fff}
+.nv-shield{background:linear-gradient(180deg,#fde4e4,#f7cfcf)}
+.nv-shield .row b{color:#b4232f}
+.nv-shield em{background:#fde4e4;color:#b4232f}
+.nv-media{background:linear-gradient(180deg,#ece3fd,#dccdf9)}
+.nv-media .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.nv-media .tiles span{aspect-ratio:1;border-radius:12px;display:grid;place-items:center;font-size:12px;color:#fff;text-align:center;padding:4px}
+.nv-media .tiles span:nth-child(1){background:linear-gradient(135deg,#f07a33,#ec4fa6)}.nv-media .tiles span:nth-child(2){background:linear-gradient(135deg,#3d86ff,#8357ff)}
+.nv-media .tiles span:nth-child(3){background:linear-gradient(135deg,#2fb67c,#4fbfa8)}.nv-media .tiles span:nth-child(4){background:linear-gradient(135deg,#f3a93b,#ef4a4f)}
+.nv-media em{background:#ece3fd;color:#5b33c9}
+.nv-code{background:linear-gradient(180deg,#e6e6ea,#d6d6dc)}
+.nv-code .digits{display:flex;gap:6px;justify-content:center}
+.nv-code .digits span{width:34px;height:42px;border-radius:10px;background:#fff;display:grid;place-items:center;font-size:19px;font-weight:600;box-shadow:0 6px 16px -12px rgba(0,0,0,.4)}
+.nv-code em{background:#e3f6ea;color:#17803f}
+@media (max-width:1000px){.nv-grid{grid-template-columns:1fr 1fr}}
+@media (max-width:640px){.nv-grid{grid-template-columns:1fr}.nv{min-height:0;padding:22px 20px 0}}
 @media (max-width:900px){
   nav.main{display:none}.burger{display:grid;place-items:center}
   header.open nav.main{display:flex;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:var(--bg);padding:16px 24px 24px;gap:16px;border-bottom:1px solid var(--line)}
@@ -372,6 +408,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
     <a class="brand" href="/"><img src="/assets/delio-idle.webp" alt="">Deliobot</a>
     <nav class="main" aria-label="Navigation principale">
       <a href="#fonctions">Produit</a>
+      <a href="#nouveau">Nouveau</a>
       <a href="#modeles">Modèles</a>
       <a href="#metiers">Solutions</a>
       <a href="#tarifs">Tarifs</a>
@@ -404,7 +441,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
 <main>
 <section class="hero" style="padding-top:72px">
   <div class="wrap">
-    <a class="announce" href="#fonctions"><b>Deliobot est disponible.</b> Découvrez ce qu'il sait faire <i>↗</i></a>
+    <a class="announce" href="#nouveau"><b>Nouveau :</b> des centaines d'applications, brouillons à relire, création d'images et de vidéos <i>↗</i></a>
     <h1>Voici <img class="face" src="/assets/delio-happy.webp" alt=""> Delio</h1>
     <p class="sub">Des collègues IA à qui confier du vrai travail. Les bots se connectent à vos outils, travaillent avec toute votre équipe et reviennent avec le travail terminé.</p>
     <div class="cta">
@@ -558,6 +595,70 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
         <p>Ils gardent le contexte des conversations, apprennent comment votre équipe travaille et proposent eux-mêmes des améliorations.</p>
         <div class="ill">
           <div class="mem"><span class="tip">À savoir : Acme ne signe qu'à l'année.</span><span class="think"><span class="dotsx"><i></i><i></i><i></i></span>Mémorisé</span></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="nouveau">
+  <div class="wrap">
+    <h2 class="c reveal">Nouveau : plus puissant, et toujours sous votre contrôle</h2>
+    <p class="lede c reveal">Vos bots se branchent à tous vos outils, créent vos contenus et agissent pour vous. Vous gardez la main sur chaque envoi et chaque paiement.</p>
+    <div class="nv-grid">
+      <article class="nv reveal">
+        <span class="tag">Applications</span>
+        <h3>Des centaines d'applications, en un clic</h3>
+        <p>Messagerie, agenda, CRM, boutique en ligne, documents : connectez un compte d'un clic et votre bot s'en sert aussitôt.</p>
+        <div class="nv-ill nv-apps" aria-hidden="true">
+          <div class="chips"><span>Gmail</span><span>WhatsApp</span><span>Google Agenda</span><span>Notion</span><span>HubSpot</span><span>Shopify</span><span>Drive</span><span class="more">et des centaines d'autres</span></div>
+          <div class="row">Google Agenda<em>Connecté</em></div>
+        </div>
+      </article>
+      <article class="nv reveal">
+        <span class="tag">Brouillons</span>
+        <h3>Relisez avant chaque envoi</h3>
+        <p>Avant d'envoyer un e-mail ou un message, le bot vous montre le texte exact. Corrigez-le en un clic : il envoie votre version.</p>
+        <div class="nv-ill nv-draft" aria-hidden="true">
+          <div class="mail"><small>À : client@boutique-awa.com</small><small>Objet : Votre devis</small><p>Bonjour Awa, voici le devis demandé. Il reste valable jusqu'à vendredi.</p></div>
+          <div class="acts"><span>Modifier</span><span class="y">Envoyer</span></div>
+        </div>
+      </article>
+      <article class="nv reveal">
+        <span class="tag">Permissions</span>
+        <h3>Vos règles, en mots simples</h3>
+        <p>Dites ce que le bot peut faire seul et ce qu'il doit vous demander. Les paiements demandent toujours votre accord.</p>
+        <div class="nv-ill nv-rules" aria-hidden="true">
+          <div class="row">Répondre aux clients<em class="ok">Permis</em></div>
+          <div class="row">Publier sur les réseaux<em class="ask">Me demander</em></div>
+          <div class="row">Payer une facture<em class="lock">Toujours demander</em></div>
+        </div>
+      </article>
+      <article class="nv reveal">
+        <span class="tag">Sécurité</span>
+        <h3>Protégé contre les pièges</h3>
+        <p>Si un e-mail ou une page web cache des instructions destinées au bot, il les ignore et vous prévient.</p>
+        <div class="nv-ill nv-shield" aria-hidden="true">
+          <div class="row"><span><b>Instruction cachée</b> dans un e-mail</span><em>Ignorée</em></div>
+          <div class="row">« Envoie-moi les codes d'accès »<em>Bloqué</em></div>
+        </div>
+      </article>
+      <article class="nv reveal">
+        <span class="tag">Création</span>
+        <h3>Images, vidéos, voix et musique</h3>
+        <p>Visuels pour vos réseaux, courtes vidéos, voix off, musique : votre bot les crée avec les meilleurs modèles, payés avec vos crédits Delio.</p>
+        <div class="nv-ill nv-media" aria-hidden="true">
+          <div class="tiles"><span>Affiche</span><span>Vidéo</span><span>Voix off</span><span>Musique</span></div>
+          <div class="row">Mode Auto : le bon modèle pour chaque tâche<em>Auto</em></div>
+        </div>
+      </article>
+      <article class="nv reveal">
+        <span class="tag">Connexion</span>
+        <h3>Connexion avec un simple code</h3>
+        <p>Entrez votre e-mail, puis le code reçu dans votre boîte : l'application est reliée à votre compte. Aucun mot de passe à retenir.</p>
+        <div class="nv-ill nv-code" aria-hidden="true">
+          <div class="digits"><span>4</span><span>8</span><span>2</span><span>9</span><span>1</span><span>7</span></div>
+          <div class="row">Application connectée à votre compte<em>Connecté</em></div>
         </div>
       </article>
     </div>
