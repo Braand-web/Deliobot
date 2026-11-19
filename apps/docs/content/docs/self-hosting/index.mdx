@@ -32,7 +32,7 @@ Add `--check` to only check the server; it changes nothing. Run the command agai
 | A domain name, ports 80 and 443 open | `npx opendeliobot serve --domain delio.example.com` |
 | Tailscale | `npx opendeliobot serve --tailscale` |
 | Only this network | `npx opendeliobot serve --lan` |
-| Nothing at all | `npx opendeliobot login`, then `npx opendeliobot serve --tunnel` |
+| Nothing at all | `npx opendeliobot account login`, then `npx opendeliobot serve --tunnel` |
 
 A code works once, for 10 minutes. `npx opendeliobot pair` makes another, and `npx opendeliobot devices` lists the paired devices. See [Deploy on a VPS](/docs/self-hosting/deploy-vps) for a server from scratch, and [Networking](/docs/self-hosting/networking).
 

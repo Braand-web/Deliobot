@@ -4,9 +4,10 @@ import { EngineSetup } from "@/components/EngineSetup";
 import { engineReady } from "@/components/EngineLibrary";
 import { InstanceProviderMark } from "@/components/ProviderIcons";
 import { cn } from "@/lib/cn";
+import { useConnectAiPlace, useConnectAiSteps, useDialogOpened } from "@/lib/connect-ai-events";
 import { t } from "@/lib/i18n";
 import { engineDisplayName } from "@/lib/engine-name";
-import { aiChoices, aiWorks, organisationSignIn, plainSignIn } from "@/lib/onboarding";
+import { aiChoices, aiWorks, firstAis, organisationSignIn, signInFollows } from "@/lib/onboarding";
 import { api, useStore, type InstanceInfo } from "@/state/store";
 import { freeFallback } from "../../../shared/ai-ranking";
 import { OrganisationRow } from "./beats/OrganisationRow";
@@ -19,7 +20,7 @@ const OPENROUTER_INSTANCE = "openrouter";
  * instead of the setup's technical one. */
 function setupFor(instance: InstanceInfo) {
   if (instance.access === "custom") return { intent: "inject" as const };
-  return plainSignIn(instance)
+  return signInFollows(instance)
     ? { intent: "cloud" as const, description: t("onboarding.engines.signInHint", { name: engineDisplayName(instance) }) }
     : { intent: "cloud" as const };
 }
@@ -44,16 +45,18 @@ function OtherWay({ instance, open, onToggle }: { instance: InstanceInfo; open: 
   );
 }
 
-/** Every way to connect an AI, until one has answered a test message (`tested`, from useWelcomeAi): the recommended
- * one's own setup first, then the organization and every other AI. One that didn't answer says why, with Check again;
- * OpenCode's free model is only ever a backup. */
-export function ConnectAi({ hosted = false, tested }: { hosted?: boolean; tested: WelcomeAiNow | null }) {
+/** Every way to connect an AI, until one has answered a test message (`tested`, from useWelcomeAi): Claude's, ChatGPT's
+ * and OpenCode's own setups first (else the recommended one's), then the organization and every other AI. One that
+ * didn't answer says why, with Check again; OpenCode's free model is only a backup until the person picks it
+ * (`onChoose`). */
+export function ConnectAi({ hosted = false, tested, onChoose }: { hosted?: boolean; tested: WelcomeAiNow | null; onChoose?: (instanceId: string) => void }) {
   const { state, dispatch } = useStore();
   const organisation = organisationSignIn(window.odb, { hosted });
   const [failed, setFailed] = useState(false);
   const [checking, setChecking] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
   const latestRequest = useRef(0);
+  const step = useConnectAiSteps(useConnectAiPlace());
 
   const refresh = useCallback(async (fresh = true) => {
     const request = ++latestRequest.current;
@@ -79,7 +82,11 @@ export function ConnectAi({ hosted = false, tested }: { hosted?: boolean; tested
 
   const connected = tested && aiWorks(tested) ? tested.instance : undefined;
   const backup = state.instances.find((instance) => engineReady(instance) && freeFallback(instance));
-  const { recommended, others } = aiChoices(state.instances.filter((instance) => instance.install && !engineReady(instance)));
+  const offered = state.instances.filter((instance) => instance.install && !engineReady(instance));
+  const first = firstAis(state.instances, engineReady).map(({ instance }) => instance).filter((instance) => offered.includes(instance));
+  const { recommended } = aiChoices(offered);
+  const leading = first.length ? first : recommended ? [recommended] : [];
+  const others = offered.filter((instance) => !leading.includes(instance));
   // Hosted: the organization provides the AI and refuses a key of the person's own.
   const openrouter = hosted ? undefined : others.find((instance) => instance.instanceId === OPENROUTER_INSTANCE);
   const otherRows = others.filter((instance) => instance !== openrouter);
@@ -119,9 +126,14 @@ export function ConnectAi({ hosted = false, tested }: { hosted?: boolean; tested
               {t("onboarding.engines.freeBackup", { name: engineDisplayName(backup) })}
             </p>
           )}
-          {recommended ? (
-            <div data-ai-recommended={recommended.instanceId} className="animate-rise w-full rounded-2xl bg-card p-4 text-left">
-              <EngineSetup instance={recommended} {...setupFor(recommended)} className="border-0 bg-transparent p-0" />
+          {leading.length ? (
+            <div className="flex w-full flex-col gap-3">
+              {leading.map((instance) => (
+                <div key={instance.instanceId} data-ai-recommended={instance.instanceId} className="animate-rise w-full rounded-2xl bg-card p-4 text-left"
+                  onClickCapture={() => { step("chosen", { driverKind: instance.driverKind }); onChoose?.(instance.instanceId); }}>
+                  <EngineSetup instance={instance} {...setupFor(instance)} className="border-0 bg-transparent p-0" />
+                </div>
+              ))}
             </div>
           ) : !tested && !backup && !failed ? (
             <p className="text-[13px] text-ink-secondary" aria-live="polite">{t("common.checking")}</p>
@@ -139,12 +151,18 @@ export function ConnectAi({ hosted = false, tested }: { hosted?: boolean; tested
               onConnected={() => void refresh()}
             />
           )}
-          {openrouter && <OpenRouterOption open={open === openrouter.instanceId} onToggle={() => setOpen(open === openrouter.instanceId ? null : openrouter.instanceId)}>
+          {openrouter && <OpenRouterOption open={open === openrouter.instanceId} onToggle={() => {
+            if (open !== "modelgo") step("chosen", { driverKind: "modelgo" });
+            setOpen(open === openrouter.instanceId ? null : openrouter.instanceId);
+          }}>
             <EngineSetup instance={openrouter} {...setupFor(openrouter)} className="mx-4 mb-3.5 border-0 bg-inset" />
           </OpenRouterOption>}
           {otherRows.map((instance) => (
             <OtherWay key={instance.instanceId} instance={instance} open={open === instance.instanceId}
-              onToggle={() => setOpen(open === instance.instanceId ? null : instance.instanceId)} />
+              onToggle={() => {
+                if (open !== instance.instanceId) step("chosen", { driverKind: instance.driverKind });
+                setOpen(open === instance.instanceId ? null : instance.instanceId);
+              }} />
           ))}
           <button
             type="button"
@@ -162,7 +180,10 @@ export function ConnectAi({ hosted = false, tested }: { hosted?: boolean; tested
 }
 
 /** "Connect an AI": every way to connect one, over the first screen or the chat, until it is closed. */
-export function ConnectAiDialog({ hosted = false, tested, onClose }: { hosted?: boolean; tested: WelcomeAiNow | null; onClose: () => void }) {
+export function ConnectAiDialog({ hosted = false, tested, onChoose, onClose }: {
+  hosted?: boolean; tested: WelcomeAiNow | null; onChoose?: (instanceId: string) => void; onClose: () => void;
+}) {
+  useDialogOpened(useConnectAiPlace());
   return (
     <div
       className="ui-scrim fixed inset-0 z-[60] flex items-center justify-center p-4"
@@ -190,7 +211,7 @@ export function ConnectAiDialog({ hosted = false, tested, onClose }: { hosted?: 
         </div>
         <div className="ui-modal-divider shrink-0" />
         <div className="min-h-0 overflow-y-auto p-4 [scrollbar-width:thin]">
-          <ConnectAi hosted={hosted} tested={tested} />
+          <ConnectAi hosted={hosted} tested={tested} onChoose={onChoose} />
         </div>
       </div>
     </div>

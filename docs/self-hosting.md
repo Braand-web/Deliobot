@@ -27,7 +27,7 @@ For server feature switches, defaults and configuration-file instructions, see
 | A domain name, and ports 80 and 443 open | `npx opendeliobot serve --domain delio.example.com` | `https://delio.example.com/pair#code=…` |
 | Tailscale on the server and your devices | `npx opendeliobot serve --tailscale` | `https://<machine>.<tailnet>.ts.net/pair#code=…` |
 | Only this network (home or office) | `npx opendeliobot serve --lan` | `http://192.168.1.20:8799/pair#code=…` |
-| Nothing at all | `npx opendeliobot login`, then `npx opendeliobot serve --tunnel` | `https://c-….opendeliobot.com/pair#code=…` |
+| Nothing at all | `npx opendeliobot account login`, then `npx opendeliobot serve --tunnel` | `https://c-….opendeliobot.com/pair#code=…` |
 | Only the phone app, from anywhere (a machine with no tunnel address, for now) | `npx opendeliobot login --relay`, then `npx opendeliobot serve --relay` | a QR for the Delio app ([Delio Relay](phone-relay-server.md)) |
 
 `--lan` can be added to any of the others. Plain `http://` is only for a
@@ -95,7 +95,7 @@ npx opendeliobot serve --public-url https://delio.example.com
 Setting `ODB_PUBLIC_URL=https://delio.example.com` in the environment works the
 same way. If the Reach line says
 `✗ https://delio.example.com doesn't reach this server`, the tunnel points
-somewhere else. Fix that, then run `npx opendeliobot status` to check again.
+somewhere else. Fix that, then run `npx opendeliobot account status` to check again.
 
 ### Docker on your computer or home network
 
@@ -283,7 +283,7 @@ Debian 13 and Fedora), SELinux hosts and ARM64 have not been tried.
 | "That address answers, but it isn't a Delio server." | Something else answers there, often a proxy pointing at the wrong port. | Point it at `http://127.0.0.1:8799`. |
 | "That's a sign-in code from an email…" / "That code is for the phone app…" / "That's a script key…" | The wrong kind of code. | On the server, run `opendeliobot pair` for a 12-character pairing code. |
 | "Too many wrong codes. Try again at 11:19." | Five wrong codes in five minutes from one address. | Wait until then, or make a new code. |
-| `Reach    ✗ https://… doesn't reach this server (connection refused).` | Your tunnel or proxy doesn't reach port 8799. | Point it at `http://127.0.0.1:8799`, then run `opendeliobot status`. |
+| `Reach    ✗ https://… doesn't reach this server (connection refused).` | Your tunnel or proxy doesn't reach port 8799. | Point it at `http://127.0.0.1:8799`, then run `opendeliobot account status`. |
 | `Reach    ✗ https://… answers as a different server.` | The address leads to another Delio server. | Point the tunnel at this machine's port. |
 | `Reach    … https://… doesn't answer yet` (`--domain`) | DNS isn't pointing here yet, or ports 80 and 443 are closed. | Fix the A record and open the ports; the certificate follows. |
 | `--lan: this machine has no private network address…` | A VPS with only a public address. | Use `--public-url`, `--domain` or `--tailscale`. |
@@ -366,7 +366,7 @@ too.
   networks and VPN tunnels are skipped. A machine with no private address
   says so and stays on loopback. Plain http travels in clear, so use it only
   on a network you trust.
-- **`--tunnel`**: `npx opendeliobot login` reserves an address like
+- **`--tunnel`**: `npx opendeliobot account login` reserves an address like
   `https://c-….opendeliobot.com` for this machine (an emailed code signs it
   in). `serve --tunnel` connects it through a Cloudflare tunnel, the same one
   the desktop app uses for its companion. The first run downloads
@@ -375,7 +375,7 @@ too.
   lands on a separate listener that the server treats as "through a proxy",
   never as the owner. That listener gzips JSON replies of 1 KB or more when
   the client accepts gzip; the loopback port never compresses.
-  `npx opendeliobot logout` releases the address. The account credentials
+  `npx opendeliobot account logout` releases the address. The account credentials
   live in `~/.opendeliobot/tunnel-account.json` (mode 0600). Started from a
   fleet or a container, where nobody can type an emailed code? Set
   `ODB_INSTALLATION_CREDENTIAL` to the installation credential the fleet
@@ -1906,11 +1906,19 @@ is paused, so <bot> takes no new work. Resume every bot from any bot's menu in
 the sidebar." A message to a bot is refused with the same line. Resuming leaves
 a bot or department that was paused by itself paused.
 
-From a terminal on the server, to stop spending at once (an admin route like
-any other: see "Loopback trust: owner or service"):
+From a terminal, to stop spending at once:
 
 ```sh
-curl -X POST http://127.0.0.1:8799/api/paused \
+opendeliobot bots pause --all      # opendeliobot bots resume --all undoes it
+opendeliobot stop --all            # or only stop the work running now, pausing nothing
+```
+
+Both are admin requests, so they need you signed in (`opendeliobot login`),
+except on a server you started with `opendeliobot serve` whose loopback trust is
+`owner` (see "Loopback trust: owner or service"). With a token instead:
+
+```sh
+curl -X POST http://127.0.0.1:8799/api/paused -H "Authorization: Bearer $(cat ~/odb-admin.token)" \
   -H 'content-type: application/json' -d '{"kind":"all","paused":true}'
 ```
 

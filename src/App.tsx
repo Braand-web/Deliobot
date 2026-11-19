@@ -15,6 +15,7 @@ import { GuidedTour } from "@/components/onboarding/GuidedTour";
 import { LiveCallHost } from "@/components/LiveCallHost";
 import { ThreadRefsProvider } from "@/components/ThreadRefs";
 import { initAnalytics } from "@/lib/analytics";
+import { useAppLoadSignal } from "@/lib/app-load";
 import { parseComputerHelp } from "@/lib/computer-control";
 import { viewerClosedRelease } from "@/components/computer-takeover";
 import { Sidebar } from "@/components/Sidebar";
@@ -34,6 +35,7 @@ import { NotificationRail, NotificationsPanel } from "@/components/Notifications
 import { useNotificationFeed } from "@/lib/notification-preferences";
 import { UpdateBanner } from "@/components/UpdateBanner";
 import { AppNotices } from "@/components/AppNotices";
+import { CliLoginCard } from "@/components/CliLoginCard";
 import { AppGrantNotice } from "@/components/AppGrantPrompt";
 import { BotLimitPopup } from "@/components/BotLimitPopup";
 import { CloudAsleepStrip } from "@/components/CloudAsleepStrip";
@@ -339,6 +341,7 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
     <CloudSendStrip cloudHome={state.config?.cloudHome === true} />
     <HomeLine />
     <AppNotices quiet={paletteOpen || drawerOpen || Boolean(localVmWorkspaceBotId)} viewer={viewer} />
+    <CliLoginCard />
   </>;
   return (
     <div data-look="app" className={cn("flex h-full flex-col", framed && "bg-frame")} onClickCapture={drawerOpen ? noteDrawerAction : undefined} onKeyDownCapture={drawerOpen ? noteDrawerAction : undefined}>
@@ -490,6 +493,11 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
   );
 }
 
+function AppLoadSignal() {
+  useAppLoadSignal();
+  return null;
+}
+
 function Application() {
   useEffect(() => {
     initAnalytics();
@@ -498,6 +506,7 @@ function Application() {
   return (
     <DesktopCapabilitiesProvider>
       <StoreProvider>
+        <AppLoadSignal />
         <ThreadRefsProvider>
           <Shell viewer={viewer} />
         </ThreadRefsProvider>
