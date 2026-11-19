@@ -336,6 +336,13 @@ describe("profileMenuItems", () => {
     const items = build({ accounts });
     expect(items.at(-1)).toMatchObject({ key: "accounts-sign-out", separatorBefore: true });
   });
+
+  it("shows a single Sign out when the Deliobot account has its own", () => {
+    const accounts = [{ key: "delio-sign-out", label: "Sign out", onSelect: noop }];
+    const items = build({ accounts, signOut: noop });
+    expect(items.filter((item) => item.label === "Sign out").map((item) => item.key)).toEqual(["delio-sign-out"]);
+    expect(build({ signOut: noop }).at(-1)!.key).toBe("sign-out");
+  });
 });
 
 describe("Announcements in the profile menu", () => {

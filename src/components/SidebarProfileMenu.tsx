@@ -515,8 +515,9 @@ export function profileMenuItems({
   const news: SidebarMenuItem | null = announcements ? { key: "announcements", label: t("announcements.title"), icon: <Megaphone size={16} />, active: announcements.active,
     attention: announcements.unread, onSelect: announcements.onSelect } : null;
   const present = (...items: Array<SidebarMenuItem | null | false>) => items.filter((item): item is SidebarMenuItem => Boolean(item));
+  const delioSignOut = accounts.some((item) => item.key === "delio-sign-out");
   const out: SidebarMenuItem[] = [...accounts.filter((item) => item.key !== "accounts-sign-out"),
-    ...(signOut ? [{ key: "sign-out", label: t("accounts.signOut"), icon: <LogOut size={16} />, onSelect: signOut }]
+    ...(delioSignOut ? [] : signOut ? [{ key: "sign-out", label: t("accounts.signOut"), icon: <LogOut size={16} />, onSelect: signOut }]
       // The full words, as on Your account; a sentence this long wraps rather than being cut short.
       : signOutElsewhere ? [{ key: "sign-out", label: t("settings.account.fromHere", { place: signOutElsewhere.place }), wrap: true, icon: <LogOut size={16} />,
         trailing: <ArrowUpRight size={12} aria-hidden="true" className="text-ink-tertiary" />, onSelect: signOutElsewhere.open }]
