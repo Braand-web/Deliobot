@@ -387,7 +387,7 @@ ${c.token ? h`<div class="notice info">Copiez ce jeton maintenant, il ne sera pl
 <h3>Offrir ou prolonger un forfait</h3><div class="row2"><select name="plan" aria-label="Forfait">${planOptions}</select><select name="cycle" aria-label="Durée"><option value="month">1 mois</option><option value="year">1 an</option></select></div>
 <button class="btn">Offrir</button></form><hr>
 ${c.suspension
-  ? h`<form method="post" action="/clients/${c.slug}/suspendre" data-confirm="Réactiver ${c.name} ?" data-detail="Ses applications pourront de nouveau utiliser l'IA Delio." data-action="Réactiver"><h3>Suspension</h3><input type="hidden" name="suspended" value="0"><button class="btn">Réactiver l'espace</button></form>`
+  ? h`<form method="post" action="/clients/${c.slug}/suspendre" data-confirm="Réactiver ${c.name} ?" data-detail="Ses applications pourront de nouveau utiliser l'IA Deliobot." data-action="Réactiver"><h3>Suspension</h3><input type="hidden" name="suspended" value="0"><button class="btn">Réactiver l'espace</button></form>`
   : h`<form method="post" action="/clients/${c.slug}/suspendre" data-confirm="Suspendre ${c.name} ?" data-detail="L'IA Deliobot s'arrête pour cet espace ; ses données et ses crédits restent." data-danger="1" data-action="Suspendre">
 <h3>Suspendre l'espace</h3><input type="hidden" name="suspended" value="1"><input name="reason" maxlength="200" placeholder="Motif (facultatif)" aria-label="Motif"><button class="btn danger">Suspendre</button></form>`}<hr>
 <form method="post" action="/clients/${c.slug}/jeton" data-confirm="Créer un nouveau jeton de passerelle ?" data-detail="${c.hasToken ? "L'ancien jeton cessera de fonctionner." : "Il permet d'utiliser les crédits de cet espace hors de l'application."}" data-action="Créer">

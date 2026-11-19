@@ -83,7 +83,7 @@ export function withSeo(html, file) {
     `<meta property="og:title" content="${attr(title)}">`,
     `<meta property="og:description" content="${attr(description)}">`,
     `<meta property="og:image" content="${SHARE_IMAGE}">`,
-    `<meta property="og:image:alt" content="Delio, la mascotte de Deliobot">`,
+    `<meta property="og:image:alt" content="La mascotte de Deliobot">`,
     `<meta name="twitter:card" content="summary_large_image">`,
     `<meta name="twitter:title" content="${attr(title)}">`,
     `<meta name="twitter:description" content="${attr(description)}">`,

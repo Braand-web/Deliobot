@@ -552,7 +552,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       return handoff(req, res, path === "/api/handoff/consume" ? "consume" : "check");
     }
 
-    if (method === "POST" && !sameOrigin(req)) throw new HttpError(403, "Ce formulaire ne vient pas du portail Delio.");
+    if (method === "POST" && !sameOrigin(req)) throw new HttpError(403, "Ce formulaire ne vient pas du portail Deliobot.");
     const user = account(req);
     const ref = method === "GET" && !operatorConsole ? url.searchParams.get("ref") : null;
     if (ref && ambassadors.ambassadorForCode(ref)) res.setHeader("set-cookie", `${REF_COOKIE}=${encodeURIComponent(normalizeCode(ref))}; Path=/; Max-Age=${30 * 24 * 3600}; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}`);
@@ -908,7 +908,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
         const paid = ambassadors.requestPayout(ambassador, mode, own.slug, xofRate());
         if (!paid.ok) return back("erreur", paid.error);
         store.audit(own.slug, user.email, `ambassador.payout.${mode}`, String(paid.usd));
-        if (mode === "credits") return back("ok", "Vos gains ont été ajoutés en crédits à votre compte Delio.");
+        if (mode === "credits") return back("ok", "Vos gains ont été ajoutés en crédits à votre compte Deliobot.");
         for (const operator of operators) outbox.notify(operator, `Retrait ambassadeur : ${ambassador.name}`, `${ambassador.name} demande ${paid.usd.toFixed(2)} $ (≈ ${Math.round(paid.usd * xofRate()).toLocaleString("fr-FR")} FCFA) en Mobile Money au ${ambassador.phone}.\n\nAprès l'envoi, marquez-le payé dans la console : Ambassadeurs.`);
         return back("ok", "Demande de retrait envoyée : vous recevez l'argent en Mobile Money sous quelques jours.");
       }
@@ -1033,7 +1033,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
   }
 
   function billing(workspace: Workspace, user: Account, extra: { message?: string; error?: string; token?: string; chosen?: PlanId; cycle?: Cycle }): Html {
-    if (!operatorConsole) return messagePage("Forfaits et crédits dans Deliobot", extra.error ?? extra.message ?? "Consultez votre forfait et vos crédits dans l'application Delio.", { href: "opendeliobot://cloud", label: "Ouvrir Deliobot" });
+    if (!operatorConsole) return messagePage("Forfaits et crédits dans Deliobot", extra.error ?? extra.message ?? "Consultez votre forfait et vos crédits dans l'application Deliobot.", { href: "opendeliobot://cloud", label: "Ouvrir Deliobot" });
     return billingPage({ workspace, operator: isOperator(user), balance: wallet.balance(workspace.slug) / MICRO,
       subscription: plans.subscription(workspace.slug), orders: plans.orders(workspace.slug, 10), payments: Boolean(saspay), currency,
       trialAvailable: settings.isOpen("trial") && !plans.trialUsed(user.email, workspace.slug), catalog: plans.catalog(options.payments?.xofPerUsd),

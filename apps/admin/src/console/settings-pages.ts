@@ -84,7 +84,7 @@ ${changed ? h`<form method="post" action="/forfaits/${plan.id}/retablir"><button
 <div><label for="g-days">Durée (jours)</label><input id="g-days" name="days" type="number" min="1" max="400" value="30" required></div>
 <div><label for="g-credits">Crédits Deliobot</label><input id="g-credits" name="credits" type="number" min="0" value="0"></div>
 <div><button class="btn primary">Offrir</button></div></form>
-<p class="muted small">0 crédit : la personne a les droits du forfait (propres comptes et clés IA avec Max ou BYOK) sans utiliser les crédits Delio.</p></section>
+<p class="muted small">0 crédit : la personne a les droits du forfait (propres comptes et clés IA avec Max ou BYOK) sans utiliser les crédits Deliobot.</p></section>
 <section class="card"><h2>Francs CFA<small>Le montant facturé par SasPay vient du prix en dollars multiplié par ce taux</small></h2>
 <form method="post" action="/forfaits/taux" class="fields"><div><label for="rate">Francs CFA pour 1 $</label><input id="rate" name="rate" type="number" min="100" max="2000" step="0.01" value="${String(input.xof.value)}"></div>
 <div><button class="btn primary">Enregistrer le taux</button></div></form>

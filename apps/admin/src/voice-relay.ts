@@ -76,7 +76,7 @@ export function createVoiceRelay(options: { wallet: Wallet; key?: string; apiUrl
       const [path, query = ""] = rest.split("?", 2) as [string, string?];
       const method = req.method ?? "GET";
       const route = voiceRoute(method, path);
-      if (!route) return refuse(res, 404, "This voice call is not offered by Delio.");
+      if (!route) return refuse(res, 404, "This voice call is not offered by Deliobot.");
       const target = `${api}/${path}${query ? `?${query}` : ""}`;
       const headers: Record<string, string> = { "xi-api-key": options.key };
 

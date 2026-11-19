@@ -130,7 +130,7 @@ export function createFishRelay(options: { db: SqlDatabase; wallet: Wallet; key?
       const [path, query = ""] = rest.split("?", 2) as [string, string?];
       const method = req.method ?? "GET";
       const route = fishRoute(method, path);
-      if (!route) return refuse(res, 404, "This Fish Audio call is not offered by Delio.");
+      if (!route) return refuse(res, 404, "This Fish Audio call is not offered by Deliobot.");
 
       if (route.kind === "voices") {
         const params = new URLSearchParams(query);
