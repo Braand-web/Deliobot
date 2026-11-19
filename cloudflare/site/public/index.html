@@ -373,6 +373,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
 .nv-media .tiles span:nth-child(1){background:linear-gradient(135deg,#f07a33,#ec4fa6)}.nv-media .tiles span:nth-child(2){background:linear-gradient(135deg,#3d86ff,#8357ff)}
 .nv-media .tiles span:nth-child(3){background:linear-gradient(135deg,#2fb67c,#4fbfa8)}.nv-media .tiles span:nth-child(4){background:linear-gradient(135deg,#f3a93b,#ef4a4f)}
 .nv-media em{background:#ece3fd;color:#5b33c9}
+.nv-media .pick span{color:#6b6b70;min-width:44px}.nv-media .pick b{font-weight:500;flex:1;border:1px solid #e2dcf3;border-radius:8px;padding:3px 9px}.nv-media .pick i{font-style:normal;color:#5b33c9}
 .nv-code{background:linear-gradient(180deg,#e6e6ea,#d6d6dc)}
 .nv-code .digits{display:flex;gap:6px;justify-content:center}
 .nv-code .digits span{width:34px;height:42px;border-radius:10px;background:#fff;display:grid;place-items:center;font-size:19px;font-weight:600;box-shadow:0 6px 16px -12px rgba(0,0,0,.4)}
@@ -441,7 +442,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
 <main>
 <section class="hero" style="padding-top:72px">
   <div class="wrap">
-    <a class="announce" href="#nouveau"><b>Nouveau :</b> des centaines d'applications, brouillons à relire, création d'images et de vidéos <i>↗</i></a>
+    <a class="announce" href="#nouveau"><b>Nouveau :</b> des centaines d'applications, brouillons à relire, images et vidéos en Auto ou au choix <i>↗</i></a>
     <h1>Voici <img class="face" src="/assets/delio-happy.webp" alt=""> Delio</h1>
     <p class="sub">Des collègues IA à qui confier du vrai travail. Les bots se connectent à vos outils, travaillent avec toute votre équipe et reviennent avec le travail terminé.</p>
     <div class="cta">
@@ -645,11 +646,12 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
       </article>
       <article class="nv reveal">
         <span class="tag">Création</span>
-        <h3>Images, vidéos, voix et musique</h3>
-        <p>Visuels pour vos réseaux, courtes vidéos, voix off, musique : votre bot les crée avec les meilleurs modèles, payés avec vos crédits Delio.</p>
+        <h3>Images, vidéos, voix et musique : Auto ou à votre choix</h3>
+        <p>Visuels, courtes vidéos, voix off, musique. Laissez le Mode Auto choisir le meilleur modèle à chaque demande, ou choisissez vous-même le modèle de chaque bot. Le tout est payé avec vos crédits Delio.</p>
         <div class="nv-ill nv-media" aria-hidden="true">
           <div class="tiles"><span>Affiche</span><span>Vidéo</span><span>Voix off</span><span>Musique</span></div>
-          <div class="row">Mode Auto : le bon modèle pour chaque tâche<em>Auto</em></div>
+          <div class="row pick"><span>Image</span><b>Auto (recommandé)</b><i>▾</i></div>
+          <div class="row pick"><span>Vidéo</span><b>Choisi par vous</b><i>▾</i></div>
         </div>
       </article>
       <article class="nv reveal">
