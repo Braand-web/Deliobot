@@ -1,5 +1,6 @@
 // Serves the apps bots publish through Deliobot's included hosting (apps/admin/src/app-hosting.ts writes them): each
-// app is a manifest at sites/<label>.json naming content-addressed files, served at https://<label><SITES_SUFFIX>/.
+// app is a manifest at sites/<label>.json naming content-addressed files, served at https://<label><SITES_SUFFIX>/ and at
+// the person's own domain when one is pointed at it.
 import { hasSession, LOGIN_PATH, loginPage, passwordMatches, safeNext, sessionCookie, type SiteAuth } from "./auth.ts";
 import { resolveSitePath, type SiteManifest } from "./resolve.ts";
 
@@ -19,14 +20,23 @@ const page = (html: string, status: number) => new Response(html, {
   status, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", ...SECURITY_HEADERS },
 });
 
+/** A site's own address, or a person's domain the portal pointed at it. */
+async function siteLabel(hostname: string, env: Env): Promise<string | null> {
+  const own = hostname.endsWith(env.SITES_SUFFIX) ? hostname.slice(0, -env.SITES_SUFFIX.length) : null;
+  if (own !== null) return /^[a-z2-9]{10}$/.test(own) ? own : null;
+  if (!/^[a-z0-9.-]{3,253}$/.test(hostname)) return null;
+  const pointer = await env.SITES.get(`domains/${hostname}.json`);
+  const label = pointer ? (await pointer.json<{ label?: unknown }>().catch(() => null))?.label : null;
+  return typeof label === "string" && /^[a-z2-9]{10}$/.test(label) ? label : null;
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const login = request.method === "POST" && url.pathname === LOGIN_PATH;
     if (request.method !== "GET" && request.method !== "HEAD" && !login) return new Response(null, { status: 405, headers: { allow: "GET, HEAD" } });
-    if (!url.hostname.endsWith(env.SITES_SUFFIX)) return notFound();
-    const label = url.hostname.slice(0, -env.SITES_SUFFIX.length);
-    if (!/^[a-z2-9]{10}$/.test(label)) return notFound();
+    const label = await siteLabel(url.hostname, env);
+    if (!label) return notFound();
 
     const stored = await env.SITES.get(`sites/${label}.json`);
     if (!stored) return notFound();

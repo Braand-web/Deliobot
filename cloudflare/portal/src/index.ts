@@ -6,6 +6,7 @@ import "./fetch-redirects.ts";
 
 import { createAdminApp, type AdminApp } from "../../../apps/admin/src/app.ts";
 import type { SiteBucket } from "../../../apps/admin/src/app-hosting.ts";
+import { cloudflareSaas, type DomainSettings } from "../../../apps/admin/src/app-domains.ts";
 import { portalSettings } from "../../../apps/admin/src/env-config.ts";
 import { serveFetch } from "../../../apps/admin/src/fetch-adapter.ts";
 import { catalog } from "../../../apps/admin/src/plans.ts";
@@ -33,6 +34,13 @@ const ASSETS = new Map<string, Uint8Array>([
   ["/assets/delio-idle.webp", new Uint8Array(idle)], ["/assets/delio-happy.webp", new Uint8Array(happy)],
   ["/assets/delio-sad.webp", new Uint8Array(sad)], ["/assets/delio-curious.webp", new Uint8Array(curious)],
 ]);
+
+/** Custom domains stay off until the operator gives the portal a Cloudflare token allowed to edit the zone's custom hostnames. */
+function domainSettings(env: Record<string, unknown>): { domains?: DomainSettings } {
+  const { DELIO_SAAS_ZONE_ID: zoneId, DELIO_SAAS_TOKEN: token, DELIO_SAAS_TARGET: target, DELIO_SITES_SUFFIX: ownSuffix } = env;
+  return typeof zoneId === "string" && zoneId && typeof token === "string" && token && typeof target === "string" && target && typeof ownSuffix === "string"
+    ? { domains: { saas: cloudflareSaas({ zoneId, token }), target, ownSuffix } } : {};
+}
 
 function r2Sites(bucket: R2Bucket): SiteBucket {
   return {
@@ -83,11 +91,11 @@ export class Portal extends DurableObject<Env> {
       const store = new AdminStore({ db: durableObjectDatabase(this.ctx.storage), secret: Buffer.from(settings.secret ?? "") });
       this.app = createAdminApp({ store, publicUrl: settings.publicUrl, operators: settings.operators, mailer: settings.mailer, gateway: settings.gateway, gifts: settings.gifts, ambassadors: settings.ambassadors,
         payments: settings.payments, assets: ASSETS, waitUntil: work => this.ctx.waitUntil(work), ...(settings.signup ? { signup: settings.signup } : {}),
-        ...(this.env.SITES && typeof base.DELIO_SITES_SUFFIX === "string" ? { sites: { bucket: r2Sites(this.env.SITES), suffix: base.DELIO_SITES_SUFFIX } } : {}) });
+        ...(this.env.SITES && typeof base.DELIO_SITES_SUFFIX === "string" ? { sites: { bucket: r2Sites(this.env.SITES), suffix: base.DELIO_SITES_SUFFIX, ...domainSettings(base) } } : {}) });
       const consoleUrl = base.DELIO_ADMIN_CONSOLE_URL ? new URL(base.DELIO_ADMIN_CONSOLE_URL) : null;
       this.operatorsConsole = consoleUrl && settings.operators.size > 0 ? { host: consoleUrl.host, app: createAdminApp({ store, publicUrl: consoleUrl,
         operators: settings.operators, mailer: settings.mailer, gateway: settings.gateway, payments: settings.payments, assets: ASSETS, console: true, waitUntil: work => this.ctx.waitUntil(work),
-        ...(this.env.SITES && typeof base.DELIO_SITES_SUFFIX === "string" ? { sites: { bucket: r2Sites(this.env.SITES), suffix: base.DELIO_SITES_SUFFIX } } : {}) }) } : null;
+        ...(this.env.SITES && typeof base.DELIO_SITES_SUFFIX === "string" ? { sites: { bucket: r2Sites(this.env.SITES), suffix: base.DELIO_SITES_SUFFIX, ...domainSettings(base) } } : {}) }) } : null;
     } catch (error) {
       this.app = null;
       this.operatorsConsole = null;

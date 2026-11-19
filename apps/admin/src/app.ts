@@ -1,3 +1,4 @@
+import type { DomainSettings } from "./app-domains.ts";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 import { HOSTED_CONTRACT_HEADER, HOSTED_CONTRACT_METADATA, HOSTED_CONTRACT_MISMATCH, HOSTED_CONTRACT_VERSION, hostedContractCompatible } from "../../../server/hosted-contract.ts";
@@ -43,7 +44,7 @@ export interface AdminAppOptions {
   /** The operator's provider keys and upstreams for the paid gateway; a provider without a key is refused there. */
   gateway?: Omit<GatewayOptions, "store" | "wallet" | "publicUrl" | "fetchImpl" | "now" | "allowance" | "deviceToken" | "deviceEmail" | "deviceAccount" | "revokeDevice" | "refreshAccount" | "paymentVersion" | "report" | "hosting"> & { creditUsd?: number };
   /** Included app hosting: the bucket the sites Worker serves, and what follows each site's label in its host name. */
-  sites?: { bucket: SiteBucket; suffix: string };
+  sites?: { bucket: SiteBucket; suffix: string; domains?: DomainSettings };
   /** The mascot pictures pages show, by path (`/assets/delio-idle.webp`…). */
   assets?: ReadonlyMap<string, Uint8Array>;
   /** SasPay: the secret key, the webhook signing secret, and the currency checkouts are priced in (XOF by default). */
@@ -258,7 +259,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       console.error("delio-admin: account payment refresh failed", error);
     } finally { clearTimeout(timer); }
   }
-  const sites = options.sites ? createAppHosting({ db: store.db, bucket: options.sites.bucket, sitesSuffix: options.sites.suffix, now, access: (slug) => hostingAccess(plans, slug) }) : undefined;
+  const sites = options.sites ? createAppHosting({ db: store.db, bucket: options.sites.bucket, sitesSuffix: options.sites.suffix, now, ...(options.sites.domains ? { domains: options.sites.domains } : {}), access: (slug) => hostingAccess(plans, slug) }) : undefined;
   const gateway = createGateway({ ...options.gateway, store, wallet, publicUrl, fetchImpl, now,
     deviceAccount: (value, requested) => {
       const owner = devices.identity(value);

@@ -1390,7 +1390,7 @@
     },
     {
       "name": "publish_app",
-      "description": "Put a site or app you built online on the hosting the person's Cloud plan includes: static files, no account or token; a folder with a build script is built first. The link is public at once: publish only after the person saw or was told what it is and said yes. Publishing the same project again keeps its link as a new version; rollback puts an earlier one back. protect makes the app ask a password, given to you once for the person; unprotect opens it. delete takes it down for good, only when the person asks. Follow the publish-to-netlify skill; when the plan can't take the app, offer the person's own Netlify account.",
+      "description": "Put a site or app you built online on the hosting the person's Cloud plan includes: static files, no account or token; a folder with a build script is built first. The link is public at once: publish only after the person saw or was told what it is and said yes. Publishing the same project again keeps its link as a new version; rollback puts an earlier one back. protect makes the app ask a password, given to you once for the person; unprotect opens it. domain points the person's own domain at it (empty removes it, absent reads it). delete takes it down for good, only when the person asks. Follow the publish-to-netlify skill; when the plan can't take the app, offer the person's own Netlify account.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -1402,6 +1402,7 @@
               "rollback",
               "protect",
               "unprotect",
+              "domain",
               "delete"
             ],
             "description": "Default publish."
@@ -1418,6 +1419,10 @@
             "type": "string",
             "maxLength": 120,
             "description": "publish: what the app is, in a few words."
+          },
+          "domain": {
+            "type": "string",
+            "description": "domain: like www.example.com."
           },
           "version": {
             "type": "integer",

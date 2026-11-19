@@ -153,6 +153,14 @@ export function hostingRefusal(status: number, body: Record<string, unknown>): H
       return new HostingRefusal("not_found", "Nothing is published from this folder on the plan's included hosting.");
     case "version_not_found":
       return new HostingRefusal("not_found", "That version of the app is not kept any more (the last 10 publishes are). Read the versions with check_app_hosting.");
+    case "domains_unavailable":
+      return new HostingRefusal("unavailable", "Custom domains aren't switched on for included hosting yet. The app stays on its own link.");
+    case "invalid_domain":
+      return new HostingRefusal("failed", "That is not a domain the app can use: give one the person owns, like www.example.com.");
+    case "domain_taken":
+      return new HostingRefusal("failed", "That domain is already used by another app. The person can remove it there first.");
+    case "domain_failed":
+      return new HostingRefusal("unavailable", "The domain could not be set up right now. Try again in a few minutes.");
     case "invalid_password":
       return new HostingRefusal("failed", "A site password is 8 to 128 characters.");
     case "not_required": case "size_mismatch": case "digest_mismatch":
@@ -276,6 +284,17 @@ export function createIncludedHosting(deps: IncludedHostingDeps) {
     /** A password the app asks before it opens, or null to open it to anyone with the link. */
     async setPassword(key: string, password: string | null): Promise<HostedApp> {
       return app((await relay("PUT", `${at(key)}/password`, { json: { password } })).app);
+    },
+
+    /** The person's own domain for the app, with the DNS record they add and how far its certificate got. */
+    async domain(key: string, hostname?: string | null): Promise<{ hostname: string; status: string; detail?: string; dns: { type: string; name: string; target: string } } | null> {
+      const body = hostname === undefined ? await relay("GET", `${at(key)}/domain`)
+        : hostname === null ? await relay("DELETE", `${at(key)}/domain`) : await relay("PUT", `${at(key)}/domain`, { json: { hostname } });
+      const domain = body.domain as { hostname?: unknown; status?: unknown; detail?: unknown; dns?: { type?: unknown; name?: unknown; target?: unknown } } | null;
+      if (!domain || typeof domain.hostname !== "string") return null;
+      const text = (value: unknown) => (typeof value === "string" ? value.replace(/\p{Cc}/gu, "").slice(0, 300) : "");
+      return { hostname: text(domain.hostname), status: text(domain.status) || "pending", ...(text(domain.detail) ? { detail: text(domain.detail) } : {}),
+        dns: { type: text(domain.dns?.type) || "CNAME", name: text(domain.dns?.name), target: text(domain.dns?.target) } };
     },
 
     /** An app the relay no longer has counts as deleted. */

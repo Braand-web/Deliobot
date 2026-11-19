@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { createIncludedHosting, HostingRefusal } from "../../../server/host/included-hosting.ts";
 import { createAppHosting, PASSWORD_ITERATIONS, siteAuth, sitePath, VERSIONS_KEPT, type HostingAccess, type SiteBucket, type SiteManifest } from "./app-hosting.ts";
 import { nodeDatabase } from "./sql-node.ts";
+import { customHostname, type CustomHostname, type DomainSettings } from "./app-domains.ts";
 
 const cleanups: Array<() => void> = [];
 let latestHosting: ReturnType<typeof createAppHosting> | null = null;
@@ -24,13 +25,13 @@ function memoryBucket() {
 }
 
 /** The portal's relay behind a fetch, as the app's included-hosting client reaches it through the gateway. */
-function relay(access: HostingAccess = { plan: "starter", active: true }) {
+function relay(access: HostingAccess = { plan: "starter", active: true }, domains?: DomainSettings) {
   const dir = mkdtempSync(join(tmpdir(), "delio-hosting-"));
   const db = nodeDatabase(join(dir, "portal.db"));
   cleanups.push(() => { db.close(); rmSync(dir, { recursive: true, force: true }); });
   const { bucket, objects } = memoryBucket();
   let state = access;
-  const hosting = latestHosting = createAppHosting({ db, bucket, sitesSuffix: "-app.example.test", access: () => state });
+  const hosting = latestHosting = createAppHosting({ db, bucket, sitesSuffix: "-app.example.test", access: () => state, ...(domains ? { domains } : {}) });
   const fetchImpl = (async (input: string | URL | Request, init?: RequestInit) => {
     const url = new URL(String(input));
     const rest = url.pathname.replace(/^\/api\/gateway\/acme\/hosting\/v1\//, "");
@@ -109,6 +110,48 @@ describe("included app hosting", () => {
     const kept = await client.versions("app-one");
     expect(kept).toHaveLength(VERSIONS_KEPT);
     expect(kept.at(-1)!.version).toBe(5);
+  });
+
+  it("points a person's domain at an app, follows its certificate, and lets it go with the app", async () => {
+    const made = new Map<string, CustomHostname>();
+    const saas = {
+      create: async (hostname: string) => { if (hostname === "taken.example.com") throw Object.assign(new Error("dup"), { code: "domain_taken" }); const one = { id: `cf-${made.size}`, status: "pending" as const, detail: null }; made.set(one.id, one); return one; },
+      get: async (id: string) => made.get(id) ?? null,
+      remove: async (id: string) => { made.delete(id); },
+    };
+    const { client, objects } = relay(undefined, { saas, target: "domains.example.test", ownSuffix: "-app.example.test" });
+    const started = await client.start("app-one", { title: "Boutique", files: files({ "index.html": "v1" }) });
+    for (const sha of started.required) await client.upload("app-one", sha, Buffer.from("v1"));
+    const label = new URL((await client.app("app-one")).url!).hostname.split("-")[0]!;
+
+    expect(await client.domain("app-one")).toBeNull();
+    const set = await client.domain("app-one", "www.Boutique-Awa.com");
+    expect(set).toEqual({ hostname: "www.boutique-awa.com", status: "pending", dns: { type: "CNAME", name: "www.boutique-awa.com", target: "domains.example.test" } });
+    expect(JSON.parse(new TextDecoder().decode(objects.get("domains/www.boutique-awa.com.json")))).toEqual({ label });
+    made.set("cf-0", { id: "cf-0", status: "active", detail: null });
+    expect((await client.domain("app-one"))?.status).toBe("active");
+    expect((await client.app("app-one")) as unknown).toMatchObject({ key: "app-one" });
+    await expect(client.domain("app-one", "taken.example.com")).rejects.toMatchObject({ code: "failed" });
+    await expect(client.domain("app-one", "x.example.test")).rejects.toMatchObject({ code: "failed" });
+    expect((await client.domain("app-one"))?.hostname).toBe("www.boutique-awa.com");
+
+    await client.remove("app-one");
+    expect(made.size).toBe(0);
+    expect(objects.has("domains/www.boutique-awa.com.json")).toBe(false);
+  });
+
+  it("takes only a real domain the person could own", () => {
+    expect(customHostname("Shop.Example.COM.", "-app.deliobot.fun")).toBe("shop.example.com");
+    expect(customHostname("example.co.uk", "-app.deliobot.fun")).toBe("example.co.uk");
+    for (const bad of ["localhost", "*.example.com", "a..b.com", "-a.example.com", "x.deliobot.fun", "deliobot.fun", "1.2.3.4", "exa mple.com", 42]) {
+      expect(customHostname(bad, "-app.deliobot.fun"), String(bad)).toBeNull();
+    }
+  });
+
+  it("says custom domains are off when the portal has no Cloudflare token for them", async () => {
+    const { client } = relay();
+    await client.start("app-one", { title: "x", files: files({ "index.html": "a" }) });
+    await expect(client.domain("app-one", "www.example.com")).rejects.toMatchObject({ code: "unavailable" });
   });
 
   it("refuses a file whose bytes are not the ones announced", async () => {

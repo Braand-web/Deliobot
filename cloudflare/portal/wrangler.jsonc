@@ -19,7 +19,11 @@
     "DELIO_ADMIN_DOWNLOAD_URL": "https://deliobot.fun/#telecharger",
     "DELIO_ADMIN_CURRENCY": "XOF",
     "DELIO_ADMIN_XOF_PER_USD": "600",
-    "DELIO_SITES_SUFFIX": "-app.deliobot.fun"
+    "DELIO_SITES_SUFFIX": "-app.deliobot.fun",
+    // Custom domains: the zone the sites are served from and the name a person's CNAME points at. They stay off until
+    // the DELIO_SAAS_TOKEN secret (Custom Hostnames: Edit on this zone) is set.
+    "DELIO_SAAS_ZONE_ID": "8ee046c00fc712046cedb7d2a1e8113d",
+    "DELIO_SAAS_TARGET": "domains.deliobot.fun"
   },
   "observability": { "enabled": true }
 }

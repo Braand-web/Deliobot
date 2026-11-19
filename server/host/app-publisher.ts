@@ -339,6 +339,21 @@ export function createAppPublisher(deps: AppPublisherDeps) {
       }
     },
 
+    /** domain: points the person's own domain at the app (null removes it, absent reads it) and says the DNS record to add. */
+    async domain(input: Omit<AppPublishInput, "title">, hostname: string | null | undefined): Promise<AppPublishAnswer> {
+      try {
+        const project = await locateFolder(input.project?.trim() || input.path, folders(input), "path");
+        const key = await hosting.keyFor(input.botId, project);
+        const domain = await hosting.domain(key, hostname);
+        if (!domain) return { status: 200, body: { ok: true, domain: null, message: hostname === null ? "The domain was removed; the app stays on its own link." : "No domain is set for this app." } };
+        const message = domain.status === "active" ? `The app answers at https://${domain.hostname}/.`
+          : `Tell the person to add this DNS record where their domain is managed: ${domain.dns.type} ${domain.dns.name} → ${domain.dns.target}. For a bare domain (example.com) their DNS must allow CNAME flattening or ALIAS; www.example.com always works. The certificate follows within minutes once it points here; check with publish_app action domain and no domain.`;
+        return { status: 200, body: { ok: true, domain, message } };
+      } catch (error) {
+        return refused(error);
+      }
+    },
+
     /** Deletes the app published from this folder: its link stops working and its place in the plan is free. */
     async remove(input: Omit<AppPublishInput, "title">): Promise<AppPublishAnswer> {
       try {

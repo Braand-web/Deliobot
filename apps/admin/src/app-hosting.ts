@@ -8,6 +8,7 @@
 import { createHash, pbkdf2Sync, randomBytes } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
+import { customHostname, type DomainSettings } from "./app-domains.ts";
 import type { Billing, PlanId } from "./plans.ts";
 import type { SqlDatabase } from "./sql.ts";
 
@@ -72,8 +73,9 @@ export function sitePath(value: unknown): string | null {
 
 interface AppRow { workspace: string; key: string; label: string; title: string; state: string; pending: string | null; created_at: number; published_at: number | null; auth: string | null }
 interface VersionRow { version: number; files: string; published_at: number }
+interface DomainRow { hostname: string; workspace: string; key: string; cf_id: string; status: string; detail: string | null }
 
-export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket | null; sitesSuffix: string; access: (workspace: string) => HostingAccess; now?: () => number }) {
+export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket | null; sitesSuffix: string; access: (workspace: string) => HostingAccess; domains?: DomainSettings; now?: () => number }) {
   const { db } = options;
   const now = options.now ?? Date.now;
   db.exec(`CREATE TABLE IF NOT EXISTS hosted_apps (workspace TEXT NOT NULL, key TEXT NOT NULL, label TEXT NOT NULL UNIQUE, title TEXT NOT NULL,
@@ -81,6 +83,8 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
   db.exec("CREATE TABLE IF NOT EXISTS hosted_publishes (workspace TEXT NOT NULL, month TEXT NOT NULL, count INTEGER NOT NULL, PRIMARY KEY (workspace, month))");
   db.exec(`CREATE TABLE IF NOT EXISTS hosted_versions (workspace TEXT NOT NULL, key TEXT NOT NULL, version INTEGER NOT NULL, files TEXT NOT NULL,
     published_at INTEGER NOT NULL, PRIMARY KEY (workspace, key, version))`);
+  db.exec(`CREATE TABLE IF NOT EXISTS hosted_domains (hostname TEXT PRIMARY KEY, workspace TEXT NOT NULL, key TEXT NOT NULL, cf_id TEXT NOT NULL,
+    status TEXT NOT NULL, detail TEXT, created_at INTEGER NOT NULL)`);
   if (!(db.prepare("PRAGMA table_info(hosted_apps)").all() as Array<{ name: string }>).some((column) => column.name === "auth")) db.exec("ALTER TABLE hosted_apps ADD COLUMN auth TEXT");
 
   const month = () => new Date(now()).toISOString().slice(0, 7);
@@ -98,11 +102,15 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
     }
   }
 
-  const view = (app: AppRow) => ({
-    key: app.key, title: app.title, url: app.state === "ready" ? `https://${app.label}${options.sitesSuffix}/` : null, state: app.state, visibility: app.auth ? "private" : "public",
-    version: latestVersion(app.workspace, app.key),
-    createdAt: new Date(app.created_at).toISOString(), publishedAt: app.published_at === null ? null : new Date(app.published_at).toISOString(),
-  });
+  const view = (app: AppRow) => {
+    const domain = domainOf(app.workspace, app.key);
+    return {
+      key: app.key, title: app.title, url: app.state === "ready" ? `https://${app.label}${options.sitesSuffix}/` : null, state: app.state, visibility: app.auth ? "private" : "public",
+      version: latestVersion(app.workspace, app.key),
+      ...(domain ? { domain: { hostname: domain.hostname, status: domain.status } } : {}),
+      createdAt: new Date(app.created_at).toISOString(), publishedAt: app.published_at === null ? null : new Date(app.published_at).toISOString(),
+    };
+  };
 
   function allowance(workspace: string, plan: PlanId) {
     const limit = HOSTING_BY_PLAN[plan] ?? { apps: 0, publishes: 0 };
@@ -113,6 +121,48 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
     const wanted = [...new Set(files.map((file) => file.sha1))];
     const present = await Promise.all(wanted.map((sha1) => options.bucket!.has(blob(workspace, sha1))));
     return wanted.filter((_, index) => !present[index]);
+  }
+
+  const domainOf = (workspace: string, key: string) => db.prepare("SELECT * FROM hosted_domains WHERE workspace = ? AND key = ?").get(workspace, key) as DomainRow | undefined;
+  const dns = (hostname: string) => ({ type: "CNAME", name: hostname, target: options.domains?.target ?? "" });
+  const domainView = (domain: DomainRow) => ({ hostname: domain.hostname, status: domain.status, ...(domain.detail ? { detail: domain.detail } : {}), dns: dns(domain.hostname) });
+
+  async function dropDomain(workspace: string, key: string): Promise<void> {
+    const domain = domainOf(workspace, key);
+    if (!domain) return;
+    await options.domains?.saas.remove(domain.cf_id);
+    await options.bucket?.delete(`domains/${domain.hostname}.json`);
+    db.prepare("DELETE FROM hosted_domains WHERE hostname = ?").run(domain.hostname);
+  }
+
+  /** The app's own domain: GET reads it (and its certificate's progress), PUT {hostname} sets it, DELETE removes it. */
+  async function domainSetting(res: ServerResponse, app: AppRow, method: string, input: { hostname?: unknown }): Promise<void> {
+    const current = domainOf(app.workspace, app.key);
+    if (method === "GET") {
+      if (!current) return reply(res, 200, { domain: null });
+      const fresh = options.domains ? await options.domains.saas.get(current.cf_id).catch(() => null) : null;
+      if (fresh && (fresh.status !== current.status || fresh.detail !== current.detail)) {
+        db.prepare("UPDATE hosted_domains SET status = ?, detail = ? WHERE hostname = ?").run(fresh.status, fresh.detail, current.hostname);
+      }
+      return reply(res, 200, { domain: domainView(domainOf(app.workspace, app.key)!) });
+    }
+    if (!options.domains) return reply(res, 503, { error: "domains_unavailable" });
+    if (method === "DELETE") { await dropDomain(app.workspace, app.key); return reply(res, 200, { domain: null }); }
+    if (method !== "PUT") return reply(res, 405, { error: "failed" });
+    const hostname = customHostname(input.hostname, options.sitesSuffix);
+    if (!hostname) return reply(res, 400, { error: "invalid_domain" });
+    if (current?.hostname === hostname) return reply(res, 200, { domain: domainView(current) });
+    const taken = db.prepare("SELECT 1 FROM hosted_domains WHERE hostname = ?").get(hostname);
+    if (taken) return reply(res, 409, { error: "domain_taken" });
+    let created;
+    try { created = await options.domains.saas.create(hostname); } catch (error) {
+      return reply(res, (error as { code?: string }).code === "domain_taken" ? 409 : 502, { error: (error as { code?: string }).code === "domain_taken" ? "domain_taken" : "domain_failed" });
+    }
+    await dropDomain(app.workspace, app.key);
+    db.prepare("INSERT INTO hosted_domains (hostname, workspace, key, cf_id, status, detail, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+      .run(hostname, app.workspace, app.key, created.id, created.status, created.detail, now());
+    await options.bucket!.put(`domains/${hostname}.json`, new TextEncoder().encode(JSON.stringify({ label: app.label })), "application/json");
+    return reply(res, 200, { domain: domainView(domainOf(app.workspace, app.key)!) });
   }
 
   const latestVersion = (workspace: string, key: string) => (db.prepare("SELECT MAX(version) AS version FROM hosted_versions WHERE workspace = ? AND key = ?").get(workspace, key) as { version: number | null } | undefined)?.version ?? 0;
@@ -162,15 +212,16 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
   }
 
   /** An app's versions (GET versions), putting an earlier one back (POST rollback {version?}), and its password (PUT password {password|null}). */
-  async function appSetting(res: ServerResponse, workspace: string, key: string, what: "versions" | "rollback" | "password", method: string, req: IncomingMessage): Promise<void> {
+  async function appSetting(res: ServerResponse, workspace: string, key: string, what: "versions" | "rollback" | "password" | "domain", method: string, req: IncomingMessage): Promise<void> {
     const app = KEY.test(key) ? row(workspace, key) : undefined;
     if (!app) return reply(res, 404, { error: "app_not_found" });
     if (app.state === "taken_down") return reply(res, 403, { error: "app_taken_down" });
     const history = versions(workspace, key);
     const listed = () => history.map((one) => ({ version: one.version, publishedAt: new Date(one.published_at).toISOString(), files: (JSON.parse(one.files) as unknown[]).length }));
     if (what === "versions") return method === "GET" ? reply(res, 200, { versions: listed(), current: history[0]?.version ?? null }) : reply(res, 405, { error: "failed" });
-    let input: { version?: unknown; password?: unknown };
+    let input: { version?: unknown; password?: unknown; hostname?: unknown };
     try { input = JSON.parse((await body(req, 4_096)).toString("utf8") || "{}") as typeof input; } catch { return reply(res, 400, { error: "failed" }); }
+    if (what === "domain") return domainSetting(res, app, method, input);
     if (what === "rollback") {
       if (method !== "POST") return reply(res, 405, { error: "failed" });
       const target = input.version === undefined ? history[1] : history.find((one) => one.version === input.version);
@@ -202,6 +253,7 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
       const app = db.prepare("SELECT * FROM hosted_apps WHERE label = ?").get(label) as AppRow | undefined;
       if (!app) return null;
       if (options.bucket) await options.bucket.delete(`sites/${app.label}.json`);
+      await dropDomain(app.workspace, app.key).catch(() => {});
       db.prepare("UPDATE hosted_apps SET state = 'taken_down', pending = NULL WHERE label = ?").run(label);
       return { workspace: app.workspace, key: app.key };
     },
@@ -217,8 +269,8 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
 
       if (path === "apps" && method === "GET") return reply(res, 200, { apps: rows(workspace).map(view), allowance: allowance(workspace, access.plan) });
 
-      const extra = /^apps\/([^/]+)\/(versions|rollback|password)$/.exec(path);
-      if (extra) return appSetting(res, workspace, decodeURIComponent(extra[1]!), extra[2] as "versions" | "rollback" | "password", method, req);
+      const extra = /^apps\/([^/]+)\/(versions|rollback|password|domain)$/.exec(path);
+      if (extra) return appSetting(res, workspace, decodeURIComponent(extra[1]!), extra[2] as "versions" | "rollback" | "password" | "domain", method, req);
 
       const match = /^apps\/([^/]+)(?:\/files\/([^/]+))?$/.exec(path);
       const key = match ? decodeURIComponent(match[1]!) : "";
@@ -247,6 +299,7 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
       if (method === "DELETE") {
         if (!existing) return reply(res, 404, { error: "app_not_found" });
         await options.bucket.delete(`sites/${existing.label}.json`);
+        await dropDomain(workspace, key);
         db.prepare("DELETE FROM hosted_apps WHERE workspace = ? AND key = ?").run(workspace, key);
         return reply(res, 200, { deleted: true });
       }
