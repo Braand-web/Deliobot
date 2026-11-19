@@ -124,9 +124,8 @@ export function PluginsPanel() {
   const [status, setStatus] = useState<Record<string, ConnectorStatus>>(
     () => connectorStatusMemory()?.services ?? readCachedInventory()?.services ?? {},
   );
-  const [stale, setStale] = useState(
-    connectorStatusMemory()?.authoritative === false,
-  );
+  const remembered = connectorStatusMemory();
+  const [stale, setStale] = useState<false | "service" | "store">(remembered?.authoritative === false && (remembered.storeUnreadable ? "store" : "service"));
   const [pendingUrls, setPendingUrls] = useState<Record<string, PendingAuthorization>>({});
   const [aliasSlug, setAliasSlug] = useState<string | null>(null);
   const [aliasDraft, setAliasDraft] = useState("");
@@ -194,8 +193,8 @@ export function PluginsPanel() {
     const requestGenerations = new Map(statusGenerations.current);
     setRefreshing(true);
     return preloadConnectedApps(force)
-      .then(({ services, authoritative, refused }) => {
-        setStale(!authoritative);
+      .then(({ services, authoritative, refused, storeUnreadable: unreadable }) => {
+        setStale(!authoritative && (unreadable ? "store" : "service"));
         if (refused) setError({ key: "connectors.adminOnly" });
         setStatus((current) => mergeCompleteConnectorStatus(
           current,
@@ -419,7 +418,7 @@ export function PluginsPanel() {
   const connectedCount = Object.values(status).filter(hasActiveConnection).length + connectedHosted.length + ownServers.filter(mcpServerConnected).length + Number(emailConnected === true) + Number(xConnected === true) + Number(postizConnected === true);
   const connectedEmptyCopy = connectedInventoryCopy(inventoryPhase);
   const close = () => dispatch({ type: "togglePlugins", open: false });
-  const setupNotice = connectorSetupNotice({ configured, stale, setup, remoteClient });
+  const setupNotice = connectorSetupNotice({ configured, stale: Boolean(stale), setup, remoteClient });
   const chooseFilter = (next: AppsFilter) => {
     setCategory(null);
     if (next === "mcp") {
@@ -586,7 +585,7 @@ export function PluginsPanel() {
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-7 sm:px-7">
-          {stale ? (
+          {stale === "store" ? (
             <div className="mb-3 flex items-start gap-2 rounded-xl bg-warning/10 px-3 py-2 text-[13px] text-warning">
               <TriangleAlert size={14} className="mt-px shrink-0" />
               <span>

@@ -25,7 +25,8 @@ export function delioLinked(installation: InstallationRow, env: Env, now = Date.
 
 /** POST /v1/installation/delio: confirms the app's Deliobot account with the portal and records it on the installation.
  *  Security: the device token is only forwarded to the configured portal and never stored here. */
-export async function linkDelioAccount(request: Request, installation: InstallationRow, env: Env, fetchImpl: typeof fetch = fetch): Promise<Response> {
+export async function linkDelioAccount(request: Request, installation: InstallationRow, env: Env, fetchImpl?: typeof fetch): Promise<Response> {
+  const send: typeof fetch = fetchImpl ?? (env.PORTAL ? (input, init) => env.PORTAL!.fetch(input as RequestInfo, init) : fetch);
   const portal = env.DELIO_PORTAL_URL?.trim().replace(/\/+$/, "");
   if (!portal || !/^https:\/\/[^/]+$/.test(portal)) return json({ error: "Deliobot accounts are not set up on this service." }, 503);
   const parsed = linkSchema.safeParse(await request.json().catch(() => null));
@@ -33,12 +34,13 @@ export async function linkDelioAccount(request: Request, installation: Installat
   const { workspace, token } = parsed.data;
   let status = 0;
   try {
-    const answer = await fetchImpl(`${portal}/api/workspace/${workspace}/account`, {
-      headers: { authorization: `Bearer ${token}`, accept: "application/json" }, redirect: "error", signal: AbortSignal.timeout(10_000),
+    const answer = await send(`${portal}/api/workspace/${workspace}/account`, {
+      headers: { authorization: `Bearer ${token}`, accept: "application/json" }, redirect: "manual", signal: AbortSignal.timeout(10_000),
     });
     status = answer.status;
     await answer.body?.cancel();
-  } catch {
+  } catch (error) {
+    console.warn(JSON.stringify({ message: "Deliobot portal unreachable", error: error instanceof Error ? `${error.name}: ${error.message}` : String(error) }));
     return json({ error: "Deliobot could not be reached. Try again in a moment." }, 503);
   }
   if (status !== 200) return json({ error: DELIO_ACCOUNT_REQUIRED }, 403);

@@ -9,6 +9,7 @@ import type { ConnectorStatus } from "@/lib/connector-status";
 let cachedConnectorStatus: Record<string, ConnectorStatus> | null = null;
 let cachedConnectorStatusAt = 0;
 let cachedConnectorStatusAuthoritative = true;
+let cachedStoreUnreadable = false;
 let connectorStatusRequest: Promise<ConnectorInventory> | null = null;
 const CONNECTOR_STATUS_CACHE_MS = 30_000;
 
@@ -16,15 +17,18 @@ export interface ConnectorInventory {
   services: Record<string, ConnectorStatus>;
   /** false when the server could not read the credential store: nothing may be cleared on the strength of it. */
   authoritative: boolean;
+  /** The reason it is not authoritative is the credential store itself, rather than the connected-apps service. */
+  storeUnreadable?: boolean;
   /** This session may not see the connected apps: its role, not the credential store. */
   refused?: true;
 }
 
 const REFUSED_INVENTORY: ConnectorInventory = { services: {}, authoritative: true, refused: true };
 
-function unavailableInventory(fallback: Record<string, ConnectorStatus> = {}): ConnectorInventory {
+function unavailableInventory(fallback: Record<string, ConnectorStatus> = {}, storeUnreadable = false): ConnectorInventory {
   cachedConnectorStatusAuthoritative = false;
-  return { services: cachedConnectorStatus ?? readCachedInventory()?.services ?? fallback, authoritative: false };
+  cachedStoreUnreadable = storeUnreadable;
+  return { services: cachedConnectorStatus ?? readCachedInventory()?.services ?? fallback, authoritative: false, ...(storeUnreadable ? { storeUnreadable } : {}) };
 }
 
 export function preloadConnectedApps(force = false, background = false): Promise<ConnectorInventory> { // background: src/state/api.ts
@@ -32,6 +36,7 @@ export function preloadConnectedApps(force = false, background = false): Promise
     return Promise.resolve({
       services: cachedConnectorStatus,
       authoritative: cachedConnectorStatusAuthoritative,
+      ...(!cachedConnectorStatusAuthoritative && cachedStoreUnreadable ? { storeUnreadable: true } : {}),
     });
   }
   if (connectorStatusRequest) return connectorStatusRequest;
@@ -41,11 +46,12 @@ export function preloadConnectedApps(force = false, background = false): Promise
       if (!response) return REFUSED_INVENTORY;
       const services: Record<string, ConnectorStatus> = response.services ?? {};
       if (response.credentialStore === "unavailable" || response.inventoryComplete === false) {
-        return unavailableInventory(services);
+        return unavailableInventory(services, response.credentialStore === "unavailable");
       }
       cachedConnectorStatus = services;
       cachedConnectorStatusAt = Date.now();
       cachedConnectorStatusAuthoritative = true;
+      cachedStoreUnreadable = false;
       writeCachedInventory(services, Date.now());
       return { services, authoritative: true };
     })
@@ -57,8 +63,9 @@ export function preloadConnectedApps(force = false, background = false): Promise
 }
 
 /** What the Apps panel starts from: the last answer this page holds, if any. */
-export function connectorStatusMemory(): { services: Record<string, ConnectorStatus>; authoritative: boolean } | null {
-  return cachedConnectorStatus === null ? null : { services: cachedConnectorStatus, authoritative: cachedConnectorStatusAuthoritative };
+export function connectorStatusMemory(): { services: Record<string, ConnectorStatus>; authoritative: boolean; storeUnreadable?: true } | null {
+  return cachedConnectorStatus === null ? null : { services: cachedConnectorStatus, authoritative: cachedConnectorStatusAuthoritative,
+    ...(!cachedConnectorStatusAuthoritative && cachedStoreUnreadable ? { storeUnreadable: true as const } : {}) };
 }
 
 /** The Apps panel's own reads land here, so the next preload within 30 s reuses them. */

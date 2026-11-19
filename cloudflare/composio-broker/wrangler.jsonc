@@ -13,6 +13,7 @@
     "REQUIRE_DELIO": "1",
     "DELIO_PORTAL_URL": "https://compte.deliobot.fun"
   },
+  "services": [{ "binding": "PORTAL", "service": "deliobot-portal" }],
   "d1_databases": [
     {
       "binding": "DB",

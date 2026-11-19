@@ -688,9 +688,11 @@ describe("Apps pop-up", () => {
   it("keeps the stale notice reachable and no longer sends people to a settings page for per-bot access", () => {
     fixture.instances = [claude];
     fixture.bots = [bot("scout", { composio: false })];
-    fixture.overrides.set(7, true);
+    fixture.overrides.set(7, "store");
     let { html } = render();
     expect(html).toContain("Showing what was connected last time");
+    fixture.overrides.set(7, "service");
+    expect(render().html).not.toContain("Showing what was connected last time");
     fixture.overrides.set(7, false);
     ({ html } = render());
     expect(html).not.toContain("Settings → Access");

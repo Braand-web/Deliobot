@@ -27,7 +27,7 @@ describe("connected app refresh failures", () => {
     const { rememberConnectorStatus, preloadConnectedApps } = await import("./connected-apps");
     rememberConnectorStatus(current, true);
     fixture.api.mockResolvedValue({ ...outage, services: {} });
-    expect(await preloadConnectedApps(true)).toEqual({ services: current, authoritative: false });
+    expect(await preloadConnectedApps(true)).toEqual({ services: current, authoritative: false, ...("credentialStore" in outage ? { storeUnreadable: true } : {}) });
     expect(fixture.write).not.toHaveBeenCalled();
   });
 

@@ -175,11 +175,10 @@ async function brokerRequest(path: string, init?: RequestInit, broker = brokerAc
   const headers = new Headers(init?.headers);
   headers.set("authorization", `Bearer ${broker.token}`);
   if (init?.body) headers.set("content-type", "application/json");
-  return fetch(`${broker.url}${path}`, {
-    ...init,
-    headers,
-    signal: init?.signal ?? AbortSignal.timeout(30_000),
-  });
+  const send = () => fetch(`${broker.url}${path}`, { ...init, headers, signal: init?.signal ?? AbortSignal.timeout(30_000) });
+  const res = await send();
+  if (res.status !== 403 || !/delio_account_required|need a Deliobot account/.test(await res.clone().text().catch(() => "")) || !(await relinkBroker())) return res;
+  return send();
 }
 
 async function throwBrokerError(res: Response, fallback: string): Promise<never> {
@@ -937,7 +936,6 @@ export async function listToolkits(cfg: AppConfig): Promise<{ cards: ToolkitCard
           : await brokerRequest(cursor ? `/v1/catalog?cursor=${encodeURIComponent(cursor)}` : "/v1/catalog", {
               signal: AbortSignal.timeout(15_000),
             });
-        if (!backendKey && res.status === 403 && page === 0 && await relinkBroker()) res = await brokerRequest("/v1/catalog", { signal: AbortSignal.timeout(15_000) });
         if (!res.ok) {
           stop = "http-error";
           break;

@@ -14,4 +14,7 @@ interface Env {
   REQUIRE_DELIO?: string;
   /** The Deliobot portal that confirms accounts, e.g. https://compte.deliobot.fun. */
   DELIO_PORTAL_URL?: string;
+  /** Service binding to the portal Worker: Cloudflare does not route a Worker's fetch to another Worker on the same zone
+   *  by its public hostname, so the account check goes through this binding when it is configured. */
+  PORTAL?: Fetcher;
 }
