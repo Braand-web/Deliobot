@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { createIncludedHosting, HostingRefusal } from "../../../server/host/included-hosting.ts";
-import { createAppHosting, sitePath, type HostingAccess, type SiteBucket, type SiteManifest } from "./app-hosting.ts";
+import { createAppHosting, PASSWORD_ITERATIONS, siteAuth, sitePath, VERSIONS_KEPT, type HostingAccess, type SiteBucket, type SiteManifest } from "./app-hosting.ts";
 import { nodeDatabase } from "./sql-node.ts";
 
 const cleanups: Array<() => void> = [];
@@ -72,6 +72,43 @@ describe("included app hosting", () => {
     expect(apps.map((one) => one.key)).toEqual(["app-one"]);
     expect(allowance.apps).toEqual({ used: 1, max: 2 });
     expect(allowance.publishes.used).toBe(1);
+  });
+
+  it("keeps each publish as a version, puts an earlier one back, and guards an app with a password", async () => {
+    const { client, objects } = relay();
+    const publish = async (site: Record<string, string>) => {
+      const started = await client.start("app-one", { title: "Boutique", files: files(site) });
+      for (const sha of started.required) await client.upload("app-one", sha, Buffer.from(Object.values(site).find((text) => sha1(text) === sha)!));
+    };
+    await publish({ "index.html": "v1" });
+    await publish({ "index.html": "v2", "new.html": "n" });
+    expect((await client.app("app-one")).version).toBe(2);
+    expect((await client.versions("app-one")).map((one) => [one.version, one.files])).toEqual([[2, 2], [1, 1]]);
+    const label = new URL((await client.app("app-one")).url!).hostname.split("-")[0]!;
+    const served = () => JSON.parse(new TextDecoder().decode(objects.get(`sites/${label}.json`))) as SiteManifest;
+
+    const back = await client.rollback("app-one");
+    expect(back.restored).toBe(1);
+    expect(back.app.version).toBe(3);
+    expect(Object.keys(served().files)).toEqual(["index.html"]);
+    expect(served().files["index.html"]!.sha1).toBe(sha1("v1"));
+    expect((await client.list()).allowance.publishes.used).toBe(2);
+    await expect(client.rollback("app-one", 99)).rejects.toMatchObject({ code: "not_found" });
+
+    const guarded = await client.setPassword("app-one", "a long secret");
+    expect(guarded.visibility).toBe("private");
+    expect(served().auth).toMatchObject({ iterations: PASSWORD_ITERATIONS });
+    expect(served().auth!.hash).toBe(siteAuth("a long secret", served().auth!.salt).hash);
+    await publish({ "index.html": "v4" });
+    expect(served().auth).toBeTruthy();
+    await expect(client.setPassword("app-one", "short")).rejects.toBeInstanceOf(HostingRefusal);
+    expect((await client.setPassword("app-one", null)).visibility).toBe("public");
+    expect(served().auth).toBeUndefined();
+
+    for (let i = 5; i <= 14; i += 1) await publish({ "index.html": `v${i}` });
+    const kept = await client.versions("app-one");
+    expect(kept).toHaveLength(VERSIONS_KEPT);
+    expect(kept.at(-1)!.version).toBe(5);
   });
 
   it("refuses a file whose bytes are not the ones announced", async () => {

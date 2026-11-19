@@ -1390,7 +1390,7 @@
     },
     {
       "name": "publish_app",
-      "description": "Put a site or simple app you built online on the hosting the person's Cloud plan includes: static files, no account or token. The link is public at once: publish only after the person saw or was told what it is and said yes. The same project published again keeps its link. action delete takes the app down for good, only when the person asks. Follow the publish-to-netlify skill; when the plan can't take the app, offer the person's own Netlify account.",
+      "description": "Put a site or app you built online on the hosting the person's Cloud plan includes: static files, no account or token; a folder with a build script is built first. The link is public at once: publish only after the person saw or was told what it is and said yes. Publishing the same project again keeps its link as a new version; rollback puts an earlier one back. protect makes the app ask a password, given to you once for the person; unprotect opens it. delete takes it down for good, only when the person asks. Follow the publish-to-netlify skill; when the plan can't take the app, offer the person's own Netlify account.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -1399,13 +1399,16 @@
             "type": "string",
             "enum": [
               "publish",
+              "rollback",
+              "protect",
+              "unprotect",
               "delete"
             ],
-            "description": "publish (default) or delete."
+            "description": "Default publish."
           },
           "path": {
             "type": "string",
-            "description": "The folder to publish: the built output, with index.html at its top. A relative path is looked for in your shared bot folder first (sites/<app>), so every conversation names the same app."
+            "description": "The folder to publish: one with index.html at its top, or a project with a build script. A relative path is looked for in your shared bot folder first (sites/<app>), so every conversation names the same app."
           },
           "project": {
             "type": "string",
@@ -1415,6 +1418,10 @@
             "type": "string",
             "maxLength": 120,
             "description": "publish: what the app is, in a few words."
+          },
+          "version": {
+            "type": "integer",
+            "description": "rollback: which one, from check_app_hosting."
           }
         },
         "required": [
@@ -1424,7 +1431,7 @@
     },
     {
       "name": "check_app_hosting",
-      "description": "Read the plan's included app hosting: how many of its apps and this month's publishes are in use (\"3 of 10\") and its size limits. Without path, also the projects already published from your folders: look there before starting a new one. With path, how the app published from that folder is doing. Changes nothing.",
+      "description": "Read the plan's included app hosting: how many of its apps and this month's publishes are in use (\"3 of 10\") and its size limits. Without path, also the projects already published from your folders: look there before starting a new one. With path, how the app published from that folder is doing, and its kept versions. Changes nothing.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,

@@ -13,6 +13,7 @@ import { canonicalRoots, containedBy, readContained } from "../pages/bundle.ts";
 import { inSecretFolder, SECRET_FILE_REFUSAL } from "../secret-folder.ts";
 import { HostingRefusal, megabytes, OWN_NETLIFY, type HostedApp, type HostingAllowance, type IncludedHosting } from "./included-hosting.ts";
 import { findNetlifySites, readSite, SITE_FILE } from "./netlify-sites.ts";
+import { buildForPublish } from "./app-build.ts";
 
 /** Must match `SECRET_NAMES`, `SKIPPED_FOLDERS` and `SKIPPED_FILES` in skills/publish-to-netlify/deploy.mjs. */
 const SECRET_NAMES = [
@@ -230,7 +231,11 @@ export function createAppPublisher(deps: AppPublisherDeps) {
       try {
         const title = oneLine(input.title ?? "", 120);
         if (!title) throw new HostingRefusal("failed", "title is required: what the app is, in a few words.");
-        const { dir, project, key } = await place(input);
+        const placed = await place(input);
+        const { project, key } = placed;
+        const build = await buildForPublish(placed.dir, turn.signal ? { signal: turn.signal } : {});
+        if ("error" in build) throw new HostingRefusal("failed", build.error);
+        const dir = build.dir;
         const existing = await readSite(join(project, SITE_FILE), deps.env);
         if (existing && !existing.hosting) {
           throw new HostingRefusal("failed", `This project is already published on the person's own Netlify account (${existing.url}). Keep updating it there with deploy.mjs, so its link stays the same.`);
@@ -263,7 +268,7 @@ export function createAppPublisher(deps: AppPublisherDeps) {
           app = await hosting.app(key, turn.signal);
         }
         const outcome = await settle(app, project, input, existing, true);
-        const common = { created: started.created, files: files.length, uploaded: started.required.length, bytes, skipped, ...said(started.allowance) };
+        const common = { created: started.created, files: files.length, uploaded: started.required.length, bytes, skipped, ...(build.built ? { built: build.built } : {}), ...said(started.allowance) };
         if (app.state === "failed") {
           return { status: 502, body: { error: "Included hosting could not process this publish, so the app is not live (an earlier version stays up if there was one). Try once more; if it fails again, say so.", code: "failed", ...common } };
         }
@@ -297,7 +302,38 @@ export function createAppPublisher(deps: AppPublisherDeps) {
         const app = await hosting.app(key);
         const existing = await readSite(join(project, SITE_FILE), deps.env);
         const outcome = await settle(app, project, { ...input, path: folder }, existing, false);
-        return { status: 200, body: { ok: true, title: app.title, ...outcome, ...(app.state === "taken_down" ? { message: "This app was taken down by Delio. Its link no longer works." } : {}), ...included } };
+        const versions = await hosting.versions(key).catch(() => []);
+        return { status: 200, body: { ok: true, title: app.title, ...outcome, ...(app.version ? { version: app.version } : {}), ...(app.visibility === "private" ? { passwordProtected: true } : {}),
+          versions: versions.map((one) => ({ version: one.version, publishedAt: one.publishedAt === null ? null : iso(one.publishedAt), files: one.files })), ...(app.state === "taken_down" ? { message: "This app was taken down by Delio. Its link no longer works." } : {}), ...included } };
+      } catch (error) {
+        return refused(error);
+      }
+    },
+
+    /** Serves an earlier version of the app published from this folder; without `version`, the one before the current. */
+    async rollback(input: Omit<AppPublishInput, "title"> & { version?: number }): Promise<AppPublishAnswer> {
+      try {
+        const project = await locateFolder(input.project?.trim() || input.path, folders(input), "path");
+        const key = await hosting.keyFor(input.botId, project);
+        const { app, restored } = await hosting.rollback(key, input.version);
+        return { status: 200, body: { ok: true, url: app.url, title: app.title, restored, version: app.version ?? null,
+          message: `Version ${restored ?? "earlier"} is live again at the same link, as version ${app.version ?? "new"}. Publishing again goes on from there.` } };
+      } catch (error) {
+        return refused(error);
+      }
+    },
+
+    /** protect: the app asks a new random password before it opens, returned once for the bot to give the person.
+     * unprotect: anyone with the link opens it again. */
+    async protect(input: Omit<AppPublishInput, "title">, on: boolean): Promise<AppPublishAnswer> {
+      try {
+        const project = await locateFolder(input.project?.trim() || input.path, folders(input), "path");
+        const key = await hosting.keyFor(input.botId, project);
+        const password = on ? randomBytes(12).toString("base64url") : null;
+        const app = await hosting.setPassword(key, password);
+        return { status: 200, body: on
+          ? { ok: true, url: app.url, passwordProtected: true, password, message: "The app now asks this password before it opens. Give it to the person now: it is not shown again; protecting it again makes a new one." }
+          : { ok: true, url: app.url, passwordProtected: false, message: "The app opens again for anyone with the link." } };
       } catch (error) {
         return refused(error);
       }

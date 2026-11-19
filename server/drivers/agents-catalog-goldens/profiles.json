@@ -1631,8 +1631,8 @@
     ]
   },
   "skills+shared+voice+x+team+images+hosting": {
-    "bytes": 72232,
-    "sha256": "c059c5b866a3eec07cadde97c62cc333c6c51a414ff5e60a2af7e8e1b27d5c94",
+    "bytes": 72557,
+    "sha256": "dea8cf71bf22f19d55995be43fc0bf9d345cfcf9eaed9c465e2481c1fb104582",
     "tools": [
       "tool_result_read",
       "list_shared_computers",
@@ -1702,8 +1702,8 @@
     ]
   },
   "default+hosting": {
-    "bytes": 61000,
-    "sha256": "8321dd98e09bc6d2011946aa1116cb1d487f813445613335898717e2f29ce3c9",
+    "bytes": 61325,
+    "sha256": "2c89943106f20efd20bbdf989dbaeb2f78722cd34aa4d84c93fd79baa86d5ceb",
     "tools": [
       "tool_result_read",
       "list_room_targets",

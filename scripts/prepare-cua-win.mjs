@@ -73,19 +73,17 @@ async function officialBinary() {
   }
   const archive = join(cache, release.file);
   await writeFile(archive, bytes);
-  for (let attempt = 1; attempt <= 2 && !existsSync(cachedBinary); attempt += 1) {
-    if (attempt > 1) {
-      console.warn("CUA Driver: cua-driver.exe missing after extraction; extracting again.");
-      await new Promise((done) => setTimeout(done, 15_000));
-    }
-    await run("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command",
-      "Expand-Archive -Force -LiteralPath $env:ODB_CUA_ARCHIVE -DestinationPath $env:ODB_CUA_EXTRACT"], {
-      env: { ...process.env, ODB_CUA_ARCHIVE: archive, ODB_CUA_EXTRACT: cache },
-      timeout: 60_000,
-      windowsHide: true,
-    });
+  const extractors = [
+    ["powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", "Expand-Archive -Force -LiteralPath $env:ODB_CUA_ARCHIVE -DestinationPath $env:ODB_CUA_EXTRACT"]],
+    [join(process.env.SystemRoot ?? "C:\\Windows", "System32", "tar.exe"), ["-xf", archive, "-C", cache]],
+  ];
+  for (const [file, args] of extractors) {
+    if (existsSync(cachedBinary)) break;
+    const said = await run(file, args, { env: { ...process.env, ODB_CUA_ARCHIVE: archive, ODB_CUA_EXTRACT: cache }, timeout: 120_000, windowsHide: true })
+      .then(({ stdout, stderr }) => `${stdout}${stderr}`, (error) => String(error?.stderr || error?.message || error));
     const nested = (await readdir(cache, { recursive: true })).find((entry) => basename(entry).toLowerCase() === "cua-driver.exe");
     if (!existsSync(cachedBinary) && nested) await copyFile(join(cache, nested), cachedBinary);
+    if (!existsSync(cachedBinary)) console.warn(`CUA Driver: ${basename(file)} left no cua-driver.exe (${said.trim().slice(0, 500) || "no output"}); found: ${(await readdir(cache)).join(", ")}`);
   }
   if (!existsSync(cachedBinary)) throw new Error(`CUA Driver archive ${release.file} has no cua-driver.exe`);
   const reported = await binaryVersion(cachedBinary, 3);

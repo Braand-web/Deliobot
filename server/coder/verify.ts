@@ -11,14 +11,14 @@ const SCRIPT_ORDER = ["typecheck", "lint", "test", "build"] as const;
 export interface CheckResult { command: string; ok: boolean; output: string; timedOut?: boolean }
 export interface CheckRun { ok: boolean; results: CheckResult[] }
 
-function packageManager(cwd: string): string {
+export function packageManager(cwd: string): string {
   if (existsSync(join(cwd, "pnpm-lock.yaml"))) return "pnpm";
   if (existsSync(join(cwd, "yarn.lock"))) return "yarn";
   if (existsSync(join(cwd, "bun.lockb")) || existsSync(join(cwd, "bun.lock"))) return "bun";
   return "npm";
 }
 
-function packageScripts(cwd: string): Record<string, unknown> {
+export function packageScripts(cwd: string): Record<string, unknown> {
   try {
     const parsed = JSON.parse(readFileSync(join(cwd, "package.json"), "utf8")) as { scripts?: Record<string, unknown> };
     return parsed.scripts && typeof parsed.scripts === "object" ? parsed.scripts : {};
@@ -51,7 +51,20 @@ export function trimOutput(text: string, limit = CHECK_OUTPUT_LIMIT): string {
   return `${clean.slice(0, head)}\n…\n${clean.slice(clean.length - (limit - head))}`;
 }
 
-function shellFor(command: string): [string, string[]] {
+const PROJECT_ENV_KEYS = new Set([
+  "PATH", "PATHEXT", "HOME", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "PROGRAMDATA", "SYSTEMROOT", "WINDIR", "COMSPEC", "TEMP", "TMP", "TMPDIR",
+  "LANG", "LC_ALL", "LC_CTYPE", "SHELL", "USER", "USERNAME", "LOGNAME", "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "ALL_PROXY",
+  "NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE", "NPM_CONFIG_CACHE", "XDG_CACHE_HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME",
+]);
+
+/** Security: a project's own commands get what a build needs, never the server's own settings or keys. */
+export function projectCommandEnv(base: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = {};
+  for (const [key, value] of Object.entries(base)) if (value !== undefined && PROJECT_ENV_KEYS.has(key.toUpperCase())) env[key] = value;
+  return { ...env, CI: "1", FORCE_COLOR: "0" };
+}
+
+export function shellFor(command: string): [string, string[]] {
   return process.platform === "win32" ? [process.env.ComSpec || "cmd.exe", ["/d", "/s", "/c", command]] : ["/bin/sh", ["-c", command]];
 }
 
@@ -62,7 +75,7 @@ export async function runChecks(cwd: string, commands: readonly string[], opts: 
     const [file, args] = shellFor(command);
     try {
       const { stdout, stderr } = await execFileInGroupAsync(file, args, {
-        cwd, env: { ...process.env, CI: "1", FORCE_COLOR: "0" }, timeout: opts.timeoutMs ?? CHECK_TIMEOUT_MS, maxBuffer: 4 * 1024 * 1024, signal: opts.signal,
+        cwd, env: projectCommandEnv(), timeout: opts.timeoutMs ?? CHECK_TIMEOUT_MS, maxBuffer: 4 * 1024 * 1024, signal: opts.signal,
       });
       results.push({ command, ok: true, output: trimOutput(`${stdout}\n${stderr}`, 1_000) });
     } catch (error) {

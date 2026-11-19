@@ -12,6 +12,8 @@ function fakePublisher() {
     status: vi.fn(async () => ({ status: 200 as const, body: { ok: true, apps: "3 of 10" } })),
     remove: vi.fn(async () => ({ status: 409 as const, body: { error: "Nothing is published from this folder on the plan's included hosting.", code: "not_found" } })),
     removeByKey: vi.fn(async () => {}),
+    rollback: vi.fn(async () => ({ status: 200 as const, body: { ok: true, restored: 1 } })),
+    protect: vi.fn(async () => ({ status: 200 as const, body: { ok: true, passwordProtected: true } })),
   } satisfies AppPublisher;
 }
 
@@ -54,7 +56,7 @@ describe("publish_app's internal route", () => {
   it("refuses a body that is not the tool's, before anything is read", async () => {
     const publisher = fakePublisher();
     for (const body of [{ action: "make-public", path: "shop" }, { path: 5 }, { path: "x".repeat(5000) }, { path: "shop", title: ["a"] }]) {
-      expect(await call(publisher, { body }), JSON.stringify(body).slice(0, 60)).toMatchObject({ status: 400, body: { error: "publish_app takes action (publish or delete), path, project and title, all text." } });
+      expect(await call(publisher, { body }), JSON.stringify(body).slice(0, 60)).toMatchObject({ status: 400, body: { error: "publish_app takes action (publish, delete, rollback, protect or unprotect), path, project and title as text, and version as a number." } });
     }
     expect(publisher.publish).not.toHaveBeenCalled();
   });

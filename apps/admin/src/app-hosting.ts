@@ -5,7 +5,7 @@
 // Security: a site is served on its own subdomain, never on the portal's origin, so its pages cannot read the portal's
 // host-only session cookie, and the portal refuses forms from any other origin. Paths are plain relative names, checked
 // before they reach the bucket.
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, pbkdf2Sync, randomBytes } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 import type { Billing, PlanId } from "./plans.ts";
@@ -18,7 +18,16 @@ export interface SiteBucket {
   delete(key: string): Promise<void>;
 }
 
-export interface SiteManifest { workspace: string; key: string; files: Record<string, { sha1: string; type: string }> }
+/** `auth`: the app opens only after its password (PBKDF2-SHA256 of it, hex, with its salt); cloudflare/sites checks it. */
+export interface SiteManifest { workspace: string; key: string; version?: number; files: Record<string, { sha1: string; type: string }>; auth?: SiteAuth }
+export interface SiteAuth { salt: string; hash: string; iterations: number }
+
+export const VERSIONS_KEPT = 10;
+export const PASSWORD_ITERATIONS = 10_000;
+
+export function siteAuth(password: string, salt = randomBytes(16).toString("hex")): SiteAuth {
+  return { salt, hash: pbkdf2Sync(password, salt, PASSWORD_ITERATIONS, 32, "sha256").toString("hex"), iterations: PASSWORD_ITERATIONS };
+}
 
 export const HOSTING_LIMITS = { maxBytes: 25 * 1024 * 1024, maxFileBytes: 4 * 1024 * 1024, maxFiles: 500 } as const;
 /** Apps kept online at once, and publishes a month, per plan. A trial gets hosting with its first payment. */
@@ -61,7 +70,8 @@ export function sitePath(value: unknown): string | null {
   return parts.join("/");
 }
 
-interface AppRow { workspace: string; key: string; label: string; title: string; state: string; pending: string | null; created_at: number; published_at: number | null }
+interface AppRow { workspace: string; key: string; label: string; title: string; state: string; pending: string | null; created_at: number; published_at: number | null; auth: string | null }
+interface VersionRow { version: number; files: string; published_at: number }
 
 export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket | null; sitesSuffix: string; access: (workspace: string) => HostingAccess; now?: () => number }) {
   const { db } = options;
@@ -69,6 +79,9 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
   db.exec(`CREATE TABLE IF NOT EXISTS hosted_apps (workspace TEXT NOT NULL, key TEXT NOT NULL, label TEXT NOT NULL UNIQUE, title TEXT NOT NULL,
     state TEXT NOT NULL, pending TEXT, created_at INTEGER NOT NULL, published_at INTEGER, PRIMARY KEY (workspace, key))`);
   db.exec("CREATE TABLE IF NOT EXISTS hosted_publishes (workspace TEXT NOT NULL, month TEXT NOT NULL, count INTEGER NOT NULL, PRIMARY KEY (workspace, month))");
+  db.exec(`CREATE TABLE IF NOT EXISTS hosted_versions (workspace TEXT NOT NULL, key TEXT NOT NULL, version INTEGER NOT NULL, files TEXT NOT NULL,
+    published_at INTEGER NOT NULL, PRIMARY KEY (workspace, key, version))`);
+  if (!(db.prepare("PRAGMA table_info(hosted_apps)").all() as Array<{ name: string }>).some((column) => column.name === "auth")) db.exec("ALTER TABLE hosted_apps ADD COLUMN auth TEXT");
 
   const month = () => new Date(now()).toISOString().slice(0, 7);
   const nextMonth = () => { const at = new Date(now()); return new Date(Date.UTC(at.getUTCFullYear(), at.getUTCMonth() + 1, 1)).toISOString(); };
@@ -86,7 +99,8 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
   }
 
   const view = (app: AppRow) => ({
-    key: app.key, title: app.title, url: app.state === "ready" ? `https://${app.label}${options.sitesSuffix}/` : null, state: app.state, visibility: "public",
+    key: app.key, title: app.title, url: app.state === "ready" ? `https://${app.label}${options.sitesSuffix}/` : null, state: app.state, visibility: app.auth ? "private" : "public",
+    version: latestVersion(app.workspace, app.key),
     createdAt: new Date(app.created_at).toISOString(), publishedAt: app.published_at === null ? null : new Date(app.published_at).toISOString(),
   });
 
@@ -101,13 +115,32 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
     return wanted.filter((_, index) => !present[index]);
   }
 
-  async function finish(app: AppRow, files: Array<{ path: string; sha1: string }>): Promise<void> {
-    const manifest: SiteManifest = { workspace: app.workspace, key: app.key, files: Object.fromEntries(files.map((file) => [file.path, { sha1: file.sha1, type: contentType(file.path) }])) };
+  const latestVersion = (workspace: string, key: string) => (db.prepare("SELECT MAX(version) AS version FROM hosted_versions WHERE workspace = ? AND key = ?").get(workspace, key) as { version: number | null } | undefined)?.version ?? 0;
+  const versions = (workspace: string, key: string) => db.prepare("SELECT version, files, published_at FROM hosted_versions WHERE workspace = ? AND key = ? ORDER BY version DESC").all(workspace, key) as VersionRow[];
+
+  async function writeManifest(app: AppRow, files: Array<{ path: string; sha1: string }>, version: number): Promise<void> {
+    const manifest: SiteManifest = {
+      workspace: app.workspace, key: app.key, version, files: Object.fromEntries(files.map((file) => [file.path, { sha1: file.sha1, type: contentType(file.path) }])),
+      ...(app.auth ? { auth: JSON.parse(app.auth) as SiteAuth } : {}),
+    };
     await options.bucket!.put(`sites/${app.label}.json`, new TextEncoder().encode(JSON.stringify(manifest)), "application/json");
+  }
+
+  /** Records `files` as the app's next version, keeping the last VERSIONS_KEPT, and serves it. */
+  async function release(app: AppRow, files: Array<{ path: string; sha1: string; size?: number }>, counted: boolean): Promise<number> {
+    const version = latestVersion(app.workspace, app.key) + 1;
+    await writeManifest(app, files, version);
     db.transaction(() => {
+      db.prepare("INSERT INTO hosted_versions (workspace, key, version, files, published_at) VALUES (?, ?, ?, ?, ?)").run(app.workspace, app.key, version, JSON.stringify(files), now());
+      db.prepare("DELETE FROM hosted_versions WHERE workspace = ? AND key = ? AND version <= ?").run(app.workspace, app.key, version - VERSIONS_KEPT);
       db.prepare("UPDATE hosted_apps SET state = 'ready', pending = NULL, published_at = ? WHERE workspace = ? AND key = ?").run(now(), app.workspace, app.key);
-      db.prepare("INSERT INTO hosted_publishes (workspace, month, count) VALUES (?, ?, 1) ON CONFLICT (workspace, month) DO UPDATE SET count = count + 1").run(app.workspace, month());
+      if (counted) db.prepare("INSERT INTO hosted_publishes (workspace, month, count) VALUES (?, ?, 1) ON CONFLICT (workspace, month) DO UPDATE SET count = count + 1").run(app.workspace, month());
     });
+    return version;
+  }
+
+  async function finish(app: AppRow, files: Array<{ path: string; sha1: string }>): Promise<void> {
+    await release(app, files, true);
   }
 
   function reply(res: ServerResponse, status: number, body: unknown): void {
@@ -126,6 +159,35 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
       chunks.push(chunk);
     }
     return Buffer.concat(chunks);
+  }
+
+  /** An app's versions (GET versions), putting an earlier one back (POST rollback {version?}), and its password (PUT password {password|null}). */
+  async function appSetting(res: ServerResponse, workspace: string, key: string, what: "versions" | "rollback" | "password", method: string, req: IncomingMessage): Promise<void> {
+    const app = KEY.test(key) ? row(workspace, key) : undefined;
+    if (!app) return reply(res, 404, { error: "app_not_found" });
+    if (app.state === "taken_down") return reply(res, 403, { error: "app_taken_down" });
+    const history = versions(workspace, key);
+    const listed = () => history.map((one) => ({ version: one.version, publishedAt: new Date(one.published_at).toISOString(), files: (JSON.parse(one.files) as unknown[]).length }));
+    if (what === "versions") return method === "GET" ? reply(res, 200, { versions: listed(), current: history[0]?.version ?? null }) : reply(res, 405, { error: "failed" });
+    let input: { version?: unknown; password?: unknown };
+    try { input = JSON.parse((await body(req, 4_096)).toString("utf8") || "{}") as typeof input; } catch { return reply(res, 400, { error: "failed" }); }
+    if (what === "rollback") {
+      if (method !== "POST") return reply(res, 405, { error: "failed" });
+      const target = input.version === undefined ? history[1] : history.find((one) => one.version === input.version);
+      if (!target || target.version === history[0]?.version) return reply(res, 404, { error: "version_not_found", versions: listed() });
+      const files = JSON.parse(target.files) as Array<{ path: string; sha1: string }>;
+      if ((await missing(workspace, files)).length) return reply(res, 409, { error: "version_not_found", versions: listed() });
+      const version = await release(app, files, false);
+      return reply(res, 200, { app: view(row(workspace, key)!), restored: target.version, version });
+    }
+    if (method !== "PUT") return reply(res, 405, { error: "failed" });
+    const password = input.password;
+    if (password !== null && (typeof password !== "string" || password.length < 8 || password.length > 128)) return reply(res, 400, { error: "invalid_password" });
+    db.prepare("UPDATE hosted_apps SET auth = ? WHERE workspace = ? AND key = ?").run(password === null ? null : JSON.stringify(siteAuth(password)), workspace, key);
+    const updated = row(workspace, key)!;
+    const current = history[0];
+    if (current && updated.state === "ready") await writeManifest(updated, JSON.parse(current.files) as Array<{ path: string; sha1: string }>, current.version);
+    return reply(res, 200, { app: view(updated) });
   }
 
   return {
@@ -154,6 +216,9 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
       const method = req.method ?? "GET";
 
       if (path === "apps" && method === "GET") return reply(res, 200, { apps: rows(workspace).map(view), allowance: allowance(workspace, access.plan) });
+
+      const extra = /^apps\/([^/]+)\/(versions|rollback|password)$/.exec(path);
+      if (extra) return appSetting(res, workspace, decodeURIComponent(extra[1]!), extra[2] as "versions" | "rollback" | "password", method, req);
 
       const match = /^apps\/([^/]+)(?:\/files\/([^/]+))?$/.exec(path);
       const key = match ? decodeURIComponent(match[1]!) : "";

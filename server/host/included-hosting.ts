@@ -18,8 +18,10 @@ export interface HostedApp {
   title: string;
   url: string | null;
   state: HostedAppState;
-  /** Absent where every published app is public. */
+  /** Absent where every published app is public. "private": the app asks for a password. */
   visibility?: "private" | "public";
+  /** The version being served, counting every publish and rollback. */
+  version?: number;
   createdAt: number | null;
   publishedAt: number | null;
 }
@@ -62,6 +64,7 @@ const appSchema = z.object({
   url: z.string().max(2_000).nullable().optional().catch(undefined),
   state: z.string().max(40).optional().catch(undefined),
   visibility: z.string().max(40).optional().catch(undefined),
+  version: z.number().int().positive().optional().catch(undefined),
   createdAt: z.unknown().optional(), publishedAt: z.unknown().optional(),
 });
 const pair = z.object({ used: z.unknown().optional(), max: z.unknown().optional() }).optional().catch(undefined);
@@ -89,6 +92,7 @@ function readApp(value: unknown, standIn: string | null): HostedApp | null {
     key: app.key, title: (app.title ?? "").replace(/[\p{Cc}\s]+/gu, " ").trim().slice(0, 200), url: appAddress(app.url, standIn),
     state: STATES.has(app.state ?? "") ? app.state as HostedAppState : "processing",
     ...(app.visibility === "private" || app.visibility === "public" ? { visibility: app.visibility } : {}),
+    ...(app.version ? { version: app.version } : {}),
     createdAt: time(app.createdAt), publishedAt: time(app.publishedAt),
   };
 }
@@ -147,6 +151,10 @@ export function hostingRefusal(status: number, body: Record<string, unknown>): H
       return new HostingRefusal("busy", "Included hosting is busy right now. Try again in a few minutes.");
     case "app_not_found": case "not_found":
       return new HostingRefusal("not_found", "Nothing is published from this folder on the plan's included hosting.");
+    case "version_not_found":
+      return new HostingRefusal("not_found", "That version of the app is not kept any more (the last 10 publishes are). Read the versions with check_app_hosting.");
+    case "invalid_password":
+      return new HostingRefusal("failed", "A site password is 8 to 128 characters.");
     case "not_required": case "size_mismatch": case "digest_mismatch":
       return new HostingRefusal("failed", "A file changed while it was being published. Publish again.");
     default:
@@ -247,6 +255,27 @@ export function createIncludedHosting(deps: IncludedHostingDeps) {
         if (error instanceof HostingRefusal && (error.code === "not_found" || error.code === "failed")) return null;
         throw error;
       }
+    },
+
+    /** The kept versions, newest first. */
+    async versions(key: string): Promise<Array<{ version: number; publishedAt: number | null; files: number }>> {
+      const body = await relay("GET", `${at(key)}/versions`);
+      return (Array.isArray(body.versions) ? body.versions : []).flatMap((one) => {
+        const entry = one as { version?: unknown; publishedAt?: unknown; files?: unknown } | null;
+        const version = count(entry?.version);
+        return version ? [{ version, publishedAt: time(entry?.publishedAt), files: count(entry?.files) ?? 0 }] : [];
+      });
+    },
+
+    /** Serves an earlier version again as a new one; without `version`, the one before the current. */
+    async rollback(key: string, version?: number): Promise<{ app: HostedApp; restored: number | null }> {
+      const body = await relay("POST", `${at(key)}/rollback`, { json: version === undefined ? {} : { version } });
+      return { app: app(body.app), restored: count(body.restored) };
+    },
+
+    /** A password the app asks before it opens, or null to open it to anyone with the link. */
+    async setPassword(key: string, password: string | null): Promise<HostedApp> {
+      return app((await relay("PUT", `${at(key)}/password`, { json: { password } })).app);
     },
 
     /** An app the relay no longer has counts as deleted. */
