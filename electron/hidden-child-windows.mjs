@@ -5,7 +5,8 @@ import childProcess from "node:child_process";
 import { syncBuiltinESMExports } from "node:module";
 import { promisify } from "node:util";
 
-const NAMES = ["spawn", "spawnSync", "exec", "execSync", "execFile", "execFileSync", "fork"];
+const LAUNCHERS = ["spawn", "exec", "execFile"];
+const NAMES = [...LAUNCHERS, ...LAUNCHERS.map((name) => `${name}Sync`), "fork"];
 const WRAPPED = Symbol.for("deliobot.hiddenChildWindows");
 
 const isOptions = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
