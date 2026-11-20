@@ -2,7 +2,7 @@
   "id": "video-montage",
   "name": "Video montage",
   "version": "1.0.0",
-  "description": "Edits clips and pictures into one finished video with voice-over, ducked music, burned-in captions and fades, in 9:16, 16:9, 1:1 or 4:5.",
+  "description": "Edits clips and pictures into one video with voice-over, ducked music, captions, in any shape.",
   "defaultEnabled": true,
   "triggerTerms": [
     "montage",

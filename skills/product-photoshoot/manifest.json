@@ -2,7 +2,7 @@
   "id": "product-photoshoot",
   "name": "Product photoshoot",
   "version": "1.0.0",
-  "description": "Brand-quality product pictures without a photographer: studio packshots, lifestyle scenes, hands and models using the product, Pinterest pins, banners, carousels, ad packs, surreal CGI shots and seasonal restyles.",
+  "description": "Product pictures without a photographer: packshots, lifestyle, models, pins, banners, ad packs.",
   "defaultEnabled": true,
   "triggerTerms": [
     "product photo",

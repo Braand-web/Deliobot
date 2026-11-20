@@ -2,7 +2,7 @@
   "id": "online-store",
   "name": "Online store",
   "version": "1.0.0",
-  "description": "A complete online store from a product list: photos, search, categories, cart, orders by WhatsApp, e-mail or payment link, in any currency, published at a public link.",
+  "description": "An online store from a product list: cart, WhatsApp or payment-link orders, any currency, published.",
   "defaultEnabled": true,
   "triggerTerms": [
     "online store",

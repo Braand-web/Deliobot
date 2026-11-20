@@ -1,0 +1,26 @@
+{
+  "id": "client-delivery",
+  "name": "Client delivery",
+  "version": "1.0.0",
+  "description": "Keeping clients: onboarding, weekly reports, invoices, testimonials, case studies, renewals.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "onboard a client",
+    "client onboarding",
+    "client report",
+    "weekly report for",
+    "case study",
+    "testimonial",
+    "renewal",
+    "churn",
+    "onboarding client",
+    "rapport client",
+    "rapport hebdomadaire",
+    "étude de cas",
+    "témoignage client",
+    "renouvellement",
+    "fidéliser mes clients",
+    "nouveau client signé"
+  ],
+  "requiredCapabilities": []
+}

@@ -2,7 +2,7 @@
   "id": "ugc-video-ads",
   "name": "UGC and video ads",
   "version": "1.0.0",
-  "description": "Video ads that sell: UGC-style creators talking about the product, unboxings, tutorials, reviews, try-ons, polished TV spots and product showcases, with script, voice, music and captions.",
+  "description": "Video ads that sell: UGC creators, unboxings, reviews, try-ons, TV spots, with script, voice and captions.",
   "defaultEnabled": true,
   "triggerTerms": [
     "ugc",

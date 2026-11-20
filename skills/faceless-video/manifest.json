@@ -2,7 +2,7 @@
   "id": "faceless-video",
   "name": "Faceless video",
   "version": "1.0.0",
-  "description": "Finished narrated videos with nobody on camera: explainers, stories, mini-documentaries, top-10s, picture stories and children's songs, from a topic, a script or a document, in any language.",
+  "description": "Narrated videos with nobody on camera: explainers, stories, documentaries, kids' songs.",
   "defaultEnabled": true,
   "triggerTerms": [
     "faceless video",

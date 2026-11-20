@@ -1,0 +1,26 @@
+{
+  "id": "client-outreach",
+  "name": "Client outreach",
+  "version": "1.0.0",
+  "description": "Finding and contacting prospects: warm referral asks, interview invitations, daily outreach, cold e-mail, follow-ups.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "outreach",
+    "prospecting",
+    "cold email",
+    "cold outreach",
+    "lead generation",
+    "find clients",
+    "find customers",
+    "get clients",
+    "prospection",
+    "prospecter",
+    "trouver des clients",
+    "démarchage",
+    "e-mails de prospection",
+    "liste de prospects",
+    "relances prospects",
+    "message de prospection"
+  ],
+  "requiredCapabilities": []
+}

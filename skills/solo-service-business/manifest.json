@@ -1,0 +1,30 @@
+{
+  "id": "solo-service-business",
+  "name": "Solo service business",
+  "version": "1.0.0",
+  "description": "A one-person service business in a 100-day sprint: offer, outreach, sales and delivery bots, numbers worked backwards and tracked daily.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "one-person business",
+    "one person business",
+    "solo business",
+    "start a business",
+    "first clients",
+    "first client",
+    "10k a month",
+    "make money with ai",
+    "100-day",
+    "100 days",
+    "entreprise solo",
+    "lancer mon business",
+    "lancer une activité",
+    "trouver mes premiers clients",
+    "premiers clients",
+    "gagner de l'argent avec l'ia",
+    "vivre de",
+    "quitter mon travail",
+    "chiffre d'affaires mensuel",
+    "agence ia"
+  ],
+  "requiredCapabilities": []
+}

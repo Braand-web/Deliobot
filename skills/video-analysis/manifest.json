@@ -2,7 +2,7 @@
   "id": "video-analysis",
   "name": "Video analysis",
   "version": "1.0.0",
-  "description": "Watches a video: shot-by-shot stills and a contact sheet, timestamped transcript, cuts, black frames, silences and loudness, to summarise, review or check it.",
+  "description": "Watches a video: stills, contact sheet, cuts, transcript, black frames, silences, loudness.",
   "defaultEnabled": true,
   "triggerTerms": [
     "analyze this video",

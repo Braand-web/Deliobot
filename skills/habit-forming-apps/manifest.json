@@ -1,0 +1,26 @@
+{
+  "id": "habit-forming-apps",
+  "name": "Habit-forming app design",
+  "version": "1.0.0",
+  "description": "Ethical habit-forming app design: fast first value, habit loops, onboarding, retention metrics.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "addictive app",
+    "habit forming",
+    "habit-forming",
+    "user retention",
+    "engagement loop",
+    "onboarding flow",
+    "daily active users",
+    "app addictive",
+    "appli addictive",
+    "fidéliser les utilisateurs",
+    "engagement des utilisateurs",
+    "parcours d'onboarding",
+    "que les gens reviennent",
+    "app retention",
+    "retention of my users",
+    "rétention des utilisateurs"
+  ],
+  "requiredCapabilities": []
+}

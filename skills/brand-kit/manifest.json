@@ -2,7 +2,7 @@
   "id": "brand-kit",
   "name": "Brand kit",
   "version": "1.0.0",
-  "description": "A complete visual identity: brand direction, colour palette, typography, logo, mockups, social templates, packaging, signage and a brand book as PDF; or the extension of an existing brand.",
+  "description": "A visual identity: direction, palette, typography, logo, mockups, templates and a PDF brand book.",
   "defaultEnabled": true,
   "triggerTerms": [
     "brand kit",

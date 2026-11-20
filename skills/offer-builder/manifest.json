@@ -1,0 +1,25 @@
+{
+  "id": "offer-builder",
+  "name": "Offer builder",
+  "version": "1.0.0",
+  "description": "One clear low-risk offer: specific outcome, time frame, method, guarantee, price and pitch line.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "my offer",
+    "an offer",
+    "irresistible offer",
+    "grand slam offer",
+    "what should i sell",
+    "what to sell",
+    "pricing my service",
+    "mon offre",
+    "une offre",
+    "offre irrésistible",
+    "quoi vendre",
+    "que vendre",
+    "créer une offre",
+    "prix de mon service",
+    "tarifer"
+  ],
+  "requiredCapabilities": []
+}

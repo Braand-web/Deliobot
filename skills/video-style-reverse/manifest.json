@@ -1,0 +1,23 @@
+{
+  "id": "video-style-reverse",
+  "name": "Video style reverse-engineering",
+  "version": "1.0.0",
+  "description": "Reverse-engineers a video's editing style with evidence, rebuilds it on a new topic and compares.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "editing style",
+    "reverse engineer",
+    "same style as",
+    "copy the style",
+    "recreate this style",
+    "style of this video",
+    "style de montage",
+    "même style que",
+    "reproduire le style",
+    "copier le style",
+    "analyser le style",
+    "décortiquer cette vidéo",
+    "comment cette vidéo a été faite"
+  ],
+  "requiredCapabilities": []
+}

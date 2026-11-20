@@ -1,0 +1,25 @@
+{
+  "id": "youtube-growth",
+  "name": "YouTube growth",
+  "version": "1.0.0",
+  "description": "YouTube growth: outlier research, titles and thumbnails first, retention scripts, Shorts, weekly review.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "youtube channel",
+    "grow my channel",
+    "youtube strategy",
+    "youtube growth",
+    "more views",
+    "more subscribers",
+    "faceless channel",
+    "youtube automation",
+    "chaîne youtube",
+    "grandir ma chaîne",
+    "stratégie youtube",
+    "plus de vues",
+    "plus d'abonnés",
+    "chaîne sans visage",
+    "monétiser ma chaîne"
+  ],
+  "requiredCapabilities": []
+}

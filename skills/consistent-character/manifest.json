@@ -2,7 +2,7 @@
   "id": "consistent-character",
   "name": "Consistent character",
   "version": "1.0.0",
-  "description": "Keeps the same face across pictures and videos: the founder, a brand ambassador or a mascot, from a few photos or one approved portrait, for ads, posts, thumbnails and series.",
+  "description": "The same face across pictures and videos: founder, ambassador or mascot.",
   "defaultEnabled": true,
   "triggerTerms": [
     "same face",

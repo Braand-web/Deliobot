@@ -1,0 +1,24 @@
+{
+  "id": "bot-team-builder",
+  "name": "Bot team builder",
+  "version": "1.0.0",
+  "description": "Designs and creates a team of bots: one per job, apps, routines, hand-offs.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "team of bots",
+    "bot team",
+    "build a team",
+    "set up my bots",
+    "which bots",
+    "ai employees",
+    "ai team",
+    "équipe de bots",
+    "équipe ia",
+    "employés ia",
+    "créer mes bots",
+    "monter une équipe",
+    "organiser mes bots",
+    "assistants ia pour mon entreprise"
+  ],
+  "requiredCapabilities": []
+}

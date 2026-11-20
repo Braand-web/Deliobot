@@ -1,0 +1,26 @@
+{
+  "id": "price-watch",
+  "name": "Price watch",
+  "version": "1.0.0",
+  "description": "Watches product prices across shops on a schedule and alerts under the target price.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "price watch",
+    "price tracker",
+    "track the price",
+    "price drop",
+    "black friday",
+    "best price",
+    "lowest price",
+    "deal alert",
+    "surveiller le prix",
+    "suivre le prix",
+    "baisse de prix",
+    "meilleur prix",
+    "moins cher",
+    "alerte prix",
+    "promo black friday",
+    "soldes"
+  ],
+  "requiredCapabilities": []
+}

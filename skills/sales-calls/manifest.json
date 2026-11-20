@@ -1,0 +1,25 @@
+{
+  "id": "sales-calls",
+  "name": "Sales calls",
+  "version": "1.0.0",
+  "description": "Sales calls where prospects convince themselves: interview, gap and its cost, growth plan, objections, call reviews.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "sales call",
+    "discovery call",
+    "closing call",
+    "close the deal",
+    "objection handling",
+    "objections",
+    "sales script",
+    "appel de vente",
+    "appel découverte",
+    "closer",
+    "conclure la vente",
+    "objections client",
+    "script de vente",
+    "proposition commerciale",
+    "préparer mon appel"
+  ],
+  "requiredCapabilities": []
+}

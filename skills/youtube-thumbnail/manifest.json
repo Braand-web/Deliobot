@@ -2,7 +2,7 @@
   "id": "youtube-thumbnail",
   "name": "YouTube thumbnail",
   "version": "1.0.0",
-  "description": "Click-worthy YouTube thumbnails and Shorts or Reels covers: one strong concept, the person's own face when they want it, bold readable headline, several variants to compare.",
+  "description": "Click-worthy YouTube thumbnails and Shorts covers, the person's face included when wanted.",
   "defaultEnabled": true,
   "triggerTerms": [
     "youtube cover",
