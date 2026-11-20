@@ -763,25 +763,25 @@
   --color-menu-hover: color-mix(in srgb, var(--color-raised) 70%, transparent);
   --color-menu-active: var(--color-raised);
   --color-composer-ring: transparent;
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+  --font-sans: "Geist Variable", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, sans-serif;
   --radius-lg: 6px;
   --radius-xl: 10px;
   --radius-xs: 2px; --radius-sm: 4px; --radius-md: 6px;
   --radius-2xl: 16px; --radius-3xl: 24px; --radius-4xl: 32px;
   --color-edge: color-mix(in srgb, var(--color-ink) 8%, transparent);
-  --identity-green: #007f48;
-  --identity-blue: #1b6adc;
-  --identity-red: #d12c34;
-  --identity-orange: #a95914;
-  --identity-purple: #8057C8;
-  --identity-cyan: #0a7891;
-  --identity-pink: #ca2d72;
-  --identity-yellow: #896a19;
-  --identity-teal: #017c6f;
-  --identity-coral: #cd361e;
-  --identity-silver: #686f79;
-  --identity-chrome: #646f80;
+  --identity-green: #007e48;
+  --identity-blue: #1b69da;
+  --identity-red: #cf2c34;
+  --identity-orange: #a85814;
+  --identity-purple: #8056c8;
+  --identity-cyan: #0a778f;
+  --identity-pink: #c92c71;
+  --identity-yellow: #886919;
+  --identity-teal: #017b6e;
+  --identity-coral: #ca361e;
+  --identity-silver: #676e78;
+  --identity-chrome: #636e7f;
 }
 
 /* ── Abyss ── Deep-sea navy, lit in cyan. */
@@ -828,7 +828,7 @@
   --identity-blue: #377FE6;
   --identity-red: #D94B52;
   --identity-orange: #E78531;
-  --identity-purple: #8d68ce;
+  --identity-purple: #8a65cc;
   --identity-cyan: #0EA5C6;
   --identity-pink: #D84F8B;
   --identity-yellow: #D8A729;
@@ -871,25 +871,25 @@
   --color-menu-hover: color-mix(in srgb, var(--color-raised) 70%, transparent);
   --color-menu-active: var(--color-raised);
   --color-composer-ring: transparent;
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+  --font-sans: "Geist Variable", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, sans-serif;
   --radius-lg: 8px;
   --radius-xl: 14px;
   --radius-xs: 2px; --radius-sm: 4px; --radius-md: 6px;
   --radius-2xl: 16px; --radius-3xl: 24px; --radius-4xl: 32px;
   --color-edge: color-mix(in srgb, var(--color-ink) 8%, transparent);
-  --identity-green: #007f48;
-  --identity-blue: #1b6adc;
-  --identity-red: #d12c34;
-  --identity-orange: #a95914;
+  --identity-green: #00824a;
+  --identity-blue: #1c6de0;
+  --identity-red: #d43239;
+  --identity-orange: #ae5b14;
   --identity-purple: #8057C8;
-  --identity-cyan: #0a7891;
-  --identity-pink: #ca2d72;
-  --identity-yellow: #896a19;
-  --identity-teal: #017c6f;
-  --identity-coral: #cd361e;
-  --identity-silver: #686f79;
-  --identity-chrome: #646f80;
+  --identity-cyan: #0a7b94;
+  --identity-pink: #cf2e75;
+  --identity-yellow: #8d6c1a;
+  --identity-teal: #017f72;
+  --identity-coral: #d1381f;
+  --identity-silver: #6a727c;
+  --identity-chrome: #667284;
 }
 
 /* ── Cobalt ── Crisp white and deep black, lit in electric cobalt. */
@@ -907,7 +907,7 @@
   --color-hairline: #d2d2d7;
   --color-ink: #1d1d1f;
   --color-ink-secondary: #5f5f66;
-  --color-ink-tertiary: #5a5a62;
+  --color-ink-tertiary: #616168;
   --color-accent: #2e4fff;
   --color-accent-border: #5a73ff;
   --color-accent-text: #243fd6;
@@ -932,18 +932,18 @@
   --radius-xs: 2px; --radius-sm: 4px; --radius-md: 6px;
   --radius-2xl: 16px; --radius-3xl: 24px; --radius-4xl: 32px;
   --color-edge: color-mix(in srgb, var(--color-ink) 8%, transparent);
-  --identity-green: #007f48;
-  --identity-blue: #1b6adc;
-  --identity-red: #d12c34;
-  --identity-orange: #a95914;
+  --identity-green: #00884e;
+  --identity-blue: #2573e4;
+  --identity-red: #d63f47;
+  --identity-orange: #b65f15;
   --identity-purple: #8057C8;
-  --identity-cyan: #0a7891;
-  --identity-pink: #ca2d72;
-  --identity-yellow: #896a19;
-  --identity-teal: #017c6f;
-  --identity-coral: #cd361e;
-  --identity-silver: #686f79;
-  --identity-chrome: #646f80;
+  --identity-cyan: #0b819b;
+  --identity-pink: #d3397d;
+  --identity-yellow: #93721b;
+  --identity-teal: #018577;
+  --identity-coral: #db3a20;
+  --identity-silver: #707782;
+  --identity-chrome: #6b778a;
 }
 
 /* ── Sky ── Soft near-white under a sky-blue glow. */
@@ -986,18 +986,18 @@
   --radius-xs: 2px; --radius-sm: 4px; --radius-md: 6px;
   --radius-2xl: 16px; --radius-3xl: 24px; --radius-4xl: 32px;
   --color-edge: color-mix(in srgb, var(--color-ink) 8%, transparent);
-  --identity-green: #007f48;
-  --identity-blue: #1b6adc;
-  --identity-red: #d12c34;
-  --identity-orange: #a95914;
+  --identity-green: #00844b;
+  --identity-blue: #1d6ee3;
+  --identity-red: #d4363e;
+  --identity-orange: #b05d15;
   --identity-purple: #8057C8;
-  --identity-cyan: #0a7891;
-  --identity-pink: #ca2d72;
-  --identity-yellow: #896a19;
-  --identity-teal: #017c6f;
-  --identity-coral: #cd361e;
-  --identity-silver: #686f79;
-  --identity-chrome: #646f80;
+  --identity-cyan: #0b7d97;
+  --identity-pink: #d13178;
+  --identity-yellow: #8f6e1a;
+  --identity-teal: #018173;
+  --identity-coral: #d5381f;
+  --identity-silver: #6c737e;
+  --identity-chrome: #677485;
 }
 
 /* ── Daylight ─────────────────────────────────────────────────────────────

@@ -22,6 +22,7 @@ vi.mock("@/state/store", async (original) => ({
     return { instances: [...fixture.state.instances, gemini(body.url)] };
   },
 }));
+vi.mock("@/lib/use-owner-or-admin", () => ({ useOwnerOrAdmin: () => true }));
 import { AiSignInSettings, EnginesSettings } from "./EnginesSettings";
 
 function gemini(url: string): InstanceInfo {
