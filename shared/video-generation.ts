@@ -27,7 +27,7 @@ export const VIDEO_MODEL_CHOICES: readonly VideoModelChoice[] = [
 ];
 
 export interface VideoGenerationConfig {
-  /** Off until the person turns it on: a video costs far more than an image. */
+  /** On once a media key is present; false turns it off. A video costs far more than an image. */
   enabled?: boolean;
   /** A fal.ai text-to-video model ID, or "auto" (the default) to choose per request. */
   model?: string;

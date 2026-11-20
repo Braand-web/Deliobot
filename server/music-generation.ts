@@ -1,7 +1,7 @@
 import { MUSIC_SECONDS_DEFAULT, MUSIC_SECONDS_MAX, type MusicGenerationConfig } from "../shared/music-generation.ts";
 import { PREVIEW_MAX_BYTES } from "../shared/upload-limits.ts";
 import { createFalSchemaCache, falDownload, falQueueBase, falError, falInput, falRun, validFalModel } from "./fal.ts";
-import { autoMusicModel, MEDIA_AUTO } from "./media-auto.ts";
+import { autoMusicModel, MEDIA_AUTO, type AudioKind } from "./media-auto.ts";
 
 export const MUSIC_GENERATION_TIMEOUT_MS = 5 * 60_000;
 /** What fal's audio models answer with, and the voice-note formats the chat plays. */
@@ -16,6 +16,7 @@ export interface MusicRequest {
   prompt: string;
   seconds?: number;
   lyrics?: string;
+  kind?: AudioKind;
 }
 
 export interface GeneratedMusic {
@@ -26,7 +27,7 @@ export interface GeneratedMusic {
 }
 
 export function musicGenerationReady(cfg: MusicCredentials): boolean {
-  return cfg.musicGen?.enabled === true && Boolean(cfg.fal?.key?.trim());
+  return cfg.musicGen?.enabled !== false && Boolean(cfg.fal?.key?.trim());
 }
 
 export function musicMaxSeconds(cfg: MusicCredentials): number {
@@ -35,6 +36,7 @@ export function musicMaxSeconds(cfg: MusicCredentials): number {
 }
 
 export function musicModel(cfg: MusicCredentials, request: MusicRequest): string {
+  if (request.kind === "voice") return autoMusicModel(request);
   const model = cfg.musicGen?.model?.trim() ?? "";
   return model && model !== MEDIA_AUTO && validFalModel(model) ? model : autoMusicModel(request);
 }
@@ -63,7 +65,10 @@ export async function generateMusic(
   const seconds = Math.min(Math.max(1, Math.round(request.seconds ?? MUSIC_SECONDS_DEFAULT)), musicMaxSeconds(cfg));
   const fetchImpl = options.fetchImpl ?? fetch;
   const fields = await falSchemas(model, { key, fetchImpl });
-  const result = await falRun(model, falInput(fields, { prompt: request.prompt, seconds, lyrics: request.lyrics }), {
+  const speech = request.kind === "voice";
+  const input = falInput(fields, { prompt: request.prompt, ...(!speech && { seconds }), lyrics: request.lyrics });
+  if (speech && !fields) input.text = request.prompt;
+  const result = await falRun(model, input, {
     key, baseUrl: falQueueBase(cfg.fal?.url), fetchImpl, timeoutMs: options.timeoutMs ?? MUSIC_GENERATION_TIMEOUT_MS, signal: options.signal,
   });
   const url = falAudioUrl(result);

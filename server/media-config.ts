@@ -16,8 +16,8 @@ const generator = (maxSeconds: number) => z.object({
 }).strict().optional();
 
 export const mediaGenerationShape = {
-  /** Music, songs and sound effects bots make on fal.ai with `fal.key`; off unless `enabled`. */
+  /** Music, songs and sound effects bots make on fal.ai with `fal.key`; on unless `enabled` is false. */
   musicGen: generator(MUSIC_SECONDS_MAX),
-  /** Video clips bots make on fal.ai with `fal.key`; off unless `enabled`. */
+  /** Video clips bots make on fal.ai with `fal.key`; on unless `enabled` is false. */
   videoGen: generator(VIDEO_SECONDS_MAX),
 };

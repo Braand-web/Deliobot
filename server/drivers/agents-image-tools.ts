@@ -31,7 +31,7 @@ export const IMAGE_TOOL_DEFINITIONS = [
   {
     name: "generate_image",
     description:
-      "Create one image from a text description with the person's image provider; it is attached to your reply when the turn ends, so do not describe or link it again. Write the prompt in English, concrete and visual. Name a provider only when the person asked for that one.",
+      "Create one image yourself from a text description (ads, visuals, product shots, posters, logos, illustrations); leave model out and the best model for the request is chosen for you. It is attached to your reply when the turn ends, so do not describe or link it again. Write the prompt in English, concrete and visual. Name a provider only when the person asked for that one.",
     inputSchema: {
       type: "object",
       additionalProperties: false,

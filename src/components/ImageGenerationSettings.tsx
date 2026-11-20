@@ -163,7 +163,7 @@ export function ImageGenerationSettings() {
         : <ProviderKeyCard key={provider} provider={provider} status={status} />)}
 
       <VideoGenerationSettings keyCard={providers.includes("fal") ? null : <ProviderKeyCard provider="fal" status={status} />} />
-      <MusicGenerationSettings keyCard={providers.includes("fal") || state.config?.videoGen?.enabled ? null : <ProviderKeyCard provider="fal" status={status} />} />
+      <MusicGenerationSettings keyCard={providers.includes("fal") || state.config?.videoGen?.enabled !== false ? null : <ProviderKeyCard provider="fal" status={status} />} />
     </>
   );
 }

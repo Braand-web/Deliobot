@@ -17,7 +17,7 @@ export const MUSIC_MODEL_CHOICES: readonly MusicModelChoice[] = [
 ];
 
 export interface MusicGenerationConfig {
-  /** Off until the person turns it on. */
+  /** On once a media key is present; false turns it off. */
   enabled?: boolean;
   /** A fal.ai audio model ID, or "auto" (the default) to choose per request. */
   model?: string;

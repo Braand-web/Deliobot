@@ -56,7 +56,7 @@ function MediaGenerationSettings({ kind, keyCard }: { kind: MediaKind; keyCard?:
   const { state, dispatch } = useStore();
   const video = state.config?.[spec.configKey];
   const falKey = state.config?.imageGen?.falConfigured === true || state.config?.imageGen?.delioMedia === true;
-  const enabled = video?.enabled === true;
+  const enabled = video?.enabled !== false;
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState<string | null>(null);

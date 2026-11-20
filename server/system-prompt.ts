@@ -111,6 +111,7 @@ export function buildSystemPrompt(
     // Right after the soul: on a direct turn, ahead of every section that names a tool.
     { id: "tool-bridge", label: "Tool search", text: agentsToolBridged(agents) ? AGENTS_TOOL_BRIDGE_PROMPT : "" },
     { id: "reply-style", label: "Reply style", text: replyStylePrompt(opts?.replyStyle) },
+    { id: "media", label: "Making media", text: mediaPrompt(agents) },
     ...parts,
     { id: "reply-habits", label: "How to reply", text: REPLY_HABITS_PROMPT },
   ];
@@ -121,6 +122,20 @@ export function buildSystemPrompt(
     sections.filter((section) => VOLATILE_SECTIONS.has(section.id) === volatile).map((section) => section.text).join("");
   const roster = sections.find((section) => section.id === ROSTER_SECTION)?.text ?? "";
   return { text: sections.map((section) => section.text).join(""), sections, stable: halves(false), volatile: halves(true), roster };
+}
+
+const MEDIA_TOOLS = [
+  { flag: "ODB_IMAGE_GENERATION", tool: "generate_image", what: "images (ads, visuals, product shots, posters, logos)" },
+  { flag: "ODB_VIDEO_GENERATION", tool: "generate_video", what: "short videos, including UGC-style clips of an AI-generated person speaking to camera about a product" },
+  { flag: "ODB_MUSIC_GENERATION", tool: "generate_music", what: "music, songs, sound effects and voice-overs in a natural human voice" },
+] as const;
+
+/** What the bot can make itself, from the media tools this turn advertises. */
+export function mediaPrompt(agents: { env?: Record<string, string | undefined> } | undefined): string {
+  const on = MEDIA_TOOLS.filter((media) => agents?.env?.[media.flag] === "1");
+  if (!on.length) return "";
+  const list = on.map((media) => `${media.what} with ${media.tool}`).join("; ");
+  return `\n\nYou make media yourself with your own AI models: ${list}. Use them whenever the person asks for media or a task they gave needs it (an ad campaign needs its visuals and videos), without asking which model to use: leave the model out and the best one for the request is chosen for you. Never say you cannot make an image, a video, a UGC video, music or a voice when the tool for it is in your list; make it. You may name the model that made something, as its result gives it, but never the company or service that hosts your models, and never claim a model you did not use.`;
 }
 
 // "box" is Boat's persisted kind literal.

@@ -42,17 +42,17 @@ function deps(overrides: { cfg?: Parameters<typeof generateImageForTurn>[1]["cfg
 }
 
 describe("generate_image for a turn", () => {
-  it("attaches the base provider's image to the turn and says which provider made it", async () => {
+  it("attaches the base provider's image to the turn and says which model made it", async () => {
     const { deps: d, attached } = deps();
     const result = await generateImageForTurn({ prompt: "a navy owl" }, d);
-    expect(result).toEqual({ status: 201, body: { text: expect.stringContaining("OpenAI (gpt-image-2)") } });
+    expect(result).toEqual({ status: 201, body: { text: expect.stringContaining("Image made with GPT Image 2.") } });
     expect(attached).toEqual([{ bytes: PNG, mime: "image/png" }]);
   });
 
   it("says so when the backup made the image, and why the base did not", async () => {
     const { deps: d } = deps({ cfg: { ...CFG, imageGen: { ...CFG.imageGen, key: "" } } });
     const result = await generateImageForTurn({ prompt: "owl" }, d);
-    expect(result.body).toEqual({ text: expect.stringMatching(/xAI .*backup image provider, because the base failed: Add an OpenAI image API key first/) });
+    expect(result.body).toEqual({ text: expect.stringMatching(/^Image made with Grok Imagine Image 2\.0, the person's backup image provider, because the base failed: Add an OpenAI image API key first/) });
   });
 
   it("still moves to the backup when the person names a provider the base and backup share", async () => {
@@ -62,7 +62,7 @@ describe("generate_image for a turn", () => {
     const cfg = { imageGen: { key: "openai-secret", primary: { provider: "openai" as const }, fallback: { provider: "openai" as const, model: "gpt-image-1" } } };
     const { deps: d } = deps({ cfg, fetchImpl });
     const result = await generateImageForTurn({ prompt: "owl", provider: "openai" }, d);
-    expect(result).toEqual({ status: 201, body: { text: expect.stringContaining("OpenAI (gpt-image-1), the person's backup image provider") } });
+    expect(result).toEqual({ status: 201, body: { text: expect.stringContaining("Image made with GPT Image 1, the person's backup image provider") } });
   });
 
   it("keeps a failure outside the provider, such as saving the file, away from the model", async () => {

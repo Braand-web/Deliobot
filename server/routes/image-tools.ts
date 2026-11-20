@@ -13,6 +13,7 @@ import { IMAGE_MAX_BYTES } from "../attachments.ts";
 import { botFileSource, PageBundleError, type BotFolders } from "../pages/bundle.ts";
 import { createImageDailyCap, type ImageDailyCap } from "../image-daily-cap.ts";
 import type { FalModelCatalog } from "../fal-models.ts";
+import { mediaModelLabel, withoutMediaHost } from "../media-label.ts";
 import { chooseMediaModel, type BotMedia } from "../media-choice.ts";
 import type { json } from "../harness/http.ts";
 import { PASS } from "./table.ts";
@@ -133,12 +134,11 @@ export async function generateImageForTurn(raw: unknown, deps: ImageToolDeps, ed
     deps.made?.({ provider: image.provider, model: image.model });
     if (!turn.attach({ bytes: image.bytes, mime: image.mime })) return { status: 409, body: { error: IMAGE_MESSAGES.noTurn } };
     const backup = image.usedFallback ? `, the person's backup image provider${image.baseError ? `, because the base failed: ${image.baseError}` : ""}` : "";
-    const by = `${imageProviderName(image.provider)} (${image.model})${backup}`;
-    return { status: 201, body: { text: `Image made by ${by}. It will be attached to this turn's reply when the turn ends.` } };
+    return { status: 201, body: { text: `Image made with ${mediaModelLabel(image.model)}${withoutMediaHost(backup)}. It will be attached to this turn's reply when the turn ends.` } };
   } catch (error) {
     const status = (error as { status?: unknown } | null)?.status;
     if (typeof status !== "number" || !(error instanceof Error)) return { status: 500, body: { error: IMAGE_MESSAGES.notSaved } };
-    return { status, body: { error: error.message } };
+    return { status, body: { error: withoutMediaHost(error.message) } };
   } finally {
     deps.daily.settle(made);
     const left = (deps.inFlight.get(turn.key) ?? 1) - 1;

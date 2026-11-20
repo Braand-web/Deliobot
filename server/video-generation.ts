@@ -39,7 +39,7 @@ export function videoMaxSeconds(cfg: VideoCredentials): number {
 }
 
 export function videoGenerationReady(cfg: VideoCredentials): boolean {
-  return cfg.videoGen?.enabled === true && Boolean(cfg.fal?.key?.trim());
+  return cfg.videoGen?.enabled !== false && Boolean(cfg.fal?.key?.trim());
 }
 
 const falSchemas = createFalSchemaCache();

@@ -184,7 +184,7 @@ export function imageSlots(cfg: ImageCredentials): { primary: ImageSlot; fallbac
     model: usable(model) || (provider === "custom" ? usable(cfg.imageGen?.customModel) : "") || IMAGE_DEFAULT_MODELS[provider],
   });
   const saved = cfg.imageGen?.primary;
-  const primary = saved ? resolveSlot(saved.provider, saved.model) : resolveSlot(cfg.imageGen?.provider ?? "openai");
+  const primary = saved ? resolveSlot(saved.provider, saved.model) : resolveSlot(cfg.imageGen?.provider ?? (cfg.fal?.key?.trim() ? "fal" : "openai"));
   const backup = cfg.imageGen?.fallback;
   const fallback = backup ? resolveSlot(backup.provider, backup.model) : null;
   const same = fallback && fallback.provider === primary.provider && fallback.model === primary.model;
