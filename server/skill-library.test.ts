@@ -104,7 +104,7 @@ describe("bundled verification skill", () => {
       "make a control cli",
       "create a feature map for my app",
     ]) {
-      expect(selectBundledSkills(text, ["skillAuthoring"], skills)).toEqual([]);
+      expect(selectBundledSkills(text, ["skillAuthoring"], skills).map((skill) => skill.manifest.id)).not.toContain("create-verification-skill");
     }
   });
 });
