@@ -1,0 +1,6 @@
+{
+  "id": "pagination",
+  "title": "Fix pagination",
+  "request": "Page 1 skips the first item and the last page is lost. Fix `paginate` so pages start at 1 and `pages` counts every page.",
+  "check": "node --test"
+}

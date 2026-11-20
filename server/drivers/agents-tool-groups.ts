@@ -33,7 +33,7 @@ export const CORE_TOOLS: ReadonlySet<string> = new Set([
   "propose_bot_deletion", "manage_room", "request_credential", "request_sign_in", "fill_login", "send_voice_note", "decide",
   "extract", "message_person", "report_bug", "retry_thread", "session_search", "trigger_info", "trigger", "delete_trigger",
   "wait_until", "list_waits", "cancel_wait", "propose_profile", "propose_model", "propose_team_memory", "skills_list",
-  "skill_manage", "mcp_server", "app_settings", "list_unread_notifications", "mark_notifications_read", "read_public_url", "project_note",
+  "skill_manage", "mcp_server", "app_settings", "list_unread_notifications", "mark_notifications_read", "read_public_url", "project_note", "parallel_attempts", "choose_attempt",
 ]);
 
 /** The agents tools the groups in `off` leave out. */

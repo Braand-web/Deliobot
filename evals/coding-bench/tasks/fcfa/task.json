@@ -1,0 +1,6 @@
+{
+  "id": "fcfa",
+  "title": "Format FCFA amounts",
+  "request": "Implement `formatFcfa` in src/money.js: whole francs with a space every three digits and \" FCFA\" after, a minus sign for negatives, rounding to the nearest franc.",
+  "check": "node --test"
+}

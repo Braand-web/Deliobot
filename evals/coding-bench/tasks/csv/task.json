@@ -1,0 +1,6 @@
+{
+  "id": "csv",
+  "title": "Parse quoted CSV",
+  "request": "`parseCsv` breaks on quoted fields. Make it handle commas and doubled quotes inside quotes and both line endings.",
+  "check": "node --test"
+}

@@ -1,0 +1,6 @@
+{
+  "id": "overlap",
+  "title": "Fix booking overlap",
+  "request": "Two bookings that touch end-to-start are reported as overlapping, and a booking inside another is missed. Fix `overlaps` (ranges are [start, end), in minutes).",
+  "check": "node --test"
+}

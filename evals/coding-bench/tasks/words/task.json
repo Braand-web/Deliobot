@@ -1,0 +1,6 @@
+{
+  "id": "words",
+  "title": "Count words (Python)",
+  "request": "Implement `top_words(text, n)` in words.py: the n most frequent words, case-insensitive, punctuation ignored, ties broken alphabetically, as (word, count) pairs.",
+  "check": "python3 -m unittest discover -s tests -q"
+}

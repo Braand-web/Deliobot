@@ -1,0 +1,6 @@
+{
+  "id": "cart-total",
+  "title": "Fix the cart total",
+  "request": "The cart total is always 0. Make `total` return the sum of price × quantity of the items, minus the discount percent when one is given, rounded to 2 decimals.",
+  "check": "node --test"
+}

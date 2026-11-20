@@ -3,12 +3,11 @@ import type { HostTurnResult } from "../coordinator.ts";
 import { noticeTool } from "../chat-notices.ts";
 import { detectChecks as detectChecksIn, failureMessage, runChecks as runChecksIn, type CheckRun } from "../coder/verify.ts";
 import { parseReview, reviewFixMessage, reviewPrompt } from "../coder/review.ts";
+import { startWhenFree } from "./start-when-free.ts";
 
 export const DEFAULT_CODER_ROUNDS = 3;
 export const MAX_CODER_ROUNDS = 6;
 export const MAX_REVIEW_ROUNDS = 2;
-const BUSY_RETRY_MS = 500;
-const BUSY_WAIT_MS = 2 * 60_000;
 
 type Coder = NonNullable<BotRecord["coder"]>;
 type Row = ReturnType<typeof noticeTool<{ ok: boolean }>>;
@@ -53,24 +52,10 @@ export function createCoderGate(deps: CoderGateDeps) {
   const row = (threadId: string, key: Parameters<typeof noticeTool>[0], params: Record<string, string>, ok: boolean) =>
     deps.append(threadId, noticeTool(key, params, { ok }));
 
-  async function continueTurn(botId: string, threadId: string, text: string): Promise<boolean> {
-    const deadline = Date.now() + BUSY_WAIT_MS;
-    for (;;) {
-      continuing.add(threadId);
-      try {
-        await deps.startTurn(botId, text, { threadId, cardContinuation: true });
-        return true;
-      } catch (error) {
-        continuing.delete(threadId);
-        const code = (error as { code?: unknown } | null)?.code;
-        if ((code === "thread_busy" || code === "thread_limit" || code === "settling") && Date.now() < deadline) {
-          await sleep(BUSY_RETRY_MS);
-          continue;
-        }
-        return false;
-      }
-    }
-  }
+  const continueTurn = (botId: string, threadId: string, text: string): Promise<boolean> => startWhenFree(
+    () => deps.startTurn(botId, text, { threadId, cardContinuation: true }),
+    { sleep, onAttempt: () => continuing.add(threadId), onRefused: () => continuing.delete(threadId) },
+  );
 
   async function review(bot: BotRecord, coder: Coder, threadId: string, cwd: string, state: ThreadState, checks: readonly string[]): Promise<void> {
     const reviewer = coder.review!;

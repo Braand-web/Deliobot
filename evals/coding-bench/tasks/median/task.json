@@ -1,0 +1,6 @@
+{
+  "id": "median",
+  "title": "Fix the median (Python)",
+  "request": "`median` is wrong for even-length lists and changes the list it is given. Fix it in stats.py.",
+  "check": "python3 -m unittest discover -s tests -q"
+}

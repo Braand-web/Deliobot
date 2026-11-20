@@ -8,11 +8,13 @@ import { createHelperToolRoutes, type HelperToolContext, type HelperToolDeps } f
 import { createDelioNotificationRoutes, type LiveNotificationsDeps } from "./delio-notifications.ts";
 import { PASS } from "./table.ts";
 import { createProjectNoteRoutes, type ProjectNoteDeps } from "./project-note.ts";
+import { createAttemptRoutes } from "./attempts.ts";
+import type { ParallelAttempts } from "../host/parallel-attempts.ts";
 import { createPublicWebRoutes, type PublicWebContext } from "./public-web.ts";
 import { createXResearchInternalRoutes, type XResearchDeps } from "./x-research.ts";
 
-export function createInternalToolRoutes(deps: { helpers: HelperToolDeps; xResearch: XResearchDeps; notifications: LiveNotificationsDeps; engineLimits: EngineLimitsDeps; appPublisher: AppPublisher; projectNotes: ProjectNoteDeps }) {
-  const routes = [createXResearchInternalRoutes(deps.xResearch), createHelperToolRoutes(deps.helpers), createDelioNotificationRoutes(deps.notifications), createEngineLimitsRoutes(deps.engineLimits), createPublicWebRoutes(), createAppHostingInternalRoutes(deps.appPublisher), createProjectNoteRoutes(deps.projectNotes)];
+export function createInternalToolRoutes(deps: { helpers: HelperToolDeps; xResearch: XResearchDeps; notifications: LiveNotificationsDeps; engineLimits: EngineLimitsDeps; appPublisher: AppPublisher; projectNotes: ProjectNoteDeps; attempts: ParallelAttempts }) {
+  const routes = [createXResearchInternalRoutes(deps.xResearch), createHelperToolRoutes(deps.helpers), createDelioNotificationRoutes(deps.notifications), createEngineLimitsRoutes(deps.engineLimits), createPublicWebRoutes(), createAppHostingInternalRoutes(deps.appPublisher), createProjectNoteRoutes(deps.projectNotes), createAttemptRoutes({ attempts: deps.attempts, projectFolder: deps.projectNotes.projectFolder })];
   return async (ctx: HelperToolContext & PublicWebContext & { threadId: string }): Promise<typeof PASS | void> => {
     for (const route of routes) if (await route(ctx) !== PASS) return;
     return PASS;

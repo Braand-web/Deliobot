@@ -1,0 +1,6 @@
+{
+  "id": "stock",
+  "title": "Fix stock reservation",
+  "request": "Two reservations can take the same last item, and a failed reservation still lowers the stock. Make `reserve` refuse when there is not enough stock, without changing anything then.",
+  "check": "node --test"
+}

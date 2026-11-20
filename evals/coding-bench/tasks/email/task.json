@@ -1,0 +1,6 @@
+{
+  "id": "email",
+  "title": "Validate emails",
+  "request": "`isEmail` accepts things that are not addresses. Make it accept a normal address (one @, a dot in the domain, no spaces, no empty parts) and refuse the rest.",
+  "check": "node --test"
+}

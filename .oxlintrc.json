@@ -12,6 +12,7 @@
     ".roo/**",
     ".windsurf/**",
     "dist/**",
+    "evals/coding-bench/tasks/*/repo/**",
     "dist-electron/**",
     "dist-native/**",
     "dist-server/**",

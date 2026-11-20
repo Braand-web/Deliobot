@@ -1,0 +1,6 @@
+{
+  "id": "roman",
+  "title": "Roman numerals",
+  "request": "Implement `toRoman` and `fromRoman` in src/roman.js for 1 to 3999; both throw outside that range or on an invalid numeral.",
+  "check": "node --test"
+}

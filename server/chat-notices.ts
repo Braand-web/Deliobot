@@ -43,6 +43,10 @@ export const CHAT_NOTICE = {
   "chat.notice.coderReviewApproved": "Reviewed by {reviewer}: approved",
   "chat.notice.coderReviewFailed": "{reviewer} could not finish the review",
   "chat.notice.coderUndone": "Folder put back as it was before this turn ({files} files)",
+  "chat.notice.attemptsStarted": "Trying {count} attempts in parallel",
+  "chat.notice.attemptsKept": "Attempt {attempt} of {count} kept",
+  "chat.notice.attemptsNone": "None of the {count} attempts produced a change",
+  "chat.notice.attemptsConflict": "Best attempt not written: {files} changed meanwhile",
   "chat.notice.appSignedOut": "{app} is signed out: its sign-in expired or was revoked. Reconnect it so your bots can use it again.",
   "chat.notice.webhookHome":
     "I'm back on this computer, so my webhook \"{name}\" has an address here again. Open Automations, choose Copy address on \"{name}\", and paste it into the app that sends to it.",

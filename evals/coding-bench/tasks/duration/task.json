@@ -1,0 +1,6 @@
+{
+  "id": "duration",
+  "title": "Parse durations",
+  "request": "Implement `parseDuration` in src/duration.js: it reads strings like `1h30m`, `45s`, `2h 5m 10s` and returns seconds; it throws on anything else.",
+  "check": "node --test"
+}

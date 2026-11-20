@@ -69,6 +69,24 @@ On Claude with tool search on, a turn sends a few agents tools whole and the res
 
 `--context` runs no model and prints the bytes a Claude turn sends of the agents tools up front, whole against deferred.
 
+## Coding bench — does Coder mode fix more?
+
+`evals/coding-bench/tasks` holds twelve small projects (ten in JavaScript with `node --test`, two in Python with
+`unittest`), each with a written request and tests that fail as given. The offline suite proves every task is fair: its
+check fails on the starting repository and passes with the reference solution next to it.
+
+    npx vitest run --config evals/vitest.config.ts evals/coding-bench
+
+`run-coding-bench.ts` sends each request to a real engine twice, as a plain bot and as the same bot in Coder mode with
+the task's check as its verification, then runs the task's tests in the folder the bot worked in. It reports the pass
+rate, time, cost and turns of each arm, overall and per task, under the gitignored `evals/reports/runs/`. It is closed
+unless `ODB_EVAL_LIVE=1`, never runs in CI, and uses the live tier's instance shape:
+
+    ODB_EVAL_LIVE=1 ODB_EVAL_LIVE_INSTANCE='{"instanceId":"claude","driver":"claudeAgent","model":"claude-sonnet-5","config":{"cli":"/path/to/claude"},"environmentFrom":["HOME","USER"]}' \
+      node --experimental-strip-types evals/coding-bench/run-coding-bench.ts --replicates 3
+
+Public claims about Coder mode quote these reports only.
+
 ## Dream — what a nightly dream keeps
 
 `evals/dream` grades a dream's answer as `runDream` keeps it: `parseDream`, then the fact checks, before anything is written. Each case in `cases.json` holds a few chats, the notebook as it stands, the lines a dream should save (any of a few words, ignoring case) and words no saved line may contain. A case passes when the answer is JSON, every expected line is saved and nothing forbidden is; forbidden words are matched through width, invisible characters and digits that stand for letters, so a disguised line still counts. Saved lines no expectation covers are listed as `unexpected`, for a person or a judge to read, and fail a case marked `nothingElse`. Cases cover cross-chat preferences, single-chat facts, tasks, outdated notes, pasted and disguised instructions, a pasted key, exact times, Spanish, and chats with nothing in common. Only the scoring runs offline, in the evals suite; nothing calls a model yet.

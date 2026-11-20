@@ -1,0 +1,6 @@
+{
+  "id": "slugify",
+  "title": "Write slugify",
+  "request": "Implement `slugify` in src/slug.js: lowercase, accents removed, anything that is not a letter or digit becomes one dash, no dash at either end.",
+  "check": "node --test"
+}
