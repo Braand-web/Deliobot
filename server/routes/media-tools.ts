@@ -46,7 +46,7 @@ export const MEDIA_SPECS: Record<MediaKind, MediaSpec> = {
     generate: (cfg, request, options) => generateVideo(cfg, request, options),
     messages: {
       notSetUp: "Video generation isn't set up here. Ask the person to add their media key in Settings → AI → Images, or to turn Videos back on there.",
-      notPerson: "Videos are made only for a person's own message in a chat. This turn was started another way, so no video was made. Tell the person they can ask for the video in a chat.",
+      notPerson: "Videos are made only for a person's own message or a routine or automation they set up. This turn was started another way, so no video was made. Tell the person they can ask for the video in a chat.",
       perTurn: (limit) => `This turn already has ${limit === 1 ? "a video" : `${limit} videos`}, the most the person allows per reply. Send what you have.`,
       dailyCap: (cap) => `Bots here have made ${cap} videos today, the most allowed in one day, so no video was made. Tell the person it starts again after midnight.`,
       made: (media) => `A ${media.seconds}-second video was made with ${mediaModelLabel(media.model)}. It will be attached to this turn's reply when the turn ends.`,
@@ -62,7 +62,7 @@ export const MEDIA_SPECS: Record<MediaKind, MediaSpec> = {
     generate: (cfg, request, options) => generateMusic(cfg, request, options),
     messages: {
       notSetUp: "Music, voice and sound generation isn't set up here. Ask the person to add their media key in Settings → AI → Images, or to turn Music back on there.",
-      notPerson: "Music is made only for a person's own message in a chat. This turn was started another way, so none was made. Tell the person they can ask for it in a chat.",
+      notPerson: "Audio is made only for a person's own message or a routine or automation they set up. This turn was started another way, so none was made. Tell the person they can ask for it in a chat.",
       perTurn: (limit) => `This turn already has ${limit === 1 ? "a track" : `${limit} tracks`}, the most the person allows per reply. Send what you have.`,
       dailyCap: (cap) => `Bots here have made ${cap} tracks today, the most allowed in one day, so none was made. Tell the person it starts again after midnight.`,
       made: (media) => `A ${media.seconds}-second audio clip was made with ${mediaModelLabel(media.model)}. It will be attached to this turn's reply when the turn ends.`,

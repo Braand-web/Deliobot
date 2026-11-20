@@ -22,7 +22,7 @@ export const IMAGE_MESSAGES = {
   notSetUp: "Image generation isn't set up on this computer. Ask the person to choose an image provider in Settings → AI → Images (shown in Advanced mode).",
   noTurn: "This turn has not started yet or already ended, so the image could not be attached.",
   notSaved: "The image could not be saved on this computer. Try again shortly.",
-  notPerson: "Images are made only for a person's own message in a chat. This turn was started another way (a routine, a webhook, an app, a guest or a room goal's coordinator), so no image was made. Tell the person they can ask for the image in a chat.",
+  notPerson: "Images are made only for a person's own message or a routine or automation they set up. This turn was started another way (an app, a guest or a room goal's coordinator), so no image was made. Tell the person they can ask for the image in a chat.",
   dailyCap: (cap: number) => `Bots on this computer have made ${cap} images today, the most allowed in one day, so no image was made. Tell the person it starts again after midnight.`,
 } as const;
 

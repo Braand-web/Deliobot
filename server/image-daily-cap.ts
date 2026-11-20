@@ -1,4 +1,4 @@
-// The most images bots make on this installation in one day, so a bot left looping cannot run up the image key's bill.
+// The most images bots make on this installation in one day, when the person sets one (0: none, credits are the limit).
 // Counted on disk, so a restart never resets it; the day is local (a Cloud runs in its owner's zone: server/time-zone.ts)
 // and starts again at midnight. Avatars a person makes in Settings are not counted: they are a person's own clicks.
 import { readFileSync } from "node:fs";
@@ -6,7 +6,8 @@ import { join } from "node:path";
 
 import { writeFileAtomic } from "./atomic.ts";
 
-export const IMAGE_DAILY_CAP = 50;
+/** 0: no daily cap; the person's credits or key are the limit. */
+export const IMAGE_DAILY_CAP = 0;
 export const IMAGE_DAY_FILE = "image-generation-day.json";
 
 function localDay(at: Date): string {
@@ -41,7 +42,7 @@ export function createImageDailyCap(dataDir: string, options: { cap?: number; no
   return {
     cap,
     reserve() {
-      if (madeToday() + held >= cap) return false;
+      if (cap > 0 && madeToday() + held >= cap) return false;
       held += 1;
       return true;
     },

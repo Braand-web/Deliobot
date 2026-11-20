@@ -1,8 +1,9 @@
 /** Music, songs and sound effects run on fal.ai with the same key as images and videos. */
 export const MUSIC_SECONDS_DEFAULT = 30;
 export const MUSIC_SECONDS_MAX = 180;
-export const MUSIC_MAX_PER_TURN_DEFAULT = 1;
-export const MUSIC_DAILY_CAP_DEFAULT = 20;
+export const MUSIC_MAX_PER_TURN_DEFAULT = 4;
+/** 0: no daily cap; the person's credits or key are the limit. */
+export const MUSIC_DAILY_CAP_DEFAULT = 0;
 
 export interface MusicModelChoice { id: string; name: string }
 

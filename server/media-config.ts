@@ -12,7 +12,7 @@ const generator = (maxSeconds: number) => z.object({
   model: falModelSetting.optional(),
   maxSeconds: z.number().int().min(1).max(maxSeconds).optional(),
   maxPerTurn: z.number().int().min(1).max(4).optional(),
-  dailyCap: z.number().int().min(1).max(500).optional(),
+  dailyCap: z.number().int().min(0).max(500).optional(),
 }).strict().optional();
 
 export const mediaGenerationShape = {
