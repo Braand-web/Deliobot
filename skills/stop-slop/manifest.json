@@ -1,0 +1,24 @@
+{
+  "id": "stop-slop",
+  "name": "Stop slop",
+  "version": "1.0.0",
+  "description": "Removes the tell-tale patterns of AI-written text so writing reads as human.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "stop slop",
+    "sounds like ai",
+    "sounds like chatgpt",
+    "less robotic",
+    "more human",
+    "humanize",
+    "rewrite naturally",
+    "ai slop",
+    "moins robotique",
+    "plus humain",
+    "plus naturel",
+    "ça sonne ia",
+    "on dirait chatgpt",
+    "réécris naturellement"
+  ],
+  "requiredCapabilities": []
+}

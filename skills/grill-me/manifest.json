@@ -1,0 +1,23 @@
+{
+  "id": "grill-me",
+  "name": "Grill me",
+  "version": "1.0.0",
+  "description": "Pressure-tests a plan or design with relentless questions until every decision is settled.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "grill me",
+    "pressure test",
+    "pressure-test",
+    "poke holes",
+    "challenge my plan",
+    "stress test my idea",
+    "critique my plan",
+    "challenge mon plan",
+    "challenge mon idée",
+    "critique mon plan",
+    "teste mon idée",
+    "pose-moi des questions",
+    "cuisine-moi"
+  ],
+  "requiredCapabilities": []
+}

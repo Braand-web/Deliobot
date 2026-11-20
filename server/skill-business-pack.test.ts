@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -43,7 +43,32 @@ const ASKS: Record<string, [string, string]> = {
   "habit-forming-apps": ["Comment rendre mon appli addictive pour que les gens reviennent", "improve user retention in my app"],
   "youtube-growth": ["Je veux plus de vues sur ma chaîne YouTube", "what youtube strategy should I use to grow my channel"],
   "command-center": ["Fais-moi un centre de commande de tous mes bots", "a command center with everything in one place"],
+  "hyperframes": ["Fais une vidéo animée de lancement avec du texte qui bouge", "make a launch video with kinetic typography"],
+  "engineering-practices": ["Corrige ce bug et trouve la cause du bug", "use tdd to build the parser"],
+  "frontend-design-pack": ["Améliore le design de ma page d'accueil", "polish the ui of the dashboard"],
+  "grill-me": ["Challenge mon plan avant que je lance", "grill me on this launch plan"],
+  "reddit-automation": ["Trouve des discussions Reddit où répondre pour mon appli", "find reddit threads for my product"],
+  "stop-slop": ["Réécris ce post, il sonne IA, rends-le plus humain", "this sounds like chatgpt, make it more human"],
 };
+
+const IMPORTED: Record<string, string[]> = {
+  "hyperframes": ["hyperframes", "hyperframes-cli", "hyperframes-registry", "media-use", "slideshow", "reverse-any-video", "style-sampling"],
+  "engineering-practices": ["brainstorming", "grill-with-docs", "tdd", "diagnosing-bugs", "systematic-debugging", "verification-before-completion", "improve-codebase-architecture", "codebase-design", "prototype", "domain-modeling", "handoff", "karpathy-guidelines", "react-best-practices", "composition-patterns"],
+  "frontend-design-pack": ["frontend-design", "impeccable", "ui-ux-pro-max", "emil-design-eng", "web-design-guidelines"],
+};
+
+describe.each(Object.entries(IMPORTED))("imported %s pack", (id, guides) => {
+  it("routes to every guide it ships, each with its licence, and sends no usage beacon", () => {
+    const router = readFileSync(join(SKILLS, id, "SKILL.md"), "utf8");
+    for (const guide of guides) {
+      expect(router).toContain(`<SKILLS>/${guide}/SKILL.md`);
+      const text = readFileSync(join(SKILLS, id, guide, "SKILL.md"), "utf8");
+      expect(scanSkillText(text), guide).toEqual([]);
+      expect(text).not.toMatch(/hyperframes events|Usage beacon|utm_source/);
+    }
+    expect(readdirSync(join(SKILLS, id)).some((name) => name.startsWith("LICENSE")) || guides.every((guide) => readdirSync(join(SKILLS, id, guide)).some((name) => name.startsWith("LICENSE")))).toBe(true);
+  });
+});
 
 describe.each(Object.keys(ASKS))("bundled %s skill", (id) => {
   it("is valid, clean, default-on and picked up in French and English", () => {

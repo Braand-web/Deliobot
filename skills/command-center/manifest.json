@@ -2,8 +2,21 @@
   "id": "command-center",
   "name": "Command center",
   "version": "1.0.0",
-  "description": "One live page of everything the bots do and track: needs-you items, routines and failures, money owed, alerts, numbers, today.",
+  "description": "One live page of what the bots do and track: items needing the person, routines, money, alerts.",
   "defaultEnabled": true,
-  "triggerTerms": ["command center", "control center", "overview of everything", "home dashboard", "live dashboard", "everything in one place", "centre de commande", "tableau de bord général", "vue d'ensemble", "tout en un seul endroit", "page d'accueil de mes bots", "tableau de bord en direct"],
+  "triggerTerms": [
+    "command center",
+    "control center",
+    "overview of everything",
+    "home dashboard",
+    "live dashboard",
+    "everything in one place",
+    "centre de commande",
+    "tableau de bord général",
+    "vue d'ensemble",
+    "tout en un seul endroit",
+    "page d'accueil de mes bots",
+    "tableau de bord en direct"
+  ],
   "requiredCapabilities": []
 }

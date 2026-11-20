@@ -2,7 +2,7 @@
   "id": "invoices-quotes",
   "name": "Invoices and quotes",
   "version": "1.0.0",
-  "description": "Professional invoices and quotes as PDF in any currency (FCFA included), with VAT, numbering, a ledger of what is paid, and reminders.",
+  "description": "Invoices and quotes as PDF in any currency (FCFA too), with VAT, numbering, a paid ledger and reminders.",
   "defaultEnabled": true,
   "triggerTerms": [
     "invoice",

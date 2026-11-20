@@ -1,0 +1,11 @@
+{
+  "id": "reddit-automation",
+  "name": "Reddit marketing",
+  "version": "1.0.0",
+  "description": "Finds Reddit threads asking for what the person offers and drafts honest, disclosed replies.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "reddit"
+  ],
+  "requiredCapabilities": []
+}

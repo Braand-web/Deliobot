@@ -1,0 +1,28 @@
+{
+  "id": "frontend-design-pack",
+  "name": "Frontend design pack",
+  "version": "1.0.0",
+  "description": "Top UI design skills: distinctive interfaces, polish, UI/UX rules, design engineering, web guidelines.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "frontend design",
+    "ui design",
+    "ux design",
+    "make it look good",
+    "make it beautiful",
+    "polish the ui",
+    "redesign the page",
+    "landing page design",
+    "design system",
+    "web design",
+    "beautiful website",
+    "joli site",
+    "beau design",
+    "améliore le design",
+    "refais le design",
+    "design de l'interface",
+    "rendre l'interface plus belle",
+    "maquette du site"
+  ],
+  "requiredCapabilities": []
+}

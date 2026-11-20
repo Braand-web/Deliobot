@@ -1,0 +1,28 @@
+{
+  "id": "hyperframes",
+  "name": "HyperFrames video",
+  "version": "1.0.0",
+  "description": "Animated videos written in HTML: launch films, kinetic text, charts, captions, slideshows, rendered to MP4.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "hyperframes",
+    "motion graphics",
+    "animated video",
+    "kinetic typography",
+    "explainer animation",
+    "launch video",
+    "promo video",
+    "title card",
+    "animated chart",
+    "video slideshow",
+    "lower third",
+    "vidéo animée",
+    "motion graphique",
+    "animation de texte",
+    "vidéo de lancement",
+    "vidéo promo",
+    "graphique animé",
+    "diaporama vidéo"
+  ],
+  "requiredCapabilities": []
+}

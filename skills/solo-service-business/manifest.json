@@ -2,7 +2,7 @@
   "id": "solo-service-business",
   "name": "Solo service business",
   "version": "1.0.0",
-  "description": "A one-person service business in a 100-day sprint: offer, outreach, sales and delivery bots, numbers worked backwards and tracked daily.",
+  "description": "A one-person service business in a 100-day sprint: offer, outreach, sales, delivery, numbers tracked daily.",
   "defaultEnabled": true,
   "triggerTerms": [
     "one-person business",

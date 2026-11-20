@@ -2,7 +2,7 @@
   "id": "sales-calls",
   "name": "Sales calls",
   "version": "1.0.0",
-  "description": "Sales calls where prospects convince themselves: interview, gap and its cost, growth plan, objections, call reviews.",
+  "description": "Sales calls where prospects convince themselves: interview, gap and its cost, plan, objections, reviews.",
   "defaultEnabled": true,
   "triggerTerms": [
     "sales call",

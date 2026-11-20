@@ -1,0 +1,32 @@
+{
+  "id": "engineering-practices",
+  "name": "Engineering practices",
+  "version": "1.0.0",
+  "description": "Top coding practices: TDD, root-cause debugging, plan grilling, architecture, prototypes, hand-offs, React speed.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "tdd",
+    "test-driven",
+    "test driven",
+    "root cause",
+    "debug this",
+    "fix this bug",
+    "flaky test",
+    "refactor the architecture",
+    "codebase architecture",
+    "deep modules",
+    "prototype this",
+    "handoff",
+    "hand off",
+    "brainstorm the feature",
+    "react performance",
+    "react best practices",
+    "développement piloté par les tests",
+    "corrige ce bug",
+    "cause du bug",
+    "refactoriser",
+    "architecture du code",
+    "prototype rapide"
+  ],
+  "requiredCapabilities": []
+}

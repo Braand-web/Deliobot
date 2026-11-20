@@ -18,7 +18,7 @@ describe("built-in skills a bot finds by itself", () => {
     expect(index).toContain("without waiting to be asked");
     expect(index).not.toContain("phone-harness");
     expect(bundledSkillsIndex(skills, ["phoneMcp"])).toContain("phone-harness");
-    expect(Buffer.byteLength(index)).toBeLessThan(6_000);
+    expect(Buffer.byteLength(index)).toBeLessThan(7_000);
   });
 
   it("picks the right skill from a request written in French", () => {
