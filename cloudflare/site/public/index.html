@@ -407,6 +407,8 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
   .m{max-width:90%}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+.welcome{margin:0 0 22px;padding:14px 18px;border-radius:14px;background:color-mix(in srgb,var(--success) 14%,var(--bg));border:1px solid color-mix(in srgb,var(--success) 45%,var(--line));color:var(--ink);font-weight:500}
+.plat a.chosen{outline:2px solid var(--accent);outline-offset:2px;box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 18%,transparent)}
 </style>
 </head>
 <body>
@@ -424,7 +426,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
       <a href="#faq">Questions</a>
     </nav>
     <div class="actions">
-      <a class="pill soft" href="https://compte.deliobot.fun/login" data-portal-path="/login">Se connecter</a>
+      <a data-account-link class="pill soft" href="https://compte.deliobot.fun/login" data-portal-path="/login">Se connecter</a>
       <div class="split">
         <a href="#telecharger" data-os-label>Télécharger</a>
         <button type="button" aria-label="Autres plateformes" aria-expanded="false" data-menu-toggle>
@@ -777,6 +779,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
 <section id="telecharger">
   <div class="narrow dl">
     <div class="reveal">
+      <p class="welcome" data-welcome hidden>✓ Votre compte est créé. Téléchargez Deliobot pour commencer, puis connectez-vous dans l'application avec la même adresse e-mail.</p>
       <h2>Télécharger Deliobot</h2>
       <p class="lede" style="margin-top:18px">Installez l'application, connectez-la à votre compte avec un code, et vos bots se mettent au travail sur votre ordinateur.</p>
       <p class="release" data-release hidden><i></i><span></span></p>
@@ -841,7 +844,7 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
       <div><a class="brand" href="/"><img loading="lazy" decoding="async" src="/assets/delio-idle.webp" alt="">Deliobot</a><p style="margin:14px 0 0;max-width:260px">Des collègues IA qui terminent le travail.</p></div>
       <div><h4>Produit</h4><a href="#fonctions">Fonctions</a><a href="#metiers">Solutions</a><a href="#tarifs">Tarifs</a><a href="#telecharger">Télécharger</a></div>
       <div><h4>Ressources</h4><a href="/guides">Guides</a><a href="#faq">Questions</a></div>
-      <div><h4>Entreprise</h4><a href="/a-propos">À propos</a><a href="/ambassadeurs">Devenir ambassadeur</a><a href="mailto:support@deliobot.fun">Support</a><a href="https://compte.deliobot.fun/login">Se connecter</a></div>
+      <div><h4>Entreprise</h4><a href="/a-propos">À propos</a><a href="/ambassadeurs">Devenir ambassadeur</a><a href="mailto:support@deliobot.fun">Support</a><a data-account-link href="https://compte.deliobot.fun/login">Se connecter</a></div>
       <div><h4>Légal</h4><a href="/conditions">Conditions</a><a href="/confidentialite">Confidentialité</a></div>
     </div>
     <div class="fine"><span>© 2026 Deliobot</span><span>Vos bots, votre équipe.</span></div>
@@ -1037,5 +1040,6 @@ footer{border-top:1px solid var(--line);padding:56px 0 40px;font-size:14px;color
   show(0);
 })();
 </script>
+<script src="/account.js" defer></script>
 </body>
 </html>

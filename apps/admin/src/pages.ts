@@ -78,12 +78,12 @@ export interface ChosenOffer { name: string; price: string }
 
 const offerNote = (offer: ChosenOffer) => h`<div class="card row" style="margin:16px 0 0;padding:12px 16px"><div class="grow"><span class="muted" style="font-size:12px">Votre choix</span><br><b>${offer.name}</b></div><b>${offer.price}</b></div>`;
 
-export function loginPage(next: string, error?: string, offer?: ChosenOffer): Html {
-  return h`<div class="narrow"><h1 class="center">${offer ? "Créez votre compte ou connectez-vous" : "Connexion ou inscription"}</h1>
-<p class="muted center">Pas de mot de passe : nous vous envoyons un code par e-mail. Nouveau ? Votre compte est créé avec ce premier code.</p>
+export function loginPage(next: string, error?: string, offer?: ChosenOffer, signup = false): Html {
+  return h`<div class="narrow"><h1 class="center">${offer ? "Créez votre compte ou connectez-vous" : signup ? "Créer votre compte" : "Connexion ou inscription"}</h1>
+<p class="muted center">${signup ? "Un code par e-mail, pas de mot de passe. Vous avez déjà un compte ? Le même code vous connecte." : "Pas de mot de passe : nous vous envoyons un code par e-mail. Nouveau ? Votre compte est créé avec ce premier code."}</p>
 ${offer ? offerNote(offer) : ""}${notice(error, "error")}<form method="post" action="/login" class="card"><input type="hidden" name="next" value="${next}">
 <label for="email">Adresse e-mail</label><input id="email" name="email" type="email" autocomplete="email" required autofocus>
-<p><button class="primary" style="width:100%">${offer ? "Recevoir mon code et continuer" : "Recevoir mon code"}</button></p></form>
+<p><button class="primary" style="width:100%">${offer ? "Recevoir mon code et continuer" : signup ? "Créer mon compte" : "Recevoir mon code"}</button></p></form>
 <p class="muted center" style="font-size:12px">Les comptes d'entreprise passent par la connexion unique (SSO).</p></div>`;
 }
 
@@ -331,6 +331,16 @@ function getTheApp(device: VisitorDevice): Html {
     : "Installez l'application, puis connectez-vous avec la même adresse e-mail : votre forfait est déjà dedans.";
   return h`<div class="card" style="text-align:left;margin-top:20px"><b>Pas encore l'application ?</b><p class="muted" style="margin:6px 0 12px">${lead}</p>
 ${device === "phone" ? "" : h`<p style="margin:0 0 12px">${primary}</p>`}<ol class="steps"><li><span>Installez Deliobot sur votre ordinateur.</span></li><li><span>Ouvrez-le et entrez votre adresse e-mail, puis le code reçu.</span></li><li><span>C'est prêt : vos bots utilisent votre forfait.</span></li></ol></div>`;
+}
+
+export const OPEN_APP_SCRIPT = `setTimeout(function(){location.href="opendeliobot://cloud"},400);`;
+
+export function openAppPage(device: VisitorDevice): Html {
+  return h`<div class="narrow center"><h1>Ouverture de Deliobot…</h1>
+<p class="muted">Votre navigateur vous demande d'ouvrir l'application : acceptez, et vous y êtes.</p>
+<p><a class="button primary" href="opendeliobot://cloud">Ouvrir Deliobot</a></p>
+${getTheApp(device)}
+<p class="muted" style="margin-top:18px"><a href="/">Gérer mon compte</a></p></div>`;
 }
 
 export function paymentReturnPage(status: string, device: VisitorDevice = "other"): Html {

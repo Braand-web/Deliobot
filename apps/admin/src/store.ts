@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS suspensions (workspace TEXT PRIMARY KEY REFERENCES wo
 export type SessionScope = "portal" | "console";
 const otpKey = (email: string, scope: SessionScope) => scope === "console" ? `console:${email}` : email;
 
-export type OtpResult = { ok: true; account: Account } | { ok: false; reason: "invalid" | "expired" | "locked" };
+export type OtpResult = { ok: true; account: Account; created: boolean } | { ok: false; reason: "invalid" | "expired" | "locked" };
 
 export class AdminStore {
   readonly db: SqlDatabase;
@@ -119,7 +119,8 @@ export class AdminStore {
       return { ok: false, reason: "invalid" };
     }
     this.db.prepare("DELETE FROM otps WHERE email = ?").run(key);
-    return { ok: true, account: this.ensureAccount(email) };
+    const created = !this.hasAccount(email);
+    return { ok: true, account: this.ensureAccount(email), created };
   }
 
   accountByEmail(email: string): Account | null {

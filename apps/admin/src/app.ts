@@ -22,7 +22,7 @@ import { Reports } from "./reports.ts";
 import { MICRO, Wallet } from "./wallet.ts";
 import { consoleServes, createConsole } from "./console/routes.ts";
 import { Traffic, type VisitInput } from "./traffic.ts";
-import { billingPage, codePage, devicesPage, paymentReturnPage, visitorDevice, type ChosenOffer, promoPage, subscriptionPage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, otherAccountPage, signupPage, slackPage, ssoPage, SUPPORT_EMAIL, type Html } from "./pages.ts";
+import { billingPage, codePage, devicesPage, OPEN_APP_SCRIPT, openAppPage, paymentReturnPage, visitorDevice, type ChosenOffer, promoPage, subscriptionPage, devicePage, homePage, invitePage, loginPage, messagePage, page, peoplePage, otherAccountPage, signupPage, slackPage, ssoPage, SUPPORT_EMAIL, type Html } from "./pages.ts";
 import { domainHoldsToken } from "./sso-verify.ts";
 import { normalizeEmail, PUBLIC_MAIL_DOMAINS, sha256, token, validEmail, validSlug, type Account, type AdminStore, type Role, type Workspace } from "./store.ts";
 
@@ -282,6 +282,21 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     return `${cookieName}=${value}; Path=/; Max-Age=${maxAgeSeconds}; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}`;
   }
 
+  /** Read by the public site's own script to show "Se connecter" rather than "Créer un compte"; it holds no identity. */
+  function knownBrowserCookie(): string | null {
+    if (operatorConsole || !options.signup) return null;
+    return `delio-known=1; Domain=${new URL(options.signup.downloadUrl).hostname}; Path=/; Max-Age=31536000; SameSite=Lax${secure ? "; Secure" : ""}`;
+  }
+
+  function afterSignIn(next: string, created: boolean | undefined): string {
+    if (operatorConsole || !options.signup || created === undefined || next !== "/") return next;
+    if (!created) return "/ouvrir";
+    const welcome = new URL(options.signup.downloadUrl);
+    welcome.searchParams.set("bienvenue", "1");
+    if (!welcome.hash) welcome.hash = "telecharger";
+    return welcome.href;
+  }
+
   /** `scriptNonce`: the nonce of the page's own script; without it the page runs no script at all. */
   function send(res: ServerResponse, status: number, body: string, type: string, headers: Record<string, string | string[]> = {}, scriptNonce?: string): void {
     res.statusCode = status;
@@ -407,13 +422,14 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     return workspace;
   }
 
-  function signIn(res: ServerResponse, user: Account, next: string): void {
+  function signIn(res: ServerResponse, user: Account, next: string, created?: boolean): void {
     if (store.blocked(user.id)) {
       return html(res, 403, { title: "Compte bloqué", mascot: "sad", body: messagePage("Ce compte est bloqué", `Écrivez à ${SUPPORT_EMAIL} si vous pensez que c'est une erreur.`) });
     }
     const session = store.createSession(user.id, operatorConsole ? "console" : "portal");
     store.audit(null, user.email, "account.signin", null);
-    redirect(res, localPath(next), [sessionCookie(session.token, session.maxAgeSeconds)]);
+    const known = knownBrowserCookie();
+    redirect(res, afterSignIn(localPath(next), created), [sessionCookie(session.token, session.maxAgeSeconds), ...(known ? [known] : [])]);
   }
 
   async function startSso(res: ServerResponse, workspace: string, next: string): Promise<void> {
@@ -577,8 +593,9 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     }
 
     if (method === "GET" && path === "/login") {
-      if (user) return redirect(res, localPath(url.searchParams.get("next")));
-      return html(res, 200, { title: "Connexion", body: loginPage(localPath(url.searchParams.get("next")), undefined, chosenOffer(localPath(url.searchParams.get("next")))), mascot: "idle" });
+      if (user) return redirect(res, afterSignIn(localPath(url.searchParams.get("next")), false));
+      const signupIntent = !operatorConsole && url.searchParams.get("intent") === "signup";
+      return html(res, 200, { title: signupIntent ? "Créer un compte" : "Connexion", body: loginPage(localPath(url.searchParams.get("next")), undefined, chosenOffer(localPath(url.searchParams.get("next"))), signupIntent), mascot: "idle" });
     }
     if (method === "POST" && path === "/login") {
       const body = await readBody(req);
@@ -620,7 +637,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
         return html(res, 401, { title: "Vérifiez vos e-mails", body: codePage(email, next, message, chosenOffer(next)), mascot: "sad" });
       }
       if (operatorConsole) store.audit(null, result.account.email, "console.login", clientAddress(req));
-      return signIn(res, result.account, next);
+      return signIn(res, result.account, next, result.created);
     }
     if (method === "POST" && path === "/logout") {
       const value = parseCookies(req.headers.cookie).get(cookieName);
@@ -686,6 +703,9 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
         body: messagePage(`Vous avez rejoint ${workspace.name}`, "Vous pouvez maintenant vous connecter à l'espace.", { href: workspace.tenantUrl, label: `Ouvrir ${workspace.tenantUrl}` }) });
     }
 
+    if (method === "GET" && path === "/ouvrir" && !operatorConsole) {
+      return html(res, 200, { title: "Ouvrir Deliobot", email: user.email, mascot: "happy", script: OPEN_APP_SCRIPT, body: openAppPage(visitorDevice(req.headers["user-agent"])) });
+    }
     if (method === "GET" && path === "/") {
       const asAmbassador = operatorConsole ? null : ambassadors.byEmail(user.email);
       const ambassadorCard = asAmbassador?.status === "active" ? (({ level, availableUsd }) => ({ level: level.name, availableUsd }))(ambassadors.stats(asAmbassador)) : null;
