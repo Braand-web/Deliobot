@@ -41,7 +41,7 @@ export async function validateTask(task: BenchTask): Promise<{ failsAsGiven: boo
   }
 }
 
-export interface BenchResult { task: string; arm: "plain" | "coder"; replicate: number; passed: boolean; durationMs: number; costUsd: number | null; turns: number }
+export interface BenchResult { task: string; arm: "plain" | "coder"; replicate: number; passed: boolean; durationMs: number; costUsd: number | null; turns: number; lastReply?: string }
 
 export interface ArmSummary { arm: string; runs: number; passRate: number; meanDurationMs: number; meanCostUsd: number | null; meanTurns: number }
 

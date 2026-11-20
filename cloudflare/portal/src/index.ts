@@ -39,7 +39,7 @@ const ASSETS = new Map<string, Uint8Array>([
 function domainSettings(env: Record<string, unknown>): { domains?: DomainSettings } {
   const { DELIO_SAAS_ZONE_ID: zoneId, DELIO_SAAS_TOKEN: token, DELIO_SAAS_TARGET: target, DELIO_SITES_SUFFIX: ownSuffix } = env;
   return typeof zoneId === "string" && zoneId && typeof token === "string" && token && typeof target === "string" && target && typeof ownSuffix === "string"
-    ? { domains: { saas: cloudflareSaas({ zoneId, token }), target, ownSuffix } } : {};
+    ? { domains: { saas: cloudflareSaas({ zoneId, token, fallbackOrigin: target }), target, ownSuffix } } : {};
 }
 
 function r2Sites(bucket: R2Bucket): SiteBucket {

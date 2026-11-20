@@ -16,7 +16,7 @@ const REPORTS = join(dirname(fileURLToPath(import.meta.url)), "..", "reports", "
 const TURN_LIMIT_MS = 15 * 60_000;
 const QUIET_MS = 8_000;
 
-interface Row { kind?: string; digest?: { usage?: { costUsd?: number | null } }; tool?: { nameCode?: string } }
+interface Row { kind?: string; role?: string; text?: string; digest?: { usage?: { costUsd?: number | null } }; tool?: { nameCode?: string } }
 
 async function runOne(base: string, task: BenchTask, arm: "plain" | "coder", replicate: number, engine: { instanceId: string; model: string }): Promise<BenchResult> {
   const call = async (method: string, path: string, body?: unknown) => {
@@ -43,7 +43,9 @@ async function runOne(base: string, task: BenchTask, arm: "plain" | "coder", rep
     const costs = digests.flatMap((row) => (typeof row.digest?.usage?.costUsd === "number" ? [row.digest.usage.costUsd] : []));
     const passed = await runCheck(task, dir);
     await call("DELETE", `/api/bots/${bot.id}`);
-    return { task: task.id, arm, replicate, passed, durationMs: Date.now() - started, costUsd: costs.length ? costs.reduce((a, b) => a + b, 0) : null, turns: digests.length };
+    const lastReply = [...rows].reverse().find((row) => row.role === "bot" && typeof row.text === "string" && row.text.trim())?.text?.trim().slice(0, 400);
+    return { task: task.id, arm, replicate, passed, durationMs: Date.now() - started, costUsd: costs.length ? costs.reduce((a, b) => a + b, 0) : null, turns: digests.length,
+      ...(passed || !lastReply ? {} : { lastReply }) };
   } finally {
     await removeTempDir(dir);
   }
@@ -70,7 +72,7 @@ async function main(): Promise<void> {
         for (const arm of arms) {
           const result = await runOne(server.url, task, arm, replicate, engine);
           results.push(result);
-          console.log(`${task.id} ${arm} #${replicate}: ${result.passed ? "pass" : "FAIL"} in ${Math.round(result.durationMs / 1000)} s`);
+          console.log(`${task.id} ${arm} #${replicate}: ${result.passed ? "pass" : "FAIL"} in ${Math.round(result.durationMs / 1000)} s${result.lastReply ? ` (last reply: ${result.lastReply.replace(/\s+/g, " ").slice(0, 200)})` : ""}`);
         }
       }
     }

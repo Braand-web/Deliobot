@@ -37,7 +37,8 @@ function readHostname(raw: unknown): CustomHostname | null {
 }
 
 /** Security: the token only ever goes to Cloudflare's API, and only Cloudflare's own words about the hostname come back. */
-export function cloudflareSaas(options: { zoneId: string; token: string; fetch?: typeof fetch }): SaasHostnames {
+/** `fallbackOrigin`: the zone's own host the custom hostnames are served from; set once, before the first hostname. */
+export function cloudflareSaas(options: { zoneId: string; token: string; fallbackOrigin?: string; fetch?: typeof fetch }): SaasHostnames {
   const call = options.fetch ?? fetch;
   const base = `https://api.cloudflare.com/client/v4/zones/${encodeURIComponent(options.zoneId)}/custom_hostnames`;
   const request = async (path: string, init: RequestInit = {}) => {
@@ -45,8 +46,18 @@ export function cloudflareSaas(options: { zoneId: string; token: string; fetch?:
     const body = await response.json().catch(() => null) as { success?: boolean; result?: unknown; errors?: Array<{ code?: number; message?: string }> } | null;
     return { status: response.status, ok: response.ok && body?.success === true, result: body?.result, code: body?.errors?.[0]?.code ?? null };
   };
+  let origin: Promise<void> | null = null;
+  const ensureOrigin = () => origin ??= (async () => {
+    if (!options.fallbackOrigin) return;
+    const current = await request("/fallback_origin");
+    const set = (current.result as { origin?: unknown } | undefined)?.origin;
+    if (current.ok && set === options.fallbackOrigin) return;
+    const answer = await request("/fallback_origin", { method: "PUT", body: JSON.stringify({ origin: options.fallbackOrigin }) });
+    if (!answer.ok) origin = null;
+  })();
   return {
     async create(hostname) {
+      await ensureOrigin();
       const answer = await request("", { method: "POST", body: JSON.stringify({ hostname, ssl: { method: "http", type: "dv" } }) });
       const read = answer.ok ? readHostname(answer.result) : null;
       if (!read) throw Object.assign(new Error("custom hostname refused"), { code: answer.code === 1406 ? "domain_taken" : "domain_failed" });
