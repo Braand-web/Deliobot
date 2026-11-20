@@ -683,8 +683,8 @@
     ]
   },
   "skills+shared+voice+x+team+images+hosting": {
-    "bytes": 20617,
-    "sha256": "9c3969378df921811232bc38ca995b6671cf3fc8fd57ba5b42643b999a6c6825",
+    "bytes": 20738,
+    "sha256": "90d8985b67bcff90c4894e2dc986f5decd0a4bf8c109cbcc27193352fcf08fe6",
     "tools": [
       "tool_result_read",
       "list_room_targets",
@@ -709,8 +709,8 @@
     ]
   },
   "default+hosting": {
-    "bytes": 19680,
-    "sha256": "182db01138380c3b59bdf09b61057d8be0c351cc414b8a5a9ac42550b02644a8",
+    "bytes": 19801,
+    "sha256": "46bdac5072fdf4b87db9d69f7701bcf511a82e7eb2296e7dc5f73a834d51df71",
     "tools": [
       "tool_result_read",
       "list_room_targets",

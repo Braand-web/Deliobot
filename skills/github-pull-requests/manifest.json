@@ -1,0 +1,28 @@
+{
+  "id": "github-pull-requests",
+  "name": "GitHub pull requests",
+  "version": "1.0.0",
+  "description": "Clone a repository, change it on a branch, push, open a pull request that says how it was checked, and follow its CI.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "github",
+    "pull request",
+    "pull requests",
+    "open a pr",
+    "open a pull request",
+    "create a pr",
+    "git push",
+    "push the branch",
+    "push to github",
+    "branch",
+    "commit",
+    "clone the repo",
+    "clone this repo",
+    "repository",
+    "repo",
+    "ci failed",
+    "github actions",
+    "code review"
+  ],
+  "requiredCapabilities": []
+}

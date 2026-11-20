@@ -15,6 +15,7 @@ function fakePublisher() {
     rollback: vi.fn(async () => ({ status: 200 as const, body: { ok: true, restored: 1 } })),
     protect: vi.fn(async () => ({ status: 200 as const, body: { ok: true, passwordProtected: true } })),
     domain: vi.fn(async () => ({ status: 200 as const, body: { ok: true, domain: null } })),
+    promote: vi.fn(async () => ({ status: 200 as const, body: { ok: true } })),
   } satisfies AppPublisher;
 }
 
@@ -57,7 +58,7 @@ describe("publish_app's internal route", () => {
   it("refuses a body that is not the tool's, before anything is read", async () => {
     const publisher = fakePublisher();
     for (const body of [{ action: "make-public", path: "shop" }, { path: 5 }, { path: "x".repeat(5000) }, { path: "shop", title: ["a"] }]) {
-      expect(await call(publisher, { body }), JSON.stringify(body).slice(0, 60)).toMatchObject({ status: 400, body: { error: "publish_app takes action (publish, delete, rollback, protect, unprotect or domain), path, project, title and domain as text, and version as a number." } });
+      expect(await call(publisher, { body }), JSON.stringify(body).slice(0, 60)).toMatchObject({ status: 400, body: { error: "publish_app takes action (publish, delete, rollback, protect, unprotect, domain or promote), path, project, title and domain as text, version as a number and preview as true or false." } });
     }
     expect(publisher.publish).not.toHaveBeenCalled();
   });

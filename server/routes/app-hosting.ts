@@ -25,13 +25,13 @@ export interface AppHostingContext {
 
 const ROUTE = "/api/internal/apps/publish";
 const folder = z.string().max(4096).optional();
-const body = z.object({ action: z.enum(["publish", "status", "delete", "rollback", "protect", "unprotect", "domain"]).optional(), domain: z.string().max(253).nullable().optional(), path: folder, project: folder, title: z.string().max(1000).optional(), version: z.number().int().positive().optional() });
+const body = z.object({ action: z.enum(["publish", "status", "delete", "rollback", "protect", "unprotect", "domain", "promote"]).optional(), preview: z.boolean().optional(), domain: z.string().max(253).nullable().optional(), path: folder, project: folder, title: z.string().max(1000).optional(), version: z.number().int().positive().optional() });
 
 export function createAppHostingInternalRoutes(publisher: AppPublisher) {
   return async (ctx: AppHostingContext): Promise<typeof PASS | void> => {
     if (ctx.method !== "POST" || ctx.path !== ROUTE) return PASS;
     const parsed = body.safeParse(await ctx.readBody() ?? {});
-    if (!parsed.success) return void ctx.json(ctx.res, 400, { error: "publish_app takes action (publish, delete, rollback, protect, unprotect or domain), path, project, title and domain as text, and version as a number." });
+    if (!parsed.success) return void ctx.json(ctx.res, 400, { error: "publish_app takes action (publish, delete, rollback, protect, unprotect, domain or promote), path, project, title and domain as text, version as a number and preview as true or false." });
     const { roots, vmWorkspace } = await ctx.folders();
     const hostPath = (path: string | undefined) => (path && vmWorkspace ? guestWorkspaceToHost(path, VM_WORKSPACE_GUEST, vmWorkspace) ?? path : path);
     const { action = "publish", title } = parsed.data, path = hostPath(parsed.data.path), project = hostPath(parsed.data.project);
@@ -41,8 +41,9 @@ export function createAppHostingInternalRoutes(publisher: AppPublisher) {
       : action === "delete" ? await publisher.remove({ ...input, path: path! })
         : action === "rollback" ? await publisher.rollback({ ...input, path: path!, ...(parsed.data.version ? { version: parsed.data.version } : {}) })
           : action === "protect" || action === "unprotect" ? await publisher.protect({ ...input, path: path! }, action === "protect")
+            : action === "promote" ? await publisher.promote({ ...input, path: path! })
             : action === "domain" ? await publisher.domain({ ...input, path: path! }, parsed.data.domain === "" ? null : parsed.data.domain)
-        : await publisher.publish({ ...input, path: path!, ...(title ? { title } : {}) });
+        : await publisher.publish({ ...input, path: path!, ...(title ? { title } : {}), ...(parsed.data.preview ? { preview: true } : {}) });
     ctx.json(ctx.res, answer.status, answer.body);
   };
 }

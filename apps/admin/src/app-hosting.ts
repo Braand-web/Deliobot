@@ -71,8 +71,9 @@ export function sitePath(value: unknown): string | null {
   return parts.join("/");
 }
 
-interface AppRow { workspace: string; key: string; label: string; title: string; state: string; pending: string | null; created_at: number; published_at: number | null; auth: string | null }
+interface AppRow { workspace: string; key: string; label: string; title: string; state: string; pending: string | null; created_at: number; published_at: number | null; auth: string | null; preview: string | null }
 interface VersionRow { version: number; files: string; published_at: number }
+type Setting = "versions" | "rollback" | "password" | "domain" | "promote";
 interface DomainRow { hostname: string; workspace: string; key: string; cf_id: string; status: string; detail: string | null }
 
 export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket | null; sitesSuffix: string; access: (workspace: string) => HostingAccess; domains?: DomainSettings; now?: () => number }) {
@@ -85,7 +86,9 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
     published_at INTEGER NOT NULL, PRIMARY KEY (workspace, key, version))`);
   db.exec(`CREATE TABLE IF NOT EXISTS hosted_domains (hostname TEXT PRIMARY KEY, workspace TEXT NOT NULL, key TEXT NOT NULL, cf_id TEXT NOT NULL,
     status TEXT NOT NULL, detail TEXT, created_at INTEGER NOT NULL)`);
-  if (!(db.prepare("PRAGMA table_info(hosted_apps)").all() as Array<{ name: string }>).some((column) => column.name === "auth")) db.exec("ALTER TABLE hosted_apps ADD COLUMN auth TEXT");
+  const columns = (db.prepare("PRAGMA table_info(hosted_apps)").all() as Array<{ name: string }>).map((column) => column.name);
+  if (!columns.includes("auth")) db.exec("ALTER TABLE hosted_apps ADD COLUMN auth TEXT");
+  if (!columns.includes("preview")) db.exec("ALTER TABLE hosted_apps ADD COLUMN preview TEXT");
 
   const month = () => new Date(now()).toISOString().slice(0, 7);
   const nextMonth = () => { const at = new Date(now()); return new Date(Date.UTC(at.getUTCFullYear(), at.getUTCMonth() + 1, 1)).toISOString(); };
@@ -107,6 +110,7 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
     return {
       key: app.key, title: app.title, url: app.state === "ready" ? `https://${app.label}${options.sitesSuffix}/` : null, state: app.state, visibility: app.auth ? "private" : "public",
       version: latestVersion(app.workspace, app.key),
+      previewUrl: app.preview ? `https://${app.label}-preview${options.sitesSuffix}/` : null,
       ...(domain ? { domain: { hostname: domain.hostname, status: domain.status } } : {}),
       createdAt: new Date(app.created_at).toISOString(), publishedAt: app.published_at === null ? null : new Date(app.published_at).toISOString(),
     };
@@ -168,12 +172,12 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
   const latestVersion = (workspace: string, key: string) => (db.prepare("SELECT MAX(version) AS version FROM hosted_versions WHERE workspace = ? AND key = ?").get(workspace, key) as { version: number | null } | undefined)?.version ?? 0;
   const versions = (workspace: string, key: string) => db.prepare("SELECT version, files, published_at FROM hosted_versions WHERE workspace = ? AND key = ? ORDER BY version DESC").all(workspace, key) as VersionRow[];
 
-  async function writeManifest(app: AppRow, files: Array<{ path: string; sha1: string }>, version: number): Promise<void> {
+  async function writeManifest(app: AppRow, files: Array<{ path: string; sha1: string }>, version: number, preview = false): Promise<void> {
     const manifest: SiteManifest = {
       workspace: app.workspace, key: app.key, version, files: Object.fromEntries(files.map((file) => [file.path, { sha1: file.sha1, type: contentType(file.path) }])),
       ...(app.auth ? { auth: JSON.parse(app.auth) as SiteAuth } : {}),
     };
-    await options.bucket!.put(`sites/${app.label}.json`, new TextEncoder().encode(JSON.stringify(manifest)), "application/json");
+    await options.bucket!.put(`sites/${app.label}${preview ? ".preview" : ""}.json`, new TextEncoder().encode(JSON.stringify(manifest)), "application/json");
   }
 
   /** Records `files` as the app's next version, keeping the last VERSIONS_KEPT, and serves it. */
@@ -189,8 +193,20 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
     return version;
   }
 
-  async function finish(app: AppRow, files: Array<{ path: string; sha1: string }>): Promise<void> {
-    await release(app, files, true);
+  /** What a publish is waiting for: the files, and whether they go to the app's preview address instead of the live one. */
+  const pendingOf = (app: AppRow): { files: Array<{ path: string; sha1: string; size: number }>; preview: boolean } | null => {
+    if (!app.pending) return null;
+    const parsed = JSON.parse(app.pending) as Array<{ path: string; sha1: string; size: number }> | { preview: true; files: Array<{ path: string; sha1: string; size: number }> };
+    return Array.isArray(parsed) ? { files: parsed, preview: false } : { files: parsed.files, preview: true };
+  };
+
+  async function finish(app: AppRow, files: Array<{ path: string; sha1: string }>, preview: boolean): Promise<void> {
+    if (!preview) { await release(app, files, true); return; }
+    await writeManifest(app, files, latestVersion(app.workspace, app.key), true);
+    db.transaction(() => {
+      db.prepare("UPDATE hosted_apps SET preview = ?, pending = NULL, state = CASE WHEN state = 'ready' THEN 'ready' ELSE 'preview' END WHERE workspace = ? AND key = ?").run(JSON.stringify(files), app.workspace, app.key);
+      db.prepare("INSERT INTO hosted_publishes (workspace, month, count) VALUES (?, ?, 1) ON CONFLICT (workspace, month) DO UPDATE SET count = count + 1").run(app.workspace, month());
+    });
   }
 
   function reply(res: ServerResponse, status: number, body: unknown): void {
@@ -212,7 +228,7 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
   }
 
   /** An app's versions (GET versions), putting an earlier one back (POST rollback {version?}), and its password (PUT password {password|null}). */
-  async function appSetting(res: ServerResponse, workspace: string, key: string, what: "versions" | "rollback" | "password" | "domain", method: string, req: IncomingMessage): Promise<void> {
+  async function appSetting(res: ServerResponse, workspace: string, key: string, what: Setting, method: string, req: IncomingMessage): Promise<void> {
     const app = KEY.test(key) ? row(workspace, key) : undefined;
     if (!app) return reply(res, 404, { error: "app_not_found" });
     if (app.state === "taken_down") return reply(res, 403, { error: "app_taken_down" });
@@ -222,6 +238,14 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
     let input: { version?: unknown; password?: unknown; hostname?: unknown };
     try { input = JSON.parse((await body(req, 4_096)).toString("utf8") || "{}") as typeof input; } catch { return reply(res, 400, { error: "failed" }); }
     if (what === "domain") return domainSetting(res, app, method, input);
+    if (what === "promote") {
+      if (method !== "POST") return reply(res, 405, { error: "failed" });
+      if (!app.preview) return reply(res, 404, { error: "preview_not_found" });
+      const version = await release(app, JSON.parse(app.preview) as Array<{ path: string; sha1: string }>, false);
+      await options.bucket!.delete(`sites/${app.label}.preview.json`);
+      db.prepare("UPDATE hosted_apps SET preview = NULL WHERE workspace = ? AND key = ?").run(workspace, key);
+      return reply(res, 200, { app: view(row(workspace, key)!), version });
+    }
     if (what === "rollback") {
       if (method !== "POST") return reply(res, 405, { error: "failed" });
       const target = input.version === undefined ? history[1] : history.find((one) => one.version === input.version);
@@ -238,6 +262,7 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
     const updated = row(workspace, key)!;
     const current = history[0];
     if (current && updated.state === "ready") await writeManifest(updated, JSON.parse(current.files) as Array<{ path: string; sha1: string }>, current.version);
+    if (updated.preview) await writeManifest(updated, JSON.parse(updated.preview) as Array<{ path: string; sha1: string }>, current?.version ?? 0, true);
     return reply(res, 200, { app: view(updated) });
   }
 
@@ -252,7 +277,7 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
     async takeDown(label: string): Promise<{ workspace: string; key: string } | null> {
       const app = db.prepare("SELECT * FROM hosted_apps WHERE label = ?").get(label) as AppRow | undefined;
       if (!app) return null;
-      if (options.bucket) await options.bucket.delete(`sites/${app.label}.json`);
+      if (options.bucket) { await options.bucket.delete(`sites/${app.label}.json`); await options.bucket.delete(`sites/${app.label}.preview.json`); }
       await dropDomain(app.workspace, app.key).catch(() => {});
       db.prepare("UPDATE hosted_apps SET state = 'taken_down', pending = NULL WHERE label = ?").run(label);
       return { workspace: app.workspace, key: app.key };
@@ -269,8 +294,8 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
 
       if (path === "apps" && method === "GET") return reply(res, 200, { apps: rows(workspace).map(view), allowance: allowance(workspace, access.plan) });
 
-      const extra = /^apps\/([^/]+)\/(versions|rollback|password|domain)$/.exec(path);
-      if (extra) return appSetting(res, workspace, decodeURIComponent(extra[1]!), extra[2] as "versions" | "rollback" | "password" | "domain", method, req);
+      const extra = /^apps\/([^/]+)\/(versions|rollback|password|domain|promote)$/.exec(path);
+      if (extra) return appSetting(res, workspace, decodeURIComponent(extra[1]!), extra[2] as Setting, method, req);
 
       const match = /^apps\/([^/]+)(?:\/files\/([^/]+))?$/.exec(path);
       const key = match ? decodeURIComponent(match[1]!) : "";
@@ -282,7 +307,7 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
         if (method !== "PUT") return reply(res, 405, { error: "failed" });
         const sha1 = match[2];
         if (!existing || !existing.pending || !SHA1.test(sha1)) return reply(res, 409, { error: "not_required" });
-        const files = JSON.parse(existing.pending) as Array<{ path: string; sha1: string; size: number }>;
+        const { files, preview } = pendingOf(existing)!;
         const expected = files.find((file) => file.sha1 === sha1);
         if (!expected) return reply(res, 409, { error: "not_required" });
         let bytes: Buffer;
@@ -290,7 +315,7 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
         if (bytes.length !== expected.size) return reply(res, 400, { error: "size_mismatch" });
         if (createHash("sha1").update(bytes).digest("hex") !== sha1) return reply(res, 400, { error: "digest_mismatch" });
         await options.bucket.put(blob(workspace, sha1), new Uint8Array(bytes), contentType(expected.path));
-        if (!(await missing(workspace, files)).length) await finish(existing, files);
+        if (!(await missing(workspace, files)).length) await finish(existing, files, preview);
         return reply(res, 200, { received: true });
       }
 
@@ -299,13 +324,14 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
       if (method === "DELETE") {
         if (!existing) return reply(res, 404, { error: "app_not_found" });
         await options.bucket.delete(`sites/${existing.label}.json`);
+        await options.bucket.delete(`sites/${existing.label}.preview.json`);
         await dropDomain(workspace, key);
         db.prepare("DELETE FROM hosted_apps WHERE workspace = ? AND key = ?").run(workspace, key);
         return reply(res, 200, { deleted: true });
       }
 
       if (method !== "PUT") return reply(res, 405, { error: "failed" });
-      let manifest: { title?: unknown; files?: unknown };
+      let manifest: { title?: unknown; files?: unknown; preview?: unknown };
       try { manifest = JSON.parse((await body(req, MAX_MANIFEST_BYTES)).toString("utf8")) as typeof manifest; } catch { return reply(res, 413, { error: "request_too_large", max: MAX_MANIFEST_BYTES }); }
       if (!Array.isArray(manifest?.files)) return reply(res, 400, { error: "invalid_files" });
       if (manifest.files.length > HOSTING_LIMITS.maxFiles) return reply(res, 400, { error: "too_many_files", files: manifest.files.length, max: HOSTING_LIMITS.maxFiles });
@@ -332,16 +358,18 @@ export function createAppHosting(options: { db: SqlDatabase; bucket: SiteBucket 
       if (current.publishes.used >= limit.publishes) return reply(res, 403, { error: "publishes_limit_reached", publishes: current.publishes });
 
       const title = (typeof manifest.title === "string" ? manifest.title : key).replace(/\p{Cc}/gu, " ").trim().slice(0, 200) || key;
+      const preview = manifest.preview === true;
+      const pending = JSON.stringify(preview ? { preview: true, files } : files);
       if (existing) {
-        db.prepare("UPDATE hosted_apps SET title = ?, pending = ?, state = CASE WHEN state = 'ready' THEN 'ready' ELSE 'uploading' END WHERE workspace = ? AND key = ?")
-          .run(title, JSON.stringify(files), workspace, key);
+        db.prepare(`UPDATE hosted_apps SET title = ?, pending = ?, state = CASE WHEN state = 'ready' THEN 'ready' ELSE 'uploading' END${preview ? ", preview = NULL" : ""} WHERE workspace = ? AND key = ?`)
+          .run(title, pending, workspace, key);
       } else {
         db.prepare("INSERT INTO hosted_apps (workspace, key, label, title, state, pending, created_at, published_at) VALUES (?, ?, ?, ?, 'uploading', ?, ?, NULL)")
-          .run(workspace, key, label(), title, JSON.stringify(files), now());
+          .run(workspace, key, label(), title, pending, now());
       }
       const app = row(workspace, key)!;
       const required = await missing(workspace, files);
-      if (!required.length) await finish(app, files);
+      if (!required.length) await finish(app, files, preview);
       return reply(res, 200, { app: view(row(workspace, key)!), created: !existing, required: required.map((sha1) => ({ sha1 })), allowance: allowance(workspace, access.plan) });
     },
   };

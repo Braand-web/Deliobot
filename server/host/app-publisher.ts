@@ -134,6 +134,8 @@ export interface AppPublishInput {
   /** The project's folder, which keeps the record; the published folder itself when absent. */
   project?: string;
   title?: string;
+  /** Send it to the app's preview address; the live app stays as it is until promote. */
+  preview?: boolean;
 }
 
 export type AppPublishAnswer = { status: 200 | 400 | 403 | 409 | 502; body: Record<string, unknown> };
@@ -245,7 +247,7 @@ export function createAppPublisher(deps: AppPublisherDeps) {
         if (!files.some((file) => file.path === "index.html")) throw new HostingRefusal("failed", `${input.path.trim()} has no index.html at its top. Publish the built output folder.`);
         turn.assertActive?.();
 
-        const started = await hosting.start(key, { title, files: files.map((file) => ({ path: file.path, sha1: file.sha1, size: file.data.byteLength })) }, turn.signal);
+        const started = await hosting.start(key, { title, files: files.map((file) => ({ path: file.path, sha1: file.sha1, size: file.data.byteLength })), ...(input.preview ? { preview: true as const } : {}) }, turn.signal);
         const bySha = new Map(files.map((file) => [file.sha1, file]));
         const queue = started.required.flatMap((sha1) => bySha.get(sha1) ?? []);
         const upload = async (file: AppFile) => {
@@ -262,10 +264,16 @@ export function createAppPublisher(deps: AppPublisherDeps) {
 
         let app = started.required.length ? await hosting.app(key, turn.signal) : started.app;
         const deadline = now() + waitMs;
-        while (app.state !== "ready" && app.state !== "failed" && app.state !== "taken_down" && now() < deadline) {
+        const settled = (one: HostedApp) => one.state === "failed" || one.state === "taken_down" || (input.preview ? Boolean(one.previewUrl) : one.state === "ready");
+        while (!settled(app) && now() < deadline) {
           await wait(pollMs);
           turn.assertActive?.();
           app = await hosting.app(key, turn.signal);
+        }
+        if (input.preview && app.previewUrl) {
+          const link = await checkLink(app.previewUrl);
+          return { status: 200, body: { ok: true, preview: true, previewUrl: app.previewUrl, liveUrl: app.url, ...link, files: files.length, uploaded: started.required.length, bytes, skipped, ...(build.built ? { built: build.built } : {}), ...said(started.allowance),
+            message: "The preview is ready at previewUrl; the live app is unchanged. Show it to the person, and when they approve call publish_app with action promote and the same folder." } };
         }
         const outcome = await settle(app, project, input, existing, true);
         const common = { created: started.created, files: files.length, uploaded: started.required.length, bytes, skipped, ...(build.built ? { built: build.built } : {}), ...said(started.allowance) };
@@ -305,6 +313,19 @@ export function createAppPublisher(deps: AppPublisherDeps) {
         const versions = await hosting.versions(key).catch(() => []);
         return { status: 200, body: { ok: true, title: app.title, ...outcome, ...(app.version ? { version: app.version } : {}), ...(app.visibility === "private" ? { passwordProtected: true } : {}),
           versions: versions.map((one) => ({ version: one.version, publishedAt: one.publishedAt === null ? null : iso(one.publishedAt), files: one.files })), ...(app.state === "taken_down" ? { message: "This app was taken down by Delio. Its link no longer works." } : {}), ...included } };
+      } catch (error) {
+        return refused(error);
+      }
+    },
+
+    /** Makes the waiting preview of the app published from this folder its live version. */
+    async promote(input: Omit<AppPublishInput, "title">): Promise<AppPublishAnswer> {
+      try {
+        const project = await locateFolder(input.project?.trim() || input.path, folders(input), "path");
+        const key = await hosting.keyFor(input.botId, project);
+        const app = await hosting.promote(key);
+        const outcome = await settle(app, project, { ...input, path: input.path }, await readSite(join(project, SITE_FILE), deps.env), true);
+        return { status: 200, body: { ok: true, ...outcome, version: app.version ?? null, message: "The preview is now the live app, at its usual link." } };
       } catch (error) {
         return refused(error);
       }

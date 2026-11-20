@@ -11,7 +11,7 @@ import { z } from "zod";
 
 import type { ServiceCredential } from "../included-services.ts";
 
-export type HostedAppState = "creating" | "uploading" | "processing" | "ready" | "failed" | "taken_down";
+export type HostedAppState = "creating" | "uploading" | "processing" | "preview" | "ready" | "failed" | "taken_down";
 
 export interface HostedApp {
   key: string;
@@ -22,6 +22,8 @@ export interface HostedApp {
   visibility?: "private" | "public";
   /** The version being served, counting every publish and rollback. */
   version?: number;
+  /** Where a preview waits for the person's approval, before promote makes it the live app. */
+  previewUrl?: string;
   createdAt: number | null;
   publishedAt: number | null;
 }
@@ -57,7 +59,7 @@ const time = (value: unknown) => { const at = typeof value === "string" ? Date.p
 const day = (at: number | null) => (at === null ? "the 1st of next month" : new Date(at).toISOString().slice(0, 10));
 const shownPath = (value: unknown) => (typeof value === "string" ? JSON.stringify(value.replace(/\p{Cc}/gu, "").slice(0, 200)) : "A file");
 
-const STATES: ReadonlySet<string> = new Set(["creating", "uploading", "processing", "ready", "failed", "taken_down"]);
+const STATES: ReadonlySet<string> = new Set(["creating", "uploading", "processing", "preview", "ready", "failed", "taken_down"]);
 const appSchema = z.object({
   key: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/),
   title: z.string().max(400).optional().catch(undefined),
@@ -65,6 +67,7 @@ const appSchema = z.object({
   state: z.string().max(40).optional().catch(undefined),
   visibility: z.string().max(40).optional().catch(undefined),
   version: z.number().int().positive().optional().catch(undefined),
+  previewUrl: z.string().max(2_000).nullable().optional().catch(undefined),
   createdAt: z.unknown().optional(), publishedAt: z.unknown().optional(),
 });
 const pair = z.object({ used: z.unknown().optional(), max: z.unknown().optional() }).optional().catch(undefined);
@@ -93,6 +96,7 @@ function readApp(value: unknown, standIn: string | null): HostedApp | null {
     state: STATES.has(app.state ?? "") ? app.state as HostedAppState : "processing",
     ...(app.visibility === "private" || app.visibility === "public" ? { visibility: app.visibility } : {}),
     ...(app.version ? { version: app.version } : {}),
+    ...(appAddress(app.previewUrl, standIn) ? { previewUrl: appAddress(app.previewUrl, standIn)! } : {}),
     createdAt: time(app.createdAt), publishedAt: time(app.publishedAt),
   };
 }
@@ -161,6 +165,8 @@ export function hostingRefusal(status: number, body: Record<string, unknown>): H
       return new HostingRefusal("failed", "That domain is already used by another app. The person can remove it there first.");
     case "domain_failed":
       return new HostingRefusal("unavailable", "The domain could not be set up right now. Try again in a few minutes.");
+    case "preview_not_found":
+      return new HostingRefusal("not_found", "This app has no preview waiting. Publish one with preview first.");
     case "invalid_password":
       return new HostingRefusal("failed", "A site password is 8 to 128 characters.");
     case "not_required": case "size_mismatch": case "digest_mismatch":
@@ -241,7 +247,7 @@ export function createIncludedHosting(deps: IncludedHostingDeps) {
       return { apps, allowance: readAllowance(body.allowance) };
     },
 
-    async start(key: string, manifest: { title: string; files: PublishFile[] }, signal?: AbortSignal): Promise<{ app: HostedApp; created: boolean; required: string[]; allowance: HostingAllowance }> {
+    async start(key: string, manifest: { title: string; files: PublishFile[]; preview?: true }, signal?: AbortSignal): Promise<{ app: HostedApp; created: boolean; required: string[]; allowance: HostingAllowance }> {
       const body = await relay("PUT", at(key), { json: manifest, ...(signal ? { signal } : {}) });
       const required = Array.isArray(body.required) ? body.required.flatMap((one) => { const sha1 = (one as { sha1?: unknown } | null)?.sha1; return typeof sha1 === "string" ? [sha1] : []; }) : [];
       return { app: app(body.app), created: body.created === true, required: [...new Set(required)], allowance: readAllowance(body.allowance) };
@@ -263,6 +269,11 @@ export function createIncludedHosting(deps: IncludedHostingDeps) {
         if (error instanceof HostingRefusal && (error.code === "not_found" || error.code === "failed")) return null;
         throw error;
       }
+    },
+
+    /** Makes the waiting preview the live app, as a new version. */
+    async promote(key: string): Promise<HostedApp> {
+      return app((await relay("POST", `${at(key)}/promote`)).app);
     },
 
     /** The kept versions, newest first. */

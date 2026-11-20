@@ -6,7 +6,7 @@ import type { Json } from "./agents-client.ts";
 export const HOSTING_TOOL_NAMES: ReadonlySet<string> = new Set(["publish_app", "check_app_hosting"]);
 
 export async function callHostingTool(name: string, args: Json, context: ToolCallContext): Promise<ToolCallResult> {
-  const actions = new Set(["delete", "rollback", "protect", "unprotect", "domain"]);
+  const actions = new Set(["delete", "rollback", "protect", "unprotect", "domain", "promote"]);
   const input = name === "check_app_hosting" ? { ...args, action: "status" } : { ...args, action: typeof args.action === "string" && actions.has(args.action) ? args.action : "publish" };
   const { ok, body } = await context.client.apiResponse("/api/internal/apps/publish", { method: "POST", body: JSON.stringify(input) });
   return ok ? { text: JSON.stringify(body) } : { text: String(body.error ?? "Included hosting did not answer. Try again shortly."), isError: true };
@@ -18,16 +18,17 @@ export const HOSTING_TOOL_DEFINITIONS = [
   {
     name: "publish_app",
     description:
-      "Put a site or app you built online on the hosting the person's Cloud plan includes: static files, no account or token; a folder with a build script is built first. The link is public at once: publish only after the person saw or was told what it is and said yes. Publishing the same project again keeps its link as a new version; rollback puts an earlier one back. protect makes the app ask a password, given to you once for the person; unprotect opens it. domain points the person's own domain at it (empty removes it, absent reads it). delete takes it down for good, only when the person asks. Follow the publish-to-netlify skill; when the plan can't take the app, offer the person's own Netlify account.",
+      "Put a site or app you built online on the hosting the person's Cloud plan includes: static files, no account or token; a folder with a build script is built first. The link is public at once: publish only after the person saw or was told what it is and said yes. Publishing the same project again keeps its link as a new version; with preview it goes to a separate preview link first, and promote makes it live. rollback puts an earlier one back. protect makes the app ask a password, given to you once for the person; unprotect opens it. domain points the person's own domain at it (empty removes it, absent reads it). delete takes it down for good, only when the person asks. Follow the publish-to-netlify skill; when the plan can't take the app, offer the person's own Netlify account.",
     inputSchema: {
       type: "object",
       additionalProperties: false,
       properties: {
-        action: { type: "string", enum: ["publish", "rollback", "protect", "unprotect", "domain", "delete"], description: "Default publish." },
+        action: { type: "string", enum: ["publish", "promote", "rollback", "protect", "unprotect", "domain", "delete"], description: "Default publish." },
         path: { type: "string", description: "The folder to publish: one with index.html at its top, or a project with a build script. A relative path is looked for in your shared bot folder first (sites/<app>), so every conversation names the same app." },
         project: PROJECT,
         title: { type: "string", maxLength: 120, description: "publish: what the app is, in a few words." },
         domain: { type: "string", maxLength: 253, description: "domain: like www.example.com." },
+        preview: { type: "boolean" },
         version: { type: "integer", minimum: 1, description: "rollback: which one, from check_app_hosting." },
       },
       required: ["path"],
