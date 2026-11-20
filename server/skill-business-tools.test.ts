@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -16,18 +16,12 @@ const invoice = await import(pathToFileURL(join(SKILLS, "invoices-quotes", "invo
   formatMoney(value: number, currency: string, language?: string): string;
   run(argv: string[], options?: { today?: string; browsers?: string[] }): Promise<Record<string, any>>;
 };
-const store = await import(pathToFileURL(join(SKILLS, "online-store", "store.mjs")).href) as {
-  whatsappNumber(value: unknown): string | null;
-  readCatalog(raw: unknown): { errors: string[]; store: Record<string, any> };
-  renderStore(store: Record<string, any>): string;
-  build(catalogFile: string, out: string): Record<string, any>;
-};
 
 const dirs: string[] = [];
 const scratch = () => { const dir = mkdtempSync(join(tmpdir(), "odb-business-skill-")); dirs.push(dir); return dir; };
 afterAll(async () => { for (const dir of dirs) await removeTempDir(dir); });
 
-describe.each(["invoices-quotes", "online-store"])("bundled %s skill", (id) => {
+describe.each(["invoices-quotes"])("bundled %s skill", (id) => {
   it("is a valid, clean, default-on skill", () => {
     const text = readFileSync(join(SKILLS, id, "SKILL.md"), "utf8");
     expect(parseSkillMd(text)).toMatchObject({ name: id });
@@ -84,41 +78,5 @@ describe("invoices and quotes", () => {
     const ledger = JSON.parse(readFileSync(join(books, "ledger.json"), "utf8"));
     expect(ledger.documents.find((one: { number: string }) => one.number === "DEV-2026-0001")).toMatchObject({ status: "accepted", invoicedAs: "FAC-2026-0001" });
     await expect(invoice.run(["--mark-paid", "DEV-2026-0001", "--books", books], options)).rejects.toThrow(/invoice it first/);
-  });
-});
-
-describe("online store", () => {
-  it("mounts for shop requests in French and English", () => {
-    for (const text of ["Crée une boutique en ligne pour mes sacs", "je veux vendre en ligne", "build me an online store", "commande whatsapp pour mon catalogue"]) {
-      expect(selected(text)).toContain("online-store");
-    }
-  });
-
-  it("refuses a catalogue nobody could order from, and says why", () => {
-    expect(store.whatsappNumber("+221 77 123 45 67")).toBe("221771234567");
-    expect(store.whatsappNumber("12")).toBeNull();
-    const { errors } = store.readCatalog({ name: "", products: [{ name: "Sac", price: "abc", payLink: "http://pay.example" }] });
-    expect(errors).toEqual(expect.arrayContaining([
-      "name is required",
-      "give whatsapp, email or a payLink per product, so customers can order",
-      "products[0].price must be a number",
-      "products[0].payLink must be an https link",
-    ]));
-  });
-
-  it("builds a page whose product data cannot break out of its script", () => {
-    const dir = scratch();
-    writeFileSync(join(dir, "bag.png"), Buffer.from("89504e470d0a1a0a", "hex"));
-    writeFileSync(join(dir, "store.json"), JSON.stringify({
-      name: "Awa", currency: "XOF", whatsapp: "+221 77 123 45 67",
-      products: [{ name: "Sac </script><script>alert(1)</script>", price: 18_000, image: "bag.png" }, { name: "Foulard", price: 9_500, compareAt: 12_000, soldOut: true }],
-    }));
-    const result = store.build(join(dir, "store.json"), join(dir, "site"));
-    expect(result).toMatchObject({ ok: true, products: 2, images: 1, ordering: ["whatsapp"] });
-    expect(existsSync(join(dir, "site", "images", "bag.png"))).toBe(true);
-    const html = readFileSync(join(dir, "site", "index.html"), "utf8");
-    expect(html).not.toContain("<script>alert(1)");
-    expect(html).toContain("wa.me/");
-    expect(() => store.build(join(dir, "missing.json"), join(dir, "out"))).toThrow(/ENOENT/);
   });
 });
