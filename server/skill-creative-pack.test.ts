@@ -15,6 +15,7 @@ const selected = (text: string) => selectBundledSkills(text, [], bundled).map((s
 
 const ASKS: Record<string, [string, string]> = {
   "video-montage": ["Monte la vidéo avec une voix off et des sous-titres", "edit my video and add captions"],
+  "video-analysis": ["Analyse cette vidéo et résume-la", "watch this video and tell me what happens"],
   "product-photoshoot": ["Fais des photos produit de mon parfum", "I need a product photo for my shop"],
   "consistent-character": ["Je veux le même visage dans toutes les pubs", "use my face in every picture"],
   "brand-kit": ["Crée une charte graphique pour ma marque", "design a logo for my bakery"],
@@ -38,7 +39,7 @@ const ASKS: Record<string, [string, string]> = {
   "food-beverage": ["Une vidéo restaurant pour mon menu", "a cocktail video for our bar"],
   "real-estate-video": ["Une visite virtuelle de la villa", "a house tour video of the villa"],
 };
-const ADAPTED = Object.keys(ASKS).filter((id) => id !== "video-montage");
+const ADAPTED = Object.keys(ASKS).filter((id) => id !== "video-montage" && id !== "video-analysis");
 
 describe.each(Object.keys(ASKS))("bundled %s skill", (id) => {
   const dir = join(SKILLS, id);
@@ -72,6 +73,12 @@ const montage = await import(pathToFileURL(join(SKILLS, "video-montage", "montag
   parseClip(spec: string): { path: string; image: boolean; seconds?: number };
   captionsToSrt(captions: unknown): string;
   plan(options: Record<string, unknown>): { args: string[]; seconds: number; width: number; height: number; audio: boolean };
+  run(argv: string[], tools?: { ffmpeg?: string; ffprobe?: string }): Record<string, any>;
+};
+const analysis = await import(pathToFileURL(join(SKILLS, "video-analysis", "analyze.mjs")).href) as {
+  sceneChanges(stderr: string): number[];
+  spans(stderr: string, kind: "black" | "silence"): Array<{ start: number; end: number }>;
+  pickMoments(seconds: number, scenes: number[], count: number): number[];
   run(argv: string[], tools?: { ffmpeg?: string; ffprobe?: string }): Record<string, any>;
 };
 const dirs: string[] = [];
@@ -121,5 +128,40 @@ describe("video montage", () => {
     expect(result).toMatchObject({ ok: true, width: 1080, height: 1920, audio: true, clips: 3 });
     expect(result.seconds).toBeGreaterThan(4.3);
     expect(result.seconds).toBeLessThan(4.7);
+  }, 120_000);
+});
+
+describe("video analysis", () => {
+  it("reads cuts, black frames and silences from ffmpeg's report", () => {
+    expect(analysis.sceneChanges("[Parsed_showinfo_1] n:0 pts:90 pts_time:3.0\n[Parsed_showinfo_1] n:1 pts:180 pts_time:6.04 ")).toEqual([3, 6.04]);
+    expect(analysis.spans("[blackdetect] black_start:0 black_end:0.48 black_duration:0.48", "black")).toEqual([{ start: 0, end: 0.48 }]);
+    expect(analysis.spans("[silencedetect] silence_start: 4.2\n[silencedetect] silence_end: 6.5 | silence_duration: 2.3", "silence")).toEqual([{ start: 4.2, end: 6.5 }]);
+  });
+
+  it("picks stills at each cut and evenly between them, never two at once", () => {
+    const moments = analysis.pickMoments(12, [3, 6, 9], 6);
+    expect(moments).toHaveLength(6);
+    expect(moments).toEqual([...moments].sort((a, b) => a - b));
+    expect(moments).toEqual(expect.arrayContaining([3.15, 6.15, 9.15]));
+    expect(analysis.pickMoments(0, [], 4)).toEqual([]);
+  });
+
+  it("says ffmpeg is on its way when it is missing", () => {
+    expect(analysis.run(["--video", "a.mp4", "--out", "x"], { ffmpeg: "/nonexistent/ffmpeg" })).toMatchObject({ ok: false, error: expect.stringMatching(/try again in a minute/) });
+  });
+
+  it.runIf(hasFfmpeg)("watches a montage: its cuts, stills, contact sheet and loudness", () => {
+    const dir = mkdtempSync(join(tmpdir(), "odb-analysis-"));
+    dirs.push(dir);
+    const make = (...args: string[]) => expect(spawnSync("ffmpeg", ["-loglevel", "error", "-y", ...args]).status).toBe(0);
+    make("-f", "lavfi", "-i", "color=c=red:s=320x568:rate=25:d=2", "-f", "lavfi", "-i", "color=c=blue:s=320x568:rate=25:d=2", "-f", "lavfi", "-i", "sine=f=500:d=4",
+      "-filter_complex", "[0:v][1:v]concat=n=2:v=1:a=0[v]", "-map", "[v]", "-map", "2:a", "-pix_fmt", "yuv420p", "-shortest", join(dir, "two-shots.mp4"));
+    const result = analysis.run(["--video", join(dir, "two-shots.mp4"), "--out", join(dir, "out"), "--frames", "4"]);
+    expect(result).toMatchObject({ ok: true, shape: "portrait", video: { width: 320, height: 568 }, audio: { channels: 1 } });
+    expect(result.scenes).toEqual([0, 2]);
+    expect(result.frames.length).toBeGreaterThanOrEqual(2);
+    expect(existsSync(result.contactSheet)).toBe(true);
+    expect(result.loudness.meanDb).toBeLessThan(0);
+    expect(JSON.parse(readFileSync(join(dir, "out", "analysis.json"), "utf8")).scenes).toEqual([0, 2]);
   }, 120_000);
 });

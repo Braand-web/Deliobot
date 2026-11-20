@@ -68,6 +68,21 @@ export function probe(path, tools = {}) {
 
 const filterPath = (path) => path.replace(/\\/g, "/").replace(/:/g, "\\:").replace(/'/g, "\\'");
 
+const ENCODERS = ["libx264", "h264_videotoolbox", "h264_mf", "libopenh264", "mpeg4"];
+
+export function videoCodecArgs(encoder) {
+  return encoder === "libx264" ? ["-c:v", "libx264", "-preset", "medium", "-crf", "20"] : ["-c:v", encoder, "-b:v", "8M"];
+}
+
+export function abilities(ffmpeg) {
+  const encoders = spawnSync(ffmpeg, ["-hide_banner", "-encoders"], { encoding: "utf8" }).stdout ?? "";
+  const filters = spawnSync(ffmpeg, ["-hide_banner", "-filters"], { encoding: "utf8" }).stdout ?? "";
+  return {
+    encoder: ENCODERS.find((name) => new RegExp(`\\s${name}\\s`).test(encoders)) ?? "mpeg4",
+    subtitles: /\ssubtitles\s/.test(filters),
+  };
+}
+
 export function plan(options) {
   const [width, height] = SIZES[options.aspect ?? "9:16"] ?? (() => { throw new Error(`aspect must be one of ${Object.keys(SIZES).join(", ")}`); })();
   if (!options.clips.length) throw new Error("give at least one clip: a video file, or an image as path:seconds");
@@ -129,7 +144,7 @@ export function plan(options) {
   }
   const args = ["-y", "-hide_banner", "-loglevel", "error", ...inputs, "-filter_complex", parts.join(";"), "-map", `[${video}]`,
     ...(audio ? ["-map", `[${audio}]`, "-c:a", "aac", "-b:a", "192k"] : []),
-    "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-t", total.toFixed(3), options.out];
+    ...videoCodecArgs(options.encoder ?? "libx264"), "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-t", total.toFixed(3), options.out];
   return { args, seconds: total, width, height, audio: Boolean(audio) };
 }
 
@@ -138,7 +153,7 @@ export function run(argv, tools = {}) {
   const ffmpeg = tools.ffmpeg ?? "ffmpeg";
   const check = spawnSync(ffmpeg, ["-version"], { encoding: "utf8" });
   if (check.error || check.status !== 0) {
-    return { ok: false, error: "ffmpeg is not installed on this computer.", install: INSTALL_HINT[process.platform] ?? INSTALL_HINT.linux };
+    return { ok: false, error: "ffmpeg is not ready on this computer yet. Deliobot installs it by itself in the background: try again in a minute. If it is still missing after a few minutes, ask the person before installing it with the command in `install`.", install: INSTALL_HINT[process.platform] ?? INSTALL_HINT.linux };
   }
   if (!args.out) throw new Error("usage: node montage.mjs --out final.mp4 [--aspect 9:16|16:9|1:1|4:5] [--voice voice.mp3] [--music music.mp3] [--music-volume 0.3] [--captions captions.json|captions.srt] [--keep-clip-audio] [--pad] [--no-fade] clip1.mp4 image.png:3 …");
   const clips = args.clips.map(parseClip);
@@ -147,10 +162,11 @@ export function run(argv, tools = {}) {
     if (!clip.image) clip.probe = probe(clip.path, tools);
   }
   for (const file of [args.voice, args.music, args.captions].filter(Boolean)) if (!existsSync(resolve(file))) throw new Error(`not found: ${file}`);
+  const can = abilities(ffmpeg);
   const work = mkdtempSync(join(tmpdir(), "montage-"));
   try {
     let srt;
-    if (args.captions) {
+    if (args.captions && can.subtitles) {
       const raw = readFileSync(resolve(args.captions), "utf8");
       srt = join(work, "captions.srt");
       writeFileSync(srt, extname(args.captions).toLowerCase() === ".srt" ? raw : captionsToSrt(JSON.parse(raw)));
@@ -158,12 +174,13 @@ export function run(argv, tools = {}) {
     const built = plan({
       clips, out: resolve(args.out), aspect: args.aspect ?? "9:16", voice: args.voice && resolve(args.voice), music: args.music && resolve(args.music),
       musicVolume: args["music-volume"] === undefined ? undefined : Number(args["music-volume"]), keepClipAudio: Boolean(args["keep-clip-audio"]),
-      pad: Boolean(args.pad), fade: !args["no-fade"], srt, font: args.font,
+      pad: Boolean(args.pad), fade: !args["no-fade"], srt, font: args.font, encoder: can.encoder,
     });
     const result = spawnSync(ffmpeg, built.args, { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 });
     if (result.status !== 0) throw new Error(`ffmpeg failed: ${(result.stderr || "").trim().slice(-800)}`);
     const made = probe(resolve(args.out), tools);
-    return { ok: true, out: resolve(args.out), seconds: Math.round(made.seconds * 100) / 100, width: made.width, height: made.height, audio: made.audio, clips: clips.length };
+    return { ok: true, out: resolve(args.out), seconds: Math.round(made.seconds * 100) / 100, width: made.width, height: made.height, audio: made.audio, clips: clips.length,
+      ...(args.captions && !can.subtitles ? { captions: "not burned in: this ffmpeg cannot draw subtitles; send the .srt with the video instead" } : {}) };
   } finally {
     rmSync(work, { recursive: true, force: true });
   }

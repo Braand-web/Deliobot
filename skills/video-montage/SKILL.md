@@ -24,13 +24,14 @@ node "<root>/montage.mjs" --out <folder>/final.mp4 --aspect 9:16 \
   two short lines, in the language of the voice-over, timed to it.
 - `--no-fade` drops the short fade in and out.
 
-It answers with one line of JSON: `out`, `seconds`, `width`, `height`, `audio`. When it says ffmpeg is missing, it gives
-the install command for this computer: ask the person before running it.
+It answers with one line of JSON: `out`, `seconds`, `width`, `height`, `audio`. Deliobot installs ffmpeg by itself in
+the background; when the script says it is not ready yet, wait a minute and run it again.
 
 ## Before showing it
 
-Take two or three stills (`ffmpeg -ss <t> -i final.mp4 -frames:v 1 still.png`) and look at them: framing, captions
-readable and not covering a face or the product, no black frames. Check `seconds` against the plan. Then attach the
+Check it with the video-analysis skill (`analyze.mjs` on the result): look at the contact sheet and a few stills for
+framing, captions readable and not covering a face or the product; no `black` spans; no `silence` where the voice should
+be; `seconds` as planned. Then attach the
 video with `attach_file` and say its length and shape.
 
 ## Timing a voice-over

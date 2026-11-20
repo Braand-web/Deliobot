@@ -28,8 +28,9 @@ invented brand ambassador, or a mascot.
 
 ## Put them in a video
 
-`generate_video` has no picture input: start each clip's prompt with the character sheet, word for word, then the action
-and the camera. Keep clips short (5 s) and close on the face. For a speaking presenter, make the voice with
+Make the first frame with `edit_image` on the anchor (the person in the scene you want), then pass that picture as
+`image` to `generate_video`: the clip starts from the real face and keeps it. The prompt describes only the action and
+the camera, plus the character sheet for anything the frame does not show. Keep clips short (5 s) and close on the face. For a speaking presenter, make the voice with
 `generate_music` (`kind: "voice"`) and keep the same voice description every time.
 
 Every image and video tool answers with the path of a saved copy: keep it, show the result with `attach_file` when

@@ -14,6 +14,9 @@ description: "2D cartoon animation: cel-shaded, hand-drawn, flat vector, waterco
 - Video shots: `generate_video` with the finished prompt (in English, apart from spoken lines), `seconds` (10 at most per
   shot) and `aspect` (`9:16` for TikTok, Reels, Shorts and stories; `1:1` for the feed; `16:9` for YouTube, websites and
   TV). A plan or example longer than 10 s is several shots: make each one, then join them in order (see below).
+- **Animate a picture** (a key frame you made, the person's photo, a comic panel, a product shot): pass its path as
+  `image` to `generate_video`. It becomes the first frame, so the look, the face or the product stays exact; the prompt
+  then describes only the motion, the camera and what changes.
 - Stills, key frames and mood boards: `generate_image` (`1:1`, `16:9` or `9:16`). To change a photo the person gave (a
   real product, a real place, a real face), use `edit_image` on that file so the real thing stays exact.
 - Music, sound effects and voice-over: `generate_music` (`kind` music, sound_effect or voice).

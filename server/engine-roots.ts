@@ -15,8 +15,13 @@ export function standaloneEnginesRoot(dataDir: string): string {
   return join(dataDir, "tools", "standalone");
 }
 
+/** ffmpeg, ffprobe and a node shim the app provides when the computer has none, on the bots' PATH last. */
+export function mediaToolsRoot(dataDir: string): string {
+  return join(dataDir, "tools", "media");
+}
+
 /** Every folder Deliobot installs engine code into. Only packages and releases live there, never a sign-in or a
  * setting, which is what lets the bot box show them to every turn (read-only). */
 export function engineInstallRoots(dataDir: string): string[] {
-  return [npmEnginesPrefix(dataDir), antigravityRuntimesRoot(dataDir), standaloneEnginesRoot(dataDir)];
+  return [npmEnginesPrefix(dataDir), antigravityRuntimesRoot(dataDir), standaloneEnginesRoot(dataDir), mediaToolsRoot(dataDir)];
 }

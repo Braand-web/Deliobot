@@ -16,6 +16,9 @@ import { keptCopyNote } from "../media-keep.ts";
 import { mediaModelLabel, withoutMediaHost } from "../media-label.ts";
 import { generateMusic, musicGenerationReady, type MusicCredentials } from "../music-generation.ts";
 import { generateVideo, videoGenerationReady, type VideoCredentials } from "../video-generation.ts";
+import type { ImageInput } from "../image-generation.ts";
+import type { BotFolders } from "../pages/bundle.ts";
+import { readBotImage } from "./image-tools.ts";
 import { PASS } from "./table.ts";
 
 export interface GeneratedMedia { bytes: Buffer; mime: string; model: string; seconds: number }
@@ -40,8 +43,8 @@ export const MEDIA_SPECS: Record<MediaKind, MediaSpec> = {
   video: {
     path: "/api/internal/videos/generate",
     dayFile: "video-generation-day.json",
-    schema: z.object({ prompt: z.string().trim().min(1).max(VIDEO_PROMPT_MAX_CHARS), seconds: z.number().int().min(1).max(VIDEO_SECONDS_MAX).optional(), aspect: z.enum(VIDEO_ASPECTS).optional(), model: z.string().trim().max(200).optional() }),
-    usage: `generate_video takes a prompt (1 to ${VIDEO_PROMPT_MAX_CHARS} characters), optional seconds (1 to ${VIDEO_SECONDS_MAX}), an optional aspect (${VIDEO_ASPECTS.join(", ")}) and an optional model.`,
+    schema: z.object({ prompt: z.string().trim().min(1).max(VIDEO_PROMPT_MAX_CHARS), seconds: z.number().int().min(1).max(VIDEO_SECONDS_MAX).optional(), aspect: z.enum(VIDEO_ASPECTS).optional(), model: z.string().trim().max(200).optional(), image: z.string().trim().min(1).max(1000).optional() }),
+    usage: `generate_video takes a prompt (1 to ${VIDEO_PROMPT_MAX_CHARS} characters), optional seconds (1 to ${VIDEO_SECONDS_MAX}), an optional aspect (${VIDEO_ASPECTS.join(", ")}), an optional image (the path of a PNG, JPEG or WebP to animate) and an optional model.`,
     ready: videoGenerationReady,
     limits: (cfg) => ({ maxPerTurn: cfg.videoGen?.maxPerTurn ?? VIDEO_MAX_PER_TURN_DEFAULT, dailyCap: cfg.videoGen?.dailyCap ?? VIDEO_DAILY_CAP_DEFAULT }),
     generate: (cfg, request, options) => generateVideo(cfg, request, options),
@@ -91,6 +94,7 @@ export interface MediaToolDeps {
   /** Told of every file fal.ai made, attached or not: it was paid for either way. */
   made?: (media: GeneratedMedia) => void;
   keep?: (media: GeneratedMedia) => string | undefined;
+  image?: ImageInput;
 }
 
 type Outcome = { status: number; body: { text: string } | { error: string } };
@@ -115,7 +119,7 @@ export async function generateMediaForTurn(kind: MediaKind, raw: unknown, deps: 
   let made = false;
   deps.inFlight.set(turn.key, (deps.inFlight.get(turn.key) ?? 0) + 1);
   try {
-    const media = await spec.generate(cfg, parsed.data as never, { fetchImpl: deps.fetchImpl, signal: deps.signal });
+    const media = await spec.generate(cfg, { ...parsed.data, image: deps.image } as never, { fetchImpl: deps.fetchImpl, signal: deps.signal });
     made = true;
     deps.made?.(media);
     if (!await turn.attach(media)) return { status: 409, body: { error: NO_TURN } };
@@ -141,6 +145,7 @@ export interface MediaRouteContext {
   requireActive: () => void;
   personTurn: boolean;
   botId: string;
+  folders?: BotFolders;
 }
 
 export interface MediaTurnStore {
@@ -190,13 +195,22 @@ export function createMediaToolRoutes(deps: MediaTurnStore & {
     async internal(ctx: MediaRouteContext): Promise<typeof PASS | void> {
       const kind = (Object.keys(MEDIA_SPECS) as MediaKind[]).find((name) => MEDIA_SPECS[name].path === ctx.path);
       if (ctx.method !== "POST" || !kind) return PASS;
+      const body = await ctx.readBody();
+      const imagePath = kind === "video" && body && typeof body === "object" ? (body as { image?: unknown }).image : undefined;
+      let image: ImageInput | undefined;
+      if (typeof imagePath === "string" && imagePath.trim()) {
+        if (!ctx.folders) return ctx.json(ctx.res, 400, { error: "A picture cannot be animated from here." });
+        const read = await readBotImage(imagePath.trim(), ctx.folders);
+        if (typeof read === "string") return ctx.json(ctx.res, 400, { error: read });
+        image = read;
+      }
       const turn = mediaTurn(deps, kind, ctx.threadId, ctx.requireActive);
       const call = new AbortController();
       ctx.res.once("close", () => { if (!ctx.res.writableEnded) call.abort(); });
-      const outcome = await generateMediaForTurn(kind, await ctx.readBody(), {
+      const outcome = await generateMediaForTurn(kind, body, {
         cfg: deps.config(), personTurn: ctx.personTurn, daily: daily(kind), fetchImpl: deps.fetchImpl, turn, inFlight, signal: call.signal,
         made: (media) => deps.made?.(kind, media, { botId: ctx.botId, threadId: ctx.threadId }),
-        botMedia: deps.botMedia?.(ctx.botId), catalog: deps.catalog, keep: (media) => deps.keep?.(kind, ctx.botId, media),
+        botMedia: deps.botMedia?.(ctx.botId), catalog: deps.catalog, keep: (media) => deps.keep?.(kind, ctx.botId, media), image,
       });
       ctx.json(ctx.res, outcome.status, outcome.body);
     },

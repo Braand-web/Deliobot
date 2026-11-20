@@ -37,7 +37,8 @@ About 2.5 spoken words a second. One idea per shot; shots of 2 to 5 seconds for 
 
 1. Key frame: `edit_image` on the product photo for the opening shot (the product must stay exact) or `generate_image`.
    Show it with the script before spending on video.
-2. Shots: `generate_video`, 5 to 10 seconds each, in the agreed shape. For a presenter speaking, put the spoken line in
+2. Shots: `generate_video`, 5 to 10 seconds each, in the agreed shape. Pass the approved key frame as `image` so the
+   shot starts from it: the real product, label and colours stay exact. For a presenter speaking, put the spoken line in
    quotes, in its language, in the prompt, describe the person the same way in every shot (see the consistent-character
    skill), and phone-camera framing for UGC ("handheld selfie video, natural window light, casual home setting").
 3. Voice-over (when the presenter does not speak on camera): `generate_music` with `kind: "voice"` and the exact words.

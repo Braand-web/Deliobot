@@ -128,6 +128,7 @@ const MEDIA_TOOLS = [
   { flag: "ODB_IMAGE_GENERATION", tool: "generate_image", what: "images (ads, visuals, product shots, posters, logos)" },
   { flag: "ODB_VIDEO_GENERATION", tool: "generate_video", what: "short videos, including UGC-style clips of an AI-generated person speaking to camera about a product" },
   { flag: "ODB_MUSIC_GENERATION", tool: "generate_music", what: "music, songs, sound effects and voice-overs in a natural human voice" },
+  { flag: "ODB_MUSIC_GENERATION", tool: "transcribe_audio", what: "timestamped transcripts of what is said in any video or audio file, yours or the person's" },
 ] as const;
 
 /** What the bot can make itself, from the media tools this turn advertises. */

@@ -317,6 +317,7 @@ export function falInput(fields: FalInputSchema | null, request: FalMediaRequest
   }
   if (fields.num_images) input.num_images = 1;
   if (request.imageUrl && fields.image_url) input.image_url = request.imageUrl;
+  else if (request.imageUrl && fields.start_image_url) input.start_image_url = request.imageUrl;
   return input;
 }
 

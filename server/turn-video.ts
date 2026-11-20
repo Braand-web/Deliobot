@@ -7,6 +7,7 @@ import { join } from "node:path";
 
 import type { TurnImageInput, TurnVideoInput } from "./contracts.ts";
 import { OWN_GROUP, stopGroup } from "./group-exec.ts";
+import { mediaCommand } from "./media-toolbox.ts";
 
 export const VIDEO_SAMPLE_FRAME_COUNT = 4;
 const FFPROBE_TIMEOUT_MS = 10_000;
@@ -54,7 +55,7 @@ function run(command: string, args: readonly string[], timeoutMs: number): Promi
 
 async function videoDurationSeconds(video: TurnVideoInput): Promise<number> {
   const stdout = await run(
-    "ffprobe",
+    mediaCommand("ffprobe"),
     ["-v", "error", ...VIDEO_READER[video.mime], "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", video.path],
     FFPROBE_TIMEOUT_MS,
   );
@@ -64,7 +65,7 @@ async function videoDurationSeconds(video: TurnVideoInput): Promise<number> {
 }
 
 async function extractFrame(video: TurnVideoInput, atSeconds: number, outPath: string): Promise<void> {
-  await run("ffmpeg", [
+  await run(mediaCommand("ffmpeg"), [
     "-ss", atSeconds.toFixed(3),
     ...VIDEO_READER[video.mime],
     "-i", video.path,

@@ -6,9 +6,10 @@ const EXTENSIONS: Record<string, string> = {
   "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif",
   "video/mp4": "mp4", "video/webm": "webm", "video/quicktime": "mov",
   "audio/mpeg": "mp3", "audio/mp3": "mp3", "audio/wav": "wav", "audio/x-wav": "wav", "audio/ogg": "ogg", "audio/mp4": "m4a", "audio/aac": "aac", "audio/flac": "flac",
+  "application/json": "json",
 };
 
-export type KeptKind = "image" | "video" | "music";
+export type KeptKind = "image" | "video" | "music" | "transcript";
 
 export function keepMediaCopy(folder: string, kind: KeptKind, bytes: Uint8Array, mime: string, at = new Date()): string {
   const dir = join(folder, "media");

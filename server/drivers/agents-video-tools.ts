@@ -26,6 +26,7 @@ export const VIDEO_TOOL_DEFINITIONS = [
         seconds: { type: "integer", minimum: 1, maximum: VIDEO_SECONDS_MAX, description: "Length in seconds; the person's limit applies. 5 when omitted." },
         model: { type: "string", maxLength: 200, description: "Only a model the person named; leave out otherwise." },
         aspect: { type: "string", enum: [...VIDEO_ASPECTS], description: "Shape; landscape 16:9 when omitted." },
+        image: { type: "string", minLength: 1, maxLength: 1000, description: "Path of a PNG, JPEG or WebP to animate: it becomes the first frame (a product photo, a comic panel, a still you made). Then describe the motion and camera, not the picture." },
       },
       required: ["prompt"],
     },

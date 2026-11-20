@@ -30,8 +30,9 @@ Tell the person roughly how many images, clips and audio tracks it takes before 
 3. **Voice.** One `generate_music` with `kind: "voice"` and the whole narration, or one per block for long pieces, always
    with the same voice description. Read the real length with `ffprobe`; when it is far from the plan, rewrite the text
    rather than speeding the voice.
-4. **Pictures or clips.** One per block or beat, in order: `generate_video` (`seconds` up to 10, describing motion and
-   camera, never the spoken words) or `generate_image` for stills. Look at the first one before making the rest.
+4. **Pictures or clips.** One per block or beat, in order: a still with `generate_image` in the style key, then, in
+   motion mode, that still passed as `image` to `generate_video` (`seconds` up to 10, describing motion and camera, never
+   the spoken words), so every clip keeps the style and the characters. Look at the first one before making the rest.
 5. **Music.** For a song, `generate_music` with `kind: "song"` and the lyrics; otherwise optional background music.
 6. **Captions.** When asked, write the cues as JSON (`start`, `end`, `text`) timed to the narration: about 2.5 words a
    second, two short lines per cue.

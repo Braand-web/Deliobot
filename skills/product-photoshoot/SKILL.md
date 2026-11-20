@@ -54,6 +54,11 @@ product photo, ask for one first: the result is far more faithful.
 Every image and video tool answers with the path of a saved copy: keep it, show the result with `attach_file` when
 it is not already attached, and reuse the file for the next edit.
 
+## Bring it to life
+
+Offer a short motion version of the best picture: pass it as `image` to `generate_video` with a slow camera move or a
+gentle product motion (5 s, the same shape). It works well as a story, a Reel or a website hero.
+
 ## Never
 
 Invent a label, a certification, an award or a claim the product does not have; show a real person or a brand the

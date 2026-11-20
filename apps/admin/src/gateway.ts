@@ -49,6 +49,8 @@ export interface GatewayOptions {
 }
 
 const MAX_BODY = 4 * 1024 * 1024;
+/** A fal.ai job may carry a picture to animate or a recording to transcribe, inline as a data URI. */
+const FAL_MAX_BODY = 20 * 1024 * 1024;
 /** The least a text request is held at before its real cost is known; the rest goes back when it settles. */
 const TEXT_HOLD_USD = 0.05;
 /** Below this many answer tokens left in the balance, a text request is refused rather than cut to nothing. */
@@ -89,12 +91,12 @@ function send(res: ServerResponse, status: number, body: unknown, headers: Recor
 const failure = (res: ServerResponse, status: number, message: string, code?: string) =>
   send(res, status, { error: { message, ...(code ? { code } : {}) } });
 
-async function readRaw(req: IncomingMessage): Promise<Buffer> {
+async function readRaw(req: IncomingMessage, limit = MAX_BODY): Promise<Buffer> {
   const chunks: Buffer[] = [];
   let size = 0;
   for await (const chunk of req as AsyncIterable<Buffer>) {
     size += chunk.length;
-    if (size > MAX_BODY) throw Object.assign(new Error("Request too large."), { status: 413 });
+    if (size > limit) throw Object.assign(new Error("Request too large."), { status: 413 });
     chunks.push(chunk);
   }
   return Buffer.concat(chunks);
@@ -362,7 +364,7 @@ export function createGateway(options: GatewayOptions) {
     if (!FAL_MODEL.test(model) || parts.includes("..")) return failure(res, 400, "Not a fal.ai model ID.");
     let input: Record<string, unknown>;
     try {
-      const parsed: unknown = JSON.parse((await readRaw(req)).toString("utf8"));
+      const parsed: unknown = JSON.parse((await readRaw(req, FAL_MAX_BODY)).toString("utf8"));
       if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error();
       input = parsed as Record<string, unknown>;
     } catch (error) {

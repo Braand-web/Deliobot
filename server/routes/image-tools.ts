@@ -46,7 +46,7 @@ const editSchema = z.object({
 const EDIT_IMAGE_TYPES: Record<string, string> = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp" };
 
 /** A PNG, JPEG or WebP in the bot's own folders, or a sentence saying what is wrong with the path. */
-async function readEditImage(file: string, folders: BotFolders): Promise<ImageInput | string> {
+export async function readBotImage(file: string, folders: BotFolders): Promise<ImageInput | string> {
   let target: string;
   try {
     target = await botFileSource(file, folders);
@@ -201,8 +201,8 @@ export function createImageToolRoutes(deps: ImageTurnStore & { config: () => Ima
       if (editing) {
         const parsed = editSchema.safeParse(body);
         if (!parsed.success) return ctx.json(ctx.res, 400, { error: "edit_image takes a prompt, the path of the image to change and, optionally, the path of a transparent PNG of marks drawn over it." });
-        const image = await readEditImage(parsed.data.image, ctx.folders);
-        const markup = parsed.data.markup ? await readEditImage(parsed.data.markup, ctx.folders) : undefined;
+        const image = await readBotImage(parsed.data.image, ctx.folders);
+        const markup = parsed.data.markup ? await readBotImage(parsed.data.markup, ctx.folders) : undefined;
         const problem = typeof image === "string" ? image : typeof markup === "string" ? markup : markup && markupProblem(image, markup);
         if (problem) return ctx.json(ctx.res, 400, { error: problem });
         edit = { image: image as ImageInput, ...(markup && { markup: markup as ImageInput }) };
