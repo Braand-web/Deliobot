@@ -76,10 +76,6 @@ async function officialBinary() {
     console.error(windowsRunnerFacts(cache));
     throw new Error(`downloaded CUA Driver passed its sha256 check but did not report version ${expectedVersion}: ${reported(probe)}`);
   }
-  // The archive's pinned SHA-256 already identifies this release; GitHub's Windows runners sometimes get no
-  // output from the driver's --version, so a silent probe is not a reason to fail the build.
-  if (!reported) console.warn(`CUA Driver gave no version (${lastProbe.slice(0, 200) || "no output"}); trusting the pinned checksum.`);
-  pinnedDownload = true;
   return cachedBinary;
 }
 
