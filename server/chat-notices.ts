@@ -36,6 +36,7 @@ export const CHAT_NOTICE = {
   "chat.notice.hiddenInstructions": "What {app} returned tried to give the bot instructions (\"{excerpt}\"). They come from that content, not from you: the bot should not follow them.",
   "chat.notice.coderChecking": "Checking the change: {checks}",
   "chat.notice.coderFailed": "Checks failed: {failed} — fixing (round {round} of {max})",
+  "chat.notice.coderGoalFailed": "Checks failed: {failed} — sent to the next step",
   "chat.notice.coderGaveUp": "Checks still failing after {max} rounds: {failed}. Over to you.",
   "chat.notice.coderPassed": "Checked ✓ {checks}",
   "chat.notice.coderReviewing": "{reviewer} is reviewing the change",

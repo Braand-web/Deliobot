@@ -49,7 +49,7 @@ const GOAL_STATE: Record<GroupGoalRunStatus, ServerLineKey> = {
 export function createGoalCards(deps: GoalCardDeps) {
   const { store } = deps;
 
-  function start(threadId: string, coordinator: Pick<BotRecord, "id" | "name" | "color">, goal: string, runId: string): LiveGoalRun {
+  function start(threadId: string, coordinator: Pick<BotRecord, "id" | "name" | "color">, goal: string, runId: string, maxTurns = GROUP_GOAL_MAX_TURNS): LiveGoalRun {
     const startedAt = Date.now(), language = conversationLanguage(threadId);
     const detail = serverLine(language, "server.teammates.goalCoordinating", { bot: coordinator.name });
     const card = store.appendMessage(threadId, {
@@ -64,7 +64,7 @@ export function createGoalCards(deps: GoalCardDeps) {
         coordinatorBotId: coordinator.id,
         coordinatorName: coordinator.name,
         turnCount: 0,
-        maxTurns: GROUP_GOAL_MAX_TURNS,
+        maxTurns,
         detail,
         startedAt,
       },
@@ -76,7 +76,7 @@ export function createGoalCards(deps: GoalCardDeps) {
       coordinatorBotId: coordinator.id,
       coordinatorName: coordinator.name,
       turnCount: 0,
-      maxTurns: GROUP_GOAL_MAX_TURNS,
+      maxTurns,
       startedAt,
       finished: false,
     };

@@ -4,10 +4,12 @@ import { noticeTool } from "../chat-notices.ts";
 import { detectChecks as detectChecksIn, failureMessage, runChecks as runChecksIn, type CheckRun } from "../coder/verify.ts";
 import { parseReview, reviewFixMessage, reviewPrompt } from "../coder/review.ts";
 import { startWhenFree } from "./start-when-free.ts";
+import { coderOn } from "../coder/settings.ts";
 
 export const DEFAULT_CODER_ROUNDS = 3;
 export const MAX_CODER_ROUNDS = 6;
 export const MAX_REVIEW_ROUNDS = 2;
+const GOAL_CHECK_WAIT_MS = 15 * 60_000;
 
 type Coder = NonNullable<BotRecord["coder"]>;
 type Row = ReturnType<typeof noticeTool<{ ok: boolean }>>;
@@ -25,6 +27,8 @@ export interface CoderGateDeps {
   runChecks?: (cwd: string, commands: readonly string[]) => Promise<CheckRun>;
   /** The project's checks just passed: worth remembering for its next conversations. */
   checksPassed?: (cwd: string, commands: readonly string[]) => void;
+  /** A goal drives this conversation: the checks' outcome waits for its next step instead of starting a turn. */
+  inGoal?: (threadId: string) => boolean;
   sleep?: (ms: number) => Promise<void>;
 }
 
@@ -49,6 +53,15 @@ export function createCoderGate(deps: CoderGateDeps) {
   const states = new Map<string, ThreadState>();
   const continuing = new Set<string>();
   const reviewThreads = new Set<string>();
+  const goalChecks = new Map<string, Promise<void>>();
+  const goalChecksDone = new Map<string, () => void>();
+  const goalNotes = new Map<string, string>();
+  const endGoalCheck = (threadId: string) => {
+    const done = goalChecksDone.get(threadId);
+    goalChecksDone.delete(threadId);
+    goalChecks.delete(threadId);
+    done?.();
+  };
   const row = (threadId: string, key: Parameters<typeof noticeTool>[0], params: Record<string, string>, ok: boolean) =>
     deps.append(threadId, noticeTool(key, params, { ok }));
 
@@ -83,15 +96,59 @@ export function createCoderGate(deps: CoderGateDeps) {
     if (!(await continueTurn(bot.id, threadId, reviewFixMessage(reviewer.model, verdict.notes)))) states.delete(threadId);
   }
 
+  async function checkForGoal(turn: CoderTurn, coder: Coder): Promise<void> {
+    const commands = coder.verify?.length ? coder.verify : detect(turn.cwd);
+    if (!commands.length) return;
+    row(turn.threadId, "chat.notice.coderChecking", { checks: commands.join(", ") }, true);
+    const result = await run(turn.cwd, commands);
+    if (result.ok) {
+      row(turn.threadId, "chat.notice.coderPassed", { checks: commands.join(", ") }, true);
+      deps.checksPassed?.(turn.cwd, commands);
+      goalNotes.set(turn.threadId, `Deliobot ran this project's checks after your last step and they passed (${commands.join(", ")}).`);
+      return;
+    }
+    const failed = result.results.filter((one) => !one.ok).map((one) => one.command).join(", ");
+    row(turn.threadId, "chat.notice.coderGoalFailed", { failed }, false);
+    goalNotes.set(turn.threadId, failureMessage(result, 1, 1, { goalStep: true }));
+  }
+
   return {
+    /** Before a goal's next step: waits for the checks of the step that just ended, and says how they went. */
+    async beforeGoalStep(threadId: string): Promise<string> {
+      const pending = goalChecks.get(threadId);
+      if (pending) await Promise.race([pending, sleep(GOAL_CHECK_WAIT_MS)]);
+      const note = goalNotes.get(threadId) ?? "";
+      goalNotes.delete(threadId);
+      return note;
+    },
+
+    /** A goal's turn just ended with a snapshot of its folder: its next step waits for the checks of this one. */
+    expectChecks(threadId: string): void {
+      if (!deps.inGoal?.(threadId) || goalChecks.has(threadId)) return;
+      goalChecks.set(threadId, new Promise<void>((resolve) => goalChecksDone.set(threadId, resolve)));
+    },
+
+    /** The turn's digest ended without handing the turn to the gate. */
+    releaseChecks(threadId: string): void {
+      if (goalChecksDone.has(threadId)) endGoalCheck(threadId);
+    },
+
     /** Whether this conversation is one the gate opened for a review. */
     isReviewThread: (threadId: string) => reviewThreads.has(threadId),
 
     async afterTurn(turn: CoderTurn): Promise<void> {
       if (reviewThreads.has(turn.threadId)) return;
       const bot = deps.bot(turn.botId);
-      const coder = bot?.coder;
-      if (!bot || !coder?.enabled) return;
+      const coder: Coder = bot?.coder ?? { enabled: true };
+      if (!bot || !coderOn(coder)) return;
+      if (deps.inGoal?.(turn.threadId)) {
+        try {
+          if (turn.changedFiles > 0 && turn.succeeded !== false) await checkForGoal(turn, coder);
+        } finally {
+          endGoalCheck(turn.threadId);
+        }
+        return;
+      }
       const mine = continuing.delete(turn.threadId);
       let state = states.get(turn.threadId);
       if (!mine || !state) {

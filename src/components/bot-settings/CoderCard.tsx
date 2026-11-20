@@ -11,7 +11,7 @@ const ROUNDS = [1, 2, 3, 4, 5, 6];
 /** Coder mode: checks after every change, a review by another engine, and the rounds the bot gets to fix them. */
 export function CoderCard({ bot, onChange }: { bot: Bot; onChange: (coder: Coder | null) => void }) {
   const { state } = useStore();
-  const coder: Coder = bot.coder ?? { enabled: false };
+  const coder: Coder = bot.coder ?? { enabled: true };
   const [commands, setCommands] = useState((coder.verify ?? []).join("\n"));
   const [previewUrl, setPreviewUrl] = useState(coder.previewUrl ?? "");
   const set = (patch: Partial<Coder>) => onChange({ ...coder, ...patch });

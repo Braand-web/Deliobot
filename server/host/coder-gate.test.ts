@@ -83,4 +83,30 @@ describe("coder mode", () => {
     expect(turns).toHaveLength(1);
     expect(rows.at(-1)!.key).toBe("chat.notice.coderReviewApproved");
   });
+
+  it("is on for a bot that never set it, and stays off for one that switched it off", async () => {
+    const neverSet = harness({ coder: undefined as never, checks: [fail] });
+    await neverSet.gate.afterTurn(turn());
+    expect(neverSet.turns).toHaveLength(1);
+    const off = harness({ coder: { enabled: false }, checks: [fail] });
+    await off.gate.afterTurn(turn());
+    expect(off.rows).toEqual([]);
+  });
+
+  it("in a goal, keeps the checks' outcome for the goal's next step instead of starting a turn", async () => {
+    const rows: string[] = [];
+    const started: string[] = [];
+    const gate = createCoderGate({
+      bot: () => ({ id: "bot" } as BotRecord), request: () => "", append: (_thread, tool) => rows.push(tool.nameCode),
+      startTurn: async (_bot, text) => { started.push(text); }, openReviewThread: () => null, diffText: async () => "",
+      detectChecks: () => ["npm test"], runChecks: async () => fail, inGoal: () => true, sleep: async () => {},
+    });
+    await gate.afterTurn(turn());
+    expect(started).toEqual([]);
+    expect(rows).toEqual(["chat.notice.coderChecking", "chat.notice.coderGoalFailed"]);
+    const note = await gate.beforeGoalStep("t1");
+    expect(note).toContain("after your last step");
+    expect(note).toContain("1 test failed");
+    expect(await gate.beforeGoalStep("t1")).toBe("");
+  });
 });

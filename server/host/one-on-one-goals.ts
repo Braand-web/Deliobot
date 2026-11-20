@@ -29,6 +29,10 @@ export interface OneOnOneGoalDeps {
     onSettled: (outcome: HostTurnResult) => void;
   }): Promise<unknown>;
   isUnattended(botId: string, threadId: string): boolean;
+  /** How many turns a goal in this conversation may take; the room default when absent. */
+  maxTurns?(botId: string, threadId: string): number | undefined;
+  /** What the next step should know first, such as how the project's checks went after the last one. */
+  beforeStep?(threadId: string): Promise<string>;
 }
 
 export interface OneOnOneGoalStart {
@@ -104,6 +108,8 @@ export function createOneOnOneGoals(deps: OneOnOneGoalDeps) {
     };
     // One wait cap for the whole step: the busy wait and the lost-slot retries share it, so neither restarts the clock.
     const deadline = Date.now() + GROUP_GOAL_WAIT_MAX_MS;
+    const first = deps.beforeStep ? await deps.beforeStep(threadId) : "";
+    const text = first ? `${first}\n\n${instructions}` : instructions;
     for (;;) {
       if (goal.cancelled || run.turnCount >= run.maxTurns) return { ran: false, replyText: "" };
       const free = await waitUntilFree(goal, bot, threadId, deadline - Date.now());
@@ -116,7 +122,7 @@ export function createOneOnOneGoals(deps: OneOnOneGoalDeps) {
       let outcome: GoalStepOutcome | undefined;
       try {
         try {
-          await deps.startTurn(bot.id, instructions, {
+          await deps.startTurn(bot.id, text, {
             threadId,
             cardContinuation: true,
             requestMessageId: request.id,
@@ -181,7 +187,7 @@ export function createOneOnOneGoals(deps: OneOnOneGoalDeps) {
     });
     store.titleTaskFromFirstMessage(botId, text, threadId);
     const goal: LiveGoal = {
-      run: deps.cards.start(threadId, bot, text, options.runId ?? `goal-${Date.now().toString(36)}-${randomUUID()}`),
+      run: deps.cards.start(threadId, bot, text, options.runId ?? `goal-${Date.now().toString(36)}-${randomUUID()}`, deps.maxTurns?.(botId, threadId)),
       botId,
       cancelled: false,
     };
@@ -224,7 +230,10 @@ export function createOneOnOneGoals(deps: OneOnOneGoalDeps) {
     return Boolean(goal && !goal.cancelled && goal.run.runId === runId);
   }
 
-  return { start, stop, isLive };
+  /** A goal is working in this conversation. */
+  const working = (threadId: string): boolean => Boolean(live.get(threadId) && !live.get(threadId)!.cancelled);
+
+  return { start, stop, isLive, working };
 }
 
 export type OneOnOneGoals = ReturnType<typeof createOneOnOneGoals>;

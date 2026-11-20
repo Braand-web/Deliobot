@@ -26,9 +26,13 @@ const bot = (coder?: Bot["coder"]) => ({ id: "b", modelSelection: { instanceId: 
 const render = (value: Bot, saved: unknown[]) => flushSync(() => root.render(createElement(CoderCard, { bot: value, onChange: (coder) => saved.push(coder) })));
 
 describe("coder mode settings", () => {
-  it("shows only the switch while off, and turns it on", () => {
+  it("is on for a bot that never set it, and can be switched off and on", () => {
     const saved: unknown[] = [];
     render(bot(), saved);
+    expect(host.querySelector("#bot-coder-reviewer")).not.toBeNull();
+    host.querySelector<HTMLButtonElement>("[aria-label='Mode Codeur']")!.click();
+    expect(saved.at(-1)).toEqual({ enabled: false });
+    render(bot({ enabled: false }), saved);
     expect(host.textContent).toContain("Mode Codeur");
     expect(host.querySelector("#bot-coder-reviewer")).toBeNull();
     host.querySelector<HTMLButtonElement>("[aria-label='Mode Codeur']")!.click();

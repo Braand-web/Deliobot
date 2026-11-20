@@ -9,7 +9,7 @@ import { TOOLS_OFF_ENV } from "../shared/tool-groups.ts";
 /** The facts of a conversation that decide its agents tools. A settings change may change them; a turn never does. */
 export interface AgentsConversation {
   threadId: string;
-  bot: NonNullable<Parameters<typeof roleToolEnv>[0]> & { id: string; computer?: string; memoryEnabled?: boolean; xResearch?: boolean; toolsOff?: readonly string[]; coder?: { enabled: boolean } };
+  bot: NonNullable<Parameters<typeof roleToolEnv>[0]> & { id: string; computer?: string; memoryEnabled?: boolean; xResearch?: boolean; toolsOff?: readonly string[]; coder?: { enabled: boolean }; cwd?: string };
   /** A room's thread: rooms refuse widgets, pages and a computer pick. */
   room: boolean;
   /** The bot works on its team's cloud computer, so it has no computer of its own to pick. */
@@ -54,7 +54,7 @@ export function agentsServerEnv(conversation: AgentsConversation, turn: AgentsTu
     ODB_MUSIC_GENERATION: flag(host.musicGeneration === true),
     ODB_MEETINGS: flag(host.meetings === true && !conversation.room),
     ODB_APP_HOSTING: flag(host.appHosting === true),
-    ODB_CODER: flag(bot.coder?.enabled === true),
+    ODB_CODER: flag(bot.coder?.enabled !== false && Boolean(bot.cwd)),
     ODB_COMPUTER_SELECTION: flag(!conversation.room && bot.computer !== "off" && !conversation.teamComputer && !conversation.botDriven),
     ODB_LOCAL_VM: flag(host.localVm),
     [TOOLS_OFF_ENV]: (bot.toolsOff ?? []).join(","),

@@ -1,7 +1,22 @@
+import { resolve } from "node:path";
+
 import type { BotRecord } from "../store.ts";
 
 type Coder = NonNullable<BotRecord["coder"]>;
 const COMMAND = /^[^\0\r\n]{1,300}$/;
+
+/** Coder mode is on for every bot unless its person switched it off. */
+export const coderOn = (coder: BotRecord["coder"]): boolean => coder?.enabled !== false;
+
+export const CODING_GOAL_MAX_TURNS = Math.max(13, Number(process.env.ODB_CODING_GOAL_MAX_TURNS) || 200);
+
+/** A goal in a project folder is coding work that can run for days: it gets CODING_GOAL_MAX_TURNS; any other goal keeps
+ * the room default. A conversation's own private workspace is not a project folder. */
+export function codingGoalTurns(bot: Pick<BotRecord, "coder" | "cwd"> | null | undefined, taskCwd: string | null | undefined, privateWorkspaces: string): number | undefined {
+  if (!bot || !coderOn(bot.coder)) return undefined;
+  const cwd = taskCwd ?? bot.cwd;
+  return cwd && !resolve(cwd).startsWith(resolve(privateWorkspaces)) ? CODING_GOAL_MAX_TURNS : undefined;
+}
 
 /** A bot's coder settings from a request; null clears them, an invalid value is refused. */
 export function coderPatch(raw: unknown): { value: BotRecord["coder"] } | { error: string } {

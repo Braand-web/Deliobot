@@ -87,11 +87,13 @@ export async function runChecks(cwd: string, commands: readonly string[], opts: 
 }
 
 /** What the bot reads when its change broke a check. */
-export function failureMessage(run: CheckRun, round: number, maxRounds: number): string {
+export function failureMessage(run: CheckRun, round: number, maxRounds: number, opts: { goalStep?: boolean } = {}): string {
   const failed = run.results.filter((result) => !result.ok);
   const lines = [
-    `Deliobot ran this project's checks after your change and ${failed.length === 1 ? "one failed" : `${failed.length} failed`} (round ${round} of ${maxRounds}).`,
-    "Fix the cause in the code, without weakening, skipping or deleting the checks, then stop: they run again on their own.",
+    `Deliobot ran this project's checks after your ${opts.goalStep ? "last step" : "change"} and ${failed.length === 1 ? "one failed" : `${failed.length} failed`}${opts.goalStep ? "" : ` (round ${round} of ${maxRounds})`}.`,
+    opts.goalStep
+      ? "Fix the cause in the code first in this step, without weakening, skipping or deleting the checks: they run again after it."
+      : "Fix the cause in the code, without weakening, skipping or deleting the checks, then stop: they run again on their own.",
   ];
   for (const result of failed) lines.push("", `$ ${result.command}${result.timedOut ? " (stopped: it ran too long)" : ""}`, result.output || "(no output)");
   return lines.join("\n");
