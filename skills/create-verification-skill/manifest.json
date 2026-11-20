@@ -7,7 +7,12 @@
   "triggerTerms": [
     "/create-verification-skill",
     "create a verification skill",
-    "make a verification skill"
+    "make a verification skill",
+    "créer une skill de vérification",
+    "crée une skill de vérification",
+    "compétence de vérification"
   ],
-  "requiredCapabilities": ["skillAuthoring"]
+  "requiredCapabilities": [
+    "skillAuthoring"
+  ]
 }

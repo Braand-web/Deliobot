@@ -24,7 +24,18 @@
     "put it online",
     "deploy to production",
     "production logs",
-    "app logs"
+    "app logs",
+    "déployer",
+    "déploie",
+    "déploiement",
+    "mise en production",
+    "mettre en production",
+    "met en production",
+    "en production",
+    "logs de production",
+    "erreurs en production",
+    "variables d'environnement",
+    "aperçu avant"
   ],
   "requiredCapabilities": []
 }

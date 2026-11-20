@@ -33,7 +33,19 @@
     "pair my phone",
     "pair the phone",
     "phone & devices",
-    "phone and devices"
+    "phone and devices",
+    "mon téléphone ne se connecte pas",
+    "téléphone ne se connecte",
+    "le téléphone ne se connecte",
+    "connecter mon téléphone",
+    "connecter le téléphone",
+    "appairer mon téléphone",
+    "appairer le téléphone",
+    "hors du wi-fi",
+    "sans wi-fi",
+    "en données mobiles",
+    "même wi-fi",
+    "l'appli delio sur mon téléphone"
   ],
   "requiredCapabilities": []
 }

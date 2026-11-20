@@ -21,7 +21,14 @@
     "deploy the app",
     "deploy my app",
     "production logs",
-    "app logs"
+    "app logs",
+    "déployer sur cloudflare",
+    "déploie sur cloudflare",
+    "base de données d1",
+    "migration de base",
+    "migrations de base",
+    "migration de la base",
+    "worker cloudflare"
   ],
   "requiredCapabilities": []
 }

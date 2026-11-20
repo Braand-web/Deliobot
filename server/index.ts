@@ -503,7 +503,7 @@ import {
   loadBundledSkills,
   loadUserSkills,
   mergeSkills,
-  renderSkillInstructions,
+  renderSkillInstructions, bundledSkillsIndex,
   selectBundledSkills,
   skillsLibraryEnabled, readSkillLibraryIndex,
 } from "./skill-library.ts";
@@ -3009,7 +3009,7 @@ function previewSystemPrompt(bot: BotRecord) {
     { id: "team-memory", label: "Team memory", text: teamMemory.systemPrompt(bot.section) + (agentsMounted ? TEAM_MEMORY_PROMPT : "") },
     teamAvailabilityPart(agentsMounted && coordination ? peers : []),
     { id: "memory-rules", label: "How memory works", text: memoryRulesPrompt(bot.id, { managedWrites: agentsMounted, fileTools: Boolean(privateWorkspace), enabled: bot.memoryEnabled !== false }) }, { id: "memory", label: "Memory", text: memoryNotesPrompt(bot.id, { managedWrites: agentsMounted, fileTools: Boolean(privateWorkspace), enabled: bot.memoryEnabled !== false }) },
-    { id: "skills", label: "Skills index", text: privateWorkspace ? skillsHost.skillsIndex(bot, undefined, instance) : "" },
+    { id: "skills", label: "Skills index", text: privateWorkspace ? skillsHost.skillsIndex(bot, undefined, instance) + bundledSkillsIndex(availableSkills(), []) : "" },
   ], agentsMounted ? { env: { ...agentsToolBridgeEnv(cfg, bot, instance && turnEngine(instance, providerConfigs(), registry.lastSnapshot(instance.instanceId), bot.cwd ?? undefined)), ODB_IMAGE_GENERATION: imageGenerationReady(withDelioMedia(cfg)) ? "1" : "0", ODB_VIDEO_GENERATION: videoGenerationReady(withDelioMedia(cfg)) ? "1" : "0", ODB_MUSIC_GENERATION: musicGenerationReady(withDelioMedia(cfg)) ? "1" : "0" } } : undefined, { replyStyle: bot.replyStyle, rules: cfg.everyBotRules });
   const totalBytes = built.sections.reduce((n, s) => n + s.bytes, 0);
   return {
@@ -7877,14 +7877,8 @@ async function beginTurn(
       const integrations: NonNullable<Parameters<typeof instance.adapter.sendTurn>[0]["integrations"]> = {};
       let browser: Awaited<ReturnType<typeof browserIntegration>> = null;
       const skills = availableSkills(), phoneOffered = HAS_USB_PORT && usbPhoneOffered(instance, skills) && !proactive.fence.confines(threadId) && !botApiThread(threadId);
-      const selectedSkills = selectBundledSkills(
-        providerText,
-        [
-          ...(phoneOffered ? ["phoneMcp"] : []),
-          ...(skillAuthoring ? ["skillAuthoring"] : []),
-        ],
-        skills,
-      );
+      const skillCapabilities = [...(phoneOffered ? ["phoneMcp"] : []), ...(skillAuthoring ? ["skillAuthoring"] : [])];
+      const selectedSkills = selectBundledSkills(providerText, skillCapabilities, skills);
       setup.lap("context"); if (phoneOffered) integrations.phone = phoneIntegration(bot.id, threadId, dispatchClaimId);
       if (bot.composio !== false && composio.configured(cfg) && instance.adapter.capabilities.composioMcp === true) {
         Object.assign(integrations, await teamConnections.appsIntegrations(bot, threadId, dispatchClaimId, instance.adapter.capabilities.mcpToolsFoundByName ? "dotted" : "plain")); setup.lap("apps");
@@ -8382,7 +8376,7 @@ async function beginTurn(
         { id: "recent", label: "Recent work", text: recentWorkPrompt(recentWork(recentWorkSources(bot), bot, { userName: CLOUD_TEAM ? teamHost.personName(teamConversationPerson(threadId)) ?? "the team" : cfg.profile?.name?.trim() || "User", currentThreadId: threadId, ...recentWorkFilter(threadId) })) },
         { id: "memory-rules", label: "How memory works", text: memoryRulesPrompt(teamHost.layer(bot.id, threadId), memoryOpts) }, { id: "memory", label: "Memory", text: memoryNotesPrompt(teamHost.layer(bot.id, threadId), memoryOpts) + teamHost.sharedNotesPrompt(bot.id, threadId) },
         // liveBot predates awaited setup work; an assignment PUT in that window must still reach this prompt.
-        { id: "skills", label: "Skills index", text: privateWorkspace ? skillsHost.skillsIndex(store.bot(bot.id) ?? bot, threadId, instance, cwd ?? null) : "" },
+        { id: "skills", label: "Skills index", text: privateWorkspace ? skillsHost.skillsIndex(store.bot(bot.id) ?? bot, threadId, instance, cwd ?? null) + bundledSkillsIndex(skills, skillCapabilities) : "" },
         { id: "skill-instructions", label: "Skill instructions", text: skillInstructions },
         { id: "playbooks", label: "Playbooks", text: packagePlaybooks },
         { id: "webhook", label: "Webhook provenance", text: opts?.automationSource === "webhook" ? WEBHOOK_PROMPT : opts?.automationSource === "api" ? (botApiThread(threadId) ? BOT_API_PROMPT : BOT_API_OWNER_PROMPT) : "" },
@@ -10155,7 +10149,7 @@ async function runClaimedGroupMemberTurn(
     { id: "section-context", label: "Section context", text: sectionContextSystemPrompt(bot.section) },
     { id: "team-memory", label: "Team memory", text: teamMemory.systemPrompt(bot.section) + (integrations.agents ? TEAM_MEMORY_PROMPT : "") },
     { id: "memory-rules", label: "How memory works", text: memoryRulesPrompt(teamHost.layer(bot.id, threadId), roomMemoryOpts) }, { id: "memory", label: "Memory", text: roomMemory ? `\n${roomMemory.trim()}` : "" },
-    { id: "skills", label: "Skills index", text: workspace ? skillsHost.skillsIndex(bot, threadId, instance, cwd ?? null) : "" },
+    { id: "skills", label: "Skills index", text: workspace ? skillsHost.skillsIndex(bot, threadId, instance, cwd ?? null) + bundledSkillsIndex(skills, [...(phoneOffered ? ["phoneMcp"] : []), ...(skillAuthoring ? ["skillAuthoring"] : [])]) : "" },
     { id: "skill-instructions", label: "Skill instructions", text: renderSkillInstructions(selectedSkills, { includeRoot: Boolean(workspace) }) },
     { id: "playbooks", label: "Playbooks", text: installedPlaybookInstructions(text, bot.playbooks) },
   ], integrations.agents, { rules: cfg.everyBotRules });

@@ -127,6 +127,16 @@ export function selectBundledSkills(
   );
 }
 
+/** The built-in skills a bot with file tools may need, each with when it applies and its guide, so it picks one up by
+ * itself whatever words the person used, and also when its own next step needs one. */
+export function bundledSkillsIndex(skills: readonly BundledSkill[], capabilities: Iterable<string>): string {
+  const available = new Set(capabilities);
+  const usable = skills.filter(({ manifest }) => manifest.defaultEnabled && manifest.requiredCapabilities.every((capability) => available.has(capability)));
+  if (!usable.length) return "";
+  const lines = usable.map(({ manifest, directory }) => `- ${manifest.id}: ${manifest.description} Read ${JSON.stringify(join(directory, "SKILL.md"))}.`);
+  return `\n\nBuilt-in skills:\n${lines.join("\n")}\nWhen a request, in any language, or your own next step is one of these, read that SKILL.md with your file tools first and follow it, without waiting to be asked and without naming the skill to the person. A skill whose full text is already in this prompt needs no reading.`;
+}
+
 export function renderSkillInstructions(
   selected: readonly BundledSkill[],
   { includeRoot = false }: { includeRoot?: boolean } = {},
