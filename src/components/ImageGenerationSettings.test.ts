@@ -95,7 +95,8 @@ describe("Image generation settings", () => {
     const view = await mount({ configured: false, ready: false, primary: { provider: "higgsfield", model: "nano_banana_pro", configured: false }, fallback: null });
     expect(view.textContent).toContain("Needs Higgsfield connected: connect it below.");
     expect(view.textContent).toContain("Not connected, or the sign-in ended");
-    expect(view.querySelector('input[type="password"]')).toBeNull();
+    // Videos are on by default, so the media key's own card asks for that key below; Higgsfield has no key field.
+    expect([...view.querySelectorAll('input[type="password"]')].map((input) => input.getAttribute("aria-label"))).toEqual(["fal.ai API key"]);
     const open = [...view.querySelectorAll("button")].find((button) => button.textContent === "Open Plugins")!;
     await act(async () => { open.click(); });
     expect(fixture.dispatch).toHaveBeenCalledWith({ type: "togglePlugins", open: true, surface: "apps" });
