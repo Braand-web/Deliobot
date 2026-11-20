@@ -14,7 +14,7 @@ import type { CredentialTargetId, CUSTOM_SECRET_TARGET, SecretDelivery } from ".
 import type { TeamSetupRequest } from "./team-setup.ts"; import type { DefaultBotFields, HelperIntroField } from "./default-bot.ts";
 import type { SetupCardFields } from "./setup-card.ts"; import type { BugReportField } from "./devs-report-status.ts"; import type { AccessRequestCardField, BotAccessFields } from "./bot-access.ts";
 import type { RoutineRequestCardData } from "./routine-request.ts"; import type { SavedStepsMark } from "./saved-steps.ts";
-import type { WebhookRequestCardData } from "./webhook-request.ts"; import type { WaitCardField, WaitLineField } from "./wait-request.ts"; import type { ComputerAskField } from "./computer-ask.ts";
+import type { WebhookRequestCardData } from "./webhook-request.ts"; import type { WaitCardField, WaitLineField } from "./wait-request.ts"; import type { CheckBackLineField } from "./check-back.ts"; import type { HandoffStatusField } from "./handoff-status.ts"; import type { ComputerAskField } from "./computer-ask.ts";
 import type { AppEventAttempt, AppTrigger, AppTriggerRequestCardData, AppTriggerService } from "./app-triggers.ts";
 import type { ProfileRequestCardData } from "./profile-request.ts";
 import type { ServerTextLine, ServerTextParams } from "./server-text.ts";
@@ -114,7 +114,7 @@ export interface BotMovedTo {
 }
 
 /** One task = one conversation with its own context, thread and provider session. */
-export interface WireTask extends InboxTask {
+export interface WireTask extends InboxTask, HandoffStatusField {
   /** Outstanding handoffs, not an active provider turn. */
   waitingForTeammates?: boolean;
   threadId: string;
@@ -438,7 +438,7 @@ export type CardAnswerer = (
 export const EXCERPT_SUMMARY_HEADER = "Historical excerpts in chronological order; newer corrections override older requests. These excerpts may omit earlier details.";
 
 /** One transcript line, serialized as stored. */
-export interface WireMessage extends ServerTextLine, HelperIntroField, SetupCardFields, WaitLineField, BugReportField {
+export interface WireMessage extends ServerTextLine, HelperIntroField, SetupCardFields, WaitLineField, CheckBackLineField, HandoffStatusField, BugReportField {
   roomRequest?: { id: string; phase: "request" | "result" };
   id: string;
   role: "bot" | "user";
@@ -992,7 +992,7 @@ export type ServerFrame =
   | DataBroadcast
   | { kind: "bot.deleted"; botId: string }
   /** The whole fleet (PUT /api/bots/order) or every room (PUT /api/groups/order) in its new order; a member is sent only the ones they see. */
-  | { kind: "bots.order"; botIds: string[] } | { kind: "groups.order"; groupIds: string[] } | WindowPrefFrame | { kind: "theme"; skin?: string }
+  | { kind: "bots.order"; botIds: string[] } | { kind: "groups.order"; groupIds: string[] } | WindowPrefFrame | { kind: "theme"; skin?: string } | /** The Apps page's catalog changed; the list is read again. */ { kind: "apps-catalog" }
   | { kind: "live.call"; botId: string; threadId: string; call: LiveCallState | null }
   /** A job is waiting for the phone whose registry key this is; it polls now. */
   | { kind: "device.job"; phone: string; id: string }

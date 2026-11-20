@@ -49,7 +49,7 @@ import type { Routine, RoutineInput, RoutineRun, RoutineRunStatusFilter } from "
 import type { WebhookAttempt, WebhookIngressStatus, WebhookTrigger } from "@/lib/webhooks";
 import { duplicateBotProfile, restrictedCopyRequest } from "@/lib/bot-duplicate";
 import { markVisibleBotThreadsRead, markVisibleGroupThreadsRead } from "./read-visible";
-import { applyWindowPref } from "@/lib/window-prefs"; import { applyThemeFrame } from "@/lib/theme/runtime";
+import { applyWindowPref } from "@/lib/window-prefs"; import { applyThemeFrame } from "@/lib/theme/runtime"; import { appCatalogAnnounced } from "@/lib/app-catalog-signal";
 import { placeUnreadDivider, threadOpensUnread, threadReadCursor, unreadDividerFor, type UnreadDivider } from "@/lib/unread-divider";
 import type { ComputerStart } from "@/lib/computer-start";
 import { parseComputerHelp } from "@/lib/computer-control";
@@ -113,7 +113,7 @@ export type SecretRequestCardData = Omit<import("../../shared/wire").SecretReque
 
 export type ComputerControlState = { held: boolean; helpReason: string | null; help?: import("../../shared/wire").ComputerHelpRef | null };
 
-export interface Message extends Pick<import("../../shared/wire").WireMessage, "widget" | "app" | "fromApp" | "pointed" | "routedBy" | "quickModel" | "automation" | "publishedPage" | "template" | "sender" | "setupSuggestion" | "settingsCard" | "helperIntro" | "helperFollowup" | "setupOffer" | "savedSteps" | "setupChoices" | "setupChoicesPending" | "setupChoicesUpdating" | "setupRequest" | "relay" | "inbox" | "sentDirectly" | "doneWhen" | "bugReport" | "engineCompaction" | "stoppedBy" | "undo" | "undone"> {
+export interface Message extends Pick<import("../../shared/wire").WireMessage, "widget" | "app" | "fromApp" | "pointed" | "routedBy" | "quickModel" | "automation" | "publishedPage" | "template" | "sender" | "setupSuggestion" | "settingsCard" | "helperIntro" | "helperFollowup" | "setupOffer" | "savedSteps" | "setupChoices" | "setupChoicesPending" | "setupChoicesUpdating" | "setupRequest" | "relay" | "inbox" | "sentDirectly" | "doneWhen" | "checkBack" | "handoff" | "bugReport" | "engineCompaction" | "stoppedBy" | "undo" | "undone"> {
   id: string;
   role: "bot" | "user";
   kind: "text" | "options" | "activity" | "screen" | "connector" | "secret" | "signin" | "routine.run" | "goal.run" | "burst" | "digest" | "compaction" | "call" | "widget" | "app";
@@ -214,7 +214,7 @@ export interface ModelSelection {
   variant?: string;
 }
 
-export interface Task extends Pick<WireTask, "private" | "shared" | "sharedWith" | "setupRequest" | "inbox" | "openAsks" | "askedBy"> {
+export interface Task extends Pick<WireTask, "private" | "shared" | "sharedWith" | "setupRequest" | "inbox" | "openAsks" | "askedBy" | "handoff"> {
   waitingForTeammates?: boolean; sharedChat?: true;
   threadId: string;
   origin?: import("../../shared/wire").ForkOrigin;
@@ -3184,7 +3184,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           break;
         }
         case "window-pref": applyWindowPref(frame); break;
-        case "theme": applyThemeFrame(frame); break;
+        case "theme": applyThemeFrame(frame); break; case "apps-catalog": appCatalogAnnounced(); break;
         case "config":
           rawDispatch({
             type: "configStatus",

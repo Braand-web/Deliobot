@@ -7,6 +7,7 @@ import {
   applyManagedBrokerMessage,
   authorizeService,
   connectedServiceSlugs,
+  serviceSlugsReadSettled,
   verifiedConnectedServiceSlugs,
   connectedServices,
   connectedServicesInventory,
@@ -420,6 +421,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await serviceSlugsReadSettled();
   setManagedBrokerAccess(null);
   delete process.env.ODB_COMPOSIO_API;
   delete process.env.ODB_COMPOSIO_TOOLKITS_API;

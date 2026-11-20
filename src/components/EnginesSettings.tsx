@@ -4,6 +4,7 @@ import { Check, Loader2, RefreshCw, TriangleAlert } from "lucide-react";
 import { OwnAiLocked } from "@/components/OwnAiLocked";
 import { ownAiLocked, useDelioAccount } from "@/lib/delio-account";
 import { api, useStore, type InstanceInfo } from "@/state/store";
+import { useShowInstances } from "@/state/use-show-instances";
 import { EngineCard, EngineSections, RefreshEngines, engineReady } from "./EngineLibrary";
 import { cn } from "@/lib/cn";
 import { useMenuMotion } from "./MenuMotion";
@@ -197,6 +198,7 @@ function CustomPicker({ instance, cliDefault, onClose, onSaved }: {
 /** The executable behind an engine: its path, Claude's self-update, and a reset to the default. */
 function EngineAdvanced({ instance }: { instance: InstanceInfo }) {
   const { refreshInstances } = useStore();
+  const showInstances = useShowInstances();
   const [open, setOpen] = useState(false);
   const cliMotion = useMenuMotion(open);
   const [switching, setSwitching] = useState(false);
@@ -231,7 +233,7 @@ function EngineAdvanced({ instance }: { instance: InstanceInfo }) {
     setSwitching(true);
     setError(null);
     api(`/api/instances/${encodeURIComponent(instance.instanceId)}`, { method: "PATCH", body: JSON.stringify({ hidden: true }) })
-      .then(() => Promise.resolve(refreshInstances()).catch(() => {}))
+      .then((answer) => showInstances(answer).catch(() => {}))
       .catch((e) => setError(e.message))
       .finally(() => setSwitching(false));
   };
@@ -336,7 +338,8 @@ function EngineAdvanced({ instance }: { instance: InstanceInfo }) {
 /** Remove drops an added Antigravity account or an added server; Sign out forgets a signed-in account's sign-in (Antigravity's
  * Google one, or a CLI's own login such as Kimi's) and never hides the provider, which stays listed with Set up. */
 function EngineAccountAction({ instance, action, cli = false, removeBody = "accounts.removeBodyAntigravity" }: { instance: InstanceInfo; action: "remove" | "signOut"; cli?: boolean; removeBody?: LocaleKey }) {
-  const { state, dispatch, refreshInstances } = useStore();
+  const { state } = useStore();
+  const showInstances = useShowInstances();
   const [confirming, setConfirming] = useState(false);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -349,9 +352,7 @@ function EngineAccountAction({ instance, action, cli = false, removeBody = "acco
     setError(null);
     try {
       const path = `/api/instances/${encodeURIComponent(instance.instanceId)}${remove ? "" : "/auth/sign-out"}`;
-      const { instances } = await api(path, { method: remove ? "DELETE" : "POST" });
-      if (Array.isArray(instances)) dispatch({ type: "instances", instances });
-      else await refreshInstances();
+      await showInstances(await api(path, { method: remove ? "DELETE" : "POST" }));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally {

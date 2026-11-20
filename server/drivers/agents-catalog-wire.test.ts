@@ -89,8 +89,8 @@ const FULL = "skills+shared+voice+x+team+images+hosting";
 const BUDGET_BASELINE: Record<string, number> = {
   "default": 59137,
   "voice": 59918,
-  "shared": 60210,
-  "shared+voice": 60991,
+  "shared": 61784,
+  "shared+voice": 62565,
   "skills": 61458,
   "skills+voice": 62239,
   "skills+shared": 63723,
@@ -108,12 +108,12 @@ const BUDGET_BASELINE: Record<string, number> = {
   "default+legacy-switches": 59137,
   "default+delio": 59788,
   "skills+shared+voice+delio": 65155,
-  "skills+shared+voice+x": 67179,
-  "skills+shared+voice+x+team": 67179,
+  "skills+shared+voice+x": 68725,
+  "skills+shared+voice+x+team": 68725,
   "default+no-computer-pick": 57931,
   "default+room": 54927,
   "non-chief+room": 46379,
-  "skills+shared+voice+x+team+images": 69244,
+  "skills+shared+voice+x+team+images": 70858,
   "default+images": 61270,
   "skills+shared+voice+x+team+images+hosting": 72557,
   "default+hosting": 61325,
@@ -354,7 +354,7 @@ describe("agents proxy tools/list golden", () => {
     const names = (name: string) => toolsOf(wires[name]!).map((tool) => tool.name);
     expect(names("default+no-computer-pick")).toEqual(names("default").filter((tool) => tool !== "select_computer"));
     for (const name of ["default", "non-chief"]) {
-      expect(names(`${name}+room`), name).toEqual(names(name).filter((tool) => !["select_computer", "wait_until", "list_waits", "cancel_wait", "burst", "rename_thread"].includes(tool)));
+      expect(names(`${name}+room`), name).toEqual(names(name).filter((tool) => !["select_computer", "wait_until", "list_waits", "cancel_wait", "check_back", "burst", "rename_thread"].includes(tool)));
     }
     for (const [name, profile] of Object.entries(PROFILES)) {
       expect(names(name).includes("select_computer"), name).toBe(profile.env.ODB_COMPUTER_SELECTION === "1");

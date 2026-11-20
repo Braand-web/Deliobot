@@ -12,7 +12,7 @@ import { PUBLIC_WEB_TOOL_DEFINITION } from "./agents-public-web-tool.ts";
 import { APP_SETTINGS_TOOL_DEFINITION } from "./agents-app-settings-tool.ts";
 import { THREAD_POST_TOOL_DEFINITION } from "./agents-thread-post-tool.ts";
 import { RENAME_THREAD_TOOL_DEFINITION } from "./agents-thread-title-tool.ts";
-import { WAIT_TOOL_DEFINITIONS, WAIT_TOOL_NAMES } from "./agents-wait-tools.ts";
+import { WAIT_TOOL_DEFINITIONS, WAIT_TOOL_NAMES } from "./agents-wait-tools.ts"; import { CHECK_BACK_TOOL_DEFINITIONS, CHECK_BACK_TOOL_NAMES } from "./agents-check-back-tool.ts";
 import { COMPUTER_ASK_TOOL_DEFINITIONS, COMPUTER_ASK_TOOL_NAMES } from "./agents-computer-ask-tool.ts";
 import { IMAGE_TOOL_DEFINITIONS, IMAGE_TOOL_NAMES } from "./agents-image-tools.ts";
 import { VIDEO_TOOL_DEFINITIONS, VIDEO_TOOL_NAMES } from "./agents-video-tools.ts";
@@ -615,7 +615,7 @@ const TOOL_DEFINITIONS = [
   {
     name: "trigger",
     description:
-      "Set up or change an automation (a routine): when something happens, a bot does the instructions. Create it in this turn, without asking to confirm, whenever the person describes recurring or event-based work (\"every morning send me…\", \"whenever I get an email from…\", \"when another app calls…\"); something to do once, now, is not one. when=schedule runs on a time rule or cron (trigger_info first for the current time); app_event when a connected app's event happens (trigger_info action=events first; better than a schedule that keeps checking); webhook when another app calls its private address, which you may paste only into that app's setup; limit_reset when an AI's usage limit resets. update, pause, resume and run_now take a trigger_id from trigger_info. Pause a temporary monitor once its goal is met, then read it back; delete_trigger only at the person's request. To the person these are automations: write name and instructions as they would say them.",
+      "Set up or change an automation (a routine): when something happens, a bot does the instructions. Create it in this turn, without asking to confirm, whenever the person describes recurring or event-based work; something to do once, now, is not one, and a later look at this chat is check_back. when=schedule runs on a time rule or cron (trigger_info first for the current time); app_event when a connected app's event happens (trigger_info action=events first; better than a schedule that keeps checking); webhook when another app calls its private address, which you may paste only into that app's setup; limit_reset when an AI's usage limit resets. update, pause, resume and run_now take a trigger_id from trigger_info. Pause a temporary monitor once its goal is met, then read it back; delete_trigger only at the person's request. To the person these are automations: write name and instructions as they would say them.",
     inputSchema: {
       type: "object",
       additionalProperties: false,
@@ -649,6 +649,7 @@ const TOOL_DEFINITIONS = [
     },
   },
   ...WAIT_TOOL_DEFINITIONS,
+  ...CHECK_BACK_TOOL_DEFINITIONS,
   ...COMPUTER_ASK_TOOL_DEFINITIONS,
   {
     name: "propose_profile",
@@ -817,7 +818,7 @@ const WATCHER_TOOL_NAMES = new Set(["create_options_card"]);
 
 const LOCAL_VM_TOOL_NAMES = new Set(["vm_exec"]);
 /** Refused in a room's thread (routes/waits.ts), and list_waits, since a room holds no wait. */
-const ROOM_REFUSED_TOOL_NAMES = new Set([...WAIT_TOOL_NAMES, "burst", "rename_thread"]);
+const ROOM_REFUSED_TOOL_NAMES = new Set([...WAIT_TOOL_NAMES, ...CHECK_BACK_TOOL_NAMES, "burst", "rename_thread"]);
 const CLOUD_HOME_SURFACE = {
   type: "string", enum: ["auto", "cloud", "browser"],
   description: "auto = suitable configured computer, cloud = the bot's cloud computer, browser = built-in browser. Omit to list. This server runs in the cloud: the user's own computer and a Local VM are not places here.",
