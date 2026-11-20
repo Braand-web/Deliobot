@@ -14,7 +14,7 @@ import { parseArgs } from "node:util";
 import { inflateSync } from "node:zlib";
 import { browserBundlePaths, browserBundleSpec } from "../server/browser-bundle-release.ts";
 import { executableTarget } from "./prepare-cloudflared.mjs";
-import { WINDOWS_VENDOR_VERSION, verifyVendorCandidate, verifyVendorPatch } from "./build-windows-browser-vendor.mjs";
+import { WINDOWS_VENDOR_REPORTED_VERSION, verifyVendorCandidate, verifyVendorPatch } from "./build-windows-browser-vendor.mjs";
 
 const { values } = parseArgs({ options: {
   resources: { type: "string" }, target: { type: "string" },
@@ -58,7 +58,7 @@ if (values["engine-candidate"] !== undefined) {
   for (const license of ["agent-browser-LICENSE.txt", "LICENSE-axe-core.txt", "LICENSE-axe-core-THIRD-PARTY.txt"]) {
     assert.deepEqual(await readFile(join(candidateDirectory, license)), await readFile(join(paths.licenses, license)), `Candidate changed upstream notice ${license}`);
   }
-  engineVersionExpected = WINDOWS_VENDOR_VERSION;
+  engineVersionExpected = WINDOWS_VENDOR_REPORTED_VERSION;
 }
 // Signing changes Mach-O bytes. Source-archive digests are checked before signing;
 // this gate checks the final layout, versions, and real browser behavior instead.
