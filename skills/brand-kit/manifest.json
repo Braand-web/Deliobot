@@ -1,0 +1,29 @@
+{
+  "id": "brand-kit",
+  "name": "Brand kit",
+  "version": "1.0.0",
+  "description": "A complete visual identity: brand direction, colour palette, typography, logo, mockups, social templates, packaging, signage and a brand book as PDF; or the extension of an existing brand.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "brand kit",
+    "brand identity",
+    "visual identity",
+    "brand guidelines",
+    "brand book",
+    "brandbook",
+    "logo for",
+    "design a logo",
+    "make a logo",
+    "charte graphique",
+    "identité visuelle",
+    "kit de marque",
+    "crée un logo",
+    "créer un logo",
+    "fais un logo",
+    "fais-moi un logo",
+    "logo pour",
+    "palette de couleurs",
+    "image de marque"
+  ],
+  "requiredCapabilities": []
+}

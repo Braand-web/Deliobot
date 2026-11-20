@@ -1,0 +1,20 @@
+{
+  "id": "fashion-lookbook",
+  "name": "Fashion lookbook",
+  "version": "1.0.0",
+  "description": "Lookbooks, runway walks and outfit campaigns, as stills or video.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "lookbook",
+    "fashion shoot",
+    "fashion video",
+    "outfit video",
+    "défilé",
+    "shooting mode",
+    "collection de vêtements",
+    "runway walk",
+    "runway video",
+    "vidéo de mode"
+  ],
+  "requiredCapabilities": []
+}

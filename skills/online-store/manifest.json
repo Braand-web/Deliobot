@@ -9,8 +9,6 @@
     "online shop",
     "web shop",
     "webshop",
-    "e-commerce",
-    "ecommerce",
     "sell online",
     "selling online",
     "sell my products",
@@ -36,7 +34,11 @@
     "crée une boutique",
     "crée-moi une boutique",
     "fais une boutique",
-    "ma boutique"
+    "ma boutique",
+    "ecommerce site",
+    "ecommerce store",
+    "e-commerce site",
+    "e-commerce store"
   ],
   "requiredCapabilities": []
 }

@@ -1,0 +1,24 @@
+{
+  "id": "marketplace-listing-images",
+  "name": "Marketplace listing images",
+  "version": "1.0.0",
+  "description": "Listing image sets for Amazon, Jumia, Etsy, Shopify or any marketplace: a compliant main image, infographic, angles, details, lifestyle, what's in the box, and A+ style modules.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "listing images",
+    "amazon listing",
+    "marketplace images",
+    "product infographic",
+    "a+ content",
+    "jumia",
+    "etsy listing",
+    "images pour amazon",
+    "fiche produit amazon",
+    "images de fiche produit",
+    "visuels marketplace",
+    "infographie produit",
+    "photos pour jumia",
+    "photos pour ma fiche"
+  ],
+  "requiredCapabilities": []
+}

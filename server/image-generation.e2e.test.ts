@@ -96,6 +96,9 @@ it("falls back from a keyless base to the backup and attaches the image to the s
   const step = turn.evidence.find((entry) => entry.step)?.response?.result;
   expect(step?.isError).toBeFalsy();
   expect(step?.content[0]?.text).toContain("backup image provider, because the base failed: Add an OpenAI image API key first");
+  const kept = JSON.parse(/A copy is saved at ("[^"]+")/.exec(step?.content[0]?.text ?? "")![1]!) as string;
+  expect(kept).toMatch(new RegExp(`[\\\\/]${bot.id}[\\\\/]media[\\\\/]image-[^\\\\/]+\\.png$`));
+  expect(readFileSync(kept).subarray(1, 4).toString()).toBe("PNG");
 
   expect(f.images.requests).toEqual([
     { model: "fixture-image", prompt: "a navy owl with a brass compass", response_format: "b64_json", size: "1536x1024", n: 1 },

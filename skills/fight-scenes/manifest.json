@@ -1,0 +1,20 @@
+{
+  "id": "fight-scenes",
+  "name": "Fight scenes",
+  "version": "1.0.0",
+  "description": "Action sequences: martial arts, sword fights, chases, superhero battles, with clear choreography.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "fight scene",
+    "action scene",
+    "martial arts",
+    "sword fight",
+    "superhero battle",
+    "car chase",
+    "scène de combat",
+    "scène d'action",
+    "arts martiaux",
+    "course-poursuite"
+  ],
+  "requiredCapabilities": []
+}

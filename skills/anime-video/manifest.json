@@ -1,0 +1,20 @@
+{
+  "id": "anime-video",
+  "name": "Anime video",
+  "version": "1.0.0",
+  "description": "Japanese anime styles: shonen, seinen, mecha, slice-of-life, anime openings.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "shonen",
+    "anime opening",
+    "style manga",
+    "style animé japonais",
+    "anime style",
+    "anime video",
+    "anime scene",
+    "style anime",
+    "vidéo anime",
+    "vidéo animée style anime"
+  ],
+  "requiredCapabilities": []
+}

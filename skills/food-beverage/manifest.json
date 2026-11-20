@@ -1,0 +1,21 @@
+{
+  "id": "food-beverage",
+  "name": "Food and drink",
+  "version": "1.0.0",
+  "description": "Restaurant, recipe, drink and ASMR videos and stills with appetite appeal.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "food video",
+    "restaurant video",
+    "recipe video",
+    "drink ad",
+    "food photo",
+    "cocktail video",
+    "vidéo restaurant",
+    "vidéo de recette",
+    "pub boisson",
+    "photo de plat",
+    "vidéo culinaire"
+  ],
+  "requiredCapabilities": []
+}

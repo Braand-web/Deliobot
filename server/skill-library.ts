@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, readdirSync, rmSync } from "node:fs";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { mkdirSync, renameSync } from "node:fs";
@@ -133,8 +133,14 @@ export function bundledSkillsIndex(skills: readonly BundledSkill[], capabilities
   const available = new Set(capabilities);
   const usable = skills.filter(({ manifest }) => manifest.defaultEnabled && manifest.requiredCapabilities.every((capability) => available.has(capability)));
   if (!usable.length) return "";
-  const lines = usable.map(({ manifest, directory }) => `- ${manifest.id}: ${manifest.description} Read ${JSON.stringify(join(directory, "SKILL.md"))}.`);
-  return `\n\nBuilt-in skills:\n${lines.join("\n")}\nWhen a request, in any language, or your own next step is one of these, read that SKILL.md with your file tools first and follow it, without waiting to be asked and without naming the skill to the person. A skill whose full text is already in this prompt needs no reading.`;
+  const roots = new Map<string, string[]>();
+  for (const { manifest, directory } of usable) {
+    const root = dirname(directory);
+    const line = basename(directory) === manifest.id ? `- ${manifest.id}: ${manifest.description}` : `- ${manifest.id}: ${manifest.description} Guide: ${JSON.stringify(join(directory, "SKILL.md"))}.`;
+    roots.set(root, [...roots.get(root) ?? [], line]);
+  }
+  const groups = [...roots].map(([root, lines]) => `Built-in skills, each guide at ${JSON.stringify(join(root, "<id>", "SKILL.md"))}:\n${lines.join("\n")}`);
+  return `\n\n${groups.join("\n")}\nWhen a request, in any language, or your own next step is one of these, read that SKILL.md with your file tools first and follow it, without waiting to be asked and without naming the skill to the person. A skill whose full text is already in this prompt needs no reading.`;
 }
 
 export function renderSkillInstructions(

@@ -1,0 +1,20 @@
+{
+  "id": "3d-cgi-video",
+  "name": "3D and CGI video",
+  "version": "1.0.0",
+  "description": "3D rendered visuals: Pixar-like, Unreal-like, photoreal CGI, isometric, product renders.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "3d render",
+    "3d animation",
+    "cgi video",
+    "pixar style",
+    "rendu 3d",
+    "animation 3d",
+    "vidéo 3d",
+    "style pixar",
+    "isometric render",
+    "isometric illustration"
+  ],
+  "requiredCapabilities": []
+}

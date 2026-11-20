@@ -1,0 +1,20 @@
+{
+  "id": "comic-to-video",
+  "name": "Comic to video",
+  "version": "1.0.0",
+  "description": "Brings comic, manga, webtoon or storyboard panels to life as video.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "comic to video",
+    "manga panel",
+    "animate this panel",
+    "animate my comic",
+    "webtoon",
+    "storyboard to video",
+    "bd en vidéo",
+    "anime ma bd",
+    "planche de bd",
+    "case de manga"
+  ],
+  "requiredCapabilities": []
+}

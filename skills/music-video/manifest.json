@@ -1,0 +1,17 @@
+{
+  "id": "music-video",
+  "name": "Music video",
+  "version": "1.0.0",
+  "description": "Music videos: performance, narrative or abstract visuals cut to the beat.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "music video",
+    "lyric video",
+    "clip musical",
+    "clip vidéo",
+    "clip de ma chanson",
+    "clip pour ma musique",
+    "audio visualizer video"
+  ],
+  "requiredCapabilities": []
+}

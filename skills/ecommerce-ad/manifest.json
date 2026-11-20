@@ -1,0 +1,23 @@
+{
+  "id": "ecommerce-ad",
+  "name": "E-commerce ad",
+  "version": "1.0.0",
+  "description": "Product ads for online selling, as video or still: fashion, beauty, electronics, food, jewellery.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "product video",
+    "tiktok shop",
+    "unboxing video",
+    "pub produit",
+    "vidéo produit",
+    "pub pour mon produit",
+    "vidéo de mon produit",
+    "pub e-commerce",
+    "ad for my product",
+    "ads for my product",
+    "product advert",
+    "ecommerce video ad",
+    "shopify video"
+  ],
+  "requiredCapabilities": []
+}

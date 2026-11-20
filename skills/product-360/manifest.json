@@ -1,0 +1,18 @@
+{
+  "id": "product-360",
+  "name": "Product 360",
+  "version": "1.0.0",
+  "description": "Turntable reveals, multi-angle and hero shots, material close-ups of a product.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "360 video",
+    "product 360",
+    "turntable",
+    "rotating product",
+    "product reveal",
+    "vidéo 360",
+    "produit qui tourne",
+    "rotation du produit"
+  ],
+  "requiredCapabilities": []
+}

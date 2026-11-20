@@ -1,0 +1,22 @@
+{
+  "id": "cinematic-video",
+  "name": "Cinematic video",
+  "version": "1.0.0",
+  "description": "Film-quality video shots: camera moves, lighting, colour grading, film looks.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "cinematic video",
+    "cinematic shot",
+    "film look",
+    "movie scene",
+    "movie trailer",
+    "film trailer",
+    "short film",
+    "vidéo cinématique",
+    "plan cinéma",
+    "bande-annonce",
+    "court métrage",
+    "scène de film"
+  ],
+  "requiredCapabilities": []
+}

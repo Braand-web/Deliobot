@@ -1,0 +1,25 @@
+{
+  "id": "faceless-video",
+  "name": "Faceless video",
+  "version": "1.0.0",
+  "description": "Finished narrated videos with nobody on camera: explainers, stories, mini-documentaries, top-10s, picture stories and children's songs, from a topic, a script or a document, in any language.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "faceless video",
+    "faceless channel",
+    "narrated video",
+    "explainer video",
+    "video from this document",
+    "picture story",
+    "kids song video",
+    "vidéo sans visage",
+    "vidéo explicative",
+    "vidéo narrée",
+    "vidéo avec voix off",
+    "histoire en images",
+    "chanson pour enfants",
+    "vidéo à partir de ce document",
+    "documentaire"
+  ],
+  "requiredCapabilities": []
+}

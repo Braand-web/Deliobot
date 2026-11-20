@@ -1,0 +1,31 @@
+{
+  "id": "ugc-video-ads",
+  "name": "UGC and video ads",
+  "version": "1.0.0",
+  "description": "Video ads that sell: UGC-style creators talking about the product, unboxings, tutorials, reviews, try-ons, polished TV spots and product showcases, with script, voice, music and captions.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "ugc",
+    "video ads",
+    "tv spot",
+    "tv commercial",
+    "commercial for",
+    "pub vidéo",
+    "publicité vidéo",
+    "vidéo publicitaire",
+    "spot publicitaire",
+    "spot tv",
+    "pub tiktok",
+    "pub facebook",
+    "pub instagram",
+    "vidéo ugc",
+    "pub pour",
+    "video advert",
+    "a video ad for",
+    "tiktok ads",
+    "facebook video ad",
+    "instagram video ad",
+    "reels ad"
+  ],
+  "requiredCapabilities": []
+}

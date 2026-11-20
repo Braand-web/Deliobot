@@ -1,0 +1,26 @@
+{
+  "id": "consistent-character",
+  "name": "Consistent character",
+  "version": "1.0.0",
+  "description": "Keeps the same face across pictures and videos: the founder, a brand ambassador or a mascot, from a few photos or one approved portrait, for ads, posts, thumbnails and series.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "same face",
+    "same person in every",
+    "same character",
+    "consistent character",
+    "my digital twin",
+    "use my face",
+    "brand ambassador",
+    "même visage",
+    "le même personnage",
+    "mon avatar",
+    "mon double",
+    "avec mon visage",
+    "égérie",
+    "ambassadeur de la marque",
+    "personnage récurrent",
+    "avatar of me"
+  ],
+  "requiredCapabilities": []
+}

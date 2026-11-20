@@ -1,0 +1,31 @@
+{
+  "id": "video-montage",
+  "name": "Video montage",
+  "version": "1.0.0",
+  "description": "Edits clips and pictures into one finished video with voice-over, ducked music, burned-in captions and fades, in 9:16, 16:9, 1:1 or 4:5.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "montage",
+    "edit the video",
+    "edit my video",
+    "join the clips",
+    "merge the videos",
+    "add subtitles",
+    "add captions",
+    "voice-over",
+    "voiceover",
+    "add music to the video",
+    "monte la vidéo",
+    "monter la vidéo",
+    "monter les vidéos",
+    "assemble les vidéos",
+    "ajoute des sous-titres",
+    "sous-titrer",
+    "sous-titres",
+    "voix off",
+    "voix-off",
+    "ajoute une musique",
+    "mets de la musique"
+  ],
+  "requiredCapabilities": []
+}

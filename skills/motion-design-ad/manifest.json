@@ -1,0 +1,23 @@
+{
+  "id": "motion-design-ad",
+  "name": "Motion design ad",
+  "version": "1.0.0",
+  "description": "Software and SaaS ads, product launches and UI demos in motion design.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "motion design",
+    "app promo",
+    "product launch video",
+    "ui demo",
+    "explainer animation",
+    "pub d'application",
+    "pub pour mon app",
+    "vidéo de lancement",
+    "pub saas",
+    "saas promo video",
+    "app promo video",
+    "ad for my app",
+    "ads for my app"
+  ],
+  "requiredCapabilities": []
+}

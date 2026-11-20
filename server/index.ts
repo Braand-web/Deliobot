@@ -62,6 +62,7 @@ import {
   type BrowserCleanupWireRequest,
 } from "./browser-lifecycle-cleanup.ts";
 import * as checkpoints from "./checkpoints.ts"; import { createCheckpointSeeds } from "./host/checkpoint-seeds.ts";
+import { keepMediaCopy } from "./media-keep.ts";
 import { commandReceipt } from "./commands.ts"; import { moveSavedGrants } from "./mcp-grant-spec.ts";
 import { buildTurnDigest, coverageForDriver, digestCompletedLate, digestPromptLine, renderDigest, toolEvidence } from "./digest.ts";
 import { appendDecision, bindDecisionRetention, decisionRetentionDays, flushDecisionLog, pruneDecisions, withDecisionActor, type DecisionActor, type DecisionVia } from "./decision-log.ts";
@@ -2820,10 +2821,10 @@ startPythonRuntime({ dataDir: DATA_DIR, log: (line) => console.log(line) }); use
 const delioPlanTurns = delioPlanTurnsFor({ account: delioAccount, bot: (id, thread) => store.projectBotForTask(id, thread), useDelio: (id, selection) => registry.get(selection.instanceId) ? store.applyModelDefault(id, selection) : null });
 const mediaModels = createFalModelCatalog({ curated: { image: IMAGE_MODEL_CHOICES.fal, video: VIDEO_MODEL_CHOICES, music: MUSIC_MODEL_CHOICES } });
 const imageTools = createImageToolRoutes({ config: () => withDelioMedia(cfg), dataDir: DATA_DIR, liveTurn: (threadId) => liveTurnByThread.get(threadId), key: turnAttachmentKey, images: (key) => (turnAttachmentsByTurn.get(key) ?? []).filter((item) => item.kind === "image").length, park: (key, image) => { const saved = saveImage(image.bytes, image.mime); turnAttachmentsByTurn.set(key, [...turnAttachmentsByTurn.get(key) ?? [], { kind: "image", path: saved.path, mime: saved.mime }]); },
-  made: (image, by) => void bookMediaUsage(by, { ...image, kind: "image" }), botMedia: (botId) => store.bot(botId)?.media, catalog: mediaModels });
+  made: (image, by) => void bookMediaUsage(by, { ...image, kind: "image" }), botMedia: (botId) => store.bot(botId)?.media, catalog: mediaModels, keep: (botId, image) => keepMediaCopy(workspaceDir(botId), "image", image.bytes, image.mime) });
 const VIDEO_EXTENSIONS: Record<string, string> = { "video/mp4": "mp4", "video/webm": "webm", "video/quicktime": "mov" };
 const parkedMedia = (kind: MediaKind, key: string) => (turnAttachmentsByTurn.get(key) ?? []).filter((item) => kind === "music" ? item.kind === "audio" : item.kind === "file" && item.mime.startsWith("video/")).length;
-const mediaTools = createMediaToolRoutes({ config: () => withDelioMedia(cfg), dataDir: DATA_DIR, botMedia: (botId) => store.bot(botId)?.media, catalog: mediaModels, liveTurn: (threadId) => liveTurnByThread.get(threadId), key: turnAttachmentKey, parked: parkedMedia,
+const mediaTools = createMediaToolRoutes({ config: () => withDelioMedia(cfg), dataDir: DATA_DIR, botMedia: (botId) => store.bot(botId)?.media, catalog: mediaModels, keep: (kind, botId, media) => keepMediaCopy(workspaceDir(botId), kind, media.bytes, media.mime), liveTurn: (threadId) => liveTurnByThread.get(threadId), key: turnAttachmentKey, parked: parkedMedia,
   park: async (kind, key, media) => {
     if (kind === "music") {
       const saved = saveAudio(media.bytes, media.mime);

@@ -10,6 +10,7 @@ import {
   type GeneratedImage, type ImageCredentials, type ImageInput,
 } from "../image-generation.ts";
 import { IMAGE_MAX_BYTES } from "../attachments.ts";
+import { keptCopyNote } from "../media-keep.ts";
 import { botFileSource, PageBundleError, type BotFolders } from "../pages/bundle.ts";
 import { createImageDailyCap, type ImageDailyCap } from "../image-daily-cap.ts";
 import type { FalModelCatalog } from "../fal-models.ts";
@@ -83,6 +84,7 @@ export interface ImageToolDeps {
   /** The bot's own media models, and the catalog a named model is looked up in. */
   botMedia?: BotMedia;
   catalog?: FalModelCatalog;
+  keep?: (image: GeneratedImage) => string | undefined;
 }
 
 type Outcome = { status: number; body: { text: string } | { error: string } };
@@ -134,7 +136,7 @@ export async function generateImageForTurn(raw: unknown, deps: ImageToolDeps, ed
     deps.made?.({ provider: image.provider, model: image.model });
     if (!turn.attach({ bytes: image.bytes, mime: image.mime })) return { status: 409, body: { error: IMAGE_MESSAGES.noTurn } };
     const backup = image.usedFallback ? `, the person's backup image provider${image.baseError ? `, because the base failed: ${image.baseError}` : ""}` : "";
-    return { status: 201, body: { text: `Image made with ${mediaModelLabel(image.model)}${withoutMediaHost(backup)}. It will be attached to this turn's reply when the turn ends.` } };
+    return { status: 201, body: { text: `Image made with ${mediaModelLabel(image.model)}${withoutMediaHost(backup)}. It will be attached to this turn's reply when the turn ends.${keptCopyNote(deps.keep?.({ bytes: image.bytes, mime: image.mime }))}` } };
   } catch (error) {
     const status = (error as { status?: unknown } | null)?.status;
     if (typeof status !== "number" || !(error instanceof Error)) return { status: 500, body: { error: IMAGE_MESSAGES.notSaved } };
@@ -184,7 +186,7 @@ export function imageTurn(store: ImageTurnStore, threadId: string, requireActive
 }
 
 export function createImageToolRoutes(deps: ImageTurnStore & { config: () => ImageCredentials; dataDir: string; fetchImpl?: typeof fetch; made?: (image: { provider: string; model: string }, by: { botId: string; threadId: string }) => void;
-  botMedia?: (botId: string) => BotMedia | undefined; catalog?: FalModelCatalog }) {
+  botMedia?: (botId: string) => BotMedia | undefined; catalog?: FalModelCatalog; keep?: (botId: string, image: GeneratedImage) => string | undefined }) {
   const inFlight = new Map<string, number>();
   const daily = createImageDailyCap(deps.dataDir);
   return {
@@ -206,7 +208,7 @@ export function createImageToolRoutes(deps: ImageTurnStore & { config: () => Ima
         edit = { image: image as ImageInput, ...(markup && { markup: markup as ImageInput }) };
       }
       const outcome = await generateImageForTurn(editing ? { prompt: (body as { prompt: string }).prompt } : body, { cfg: deps.config(), personTurn: ctx.personTurn, daily, fetchImpl: deps.fetchImpl, turn, inFlight, signal: call.signal,
-        botMedia: ctx.botId ? deps.botMedia?.(ctx.botId) : undefined, catalog: deps.catalog,
+        botMedia: ctx.botId ? deps.botMedia?.(ctx.botId) : undefined, catalog: deps.catalog, keep: (image) => ctx.botId ? deps.keep?.(ctx.botId, image) : undefined,
         made: (image) => { if (ctx.botId) deps.made?.(image, { botId: ctx.botId, threadId: ctx.threadId }); } }, edit);
       ctx.json(ctx.res, outcome.status, outcome.body);
     },

@@ -1,0 +1,20 @@
+{
+  "id": "real-estate-video",
+  "name": "Real estate video",
+  "version": "1.0.0",
+  "description": "Property tours, architecture walkthroughs and interior design visuals.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "real estate video",
+    "property tour",
+    "house tour",
+    "property listing",
+    "interior design video",
+    "vidéo immobilière",
+    "visite virtuelle",
+    "visite de la maison",
+    "annonce immobilière",
+    "vidéo d'appartement"
+  ],
+  "requiredCapabilities": []
+}

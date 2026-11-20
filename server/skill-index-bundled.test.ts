@@ -10,13 +10,15 @@ describe("built-in skills a bot finds by itself", () => {
   it("lists every built-in skill the turn may use, with when it applies and its guide, and tells the bot to use it unasked", () => {
     const index = bundledSkillsIndex(skills, []);
     for (const id of ["publish-to-netlify", "deploy-to-vercel", "deploy-to-cloudflare", "github-pull-requests", "data-dashboards", "social-posts"]) {
-      expect(index).toMatch(new RegExp(`- ${id}: .+ Read ".+${id}[\\\\/]SKILL\\.md"\\.`));
+      expect(index).toMatch(new RegExp(`\\n- ${id}: .+`));
     }
+    const root = JSON.parse(/each guide at ("[^"]+")/.exec(index)![1]!) as string;
+    expect(root).toBe(join(process.cwd(), "skills", "<id>", "SKILL.md"));
     expect(index).toContain("in any language");
     expect(index).toContain("without waiting to be asked");
     expect(index).not.toContain("phone-harness");
     expect(bundledSkillsIndex(skills, ["phoneMcp"])).toContain("phone-harness");
-    expect(Buffer.byteLength(index)).toBeLessThan(4_000);
+    expect(Buffer.byteLength(index)).toBeLessThan(6_000);
   });
 
   it("picks the right skill from a request written in French", () => {

@@ -1,0 +1,17 @@
+{
+  "id": "cartoon-animation",
+  "name": "Cartoon animation",
+  "version": "1.0.0",
+  "description": "2D cartoon animation: cel-shaded, hand-drawn, flat vector, watercolour, kids' styles.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "cartoon",
+    "2d animation",
+    "animated short",
+    "kids animation",
+    "dessin animé",
+    "animation 2d",
+    "dessin anime"
+  ],
+  "requiredCapabilities": []
+}

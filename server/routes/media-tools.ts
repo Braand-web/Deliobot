@@ -12,6 +12,7 @@ import type { FalModelCatalog } from "../fal-models.ts";
 import { createImageDailyCap, type ImageDailyCap } from "../image-daily-cap.ts";
 import { chooseMediaModel, type BotMedia } from "../media-choice.ts";
 import { AUDIO_KINDS } from "../media-auto.ts";
+import { keptCopyNote } from "../media-keep.ts";
 import { mediaModelLabel, withoutMediaHost } from "../media-label.ts";
 import { generateMusic, musicGenerationReady, type MusicCredentials } from "../music-generation.ts";
 import { generateVideo, videoGenerationReady, type VideoCredentials } from "../video-generation.ts";
@@ -89,6 +90,7 @@ export interface MediaToolDeps {
   signal?: AbortSignal;
   /** Told of every file fal.ai made, attached or not: it was paid for either way. */
   made?: (media: GeneratedMedia) => void;
+  keep?: (media: GeneratedMedia) => string | undefined;
 }
 
 type Outcome = { status: number; body: { text: string } | { error: string } };
@@ -117,7 +119,7 @@ export async function generateMediaForTurn(kind: MediaKind, raw: unknown, deps: 
     made = true;
     deps.made?.(media);
     if (!await turn.attach(media)) return { status: 409, body: { error: NO_TURN } };
-    return { status: 201, body: { text: spec.messages.made(media) } };
+    return { status: 201, body: { text: spec.messages.made(media) + keptCopyNote(deps.keep?.(media)) } };
   } catch (error) {
     const status = (error as { status?: unknown } | null)?.status;
     if (typeof status !== "number" || !(error instanceof Error)) return { status: 500, body: { error: NOT_SAVED } };
@@ -172,6 +174,7 @@ export function createMediaToolRoutes(deps: MediaTurnStore & {
   made?: (kind: MediaKind, media: GeneratedMedia, by: { botId: string; threadId: string }) => void;
   botMedia?: (botId: string) => BotMedia | undefined;
   catalog?: FalModelCatalog;
+  keep?: (kind: MediaKind, botId: string, media: GeneratedMedia) => string | undefined;
 }) {
   const inFlight = new Map<string, number>();
   const counters = new Map<MediaKind, { cap: number; counter: ImageDailyCap }>();
@@ -193,7 +196,7 @@ export function createMediaToolRoutes(deps: MediaTurnStore & {
       const outcome = await generateMediaForTurn(kind, await ctx.readBody(), {
         cfg: deps.config(), personTurn: ctx.personTurn, daily: daily(kind), fetchImpl: deps.fetchImpl, turn, inFlight, signal: call.signal,
         made: (media) => deps.made?.(kind, media, { botId: ctx.botId, threadId: ctx.threadId }),
-        botMedia: deps.botMedia?.(ctx.botId), catalog: deps.catalog,
+        botMedia: deps.botMedia?.(ctx.botId), catalog: deps.catalog, keep: (media) => deps.keep?.(kind, ctx.botId, media),
       });
       ctx.json(ctx.res, outcome.status, outcome.body);
     },

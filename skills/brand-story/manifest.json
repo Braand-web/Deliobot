@@ -1,0 +1,19 @@
+{
+  "id": "brand-story",
+  "name": "Brand story film",
+  "version": "1.0.0",
+  "description": "Brand films: origin stories, mission films, company culture, founder stories.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "brand story",
+    "brand film",
+    "origin story",
+    "about us video",
+    "company video",
+    "histoire de marque",
+    "film de marque",
+    "vidéo d'entreprise",
+    "vidéo de présentation de l'entreprise"
+  ],
+  "requiredCapabilities": []
+}

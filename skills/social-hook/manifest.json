@@ -1,0 +1,25 @@
+{
+  "id": "social-hook",
+  "name": "Social video hook",
+  "version": "1.0.0",
+  "description": "Scroll-stopping first seconds for TikTok, Reels and Shorts.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "tiktok video",
+    "reels video",
+    "instagram reel",
+    "youtube short",
+    "viral video",
+    "vidéo tiktok",
+    "vidéo virale",
+    "accroche vidéo",
+    "vidéo reels",
+    "video hook",
+    "hook for my video",
+    "first 3 seconds",
+    "stop the scroll",
+    "accroche de la vidéo",
+    "les 3 premières secondes"
+  ],
+  "requiredCapabilities": []
+}
