@@ -289,6 +289,11 @@ export interface FalMediaRequest { prompt: string; aspect?: string; seconds?: nu
 /** The request a model's own schema accepts; without a schema, only fields every fal media model takes. */
 export function falInput(fields: FalInputSchema | null, request: FalMediaRequest): Record<string, unknown> {
   const input: Record<string, unknown> = { prompt: request.prompt };
+  // Speech models read the words to say from `text` and have no `prompt`.
+  if (fields?.text && !fields.prompt) {
+    delete input.prompt;
+    input.text = request.prompt;
+  }
   if (!fields) {
     if (request.aspect) input.aspect_ratio = request.aspect;
     if (request.imageUrl) input.image_url = request.imageUrl;

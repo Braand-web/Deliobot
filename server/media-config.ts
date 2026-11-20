@@ -12,12 +12,12 @@ const generator = (maxSeconds: number) => z.object({
   model: falModelSetting.optional(),
   maxSeconds: z.number().int().min(1).max(maxSeconds).optional(),
   maxPerTurn: z.number().int().min(1).max(4).optional(),
-  dailyCap: z.number().int().min(1).max(500).optional(),
+  dailyCap: z.number().int().min(0).max(500).optional(),
 }).strict().optional();
 
 export const mediaGenerationShape = {
-  /** Music, songs and sound effects bots make on fal.ai with `fal.key`; off unless `enabled`. */
+  /** Music, songs and sound effects bots make on fal.ai with `fal.key`; on unless `enabled` is false. */
   musicGen: generator(MUSIC_SECONDS_MAX),
-  /** Video clips bots make on fal.ai with `fal.key`; off unless `enabled`. */
+  /** Video clips bots make on fal.ai with `fal.key`; on unless `enabled` is false. */
   videoGen: generator(VIDEO_SECONDS_MAX),
 };

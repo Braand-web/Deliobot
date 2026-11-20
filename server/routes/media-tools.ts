@@ -11,6 +11,8 @@ import type { json } from "../harness/http.ts";
 import type { FalModelCatalog } from "../fal-models.ts";
 import { createImageDailyCap, type ImageDailyCap } from "../image-daily-cap.ts";
 import { chooseMediaModel, type BotMedia } from "../media-choice.ts";
+import { AUDIO_KINDS } from "../media-auto.ts";
+import { mediaModelLabel, withoutMediaHost } from "../media-label.ts";
 import { generateMusic, musicGenerationReady, type MusicCredentials } from "../music-generation.ts";
 import { generateVideo, videoGenerationReady, type VideoCredentials } from "../video-generation.ts";
 import { PASS } from "./table.ts";
@@ -43,27 +45,27 @@ export const MEDIA_SPECS: Record<MediaKind, MediaSpec> = {
     limits: (cfg) => ({ maxPerTurn: cfg.videoGen?.maxPerTurn ?? VIDEO_MAX_PER_TURN_DEFAULT, dailyCap: cfg.videoGen?.dailyCap ?? VIDEO_DAILY_CAP_DEFAULT }),
     generate: (cfg, request, options) => generateVideo(cfg, request, options),
     messages: {
-      notSetUp: "Video generation isn't turned on here. Ask the person to add a fal.ai key and turn videos on in Settings → AI → Images.",
-      notPerson: "Videos are made only for a person's own message in a chat. This turn was started another way, so no video was made. Tell the person they can ask for the video in a chat.",
+      notSetUp: "Video generation isn't set up here. Ask the person to add their media key in Settings → AI → Images, or to turn Videos back on there.",
+      notPerson: "Videos are made only for a person's own message or a routine or automation they set up. This turn was started another way, so no video was made. Tell the person they can ask for the video in a chat.",
       perTurn: (limit) => `This turn already has ${limit === 1 ? "a video" : `${limit} videos`}, the most the person allows per reply. Send what you have.`,
       dailyCap: (cap) => `Bots here have made ${cap} videos today, the most allowed in one day, so no video was made. Tell the person it starts again after midnight.`,
-      made: (media) => `A ${media.seconds}-second video was made with ${media.model}. It will be attached to this turn's reply when the turn ends.`,
+      made: (media) => `A ${media.seconds}-second video was made with ${mediaModelLabel(media.model)}. It will be attached to this turn's reply when the turn ends.`,
     },
   },
   music: {
     path: "/api/internal/music/generate",
     dayFile: "music-generation-day.json",
-    schema: z.object({ prompt: z.string().trim().min(1).max(MUSIC_PROMPT_MAX_CHARS), seconds: z.number().int().min(1).max(MUSIC_SECONDS_MAX).optional(), lyrics: z.string().trim().max(MUSIC_LYRICS_MAX_CHARS).optional(), model: z.string().trim().max(200).optional() }),
-    usage: `generate_music takes a prompt (1 to ${MUSIC_PROMPT_MAX_CHARS} characters), optional seconds (1 to ${MUSIC_SECONDS_MAX}), optional lyrics and an optional model.`,
+    schema: z.object({ prompt: z.string().trim().min(1).max(MUSIC_PROMPT_MAX_CHARS), seconds: z.number().int().min(1).max(MUSIC_SECONDS_MAX).optional(), lyrics: z.string().trim().max(MUSIC_LYRICS_MAX_CHARS).optional(), kind: z.enum(AUDIO_KINDS).optional(), model: z.string().trim().max(200).optional() }),
+    usage: `generate_music takes a prompt (1 to ${MUSIC_PROMPT_MAX_CHARS} characters), optional seconds (1 to ${MUSIC_SECONDS_MAX}), optional lyrics, an optional kind (${AUDIO_KINDS.join(", ")}) and an optional model.`,
     ready: musicGenerationReady,
     limits: (cfg) => ({ maxPerTurn: cfg.musicGen?.maxPerTurn ?? MUSIC_MAX_PER_TURN_DEFAULT, dailyCap: cfg.musicGen?.dailyCap ?? MUSIC_DAILY_CAP_DEFAULT }),
     generate: (cfg, request, options) => generateMusic(cfg, request, options),
     messages: {
-      notSetUp: "Music generation isn't turned on here. Ask the person to add a fal.ai key and turn music on in Settings → AI → Images.",
-      notPerson: "Music is made only for a person's own message in a chat. This turn was started another way, so none was made. Tell the person they can ask for it in a chat.",
+      notSetUp: "Music, voice and sound generation isn't set up here. Ask the person to add their media key in Settings → AI → Images, or to turn Music back on there.",
+      notPerson: "Audio is made only for a person's own message or a routine or automation they set up. This turn was started another way, so none was made. Tell the person they can ask for it in a chat.",
       perTurn: (limit) => `This turn already has ${limit === 1 ? "a track" : `${limit} tracks`}, the most the person allows per reply. Send what you have.`,
       dailyCap: (cap) => `Bots here have made ${cap} tracks today, the most allowed in one day, so none was made. Tell the person it starts again after midnight.`,
-      made: (media) => `A ${media.seconds}-second track was made with ${media.model}. It will be attached to this turn's reply when the turn ends.`,
+      made: (media) => `A ${media.seconds}-second audio clip was made with ${mediaModelLabel(media.model)}. It will be attached to this turn's reply when the turn ends.`,
     },
   },
 };
@@ -100,7 +102,7 @@ export async function generateMediaForTurn(kind: MediaKind, raw: unknown, deps: 
   let cfg = deps.cfg;
   if (deps.catalog) {
     const choice = await chooseMediaModel(kind, (parsed.data as { model?: string }).model, deps.botMedia, deps.catalog);
-    if ("error" in choice) return { status: 400, body: { error: choice.error } };
+    if ("error" in choice) return { status: 400, body: { error: withoutMediaHost(choice.error) } };
     if (choice.model) cfg = kind === "video" ? { ...cfg, videoGen: { ...cfg.videoGen, model: choice.model } } : { ...cfg, musicGen: { ...cfg.musicGen, model: choice.model } };
   }
   const { turn } = deps;
@@ -119,7 +121,7 @@ export async function generateMediaForTurn(kind: MediaKind, raw: unknown, deps: 
   } catch (error) {
     const status = (error as { status?: unknown } | null)?.status;
     if (typeof status !== "number" || !(error instanceof Error)) return { status: 500, body: { error: NOT_SAVED } };
-    return { status, body: { error: error.message } };
+    return { status, body: { error: withoutMediaHost(error.message) } };
   } finally {
     deps.daily.settle(made);
     const left = (deps.inFlight.get(turn.key) ?? 1) - 1;

@@ -17,14 +17,14 @@ export const VIDEO_TOOL_DEFINITIONS = [
   {
     name: "generate_video",
     description:
-      "Make one short video clip from a text description with the person's video model. It takes a minute or more and costs much more than an image, so make one only when the person asked for a video. It is attached to your reply when the turn ends: do not describe or link it again. Write the prompt in English: subject, action, camera movement, setting, style.",
+      "Make one short video clip from a text description; you make it yourself, nobody has to film anything. It covers ads, product shots, scenes and UGC-style clips of an AI-generated person speaking to camera about a product (put what they say, in quotes and in the language they speak, in the prompt). Leave model out: the best model for the request is chosen for you. It takes a minute or more and costs much more than an image, so make one when the person asked for a video or the task they gave needs one. It is attached to your reply when the turn ends: do not describe or link it again. Write the prompt in English, apart from spoken lines: subject, action, camera movement, setting, style.",
     inputSchema: {
       type: "object",
       additionalProperties: false,
       properties: {
         prompt: { type: "string", minLength: 1, maxLength: VIDEO_PROMPT_MAX_CHARS, description: "What happens in the clip, and how it is filmed." },
         seconds: { type: "integer", minimum: 1, maximum: VIDEO_SECONDS_MAX, description: "Length in seconds; the person's limit applies. 5 when omitted." },
-        model: { type: "string", maxLength: 200, description: "Only a model the person named." },
+        model: { type: "string", maxLength: 200, description: "Only a model the person named; leave out otherwise." },
         aspect: { type: "string", enum: [...VIDEO_ASPECTS], description: "Shape; landscape 16:9 when omitted." },
       },
       required: ["prompt"],

@@ -1,4 +1,5 @@
 import { MUSIC_SECONDS_MAX } from "../../shared/music-generation.ts";
+import { AUDIO_KINDS } from "../media-auto.ts";
 import type { ToolCallContext, ToolCallResult } from "./agents-call.ts";
 import type { Json } from "./agents-client.ts";
 
@@ -18,14 +19,15 @@ export const MUSIC_TOOL_DEFINITIONS = [
   {
     name: "generate_music",
     description:
-      "Make one piece of audio from a description with the person's music model: background music, a jingle, a song with lyrics, or a sound effect. Make one only when the person asked for audio. It is attached to your reply as a playable track when the turn ends: do not describe or link it again. Describe genre, mood, instruments and tempo; for a song, pass the words as lyrics.",
+      "Make one piece of audio yourself: background music, a jingle, a song with lyrics, a sound effect, or a voice-over (a natural human voice reading a text, in any language). Set kind, and leave model out: the best model for the request is chosen for you. Make one when the person asked for audio or the task they gave needs it. It is attached to your reply as a playable track when the turn ends: do not describe or link it again. For music, describe genre, mood, instruments and tempo; for a song, pass the words as lyrics; for a voice-over, the prompt is exactly the words to say.",
     inputSchema: {
       type: "object",
       additionalProperties: false,
       properties: {
-        prompt: { type: "string", minLength: 1, maxLength: MUSIC_PROMPT_MAX_CHARS, description: "Genre, mood, instruments, tempo; or the sound to make." },
+        prompt: { type: "string", minLength: 1, maxLength: MUSIC_PROMPT_MAX_CHARS, description: "Genre, mood, instruments, tempo; the sound to make; or, for a voice-over, the exact words to say." },
         seconds: { type: "integer", minimum: 1, maximum: MUSIC_SECONDS_MAX, description: "Length in seconds; the person's limit applies. 30 when omitted." },
-        model: { type: "string", maxLength: 200, description: "Only a model the person named." },
+        kind: { type: "string", enum: [...AUDIO_KINDS], description: "music, song, sound_effect or voice (spoken words)." },
+        model: { type: "string", maxLength: 200, description: "Only a model the person named; leave out otherwise." },
         lyrics: { type: "string", maxLength: MUSIC_LYRICS_MAX_CHARS, description: "Words to sing, only for a song." },
       },
       required: ["prompt"],

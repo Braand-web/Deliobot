@@ -9,8 +9,9 @@ export type VideoAspect = (typeof VIDEO_ASPECTS)[number];
 export const VIDEO_DEFAULT_MODEL = "auto";
 export const VIDEO_SECONDS_DEFAULT = 5;
 export const VIDEO_SECONDS_MAX = 10;
-export const VIDEO_MAX_PER_TURN_DEFAULT = 1;
-export const VIDEO_DAILY_CAP_DEFAULT = 20;
+export const VIDEO_MAX_PER_TURN_DEFAULT = 4;
+/** 0: no daily cap; the person's credits or key are the limit. */
+export const VIDEO_DAILY_CAP_DEFAULT = 0;
 
 export interface VideoModelChoice { id: string; name: string }
 
@@ -27,7 +28,7 @@ export const VIDEO_MODEL_CHOICES: readonly VideoModelChoice[] = [
 ];
 
 export interface VideoGenerationConfig {
-  /** Off until the person turns it on: a video costs far more than an image. */
+  /** On once a media key is present; false turns it off. A video costs far more than an image. */
   enabled?: boolean;
   /** A fal.ai text-to-video model ID, or "auto" (the default) to choose per request. */
   model?: string;

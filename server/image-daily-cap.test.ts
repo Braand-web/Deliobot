@@ -8,15 +8,14 @@ import { createImageDailyCap, IMAGE_DAILY_CAP, IMAGE_DAY_FILE } from "./image-da
 const scratch = () => mkdtempSync(join(tmpdir(), "odb-image-cap-"));
 const at = (day: number, hour = 12) => () => new Date(2026, 10, day, hour, 0, 0);
 
-it("allows 50 images a day by default", () => {
+it("has no daily cap by default: the person's credits are the limit", () => {
   const cap = createImageDailyCap(scratch(), { now: at(5) });
   expect(cap.cap).toBe(IMAGE_DAILY_CAP);
-  expect(IMAGE_DAILY_CAP).toBe(50);
-  for (let made = 0; made < 50; made += 1) {
+  expect(IMAGE_DAILY_CAP).toBe(0);
+  for (let made = 0; made < 300; made += 1) {
     expect(cap.reserve()).toBe(true);
     cap.settle(true);
   }
-  expect(cap.reserve()).toBe(false);
 });
 
 it("counts images being made, and frees the place of one the provider did not make", () => {

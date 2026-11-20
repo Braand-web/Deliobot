@@ -14,7 +14,7 @@ import { Select } from "./Select";
 type ModelChoice = { id: string; name: string; group: "recommended" | "more" };
 export type FalModelList = { source: "fal" | "builtin"; models: ModelChoice[] };
 const OTHER_MODEL = "\u0000other";
-const DAILY_CAPS = [5, 10, 20, 50, 100, 200];
+const DAILY_CAPS = [0, 5, 10, 20, 50, 100, 200];
 
 /** fal.ai's live catalog of one kind, loaded once when a setting needs it. */
 export function useFalModels(kind: "image" | "video" | "music", wanted: boolean): FalModelList | null {
@@ -56,7 +56,7 @@ function MediaGenerationSettings({ kind, keyCard }: { kind: MediaKind; keyCard?:
   const { state, dispatch } = useStore();
   const video = state.config?.[spec.configKey];
   const falKey = state.config?.imageGen?.falConfigured === true || state.config?.imageGen?.delioMedia === true;
-  const enabled = video?.enabled === true;
+  const enabled = video?.enabled !== false;
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState<string | null>(null);
@@ -154,7 +154,7 @@ function MediaGenerationSettings({ kind, keyCard }: { kind: MediaKind; keyCard?:
           <SettingRow title={t(k("dailyCap.label"))} subtitle={t(k("dailyCap.help"))}>
             <Select className="w-24" data-testid={`${kind}-gen-daily`} value={String(video?.dailyCap ?? spec.dailyDefault)} disabled={disabled}
               onChange={(event) => void save({ dailyCap: Number(event.target.value) })} aria-label={t(k("dailyCap.label"))}>
-              {DAILY_CAPS.map((cap) => <option key={cap} value={cap}>{cap}</option>)}
+              {DAILY_CAPS.map((cap) => <option key={cap} value={cap}>{cap === 0 ? "∞" : cap}</option>)}
             </Select>
           </SettingRow>
           {!falKey && keyCard}

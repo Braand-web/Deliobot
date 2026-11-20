@@ -132,6 +132,7 @@ describe("fal.ai images and videos", () => {
     expect(own.attached).toBe(1);
     expect(fal.calls.find((call) => call.method === "POST")?.body, "longer than allowed is held to the limit, then to the model's nearest length").toEqual({ prompt: "waves", duration: "8s" });
     expect(made).toEqual([expect.objectContaining({ model: "fal-ai/veo3", seconds: 8, mime: "video/mp4" })]);
-    expect((await generateMediaForTurn("video", { prompt: "again" }, { ...base, turn: own })).status, "one video per reply by default").toBe(429);
+    for (let more = 1; more < 4; more += 1) expect((await generateMediaForTurn("video", { prompt: "again" }, { ...base, turn: own })).status).toBe(201);
+    expect((await generateMediaForTurn("video", { prompt: "again" }, { ...base, turn: own })).status, "four videos per reply by default").toBe(429);
   });
 });
