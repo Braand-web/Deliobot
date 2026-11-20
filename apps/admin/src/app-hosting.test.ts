@@ -140,6 +140,37 @@ describe("included app hosting", () => {
     expect(objects.has("domains/www.boutique-awa.com.json")).toBe(false);
   });
 
+  it("sends a publish to the preview address first, keeps the live app as it is, then promotes it", async () => {
+    const { client, objects } = relay();
+    const send = async (site: Record<string, string>, preview: boolean) => {
+      const started = await client.start("app-one", { title: "Boutique", files: files(site), ...(preview ? { preview: true as const } : {}) });
+      for (const sha of started.required) await client.upload("app-one", sha, Buffer.from(Object.values(site).find((text) => sha1(text) === sha)!));
+    };
+    await send({ "index.html": "first" }, true);
+    const fresh = await client.app("app-one");
+    expect(fresh.state).toBe("preview");
+    expect(fresh.url).toBeNull();
+    const label = new URL(fresh.previewUrl!).hostname.split("-")[0]!;
+    expect(fresh.previewUrl).toBe(`https://${label}-preview-app.example.test/`);
+    expect(objects.has(`sites/${label}.json`)).toBe(false);
+
+    const live = await client.promote("app-one");
+    expect(live).toMatchObject({ state: "ready", version: 1 });
+    expect(live.previewUrl).toBeUndefined();
+    expect(objects.has(`sites/${label}.preview.json`)).toBe(false);
+
+    await send({ "index.html": "second" }, true);
+    const manifest = (name: string) => JSON.parse(new TextDecoder().decode(objects.get(`sites/${name}.json`))) as SiteManifest;
+    expect(manifest(label).files["index.html"]!.sha1).toBe(sha1("first"));
+    expect(manifest(`${label}.preview`).files["index.html"]!.sha1).toBe(sha1("second"));
+    await client.setPassword("app-one", "a long secret");
+    expect(manifest(`${label}.preview`).auth).toBeTruthy();
+    expect((await client.promote("app-one")).version).toBe(2);
+    expect(manifest(label).files["index.html"]!.sha1).toBe(sha1("second"));
+    expect((await client.list()).allowance.publishes.used).toBe(2);
+    await expect(client.promote("app-one")).rejects.toMatchObject({ code: "not_found" });
+  });
+
   it("takes only a real domain the person could own", () => {
     expect(customHostname("Shop.Example.COM.", "-app.deliobot.fun")).toBe("shop.example.com");
     expect(customHostname("example.co.uk", "-app.deliobot.fun")).toBe("example.co.uk");

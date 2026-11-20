@@ -15,7 +15,7 @@ that stays the same when you change the site.
 |---|---|
 | A page, report or dashboard to look at or share (static files, up to 5 MB and 200 files) | `show_html`, and `publish_page` for a link. Nothing to set up. |
 | A site or app for people outside, a bigger site, or a link to keep changing over time | `publish_app` when you have that tool, else Netlify with `deploy.mjs` (both below). |
-| Forms that save, sign-up lists, an API, a database, a backend | Netlify with its command line (see "Functions, a database, a backend"). |
+| Forms that save, sign-up lists, an API, a database, a backend | Netlify with its command line (see "Functions, a database, a backend"), or the person's Vercel or Cloudflare account (the deploy-to-vercel and deploy-to-cloudflare skills), whichever they use. |
 
 Publish only when the person asks. If they only asked you to build something, show it first and offer the link.
 
@@ -57,6 +57,9 @@ person needs no Netlify account. It takes static files only: up to 25 MB and 500
    `.netlify-site.json` there too.
    `"live": true`: reply with the link (`url`), what you published in a line or two, and that the link is public.
    `"pending": true`: it is still being processed; call `check_app_hosting` with the same folder once, a minute later.
+   Once an app is live, publish a change with `preview: true` first: it goes to the app's preview link (`previewUrl`)
+   and the live app stays as it is. Show it; when the person approves, call `publish_app` with `action: "promote"` and
+   the same folder. A change that broke something comes back with `action: "rollback"`.
 4. Delete an app as "Delete a published site" says, with `action: "delete"` and the same folder.
 
 Use the person's own Netlify account, as the rest of this guide says, when:

@@ -1,0 +1,27 @@
+{
+  "id": "deploy-to-cloudflare",
+  "name": "Deploy to Cloudflare",
+  "version": "1.0.0",
+  "description": "Deploy a site or full-stack app to the person's own Cloudflare account: Pages, Workers, D1 with migrations, secrets and logs.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "cloudflare",
+    "cloudflare pages",
+    "cloudflare workers",
+    "workers",
+    "wrangler",
+    "d1",
+    "d1 database",
+    "pages.dev",
+    "workers.dev",
+    "deploy to cloudflare",
+    "deploy on cloudflare",
+    "database migration",
+    "migrations",
+    "deploy the app",
+    "deploy my app",
+    "production logs",
+    "app logs"
+  ],
+  "requiredCapabilities": []
+}

@@ -1,0 +1,30 @@
+{
+  "id": "deploy-to-vercel",
+  "name": "Deploy to Vercel",
+  "version": "1.0.0",
+  "description": "Deploy an app to the person's own Vercel account: preview first, then production, with secret settings and logs.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "vercel",
+    "next.js",
+    "nextjs",
+    "nuxt",
+    "sveltekit",
+    "remix",
+    "deploy to vercel",
+    "deploy on vercel",
+    "preview deploy",
+    "production deploy",
+    "server side",
+    "api routes",
+    "ssr",
+    "deploy the app",
+    "deploy my app",
+    "deploy this app",
+    "put it online",
+    "deploy to production",
+    "production logs",
+    "app logs"
+  ],
+  "requiredCapabilities": []
+}
