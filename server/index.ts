@@ -6385,6 +6385,7 @@ bus.subscribe((event: RuntimeEvent) => {
   const group = bot ? undefined : store.groupByThread(event.threadId);
   if (!bot && !group) return;
   const speaker = group ? groupSpeakers.get(event.threadId) : undefined;
+  if (speaker && !replayed) roomLimits.noteEvent(speaker.botId, event);
 
   const pushMessage = (m: Omit<Message, "id" | "at">) => {
     const owner = bot ? directRequestOwners.get(event.threadId) : undefined;
@@ -6841,7 +6842,7 @@ bus.subscribe((event: RuntimeEvent) => {
       } else if (group && speaker) {
         const tokens = event.usage ?? lastReported;
         const speakingBot = store.bot(speaker.botId);
-        const selection = speakingBot?.modelSelection;
+        const selection = roomLimits.selectionOf(event.threadId) ?? speakingBot?.modelSelection;
         roomMemberContexts.record(event.threadId, speaker.botId, compactionReading(registry.get(event.providerInstanceId ?? selection?.instanceId ?? "")?.adapter.capabilities, lastContext), selection?.model, selection && registry.get(selection.instanceId)?.models);
         const promptBytes = turnPromptBytes.get(event.threadId);
         turnPromptBytes.delete(event.threadId);
@@ -9599,7 +9600,7 @@ async function runClaimedGroupMemberTurn(
   const ownInstance = registry.get(bot.modelSelection.instanceId), roomTakeover = roomLimits.atStart(bot, preparedApprovalMode);
   const turnSelection: ModelSelection = roomTakeover?.to ?? preparedSelection, instance = registry.get(turnSelection.instanceId);
   const userName = userNameFor(threadId);
-  if (providerInstancesChanging.has(bot.modelSelection.instanceId)) {
+  if (providerInstancesChanging.has(bot.modelSelection.instanceId) || providerInstancesChanging.has(turnSelection.instanceId)) {
     onDispatchError?.(`${bot.name}'s provider account is being updated — try again shortly`);
     return true;
   }
@@ -9674,7 +9675,7 @@ async function runClaimedGroupMemberTurn(
   try {
   assertWithinBudget(cfg, DATA_DIR); if (!operation?.continuesRun) usageCapGate.assertTurn(bot.id, personWaitingInRoom(operation, routineTriggerOf(threadId)), threadLanguage(threadId));
   if (delioAccount.planGate) await delioAccount.assertOwnAi(bot.modelSelection.instanceId);
-  assertModelVariantSupported(preparedSelection, instance.adapter.capabilities);
+  assertModelVariantSupported(turnSelection, instance.adapter.capabilities);
   const integrations: NonNullable<Parameters<typeof instance.adapter.sendTurn>[0]["integrations"]> = {};
   const skillAuthoring =
     skillAuthoringEnabled(cfg) &&
@@ -9890,7 +9891,7 @@ async function runClaimedGroupMemberTurn(
   const roomPlaceRefusal = roomKind && computerPlaceRefusal(roomKind);
   if (roomPlaceRefusal) throw Object.assign(new Error(roomPlaceRefusal.message), { code: roomPlaceRefusal.code });
   if (!roomTeamComputer && roomPlan.computer === "cloud") {
-    const unsupported = cloudPlaceRefusal(cloudEngine(instance, readyBot.modelSelection.model), "room", readyBot.name)
+    const unsupported = cloudPlaceRefusal(cloudEngine(instance, turnSelection.model), "room", readyBot.name)
       ?? computerToolsRefusal(readyBot.toolScope, "room", readyBot.name);
     if (unsupported) throw unsupported;
   }
@@ -9970,7 +9971,7 @@ async function runClaimedGroupMemberTurn(
     // The speaker's desktop, never the coordinator's; claim the lease before asynchronous VM setup.
     if (readyBot.computer === "vm") {
       if (instance.adapter.capabilities.computerMcp !== true) {
-        throw placeUnavailable("vm", { state: "vm-cannot", params: { bot: readyBot.name, model: cloudEngine(instance, readyBot.modelSelection.model).name }, source: "room" }, Boolean(CLOUD_HOME));
+        throw placeUnavailable("vm", { state: "vm-cannot", params: { bot: readyBot.name, model: cloudEngine(instance, turnSelection.model).name }, source: "room" }, Boolean(CLOUD_HOME));
       }
       const target = { ...localVmTargetForThread(readyBot.id, threadId) };
       await waitForLocalVmUpdate(target, threadId, roomSetupIsCurrent, { botId: readyBot.id, name: readyBot.name, color: readyBot.color });
@@ -10246,7 +10247,7 @@ async function runClaimedGroupMemberTurn(
     }
     if (roomReset || displaced) broadcast({ kind: "group", group: publicGroupState(store.group(groupId) ?? group) });
     const roomShareNote = skillsHost.shareNote(bot, threadId, Boolean(workspace));
-    const clock = turnClockLine(Date.now(), hostTimeZone()), roomPick = cardContinuation ? "" : takeRoomPick(operation, readyBot.id);
+    const clock = turnClockLine(Date.now(), hostTimeZone()), roomPick = cardContinuation ? "" : takeRoomPick(operation, readyBot.id); oneTimeInputTaken = Boolean(roomPick) || heldReplay.messageIds.length > 0;
     const roomToolScope = toolScopeForTurn(readyBot.id), roomUserMcp = claudeUserMcpEnabled(cfg) && !managedPolicy.restrictsMcp();
     const roomSession = roomSessions.dispatch({
       threadId, botId: readyBot.id, claimId: internalGeneration, instance, guestConfined: roomGuestConfined || roomLinkLimited, reset: Boolean(roomReset), hooks: Boolean(integrations.hooks),
@@ -10272,8 +10273,8 @@ async function runClaimedGroupMemberTurn(
         ...(integrations.browser && browserIsThePlace(roomPlan) ? { preloadBrowserTools: true } : {}),
         ...skillsHost.turnSettings(readyBot, threadId, instance, managedPolicy.restrictsMcp(), cwd),
         botSettingsFile: botSettingsFile(readyBot),
-        ...(instance.instanceId === readyBot.modelSelection.instanceId
-          ? memberTurnSelection(readyBot.modelSelection)
+        ...(instance.instanceId === roomSelection.instanceId
+          ? memberTurnSelection(roomSelection)
           : { model: instance.models.default }),
       }))), () => abandoned || Boolean(isCancelled?.()), async () => {
         // Stop may have landed before the adapter had a process to interrupt: interrupt again now.
