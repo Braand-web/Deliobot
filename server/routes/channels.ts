@@ -16,6 +16,8 @@ import {
 import { DATA_DIR, type AppConfig } from "../config.ts";
 import type { ProviderInstance, SteerOutcome } from "../contracts.ts";
 import { cancelledChatFollowup } from "../message-db.ts";
+import { roomThreadSummaries } from "../message-db-thread-summaries.ts";
+import type { RoomThreadSummariesResponse } from "../../shared/room-threads.ts";
 import { messageTextRefusal } from "../message-text.ts";
 import { prepareRoomPointed, roomPickBots, type RoomPick } from "../room-pointed.ts";
 import { refusalBody } from "../user-errors.ts";
@@ -37,7 +39,7 @@ import { parseMentionPicks } from "../../shared/room-mentions.ts";
 import { sameNameRefusal, sameNameRefusalForBots } from "../same-name-mentions.ts";
 import { conversationLanguage } from "../server-lines.ts";
 import { bulkDeleteThreadIds, type BulkDeleteRefusal } from "./bulk-delete.ts";
-import { forkMessageId } from "./fork-request.ts";
+import { FORK_BUSY, FORK_NO_TEXT, parseForkRequest } from "./fork-request.ts";
 import { PASS, type RouteHandler } from "./table.ts";
 import { sawThread } from "../thread-presence.ts";
 import { readThreadNotifications, type NotificationListed } from "./notifications.ts";
@@ -84,6 +86,8 @@ export interface ChannelRouteDeps {
   personMarkRoom?(auth: RequestAuth, room: GroupRecord, unread: boolean, threadId?: string): WireGroup | null;
   /** A room as this person has read it (a Team Cloud); the room itself anywhere else. */
   groupFor?(auth: RequestAuth, group: WireGroup): WireGroup;
+  /** Whether this person may read the conversation; a room's threads all show where nobody's reading is narrowed. */
+  threadShown?(auth: RequestAuth, threadId: string): boolean;
   pageSize(raw: string | null): number | null | undefined;
   messagePage(threadId: string, limit: number | undefined): MessagePage;
   resolveReplyTarget(threadId: string, value: unknown): Message | undefined;
@@ -110,7 +114,7 @@ export interface ChannelRouteDeps {
   rejectDeletedThreadSkillStages(cleanups: Array<{ botId: string; stagedId: string }>): void;
 }
 
-const createGroupTaskRequestSchema = z.object({ title: z.string().optional() });
+const createGroupTaskRequestSchema = z.object({ title: z.string().optional(), activate: z.boolean().optional() });
 
 type StopAnswer = { status: 200 | 403 | 409; body: { ok: true } | { error: string; code?: "stop_not_yours" } };
 
@@ -155,14 +159,13 @@ export function createChannelRoutes(deps: ChannelRouteDeps): RouteHandler {
     if (m && method === "POST") {
       const group = store.group(m[1]);
       if (!group || group.dm || !store.groupTaskByThread(group.id, m[2])) return json(res, 404, { error: "no such conversation" });
-      const body = await readBody(req);
-      const messageId = forkMessageId(body);
-      if (messageId === null) return json(res, 400, { error: "messageId must be a string" });
+      const fork = parseForkRequest(await readBody(req));
+      if (!fork) return json(res, 400, { error: "Provide a string messageId or set latest to true" });
       const notYours = cloudThreadRefusal(auth, m[2]);
       if (notYours) return json(res, 403, { error: notYours });
-      if (groupThreadIsWorking(group.id, m[2])) return json(res, 409, { error: "this conversation is running — wait for it to finish" });
-      const task = store.forkGroupTask(group.id, m[2], messageId);
-      if (!task) return json(res, 404, { error: "no such completed message in this conversation" });
+      if (groupThreadIsWorking(group.id, m[2])) return json(res, 409, FORK_BUSY);
+      const task = store.forkGroupTask(group.id, m[2], fork.messageId);
+      if (!task) return json(res, 404, fork.messageId === undefined ? FORK_NO_TEXT : { error: "no such completed message in this conversation" });
       if (auth.kind === "session") threadStarters.set(task.threadId, actorKey(auth));
       return json(res, 201, { group: own(groupWithThread(store.group(group.id)!)), task } satisfies RoomTaskCreateResponse);
     }
@@ -181,11 +184,21 @@ export function createChannelRoutes(deps: ChannelRouteDeps): RouteHandler {
       }
       const request = createGroupTaskRequestSchema.safeParse(body);
       if (!request.success) return json(res, 400, { error: "title must be text" });
-      const task = store.createGroupTask(group.id, request.data.title);
+      const task = store.createGroupTask(group.id, request.data.title, request.data.activate !== false);
       if (!task) return json(res, 500, { error: "couldn't create that task" });
       // Who opened it decides who may answer its cards on a shared workspace.
       if (auth.kind === "session") threadStarters.set(task.threadId, actorKey(auth));
       return json(res, 201, { group: own(groupWithThread(store.group(group.id)!)), task } satisfies RoomTaskCreateResponse);
+    }
+
+    m = path.match(/^\/api\/groups\/([\w-]+)\/threads\/summary$/);
+    if (m && method === "GET") {
+      const group = store.group(m[1]);
+      if (!group || group.dm) return json(res, 404, { error: "no such room" });
+      const archived = url.searchParams.get("archived") === "1";
+      const threadIds = (group.tasks ?? [{ threadId: group.threadId, archivedAt: undefined }]).filter((task) => (archived || task.archivedAt === undefined) && (deps.threadShown?.(auth, task.threadId) ?? true))
+        .map((task) => task.threadId);
+      return json(res, 200, { threads: roomThreadSummaries(threadIds) } satisfies RoomThreadSummariesResponse);
     }
 
     m = path.match(/^\/api\/groups\/([\w-]+)\/tasks\/delete$/);

@@ -43,6 +43,15 @@ function composeUp() {
   // `repairable`: it crashes until its doctor has repaired the data (`doctor --data --fix`, below).
   const crashes = wanted.behaviour === "crashes" || (wanted.behaviour === "repairable" && !state.repaired);
   state.containers.odb = { id: `odb-${++state.serial}`, image: wanted.id, status: crashes ? "restarting" : "running", restarts: crashes ? 5 : 0, started: `start-${state.serial}` };
+  // `exits`: it stops as it starts, and Podman removes the container (--rm): it is listed once, then gone before anyone
+  // inspects it. Its unit's log keeps its last words.
+  if (wanted.behaviour === "exits") Object.assign(state.containers.odb, { status: "exited", vanishes: true });
+  // `uninspectable`: listed, but its state never reads; `inspect-fails-once`: its first read answers nothing;
+  // `replaced`: a new container (another id) at every read, each one answering.
+  if (wanted.behaviour === "uninspectable") state.containers.odb.inspectFails = 1e9; // (JSON has no Infinity)
+  if (wanted.behaviour === "inspect-fails-once") state.containers.odb.inspectFails = 1;
+  if (wanted.behaviour === "replaced") state.containers.odb.replaced = true;
+  state.lastImage = wanted.id;
   state.containers.caddy = { id: `caddy-${state.serial}`, status: wanted.behaviour === "no-caddy" ? "exited" : "running" };
   // A server that starts writes to its data, as a new version's migrations do.
   if (!crashes) appendFileSync(join(volume(state.dataVolume), "started-by.txt"), `${wanted.version}\n`);
@@ -53,7 +62,11 @@ function compose(rest) {
   const odb = state.containers.odb;
   if (verb === "version") return out("Docker Compose version v2.40.0");
   if (verb === "config") return out(`services:\n  odb:\n    image: ${composeImage()}`);
-  if (verb === "ps" && more.includes("-aq")) return odb ? out(odb.id) : undefined;
+  if (verb === "ps" && more.includes("-aq")) {
+    if (odb?.vanishes) delete state.containers.odb;
+    if (odb?.replaced) odb.id = `odb-${++state.serial}`;
+    return odb ? out(odb.id) : undefined;
+  }
   if (verb === "ps") return Object.entries(state.containers).filter(([, container]) => container?.status === "running").forEach(([name]) => out(name));
   if (verb === "stop") {
     if (state.failStop) fail("Error response from daemon: cannot stop container: permission denied");
@@ -61,7 +74,7 @@ function compose(rest) {
     return;
   }
   if (verb === "up") return composeUp();
-  if (verb === "logs") return out(image(odb?.image)?.lastWords ?? "");
+  if (verb === "logs") return out(image(odb?.image ?? state.lastImage)?.lastWords ?? "");
   if (more.includes("doctor") && more.includes("--fix")) return doctor(verb, odb);
   if (verb === "exec") {
     // As the real one does: `docker compose exec` forwards its standard input to the container, so it takes whatever is
@@ -105,7 +118,13 @@ function inspect(format, target) {
   if (!odb || odb.id !== target) fail(`No such object: ${target}`);
   if (format === "{{.Image}}") return out(odb.image);
   if (format === "{{.State.Running}}") return out(String(odb.status === "running"));
-  if (format === "{{.State.Status}} {{.RestartCount}} {{.Image}}") return out(`${odb.status} ${odb.restarts} ${odb.image}`);
+  if (format === "{{.State.Status}} {{.RestartCount}} {{.Image}}") {
+    if (odb.inspectFails > 0) {
+      odb.inspectFails -= 1;
+      fail(`Error: No such object: ${target}`);
+    }
+    return out(`${odb.status} ${odb.restarts} ${odb.image}`);
+  }
   // Where /data is on the host: the volume's folder here (update-runner.sh reads its owner).
   if (format.includes(".Mounts") && !format.includes(".Name")) return out(volume(state.dataVolume));
   if (format.includes(".Mounts")) return out(state.dataVolume);

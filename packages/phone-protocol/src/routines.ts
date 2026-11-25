@@ -77,7 +77,7 @@ export type RoutineAccess = "read-and-draft";
 /** Where a routine's results go. `brief`: they become rows of the main agent's brief, not chat lines of their own. */
 export type RoutineDelivery = "brief";
 
-/** Why Deliobot paused a routine by itself, after its owner left: no AI of theirs is signed in here any more, they
+/** Why OpenDeliobot paused a routine by itself, after its owner left: no AI of theirs is signed in here any more, they
  * removed every connected app and server, or the plan was cancelled. It turns back on once that changes. */
 export type RoutineHoldCause = "plan_cancelled" | "no_engine" | "no_connections";
 export const ROUTINE_HOLD_CAUSES: readonly RoutineHoldCause[] = ["plan_cancelled", "no_engine", "no_connections"];
@@ -99,7 +99,7 @@ export type RoutineRunStatus =
   | "cancelled"
   | "missed";
 
-/** Why a run started a second time by itself: its engine stalled, Deliobot
+/** Why a run started a second time by itself: its engine stalled, OpenDeliobot
  * restarted while it ran, the provider rate-limited it or failed for a moment,
  * it waited for its engine's usage limit to reset, or it failed some other way.
  * A run gets one. */
@@ -108,6 +108,13 @@ export type RoutineRetryCause = "stalled" | "restarted" | "rate_limited" | "prov
 /** The statuses both failure indicators count: a run that went wrong and has
  * not been acknowledged. */
 export const ROUTINE_PROBLEM_STATUSES: readonly RoutineRunStatus[] = ["failed", "missed"];
+
+/** The limits the server applies to the runs that set none of their own: the minutes of work a bot's run may do,
+ * and the same for a room goal's run, which stays running across every member's turn. */
+export interface RoutineRunLimits {
+  runMinutes: number;
+  goalMinutes: number;
+}
 
 /** Minutes of work a run may do when its routine sets no limit of its own: a bot's run, and a room goal's run, which
  * stays running across every member's turn. */
@@ -154,7 +161,7 @@ export interface Routine {
   continuity?: boolean;
   /** The model each run's thread uses instead of its bot's. Missing means the bot's model. */
   modelSelection?: ModelSelection;
-  /** Also run once each time Deliobot starts. */
+  /** Also run once each time OpenDeliobot starts. */
   runOnStartup?: boolean;
   checks?: RoutineCheck[];
   access?: RoutineAccess;
@@ -178,7 +185,7 @@ export interface Routine {
   weekRuns?: { ok: number; total: number };
   /** A plain sentence when the routine names a path that cannot exist on the computer that runs it. */
   warning?: string;
-  /** Set while Deliobot keeps it paused because its owner left; turning it on or off clears it. */
+  /** Set while OpenDeliobot keeps it paused because its owner left; turning it on or off clears it. */
   heldFor?: RoutineHoldCause;
   attachments?: RoutineContextAttachment[];
   sourceThreadId?: string;

@@ -7,7 +7,7 @@ const release = (tag: string) =>
   ({ ok: true, status: 200, json: async () => ({ tag_name: tag, html_url: `https://github.com/Braand-web/Deliobot/releases/tag/${tag}` }) }) as Response;
 
 const promoted = (version: string) =>
-  ({ ok: true, status: 200, json: async () => ({ channel: "stable", version, image: `ghcr.io/braand-web/deliobot@sha256:${"a".repeat(64)}`, releaseUrl: `https://github.com/Braand-web/Deliobot/releases/tag/v${version}` }) }) as Response;
+  ({ ok: true, status: 200, json: async () => ({ channel: "stable", version, image: `ghcr.io/braand-web/opendeliobot@sha256:${"a".repeat(64)}`, releaseUrl: `https://github.com/Braand-web/Deliobot/releases/tag/v${version}` }) }) as Response;
 const missing = { ok: false, status: 404, json: async () => ({}) } as Response;
 /** GitHub's newest release is `newest`; the stable channel names `stable`, or does not exist yet. */
 const github = (newest: string, stable: string | null) => vi.fn(async (url: string | URL | Request) =>
@@ -134,6 +134,51 @@ describe("server update check", () => {
     now = 61 * 60_000;
     await check();
     expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("looks again when someone presses Check for updates, unless the last lookup is under five minutes old", async () => {
+    let now = 0;
+    let newest = "v0.1.177";
+    const fetch = vi.fn(async () => release(newest));
+    const check = createUpdateChecker({ current: "0.1.177", install: "docker", channel: "newest", fetch, now: () => now });
+    expect(await check()).toMatchObject({ available: false, latest: "0.1.177" });
+    newest = "v0.1.178";
+    now = 34 * 60_000;
+    expect(await check()).toMatchObject({ available: false, latest: "0.1.177" });
+    expect(await check({ fresh: true })).toMatchObject({ available: true, latest: "0.1.178" });
+    expect(fetch).toHaveBeenCalledTimes(2);
+    now += 4 * 60_000;
+    await check({ fresh: true });
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("tells a press of Check for updates that the lookup failed, instead of giving the old answer", async () => {
+    let now = 0;
+    const fetch = vi.fn(async () => release("v0.1.177"));
+    const check = createUpdateChecker({ current: "0.1.177", install: "docker", channel: "newest", fetch, now: () => now });
+    await check();
+    fetch.mockImplementation(async () => ({ ok: false, status: 403, json: async () => ({}) }) as Response);
+    now = 10 * 60_000;
+    await expect(check({ fresh: true })).rejects.toThrow("GitHub answered 403");
+    now = 2 * 60 * 60_000;
+    expect(await check()).toMatchObject({ available: false, latest: "0.1.177" });
+  });
+
+  it("keeps presses of Check for updates to one lookup per five minutes after a failed one too", async () => {
+    let now = 0;
+    const fetch = vi.fn(async () => release("v0.1.177"));
+    const check = createUpdateChecker({ current: "0.1.177", install: "docker", channel: "newest", fetch, now: () => now });
+    await check();
+    fetch.mockImplementation(async () => ({ ok: false, status: 403, json: async () => ({}) }) as Response);
+    now = 10 * 60_000;
+    await expect(check({ fresh: true })).rejects.toThrow("GitHub answered 403");
+    now += 4 * 60_000;
+    await expect(check({ fresh: true })).rejects.toThrow("GitHub answered 403");
+    expect(fetch).toHaveBeenCalledTimes(2);
+    now += 2 * 60_000;
+    fetch.mockImplementation(async () => release("v0.1.178"));
+    expect(await check({ fresh: true })).toMatchObject({ available: true, latest: "0.1.178" });
+    expect(fetch).toHaveBeenCalledTimes(3);
   });
 
   it("does not look anything up for a desktop or hosted server", async () => {

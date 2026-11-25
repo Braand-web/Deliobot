@@ -134,7 +134,7 @@ opendeliobot computers sleep BOT            put it to sleep; it wakes when the b
   connect: `opendeliobot connect [URL] [--code CODE] --out FILE [--label NAME] [--client] [--force]
   Get a token for a workspace you reach over the network, saved to FILE (only you can read it). For yourself at a
   terminal, opendeliobot login is simpler. On a server you started with opendeliobot serve the code is made for you;
-  for the desktop app or a server elsewhere, get one from Settings → Phone & devices.
+  for the desktop app or a server elsewhere, get one from Settings → Devices.
   Then use it: --url URL --token-file FILE (or OPENDELIOBOT_URL and OPENDELIOBOT_TOKEN).`,
   mcp: "opendeliobot mcp\n  Serve the Deliobot MCP tools on stdin and stdout, for an agent (docs/mcp-server.md).",
   token: "opendeliobot token create NAME --out FILE … | token list | token revoke ID   (see help token create)",

@@ -18,7 +18,7 @@ export interface AgentsConversation {
   botDriven?: boolean;
   /** `x`: a research credential is held (a treg key or a plan's); `research`: research works for it too; `appHosting`:
    * the plan's included app hosting reaches this server. */
-  host: { skillAuthoring: boolean; sharedComputers: boolean; cloudHome: boolean; team: boolean; voiceNotes: boolean; x: boolean; research: boolean; imageGeneration: boolean; videoGeneration?: boolean; musicGeneration?: boolean; meetings?: boolean; appHosting?: boolean; localVm: boolean };
+  host: { skillAuthoring: boolean; skillBurger?: boolean; sharedComputers: boolean; cloudHome: boolean; team: boolean; voiceNotes: boolean; x: boolean; research: boolean; imageGeneration: boolean; videoGeneration?: boolean; musicGeneration?: boolean; meetings?: boolean; appHosting?: boolean; localVm: boolean };
 }
 
 /** What one turn may do. Its bearer carries this to the harness, which checks it on every call. */
@@ -42,6 +42,7 @@ export function agentsServerEnv(conversation: AgentsConversation, turn: AgentsTu
     ODB_THREAD_ID: conversation.threadId,
     ODB_COMMS_TOKEN: bearer(turn),
     ODB_SKILL_AUTHORING_ENABLED: flag(host.skillAuthoring),
+    ODB_SKILL_BURGER: flag(host.skillBurger !== false),
     ODB_MEMORY_ENABLED: flag(bot.memoryEnabled !== false),
     ODB_SHARED_COMPUTERS_ENABLED: flag(host.sharedComputers),
     ODB_CLOUD_HOME: flag(host.cloudHome), ODB_TEAM_PEOPLE: flag(host.team), ODB_ROOM: flag(conversation.room),

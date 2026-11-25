@@ -79,18 +79,18 @@ const PROMPT_BUDGET_BASELINE: Record<string, number> = {
   "profile": 931,
   "team-memory": 286,
   // Both sandbox kinds carry +130 bytes on purpose: the person's own files (C:\Users\…, /Users/…, Desktop) are reached only on This computer.
-  "computer:vm-private": 6468,
-  "computer:vm-shared": 6463,
-  "computer:box": 4937,
-  "computer:vps": 5581,
-  "computer:local": 5884,
+  "computer:vm-private": 5565,
+  "computer:vm-shared": 5560,
+  "computer:box": 4034,
+  "computer:vps": 4678,
+  "computer:local": 4987,
   "claude:direct-chat": 8391,
   "claude:setup-chat": 10787,
   "claude:volatile-note": 178,
   "codex:direct-chat": 8391,
   "codex:setup-chat": 10787,
   "codex:resumed-instructions": 213,
-  "codex:volatile-note": 94,
+  "codex:volatile-note": 97,
 };
 
 describe("OpenDeliobot's prompt text per turn", () => {

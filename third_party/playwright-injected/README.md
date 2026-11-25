@@ -6,9 +6,9 @@ Vendored, unmodified sources from [Microsoft Playwright](https://github.com/micr
 - `src/` ← `packages/injected/src/{ariaSnapshot,ariaSnapshotDistiller,domUtils,roleUtils}.ts`
 - `isomorphic/` ← `packages/isomorphic/{ariaSnapshot,ariaSnapshotRenderer,stringUtils,cssTokenizer,yaml}.ts`
 
-`entry.ts` is Deliobot's: it exposes Playwright's accessibility-tree
+`entry.ts` is OpenDeliobot's: it exposes Playwright's accessibility-tree
 snapshot (the `[ref=eN]` YAML that playwright-mcp hands models) on
-`window.__ombBrowser` for the built-in browser surface, and resolves refs
+`window.__odbBrowser` for the built-in browser surface, and resolves refs
 back to elements for clicks and fills.
 
 `scripts/build-browser-snapshot.mjs` bundles this into

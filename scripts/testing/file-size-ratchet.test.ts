@@ -33,9 +33,8 @@ const LINES: Record<string, number> = {
   "server/routine-requests.ts": 1474,
   "src/components/GroupView.tsx": 1215,
   "src/components/LocalComputerSection.tsx": 1437,
-  "src/components/CursorAvatar.tsx": 1324,
+  "src/components/CursorAvatar.tsx": 1064,
   "server/skills.ts": 1379,
-  "server/composio.ts": 1038,
   "server/vps-computer.ts": 1287,
   "scripts/mcp-server.ts": 1411,
   "server/boat.ts": 1253,
@@ -47,7 +46,7 @@ const LINES: Record<string, number> = {
   "src/components/ModelPicker.tsx": 1039,
   "src/components/PhoneSetupFlow.tsx": 1088,
   "server/cli.ts": 1053,
-  "src/components/AttachmentPreview.tsx": 1034,
+  "src/components/AttachmentPreview.tsx": 1025,
   "server/meetings/meetbot.ts": 1047,
   "electron/data-dir-lease.node-test.mjs": 846, // the data-folder lease's own tests: many platform cases (Windows probes in data-dir-lease-windows.node-test.mjs)
 };

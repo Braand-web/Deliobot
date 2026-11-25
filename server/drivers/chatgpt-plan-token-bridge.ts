@@ -37,6 +37,7 @@ export async function startChatGptTokenBridge(accessToken: () => Promise<string>
     throw error;
   }
   return {
+    socketPath: path,
     env: { ODB_CODEX_AUTH_SOCKET: path, ODB_CODEX_AUTH_SECRET: secret },
     close() {
       if (closed) return;

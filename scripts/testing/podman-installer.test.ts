@@ -8,7 +8,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 const SCRIPT = join(import.meta.dirname, "..", "..", "deploy", "podman", "install.sh");
-const REPO = "ghcr.io/braand-web/deliobot";
+const REPO = "ghcr.io/braand-web/opendeliobot";
 const DIGEST = `${REPO}@sha256:${"2".repeat(64)}`;
 const STABLE = `${REPO}@sha256:${"5".repeat(64)}`;
 const posix = process.platform !== "win32";

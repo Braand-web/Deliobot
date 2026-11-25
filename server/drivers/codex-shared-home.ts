@@ -21,6 +21,8 @@ const CHATS = new Set(["sessions", "archived_sessions", "sqlite", "shell_snapsho
   "session_index.jsonl", "session_index.jsonl.lock", ".sqlite-maintenance.lock"]);
 /** Codex's databases (state_5.sqlite holds the chat list) sit in the home unless config.toml moves them. */
 const DATABASE = /\.sqlite$/;
+/** The person's own instructions, which Codex adds to every turn (codex-cli 0.169.0; `project_doc_max_bytes` limits only project files). */
+const USER_INSTRUCTIONS = new Set(["AGENTS.md", "AGENTS.override.md"]);
 /** Kept per home. */
 const LOCAL = new Set(["log", "memories", "tmp", ".DS_Store", ".delio-shared-config.json"]);
 /** Copied, not linked, on Windows, where a file link needs Developer Mode. */
@@ -109,7 +111,8 @@ export function linkSharedCodexHome(sharedHome: string | null, delioHome: string
   mkdirSync(delioHome, { recursive: true, mode: 0o700 });
   if (!isAbsolute(delioHome)) return false;
   const own = resolve(delioHome);
-  const apart = (name: string) => CHATS.has(name) || DATABASE.test(name) || (login === "own" && PRIVATE.has(name));
+  const apart = (name: string) => CHATS.has(name) || DATABASE.test(name) || (login === "own" && PRIVATE.has(name))
+    || USER_INSTRUCTIONS.has(name);
   // A link from before chats were kept apart goes, even when sharing fails below, so no new chat is written through it;
   // the person's own files behind it stay as they are.
   for (const name of readdirSync(own)) {

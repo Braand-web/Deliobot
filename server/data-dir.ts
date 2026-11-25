@@ -1,6 +1,6 @@
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, realpathSync } from "node:fs";
 import { homedir, tmpdir, userInfo } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 let home: string | undefined;
 
@@ -11,4 +11,46 @@ export function dataHome(): string {
   const real = homedir();
   home = process.env.VITEST !== undefined && real === userInfo().homedir ? mkdtempSync(join(tmpdir(), "odb-test-home-")) : real;
   return home;
+}
+
+type Env = Record<string, string | undefined>;
+
+/** Where defaultDataDir looks: the home the folder goes under and the account's own home. Tests give both. */
+export interface DataHomes { under?: () => string; realHome?: () => string | null }
+
+/** What marks this process as a test or a benchmark, if anything does. */
+export function testRunSignal(env: Env): string | null {
+  if (env.VITEST !== undefined) return "VITEST";
+  if (env.NODE_ENV === "test") return "NODE_ENV=test";
+  return env.ODB_BENCH === "1" ? "ODB_BENCH=1" : null;
+}
+
+function canonical(path: string): string {
+  let real = resolve(path);
+  try { real = realpathSync(real); } catch {}
+  // macOS and Windows file systems fold case by default.
+  return process.platform === "linux" ? real : real.toLowerCase();
+}
+
+/** The account's own home whatever HOME says; null where the account has no entry (some containers). */
+function accountHome(): string | null {
+  try { return userInfo().homedir; } catch { return null; }
+}
+
+/**
+ * The data folder: ODB_DATA_DIR, else `.opendeliobot` under the home.
+ * Security: a test or benchmark run (testRunSignal) with no ODB_DATA_DIR never gets the person's own data folder. It
+ * throws instead, since the folder is fixed when server/config.ts is first imported and a later assignment is ignored.
+ */
+export function defaultDataDir(env: Env = process.env, under: () => string = dataHome, realHome: () => string | null = accountHome): string {
+  if (env.ODB_DATA_DIR) return env.ODB_DATA_DIR;
+  const base = under();
+  const signal = testRunSignal(env);
+  if (signal) {
+    const real = realHome();
+    if (real && canonical(base) === canonical(real)) {
+      throw new Error(`${signal} marks this as a test or benchmark run, and ODB_DATA_DIR is not set: refusing to use the real data folder ${join(base, ".opendeliobot")}. Set ODB_DATA_DIR to a temp folder in the environment before the process starts; setting it inside the script is too late.`);
+    }
+  }
+  return join(base, ".opendeliobot");
 }

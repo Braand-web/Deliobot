@@ -17,12 +17,17 @@ mkdir -p "$OUT"
 DOMAIN=installer-e2e.internal
 DIR=/opt/opendeliobot
 SETTINGS=(ODB_INSTALL_SKIP_DNS=1 ODB_INSTALL_HTTPS_WAIT_S=20 "ODB_INSTALL_SOURCE=file://$ROOT")
+# The workflow's token, when it gives one, reaches the installer's lookup of the newest release (deploy/install.sh
+# newest_release): api.github.com answers few reads without one from a runner's shared address. sudo keeps it out of the
+# command line.
+AS_ROOT=(sudo)
+if [ -n "${ODB_INSTALL_GITHUB_TOKEN:-}" ]; then AS_ROOT=(sudo --preserve-env=ODB_INSTALL_GITHUB_TOKEN); fi
 # Without a version asked for: what a person's later run is, which must keep the version update.sh pinned.
 # Under umask 000, as a root shell may have it: what the installer makes must not take its modes from there.
 UMASK_000=(sh -c "umask 000; exec sh \"\$0\" \"\$@\"")
-PLAIN_INSTALL=(sudo env "${SETTINGS[@]}" "${UMASK_000[@]}" "$ROOT/deploy/install.sh")
+PLAIN_INSTALL=("${AS_ROOT[@]}" env "${SETTINGS[@]}" "${UMASK_000[@]}" "$ROOT/deploy/install.sh")
 if [ -n "${ODB_INSTALL_IMAGE:-}" ]; then SETTINGS+=("ODB_INSTALL_IMAGE=$ODB_INSTALL_IMAGE"); fi
-INSTALL=(sudo env "${SETTINGS[@]}" "${UMASK_000[@]}" "$ROOT/deploy/install.sh")
+INSTALL=("${AS_ROOT[@]}" env "${SETTINGS[@]}" "${UMASK_000[@]}" "$ROOT/deploy/install.sh")
 box_check() { (cd "$DIR" && sudo docker compose exec -T odb node dist-server/bot-box/box-check.js --public=none "$@"); }
 
 as_root() { sudo "$@"; }
@@ -103,7 +108,7 @@ prepare_like_a_server
 step "the checks alone, with a name that points nowhere: one thing to fix, nothing changed"
 status=0
 containers_before=$(sudo docker ps -aq | sort)
-as_root sh "$ROOT/deploy/install.sh" --check --domain "$DOMAIN" >"$OUT/check.txt" 2>&1 || status=$?
+"${AS_ROOT[@]}" sh "$ROOT/deploy/install.sh" --check --domain "$DOMAIN" >"$OUT/check.txt" 2>&1 || status=$?
 cat "$OUT/check.txt"
 [ "$status" = 1 ] || fail "--check exited $status, not 1"
 [ "$(grep -c '^  FIX   ' "$OUT/check.txt")" = 1 ] || fail "--check found more than the DNS record to fix"
@@ -122,7 +127,7 @@ step "install: the server is healthy behind Caddy, on a pinned release, with its
 install_until_https "$OUT/install.txt"
 image=$(sudo sed -n 's/^ODB_IMAGE=//p' "$DIR/.env")
 case "$image" in
-  ghcr.io/braand-web/deliobot:stable | ghcr.io/braand-web/deliobot:v[0-9]*) ;;
+  ghcr.io/braand-web/opendeliobot:stable | ghcr.io/braand-web/opendeliobot:v[0-9]*) ;;
   *) [ "$image" = "${ODB_INSTALL_IMAGE:-}" ] || fail "the install pinned $image" ;;
 esac
 [ "$(sudo stat -c %a "$DIR/.env")" = 600 ] || fail ".env is readable by others"

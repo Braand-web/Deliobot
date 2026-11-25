@@ -154,6 +154,8 @@ export function describeVoice(original: AppConfig) {
     ...(provider === "fish" ? { fishModel: cfg.tts?.fishModel ?? fish.DEFAULT_FISH_MODEL } : {}),
     ...(included ? { included: true as const } : {}),
     ...(cfg.tts?.everyReply ? { everyReply: true as const } : {}),
+    ...(cfg.tts?.hearWith === "elevenlabs" ? { hearWith: "elevenlabs" as const } : {}),
+    ...(cfg.tts?.hearLanguage ? { hearLanguage: cfg.tts.hearLanguage } : {}),
   };
 }
 

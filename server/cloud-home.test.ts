@@ -393,9 +393,11 @@ it("gives the edge only its routing name and the server the contract, never a ga
   expect(server).toMatchObject({ HOME: "/data", ODB_DATA_DIR: "/data/.opendeliobot", NODE_COMPILE_CACHE: "/data/.opendeliobot/cache/node-compile", ODB_PORT: "8799", ODB_WEBHOOK_PORT: "8800",
     ODB_PUBLIC_URL: "https://odb-u-1a2b3c4d5e6f.fly.dev", ODB_WEBHOOK_PUBLIC_URL: "https://odb-u-1a2b3c4d5e6f.fly.dev", ODB_CLOUD_SECRETS_FD: "3" });
   for (const key of CLOUD_IGNORED_KEYS) expect(server).not.toHaveProperty(key);
-  // The bot box switch reaches the server; an unknown name does not.
-  expect(cloudHomeChildEnvironments(config, { ...withGateway(), PATH: "/usr/bin", ODB_BOT_BOX: "0", ODB_SOMETHING_ELSE: "x" }, "/data").server).toMatchObject({ ODB_BOT_BOX: "0" });
+  // The bot box and image-engines switches reach the server; an unknown name does not.
+  expect(cloudHomeChildEnvironments(config, { ...withGateway(), PATH: "/usr/bin", ODB_BOT_BOX: "0", ODB_IMAGE_ENGINES: "1", ODB_SOMETHING_ELSE: "x" }, "/data").server).toMatchObject({ ODB_BOT_BOX: "0", ODB_IMAGE_ENGINES: "1" });
   expect(cloudHomeChildEnvironments(config, { ...withGateway(), PATH: "/usr/bin", ODB_SOMETHING_ELSE: "x" }, "/data").server).not.toHaveProperty("ODB_SOMETHING_ELSE");
+  // So does the switch that gives Antigravity accounts Google's native CLI, which a Cloud home could otherwise never turn on.
+  expect(cloudHomeChildEnvironments(config, { ...withGateway(), PATH: "/usr/bin", ODB_ANTIGRAVITY_NATIVE_CLI: "1" }, "/data").server).toMatchObject({ ODB_ANTIGRAVITY_NATIVE_CLI: "1" });
   expect(JSON.stringify(server)).not.toContain(token);
   expect(secrets).toEqual({ ODB_CLOUD_BOOTSTRAP_SECRET: secret, ...relay });
   for (const value of Object.values(secrets)) {
@@ -484,6 +486,14 @@ it("holds requests at the edge while the server starts only when the Admin asked
   expect(cloudHomeChildEnvironments(config, { ...withGateway(), PATH: "/usr/bin", ODB_CLOUD_EDGE_HOLD: "30s" }, "/data").server).not.toHaveProperty("ODB_CLOUD_EDGE_HOLD");
   for (const raw of [undefined, "", "30", "1m", "-5s", "121s", "30s; respond 200", "9999s"]) expect(edgeHold(raw), String(raw)).toBe("0s");
   expect(edgeHold(" 045s ")).toBe("45s");
+});
+
+it("hands the server the tool cache switch, and moves no cache of the server's own", () => {
+  const config = cloudHomeConfiguration(withGateway())!;
+  const server = cloudHomeChildEnvironments(config, { ...withGateway(), PATH: "/usr/bin", ODB_CACHE_ROOT: "on", ODB_CACHE_SWEEP: "on", ODB_CACHE_CAP_TOOLS: "4G", ODB_CACHE_CAP_APP: "1G" }, "/data").server;
+  expect(server).toMatchObject({ ODB_CACHE_ROOT: "on", ODB_CACHE_SWEEP: "on", ODB_CACHE_CAP_TOOLS: "4G", ODB_CACHE_CAP_APP: "1G", HOME: "/data", NODE_COMPILE_CACHE: "/data/.opendeliobot/cache/node-compile" });
+  // Only the bot box adds the tools' variables (bot-box/tool-caches.ts), for each box's own HOME.
+  for (const name of ["npm_config_cache", "PIP_CACHE_DIR", "UV_CACHE_DIR", "HF_HUB_CACHE", "XDG_CACHE_HOME"]) expect(server).not.toHaveProperty(name);
 });
 
 it("hands the server the Admin's export-only switch, so an ended Cloud started for its owner's export runs frozen", () => {

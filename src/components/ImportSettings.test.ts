@@ -24,7 +24,7 @@ describe("Settings → Import", () => {
     expect(markup).toContain('data-import-section="apps"');
     const shown = text(markup);
     expect(shown).toContain("From your AI apps");
-    expect(shown).toContain("Claude Code, Codex, Cursor, Claude Desktop and Gemini");
+    expect(shown).toContain("Claude Code, Codex, Cursor, Claude Desktop, Gemini, Hermes Agent and OpenClaw");
     expect(shown).toContain("Tools arrive switched off; logins and history are never read.");
     expect(shown).not.toContain("Grok Bot");
   });

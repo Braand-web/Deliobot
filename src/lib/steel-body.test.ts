@@ -63,7 +63,7 @@ describe("Delio's rendered steel body", () => {
   it("draws the blink and the glow over the picture, even paused, and floats only while animated", () => {
     const svg = (paused: boolean) => renderToStaticMarkup(createElement(CursorAvatar, {
       size: 112, silhouette: MASCOT_BODIES.cursor, picture: "/p.webp", pictureBlink: "/b.webp",
-      pictureGlow: { x: 133, y: 12, r: 24, tempo: "fast" }, paused,
+      pictureGlow: { x: 133, y: 12, r: 24, tempo: "fast" }, resting: paused,
     }));
     const live = svg(false);
     expect(live).toContain('href="/b.webp"');

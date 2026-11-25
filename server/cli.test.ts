@@ -102,7 +102,7 @@ describe("opendeliobot command line", () => {
       const out = pairingBlock(base);
       expect(out).toMatch(/^Pairing code {3}ABCD-EFGH-JKLM {3}works once, until .+ · everything$/m);
       expect(out).toContain(`Link           ${link}`);
-      expect(out).toContain("＋ → Connect to a server, paste the link");
+      expect(out).toContain("＋ → Connect to another computer, paste the link");
       expect(out).toContain(qrToString(link));
       expect(out).toContain("For a phone (chat and approvals only)   npx opendeliobot pair --phone");
       expect(out).not.toMatch(/odb_pair_|phone app:|this computer:/);

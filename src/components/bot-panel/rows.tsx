@@ -76,7 +76,8 @@ export function RowIcon({ icon: Icon }: { icon: LucideIcon }) {
 }
 
 export function BotSwitch({ color, checked, ...props }: Parameters<typeof Switch>[0] & { color: DelioColor }) {
-  return <Switch {...props} checked={checked} style={checked ? { backgroundColor: DELIO_COLORS[color] } : undefined} />;
+  const greyBot = color === "silver" || color === "chrome";
+  return <Switch {...props} checked={checked} style={checked && !greyBot ? { backgroundColor: DELIO_COLORS[color] } : undefined} />;
 }
 
 export function SwitchRow({ title, hint, icon, checked, onChange, disabled, color, label, tooltip, extra, ...rest }: {

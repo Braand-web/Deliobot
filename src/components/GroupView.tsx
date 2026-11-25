@@ -47,6 +47,7 @@ import { isPureLeakedSystemHarnessMessage } from "../../shared/system-message-gu
 import { ConnectorCard } from "./ConnectorCard";
 import { SecretRequestCard } from "./SecretRequestCard";
 import { SignInRequestCard } from "./SignInRequestCard";
+import { isPinnedSignIn, NO_PINNED_SIGN_INS, PinnedSignInSlot } from "./PinnedSignInSlot";
 import { hasRoutineExecutionTask, RoutineRunCard } from "./RoutineRunCard";
 import { GoalRunCard } from "./GoalRunCard";
 import { OptionCard } from "./OptionCard";
@@ -63,7 +64,7 @@ import { useMenuMotion } from "./MenuMotion";
 import { useLiveToolIds } from "@/hooks/use-live-tool-ids";
 import { roomNeedsSetup, setupResponderMode, type RoomResponderMode } from "@/lib/room-setup";
 import { useComposerDockPad } from "@/lib/composer-dock";
-import { GlassBar, GlassScrollFrame } from "./GlassScrollFrame";
+import { ChatBackdrop, GlassBar, GlassScrollFrame } from "./GlassScrollFrame";
 import { awaitedMemberId, showWorkingDots } from "@/lib/turn-tail";
 import { turnNowPhrases } from "@/lib/live-activity"; import { useTurnLive } from "@/state/turn-status"; import { isLiveReply, roomLiveSpeaker, StreamingReplyContext, useLiveRow, useLiveTranscriptLayout } from "@/state/live-reply";
 import { useTranscriptViewport } from "@/hooks/use-transcript-viewport"; import { staysInView } from "../../shared/person-wait";
@@ -126,6 +127,7 @@ export const Transcript = memo(function Transcript({
   locale, localVoice = false,
   messages: saved,
   transcript,
+  pinnedSignInIds = NO_PINNED_SIGN_INS,
   emergingId,
   unreadDividerId = null,
   unreadDividerFading = false,
@@ -136,6 +138,7 @@ export const Transcript = memo(function Transcript({
   locale: string; localVoice?: boolean;
   messages: Message[];
   transcript: Message[];
+  pinnedSignInIds?: ReadonlySet<string>;
   emergingId?: string | null;
   unreadDividerId?: string | null;
   unreadDividerFading?: boolean;
@@ -241,7 +244,7 @@ export const Transcript = memo(function Transcript({
         ) :
           m.kind === "secret" && m.secret && m.from?.botId ? (
             <SecretRequestCard botId={m.from.botId} color={m.from.color} threadId={group.threadId} message={m} />
-          ) : m.kind === "signin" && m.signIn && m.from?.botId ? (
+          ) : m.kind === "signin" && m.signIn && m.from?.botId && !pinnedSignInIds.has(m.id) ? (
             <SignInRequestCard botId={m.from.botId} botName={m.from.name} color={m.from.color} threadId={group.threadId} message={m} />
           ) : m.kind === "connector" && m.connector && m.from?.botId ? (
             <ConnectorCard botId={m.from.botId} color={m.from.color} threadId={group.threadId} message={m} />
@@ -673,11 +676,16 @@ function RoomSetup({ group, members }: { group: Group; members: Bot[] }) {
     </section>
   );
 }
-export function GroupView({ group, inForkPanel = false }: { group: Group; inForkPanel?: boolean }) {
+export function GroupView({ group, inForkPanel = false, bare = false }: { group: Group; inForkPanel?: boolean; /** Beside the room's feed: no header or bulletin of its own. */ bare?: boolean }) {
   const { state, dispatch } = useStore();
   const remoteClient = window.odb?.remoteClient?.active === true;
   const composerDockRef = useRef<HTMLDivElement>(null);
   const composerDock = useComposerDockPad(composerDockRef);
+  const pinnedSignIns = useMemo(() => group.messages.flatMap((m) => {
+    const from = m.from;
+    return isPinnedSignIn(m) && from?.botId ? [{ message: m, botId: from.botId, botName: from.name, color: from.color, threadId: group.threadId }] : [];
+  }), [group.messages, group.threadId]);
+  const pinnedSignInIds = useMemo(() => new Set(pinnedSignIns.map((card) => card.message.id)), [pinnedSignIns]);
   const [folderOpen, setFolderOpen] = useState(false);
   const [membersOpen, setMembersOpen] = useState(false);
   const [findOpen, setFindOpen] = useState(false);
@@ -788,14 +796,14 @@ export function GroupView({ group, inForkPanel = false }: { group: Group; inFork
 
   return (
     <main data-look="chat" className="relative flex h-full min-w-0 flex-1 flex-col bg-app">
-      <GroupCallOverlay group={group} members={members} />
+      <ChatBackdrop /><GroupCallOverlay group={group} members={members} />
       {membersOpen && !remoteClient && !group.dm && (
         <ManageMembersPanel group={group} onClose={closeMembers} triggerRef={membersTriggerRef} />
       )}
       <GlassScrollFrame className="flex-1 [--glass-tint:var(--color-app)]">
       {/* z-[25]: above the room set-up card (z-20), below the GroupCallOverlay (z-30). */}
       <GlassBar edge="top" fade={!advancedMode && !remoteClient} className="z-[25]">
-      <RoomHeader
+      {!bare && <RoomHeader
         group={group}
         members={members}
         simple={simpleHeader}
@@ -806,14 +814,14 @@ export function GroupView({ group, inForkPanel = false }: { group: Group; inFork
         onToggleFolder={() => setFolderOpen((open) => !open)}
         onOpenMembers={() => setMembersOpen(true)}
         membersTriggerRef={membersTriggerRef}
-      />
+      />}
 
       {findOpen && <ChatFindBar threadId={group.threadId} inForkPanel={inForkPanel} onClose={() => setFindOpen(false)} />}
       <ChatErrorBanner message={state.error} onDismiss={() => dispatch({ type: "error", message: null })} />
       <ChatNotice notice={state.notice} />
-      {!setupPending && <RoomContextWarnings group={group} members={members} />}{!setupPending && !remoteClient && <RoomChiefAbsent group={group} />}
+      {!setupPending && <RoomContextWarnings group={group} members={members} />}{!setupPending && !remoteClient && !bare && <RoomChiefAbsent group={group} />}
 
-      {!setupPending && !group.dm && !remoteClient && state.config && group.defaultResponder.kind === "auto" && !jevRoomRoutingOn(state.config) && (
+      {!setupPending && !bare && !group.dm && !remoteClient && state.config && group.defaultResponder.kind === "auto" && !jevRoomRoutingOn(state.config) && (
         <div className="w-full px-5">
           <p data-testid="room-jev-off" className="mb-1 px-2 text-[12px] text-ink-secondary">
             {t("room.responder.jevOffHint", { name: defaultResponderName(group, members) ?? t("room.responder.leadFallback") })}{" "}
@@ -830,7 +838,7 @@ export function GroupView({ group, inForkPanel = false }: { group: Group; inFork
 
       {!setupPending && !group.dm && <RoomHoldsBanner group={group} members={members} />}
 
-      {!setupPending && !simpleHeader && <RoomBulletin group={group} remoteClient={remoteClient} />}
+      {!setupPending && !simpleHeader && !bare && <RoomBulletin group={group} remoteClient={remoteClient} />}
 
       {!setupPending && folderOpen && !group.dm && (
         <div className="w-full px-5">
@@ -839,12 +847,13 @@ export function GroupView({ group, inForkPanel = false }: { group: Group; inFork
           </div>
         </div>
       )}
+      <PinnedSignInSlot cards={pinnedSignIns} />
 
       </GlassBar>
 
       <div
         ref={scrollRef}
-        className="glass-scroller h-full overflow-x-hidden overflow-y-auto px-5 [overflow-anchor:none]"
+        className="glass-scroller h-full overflow-x-hidden overflow-y-auto px-4 [overflow-anchor:none]"
         {...scrollHandlers}
       >
         {setupPending ? (
@@ -895,6 +904,7 @@ export function GroupView({ group, inForkPanel = false }: { group: Group; inFork
             locale={activeLocale()} localVoice={localSystemVoiceActive()}
             messages={windowedMessages}
             transcript={group.messages}
+            pinnedSignInIds={pinnedSignInIds}
             emergingId={popping?.id}
             unreadDividerId={unreadDivider.messageId}
             unreadDividerFading={unreadDivider.fading}

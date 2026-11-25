@@ -47,6 +47,10 @@ Configure the optional Vercel hook below to rebuild the docs immediately after
 publication; otherwise the live cache or the next normal docs deployment
 refreshes it.
 
+Once a release is published, add its notes to the Announcements page's list with
+`node scripts/release-notes-feed.mjs <version> <notes.md> --date <publishedAt>`
+and merge that change ([Announcements](announcements.md#what-each-release-brought)).
+
 ## Data format and rollback
 
 Each release records the data-folder formats it writes and reads:
@@ -74,8 +78,8 @@ The workflow builds nothing. It:
    and reads its digest and the Cloud home image's;
 3. refuses to move stable back to an older version unless `allow_older` is
    ticked;
-4. moves the `stable` tag of `ghcr.io/braand-web/deliobot` and of
-   `ghcr.io/braand-web/deliobot-cloud-home` to those digests;
+4. moves the `stable` tag of `ghcr.io/braand-web/opendeliobot` and of
+   `ghcr.io/braand-web/opendeliobot-cloud-home` to those digests;
 5. commits `stable.json` (version, both images by digest, and every version
    that was stable in the last 90 days) to the `channels` branch. When that
    fails after the tags moved, the tags are put back to the digests the

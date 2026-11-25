@@ -148,12 +148,12 @@ describe("the remote access diagnosis", () => {
 
   it("never copies an email, address, hostname, IP, pairing code, token, key or device name", () => {
     const secrets = [
-      "person@example.com", "c-0123abcd", "delio.si", "192.168.1.23", "100.64.0.9", "mac.tailnet.ts.net", "mac.local",
+      "person@example.com", "c-0123abcd", "opendeliobot.com", "192.168.1.23", "100.64.0.9", "mac.tailnet.ts.net", "mac.local",
       "482913", "pairtoken_secret", "PUBKEY_secret", "hhash_secret", "eyJ2IjoxfQ", "odb_install_secret", "req_8f3a",
       "device-secret-id", "Ana's iPhone", "Bearer", "relay9.example.com", "opendeliobot.com",
     ];
     const account = {
-      available: true, status: "error", email: "person@example.com", endpoint: "https://c-0123abcd.delio.si",
+      available: true, status: "error", email: "person@example.com", endpoint: "https://c-0123abcd.opendeliobot.com",
       message: "Could not finish. Reference: req_8f3a.", problem: "Bearer odb_install_secret",
     } as unknown as Account;
     const leaky = {
@@ -162,7 +162,7 @@ describe("the remote access diagnosis", () => {
       hosts: ["mac.local", "mac.tailnet.ts.net"], discovery: { advertising: true, name: "mac.local" },
       endpoints: [
         { url: "http://192.168.1.23:8810", kind: "lan", priority: 0 },
-        { url: "https://c-0123abcd.delio.si", kind: "hosted", priority: 1 },
+        { url: "https://c-0123abcd.opendeliobot.com", kind: "hosted", priority: 1 },
         { url: "http://mac.tailnet.ts.net:8810", kind: "tailnet", priority: 2 },
       ],
       routes: { wifi: route(true), relay: route(true), tailscale: route(true, "mac.tailnet.ts.net"), https: route(true) },

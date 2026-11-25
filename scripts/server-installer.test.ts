@@ -62,6 +62,7 @@ esac`,
   curl: `echo "curl $*" >> "$FAKE_LOG"
 blocked() { case " \${FAKE_BLOCKED:-} " in *" $1 "*) return 0 ;; esac; return 1; }
 case "$*" in
+  *"-K -"*releases/latest*) cat >> "$FAKE_LOG.stdin"; [ -z "\${FAKE_TOKEN_REFUSED:-}" ] || exit 22; printf '{\\n  "tag_name": "%s",\\n  "name": "x"\\n}\\n' "$FAKE_RELEASE" ;;
   *"-K - -fsSL"*) cat >> "$FAKE_LOG.stdin"
     case "$*" in
       */manifests/sha256:*) printf '%s' "\${FAKE_MANIFEST:-}" ;;
@@ -235,7 +236,7 @@ describe.skipIf(!posix)("deploy/install.sh", () => {
     ["a clock an hour off", { env: { FAKE_THEIRS: "1794265200" } }, /^This server's clock is 60 minutes off, so HTTPS certificates will be refused\. Run: sudo timedatectl set-ntp true/],
     ["a release without an image", { env: { FAKE_RELEASE_STATUS: "404" } }, /^Delio v0\.1\.151 has no server image yet/],
     ["a registry that is throttling", { env: { FAKE_RELEASE_STATUS: "429" } }, /^The image registry ghcr\.io did not say whether it has Delio v0\.1\.151 \(it answered 429\)\. Run this again in a few minutes\.$/],
-    ["the latest tag asked for", { env: { ODB_INSTALL_IMAGE: "ghcr.io/braand-web/deliobot:latest" } }, /^ODB_INSTALL_IMAGE names the latest tag/],
+    ["the latest tag asked for", { env: { ODB_INSTALL_IMAGE: "ghcr.io/braand-web/opendeliobot:latest" } }, /^ODB_INSTALL_IMAGE names the latest tag/],
   ])("--check on %s prints the one thing to fix", (_name, server, sentence) => {
     const result = run(["--check", "--domain", "delio.example.com"], server);
     expect(result.fixes).toHaveLength(1);
@@ -308,19 +309,19 @@ describe.skipIf(!posix)("deploy/install.sh", () => {
     const result = run(["--domain", "delio.example.com", "--email", "owner@example.com"]);
     expect(result.all).toContain("Delio is running at https://delio.example.com");
     expect(result.status).toBe(0);
-    expect(readFileSync(join(result.install, ".env"), "utf8")).toContain("DOMAIN=delio.example.com\nODB_IMAGE=ghcr.io/braand-web/deliobot:v0.1.151\nODB_SIGNIN_EMAILS=owner@example.com\n");
+    expect(readFileSync(join(result.install, ".env"), "utf8")).toContain("DOMAIN=delio.example.com\nODB_IMAGE=ghcr.io/braand-web/opendeliobot:v0.1.151\nODB_SIGNIN_EMAILS=owner@example.com\n");
     expect(statSync(join(result.install, ".env")).mode & 0o777).toBe(0o600);
     expect(statSync(join(result.install, "data")).mode & 0o777).toBe(0o700);
     for (const file of ["compose.yaml", "Caddyfile", "caddy/data", "caddy/config"]) expect(existsSync(join(result.install, file)), file).toBe(true);
     const changes = result.docker.filter((call) => !READS.test(call) && !call.includes(" ps -q odb") && !call.startsWith("docker inspect"));
     expect(changes).toEqual([
       "docker compose pull -q",
-      'docker image inspect -f {{index .Config.Labels "org.opencontainers.image.version"}} ghcr.io/braand-web/deliobot:v0.1.151',
-      "docker image inspect -f {{json .Config.Env}} ghcr.io/braand-web/deliobot:v0.1.151",
-      'docker image inspect -f {{index .Config.Labels "org.opencontainers.image.version"}} ghcr.io/braand-web/deliobot:v0.1.151',
-      "docker run --rm --network none --entrypoint id ghcr.io/braand-web/deliobot:v0.1.151 -u",
-      "docker run --rm --network none --entrypoint id ghcr.io/braand-web/deliobot:v0.1.151 -g",
-      'docker image inspect -f {{index .Config.Labels "org.opencontainers.image.version"}} ghcr.io/braand-web/deliobot:v0.1.151',
+      'docker image inspect -f {{index .Config.Labels "org.opencontainers.image.version"}} ghcr.io/braand-web/opendeliobot:v0.1.151',
+      "docker image inspect -f {{json .Config.Env}} ghcr.io/braand-web/opendeliobot:v0.1.151",
+      'docker image inspect -f {{index .Config.Labels "org.opencontainers.image.version"}} ghcr.io/braand-web/opendeliobot:v0.1.151',
+      "docker run --rm --network none --entrypoint id ghcr.io/braand-web/opendeliobot:v0.1.151 -u",
+      "docker run --rm --network none --entrypoint id ghcr.io/braand-web/opendeliobot:v0.1.151 -g",
+      'docker image inspect -f {{index .Config.Labels "org.opencontainers.image.version"}} ghcr.io/braand-web/opendeliobot:v0.1.151',
       "docker compose up -d --remove-orphans",
       "docker compose exec -T odb node dist-server/bot-box/box-check.js --public=none",
     ]);
@@ -346,9 +347,9 @@ describe.skipIf(!posix)("deploy/install.sh", () => {
     const without = run(["--check", "--domain", "delio.example.com"], registry(""));
     expect(without.stdout).toContain("  ok    version: v0.1.151, the newest release\n  note  This version has no bots' sandbox");
     expect(without.calls.filter((call) => call.includes("-fsSL")).map((call) => call.replace(/^.* (\S+)$/, "$1"))).toEqual([
-      "https://ghcr.io/v2/braand-web/deliobot/manifests/v0.1.151",
-      `https://ghcr.io/v2/braand-web/deliobot/manifests/${digest("b")}`,
-      `https://ghcr.io/v2/braand-web/deliobot/blobs/${digest("d")}`,
+      "https://ghcr.io/v2/braand-web/opendeliobot/manifests/v0.1.151",
+      `https://ghcr.io/v2/braand-web/opendeliobot/manifests/${digest("b")}`,
+      `https://ghcr.io/v2/braand-web/opendeliobot/blobs/${digest("d")}`,
     ]);
     expect(run(["--check", "--domain", "delio.example.com"], registry("ODB_IMAGE=server")).stdout).not.toContain("no bots' sandbox");
     // Asked for no sandbox, or a registry that does not say: nothing to add.
@@ -356,10 +357,41 @@ describe.skipIf(!posix)("deploy/install.sh", () => {
     expect(run(["--check", "--domain", "delio.example.com"]).stdout).not.toContain("no bots' sandbox");
   });
 
+  it("reads the newest release without a token, and sends one only when a test run's ODB_INSTALL_GITHUB_TOKEN gives it, never on a command line", () => {
+    const stdin = (dir: string) => (existsSync(join(dir, "calls.log.stdin")) ? readFileSync(join(dir, "calls.log.stdin"), "utf8") : "");
+    const lookups = (result: { calls: string[] }) => result.calls.filter((call) => call.includes("releases/latest"));
+    const PLAIN = "curl -fsS --max-time 15 https://api.github.com/repos/Braand-web/Deliobot/releases/latest";
+    const WITH_TOKEN = "curl -K - -fsS --max-time 15 https://api.github.com/repos/Braand-web/Deliobot/releases/latest";
+    const plain = run(["--check", "--domain", "delio.example.com"]);
+    expect(plain.stdout).toContain("  ok    version: v0.1.151, the newest release");
+    expect(lookups(plain)).toEqual([PLAIN]);
+    // Only the registry's pull token goes to curl's standard input.
+    expect(stdin(plain.dir).split("\n").filter((line) => line.includes("Authorization") && !line.includes(TOKEN))).toEqual([]);
+
+    const token = run(["--check", "--domain", "delio.example.com"], { env: { ODB_INSTALL_GITHUB_TOKEN: "ghs_apiToken123" } });
+    expect(token.stdout).toContain("  ok    version: v0.1.151, the newest release");
+    expect(lookups(token)).toEqual([WITH_TOKEN]);
+    expect(token.calls.some((call) => call.includes("ghs_apiToken123"))).toBe(false);
+    expect(stdin(token.dir)).toContain('header = "Authorization: Bearer ghs_apiToken123"\n');
+
+    // A token GitHub refuses: the lookup is made once more without it, and the version is found.
+    const refused = run(["--check", "--domain", "delio.example.com"], { env: { ODB_INSTALL_GITHUB_TOKEN: "ghs_expired", FAKE_TOKEN_REFUSED: "1" } });
+    expect(refused.stdout).toContain("  ok    version: v0.1.151, the newest release");
+    expect(refused.fixes).toEqual([]);
+    expect(lookups(refused)).toEqual([WITH_TOKEN, PLAIN]);
+  });
+
+  it.each(['abc"def', "abc def", "abc\ndef", "abc\\def", "abc-def"])("never puts a token with anything but letters, digits and _ into curl's config (%j)", (bad) => {
+    const result = run(["--check", "--domain", "delio.example.com"], { env: { ODB_INSTALL_GITHUB_TOKEN: bad } });
+    expect(result.stdout).toContain("  ok    version: v0.1.151, the newest release");
+    expect(result.calls.filter((call) => call.includes("releases/latest"))).toEqual(["curl -fsS --max-time 15 https://api.github.com/repos/Braand-web/Deliobot/releases/latest"]);
+    expect(existsSync(join(result.dir, "calls.log.stdin")) ? readFileSync(join(result.dir, "calls.log.stdin"), "utf8") : "").not.toContain(bad);
+  });
+
   it("uses the stable channel once it is published, and never the latest tag", () => {
     const result = run(["--domain", "delio.example.com"], { env: { FAKE_STABLE: "200" } });
     expect(result.stdout).toContain("  ok    version: the stable channel");
-    expect(readFileSync(join(result.install, ".env"), "utf8")).toContain("ODB_IMAGE=ghcr.io/braand-web/deliobot:stable\n");
+    expect(readFileSync(join(result.install, ".env"), "utf8")).toContain("ODB_IMAGE=ghcr.io/braand-web/opendeliobot:stable\n");
     expect(script).not.toMatch(/opendeliobot:latest/);
     expect(result.calls.some((call) => call.includes("releases/latest"))).toBe(false);
   });
@@ -407,7 +439,7 @@ describe.skipIf(!posix)("deploy/install.sh", () => {
     expect(second.all).toContain("Delio is running at https://delio.example.com");
     expect(second.status).toBe(0);
     expect(readFileSync(env, "utf8").split("\n").filter((line) => /^[A-Z_]+=/.test(line))).toEqual([
-      "ODB_SIGNIN_SMTP_URL=smtps://mail.example.com", "DOMAIN=delio.example.com", "ODB_IMAGE=ghcr.io/braand-web/deliobot:v0.1.152", "COMPOSE_FILE=compose.yaml:compose.box.yaml",
+      "ODB_SIGNIN_SMTP_URL=smtps://mail.example.com", "DOMAIN=delio.example.com", "ODB_IMAGE=ghcr.io/braand-web/opendeliobot:v0.1.152", "COMPOSE_FILE=compose.yaml:compose.box.yaml",
     ]);
     expect(readFileSync(join(first.install, "compose.yaml"), "utf8")).toContain("name: opendeliobot");
     expect(readFileSync(join(first.install, "data", "messages.db"), "utf8")).toBe("chats");
@@ -596,8 +628,8 @@ describe.skipIf(!posix)("deploy/install.sh", () => {
     expect(statSync(join(first.install, "update.sh")).mode & 0o777).toBe(0o755);
     expect(first.stdout).toContain(`To update later, with a backup first and a way back:  sudo ${first.install}/update.sh`);
     const env = join(first.install, ".env");
-    const pin = `ghcr.io/braand-web/deliobot@sha256:${"a".repeat(64)}`;
-    writeFileSync(env, readFileSync(env, "utf8").replace("ODB_IMAGE=ghcr.io/braand-web/deliobot:stable", `ODB_IMAGE=${pin}`));
+    const pin = `ghcr.io/braand-web/opendeliobot@sha256:${"a".repeat(64)}`;
+    writeFileSync(env, readFileSync(env, "utf8").replace("ODB_IMAGE=ghcr.io/braand-web/opendeliobot:stable", `ODB_IMAGE=${pin}`));
     const again = run([], { env: { FAKE_STABLE: "200" } }, { dir: first.dir });
     expect(again.status).toBe(0);
     expect(again.stdout).toContain("  ok    version: the one update.sh pinned here; it stays until update.sh changes it");

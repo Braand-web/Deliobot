@@ -59,7 +59,7 @@ export interface RoutineRequestDefinition {
   continuity?: boolean;
   /** Skip by default, or keep at most one scheduled run waiting. */
   overlap?: "skip" | "queue";
-  /** Also run once each time Deliobot starts. Repeating routines only. */
+  /** Also run once each time OpenDeliobot starts. Repeating routines only. */
   runOnStartup?: boolean;
   /** Each run continues the conversation the run before worked in. */
   sameConversation?: boolean;

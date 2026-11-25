@@ -20,11 +20,11 @@
 set -eu
 
 settings() {
-  IMAGE_REPO=ghcr.io/braand-web/deliobot
+  IMAGE_REPO=ghcr.io/braand-web/opendeliobot
   STABLE_URL=https://raw.githubusercontent.com/Braand-web/Deliobot/channels/stable.json
   RELEASES_URL=https://api.github.com/repos/Braand-web/Deliobot/releases/latest
   REPOSITORY_FILES=https://raw.githubusercontent.com/Braand-web/Deliobot
-  PINNED='^ghcr\.io/braand-web/deliobot@sha256:[0-9a-f]{64}$'
+  PINNED='^ghcr\.io/braand-web/opendeliobot@sha256:[0-9a-f]{64}$'
   # One copy of this repository's files to use instead (https://… or file:///…), as deploy/install.sh takes it.
   SOURCE_ASKED="${ODB_INSTALL_SOURCE:-}"
   INSTALL_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/opendeliobot"
@@ -529,7 +529,7 @@ run_uninstall() {
   say "To remove the data too (some files belong to the container's other ids, so through Podman):"
   say "  podman unshare rm -rf $INSTALL_DIR"
   say "The copies of the data update.sh kept: podman volume ls --filter label=com.delio.role=update-backup"
-  say "The downloaded images: podman image ls ghcr.io/braand-web/deliobot"
+  say "The downloaded images: podman image ls ghcr.io/braand-web/opendeliobot"
 }
 
 main() {

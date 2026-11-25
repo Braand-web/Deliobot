@@ -147,8 +147,6 @@ export function AppTileView({ card, serviceStatus, pendingUrl, aliasDraft, busy,
               }
             } else if (reconnect) {
               actions.connect(card.slug, reconnect.alias, reconnect);
-            } else if (accounts.length === 0) {
-              actions.connect(card.slug);
             } else {
               actions.toggleAlias(card.slug);
             }

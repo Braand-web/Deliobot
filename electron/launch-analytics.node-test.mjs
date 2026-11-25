@@ -8,7 +8,7 @@ function launch({ choice = null, lastVersion = null, version = "0.1.170", packag
   const sent = [];
   let clock = 1_000;
   const analytics = createLaunchAnalytics({
-    token: "phc_test_key", fetch: async (url, init) => { sent.push({ url, init, body: JSON.parse(init.body) }); return { ok: true }; },
+    fetch: async (url, init) => { sent.push({ url, init, body: JSON.parse(init.body) }); return { ok: true }; },
     choice: () => choice, lastVersion, version, platform, packaged, env, now: () => clock, id: "launch-id",
   });
   return { analytics, sent, tick: (ms) => { clock += ms; } };
@@ -72,15 +72,8 @@ test("with no choice kept, only a first launch or one after a version that kept 
 
 test("a send that throws or rejects never reaches the launch", async () => {
   for (const fetch of [() => { throw new Error("offline"); }, async () => { throw new Error("offline"); }]) {
-    const analytics = createLaunchAnalytics({ token: "phc_test_key", fetch, choice: () => true, lastVersion: null, version: "1.0.0", platform: "win32", packaged: true, env: {} });
+    const analytics = createLaunchAnalytics({ fetch, choice: () => true, lastVersion: null, version: "1.0.0", platform: "win32", packaged: true, env: {} });
     assert.doesNotThrow(() => analytics.stage("started"));
   }
   await new Promise((resolve) => setImmediate(resolve));
-});
-
-test("sends nothing without a key", () => {
-  const sent = [];
-  const analytics = createLaunchAnalytics({ token: "", fetch: async (url) => { sent.push(url); return { ok: true }; }, choice: () => true, lastVersion: null, version: "1.0.0", platform: "linux", packaged: true, env: {} });
-  analytics.stage("started");
-  assert.deepEqual(sent, []);
 });

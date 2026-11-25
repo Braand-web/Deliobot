@@ -26,7 +26,7 @@ opendeliobot://bot/<bot-id>
   that bot's, nothing opens.
 - **`opendeliobot://bot/<bot-id>`** — the bot's current conversation, exactly
   as clicking the bot in the sidebar opens it: with threads hidden, its main
-  thread, the conversation the person last wrote in. Handy for a team map
+  thread, the one the person chose or else its oldest open conversation. Handy for a team map
   whose Chat button only knows the bot's id. A room's id works here too.
 
 ## What opening one does

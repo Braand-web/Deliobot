@@ -1,4 +1,4 @@
-// Deliobot policy layered over Playwright's vendored ARIA snapshot.
+// OpenDeliobot policy layered over Playwright's vendored ARIA snapshot.
 // Keep this pure so the exact field classification can be regression-tested
 // without a browser DOM.
 const SENSITIVE_FIELD =

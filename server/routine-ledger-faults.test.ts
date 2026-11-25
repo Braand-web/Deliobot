@@ -139,7 +139,7 @@ describe("a server killed in the middle of a run", () => {
     expect(h.report()).toMatchObject({ oldestUnconfirmed: null, lastConfirmed: { dueAt: START + HOUR, startedAt: START + HOUR, state: "running" } });
     await h.tickAt(START + HOUR + MINUTE);
     expect(h.started).toEqual(["thread-1", "thread-1"]);
-    expect(h.prompts[1]).toContain("was cut off when Deliobot restarted");
+    expect(h.prompts[1]).toContain("was cut off when OpenDeliobot restarted");
     expect(h.records()).toMatchObject([{ dueAt: START + HOUR, state: "running", attempts: 2, startedAt: START + HOUR }]);
     expect(h.report().due.boot).toEqual({ ...NONE, retried: 1 });
 
@@ -157,7 +157,7 @@ describe("a server killed in the middle of a run", () => {
     h.kill();
     await h.tickAt(START + HOUR + MINUTE);
     h.kill();
-    expect(h.runs()).toMatchObject([{ status: "failed", error: "Deliobot restarted while this routine was running" }]);
+    expect(h.runs()).toMatchObject([{ status: "failed", error: "OpenDeliobot restarted while this routine was running" }]);
     expect(h.records()).toMatchObject([{ state: "failed", attempts: 2, reason: "failed" }]);
     for (let minute = 2; minute < 60; minute += 5) await h.tickAt(START + HOUR + minute * MINUTE);
     expect(h.started).toEqual(["thread-1", "thread-1"]);

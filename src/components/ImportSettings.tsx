@@ -10,6 +10,8 @@ import { t } from "@/lib/i18n";
 import { importOutcome, localSetupImport, setupImportApi, skillsSummary, toolsSummary, type SetupImportClient } from "@/lib/setup-import";
 import { useStore } from "@/state/store";
 import { detectionCount, detectionSources, type SetupDetection, type SetupImportResult, type SetupSource } from "../../shared/setup-import";
+import { HermesMark } from "./HermesMark";
+import { OpenClawMark } from "./OpenClawMark";
 import { ClaudeMark, CodexMark, CursorMark, PresetProviderMark } from "./ProviderIcons";
 
 function SourceMarks({ sources }: { sources: readonly SetupSource[] }) {
@@ -21,6 +23,8 @@ function SourceMarks({ sources }: { sources: readonly SetupSource[] }) {
           case "codex": return <CodexMark key={source} size={12} />;
           case "cursor": return <CursorMark key={source} size={12} />;
           case "gemini": return <PresetProviderMark key={source} preset="google" size={12} />;
+          case "hermes": return <HermesMark key={source} size={12} />;
+          case "openclaw": return <OpenClawMark key={source} size={12} />;
           default: return <ClaudeMark key={source} size={12} />;
         }
       })}

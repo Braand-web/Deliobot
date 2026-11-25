@@ -13,7 +13,7 @@ import { hostTimeout } from "../../server/testing/host-timeout.ts";
 const DEPLOY = join(import.meta.dirname, "..", "..", "deploy");
 const RUNNER = join(DEPLOY, "update-runner.sh");
 const FAKE = join(import.meta.dirname, "fake-compose-docker.mjs");
-const REPO = "ghcr.io/braand-web/deliobot";
+const REPO = "ghcr.io/braand-web/opendeliobot";
 const posix = process.platform !== "win32";
 
 const id = (letter: string) => `sha256:${letter.repeat(64)}`;

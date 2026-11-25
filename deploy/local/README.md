@@ -63,7 +63,7 @@ ODB_BIND_ADDRESS=0.0.0.0 ODB_PUBLIC_URL=http://192.168.1.20:8080 docker compose 
 docker compose exec odb opendeliobot pair    # Link http://192.168.1.20:8080/pair#code=…
 ```
 
-Paste that link into Delio under **＋ → Connect to a server**; the app
+Paste that link into Delio under **＋ → Connect to another computer**; the app
 accepts plain http on a private network address. The other install methods
 are in [Self-hosting](../../docs/self-hosting.md#golden-paths).
 

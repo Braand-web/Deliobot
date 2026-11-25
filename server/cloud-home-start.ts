@@ -13,6 +13,7 @@ import {
 } from "./cloud-home.ts";
 import { procHidepid } from "./bot-box/hidepid.ts";
 import { boxMemory, heapSizeArgs } from "./box-memory.ts";
+import { BROWSER_CGROUP_ENV, prepareBrowserCgroup, spawnInCgroup } from "./browser/memory-cgroup.ts";
 import { clearRecordsFromOtherMachines } from "./data-dir-lease.ts";
 import { OOM_SCORE, protectInit, protectSupervisor, spawnWithOomScore } from "./oom-score.ts";
 import { restartLine, restartPolicy } from "./restart.ts";
@@ -33,17 +34,40 @@ export function passwdIds(passwd: string, name: string): { uid: number; gid: num
  * gives the server belongs here too (docker-image.test.ts checks): without ODB_DUCKDB_DIR the server found neither the
  * 1Password SDK nor DuckDB, which the image keeps in /app/duckdb, and said 1Password was "not available in this build". */
 const SERVER_ENV_NAMES = new Set([
+  // Antigravity accounts with no runtime of their own run Google's native CLI (server/drivers/antigravity-cli-install.ts):
+  // the Admin or a test home sets it, and without the name here a Cloud home could never turn it on.
+  "ODB_ANTIGRAVITY_NATIVE_CLI",
   "PATH", "SHELL", "HOSTNAME", "LANG", "LANGUAGE", "TZ", "TERM", "TMPDIR", "NO_COLOR", "NODE_ENV", "NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE", "SSL_CERT_DIR",
   "AGENT_BROWSER_EXECUTABLE_PATH", "ODB_STATIC_DIR", "ODB_DATA_DIR", "ODB_DUCKDB_DIR",
   "ODB_CLOUD_ROLE", "ODB_CLOUD_MACHINE_ID", "ODB_CLOUD_ADMIN_URL", "ODB_CLOUD_IMAGE", "ODB_PUBLIC_URL", "ODB_WEBHOOK_PUBLIC_URL",
   "ODB_CLOUD_TEAM_ID", "ODB_CLOUD_TEAM_NAME", "ODB_CLOUD_BOAT_URL", "ODB_CLOUD_VOICE_URL", "ODB_CLOUD_DECIDER_URL", "ODB_CLOUD_AI_URL", "ODB_CLOUD_X_URL", "ODB_CLOUD_HOSTING_URL", "ODB_TTS_DEFAULT_VOICE",
   "ODB_COMPOSIO_BROKER_URL", "ODB_COMPOSIO_BROKER",
+  // Ended engine sessions' prune (server/host/engine-session-sweep.ts), off unless the Admin sets it.
+  "ODB_ENGINE_SESSION_SWEEP",
   // The addresses a home answered at before it moved to another provider, which still forward to it.
   "ODB_CLOUD_LEGACY_ORIGINS",
   // The bot box switch (server/bot-box/detect.ts): the Admin may turn a home's box off for support.
   "ODB_BOT_BOX",
+  // Tool caches into one folder in each bot box's HOME (server/bot-box/tool-caches.ts): off unless the Admin turns it on.
+  "ODB_CACHE_ROOT",
+  // Their cap (server/cache-sweep/limits.ts): the sweeper's switch, off unless the Admin turns it on, and the caps' overrides.
+  "ODB_CACHE_SWEEP", "ODB_CACHE_CAP_TOOLS", "ODB_CACHE_CAP_APP",
+  // The image's own engine CLIs before older copies in the data folder (server/image-engines.ts), for one test Cloud first.
+  "ODB_IMAGE_ENGINES",
+  // The conversation logs' cap and age limit (server/host/thread-log-sweep.ts), off unless the Admin sets it.
+  "ODB_THREAD_LOG_SWEEP", "ODB_THREAD_LOG_CAP", "ODB_THREAD_LOG_CUT",
   // An ended Cloud started only for its owner's export: the server runs frozen (server/move-freeze.ts).
   "ODB_CLOUD_EXPORT_ONLY",
+  // The idle task workspaces' dependency sweep (server/host/start-upkeep.ts), off unless set: the Admin may turn it on.
+  "ODB_TASK_WORKSPACE_RETENTION",
+  // The delete-time cleanup's switch (server/host/conversation-folder-cleanup.ts): off unless the Admin sets it on.
+  "ODB_CONVERSATION_FOLDER_CLEANUP",
+  // The orphan sweep's switch (server/host/orphan-sweep.ts): off, report or remove, set per home by the Admin.
+  "ODB_ORPHAN_SWEEP", "ODB_ORPHAN_SWEEP_MAX_SHARE",
+  // The idle reclaim's switch (server/host/idle-reclaim.ts): off, report or remove, set per home by the Admin.
+  "ODB_IDLE_RECLAIM",
+  // The full tool results' day-old sweep (server/host/tool-results-sweep.ts), off unless the Admin sets it.
+  "ODB_TOOL_RESULTS_SWEEP",
 ]);
 export function serverEnvironmentAllowed(name: string): boolean {
   return SERVER_ENV_NAMES.has(name) || name.startsWith("LC_");
@@ -435,6 +459,13 @@ export function startCloudHome(processEnv: NodeJS.ProcessEnv = process.env) {
   }
   // Names only, never values: what the server does not get from here.
   if (dropped.length) console.log(`cloud home: not passed to the server: ${dropped.join(", ")}`);
+  // The bots' Chrome under a memory limit the kernel enforces (browser/memory-cgroup.ts); the server is started in its own
+  // leaf beside it. Root only: nothing changes where it can't be set up.
+  const browserLimit = ids && process.platform === "linux" ? prepareBrowserCgroup(env, boxMemory().bytes, ids) : null;
+  if (browserLimit) console.log(`cloud home: ${browserLimit.line}`);
+  const browserGroup = browserLimit?.group ?? null;
+  if (browserGroup) server[BROWSER_CGROUP_ENV] = browserGroup.browsers;
+  const inServerGroup = <T>(start: () => T): T => browserGroup ? spawnInCgroup(browserGroup.server, browserGroup.base, start) : start();
   const children: ChildProcess[] = [];
   let stopping = false, restartTimer: ReturnType<typeof setTimeout> | undefined;
   const stop = (failed: boolean) => {
@@ -457,7 +488,7 @@ export function startCloudHome(processEnv: NodeJS.ProcessEnv = process.env) {
   const policy = restartPolicy();
   const runServer = () => {
     if (stopping) return;
-    watch(spawnWithOomScore(OOM_SCORE.server, () => spawnWithSecrets(process.execPath, [...heapSizeArgs(boxMemory().cgroupLimit, server.NODE_OPTIONS), join(here, "index.js")], server, secrets, ids)), (code, signal) => {
+    watch(inServerGroup(() => spawnWithOomScore(OOM_SCORE.server, () => spawnWithSecrets(process.execPath, [...heapSizeArgs(boxMemory().cgroupLimit, server.NODE_OPTIONS), join(here, "index.js")], server, secrets, ids))), (code, signal) => {
       if (!policy.again(code, stopping, signal)) return false;
       console.warn(`cloud home: ${restartLine(code, policy.delayMs())}`);
       if (policy.delayMs() > 0) restartTimer = setTimeout(runServer, policy.delayMs());
