@@ -41,7 +41,7 @@ describe("linkSharedCodexHome", () => {
     linkSharedCodexHome(shared, plan, "own", "win32");
     expect(isLink(join(plan, "config.toml"))).toBe(false);
     expect(readFileSync(join(plan, "config.toml"), "utf8")).toBe("shared config");
-    expect(readFileSync(join(plan, "AGENTS.md"), "utf8")).toBe("shared instructions");
+    expect(existsSync(join(plan, "AGENTS.md"))).toBe(false);
     expect(readFileSync(join(plan, "auth.json"), "utf8")).toBe("private plan login");
     write(join(shared, "config.toml"), "updated shared config");
     linkSharedCodexHome(shared, plan, "own", "win32");

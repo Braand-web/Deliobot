@@ -1,6 +1,6 @@
 import { memo, useState, type ReactNode } from "react";
 import { ChevronDown, Monitor, Send, ShieldCheck, TriangleAlert } from "lucide-react";
-import { useStore, type Bot, type Message } from "@/state/store";
+import { type Bot, type Message } from "@/state/store";
 import { cn } from "@/lib/cn";
 import { t, tFromServer } from "@/lib/i18n";
 import type { LocaleKey } from "@/locales";
@@ -15,6 +15,7 @@ import { useInboxOrigin } from "./InboxLine";
 import { yourComputerAsk } from "@/lib/your-computer";
 import { computerAskWords } from "@/lib/computer-ask";
 import { DESKTOP_DOWNLOAD_URL } from "../../shared/computer-ask";
+import { useStoreDispatch } from "@/state/store-select";
 
 interface ApprovalLabels {
   [tool: string]: LocaleKey;
@@ -253,7 +254,7 @@ export const PendingApprovalPanel = memo(function PendingApprovalPanel({
 });
 
 function EditableDrafts({ drafts, threadId, requestId }: { drafts: NonNullable<NonNullable<NonNullable<Message["card"]>["outboundRequest"]>["drafts"]>; threadId: string; requestId: string }) {
-  const { dispatch } = useStore();
+  const dispatch = useStoreDispatch();
   return <OutboundDraftPreview drafts={drafts} onEdit={(edited) => dispatch({ type: "decideRequest", threadId, requestId, behavior: "deny", message: "Edited by the user.", edited })} />;
 }
 
@@ -273,7 +274,7 @@ export function PendingApprovalActions({
   /** Marks each answer for the surface that shows it, as data-<tag>-action. */
   tag?: string;
 }) {
-  const { dispatch } = useStore();
+  const dispatch = useStoreDispatch();
   const ownerOrAdmin = useOwnerOrAdmin();
   const isRoutineRequest = isRoutineApproval(pending);
   const isSkillRequest = isSkillApproval(pending);

@@ -7,7 +7,7 @@ The shape is `../story.md` §4 (hook → tension → reveal → proof → payoff
 Everything that claims to be the product is the product. One invented button loses everyone who uses it.
 
 1. Where it comes from, best first: the person's recording or screenshots (ask, naming the screen per beat, when the proof needs one you cannot capture); Figma frames, rebuilt as states of one app so the change between two frames is a real click (`/figma`); walking the flow yourself when no sign-in is needed; `npx hyperframes capture` of the feature's own page; the product's code, PR or docs to confirm today's labels.
-2. Missing a screen: a clearly labelled placeholder ("Screenshot: Settings → Motion"), said in the reply. A feature with nothing visible (speed, an API): the real UI that exposes it, a real analogue the viewer knows, real terminal output, or a checklist of real facts. Never a made-up dashboard.
+2. Missing a screen: a clearly labelled placeholder ("Screenshot: the Motion settings"), said in the reply. A feature with nothing visible (speed, an API): the real UI that exposes it, a real analogue the viewer knows, real terminal output, or a checklist of real facts. Never a made-up dashboard.
 3. Logo, icons and fonts are the brand's own files (`/media-use` for logos); never redrawn from memory, never a coloured square for an app icon.
 
 ## The product on screen

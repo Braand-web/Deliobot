@@ -15,7 +15,7 @@ export interface AutomationNote {
 }
 
 const PREFIX = "[Wait finished: ";
-const SECOND_START = /(?:^|\n\n)\[OpenDeliobot: this run's first start ([^\]]*?) before it finished\. [^\]]*\]$/;
+const SECOND_START = /(?:^|\n\n)\[Deliobot: this run's first start ([^\]]*?) before it finished\. [^\]]*\]$/;
 
 /** The waits a transcript's own cards record: what each was called and what it was to do afterwards. */
 export type KnownWait = { waitId?: string; label: string; followUp: string };

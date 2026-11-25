@@ -2,11 +2,11 @@ import { Lock } from "lucide-react";
 
 import { ownAiLocked, useDelioAccount } from "@/lib/delio-account";
 import { t } from "@/lib/i18n";
-import { useStore } from "@/state/store";
+import { useStoreDispatch } from "@/state/store-select";
 
 /** Stands in for the person's own AI (their keys, their Claude, ChatGPT or other sign-ins) on plans that do not include it. */
 export function OwnAiLocked() {
-  const { dispatch } = useStore();
+  const dispatch = useStoreDispatch();
   return (
     <section data-own-ai-locked className="flex items-center gap-3 rounded-xl bg-card px-4 py-3">
       <Lock size={15} aria-hidden="true" className="shrink-0 text-ink-secondary" />

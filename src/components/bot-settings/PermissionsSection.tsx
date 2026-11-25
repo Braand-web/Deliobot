@@ -184,7 +184,7 @@ function OutboundControl({ bot, fullAccess, onChange }: { bot: Bot; fullAccess: 
             type="button"
             aria-pressed={policy.policy === value}
             onClick={() => {
-              if (value !== policy.policy) onChange({ policy: value, ...(policy.allowRules?.length ? { allowRules: policy.allowRules } : {}), ...(policy.askRules?.length ? { askRules: policy.askRules } : {}) });
+              if (value !== bot.outbound?.policy) onChange({ policy: value, ...(policy.allowRules?.length ? { allowRules: policy.allowRules } : {}), ...(policy.askRules?.length ? { askRules: policy.askRules } : {}) });
             }}
             className={cn(
               "flex-1 rounded-md px-2.5 py-1.5 text-[13px] font-medium",

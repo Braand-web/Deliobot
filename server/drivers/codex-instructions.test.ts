@@ -24,10 +24,10 @@ describe("Codex effective developer instructions", () => {
       `Bot rules.\n\n${CODEX_LINUX_SANDBOX_NOTE}\n\nNative rules.`,
     );
     expect(codexDeveloperInstructions(config, "", CODEX_LINUX_SANDBOX_NOTE)).toBe(
-      `No OpenDeliobot bot-specific instructions remain.\n\n${CODEX_LINUX_SANDBOX_NOTE}\n\nNative rules.`,
+      `No Deliobot bot-specific instructions remain.\n\n${CODEX_LINUX_SANDBOX_NOTE}\n\nNative rules.`,
     );
     expect(codexDeveloperInstructions({}, "", CODEX_LINUX_SANDBOX_NOTE)).toBe(
-      `No OpenDeliobot bot-specific instructions remain.\n\n${CODEX_LINUX_SANDBOX_NOTE}`,
+      `No Deliobot bot-specific instructions remain.\n\n${CODEX_LINUX_SANDBOX_NOTE}`,
     );
     expect(codexDeveloperInstructions({}, "Bot rules.", "")).toBe("Bot rules.");
   });

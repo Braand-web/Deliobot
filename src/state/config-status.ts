@@ -224,6 +224,8 @@ export interface BrowserEngineSummary {
   chrome?: string;
   installing?: boolean;
   installError?: string;
+  /** agent-browser runs Chromium's headless shell, which many sites refuse, only because no Google Chrome is installed here. */
+  noChrome?: true;
   /** Whether a browser profile can use "My Chrome", the person's own running
    * Chrome: only where the bots run on their computer (the desktop app). */
   myChrome?: boolean;

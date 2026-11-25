@@ -4,14 +4,15 @@ import type { DelioCatalog } from "../../shared/delio-plans";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 import { useDelioAccount } from "@/lib/delio-account";
-import { api, useStore } from "@/state/store";
+import { api } from "@/state/store";
 import { DelioPlansScreen } from "./cloud-buy/DelioPlansScreen";
 import { CLOSE, Heading, ON_NIGHT, QUIET, SCREEN, SHEET } from "./cloud-buy/parts";
+import { useStoreDispatch, useStoreSelector } from "@/state/store-select";
 
 /** The plans sheet every "Try Cloud", "See plans" and "Upgrade" in the app opens. */
 export function DelioPlansDialog() {
-  const { state, dispatch } = useStore();
-  const open = Boolean(state.cloudAdd);
+  const cloudAdd = useStoreSelector((s) => s.cloudAdd), dispatch = useStoreDispatch();
+  const open = Boolean(cloudAdd);
   const account = useDelioAccount(open);
   const accountKey = account?.connected ? `${account.portal}/${account.workspace}` : null;
   const [catalog, setCatalog] = useState<DelioCatalog | null | undefined>(undefined);

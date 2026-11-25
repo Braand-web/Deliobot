@@ -7,7 +7,7 @@
     "timestamp": "1700000000",
     "nonce": "nonce-0123456789abcdef",
     "body": "{\"v\":1,\"token\":\"a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"collapseId\":\"opendelio.th_1.7\",\"notification\":{\"kind\":\"approval\",\"title\":\"Scout in Launch needs approval\",\"botId\":\"bot_1\",\"botName\":\"Scout\",\"threadId\":\"th_1\",\"roomId\":\"grp_1\",\"roomName\":\"Launch\"}}",
-    "expected": "EZygRqHh-KpmISJhENeyTC12RticqJ9V8jZ_lcQ7XB4"
+    "expected": "vD2xMbpCJEtuJJtrDul983CLie6fEVStihrzVvkZbes"
   },
   "accept": {
     "register": [

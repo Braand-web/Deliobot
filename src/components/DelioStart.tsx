@@ -6,7 +6,7 @@ import { DelioConnectWaiting } from "@/components/keys/DelioAccountCard";
 import { productName } from "@/lib/brand";
 import { useDelioConnect, type DelioAccount } from "@/lib/delio-account";
 import { t } from "@/lib/i18n";
-import { useStore } from "@/state/store";
+import { useStoreDispatch } from "@/state/store-select";
 
 /** Whether the installed app must first be connected to a Delio account, or given a plan, before anything else. */
 export function delioStartStep(account: DelioAccount | null): "connect" | "plan" | null {
@@ -18,7 +18,7 @@ export function delioStartStep(account: DelioAccount | null): "connect" | "plan"
 
 /** The installed app's first screen: create a Delio account or sign in, then choose a plan. */
 export function DelioStart({ step }: { step: "connect" | "plan" }) {
-  const { dispatch } = useStore();
+  const dispatch = useStoreDispatch();
   const { flow, busy, error, connect } = useDelioConnect();
   const waiting = flow?.state === "waiting";
   return (

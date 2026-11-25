@@ -183,7 +183,7 @@ export function retryNote(cause: RoutineRetryCause): string {
 /** The second start's whole message when the first start's is already in the conversation: the routine's instructions,
  * attachments and previous-run excerpt are read from there and not sent, and paid for, a second time. */
 export function continueNote(cause: RoutineRetryCause): string {
-  return `[OpenDeliobot: this run's first start ${FIRST_START[cause]} before it finished. The routine's instructions are in the message above ` +
+  return `[Deliobot: this run's first start ${FIRST_START[cause]} before it finished. The routine's instructions are in the message above ` +
     "and are not repeated here. Check what the first start already did (files, messages sent, anything started) so nothing is done twice; then finish the routine.]";
 }
 

@@ -11,7 +11,7 @@ import { PhonePush, PhonePushAccessSource, RELAY_UNAVAILABLE_PAUSE_MS, type Phon
 /** The bodies and the signature vector the Admin's tests read from their own copy of this file (opendelio-cloud
  * tests/fixtures/cloud-home-push.json): both copies must hash to this. */
 const FIXTURE_FILE = new URL("../cloudflare/control-plane/test/fixtures/cloud-home-push.json", import.meta.url);
-const FIXTURE_SHA256 = "1cac2c96498e57fb2527813f84be74d453f77d058a4499674afab69f5c3da47d";
+const FIXTURE_SHA256 = "d5f88078a41ed2fd163db177b9b29443b12fa66b3adbe98da3edb73dbe5b7170";
 
 const ADMIN = "https://cloud.delio.test";
 const SECRET = "home-bootstrap-secret-0123456789abcdefghijklmnopq";

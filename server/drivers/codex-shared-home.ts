@@ -26,7 +26,7 @@ const USER_INSTRUCTIONS = new Set(["AGENTS.md", "AGENTS.override.md"]);
 /** Kept per home. */
 const LOCAL = new Set(["log", "memories", "tmp", ".DS_Store", ".delio-shared-config.json"]);
 /** Copied, not linked, on Windows, where a file link needs Developer Mode. */
-const SHARED_CONFIG = new Set(["config.toml", "AGENTS.md"]);
+const SHARED_CONFIG = new Set(["config.toml"]);
 /** Locks that guard shared state: a home's own copy gives way to the shared one once no lock in it is held. */
 const RUNTIME_LOCKS = new Set(["mcp-oauth-locks"]);
 /** What Codex writes into a folder by itself and rebuilds: a folder holding nothing else gives way to a link. */

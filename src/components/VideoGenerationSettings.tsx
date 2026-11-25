@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 
-import { api, useStore, type ConfigStatus } from "@/state/store";
+import { api, type ConfigStatus } from "@/state/store";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 import type { LocaleKey } from "@/locales";
@@ -10,6 +10,7 @@ import {
 } from "../../shared/video-generation";
 import { SettingRow, Switch } from "./SettingsPrimitives";
 import { Select } from "./Select";
+import { useStoreDispatch, useStoreSelector } from "@/state/store-select";
 
 type ModelChoice = { id: string; name: string; group: "recommended" | "more" };
 export type FalModelList = { source: "fal" | "builtin"; models: ModelChoice[] };
@@ -53,9 +54,9 @@ export function MusicGenerationSettings({ keyCard }: { keyCard?: ReactNode }) {
 function MediaGenerationSettings({ kind, keyCard }: { kind: MediaKind; keyCard?: ReactNode }) {
   const spec = MEDIA[kind];
   const k = (suffix: string) => `${spec.prefix}.${suffix}` as LocaleKey;
-  const { state, dispatch } = useStore();
-  const video = state.config?.[spec.configKey];
-  const falKey = state.config?.imageGen?.falConfigured === true || state.config?.imageGen?.delioMedia === true;
+  const config = useStoreSelector((s) => s.config), dispatch = useStoreDispatch();
+  const video = config?.[spec.configKey];
+  const falKey = config?.imageGen?.falConfigured === true || config?.imageGen?.delioMedia === true;
   const enabled = video?.enabled !== false;
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +64,7 @@ function MediaGenerationSettings({ kind, keyCard }: { kind: MediaKind; keyCard?:
   const models = useFalModels(kind, enabled);
   const model = video?.model || spec.defaultModel;
   const choices: ModelChoice[] = models && models.source !== "builtin" ? models.models : spec.choices.map((choice) => ({ ...choice, group: "recommended" }));
-  const disabled = saving || !state.config;
+  const disabled = saving || !config;
 
   const save = async (patch: object) => {
     setSaving(true);

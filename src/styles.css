@@ -811,6 +811,7 @@
   --identity-coral: #ca361e;
   --identity-silver: #676e78;
   --identity-chrome: #636e7f;
+  --tracking-ui: 0.012em;
 }
 
 /* ── Abyss ── Deep-sea navy, lit in cyan. */
@@ -865,6 +866,7 @@
   --identity-coral: #E5634E;
   --identity-silver: #A8ADB4;
   --identity-chrome: #B3BAC4;
+  --tracking-ui: 0;
 }
 
 /* ── Sakura ── Blush paper with a deep rose accent. */
@@ -919,6 +921,7 @@
   --identity-coral: #d1381f;
   --identity-silver: #6a727c;
   --identity-chrome: #667284;
+  --tracking-ui: 0.012em;
 }
 
 /* ── Cobalt ── Crisp white and deep black, lit in electric cobalt. */
@@ -973,6 +976,7 @@
   --identity-coral: #db3a20;
   --identity-silver: #707782;
   --identity-chrome: #6b778a;
+  --tracking-ui: 0.012em;
 }
 
 /* ── Sky ── Soft near-white under a sky-blue glow. */
@@ -1027,6 +1031,7 @@
   --identity-coral: #d5381f;
   --identity-silver: #6c737e;
   --identity-chrome: #677485;
+  --tracking-ui: 0.012em;
 }
 
 /* ── Daylight ─────────────────────────────────────────────────────────────

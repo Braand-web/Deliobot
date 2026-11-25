@@ -1,21 +1,22 @@
 import { useState } from "react";
 
 import { t } from "@/lib/i18n";
-import { useStore, type Bot } from "@/state/store";
+import { type Bot } from "@/state/store";
 import { Select } from "../Select";
 import { Switch } from "../SettingsPrimitives";
+import { useStoreSelector } from "@/state/store-select";
 
 type Coder = NonNullable<Bot["coder"]>;
 const ROUNDS = [1, 2, 3, 4, 5, 6];
 
 /** Coder mode: checks after every change, a review by another engine, and the rounds the bot gets to fix them. */
 export function CoderCard({ bot, onChange }: { bot: Bot; onChange: (coder: Coder | null) => void }) {
-  const { state } = useStore();
+  const instances = useStoreSelector((s) => s.instances);
   const coder: Coder = bot.coder ?? { enabled: true };
   const [commands, setCommands] = useState((coder.verify ?? []).join("\n"));
   const [previewUrl, setPreviewUrl] = useState(coder.previewUrl ?? "");
   const set = (patch: Partial<Coder>) => onChange({ ...coder, ...patch });
-  const reviewers = state.instances
+  const reviewers = instances
     .filter((instance) => instance.snapshot.state === "available" && instance.snapshot.authenticated !== false)
     .flatMap((instance) => instance.models.options
       .filter((model) => !model.orgBlocked && !(instance.instanceId === bot.modelSelection.instanceId && model.id === bot.modelSelection.model))

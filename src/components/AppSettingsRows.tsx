@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { api, useStore, type ConfigStatus } from "@/state/store";
+import { api, type ConfigStatus } from "@/state/store";
 import { acpPlanLinesEnabled, agentsToolBridgeEnabled, builtInBrowserEnabled, llmThreadTitlesEnabled, parallelRoomJobsEnabled, showToolCallsEnabled, skillAuthoringEnabled, skillsLibraryEnabled } from "@/lib/feature-flags";
 import { localeChoices } from "@/locales";
 import { activeLocale, activePackComplete, t } from "@/lib/i18n";
@@ -381,9 +381,9 @@ const FEATURE_SWITCHES = {
 
 /** One on/off row for a server feature switch that has no other control. */
 export function FeatureSwitchRow({ feature }: { feature: keyof typeof FEATURE_SWITCHES }) {
-  const { state, dispatch } = useStore();
+  const features = useStoreSelector((s) => s.config), dispatch = useStoreDispatch();
   const spec = FEATURE_SWITCHES[feature];
-  const enabled = spec.enabled(state.config);
+  const enabled = spec.enabled(features);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 

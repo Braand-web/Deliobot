@@ -26,7 +26,7 @@ variables, so `resolve` (bgm/sfx/image/icon/voice/avatar-video) and the audio
 engine's TTS all go through the host. With host access, skip CLI install and
 sign-in, prefer the host's own HeyGen tools where it has them, never fall back
 to a local or third-party generator on your own, and relay a refused call's
-message (for example "add a key in Settings > Account") as written.
+message (for example "add a key in your account settings") as written.
 
 ## Providers
 
