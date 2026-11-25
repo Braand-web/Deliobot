@@ -139,6 +139,6 @@ describe("automationNote", () => {
     expect(lastLine({} as Bot, [card, asked, wait], [], false)).toBe("Following up on the wait: the report");
     setLocale("pt-br");
     expect(automationNoteTitle(automationNote(wait, knownWaits([card]))!)).toBe("Continuação da espera: the report");
-    expect(automationNoteTitle(automationNote(line(continueNote("restarted")))!)).toBe("Retomada depois que o OpenDeliobot reiniciou");
+    expect(automationNoteTitle(automationNote(line(continueNote("restarted")))!)).toBe("Retomada depois que o Deliobot reiniciou");
   });
 });

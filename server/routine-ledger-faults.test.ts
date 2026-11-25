@@ -211,7 +211,7 @@ describe("a computer asleep, or a server down, across due times", () => {
     await h.tickAt(START + 3 * HOUR + 20 * MINUTE);
     expect(h.started).toEqual(["thread-1"]);
     expect(h.runs().map((run) => [run.scheduledFor, run.status])).toEqual([[START + HOUR, "missed"], [START + 3 * HOUR, "running"]]);
-    expect(h.runs()[0]).toMatchObject({ error: "Missed 2 scheduled runs because this computer was asleep or OpenDeliobot was not running", errorCode: "routines.server.missedMany",
+    expect(h.runs()[0]).toMatchObject({ error: "Missed 2 scheduled runs because this computer was asleep or Deliobot was not running", errorCode: "routines.server.missedMany",
       errorParams: { count: 2, why: "routines.server.part.computerOff" }, skipped: { count: 2, firstAt: START + HOUR, lastAt: START + 2 * HOUR }, seenAt: START + 3 * HOUR + 20 * MINUTE });
     expect(h.failed).toEqual([]);
     expect(h.routine()).toMatchObject({ enabled: true, nextRunAt: START + 4 * HOUR });
@@ -242,7 +242,7 @@ describe("a computer asleep, or a server down, across due times", () => {
     h.manager.create(daily);
     await h.tickAt(START + 3 * DAY + 13 * HOUR);
     expect(h.started).toEqual([]);
-    expect(h.runs()).toMatchObject([{ status: "missed", scheduledFor: START + DAY, error: "Missed 3 scheduled runs because this computer was asleep or OpenDeliobot was not running",
+    expect(h.runs()).toMatchObject([{ status: "missed", scheduledFor: START + DAY, error: "Missed 3 scheduled runs because this computer was asleep or Deliobot was not running",
       skipped: { count: 3, firstAt: START + DAY, lastAt: START + 3 * DAY, told: true } }]);
     expect(h.runs()[0]).not.toHaveProperty("seenAt");
     expect(h.failed).toHaveLength(1);
@@ -251,7 +251,7 @@ describe("a computer asleep, or a server down, across due times", () => {
     const once = harness();
     once.manager.create({ ...daily, schedule: { type: "once" as const, at: START + HOUR } });
     await once.tickAt(START + 14 * HOUR);
-    expect(once.runs()).toMatchObject([{ status: "missed", error: "Missed because this computer was asleep or OpenDeliobot was not running until more than 12 hours after its time" }]);
+    expect(once.runs()).toMatchObject([{ status: "missed", error: "Missed because this computer was asleep or Deliobot was not running until more than 12 hours after its time" }]);
     expect(once.runs()[0]).not.toHaveProperty("skipped");
     expect(once.records()).toMatchObject([{ state: "missed", reason: "computer-off" }]);
   });

@@ -165,7 +165,7 @@ describe("a secret a card saves to the Vault", () => {
     one.vaultStore.saveSecret({ name: "Stripe secret key", value: KEY, source: "card", bots: ["ledger"], refOnly: true });
     expect((await one.cards.requestCredential({ ...one.bot, id: "quill", name: "Quill" }, "t9", { label: "Stripe secret key", reason: "r", delivery: "ref" })).status).toBe(201);
     expect(await ask(one, "t1", { delivery: "file" })).toMatchObject({ status: 201, body: { savedAs: "ref" } });
-    const savedAsRef = "Stripe secret key is already saved, but only for OpenDeliobot's own tools. Ledger needs it as a file for its commands, so enter it again here.";
+    const savedAsRef = "Stripe secret key is already saved, but only for Deliobot's own tools. Ledger needs it as a file for its commands, so enter it again here.";
     expect(one.lines.at(-1)!.secret!.description).toContain(savedAsRef);
     expect(one.lines[0]!.secret!.description).not.toContain(savedAsRef);
   });
