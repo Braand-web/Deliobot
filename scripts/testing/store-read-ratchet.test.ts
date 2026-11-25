@@ -92,7 +92,7 @@ const READS: Record<string, number> = {
   "src/components/OpenAiCompatServers.tsx": 5,
   "src/components/OpenFilesButton.tsx": 1,
   "src/components/OptionCard.tsx": 1,
-  "src/components/PendingApproval.tsx": 1,
+  "src/components/PendingApproval.tsx": 2,
   "src/components/PlaceTint.tsx": 1,
   "src/components/PostizCard.tsx": 1,
   "src/components/ProIntroduction.tsx": 3,

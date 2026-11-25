@@ -185,7 +185,7 @@ describe("a bot's Data tables in a full backup", () => {
   it("says which bot's Data query holds its database, and that a restart ends it", async () => {
     const running = await releaseDataForBackup({ release: async () => [{ botId: "b1", why: "running" }] }, () => "Ledger").catch((error: unknown) => error);
     expect(running).toMatchObject({ status: 409, errorKey: "serverError.backup.dataQueryRunning", errorParams: { bot: "Ledger" } });
-    expect((running as Error).message).toBe("Ledger's Data query is still running and did not stop when asked. Fully quit and reopen OpenDeliobot (or restart the hosted server) to stop it, then try again.");
+    expect((running as Error).message).toBe("Ledger's Data query is still running and did not stop when asked. Fully quit and reopen Deliobot (or restart the hosted server) to stop it, then try again.");
     const failed = await releaseDataForBackup({ release: async () => [{ botId: "b1", why: "failed", detail: "IO Error: disk full" }] }).catch((error: unknown) => error);
     expect(failed).toMatchObject({ status: 409, errorKey: "serverError.backup.dataCloseFailed" });
     expect((failed as Error).message).toContain("b1's Data tables could not be closed for the backup (IO Error: disk full).");

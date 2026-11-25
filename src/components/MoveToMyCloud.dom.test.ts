@@ -126,7 +126,7 @@ it("the folder is lent by default, commands only when turned on, and the choice 
   expect(q('[data-move-choice="folder"]')!.textContent).toBe("Let Ada open and edit ~/code/app");
   expect(toggle("folder")!.getAttribute("aria-checked")).toBe("true");
   expect(toggle("commands")!.getAttribute("aria-checked")).toBe("false");
-  expect(q('[data-move-choice="commands"]')!.textContent).toBe("Let your Clouds run commands on this computerAs you, for the bots on all your own Clouds, while this computer is on. You confirm on this computer and can turn it off from the OpenDeliobot icon.");
+  expect(q('[data-move-choice="commands"]')!.textContent).toBe("Let your Clouds run commands on this computerAs you, for the bots on all your own Clouds, while this computer is on. You confirm on this computer and can turn it off from the Deliobot icon.");
   await click(toggle("commands"));
   expect(q("[data-move-change=commands]")).toBeNull();
   await click(toggle("folder"));
