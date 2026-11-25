@@ -79,7 +79,7 @@ jobs:
           [ -f "$res/server/desktop-entry.mjs" ] || { echo "::error::missing $res/server/desktop-entry.mjs"; fail=1; }
           # package.json "main" is electron/boot.mjs, which loads main.mjs: a missing or broken entry
           # inside app.asar is an app that never opens. The packed exe reads its own asar as Node.
-          exe=release/win-unpacked/OpenDeliobot.exe
+          exe=release/win-unpacked/Deliobot.exe
           for entry in boot.mjs main-compile-cache.mjs main.mjs; do
             ELECTRON_RUN_AS_NODE=1 "$exe" --check "$res/app.asar/electron/$entry" || {
               echo "::error::app.asar/electron/$entry is missing or does not parse"; fail=1; }
