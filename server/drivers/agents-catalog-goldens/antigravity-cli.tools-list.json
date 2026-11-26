@@ -143,6 +143,30 @@
       }
     },
     {
+      "name": "read_public_url",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "url"
+        ],
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "offset": {
+            "type": "integer",
+            "maximum": 2097152
+          },
+          "max_chars": {
+            "type": "integer",
+            "minimum": 256,
+            "maximum": 16000
+          }
+        }
+      }
+    },
+    {
       "name": "list_rooms",
       "inputSchema": {
         "type": "object",
@@ -820,11 +844,11 @@
               "openaiApiKey",
               "anthropicApiKey",
               "openrouterApiKey",
+              "falApiKey",
               "mistralApiKey",
               "cerebrasApiKey",
               "groqApiKey",
               "greenferenceApiKey",
-              "modelgoApiKey",
               "metaApiKey",
               "deepseekApiKey",
               "email"

@@ -96,8 +96,8 @@ export function signInOutcome(state: { done?: unknown; cancelled?: unknown; expi
  * credential card uses. */
 export function signInResumePrompt(site: string, outcome: "done" | "cancelled"): string {
   return outcome === "done"
-    ? `OpenDeliobot sign-in update: the person finished signing in to ${site}. Check you are signed in, then continue the task that paused for it. Never ask them for a password or a one-time code in chat.`
-    : `OpenDeliobot sign-in update: the person declined to sign in to ${site}. Continue without it if you can, or briefly explain what you could not do. Never ask them for a password or a one-time code in chat.`;
+    ? `Deliobot sign-in update: the person finished signing in to ${site}. Check you are signed in, then continue the task that paused for it. Never ask them for a password or a one-time code in chat.`
+    : `Deliobot sign-in update: the person declined to sign in to ${site}. Continue without it if you can, or briefly explain what you could not do. Never ask them for a password or a one-time code in chat.`;
 }
 
 export const HANDOFF_NEEDS: readonly HandoffNeed[] = ["sign_in", "captcha", "payment", "approval", "other"];
