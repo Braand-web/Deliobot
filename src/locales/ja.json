@@ -8258,5 +8258,11 @@
   "whatsNew.cloud.pictureAlt": "新しい Cloud サイトのホーム画面：各 Cloud のプランと状態、今月の使用量、サインイン中のアプリ。",
   "whatsNew.team.picture": "Ada、Ben、Cleo、Dara がそれぞれ自分の Delio を持ち、1 つの Team Cloud でチームのサポートボットと営業ボットを共有しています。",
   "whatsNew.team.support": "サポート",
-  "whatsNew.team.sales": "営業"
+  "whatsNew.team.sales": "営業",
+  "delioAccount.promoLabel": "プロモコード",
+  "delioAccount.promoApply": "有効にする",
+  "delioAccount.promoConnectFirst": "まずサインインしてから、ここにコードを入力してください。",
+  "delioAccount.promoDone": "コードを受け付けました。",
+  "delioAccount.promoFailed": "このコードは使用できませんでした。確認してもう一度お試しください。",
+  "delioPlans.havePromo": "プロモコードを持っています"
 }

@@ -7515,5 +7515,11 @@
   "whatsNew.cloud.pictureAlt": "Главная страница нового сайта Cloud: каждое облако с тарифом и статусом, использование за этот месяц и приложения, в которые выполнен вход.",
   "whatsNew.team.picture": "Ada, Ben, Cleo и Dara, у каждого свой Delio, вместе пользуются ботами поддержки и продаж команды в одном Team Cloud.",
   "whatsNew.team.support": "Поддержка",
-  "whatsNew.team.sales": "Продажи"
+  "whatsNew.team.sales": "Продажи",
+  "delioAccount.promoLabel": "Промокод",
+  "delioAccount.promoApply": "Активировать",
+  "delioAccount.promoConnectFirst": "Сначала войдите, затем введите код здесь.",
+  "delioAccount.promoDone": "Код принят.",
+  "delioAccount.promoFailed": "Не удалось использовать этот код. Проверьте его и попробуйте снова.",
+  "delioPlans.havePromo": "У меня есть промокод"
 }

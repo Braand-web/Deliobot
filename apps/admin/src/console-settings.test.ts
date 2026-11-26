@@ -178,3 +178,41 @@ describe("a plan given by e-mail", () => {
     expect((await ops.post("/forfaits/offrir", { email: "nope", plan: "max", days: "3" })).headers.get("location")).toBe("/forfaits?erreur=bad-gift");
   });
 });
+
+describe("plan code lots in the console", () => {
+  it("generates a lot with chosen credits, lists it, exports it and turns it off", async () => {
+    const setup = base();
+    const mail: MailMessage[] = [];
+    const ops = await operatorConsole({ store: setup.store, operators: new Set(["ops@delio.test"]), mailer: { send: async (message) => void mail.push(message) }, now: () => setup.clock.now }, mail);
+    cleanups.push(() => ops.close());
+    const made = await ops.post("/promos/lot", { plan: "pro", days: "30", credits: "2000", count: "3", prefix: "promo", note: "Salon" });
+    const id = /^\/promos\/lot\/(lot_[a-z0-9]{10})\?ok=batch-created&n=3$/.exec(made.headers.get("location") ?? "")?.[1];
+    expect(id).toBeTruthy();
+    expect(setup.promos.batches()[0]).toMatchObject({ id, plan: "pro", days: 30, credits: 2000, count: 3, note: "Salon" });
+    expect(await (await ops.get("/promos")).text()).toContain("Salon");
+    const page = await (await ops.get(`/promos/lot/${id}`)).text();
+    for (const row of setup.promos.batchCodes(id!)) expect(page).toContain(row.code);
+    const csv = await ops.get(`/promos/lot/${id}.csv`);
+    expect(csv.headers.get("content-type")).toContain("text/csv");
+    const lines = (await csv.text()).trim().split("\n");
+    expect(lines).toHaveLength(4);
+    expect(lines[1]).toMatch(/^PROMO-[A-Z0-9]{4}-[A-Z0-9]{4},Pro,30,2000,oui,,$/);
+    expect((await ops.post(`/promos/lot/${id}/desactiver`, {})).headers.get("location")).toBe("/promos?ok=batch-off&n=3");
+    expect(setup.promos.batches()[0]!.active).toBe(0);
+    expect((await ops.post("/promos/lot", { plan: "pro", days: "30", credits: "", count: "3" })).headers.get("location")).toBe("/promos?erreur=batch-invalid");
+  });
+
+  it("prepares an account and gives it a code only it can use, sent by e-mail", async () => {
+    const setup = base();
+    const mail: MailMessage[] = [];
+    const ops = await operatorConsole({ store: setup.store, operators: new Set(["ops@delio.test"]), mailer: { send: async (message) => void mail.push(message) }, now: () => setup.clock.now }, mail);
+    cleanups.push(() => ops.close());
+    const given = await ops.post("/forfaits/offrir", { email: "New@Example.test", plan: "pro", days: "30", credits: "2500", as: "code", mail: "1" });
+    const [, slug, code] = /^\/clients\/(me-[a-z0-9]{8})\?ok=personal-code&n=(DELIO-[A-Z0-9]{4}-[A-Z0-9]{4})$/.exec(given.headers.get("location") ?? "") ?? [];
+    expect(slug && code).toBeTruthy();
+    expect(setup.billing.subscription(slug!).status, "the plan starts when the person enters the code").toBe("none");
+    expect(setup.promos.get(code!)).toMatchObject({ kind: "plan", plans: ["pro"], value: 30, credits: 2500, email: "new@example.test" });
+    expect(setup.store.db.prepare("SELECT b.subject FROM outbox o JOIN broadcasts b ON b.id = o.broadcast WHERE o.email = ?").get("new@example.test")).toMatchObject({ subject: "Votre code Deliobot" });
+  });
+});
+

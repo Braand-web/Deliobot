@@ -4562,5 +4562,11 @@
   "whatsNew.cloud.pictureAlt": "Die Startseite der neuen Cloud-Website: jede Cloud mit Tarif und Status, die Nutzung in diesem Monat und die angemeldeten Apps.",
   "whatsNew.team.picture": "Ada, Ben, Cleo und Dara, jeweils mit eigenem Delio, teilen sich die Support- und Vertriebs-Bots des Teams in einer Team Cloud.",
   "whatsNew.team.support": "Support",
-  "whatsNew.team.sales": "Vertrieb"
+  "whatsNew.team.sales": "Vertrieb",
+  "delioAccount.promoLabel": "Aktionscode",
+  "delioAccount.promoApply": "Aktivieren",
+  "delioAccount.promoConnectFirst": "Melde dich zuerst an und gib dann deinen Code hier ein.",
+  "delioAccount.promoDone": "Code angenommen.",
+  "delioAccount.promoFailed": "Dieser Code konnte nicht verwendet werden. Prüfe ihn und versuche es erneut.",
+  "delioPlans.havePromo": "Ich habe einen Aktionscode"
 }

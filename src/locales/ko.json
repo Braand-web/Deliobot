@@ -7992,5 +7992,11 @@
   "whatsNew.cloud.pictureAlt": "새 Cloud 웹사이트의 홈: 각 Cloud의 요금제와 상태, 이번 달 사용량, 로그인된 앱.",
   "whatsNew.team.picture": "Ada, Ben, Cleo, Dara가 각자 자신의 Delio을 두고 하나의 Team Cloud에서 팀의 고객 지원 봇과 영업 봇을 함께 써요.",
   "whatsNew.team.support": "고객 지원",
-  "whatsNew.team.sales": "영업"
+  "whatsNew.team.sales": "영업",
+  "delioAccount.promoLabel": "프로모션 코드",
+  "delioAccount.promoApply": "활성화",
+  "delioAccount.promoConnectFirst": "먼저 로그인한 다음 여기에 코드를 입력하세요.",
+  "delioAccount.promoDone": "코드가 적용되었습니다.",
+  "delioAccount.promoFailed": "이 코드를 사용할 수 없습니다. 확인 후 다시 시도하세요.",
+  "delioPlans.havePromo": "프로모션 코드가 있어요"
 }

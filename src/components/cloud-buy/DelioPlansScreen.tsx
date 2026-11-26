@@ -6,7 +6,7 @@ import { t } from "@/lib/i18n";
 import { delioPaymentStarted, type DelioAccount } from "@/lib/delio-account";
 import type { LocaleKey } from "@/locales";
 import { NightCard } from "./NightCard";
-import { DelioAccountCard } from "../keys/DelioAccountCard";
+import { DelioAccountCard, DelioPromoField } from "../keys/DelioAccountCard";
 import { PRIMARY_WIDE, QUIET, QUIET_WIDE, SCREEN, Tag } from "./parts";
 
 export type DelioCycle = "month" | "year";
@@ -96,6 +96,10 @@ export function DelioPlansScreen({ catalog, account, requiresAccount = false, in
       </p>
       <a className={cn(QUIET, "no-underline", requiresAccount && "cursor-not-allowed opacity-50")} aria-disabled={requiresAccount || undefined} target="_blank" rel="noreferrer" onClick={requiresAccount ? undefined : delioPaymentStarted} href={requiresAccount ? undefined : delioCheckoutUrl(catalog.payUrl, { plan: trial.id })}>{t("delioPlans.trial.start")}</a>
     </div>}
+    {account?.connected && <details data-delio-promo-link className="rounded-[12px] bg-ink/[0.04] px-4 py-3">
+      <summary className="cursor-pointer text-[13px] font-medium text-ink">{t("delioPlans.havePromo")}</summary>
+      <DelioPromoField connected onConnect={() => undefined} />
+    </details>}
     {catalog.topups.length > 0 && <section aria-labelledby="delio-topups" className="flex flex-col gap-2.5">
       <h3 id="delio-topups" className="text-[13px] font-medium leading-[18px] text-ink-secondary">{t("delioPlans.topups")}</h3>
       <ul className="flex flex-wrap gap-2">

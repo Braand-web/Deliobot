@@ -10,6 +10,8 @@ import { falRun } from "../../../server/fal.ts";
 import { createAdminApp } from "./app.ts";
 import { createBoatRelay } from "./boat-relay.ts";
 import { falUnits, openrouterCost } from "./gateway.ts";
+import { Billing } from "./plans.ts";
+import { Promos } from "./promos.ts";
 import type { MailMessage } from "./mail.ts";
 import { AdminStore } from "./store.ts";
 import { nodeDatabase } from "./sql-node.ts";
@@ -101,7 +103,7 @@ async function portal(upstream: ReturnType<typeof upstreams>, clock: { now: numb
   const gateway = (slug: string, path: string, token: string, init: RequestInit = {}) =>
     fetch(new URL(`/api/gateway/${slug}/${path}`, origin), { ...init, headers: { authorization: `Bearer ${token}`, "content-type": "application/json", ...init.headers as Record<string, string> } });
   const account = async (slug: string, token: string) => (await fetch(new URL(`/api/workspace/${slug}/account`, origin), { headers: { authorization: `Bearer ${token}` } })).json() as Promise<{ credits: number; usedThisMonth: number }>;
-  return { origin, workspace, gateway, account, page: (path: string) => ops.get(path), sweep: () => app.sweep() };
+  return { origin, store, workspace, gateway, account, page: (path: string) => ops.get(path), sweep: () => app.sweep() };
 }
 
 describe("cost and length readers", () => {
@@ -317,3 +319,30 @@ describe("a plan's included cloud computer hours", () => {
     expect(wallet.balance("acme") / MICRO, "a new month brings the hours back").toBeCloseTo(990, 5);
   });
 });
+
+describe("a promo code entered in the app", () => {
+  it("activates the code's plan with its credits for the token's workspace, once", async () => {
+    const target = await portal(upstreams());
+    const token = await target.workspace("promo", 0);
+    const other = await target.workspace("other", 0);
+    const promos = new Promos(new Wallet(target.store.db));
+    const [code, second] = promos.createBatch({ plan: "pro", days: 30, credits: 2000, count: 2, prefix: "DELIO", expiresAt: null, note: null }, "ops")!.codes as [string, string];
+    const redeem = (slug: string, bearer: string, body: unknown) => fetch(new URL(`/api/workspace/${slug}/promo`, target.origin),
+      { method: "POST", headers: { authorization: `Bearer ${bearer}`, "content-type": "application/json" }, body: JSON.stringify(body) });
+    expect((await redeem("promo", other, { code })).status).toBe(401);
+    expect((await redeem("promo", token, {})).status).toBe(400);
+    const done = await redeem("promo", token, { code: code.toLowerCase() });
+    expect(done.status).toBe(200);
+    expect(await done.json()).toMatchObject({ ok: true, plan: "pro", message: expect.stringContaining("Forfait Pro activé") });
+    expect(await target.account("promo", token)).toMatchObject({ credits: 2000, plan: "pro" });
+    expect(new Billing(new Wallet(target.store.db)).subscription("promo")).toMatchObject({ plan: "pro", status: "active" });
+    const again = await redeem("other", other, { code });
+    expect(again.status).toBe(400);
+    expect(await again.json()).toMatchObject({ error: { code: "promo_refused" } });
+    expect(await (await redeem("promo", token, { code: second })).json()).toMatchObject({ error: { message: "Votre compte a déjà un abonnement actif." } });
+    let last = 0;
+    for (let attempt = 0; attempt < 20; attempt += 1) last = (await redeem("other", other, { code: "NOPE-NOPE" })).status;
+    expect(last).toBe(429);
+  });
+});
+

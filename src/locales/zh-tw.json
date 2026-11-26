@@ -10539,5 +10539,11 @@
   "whatsNew.cloud.pictureAlt": "全新 Cloud 網站的首頁：每個 Cloud 的方案和狀態、本月用量，以及已登入的應用程式。",
   "whatsNew.team.picture": "Ada、Ben、Cleo 和 Dara 各有自己的 Delio，在同一個 Team Cloud 上共用團隊的客服機器人和業務機器人。",
   "whatsNew.team.support": "客服",
-  "whatsNew.team.sales": "業務"
+  "whatsNew.team.sales": "業務",
+  "delioAccount.promoLabel": "優惠碼",
+  "delioAccount.promoApply": "啟用",
+  "delioAccount.promoConnectFirst": "請先登入，再在這裡輸入你的優惠碼。",
+  "delioAccount.promoDone": "已接受優惠碼。",
+  "delioAccount.promoFailed": "無法使用此優惠碼。請檢查後再試一次。",
+  "delioPlans.havePromo": "我有優惠碼"
 }

@@ -125,3 +125,10 @@ export function useDelioConnect() {
 
   return { flow, busy, error, connect, disconnect };
 }
+
+/** Sends a promo code to the connected Delio account: a plan code starts its plan with its credits at once. Answers the portal's message. */
+export async function redeemDelioPromo(code: string): Promise<string> {
+  const answer = await api<{ message?: string }>("/api/delio/promo", { method: "POST", body: JSON.stringify({ code }), timeoutMs: 20_000 });
+  delioAccountChanged();
+  return typeof answer?.message === "string" ? answer.message : "";
+}

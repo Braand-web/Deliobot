@@ -6,9 +6,18 @@ import { PASS, type RouteHandler } from "./table.ts";
 
 /** Settings' Delio account card: connect with a device code, see the credits left, disconnect. */
 export function createDelioAccountRoutes(account: ReturnType<typeof createDelioAccount>, config: () => AppConfig): RouteHandler {
-  return async ({ req, res, path, method, json, readBody, url }) => {
-    if (path !== "/api/delio/account" && path !== "/api/delio/connect" && path !== "/api/delio/report") return PASS;
+  return async ({ req, res, path, method, json, readBody, url, auth }) => {
+    if (path !== "/api/delio/account" && path !== "/api/delio/connect" && path !== "/api/delio/report" && path !== "/api/delio/promo") return PASS;
     res.setHeader("cache-control", "no-store");
+    if (path === "/api/delio/promo") {
+      if (method !== "POST") return json(res, 405, { error: "method not allowed" });
+      if (!auth.scopes.includes("admin")) return json(res, 403, { error: "Only the owner can enter a promo code." });
+      const body = await readBody(req, 4096).catch(() => null) as { code?: unknown } | null;
+      const code = typeof body?.code === "string" ? body.code.trim() : "";
+      if (!code) return json(res, 400, { error: "empty code" });
+      const outcome = await account.redeemPromo(code);
+      return outcome.ok ? json(res, 200, { message: outcome.message }) : json(res, outcome.status, { error: outcome.message || "promo refused", code: outcome.status === 409 ? "not-connected" : "promo-refused" });
+    }
     if (path === "/api/delio/report") {
       if (method !== "POST") return json(res, 405, { error: "method not allowed" });
       const body = await readBody(req, 1024 * 1024).catch(() => null) as { note?: unknown; transcript?: unknown; bot?: unknown } | null;

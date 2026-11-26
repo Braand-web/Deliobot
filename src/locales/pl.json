@@ -7461,5 +7461,11 @@
   "whatsNew.cloud.pictureAlt": "Strona główna nowej witryny Chmury: każda chmura z planem i stanem, zużycie w tym miesiącu i zalogowane aplikacje.",
   "whatsNew.team.picture": "Ada, Ben, Cleo i Dara, każde z własnym Delioem, dzielą boty wsparcia i sprzedaży zespołu w jednej Team Cloud.",
   "whatsNew.team.support": "Wsparcie",
-  "whatsNew.team.sales": "Sprzedaż"
+  "whatsNew.team.sales": "Sprzedaż",
+  "delioAccount.promoLabel": "Kod promocyjny",
+  "delioAccount.promoApply": "Aktywuj",
+  "delioAccount.promoConnectFirst": "Najpierw się zaloguj, a potem wpisz tutaj swój kod.",
+  "delioAccount.promoDone": "Kod przyjęty.",
+  "delioAccount.promoFailed": "Nie udało się użyć tego kodu. Sprawdź go i spróbuj ponownie.",
+  "delioPlans.havePromo": "Mam kod promocyjny"
 }

@@ -1,7 +1,11 @@
 import { Loader2 } from "lucide-react";
+import { useState, type FormEvent } from "react";
 
 import { t } from "@/lib/i18n";
-import { useDelioAccount, useDelioConnect } from "@/lib/delio-account";
+import { redeemDelioPromo, useDelioAccount, useDelioConnect } from "@/lib/delio-account";
+import { cn } from "@/lib/cn";
+import { ApiError } from "@/state/api";
+import { KEY_FIELD } from "./KeyRow";
 
 /** The device code to type or confirm on the portal's page, while the app waits for its approval. */
 export function DelioConnectWaiting({ userCode, verification, codeNeeded = true }: { userCode: string; verification: string; codeNeeded?: boolean }) {
@@ -19,6 +23,42 @@ export function DelioConnectWaiting({ userCode, verification, codeNeeded = true 
       <span data-delio-code className="font-mono text-[15px] font-semibold tracking-wider text-ink">{userCode}</span>{" "}
       <a href={verification} target="_blank" rel="noreferrer" className="text-accent hover:underline">{t("delioAccount.open")}</a>
     </div>
+  );
+}
+
+/** A promo code the person types: a plan code starts its plan with its credits at once on the connected account. */
+export function DelioPromoField({ connected, onConnect }: { connected: boolean; onConnect: () => void }) {
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [answer, setAnswer] = useState<{ ok: boolean; text: string } | null>(null);
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (!connected) { onConnect(); return; }
+    if (!code.trim() || busy) return;
+    setBusy(true);
+    setAnswer(null);
+    try {
+      const message = await redeemDelioPromo(code.trim());
+      setAnswer({ ok: true, text: message || t("delioAccount.promoDone") });
+      setCode("");
+    } catch (error) {
+      const text = error instanceof ApiError && error.status !== 502 && error.body && typeof error.body.error === "string" && error.body.error !== "promo refused" ? error.body.error : t("delioAccount.promoFailed");
+      setAnswer({ ok: false, text });
+    } finally { setBusy(false); }
+  }
+  return (
+    <form data-delio-promo onSubmit={(event) => void submit(event)} className="mt-3 flex flex-col gap-1.5">
+      <label htmlFor="delio-promo-code" className="text-[13px] font-medium text-ink">{t("delioAccount.promoLabel")}</label>
+      <div className="flex items-center gap-2">
+        <input id="delio-promo-code" value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} maxLength={40} autoComplete="off" spellCheck={false}
+          placeholder="DELIO-XXXX-XXXX" className={cn(KEY_FIELD, "flex-1 font-mono uppercase")} />
+        <button type="submit" className="ui-button shrink-0" disabled={busy || (connected && !code.trim())}>
+          {busy ? <Loader2 size={13} className="animate-spin" /> : t(connected ? "delioAccount.promoApply" : "delioAccount.connect")}
+        </button>
+      </div>
+      {!connected && <p className="text-[12px] text-ink-secondary">{t("delioAccount.promoConnectFirst")}</p>}
+      {answer && <p role={answer.ok ? "status" : "alert"} className={answer.ok ? "text-[12px] text-ink" : "text-[12px] text-danger"}>{answer.text}</p>}
+    </form>
   );
 }
 
@@ -49,6 +89,7 @@ export function DelioAccountCard() {
       {!account.connected && flow?.state === "waiting" && <DelioConnectWaiting userCode={flow.userCode} verification={flow.verification} codeNeeded={flow.codeNeeded} />}
       {flow?.state === "disconnected" && flow.reason && <p role="alert" className="mt-2 text-[12px] text-danger">{t(flow.reason === "denied" ? "delioAccount.denied" : "delioAccount.expired")}</p>}
       {error && <p role="alert" className="mt-2 text-[12px] text-danger">{error}</p>}
+      {account.connected && <DelioPromoField connected onConnect={() => void connect()} />}
     </section>
   );
 }

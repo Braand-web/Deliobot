@@ -149,6 +149,7 @@ var expect=f.dataset.type||"";typed.hidden=!expect;field.value="";field.placehol
 var go=d.querySelector("[data-go]");go.className="btn "+(f.dataset.danger?"danger":"primary");go.textContent=f.dataset.action||"Confirmer";
 go.onclick=function(){if(expect&&field.value.trim()!==expect){field.focus();return}if(expect){var h=f.querySelector("input[name=confirm]");if(h)h.value=field.value.trim()}
 d.close();f.dataset.confirmed="1";f.requestSubmit()};d.showModal();if(expect)field.focus()})});
+document.querySelectorAll("select[data-fills]").forEach(function(s){s.addEventListener("change",function(){var t=document.getElementById(s.dataset.fills),o=s.selectedOptions[0];if(t&&o&&o.dataset.credits)t.value=o.dataset.credits})});
 document.querySelectorAll("[data-close]").forEach(function(b){b.addEventListener("click",function(){b.closest("dialog").close()})});
 document.querySelectorAll("form").forEach(function(f){f.addEventListener("submit",function(){if(f.dataset.confirm&&!f.dataset.confirmed)return;
 var b=f.querySelector("button[type=submit],button:not([type])");if(b)setTimeout(function(){b.disabled=true},0)})});

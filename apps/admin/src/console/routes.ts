@@ -17,7 +17,7 @@ import { Metrics, period } from "./metrics.ts";
 import type { Ambassador, Ambassadors } from "../ambassadors.ts";
 import { linkFor, SITE_URL } from "../ambassador-pages.ts";
 import { ambassadorPage, ambassadorsPage } from "./ambassador-pages.ts";
-import { AUDIENCES, commsPage, pricingPage, promosPage, securityPage, systemPage } from "./settings-pages.ts";
+import { AUDIENCES, commsPage, pricingPage, promoBatchPage, promosPage, securityPage, systemPage } from "./settings-pages.ts";
 import { CLIENT_FILTERS, clientPage, clientsPage, consolePage, dashboardPage, journalPage, n, ORDER_FILTERS, ordersPage, reportPage, reportsPage, sitesPage, trafficPage, type ClientRow, type ConsoleSection, type Flash } from "./pages.ts";
 
 export interface ConsoleContext {
@@ -28,6 +28,8 @@ export interface ConsoleContext {
   settings: OperatorSettings; promos: Promos; outbox: Outbox; ambassadors: Ambassadors;
   /** Gives a plan to an e-mail's personal workspace, made if needed; answers the workspace. */
   gift: (gift: Gift, actor: string) => string | null;
+  /** Makes an e-mail's account and personal workspace if needed; answers the workspace. */
+  prepareAccount: (email: string) => string;
   /** CFA francs to the dollar, as checkouts charge them now. */
   xofRate: () => number;
   /** Each provider or feature the portal can use, and whether its key or binding is set. */
@@ -49,6 +51,7 @@ const CLIENT_ACTION = new RegExp(`^/clients/(${SLUG})/(credits|forfait|suspendre
 const CLIENT = new RegExp(`^/clients/(${SLUG})$`);
 const ORDER_ACTION = new RegExp(`^/commandes/(${ORDER_ID})/(verifier|payee|rembourser)$`);
 const PAGES = new Set(["/ambassadeurs", "/", "/trafic", "/clients", "/commandes", "/signalements", "/journal", "/sites", "/promos", "/communication", "/forfaits", "/systeme", "/securite"]);
+const PROMO_BATCH = /^\/promos\/lot(?:\/(lot_[a-z0-9]{10})(\.csv|\/activer|\/desactiver)?)?$/;
 const SETTINGS_ACTION = /^\/(?:promos(?:\/([A-Z0-9_-]{3,32})\/(activer|desactiver|supprimer))?|communication\/(annonce|annonce\/retirer|envoyer)|forfaits\/(taux|offrir|trial|starter|pro|max|byok)(\/retablir)?|systeme\/(signups|payments|trial)|securite\/(sessions|debloquer))$/;
 /** Audit actions the security page lists. */
 const SENSITIVE = ["credits.add", "plan.grant", "gateway.token", "device.revoke", "account.block", "account.unblock", "workspace.delete", "workspace.suspend", "site.taken_down",
@@ -66,7 +69,7 @@ const WORKSPACE_TABLES = ["wallets", "gateway_tokens", "holds", "subscriptions",
 
 /** Whether a path belongs to the console's own pages and actions. */
 export function consoleServes(path: string): boolean {
-  return PAGES.has(path) || AMBASSADOR.test(path) || AMBASSADOR_ACTION.test(path) || SETTINGS_ACTION.test(path) || SITE_ACTION.test(path) || REPORT.test(path) || CLIENT.test(path) || CLIENT_ACTION.test(path) || ORDER_ACTION.test(path);
+  return PAGES.has(path) || AMBASSADOR.test(path) || AMBASSADOR_ACTION.test(path) || SETTINGS_ACTION.test(path) || PROMO_BATCH.test(path) || SITE_ACTION.test(path) || REPORT.test(path) || CLIENT.test(path) || CLIENT_ACTION.test(path) || ORDER_ACTION.test(path);
 }
 
 const FLASH: Record<string, (count: string) => Flash> = {
@@ -85,6 +88,10 @@ const FLASH: Record<string, (count: string) => Flash> = {
   hosted: () => ({ kind: "bad", text: "Arrêtez d'abord l'hébergement et les ordinateurs cloud de cet espace" }),
   "promo-created": () => ({ kind: "ok", text: "Code créé" }), "promo-exists": () => ({ kind: "bad", text: "Ce code existe déjà" }),
   "promo-invalid": () => ({ kind: "bad", text: "Code invalide : 3 à 32 lettres, chiffres, tirets ; réduction de 1 à 100 %" }),
+  "batch-created": (count) => ({ kind: "ok", text: `${n(Number(count))} codes générés` }),
+  "batch-invalid": () => ({ kind: "bad", text: "Lot invalide : 1 à 1 000 codes, 1 à 366 jours, 0 à 1 000 000 crédits, préfixe de 2 à 10 lettres ou chiffres" }),
+  "batch-off": (count) => ({ kind: "ok", text: `${n(Number(count))} codes désactivés` }), "batch-on": (count) => ({ kind: "ok", text: `${n(Number(count))} codes réactivés` }),
+  "personal-code": (code) => ({ kind: "ok", text: `Compte prêt. Code à transmettre : ${code}` }),
   "promo-on": () => ({ kind: "ok", text: "Code activé" }), "promo-off": () => ({ kind: "ok", text: "Code désactivé" }), "promo-deleted": () => ({ kind: "ok", text: "Code supprimé" }),
   announced: () => ({ kind: "ok", text: "Annonce publiée : le site l'affiche d'ici une minute" }), unannounced: () => ({ kind: "ok", text: "Annonce retirée" }),
   "bad-announcement": () => ({ kind: "bad", text: "Écrivez un texte, et un lien en https:// s'il y en a un" }),
@@ -423,8 +430,8 @@ Merci de faire grandir Deliobot avec nous !`);
     const queued = count("SELECT COUNT(*) AS n FROM outbox WHERE state = 'queued'");
     switch (url.pathname) {
       case "/promos":
-        render(res, user, url, { title: "Codes promo", subtitle: "Réductions et crédits offerts", section: "promos",
-          body: ({ now: at }) => promosPage({ promos: promos.all(), plans: Object.values(settings.plans()), now: at, customerUrl: ctx.customerUrl }) });
+        render(res, user, url, { title: "Codes promo", subtitle: "Réductions, crédits et forfaits offerts", section: "promos",
+          body: ({ now: at }) => promosPage({ promos: promos.all(), batches: promos.batches(), plans: Object.values(settings.plans()), now: at, customerUrl: ctx.customerUrl }) });
         return true;
       case "/communication":
         render(res, user, url, { title: "Communication", subtitle: "Annonce du site et e-mails aux clients", section: "comms", body: ({ now: at }) => commsPage({
@@ -464,6 +471,36 @@ Merci de faire grandir Deliobot avec nous !`);
       }
     }
     return false;
+  }
+
+  function promoBatch(res: ServerResponse, user: Account, url: URL, id: string, csv: boolean): boolean {
+    const batch = ctx.promos.batches().find((row) => row.id === id);
+    if (!batch) return false;
+    const codes = ctx.promos.batchCodes(id);
+    if (csv) {
+      const cell = (value: string) => /[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+      const plan = PLANS[batch.plan]?.name ?? batch.plan;
+      const lines = ["code,forfait,jours,credits,actif,utilise_par,utilise_le",
+        ...codes.map((code) => [code.code, plan, String(batch.days), String(batch.credits), code.active ? "oui" : "non", code.workspace ?? "",
+          code.usedAt === null ? "" : new Date(code.usedAt).toISOString()].map(cell).join(","))];
+      ctx.send(res, 200, `${lines.join("\n")}\n`, "text/csv; charset=utf-8", { "content-disposition": `attachment; filename="codes-${id}.csv"`, "cache-control": "no-store" });
+      return true;
+    }
+    render(res, user, url, { title: `Lot ${batch.note ?? id}`, subtitle: `${PLANS[batch.plan]?.name ?? batch.plan} · ${batch.days} jours · ${n(batch.credits)} crédits`, section: "promos",
+      body: ({ now: at }) => promoBatchPage({ batch, codes, now: at, customerUrl: ctx.customerUrl }) });
+    return true;
+  }
+
+  async function createPromoBatch(req: IncomingMessage, res: ServerResponse, user: Account): Promise<void> {
+    const body = await ctx.readForm(req);
+    const day = field(body, "expires", 10);
+    const plan = field(body, "plan", 10);
+    const made = Object.hasOwn(PLANS, plan) ? ctx.promos.createBatch({ plan: plan as PlanId, days: Number(field(body, "days", 4)), credits: Number(field(body, "credits", 9) || "-1"),
+      count: Number(field(body, "count", 5)), prefix: field(body, "prefix", 12), expiresAt: /^\d{4}-\d{2}-\d{2}$/.test(day) ? Date.parse(`${day}T23:59:59Z`) : null,
+      note: field(body, "note", 120) || null }, user.email) : null;
+    if (!made) return ctx.redirect(res, "/promos?erreur=batch-invalid");
+    store.audit(null, user.email, "promo.batch_created", `${made.id}:${plan}:${made.codes.length}`);
+    ctx.redirect(res, `/promos/lot/${made.id}?ok=batch-created&n=${made.codes.length}`);
   }
 
   async function settingsAction(req: IncomingMessage, res: ServerResponse, user: Account, match: RegExpExecArray): Promise<void> {
@@ -508,6 +545,17 @@ Merci de faire grandir Deliobot avec nous !`);
       let gift: Gift;
       try { [gift] = parseGifts([{ email: field(body, "email", 160), plan: field(body, "plan", 10), days: Number(field(body, "days", 4)), credits: Number(field(body, "credits", 9) || "0") }]) as [Gift]; }
       catch { return ctx.redirect(res, "/forfaits?erreur=bad-gift"); }
+      if (field(body, "as", 6) === "code") {
+        const code = gift.plan === "trial" ? null : ctx.promos.createPlanCode({ plan: gift.plan, days: gift.days, credits: gift.credits, email: gift.email, expiresAt: null,
+          note: `Code nominatif ${gift.email}` }, user.email);
+        if (!code) return ctx.redirect(res, "/forfaits?erreur=bad-gift");
+        const workspace = ctx.prepareAccount(gift.email);
+        store.audit(workspace, user.email, "promo.personal_code", `${code}:${gift.plan}:${gift.days}d:${gift.credits}cr`);
+        if (field(body, "mail", 2) === "1") {
+          ctx.outbox.notify(gift.email, "Votre code Deliobot", `Bonjour,\n\nVotre compte Deliobot est prêt. Votre code : ${code}\n\nIl active ${PLANS[gift.plan].name} pendant ${gift.days} jours${gift.credits > 0 ? ` avec ${gift.credits.toLocaleString("fr-FR")} crédits` : ""}.\n\n1. Téléchargez l'application : https://deliobot.fun/#telecharger\n2. Connectez-vous avec cette adresse : ${gift.email}\n3. Réglages → Compte → Code promo, entrez le code et cliquez sur Activer.\n\nVous pouvez aussi l'entrer sur ${ctx.customerUrl}/code?code=${code}\n\nL'équipe Deliobot`);
+        }
+        return ctx.redirect(res, `/clients/${workspace}?ok=personal-code&n=${code}`);
+      }
       const workspace = ctx.gift(gift, user.email);
       return ctx.redirect(res, workspace ? `/clients/${workspace}?ok=plan` : "/forfaits?erreur=bad-gift");
     }
@@ -562,6 +610,8 @@ Merci de faire grandir Deliobot avec nous !`);
       if (path === "/journal") { journal(res, user, url); return true; }
       if (path === "/signalements") { reportList(res, user, url); return true; }
       if (settingsPage(res, user, url, req)) return true;
+      const batchView = PROMO_BATCH.exec(path);
+      if (batchView?.[1] && batchView[2] !== "/activer" && batchView[2] !== "/desactiver") return promoBatch(res, user, url, batchView[1], batchView[2] === ".csv");
       if (ambassadorPages(res, user, url)) return true;
       if (path === "/sites") {
         const rows = ctx.sites?.all() ?? [];
@@ -578,6 +628,15 @@ Merci de faire grandir Deliobot avec nous !`);
     if (method !== "POST") return false;
     const ambassadorMatch = AMBASSADOR_ACTION.exec(path);
     if (ambassadorMatch) { await ambassadorAction(req, res, user, ambassadorMatch); return true; }
+    const batchAct = PROMO_BATCH.exec(path);
+    if (batchAct && !batchAct[2]) { await createPromoBatch(req, res, user); return true; }
+    if (batchAct?.[1] && batchAct[2] !== ".csv") {
+      const active = batchAct[2] === "/activer";
+      const changed = ctx.promos.setBatchActive(batchAct[1], active);
+      store.audit(null, user.email, active ? "promo.batch_enabled" : "promo.batch_disabled", batchAct[1]);
+      ctx.redirect(res, `/promos?ok=${active ? "batch-on" : "batch-off"}&n=${changed}`);
+      return true;
+    }
     const settingsMatch = SETTINGS_ACTION.exec(path);
     if (settingsMatch) { await settingsAction(req, res, user, settingsMatch); return true; }
     const siteAct = SITE_ACTION.exec(path);

@@ -4501,5 +4501,11 @@
   "whatsNew.cloud.pictureAlt": "L'accueil du nouveau site du Cloud : chaque Cloud avec son forfait et son état, l'utilisation de ce mois-ci et les applications connectées.",
   "whatsNew.team.picture": "Ada, Ben, Cleo et Dara, chacun avec son propre Delio, partagent les bots Support et Ventes de l'équipe sur un même Team Cloud.",
   "whatsNew.team.support": "Support",
-  "whatsNew.team.sales": "Ventes"
+  "whatsNew.team.sales": "Ventes",
+  "delioAccount.promoLabel": "Code promo",
+  "delioAccount.promoApply": "Activer",
+  "delioAccount.promoConnectFirst": "Connectez-vous d'abord, puis entrez votre code ici.",
+  "delioAccount.promoDone": "Code accepté.",
+  "delioAccount.promoFailed": "Ce code n'a pas pu être utilisé. Vérifiez-le et réessayez.",
+  "delioPlans.havePromo": "J'ai un code promo"
 }

@@ -2,22 +2,48 @@ import { h, raw, type Html } from "../pages.ts";
 import type { Announcement } from "../operator-settings.ts";
 import type { Broadcast } from "../outbox.ts";
 import type { Plan, PlanId } from "../plans.ts";
-import type { Promo } from "../promos.ts";
+import { MAX_BATCH, MAX_PLAN_CREDITS, MAX_PLAN_DAYS, type BatchCode, type Promo, type PromoBatch } from "../promos.ts";
 import { ago, badge, date, empty, n } from "./pages.ts";
 
 const day = (at: number | null) => at === null ? "" : new Date(at).toISOString().slice(0, 10);
 
-export function promosPage(input: { promos: Promo[]; plans: Plan[]; now: number; customerUrl: string }): Html {
+/** A plan picker whose choice fills the credits field `credits` with that plan's monthly credits. */
+function planSelect(id: string, credits: string, plans: Plan[], selected: PlanId): Html {
+  return h`<select id="${id}" name="plan" data-fills="${credits}">${plans.map((plan) => h`<option value="${plan.id}" data-credits="${String(plan.credits)}" ${plan.id === selected ? raw("selected") : ""}>${plan.name}</option>`)}</select>`;
+}
+
+export function promosPage(input: { promos: Promo[]; batches: PromoBatch[]; plans: Plan[]; now: number; customerUrl: string }): Html {
   const state = (promo: Promo) => !promo.active ? badge("mute", "Désactivé")
     : promo.expiresAt !== null && promo.expiresAt <= input.now ? badge("warn", "Expiré")
     : promo.maxUses !== null && promo.uses >= promo.maxUses ? badge("warn", "Épuisé") : badge("ok", "Actif");
   const rows = input.promos.map((promo) => h`<tr><td><b class="mono">${promo.code}</b>${promo.note ? h`<div class="muted small">${promo.note}</div>` : ""}</td>
-<td>${promo.kind === "percent" ? `-${promo.value} % ${promo.plans ? `(${promo.plans.join(", ")})` : "sur les forfaits"}` : `${n(promo.value)} crédits`}</td>
+<td>${promo.kind === "percent" ? `-${promo.value} % ${promo.plans ? `(${promo.plans.join(", ")})` : "sur les forfaits"}`
+  : promo.kind === "plan" ? `${input.plans.find((plan) => plan.id === promo.plans?.[0])?.name ?? promo.plans?.[0]} · ${promo.value} j · ${n(promo.credits ?? 0)} crédits${promo.email ? ` · ${promo.email}` : ""}` : `${n(promo.value)} crédits`}</td>
 <td class="num">${n(promo.uses)}${promo.maxUses !== null ? ` / ${n(promo.maxUses)}` : ""}</td><td class="muted">${promo.expiresAt === null ? "Jamais" : date(promo.expiresAt)}</td><td>${state(promo)}</td>
 <td class="small"><a href="${input.customerUrl}/code?code=${promo.code}" target="_blank" rel="noopener noreferrer">Lien à partager</a></td>
 <td><div class="bar"><form method="post" action="/promos/${promo.code}/${promo.active ? "desactiver" : "activer"}"><button class="btn small">${promo.active ? "Désactiver" : "Activer"}</button></form>
 <form method="post" action="/promos/${promo.code}/supprimer" data-confirm="Supprimer le code ${promo.code} ?" data-detail="Il ne pourra plus être utilisé. Les crédits déjà donnés et les commandes payées restent." data-danger="1" data-action="Supprimer"><button class="btn small danger">Supprimer</button></form></div></td></tr>`);
-  return h`<div class="grid split"><section class="card"><h2>Codes<small>Un espace utilise chaque code une seule fois</small></h2>
+  const paid = input.plans.filter((plan) => plan.id !== "trial");
+  const lots = input.batches.map((batch) => h`<tr><td><a href="/promos/lot/${batch.id}"><b>${batch.note ?? batch.id}</b></a><div class="muted small mono">${batch.id}</div></td>
+<td>${input.plans.find((plan) => plan.id === batch.plan)?.name ?? batch.plan} · ${batch.days} j · ${n(batch.credits)} crédits</td>
+<td class="num">${n(batch.used)} / ${n(batch.count)}</td><td class="muted">${batch.expiresAt === null ? "Jamais" : date(batch.expiresAt)}</td>
+<td>${batch.active === 0 ? badge("mute", "Désactivé") : batch.active < batch.count ? badge("warn", "En partie") : badge("ok", "Actif")}</td>
+<td><div class="bar"><a class="btn small" href="/promos/lot/${batch.id}.csv">CSV</a>
+<form method="post" action="/promos/lot/${batch.id}/${batch.active ? "desactiver" : "activer"}"${batch.active ? raw(` data-confirm="Désactiver tout le lot ?" data-detail="Les codes pas encore utilisés ne marcheront plus. Les forfaits déjà activés restent." data-danger="1" data-action="Désactiver"`) : ""}><button class="btn small">${batch.active ? "Désactiver" : "Réactiver"}</button></form></div></td></tr>`);
+  return h`<div class="grid split"><section class="card"><h2>Lots de codes forfait<small>Chaque code s'utilise une seule fois et active le forfait tout de suite</small></h2>
+${input.batches.length ? h`<div class="table-wrap"><table><thead><tr><th>Lot</th><th>Offre</th><th class="num">Utilisés</th><th>Expire</th><th>État</th><th></th></tr></thead><tbody>${lots}</tbody></table></div>`
+  : empty("Aucun lot pour l'instant. Générez-en un à droite.")}</section>
+<aside class="card actions"><h2>Générer des codes</h2><form method="post" action="/promos/lot">
+<div class="row2"><div><label for="b-plan">Forfait</label>${planSelect("b-plan", "b-credits", paid, "pro")}</div>
+<div><label for="b-days">Durée (jours)</label><input id="b-days" name="days" type="number" min="1" max="${String(MAX_PLAN_DAYS)}" value="30" required></div></div>
+<div class="row2"><div><label for="b-credits">Crédits</label><input id="b-credits" name="credits" type="number" min="0" max="${String(MAX_PLAN_CREDITS)}" value="${String(paid.find((plan) => plan.id === "pro")?.credits ?? 0)}" required></div>
+<div><label for="b-count">Nombre de codes</label><input id="b-count" name="count" type="number" min="1" max="${String(MAX_BATCH)}" value="50" required></div></div>
+<div class="row2"><div><label for="b-prefix">Préfixe</label><input id="b-prefix" name="prefix" maxlength="10" value="DELIO" pattern="[A-Za-z][A-Za-z0-9]{1,9}" autocapitalize="characters"></div>
+<div><label for="b-expires">Utilisable jusqu'au</label><input id="b-expires" name="expires" type="date"></div></div>
+<label for="b-note">Nom du lot</label><input id="b-note" name="note" maxlength="120" placeholder="Salon Abidjan décembre">
+<button class="btn primary">Générer les codes</button></form>
+<p class="muted small">Les crédits sont pré-remplis avec ceux du forfait ; changez-les librement (0 : le forfait sans crédits Deliobot). Un compte qui a déjà un abonnement en cours ne peut pas utiliser de code forfait.</p></aside></div>
+<div class="grid split"><section class="card"><h2>Codes<small>Un espace utilise chaque code une seule fois</small></h2>
 ${input.promos.length ? h`<div class="table-wrap"><table><thead><tr><th>Code</th><th>Effet</th><th class="num">Utilisations</th><th>Expire</th><th>État</th><th></th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`
   : empty("Aucun code pour l'instant. Créez-en un à droite.")}</section>
 <aside class="card actions"><h2>Nouveau code</h2><form method="post" action="/promos">
@@ -31,6 +57,16 @@ ${input.promos.length ? h`<div class="table-wrap"><table><thead><tr><th>Code</th
 <label for="note">Note interne</label><input id="note" name="note" maxlength="120" placeholder="Campagne Facebook novembre">
 <button class="btn primary">Créer le code</button></form>
 <p class="muted small">Le client tape le code sur <a href="${input.customerUrl}/code" target="_blank" rel="noopener noreferrer">${input.customerUrl.replace(/^https?:\/\//, "")}/code</a>, ou ouvre directement le lien à partager.</p></aside></div>`;
+}
+
+export function promoBatchPage(input: { batch: PromoBatch; codes: BatchCode[]; now: number; customerUrl: string }): Html {
+  const { batch } = input;
+  return h`<section class="card"><h2>${n(batch.used)} / ${n(batch.count)} codes utilisés<small>${batch.expiresAt === null ? "Sans date limite" : `Utilisables jusqu'au ${date(batch.expiresAt)}`} · créé par ${batch.createdBy}</small></h2>
+<div class="bar"><a class="btn primary" href="/promos/lot/${batch.id}.csv">Exporter CSV</a><a class="btn" href="/promos">Retour aux codes</a></div>
+<div class="table-wrap"><table><thead><tr><th>Code</th><th>État</th><th>Utilisé par</th><th>Le</th><th></th></tr></thead><tbody>
+${input.codes.map((code) => h`<tr><td><b class="mono">${code.code}</b></td><td>${code.workspace ? badge("info", "Utilisé") : code.active ? badge("ok", "Libre") : badge("mute", "Désactivé")}</td>
+<td>${code.workspace ? h`<a href="/clients/${code.workspace}">${code.workspace}</a>` : ""}</td><td class="muted">${code.usedAt === null ? "" : ago(code.usedAt, input.now)}</td>
+<td class="small"><a href="${input.customerUrl}/code?code=${code.code}" target="_blank" rel="noopener noreferrer">Lien</a></td></tr>`)}</tbody></table></div></section>`;
 }
 
 export const AUDIENCES: ReadonlyArray<[string, string]> = [
@@ -78,13 +114,15 @@ ${input.plans.map(({ plan, base, changed, subscribers }) => h`<tr><td><b>${plan.
 ${changed ? h`<form method="post" action="/forfaits/${plan.id}/retablir"><button class="btn small">Rétablir</button></form>` : ""}</div></td></tr>`)}
 </tbody></table></div><p class="muted small">Les crédits d'un mois s'appliquent au prochain paiement ou renouvellement. Les recharges restent à 4 500 crédits pour 20 $ et 13 500 pour 50 $.</p></section>
 <section class="card"><h2>Offrir un forfait par e-mail<small>Le compte et son espace sont créés s'ils n'existent pas ; la personne se connecte avec cet e-mail</small></h2>
-<form method="post" action="/forfaits/offrir" class="fields" data-confirm="Offrir ce forfait ?" data-detail="Il s'applique tout de suite, comme un paiement à 0 $." data-action="Offrir">
+<form method="post" action="/forfaits/offrir" class="fields" data-confirm="Offrir ce forfait ?" data-detail="Activé tout de suite comme un paiement à 0 $, ou sous forme de code à remettre." data-action="Valider">
 <div><label for="g-email">E-mail</label><input id="g-email" name="email" type="email" required maxlength="160"></div>
-<div><label for="g-plan">Forfait</label><select id="g-plan" name="plan">${input.plans.map(({ plan }) => h`<option value="${plan.id}" ${plan.id === "max" ? raw("selected") : ""}>${plan.name}</option>`)}</select></div>
+<div><label for="g-plan">Forfait</label>${planSelect("g-plan", "g-credits", input.plans.map(({ plan }) => plan), "max")}</div>
 <div><label for="g-days">Durée (jours)</label><input id="g-days" name="days" type="number" min="1" max="400" value="30" required></div>
-<div><label for="g-credits">Crédits Deliobot</label><input id="g-credits" name="credits" type="number" min="0" value="0"></div>
-<div><button class="btn primary">Offrir</button></div></form>
-<p class="muted small">0 crédit : la personne a les droits du forfait (propres comptes et clés IA avec Max ou BYOK) sans utiliser les crédits Deliobot.</p></section>
+<div><label for="g-credits">Crédits Deliobot</label><input id="g-credits" name="credits" type="number" min="0" max="${String(MAX_PLAN_CREDITS)}" value="0"></div>
+<div><label for="g-as">Comment</label><select id="g-as" name="as"><option value="now">Activer tout de suite</option><option value="code">Créer un code à lui remettre</option></select></div>
+<div class="checks"><label><input type="checkbox" name="mail" value="1" checked>Envoyer le code par e-mail</label></div>
+<div><button class="btn primary">Valider</button></div></form>
+<p class="muted small">« Créer un code » prépare le compte et donne un code réservé à cet e-mail : la personne l'entre dans l'application (Réglages → Compte) et le forfait démarre à ce moment-là. 0 crédit : la personne a les droits du forfait (propres comptes et clés IA avec Max ou BYOK) sans utiliser les crédits Deliobot.</p></section>
 <section class="card"><h2>Francs CFA<small>Le montant facturé par SasPay vient du prix en dollars multiplié par ce taux</small></h2>
 <form method="post" action="/forfaits/taux" class="fields"><div><label for="rate">Francs CFA pour 1 $</label><input id="rate" name="rate" type="number" min="100" max="2000" step="0.01" value="${String(input.xof.value)}"></div>
 <div><button class="btn primary">Enregistrer le taux</button></div></form>

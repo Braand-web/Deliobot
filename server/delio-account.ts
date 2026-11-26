@@ -259,8 +259,27 @@ export function createDelioAccount(deps: {
     } catch { return "failed"; }
   }
 
+  /** Sends a promo code the person typed to the portal for this app's workspace, then reads the account again so its plan and credits show. */
+  async function redeemPromo(code: string): Promise<{ status: number; ok: boolean; message: string }> {
+    const connection = delioConnection(deps.config());
+    if (!connection) return { status: 409, ok: false, message: "not-connected" };
+    try {
+      const response = await fetchImpl(`${connection.portal}/api/workspace/${connection.workspace}/promo`, {
+        method: "POST", redirect: "error", signal: AbortSignal.timeout(15_000),
+        headers: { authorization: `Bearer ${connection.token}`, "content-type": "application/json", accept: "application/json" },
+        body: JSON.stringify({ code: code.trim().slice(0, 40) }),
+      });
+      const body = await response.json().catch(() => null) as { message?: unknown; error?: { message?: unknown } } | null;
+      const message = response.ok ? body?.message : body?.error?.message;
+      if (response.ok) await balance({ fresh: true });
+      return { status: response.ok ? 200 : response.status === 401 || response.status === 429 ? response.status : 400, ok: response.ok, message: typeof message === "string" ? message.slice(0, 300) : "" };
+    } catch {
+      return { status: 502, ok: false, message: "" };
+    }
+  }
+
   return {
-    start, linked, status, balance, ownAiAllowed, ownAiVisible, assertOwnAi, planGate, report,
+    start, linked, status, balance, ownAiAllowed, ownAiVisible, assertOwnAi, planGate, report, redeemPromo,
     /** Forgets the account here and revokes this app's token on the portal, so a copied token stops working too. */
     async disconnect() {
       const connection = delioConnection(deps.config());

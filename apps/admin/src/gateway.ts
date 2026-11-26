@@ -10,6 +10,8 @@ import { createVoiceRelay } from "./voice-relay.ts";
 import type { AdminStore } from "./store.ts";
 import { MICRO, type Wallet } from "./wallet.ts";
 
+export type PromoRedemption = { ok: true; message: string; plan?: string; periodEnd?: number } | { ok: false; error: string; status?: number };
+
 export interface GatewayOptions {
   store: AdminStore;
   wallet: Wallet;
@@ -41,6 +43,8 @@ export interface GatewayOptions {
   elevenlabsUrl?: string;
   /** Included app hosting; absent where no bucket is bound. */
   hosting?: AppHosting;
+  /** Applies a promo code a signed-in app entered for its workspace. */
+  redeemPromo?: (workspace: string, email: string | null, code: string) => PromoRedemption;
   /** What the workspace's plan allows: spending Deliobot credits, and cloud computers awake at once. */
   /** Whether this address belongs to an active ambassador, so the app can link to their space. */
   isAmbassador?: (email: string) => boolean;
@@ -397,12 +401,13 @@ export function createGateway(options: GatewayOptions) {
   return {
     /** Charges cloud computers' awake minutes; run once a minute. */
     sweep: () => { fishVoice.sweep(); return boat.sweep(); },
-    /** Handles /api/gateway/<workspace>/<provider>/… and /api/workspace/<workspace>/account; false for any other path. */
+    /** Handles /api/gateway/<workspace>/<provider>/… and /api/workspace/<workspace>/{account,report,promo}; false for any other path. */
     async handle(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
       const gateway = /^\/api\/gateway\/([a-z][a-z0-9-]{1,30})\/(openrouter\/v1|fal|boat\/v1|elevenlabs\/v1|fish|hosting\/v1|anthropic|openai\/v1)\/(.+)$/.exec(url.pathname);
       const account = /^\/api\/workspace\/([a-z][a-z0-9-]{1,30})\/account$/.exec(url.pathname);
       const report = /^\/api\/workspace\/([a-z][a-z0-9-]{1,30})\/report$/.exec(url.pathname);
-      const requested = gateway?.[1] ?? account?.[1] ?? report?.[1];
+      const promo = /^\/api\/workspace\/([a-z][a-z0-9-]{1,30})\/promo$/.exec(url.pathname);
+      const requested = gateway?.[1] ?? account?.[1] ?? report?.[1] ?? promo?.[1];
       if (!requested) return false;
       const presented = bearer(req);
       const device = options.deviceAccount?.(presented, requested);
@@ -420,6 +425,15 @@ export function createGateway(options: GatewayOptions) {
         const kept = options.report({ workspace, email: device?.email ?? options.deviceEmail?.(presented, requested) ?? null, note: text("note"), transcript: text("transcript"),
           bot: text("bot"), appVersion: text("appVersion"), platform: text("platform") });
         if (kept) send(res, 200, { received: true }); else failure(res, 429, "Too many reports today. Write to support instead.");
+        return true;
+      }
+      if (promo) {
+        if (req.method !== "POST" || !options.redeemPromo) { failure(res, 405, "Method not allowed."); return true; }
+        let code = "";
+        try { code = String((JSON.parse((await readRaw(req)).toString("utf8")) as { code?: unknown })?.code ?? ""); } catch { failure(res, 400, "The request was not valid JSON."); return true; }
+        if (!code.trim()) { failure(res, 400, "Entrez un code promo."); return true; }
+        const outcome = options.redeemPromo(workspace, device?.email ?? options.deviceEmail?.(presented, requested) ?? null, code);
+        if (outcome.ok) send(res, 200, outcome); else failure(res, outcome.status ?? 400, outcome.error, "promo_refused");
         return true;
       }
       if (account && req.method === "DELETE") {

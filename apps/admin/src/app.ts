@@ -6,7 +6,7 @@ import type { Gift } from "./env-config.ts";
 import { consoleMailer, type Mailer } from "./mail.ts";
 import { OperatorSettings } from "./operator-settings.ts";
 import { Outbox } from "./outbox.ts";
-import { normalizeCode, Promos } from "./promos.ts";
+import { normalizeCode, type Promo, Promos } from "./promos.ts";
 import { Ambassadors } from "./ambassadors.ts";
 import { ambassadorDashboard, DASHBOARD_SCRIPT, ambassadorJoinPage } from "./ambassador-pages.ts";
 import { discover, exchangeCode, pkceChallenge, verifyIdToken } from "./oidc.ts";
@@ -166,6 +166,8 @@ function tenantOrigin(value: string): string | null {
   } catch { return null; }
 }
 
+type PromoOutcome = { ok: true; message: string; plan?: PlanId; periodEnd?: number } | { ok: false; error: string; percent?: Promo };
+
 export type AdminApp = ((req: IncomingMessage, res: ServerResponse) => Promise<void>) & {
   /** Charges cloud computers' awake minutes and puts those of workspaces out of credits to sleep; run once a minute. */
   sweep: () => Promise<void>;
@@ -232,6 +234,35 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     return workspace.slug;
   }
   if (!operatorConsole) for (const gift of options.gifts ?? []) giveGift(gift, "config", true);
+  /** Applies a code a person entered for their workspace: an ambassador's, a credits code or a plan code. A percentage comes back
+   * as `percent`, to be spent on a plan's checkout. */
+  function redeemPromo(slug: string, email: string, code: string): PromoOutcome {
+    const forAmbassador = ambassadors.ambassadorForCode(code);
+    if (forAmbassador) {
+      if (forAmbassador.ambassador.email === email) return { ok: false, error: "C'est votre propre code : partagez-le avec votre communauté." };
+      const tied = ambassadors.attribute(slug, forAmbassador.code, "code", store.members(slug).map((member) => member.email));
+      if (tied) store.audit(slug, email, "promo.ambassador", forAmbassador.code);
+      return { ok: true, message: tied ? `Code ${forAmbassador.code} accepté : vos ${ambassadors.rules().welcomeCredits.toLocaleString("fr-FR")} crédits offerts seront ajoutés à votre premier abonnement.`
+        : "Votre compte est déjà lié à un code ambassadeur : vos crédits offerts arrivent avec votre premier abonnement." };
+    }
+    const checked = promos.check(code, slug);
+    if (!checked.ok || checked.promo.ambassador) return { ok: false, error: checked.ok ? "Ce code n'est plus valable." : checked.error };
+    if (checked.promo.kind === "percent") return { ok: false, error: "Ce code donne une réduction : choisissez un forfait pour l'utiliser.", percent: checked.promo };
+    if (checked.promo.kind === "credits") {
+      const redeemed = promos.redeemCredits(code, slug);
+      if (!redeemed.ok) return redeemed;
+      store.audit(slug, email, "promo.redeemed", checked.promo.code);
+      return { ok: true, message: `${checked.promo.value.toLocaleString("fr-FR")} crédits ajoutés à votre compte. Ils sont déjà disponibles dans l'application.` };
+    }
+    const redeemed = promos.redeemPlan(code, slug, [email, ...store.members(slug).map((member) => member.email)], plans);
+    if (!redeemed.ok) return redeemed;
+    const subscription = plans.subscription(slug);
+    const credits = redeemed.promo.credits ?? 0;
+    store.audit(slug, email, "promo.plan", `${redeemed.promo.code}:${subscription.plan}:${redeemed.promo.value}d:${credits}cr`);
+    const until = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long", timeZone: "UTC" }).format(new Date(subscription.periodEnd));
+    return { ok: true, plan: subscription.plan, periodEnd: subscription.periodEnd,
+      message: `Forfait ${PLANS[subscription.plan].name} activé jusqu'au ${until}${credits > 0 ? `, avec ${credits.toLocaleString("fr-FR")} crédits` : ""}.` };
+  }
   const reports = new Reports(store.db, now);
   const paymentChecks = new Map<string, { at: number; running: Promise<void> | null }>();
   async function refreshPayments(workspace: string): Promise<void> {
@@ -274,6 +305,11 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       if (!store.allow(`report:${input.workspace}`, 10, 24 * 60 * 60_000)) return false;
       store.audit(input.workspace, input.email, "report.sent", reports.add(input));
       return true;
+    },
+    redeemPromo: (slug, email, code) => {
+      if (!store.allow(`promo:ws:${slug}`, 20, 60 * 60_000)) return { ok: false, error: "Trop d'essais. Patientez une heure et réessayez.", status: 429 };
+      const outcome = redeemPromo(slug, email ?? store.members(slug)[0]?.email ?? "", normalizeCode(code).slice(0, 40));
+      return outcome.ok ? outcome : { ok: false, error: outcome.error };
     },
     allowance: (slug) => plans.allowance(slug), refreshAccount, isAmbassador: (email) => Boolean(email) && ambassadors.byEmail(email)?.status === "active", paymentVersion: slug => plans.paidCount(slug),
     ...(sites ? { hosting: sites } : {}) });
@@ -349,7 +385,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     else if (input.code && kind === "plan") {
       const checked = promos.check(input.code, workspace.slug, plan);
       if (!checked.ok) return fail(409, checked.error);
-      if (checked.promo.kind !== "percent") return fail(409, "Ce code donne des crédits : utilisez-le sur la page Code promo.");
+      if (checked.promo.kind !== "percent") return fail(409, checked.promo.kind === "plan" ? "Ce code active un forfait offert : entrez-le sur la page Code promo." : "Ce code donne des crédits : utilisez-le sur la page Code promo.");
       promo = { code: checked.promo.code, percent: checked.promo.value };
     }
     const order = kind === "plan"
@@ -949,27 +985,14 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       if (method !== "POST") throw new HttpError(405, "Méthode non autorisée.");
       const code = normalizeCode(text(await readBody(req), "code", 40));
       if (!store.allow(`promo:${user.id}`, 20, 60 * 60_000)) return show(429, { code, error: "Trop d'essais. Patientez une heure et réessayez." });
-      const forAmbassador = ambassadors.ambassadorForCode(code);
-      if (forAmbassador) {
-        const tied = ambassadors.attribute(slug, forAmbassador.code, "code", store.members(slug).map((member) => member.email));
-        const own = forAmbassador.ambassador.email === user.email;
-        if (tied) store.audit(slug, user.email, "promo.ambassador", forAmbassador.code);
-        return show(own ? 400 : 200, own ? { code, error: "C'est votre propre code : partagez-le avec votre communauté." }
-          : { message: tied ? `Code ${forAmbassador.code} accepté : vos ${ambassadors.rules().welcomeCredits.toLocaleString("fr-FR")} crédits offerts seront ajoutés à votre premier abonnement.`
-            : "Votre compte est déjà lié à un code ambassadeur : vos crédits offerts arrivent avec votre premier abonnement." });
-      }
-      const checked = promos.check(code, slug);
-      if (!checked.ok || checked.promo.ambassador) return show(400, { code, error: checked.ok ? "Ce code n'est plus valable." : checked.error });
-      if (checked.promo.kind === "credits") {
-        const redeemed = promos.redeemCredits(code, slug);
-        if (!redeemed.ok) return show(400, { code, error: redeemed.error });
-        store.audit(slug, user.email, "promo.redeemed", code);
-        return show(200, { message: `${checked.promo.value.toLocaleString("fr-FR")} crédits ajoutés à votre compte. Ils sont déjà disponibles dans l'application.` });
-      }
+      const outcome = redeemPromo(slug, user.email, code);
+      if (outcome.ok) return show(200, { message: outcome.message });
+      const percent = outcome.percent;
+      if (!percent) return show(400, { code, error: outcome.error });
       const priced = plans.catalog(options.payments?.xofPerUsd).plans
-        .filter((plan) => plan.id !== "trial" && plan.listed && (!checked.promo.plans || checked.promo.plans.includes(plan.id)));
-      return show(200, { code, message: `Code ${checked.promo.code} : -${checked.promo.value} % sur votre forfait. Choisissez-le ci-dessous.`,
-        offers: priced.map((plan) => ({ id: plan.id, name: plan.name, usd: plan.usd, usdYear: plan.usdYear, percent: checked.promo.value })) });
+        .filter((plan) => plan.id !== "trial" && plan.listed && (!percent.plans || percent.plans.includes(plan.id)));
+      return show(200, { code, message: `Code ${percent.code} : -${percent.value} % sur votre forfait. Choisissez-le ci-dessous.`,
+        offers: priced.map((plan) => ({ id: plan.id, name: plan.name, usd: plan.usd, usdYear: plan.usdYear, percent: percent.value })) });
     }
     if (method === "GET" && path === "/api/billing/status") {
       const workspace = requireWorkspaceAdmin(user, url.searchParams.get("workspace") ?? "");
@@ -1080,7 +1103,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
     "Hébergement des sites": Boolean(sites),
   };
   const operatorPages = createConsole({ store, wallet, devices, reports, billing: plans, hosting, saspay, currency, operators, now, ...(sites ? { sites } : {}), readForm: readBody,
-    settings, promos, outbox, ambassadors, xofRate, services, gift: (gift, actor) => giveGift(gift, actor, false), xofPerUsd: options.payments?.xofPerUsd, customerUrl: publicUrl.origin.replace("//admin.", "//compte."), cookie: (req) => parseCookies(req.headers.cookie).get(cookieName),
+    settings, promos, outbox, ambassadors, xofRate, services, gift: (gift, actor) => giveGift(gift, actor, false), prepareAccount: (email) => personal.ensure(store.ensureAccount(email)).slug, xofPerUsd: options.payments?.xofPerUsd, customerUrl: publicUrl.origin.replace("//admin.", "//compte."), cookie: (req) => parseCookies(req.headers.cookie).get(cookieName),
     redirect: (res, location) => redirect(res, location), send });
 
   const handler = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {

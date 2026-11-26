@@ -6260,5 +6260,11 @@
   "whatsNew.cloud.pictureAlt": "Trang chủ của trang web Cloud mới: từng Cloud kèm gói và trạng thái, mức sử dụng tháng này và các ứng dụng đã đăng nhập.",
   "whatsNew.team.picture": "Ada, Ben, Cleo và Dara, mỗi người có Delio riêng, dùng chung bot Hỗ trợ và Bán hàng của nhóm trên một Team Cloud.",
   "whatsNew.team.support": "Hỗ trợ",
-  "whatsNew.team.sales": "Bán hàng"
+  "whatsNew.team.sales": "Bán hàng",
+  "delioAccount.promoLabel": "Mã khuyến mãi",
+  "delioAccount.promoApply": "Kích hoạt",
+  "delioAccount.promoConnectFirst": "Hãy đăng nhập trước, rồi nhập mã của bạn tại đây.",
+  "delioAccount.promoDone": "Đã chấp nhận mã.",
+  "delioAccount.promoFailed": "Không dùng được mã này. Hãy kiểm tra lại và thử lần nữa.",
+  "delioPlans.havePromo": "Tôi có mã khuyến mãi"
 }

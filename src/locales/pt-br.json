@@ -12314,5 +12314,11 @@
   "whatsNew.cloud.pictureAlt": "A página Home do novo site do Cloud: cada Cloud com seu plano e status, o uso deste mês e os apps em que você fez login.",
   "whatsNew.team.picture": "Ada, Ben, Cleo e Dara, cada um com seu próprio Delio, compartilham os bots de suporte e vendas da equipe em um único Team Cloud.",
   "whatsNew.team.support": "Suporte",
-  "whatsNew.team.sales": "Vendas"
+  "whatsNew.team.sales": "Vendas",
+  "delioAccount.promoLabel": "Código promocional",
+  "delioAccount.promoApply": "Ativar",
+  "delioAccount.promoConnectFirst": "Entre primeiro e depois digite seu código aqui.",
+  "delioAccount.promoDone": "Código aceito.",
+  "delioAccount.promoFailed": "Não foi possível usar este código. Confira e tente de novo.",
+  "delioPlans.havePromo": "Tenho um código promocional"
 }

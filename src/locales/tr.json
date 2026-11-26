@@ -6260,5 +6260,11 @@
   "whatsNew.cloud.pictureAlt": "Yeni Cloud web sitesinin ana sayfası: her Cloud planı ve durumuyla, bu ayın kullanımı ve oturum açılmış uygulamalar.",
   "whatsNew.team.picture": "Ada, Ben, Cleo ve Dara, her biri kendi Delio'uyla, tek bir Team Cloud'da ekibin Destek ve Satış botlarını paylaşıyor.",
   "whatsNew.team.support": "Destek",
-  "whatsNew.team.sales": "Satış"
+  "whatsNew.team.sales": "Satış",
+  "delioAccount.promoLabel": "Promosyon kodu",
+  "delioAccount.promoApply": "Etkinleştir",
+  "delioAccount.promoConnectFirst": "Önce giriş yapın, ardından kodunuzu buraya girin.",
+  "delioAccount.promoDone": "Kod kabul edildi.",
+  "delioAccount.promoFailed": "Bu kod kullanılamadı. Kontrol edip tekrar deneyin.",
+  "delioPlans.havePromo": "Promosyon kodum var"
 }

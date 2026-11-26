@@ -4033,5 +4033,11 @@
   "whatsNew.cloud.pictureAlt": "नई Cloud वेबसाइट का होम: हर Cloud का प्लान और स्थिति, इस महीने का उपयोग और साइन इन किए गए ऐप।",
   "whatsNew.team.picture": "Ada, Ben, Cleo और Dara, हर किसी का अपना Delio है, और वे एक Team Cloud पर टीम के सपोर्ट और सेल्स बॉट साझा करते हैं।",
   "whatsNew.team.support": "सपोर्ट",
-  "whatsNew.team.sales": "सेल्स"
+  "whatsNew.team.sales": "सेल्स",
+  "delioAccount.promoLabel": "प्रोमो कोड",
+  "delioAccount.promoApply": "सक्रिय करें",
+  "delioAccount.promoConnectFirst": "पहले साइन इन करें, फिर अपना कोड यहाँ डालें।",
+  "delioAccount.promoDone": "कोड स्वीकार किया गया।",
+  "delioAccount.promoFailed": "यह कोड इस्तेमाल नहीं हो सका। इसे जाँचें और फिर से कोशिश करें।",
+  "delioPlans.havePromo": "मेरे पास प्रोमो कोड है"
 }
