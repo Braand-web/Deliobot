@@ -6,6 +6,7 @@ import { createHash, createHmac, randomBytes } from "node:crypto";
 import { z } from "zod";
 
 import { DEVS_REPORT_LIMITS, withoutContact, type DevsReportPayload } from "./devs-report.ts";
+import { cloudSignedTimestamp } from "./cloud-clock.ts";
 
 export const BUG_REPORT_PATH = "/api/bug-reports";
 export const PRODUCTION_CLOUD_ORIGIN = "https://cloud.opendeliobot.com";
@@ -123,7 +124,7 @@ export const bugReportStatusEndpoint = (reportEndpoint: string): string => new U
 export async function askReportStatus(endpoint: string, question: ReportStatusQuestion, home: ReportStatusHome | null, fetcher: typeof fetch = fetch,
   now = Date.now): Promise<ReportStatusAnswer | null> {
   const body = JSON.stringify({ installId: question.installId, ids: question.ids.slice(0, BUG_REPORT_STATUS_MAX_IDS) });
-  const timestamp = String(Math.floor(now() / 1000)), nonce = randomBytes(18).toString("base64url");
+  const timestamp = cloudSignedTimestamp(now()), nonce = randomBytes(18).toString("base64url");
   const signed: Record<string, string> = home ? { "x-odb-cloud-machine": home.machineId, "x-odb-cloud-timestamp": timestamp, "x-odb-cloud-nonce": nonce,
     "x-odb-cloud-signature": `v1=${bugReportsHomeSignature(home.bootstrapSecret, home.machineId, timestamp, nonce, body)}` } : {};
   try {

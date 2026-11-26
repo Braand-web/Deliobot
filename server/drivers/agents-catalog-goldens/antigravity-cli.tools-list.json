@@ -143,30 +143,6 @@
       }
     },
     {
-      "name": "read_public_url",
-      "inputSchema": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "url"
-        ],
-        "properties": {
-          "url": {
-            "type": "string"
-          },
-          "offset": {
-            "type": "integer",
-            "maximum": 2097152
-          },
-          "max_chars": {
-            "type": "integer",
-            "minimum": 256,
-            "maximum": 16000
-          }
-        }
-      }
-    },
-    {
       "name": "list_rooms",
       "inputSchema": {
         "type": "object",
@@ -214,10 +190,7 @@
           "thread_id": {
             "type": "string"
           }
-        },
-        "required": [
-          "thread_id"
-        ]
+        }
       }
     },
     {
@@ -488,6 +461,16 @@
           },
           "live": {
             "type": "boolean"
+          },
+          "uses": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "data",
+                "state"
+              ]
+            }
           },
           "app_id": {
             "type": "string"
@@ -844,11 +827,11 @@
               "openaiApiKey",
               "anthropicApiKey",
               "openrouterApiKey",
-              "falApiKey",
               "mistralApiKey",
               "cerebrasApiKey",
               "groqApiKey",
               "greenferenceApiKey",
+              "modelgoApiKey",
               "metaApiKey",
               "deepseekApiKey",
               "email"
