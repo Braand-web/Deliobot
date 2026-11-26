@@ -53,7 +53,7 @@ export const BOX_ENV_PREFIXES: readonly string[] = [
  * CLI's session token and server address (server/headless/client.ts) too: nothing in a box reads them, and one an
  * operator set on the server would otherwise pass under the engines' OPENDELIOBOT_ prefix. */
 export const BOX_ENV_NEVER: ReadonlySet<string> = new Set([
-  "ODB_LICENSE_KEY", "ODB_INSTALLATION_CREDENTIAL", "ODB_LOOPBACK_TRUST", "ODB_CLOUD_SECRETS_FD",
+  "ODB_LICENSE_KEY", "ODB_INSTALLATION_CREDENTIAL", "ODB_LOOPBACK_TRUST", "ODB_CLOUD_SECRETS_FD", "ODB_CLOUD_CLOCK_FD",
   "ODB_DATA_DIR", "ODB_STATIC_DIR", "ODB_DUCKDB_DIR", "ODB_PORT", "ODB_WEBHOOK_PORT",
   "OPENDELIOBOT_TOKEN", "OPENDELIOBOT_URL",
 ]);
