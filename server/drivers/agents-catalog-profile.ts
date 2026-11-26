@@ -24,6 +24,8 @@ export interface CatalogProfile {
   botId: string;
   /** A Team Cloud: message_person is mounted. */
   team?: boolean;
+  /** A Team Cloud with its board on: board_add, board_list and board_update are mounted. Absent means off. */
+  board?: boolean;
   /** The person's Delio with a Chief's powers: its notification tools are mounted. */
   delio?: boolean;
   /** A direct chat whose bot may pick where it works (Works on is not Off and no team computer is its own): select_computer
@@ -61,6 +63,7 @@ export function catalogProfileFromEnv(env: NodeJS.ProcessEnv): CatalogProfile {
     chief: env.ODB_CHIEF_OF_STAFF === "1",
     botId: env.ODB_BOT_ID ?? "",
     team: env.ODB_TEAM_PEOPLE === "1",
+    board: env.ODB_TEAM_BOARD === "1",
     delio: env.ODB_DELIO === "1",
     computerSelection: env.ODB_COMPUTER_SELECTION === "1",
     localVm: env.ODB_LOCAL_VM !== "0",

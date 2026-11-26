@@ -13,7 +13,7 @@ import { CORE_TOOLS, OWN_SWITCH_TOOLS, serverTurnedOff, TOOL_GROUP_MEMBERS, tool
 const FULLEST = {
   ODB_BOT_ID: "bot-full", ODB_SKILL_AUTHORING_ENABLED: "1", ODB_SHARED_COMPUTERS_ENABLED: "1", ODB_VOICE_NOTES: "1", ODB_CHIEF_OF_STAFF: "1",
   ODB_COMPUTER_SELECTION: "1", ODB_X_RESEARCH: "1", ODB_RESEARCH: "1", ODB_TEAM_PEOPLE: "1", ODB_IMAGE_GENERATION: "1", ODB_APP_HOSTING: "1",
-  ODB_MEETINGS: "1", ODB_DELIO: "1", ODB_CODER: "1",
+  ODB_MEETINGS: "1", ODB_DELIO: "1", ODB_CODER: "1", ODB_TEAM_BOARD: "1",
 };
 const listed = (env: Record<string, string>) => availableTools(catalogProfileFromEnv(env));
 const names = (env: Record<string, string>) => listed(env).map((tool) => tool.name);

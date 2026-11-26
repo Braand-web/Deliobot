@@ -66,6 +66,9 @@ function profiles(): Record<string, Profile> {
   // The plan's included app hosting reaches only a Cloud home the Admin wired for it; the fullest profile carries it.
   all["skills+shared+voice+x+team+images+hosting"] = { env: { ...all["skills+shared+voice+x+team+images"]!.env, ODB_APP_HOSTING: "1" } };
   all["default+hosting"] = { env: { ...all.default!.env, ODB_APP_HOSTING: "1" } };
+  // A Team Cloud with its board on mounts the three board tools, in a chat and in a room; never on the fullest profile.
+  all["skills+shared+voice+x+team+board"] = { env: { ...all["skills+shared+voice+x+team"]!.env, ODB_TEAM_BOARD: "1" } };
+  all["default+room+board"] = { env: { ...all["default+room"]!.env, ODB_TEAM_PEOPLE: "1", ODB_TEAM_BOARD: "1" } };
   // A bot whose person turned groups off; the fullest profile has every group on.
   all["default+tools-off"] = { env: { ...all.default!.env, ODB_TOOLS_OFF: "pages,meetings" } };
   return all;
@@ -77,6 +80,7 @@ const CHIEF_TARGET_TOOLS = ["propose_profile", "propose_model"];
 const CHIEF_PROFILE_TARGET = " A Chief of Staff may pass for_bot_id (from list_bots) for a requested change to another bot in its section.";
 const TEAMWORK_TOOLS = ["list_room_targets", "coordinate_bots", "assignment_status", "list_bots", "list_rooms", "list_threads", "close_thread", "start_thread", "post_to_room"];
 const DELIO_TOOLS = ["list_unread_notifications", "mark_notifications_read"];
+const BOARD_TOOLS = ["board_add", "board_list", "board_update"];
 /** Delio's tools may make its list at most this much longer than the same Chief's without them. */
 const DELIO_ADDS = 0.02;
 const RESEARCH_TOOLS = ["x_search", "research_search", "research_endpoint", "research_call"];
@@ -87,37 +91,39 @@ const FULL = "skills+shared+voice+x+team+images+hosting";
 
 /** Bytes when the budget was last set; a profile may move at most 2% either way (lower it to lock in a win). */
 const BUDGET_BASELINE: Record<string, number> = {
-  "default": 61509,
-  "voice": 62290,
-  "shared": 63774,
-  "shared+voice": 64555,
-  "skills": 63830,
-  "skills+voice": 64611,
-  "skills+shared": 66095,
-  "skills+shared+voice": 66876,
-  "non-chief": 52961,
-  "voice+non-chief": 53742,
-  "shared+non-chief": 55226,
-  "shared+voice+non-chief": 56007,
-  "skills+non-chief": 55282,
-  "skills+voice+non-chief": 56063,
-  "skills+shared+non-chief": 57547,
-  "skills+shared+voice+non-chief": 58328,
-  "skills+shared+voice+cloud-home": 66632,
-  "skills+shared+voice+non-chief+cloud-home": 58084,
-  "default+legacy-switches": 61509,
-  "default+delio": 62160,
-  "skills+shared+voice+delio": 67527,
-  "skills+shared+voice+x": 70715,
-  "skills+shared+voice+x+team": 70715,
-  "default+no-computer-pick": 60297,
-  "default+room": 56857,
-  "non-chief+room": 49286,
-  "skills+shared+voice+x+team+images": 72662,
-  "default+images": 63456,
-  "skills+shared+voice+x+team+images+hosting": 76291,
-  "default+hosting": 64952,
-  "default+tools-off": 57192,
+  "default": 63046,
+  "voice": 63827,
+  "shared": 65311,
+  "shared+voice": 66092,
+  "skills": 65469,
+  "skills+voice": 66250,
+  "skills+shared": 67734,
+  "skills+shared+voice": 68515,
+  "non-chief": 54498,
+  "voice+non-chief": 55279,
+  "shared+non-chief": 56763,
+  "shared+voice+non-chief": 57544,
+  "skills+non-chief": 56921,
+  "skills+voice+non-chief": 57702,
+  "skills+shared+non-chief": 59186,
+  "skills+shared+voice+non-chief": 59967,
+  "skills+shared+voice+cloud-home": 68271,
+  "skills+shared+voice+non-chief+cloud-home": 59723,
+  "default+legacy-switches": 63046,
+  "default+delio": 63697,
+  "skills+shared+voice+delio": 69166,
+  "skills+shared+voice+x": 72354,
+  "skills+shared+voice+x+team": 72354,
+  "default+no-computer-pick": 61840,
+  "default+room": 57978,
+  "non-chief+room": 49430,
+  "skills+shared+voice+x+team+images": 74487,
+  "default+images": 65179,
+  "skills+shared+voice+x+team+images+hosting": 77020,
+  "default+hosting": 65579,
+  "default+tools-off": 58618,
+  "skills+shared+voice+x+team+board": 74409,
+  "default+room+board": 60033,
 };
 
 const RPC_PREFIX = '{"jsonrpc":"2.0","id":1,"result":';
@@ -221,6 +227,7 @@ describe("agents proxy tools/list golden", () => {
         if (profile.env.ODB_CLOUD_HOME === "1" && (tool.name === "select_computer" || OWN_CLOUD_TOOLS.includes(tool.name))) continue;
         if (profile.env.ODB_CHIEF_OF_STAFF === "0" && CHIEF_TARGET_TOOLS.includes(tool.name)) continue;
         if (profile.env.ODB_DELIO === "1" && DELIO_TOOLS.includes(tool.name)) continue;
+        if (profile.env.ODB_TEAM_BOARD === "1" && BOARD_TOOLS.includes(tool.name)) continue;
         expect(JSON.stringify(tool), `${name}: ${tool.name}`).toBe(full.get(tool.name));
       }
     }
@@ -274,6 +281,15 @@ describe("agents proxy tools/list golden", () => {
     expect(names(wires["default+hosting"]!).filter((tool) => !HOSTING_TOOLS.includes(tool))).toEqual(names(wires.default!));
     for (const [name, profile] of Object.entries(PROFILES)) {
       for (const tool of HOSTING_TOOLS) expect(names(wires[name]!).includes(tool), `${name}: ${tool}`).toBe(profile.env.ODB_APP_HOSTING === "1");
+    }
+  });
+
+  it("mounts the three board tools only on a Team Cloud with the board on, in a chat and in a room, and adds nothing else", () => {
+    const names = (wire: string) => toolsOf(wire).map((tool) => tool.name);
+    expect(names(wires["skills+shared+voice+x+team+board"]!).filter((tool) => !BOARD_TOOLS.includes(tool))).toEqual(names(wires["skills+shared+voice+x+team"]!));
+    expect(names(wires["default+room+board"]!).filter((tool) => !BOARD_TOOLS.includes(tool))).toEqual(names(wires["default+room"]!));
+    for (const [name, profile] of Object.entries(PROFILES)) {
+      for (const tool of BOARD_TOOLS) expect(names(wires[name]!).includes(tool), `${name}: ${tool}`).toBe(profile.env.ODB_TEAM_BOARD === "1");
     }
   });
 
@@ -354,7 +370,7 @@ describe("agents proxy tools/list golden", () => {
     const names = (name: string) => toolsOf(wires[name]!).map((tool) => tool.name);
     expect(names("default+no-computer-pick")).toEqual(names("default").filter((tool) => tool !== "select_computer"));
     for (const name of ["default", "non-chief"]) {
-      expect(names(`${name}+room`), name).toEqual(names(name).filter((tool) => !["select_computer", "wait_until", "list_waits", "cancel_wait", "check_back", "burst", "rename_thread"].includes(tool)));
+      expect(names(`${name}+room`), name).toEqual(names(name).filter((tool) => !["select_computer", "wait_until", "list_waits", "cancel_wait", "check_back", "burst", "rename_thread", "set_main_thread"].includes(tool)));
     }
     for (const [name, profile] of Object.entries(PROFILES)) {
       expect(names(name).includes("select_computer"), name).toBe(profile.env.ODB_COMPUTER_SELECTION === "1");

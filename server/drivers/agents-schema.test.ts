@@ -12,7 +12,7 @@ const record = (value: unknown): value is Json => value !== null && typeof value
 /** Every switch on: each tool the catalog can list, in the form tools/list sends it. */
 const LISTED = availableTools(catalogProfileFromEnv({
   ODB_BOT_ID: WATCHER_OPTIONS_CARD_BOT_ID, ODB_CHIEF_OF_STAFF: "1", ODB_SKILL_AUTHORING_ENABLED: "1", ODB_SHARED_COMPUTERS_ENABLED: "1",
-  ODB_VOICE_NOTES: "1", ODB_X_RESEARCH: "1", ODB_RESEARCH: "1", ODB_TEAM_PEOPLE: "1", ODB_DELIO: "1",
+  ODB_VOICE_NOTES: "1", ODB_X_RESEARCH: "1", ODB_RESEARCH: "1", ODB_TEAM_PEOPLE: "1", ODB_TEAM_BOARD: "1", ODB_DELIO: "1",
 }));
 
 /** Each keyword the advertised node lacks, with where it sat in the full one. */

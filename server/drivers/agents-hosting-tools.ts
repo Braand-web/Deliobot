@@ -18,7 +18,7 @@ export const HOSTING_TOOL_DEFINITIONS = [
   {
     name: "publish_app",
     description:
-      "Put a site or app you built online on the hosting the person's Cloud plan includes: static files, no account or token; a folder with a build script is built first. The link is public at once: publish only after the person saw or was told what it is and said yes. Publishing the same project again keeps its link as a new version; with preview it goes to a separate preview link first, and promote makes it live. rollback puts an earlier one back. protect makes the app ask a password, given to you once for the person; unprotect opens it. domain points the person's own domain at it (empty removes it, absent reads it). delete takes it down for good, only when the person asks. Follow the publish-to-netlify skill; when the plan can't take the app, offer the person's own Netlify account.",
+      "Put a site or app you built online on the hosting the person's Cloud plan includes: static files, no account or token; a folder with a build script is built first. The link is public at once: publish only after the person saw or was told what it is and said yes; a page or report to share goes through publish_page instead. The same project again keeps its link as a new version; preview gives a separate link first, promote makes it live, rollback puts an earlier one back. protect asks a password (given to you once); unprotect opens it. domain sets the person's own domain (empty removes it). delete takes it down for good, only when asked. Follow the publish-to-netlify skill; when the plan can't take the app, offer the person's own Netlify account.",
     inputSchema: {
       type: "object",
       additionalProperties: false,

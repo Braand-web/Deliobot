@@ -88,7 +88,8 @@ export function EngineSections({ instances, renderEngine, isReady = engineReady 
   // unsaved input.
   return <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] items-start gap-3">
     {[true, false].flatMap((ready) => {
-      const rows = instances.filter((instance) => isReady(instance) === ready);
+      const listed = instances.filter((instance) => isReady(instance) === ready);
+      const rows = listed;
       if (!rows.length) return [];
       const label = t(ready ? "onboarding.engines.ready" : "onboarding.engines.needsSetup");
       return [

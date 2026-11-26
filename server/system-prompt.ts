@@ -7,7 +7,7 @@ import type { ConnectorToolGrant } from "../shared/wire.ts";
 import { loginLabel, type LoginPlace } from "../shared/logins.ts";
 import { vaultNameKey } from "../shared/vault.ts";
 import { isConversational, type ReplyStyle } from "../shared/reply-style.ts";
-import { REPLY_HABITS_PROMPT } from "./reply-habits.ts";
+import { replyHabitsPrompt } from "./reply-habits.ts";
 import { serverVersion } from "./environment.ts";
 
 export type PromptPart = { id: string; label: string; text: string };
@@ -58,7 +58,7 @@ export function heavyPrompt(sections: readonly PromptSection[]): boolean {
 // runs of a bot and not others) and an automation run's reply rule ("automation-reply"), which otherwise makes every
 // routine run write a new cached prefix.
 const VOLATILE_SECTIONS = new Set(["memory", "mentions", "outstanding", "teammate-questions", "long-waits", "recent", "availability", "active-routines",
-  "plan", "assignment", "routine-execution", "automation-reply", "skill-instructions", "playbooks", "device-place", "files", "tool-bridge", "project-notes"]);
+  "plan", "assignment", "routine-execution", "automation-reply", "skill-instructions", "playbooks", "device", "device-place", "files", "tool-bridge", "project-notes"]);
 /** In the stable half, so it is not sent again whenever availability changes, but no part of what a per-thread process is
  * keyed on: a warm process gets a changed roster as a note instead of a relaunch (SendTurnInput.systemRoster). */
 const ROSTER_SECTION = "roster";
@@ -102,7 +102,8 @@ export function buildSystemPrompt(
   soul: string,
   parts: PromptPart[],
   agents?: { env?: Record<string, string | undefined> },
-  opts?: { replyStyle?: ReplyStyle; rules?: string },
+  /** `pagesOff`: the person turned off this bot's Pages and apps tools, so it has no publish_page. */
+  opts?: { replyStyle?: ReplyStyle; rules?: string; pagesOff?: boolean },
 ): { text: string; sections: PromptSection[]; stable: string; volatile: string; roster: string } {
   const ordered: PromptPart[] = [
     { id: "persona", label: "Identity", text: persona },
@@ -113,7 +114,8 @@ export function buildSystemPrompt(
     { id: "reply-style", label: "Reply style", text: replyStylePrompt(opts?.replyStyle) },
     { id: "media", label: "Making media", text: mediaPrompt(agents) },
     ...parts,
-    { id: "reply-habits", label: "How to reply", text: REPLY_HABITS_PROMPT },
+    // Only a turn with the agents tools, Pages and apps on, has publish_page.
+    { id: "reply-habits", label: "How to reply", text: replyHabitsPrompt(Boolean(agents) && opts?.pagesOff !== true) },
   ];
   const sections = ordered
     .filter((part) => part.text.length > 0)

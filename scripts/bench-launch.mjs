@@ -99,7 +99,7 @@ function seed() {
   return seeded;
 }
 
-const STORAGE = { "odb-analytics-opt-out": "1", "odb-email-gate": "skipped", "odb-simple-mode-prompt": "1", "grok-move-2026-11": "1", "teams-2026-11b": "1", "modelgo-offer-2026-11": "1", "odb-advanced-mode": "0" };
+const STORAGE = { "odb-analytics-opt-out": "1", "odb-email-gate": "skipped", "odb-simple-mode-prompt": "1", "grok-move-2026-11": "1", "teams-2026-11b": "1", "modelgo-offer-2026-11": "1", "whats-new-2026-11b": "1", "odb-advanced-mode": "0" };
 const electron = require("electron");
 const DEV_PAGE_PORT = BENCH_PORTS[0] - 3600;
 const fixtureEnv = () => ({
