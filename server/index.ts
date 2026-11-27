@@ -644,7 +644,7 @@ import { createNotificationRoutes, notificationListedFor } from "./routes/notifi
 import { createTodayRoutes } from "./routes/today.ts"; import { createInboxRoutes } from "./routes/inbox.ts"; import { createSidebarSectionRoutes } from "./routes/sidebar-sections.ts";
 import { createToolTimingRoute, createUsageRoutes } from "./routes/usage.ts"; import { createPrivateRecords } from "./host/private-records.ts"; import { createPublishedApps } from "./host/published-apps.ts"; import { savedNetlifyToken } from "./host/netlify-sites.ts"; import { createIncludedHosting } from "./host/included-hosting.ts"; import { createAppPublisher } from "./host/app-publisher.ts"; import { createPublishedAppsRoutes } from "./routes/published-apps.ts";
 import { createBotMessageRoutes } from "./routes/bot-messages.ts";
-import { clearInternalTurn, isInternalTurn, markInternalTurn } from "./internal-turns.ts"; import { createFirstReplyRescue } from "./first-reply-rescue.ts";
+import { clearInternalTurn, isInternalTurn, markInternalTurn } from "./internal-turns.ts"; import { createPromisedActionRescue } from "./promised-action-rescue.ts"; import { createFirstReplyRescue } from "./first-reply-rescue.ts";
 import { createReactionRoutes } from "./routes/reactions.ts";
 import { createReactions, createRoomReactionNotes, withReactionNotes, type Reactor } from "./reactions.ts";
 import { createPersonReplies } from "./person-replies.ts";
@@ -6725,6 +6725,7 @@ bus.subscribe((event: RuntimeEvent) => {
       let directSettled = () => {}; const settledDirect = new Promise<void>((resolve) => { directSettled = resolve; }); const resumeWait = failed && bot && held === "signed-out" && event.unsent && ownRequest(directRequestOwners.get(event.threadId), event.turnId, internal) ? signInWait(store, bot.id, event.threadId, directRequestOwners.get(event.threadId)?.messageId, turnTriggers.get(event.threadId), Date.now()) : null; if (failed && bot) { const settledAll = Promise.all([settledDirect, directTurnDispatchClaims.released(event.threadId)]); const switched = quotaSwitch.turnFailed(bot, event, internal, settledAll); if (resumeWait) void Promise.all([settledAll, switched]).then(() => signInResume.waiting(resumeWait)); }
       else if (bot && event.ok) { quotaSwitch.turnSucceeded(bot, event.threadId); setupRecovery.succeeded(bot.id, event.threadId, { replayed, stopped }); }
       if (bot && event.ok && !stopped && completedTurnId && !routineRun && !coordinator.assignerOf(event.threadId)) askCards.ownQuestion(bot.id, event.threadId, completedTurnId);
+      if (bot && event.ok && !stopped && !internal && completedTurnId && !routineRun && !coordinator.assignerOf(event.threadId) && !store.groupByThread(event.threadId)) promisedActions.turnEnded(bot.id, event.threadId, completedTurnId, reply);
       const lastReported = turnUsage.get(event.threadId);
       turnUsage.delete(event.threadId);
       const lastContext = turnContext.get(event.threadId);
@@ -6939,6 +6940,12 @@ const { reportIncident, incidentRefused, retryThread } = createChiefNotices({
   groupTurnActive: (botId) => Boolean(activeGroupTurnForBot(botId)),
   ...(teamOwners.noticeRouting ? { routing: teamOwners.noticeRouting } : {}),
   continueRequest: (botId, threadId, text) => startTurn(botId, text, { threadId, unattended: true, cardContinuation: true, requestMessageId: directRequestOwners.get(threadId)?.messageId }),
+});
+
+const promisedActions = createPromisedActionRescue({
+  activePath: (threadId) => store.activePath(threadId), threadBusy, threadQueued: (botId, threadId) => queuedThreadPosition(botId, threadId) !== null,
+  continueRequest: (botId, threadId, text) => startTurn(botId, text, { threadId, unattended: true, cardContinuation: true, requestMessageId: directRequestOwners.get(threadId)?.messageId }),
+  log: (line) => console.log(line),
 });
 
 function turnAnswers(threadId: string, opts?: {
