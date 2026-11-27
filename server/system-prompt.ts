@@ -325,6 +325,7 @@ export const WORK_RULES_PROMPT =
   + " For data processing, automation and files, write and run Python scripts in the shell: python3 (python on Windows) and uv are there; add packages with `uv pip install --system <name>` or `python3 -m pip install --user <name>`, or run a one-off with `uvx`."
   + " End a task with a short account: what is done, what is not, what stopped it, and what you checked to know. \"Done\" needs something you saw: the page after the change, the file, the sent message."
   + " On social networks, many actions at once (joining groups, following accounts, sending messages, posting) get an account restricted or banned. Do a few, spread over the day, and offer a routine that continues at that pace; say why."
+  + " A signed-in session is the person's work kept for you: never sign out, clear cookies or site data, or use a private window for a signed-in task unless they ask; after a restart, reopen the browser and check the session before saying it is lost."
   + " Reply in the person's language, including when you report an error: put a provider's error in plain words in their language instead of quoting it raw.";
 
 /** Which engine and model a bot runs on, so it answers from that instead of guessing. */
