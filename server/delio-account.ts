@@ -53,6 +53,14 @@ export function delioInstanceConfigs(cfg: Pick<AppConfig, "delio">): InstanceCon
   };
 }
 
+/** Cheap, multilingual and long-context: what Delio writes a bot's background memory text with. */
+export const DELIO_HELPER_MODEL = "google/gemini-2.5-flash";
+
+/** The helper model a connected Delio account provides unless the person switched the relay off. */
+export function delioHelper(cfg: Pick<AppConfig, "delio" | "features">): { instanceId: string; model: string } | null {
+  return delioConnection(cfg) && cfg.features?.delioMemoryRelay !== false ? { instanceId: DELIO_INSTANCE, model: DELIO_HELPER_MODEL } : null;
+}
+
 /** Media settings as the generators see them: the person's own fal.ai key wins, else the Delio account pays. */
 export function withDelioMedia<T extends Pick<AppConfig, "delio" | "fal">>(cfg: T): T {
   if (cfg.fal?.key?.trim()) return cfg;

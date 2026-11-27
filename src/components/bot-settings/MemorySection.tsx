@@ -32,7 +32,7 @@ import {
 import { localizedRelativeTime } from "@/lib/relative-time";
 import { shortPath } from "@/lib/short-path";
 import { activeLocale, t } from "@/lib/i18n";
-import { roomMemoryCaptureEnabled } from "@/lib/feature-flags";
+import { delioMemoryRelayEnabled, roomMemoryCaptureEnabled } from "@/lib/feature-flags";
 import { api, ApiError, type Bot, type ConfigStatus } from "@/state/store";
 import { Switch } from "../SettingsPrimitives";
 import { useDesktopCapabilities } from "../DesktopCapabilities";
@@ -129,8 +129,10 @@ export function MemorySection({ bot, active = true, onToggle }: { bot: Bot; acti
   const [reviewing, setReviewing] = useState(false);
   const state = useStoreSelector((s) => ({ config: s.config }), sameFields), dispatch = useStoreDispatch();
   const learnFromRooms = roomMemoryCaptureEnabled(state.config);
-  const [roomsSaving, setRoomsSaving] = useState(false);
-  const [roomsError, setRoomsError] = useState("");
+  const delioRelay = delioMemoryRelayEnabled(state.config);
+  const delioConnected = state.config?.features?.delioMemoryRelay !== undefined;
+  const [featureSaving, setFeatureSaving] = useState<FeatureSwitch | null>(null);
+  const [featureError, setFeatureError] = useState<{ feature: FeatureSwitch; text: string } | null>(null);
 
   const refresh = async (openPath?: string) => {
     const [nextOverview, nextJournal] = await Promise.all([
@@ -256,22 +258,26 @@ export function MemorySection({ bot, active = true, onToggle }: { bot: Bot; acti
     dispatch({ type: "updateBot", botId: bot.id, patch: { memoryUpkeep: enabled } });
   };
 
-  const toggleRooms = async () => {
-    if (roomsSaving) return;
-    setRoomsSaving(true);
-    setRoomsError("");
+  const toggleFeature = async (feature: FeatureSwitch, enabled: boolean) => {
+    if (featureSaving) return;
+    setFeatureSaving(feature);
+    setFeatureError(null);
     try {
       const config: ConfigStatus = await api("/api/config", {
         method: "PATCH",
-        body: JSON.stringify({ features: { roomMemoryCapture: !learnFromRooms } }),
+        body: JSON.stringify({ features: { [feature]: enabled } }),
       });
       dispatch({ type: "configStatus", config });
     } catch (cause) {
-      setRoomsError(cause instanceof Error ? cause.message : t("memory.learnFromRooms.error"));
+      setFeatureError({ feature, text: cause instanceof Error ? cause.message : t(FEATURE_ERROR[feature]) });
     } finally {
-      setRoomsSaving(false);
+      setFeatureSaving(null);
     }
   };
+  const featureRow = (feature: FeatureSwitch, enabled: boolean) => ({
+    enabled, saving: featureSaving === feature, error: featureError?.feature === feature ? featureError.text : "",
+    onToggle: () => void toggleFeature(feature, !enabled),
+  });
 
   const tidyNow = async () => {
     setTidying(true);
@@ -355,7 +361,8 @@ export function MemorySection({ bot, active = true, onToggle }: { bot: Bot; acti
         tidying={tidying}
         onToggle={toggleUpkeep}
         onTidy={() => void tidyNow()}
-        rooms={{ enabled: learnFromRooms, saving: roomsSaving, error: roomsError, onToggle: () => void toggleRooms() }}
+        rooms={featureRow("roomMemoryCapture", learnFromRooms)}
+        relay={delioConnected ? featureRow("delioMemoryRelay", delioRelay) : undefined}
         model={active && bot.memoryUpkeep !== false
           ? <MemoryModelSetting key={bot.id} bot={bot} upkeep={upkeep} className="mt-3 border-t border-hairline/40" /> : undefined}
       />}
@@ -487,6 +494,7 @@ export function MemoryUpkeepCard({
   onToggle,
   onTidy,
   rooms,
+  relay,
   model,
 }: {
   enabled: boolean;
@@ -494,7 +502,8 @@ export function MemoryUpkeepCard({
   tidying: boolean;
   onToggle: () => void;
   onTidy: () => void;
-  rooms?: { enabled: boolean; saving: boolean; error: string; onToggle: () => void };
+  rooms?: FeatureRow;
+  relay?: FeatureRow;
   model?: ReactNode;
 }) {
   return (
@@ -508,23 +517,11 @@ export function MemoryUpkeepCard({
       </div>
       {model}
       {enabled && rooms && (
-        <div className="mt-3 flex items-start justify-between gap-3 border-t border-hairline/40 pt-3">
-          <div className="min-w-0">
-            <div className="text-[13px] font-medium text-ink">{t("memory.learnFromRooms.title")}</div>
-            <p className="mt-0.5 text-[13px] leading-relaxed text-ink-secondary">{t("memory.learnFromRooms.subtitle")}</p>
-            {status && !status.modelSteps && (
-              <p className="mt-1 text-[13px] leading-relaxed text-ink-secondary">{t("memory.learnFromRooms.noModelSteps")}</p>
-            )}
-            {rooms.error && <p role="alert" className="mt-1 text-[13px] text-danger">{rooms.error}</p>}
-          </div>
-          <Switch
-            checked={rooms.enabled}
-            aria-label={t("memory.learnFromRooms.title")}
-            disabled={rooms.saving}
-            onClick={rooms.onToggle}
-            className="disabled:cursor-wait disabled:opacity-50"
-          />
-        </div>
+        <FeatureSwitchRow row={rooms} title={t("memory.learnFromRooms.title")} subtitle={t("memory.learnFromRooms.subtitle")}
+          note={status && !status.modelSteps ? t("memory.learnFromRooms.noModelSteps") : undefined} />
+      )}
+      {enabled && relay && (
+        <FeatureSwitchRow row={relay} title={t("memory.delioRelay.title")} subtitle={t("memory.delioRelay.subtitle")} />
       )}
       {enabled && status && !status.modelSteps && (
         <p className="mt-2 text-[13px] text-ink-secondary">{t("memory.upkeep.noModelSteps")}</p>
@@ -732,6 +729,33 @@ export function MemoryJournalList({
           </div>
         );
       })}
+    </div>
+  );
+}
+
+type FeatureSwitch = "roomMemoryCapture" | "delioMemoryRelay";
+const FEATURE_ERROR: Record<FeatureSwitch, string> = {
+  roomMemoryCapture: "memory.learnFromRooms.error",
+  delioMemoryRelay: "memory.delioRelay.error",
+};
+interface FeatureRow { enabled: boolean; saving: boolean; error: string; onToggle: () => void }
+
+function FeatureSwitchRow({ row, title, subtitle, note }: { row: FeatureRow; title: string; subtitle: string; note?: string }) {
+  return (
+    <div className="mt-3 flex items-start justify-between gap-3 border-t border-hairline/40 pt-3">
+      <div className="min-w-0">
+        <div className="text-[13px] font-medium text-ink">{title}</div>
+        <p className="mt-0.5 text-[13px] leading-relaxed text-ink-secondary">{subtitle}</p>
+        {note && <p className="mt-1 text-[13px] leading-relaxed text-ink-secondary">{note}</p>}
+        {row.error && <p role="alert" className="mt-1 text-[13px] text-danger">{row.error}</p>}
+      </div>
+      <Switch
+        checked={row.enabled}
+        aria-label={title}
+        disabled={row.saving}
+        onClick={row.onToggle}
+        className="disabled:cursor-wait disabled:opacity-50"
+      />
     </div>
   );
 }

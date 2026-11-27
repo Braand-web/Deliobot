@@ -673,3 +673,71 @@ describe("background engine calls across bots", () => {
     expect(most).toBe(2);
   });
 });
+
+describe("the helper when a bot's own engine fails", () => {
+  const failing = (instanceId: string, error: unknown) => {
+    const calls: string[] = [];
+    const instance: SideJobInstance = {
+      instanceId, driverKind: "claudeAgent", enabled: true, models: NO_MODELS, adapter: { capabilities: { agentsMcp: true } },
+      generateText: async (prompt) => {
+        calls.push(prompt);
+        throw error;
+      },
+    };
+    return { instance, calls };
+  };
+
+  it("writes the memory and the summary when the engine's call fails, such as at a usage limit", async () => {
+    const { jobs, state, openrouter } = setup({ helper: { instanceId: "openrouter", model: "google/gemini-2.5-flash" } });
+    const limited = failing("claude", new Error("Claude usage limit reached"));
+    state.instances.set("claude", limited.instance);
+    for (const job of ["memory", "compaction"] as const) {
+      const text = jobs.text(job, "claude");
+      expect(text?.via, job).toBe("engine");
+      expect(await text!.generateText(`${job} prompt`)).toBe("openrouter wrote this");
+    }
+    expect(limited.calls).toEqual(["memory prompt", "compaction prompt"]);
+    expect(openrouter.calls.map((call) => [call.prompt, call.options?.model])).toEqual([["memory prompt", "google/gemini-2.5-flash"], ["compaction prompt", "google/gemini-2.5-flash"]]);
+    expect(state.booked.map((entry) => entry.row.trigger)).toEqual([{ kind: "helper", botId: "claude", job: "memory" }, { kind: "helper", botId: "claude", job: "compaction" }]);
+    expect(state.logs).toContain("helper model: Bot claude's memory text failed on claude, so openrouter writes it");
+  });
+
+  it("leaves every other job's failure, a stop, the spend limit and a bot kept off the helper as they were", async () => {
+    const { jobs, state, openrouter } = setup({ helper: { instanceId: "openrouter" } });
+    state.instances.set("claude", failing("claude", new Error("Claude usage limit reached")).instance);
+    await expect(jobs.text("skill-review", "claude")!.generateText("review")).rejects.toThrow("usage limit");
+    await expect(jobs.text("setup-suggestions", "claude")!.generateText("setup")).rejects.toThrow("usage limit");
+    const stop = new AbortController();
+    stop.abort();
+    await expect(jobs.text("memory", "claude")!.generateText("memory", { signal: stop.signal })).rejects.toThrow();
+    state.instances.set("claude", failing("claude", Object.assign(new Error("spend limit"), { code: "spend_cap" })).instance);
+    await expect(jobs.text("memory", "claude")!.generateText("memory")).rejects.toThrow("spend limit");
+    state.instances.set("claude", failing("claude", new Error("Claude usage limit reached")).instance);
+    state.bots.set("claude", { ...bot("claude", "claude"), helperModel: false });
+    await expect(jobs.text("memory", "claude")!.generateText("memory")).rejects.toThrow("usage limit");
+    expect(openrouter.calls).toEqual([]);
+  });
+
+  it("never sends a failed call back to the engine that failed it", async () => {
+    const { jobs, state } = setup({ helper: { instanceId: "claude" } });
+    const limited = failing("claude", new Error("Claude usage limit reached"));
+    state.instances.set("claude", limited.instance);
+    await expect(jobs.text("memory", "claude")!.generateText("memory")).rejects.toThrow("usage limit");
+    expect(limited.calls).toEqual(["memory"]);
+  });
+});
+
+describe("a connected Delio account as the helper", () => {
+  const connected = { delio: { portal: "https://compte.deliobot.fun", workspace: "acme", token: `odb_device_${"a".repeat(43)}` } };
+
+  it("is the helper unless another is set, the relay is switched off, or the environment switches every helper off", async () => {
+    const { delioHelper, DELIO_HELPER_MODEL } = await import("./delio-account.ts");
+    expect(delioHelper({})).toBeNull();
+    expect(delioHelper(connected)).toEqual({ instanceId: "delio", model: DELIO_HELPER_MODEL });
+    expect(delioHelper({ ...connected, features: { delioMemoryRelay: false } })).toBeNull();
+    const fallback = delioHelper(connected);
+    expect(helperSelection({}, {}, fallback)).toEqual(fallback);
+    expect(helperSelection({ helper: { instanceId: "claude" } }, {}, fallback)).toEqual({ instanceId: "claude" });
+    expect(helperSelection({}, { ODB_HELPER_INSTANCE: "" }, fallback)).toBeNull();
+  });
+});

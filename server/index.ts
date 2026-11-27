@@ -77,7 +77,7 @@ import {
 import { avatarImageStatus } from "./avatar-image.ts"; import { assignmentReadRefusal } from "./assignment-read.ts";
 import { imageGenerationReady } from "./image-generation.ts"; import { configureHiggsfield, createHiggsfieldBackend } from "./higgsfield-mcp.ts";
 import { withAutoModel } from "./auto-model.ts";
-import { createDelioAccount, DELIO_LINKED_PATH, delioConnection, delioPlanTurnsFor, withDelioMedia } from "./delio-account.ts"; import { hostedDelioAccount, startDelioBrokerLink } from "./delio-broker-link.ts"; import { createAppSignedOutNotice } from "./app-signed-out-notice.ts"; import { coderRulesPrompt, projectNotesPrompt, readNotes, rememberChecks } from "./coder/project-notes.ts"; import { codingGoalTurns, coderOn } from "./coder/settings.ts"; import { detectChecks, runChecks } from "./coder/verify.ts"; import { createParallelAttempts } from "./host/parallel-attempts.ts"; import { createCoderGate } from "./host/coder-gate.ts"; import { createCoderUndoRoutes } from "./routes/coder-undo.ts"; import { createOutboundReview } from "./outbound-review.ts"; import { createHiddenInstructionNotice } from "./hidden-instructions.ts"; import { setBrokerRelink } from "./composio-broker-access.ts"; import { startPythonRuntime } from "./python-runtime.ts";
+import { createDelioAccount, DELIO_LINKED_PATH, delioConnection, delioHelper, delioPlanTurnsFor, withDelioMedia } from "./delio-account.ts"; import { hostedDelioAccount, startDelioBrokerLink } from "./delio-broker-link.ts"; import { createAppSignedOutNotice } from "./app-signed-out-notice.ts"; import { coderRulesPrompt, projectNotesPrompt, readNotes, rememberChecks } from "./coder/project-notes.ts"; import { codingGoalTurns, coderOn } from "./coder/settings.ts"; import { detectChecks, runChecks } from "./coder/verify.ts"; import { createParallelAttempts } from "./host/parallel-attempts.ts"; import { createCoderGate } from "./host/coder-gate.ts"; import { createCoderUndoRoutes } from "./routes/coder-undo.ts"; import { createOutboundReview } from "./outbound-review.ts"; import { createHiddenInstructionNotice } from "./hidden-instructions.ts"; import { setBrokerRelink } from "./composio-broker-access.ts"; import { startPythonRuntime } from "./python-runtime.ts";
 import { createDelioAccountRoutes } from "./routes/delio-account.ts";
 import { videoGenerationReady } from "./video-generation.ts";
 import { createMediaToolRoutes, type MediaKind } from "./routes/media-tools.ts";
@@ -5112,7 +5112,7 @@ const sideJobs = createSideJobs({
   bot: (botId) => store.bot(botId),
   instance: (instanceId) => registry.get(instanceId),
   refusal: (instance) => policyModelRefusal(instance), smallModels: quickFallback,
-  helper: cacheUntilConfigChanges((config) => helperSelection(config)),
+  helper: cacheUntilConfigChanges((config) => helperSelection(config, process.env, delioHelper(config))),
   ...(hostedModels ? { modelAllowed: (selection: ModelSelection) => hostedModels.allows(selection) } : {}),
   assertWithinBudget: () => { assertWithinBudget(cfg, DATA_DIR); usageCapGate.assertTurn(undefined, true); },
   book: bookTurnUsage, lightModel: lightModelFor,
@@ -11703,6 +11703,7 @@ function configStatus() {
       claudeUserSkills: claudeUserSkillsEnabled(cfg),
       autoRecall: autoRecallEnabled(cfg),
       roomMemoryCapture: roomMemoryCaptureEnabled(cfg),
+      delioMemoryRelay: delioConnection(cfg) ? cfg.features?.delioMemoryRelay !== false : undefined,
       parallelRoomJobs: parallelRoomJobsEnabled(cfg),
       savedSteps: savedStepsEnabled(cfg), savedStepsHere: savedSteps.here(), skillBurger: skillBurgerEnabled(cfg), threadTabs: cfg.features?.threadTabs === true, suggestedReplies: cfg.features?.suggestedReplies !== false, roomFeed: true, roomFeedSince: roomFeedSince(DATA_DIR), teamBoard: CLOUD_TEAM ? cfg.features?.teamBoard === true : undefined,
       usbPhoneTakeover: HAS_USB_PORT ? usbPhoneTakeoverEnabled(cfg) : undefined,

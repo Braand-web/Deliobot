@@ -1,5 +1,7 @@
-// Privacy invariants: the helper model is unset by default, never replaces an engine that can write the job itself, and
-// never writes for a bot whose own engine is disallowed or whose helperModel switch is anything but absent or true.
+// Privacy invariants: the helper model is the connected Delio account's unless the person set another or switched the
+// relay off; it writes an engine's job only when that engine has no call for it or its call failed (memory and
+// summaries); and it never writes for a bot whose own engine is disallowed or whose helperModel switch is anything but
+// absent or true.
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 
@@ -29,11 +31,12 @@ export interface HelperConfig {
 /** Goes into a CLI's argv: never a leading dash, no space or control character. */
 const HELPER_MODEL_ID = /^[A-Za-z0-9][\x21-\x7e]*$/;
 
-/** ODB_HELPER_INSTANCE / ODB_HELPER_MODEL win over the file; an empty ODB_HELPER_INSTANCE switches a saved helper off.
+/** ODB_HELPER_INSTANCE / ODB_HELPER_MODEL win over the file, which wins over `fallback`; an empty ODB_HELPER_INSTANCE
+ * switches every helper off.
  * An invalid model switches the helper off rather than writing with a model the person did not name. */
-export function helperSelection(cfg: HelperConfig, env: Record<string, string | undefined> = process.env): { instanceId: string; model?: string } | null {
+export function helperSelection(cfg: HelperConfig, env: Record<string, string | undefined> = process.env, fallback: { instanceId: string; model?: string } | null = null): { instanceId: string; model?: string } | null {
   const instanceId = (env.ODB_HELPER_INSTANCE ?? cfg.helper?.instanceId)?.trim();
-  if (!instanceId) return null;
+  if (!instanceId) return env.ODB_HELPER_INSTANCE === undefined ? fallback : null;
   const model = (env.ODB_HELPER_MODEL ?? cfg.helper?.model)?.trim();
   if (!model) return { instanceId };
   return HELPER_MODEL_ID.test(model) ? { instanceId, model } : null;
@@ -104,6 +107,8 @@ function ownCall(job: SideJob, instance: SideJobInstance): TextCall | undefined 
   const call = ONE_OFF_ONLY.has(job) ? instance.generateText : instance.generateText ?? instance.generateMemoryText;
   return call?.bind(instance);
 }
+
+const RELAYED: ReadonlySet<SideJob> = new Set(["compaction", "memory"]);
 
 /** A turn or a person is waiting on these, so they start at once. */
 const NEVER_QUEUED: ReadonlySet<SideJob> = new Set(["compaction", "representative", "status-reply"]);
@@ -293,7 +298,39 @@ export function createSideJobs(deps: SideJobsDeps): SideJobs {
     }, { signal: options.signal, interactive: SEEN_SOON.has(job), onWait: waiting }) }
     : found;
 
+  const helperText = (job: SideJob, bot: SideJobBot, helper: NonNullable<ReturnType<typeof usableHelper>>): SideJobText => ({
+    via: "helper",
+    generateText: booked(job, bot, helper.instance, helper.call, { kind: "helper", botId: bot.id, job }, () => (helper.model ? { model: helper.model } : {})),
+  });
+
+  /** A memory or summary job whose engine call fails (a usage limit, a sign-in that lapsed) is written by the helper. */
+  const relayed = (job: SideJob, bot: SideJobBot, own: SideJobInstance, found: SideJobText): SideJobText => !RELAYED.has(job) ? found : {
+    ...found,
+    generateText: async (prompt, options = {}) => {
+      try {
+        return await found.generateText(prompt, options);
+      } catch (error) {
+        options.signal?.throwIfAborted();
+        if (error instanceof Error && "code" in error && error.code === "spend_cap") throw error;
+        const current = deps.bot(bot.id);
+        if (!current || !helperModelAllowed(current)) throw error;
+        const helper = usableHelper();
+        if (!helper || helper.instance.instanceId === own.instanceId) throw error;
+        deps.log?.(`helper model: ${bot.name}'s ${job} text failed on ${own.instanceId}, so ${helper.instance.instanceId} writes it`);
+        const { signal, timeoutMs } = options;
+        return helperText(job, bot, helper).generateText(prompt, { ...(signal ? { signal } : {}), ...(timeoutMs ? { timeoutMs } : {}) });
+      }
+    },
+  };
+
   function find(job: SideJob, botId: string, at: { instance?: SideJobInstance }): SideJobText | null {
+    const found = findOwn(job, botId, at);
+    const bot = deps.bot(botId);
+    const own = at.instance ?? (bot ? deps.instance(bot.modelSelection.instanceId) : null);
+    return found?.via === "engine" && !found.memoryModel?.model && bot && own ? relayed(job, bot, own, found) : found;
+  }
+
+  function findOwn(job: SideJob, botId: string, at: { instance?: SideJobInstance }): SideJobText | null {
     const bot = deps.bot(botId);
     const own = at.instance ?? (bot ? deps.instance(bot.modelSelection.instanceId) : null);
     if (!bot || !own || deps.refusal(own)) return null;
@@ -322,8 +359,7 @@ export function createSideJobs(deps: SideJobsDeps): SideJobs {
     }
     if (!helperModelAllowed(bot)) return null;
     const helper = usableHelper();
-    if (!helper) return null;
-    return { via: "helper", generateText: booked(job, bot, helper.instance, helper.call, { kind: "helper", botId: bot.id, job }, () => (helper.model ? { model: helper.model } : {})) };
+    return helper ? helperText(job, bot, helper) : null;
   }
   return {
     text: (job, botId, at = {}) => queued(job, find(job, botId, at)),

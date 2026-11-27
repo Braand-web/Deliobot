@@ -4593,7 +4593,10 @@
       "whatsNew.team.picture": "71fb12d1f7da8a7e58d32c40619e95e14b2ddf136c9e03118545ef2af8fffd2e",
       "whatsNew.cloud.pictureAlt": "9af953b7b726f4580786d7f3dfb0487a4eaaf441f63cf7bda5ef88642cbeda51",
       "whatsNew.team.support": "be91940b79f469101df9a50544b6873aa5509a12f1f93f1cb5e3be3990d344b3",
-      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a"
+      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a",
+      "memory.delioRelay.title": "54c89625af9e0e45866f3402a84ab35260c3948975e7ea5f1633436ba1ce0749",
+      "memory.delioRelay.subtitle": "1f811ca67b3d334cd9ba2ff6937373b73a58d3f0d465939523bec59c326780ec",
+      "memory.delioRelay.error": "2055094006c2e064a823e1f0eb1603380bf4ef0b7237776d47a4b9e223598718"
     },
     "es": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -11388,7 +11391,10 @@
       "whatsNew.team.picture": "71fb12d1f7da8a7e58d32c40619e95e14b2ddf136c9e03118545ef2af8fffd2e",
       "whatsNew.cloud.pictureAlt": "9af953b7b726f4580786d7f3dfb0487a4eaaf441f63cf7bda5ef88642cbeda51",
       "whatsNew.team.support": "be91940b79f469101df9a50544b6873aa5509a12f1f93f1cb5e3be3990d344b3",
-      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a"
+      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a",
+      "memory.delioRelay.title": "54c89625af9e0e45866f3402a84ab35260c3948975e7ea5f1633436ba1ce0749",
+      "memory.delioRelay.subtitle": "1f811ca67b3d334cd9ba2ff6937373b73a58d3f0d465939523bec59c326780ec",
+      "memory.delioRelay.error": "2055094006c2e064a823e1f0eb1603380bf4ef0b7237776d47a4b9e223598718"
     },
     "fr": {
       "delioMenu.checking": "ee7fdea20d0b8d3d566f24f6e7b11b62f71cc8fc95748cd8d4c5431ab3947185",
@@ -15916,7 +15922,10 @@
       "whatsNew.team.picture": "71fb12d1f7da8a7e58d32c40619e95e14b2ddf136c9e03118545ef2af8fffd2e",
       "whatsNew.cloud.pictureAlt": "9af953b7b726f4580786d7f3dfb0487a4eaaf441f63cf7bda5ef88642cbeda51",
       "whatsNew.team.support": "be91940b79f469101df9a50544b6873aa5509a12f1f93f1cb5e3be3990d344b3",
-      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a"
+      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a",
+      "memory.delioRelay.title": "54c89625af9e0e45866f3402a84ab35260c3948975e7ea5f1633436ba1ce0749",
+      "memory.delioRelay.subtitle": "1f811ca67b3d334cd9ba2ff6937373b73a58d3f0d465939523bec59c326780ec",
+      "memory.delioRelay.error": "2055094006c2e064a823e1f0eb1603380bf4ef0b7237776d47a4b9e223598718"
     },
     "hi": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -19976,7 +19985,10 @@
       "whatsNew.team.picture": "71fb12d1f7da8a7e58d32c40619e95e14b2ddf136c9e03118545ef2af8fffd2e",
       "whatsNew.cloud.pictureAlt": "9af953b7b726f4580786d7f3dfb0487a4eaaf441f63cf7bda5ef88642cbeda51",
       "whatsNew.team.support": "be91940b79f469101df9a50544b6873aa5509a12f1f93f1cb5e3be3990d344b3",
-      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a"
+      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a",
+      "memory.delioRelay.title": "54c89625af9e0e45866f3402a84ab35260c3948975e7ea5f1633436ba1ce0749",
+      "memory.delioRelay.subtitle": "1f811ca67b3d334cd9ba2ff6937373b73a58d3f0d465939523bec59c326780ec",
+      "memory.delioRelay.error": "2055094006c2e064a823e1f0eb1603380bf4ef0b7237776d47a4b9e223598718"
     },
     "ja": {
       "connectedWorkspaces.localTitle": "7d6deafeab011d734c3fdd1bfd6f69544fbb746a004019269bdb48544b01164b",
@@ -28261,7 +28273,10 @@
       "whatsNew.team.picture": "71fb12d1f7da8a7e58d32c40619e95e14b2ddf136c9e03118545ef2af8fffd2e",
       "whatsNew.cloud.pictureAlt": "9af953b7b726f4580786d7f3dfb0487a4eaaf441f63cf7bda5ef88642cbeda51",
       "whatsNew.team.support": "be91940b79f469101df9a50544b6873aa5509a12f1f93f1cb5e3be3990d344b3",
-      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a"
+      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a",
+      "memory.delioRelay.title": "54c89625af9e0e45866f3402a84ab35260c3948975e7ea5f1633436ba1ce0749",
+      "memory.delioRelay.subtitle": "1f811ca67b3d334cd9ba2ff6937373b73a58d3f0d465939523bec59c326780ec",
+      "memory.delioRelay.error": "2055094006c2e064a823e1f0eb1603380bf4ef0b7237776d47a4b9e223598718"
     },
     "pt-br": {
       "delioMenu.checking": "ee7fdea20d0b8d3d566f24f6e7b11b62f71cc8fc95748cd8d4c5431ab3947185",
@@ -40678,7 +40693,10 @@
       "localApps.install.uninstall": "fe199528850a4e24c14d9ece87a07b40bdcfa5fe504c175c117b997c29259ca6",
       "localApps.install.installed": "f8b32f4e92bd84ce1fcd177bec17d43093de3ee8303bb40c1b9ea521ed6a70f6",
       "localApps.install.failed": "9b0331da691337f15b40d786c9e501c73e2751e11904b083ea961196889b0e2e",
-      "localApps.install.uninstallFailed": "71fe76dda0814876ed5386f4cd9ea801883d4e430f6cb1c3b58f58136e0e9214"
+      "localApps.install.uninstallFailed": "71fe76dda0814876ed5386f4cd9ea801883d4e430f6cb1c3b58f58136e0e9214",
+      "memory.delioRelay.title": "54c89625af9e0e45866f3402a84ab35260c3948975e7ea5f1633436ba1ce0749",
+      "memory.delioRelay.subtitle": "1f811ca67b3d334cd9ba2ff6937373b73a58d3f0d465939523bec59c326780ec",
+      "memory.delioRelay.error": "2055094006c2e064a823e1f0eb1603380bf4ef0b7237776d47a4b9e223598718"
     },
     "zh": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -51086,7 +51104,10 @@
       "whatsNew.team.picture": "71fb12d1f7da8a7e58d32c40619e95e14b2ddf136c9e03118545ef2af8fffd2e",
       "whatsNew.cloud.pictureAlt": "9af953b7b726f4580786d7f3dfb0487a4eaaf441f63cf7bda5ef88642cbeda51",
       "whatsNew.team.support": "be91940b79f469101df9a50544b6873aa5509a12f1f93f1cb5e3be3990d344b3",
-      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a"
+      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a",
+      "memory.delioRelay.title": "54c89625af9e0e45866f3402a84ab35260c3948975e7ea5f1633436ba1ce0749",
+      "memory.delioRelay.subtitle": "1f811ca67b3d334cd9ba2ff6937373b73a58d3f0d465939523bec59c326780ec",
+      "memory.delioRelay.error": "2055094006c2e064a823e1f0eb1603380bf4ef0b7237776d47a4b9e223598718"
     },
     "zh-tw": {
       "connectedWorkspaces.localTitle": "7d6deafeab011d734c3fdd1bfd6f69544fbb746a004019269bdb48544b01164b",
@@ -61652,7 +61673,10 @@
       "whatsNew.team.picture": "71fb12d1f7da8a7e58d32c40619e95e14b2ddf136c9e03118545ef2af8fffd2e",
       "whatsNew.cloud.pictureAlt": "9af953b7b726f4580786d7f3dfb0487a4eaaf441f63cf7bda5ef88642cbeda51",
       "whatsNew.team.support": "be91940b79f469101df9a50544b6873aa5509a12f1f93f1cb5e3be3990d344b3",
-      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a"
+      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a",
+      "memory.delioRelay.title": "54c89625af9e0e45866f3402a84ab35260c3948975e7ea5f1633436ba1ce0749",
+      "memory.delioRelay.subtitle": "1f811ca67b3d334cd9ba2ff6937373b73a58d3f0d465939523bec59c326780ec",
+      "memory.delioRelay.error": "2055094006c2e064a823e1f0eb1603380bf4ef0b7237776d47a4b9e223598718"
     },
     "uk": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -66129,7 +66153,10 @@
       "whatsNew.team.picture": "71fb12d1f7da8a7e58d32c40619e95e14b2ddf136c9e03118545ef2af8fffd2e",
       "whatsNew.cloud.pictureAlt": "9af953b7b726f4580786d7f3dfb0487a4eaaf441f63cf7bda5ef88642cbeda51",
       "whatsNew.team.support": "be91940b79f469101df9a50544b6873aa5509a12f1f93f1cb5e3be3990d344b3",
-      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a"
+      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a",
+      "memory.delioRelay.title": "54c89625af9e0e45866f3402a84ab35260c3948975e7ea5f1633436ba1ce0749",
+      "memory.delioRelay.subtitle": "1f811ca67b3d334cd9ba2ff6937373b73a58d3f0d465939523bec59c326780ec",
+      "memory.delioRelay.error": "2055094006c2e064a823e1f0eb1603380bf4ef0b7237776d47a4b9e223598718"
     },
     "vi": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -72416,7 +72443,10 @@
       "whatsNew.team.picture": "71fb12d1f7da8a7e58d32c40619e95e14b2ddf136c9e03118545ef2af8fffd2e",
       "whatsNew.cloud.pictureAlt": "9af953b7b726f4580786d7f3dfb0487a4eaaf441f63cf7bda5ef88642cbeda51",
       "whatsNew.team.support": "be91940b79f469101df9a50544b6873aa5509a12f1f93f1cb5e3be3990d344b3",
-      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a"
+      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a",
+      "memory.delioRelay.title": "54c89625af9e0e45866f3402a84ab35260c3948975e7ea5f1633436ba1ce0749",
+      "memory.delioRelay.subtitle": "1f811ca67b3d334cd9ba2ff6937373b73a58d3f0d465939523bec59c326780ec",
+      "memory.delioRelay.error": "2055094006c2e064a823e1f0eb1603380bf4ef0b7237776d47a4b9e223598718"
     },
     "tr": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -78703,7 +78733,10 @@
       "whatsNew.team.picture": "71fb12d1f7da8a7e58d32c40619e95e14b2ddf136c9e03118545ef2af8fffd2e",
       "whatsNew.cloud.pictureAlt": "9af953b7b726f4580786d7f3dfb0487a4eaaf441f63cf7bda5ef88642cbeda51",
       "whatsNew.team.support": "be91940b79f469101df9a50544b6873aa5509a12f1f93f1cb5e3be3990d344b3",
-      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a"
+      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a",
+      "memory.delioRelay.title": "54c89625af9e0e45866f3402a84ab35260c3948975e7ea5f1633436ba1ce0749",
+      "memory.delioRelay.subtitle": "1f811ca67b3d334cd9ba2ff6937373b73a58d3f0d465939523bec59c326780ec",
+      "memory.delioRelay.error": "2055094006c2e064a823e1f0eb1603380bf4ef0b7237776d47a4b9e223598718"
     },
     "pl": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -86191,7 +86224,10 @@
       "whatsNew.team.picture": "71fb12d1f7da8a7e58d32c40619e95e14b2ddf136c9e03118545ef2af8fffd2e",
       "whatsNew.cloud.pictureAlt": "9af953b7b726f4580786d7f3dfb0487a4eaaf441f63cf7bda5ef88642cbeda51",
       "whatsNew.team.support": "be91940b79f469101df9a50544b6873aa5509a12f1f93f1cb5e3be3990d344b3",
-      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a"
+      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a",
+      "memory.delioRelay.title": "54c89625af9e0e45866f3402a84ab35260c3948975e7ea5f1633436ba1ce0749",
+      "memory.delioRelay.subtitle": "1f811ca67b3d334cd9ba2ff6937373b73a58d3f0d465939523bec59c326780ec",
+      "memory.delioRelay.error": "2055094006c2e064a823e1f0eb1603380bf4ef0b7237776d47a4b9e223598718"
     },
     "ru": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -93733,7 +93769,10 @@
       "whatsNew.team.picture": "71fb12d1f7da8a7e58d32c40619e95e14b2ddf136c9e03118545ef2af8fffd2e",
       "whatsNew.cloud.pictureAlt": "9af953b7b726f4580786d7f3dfb0487a4eaaf441f63cf7bda5ef88642cbeda51",
       "whatsNew.team.support": "be91940b79f469101df9a50544b6873aa5509a12f1f93f1cb5e3be3990d344b3",
-      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a"
+      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a",
+      "memory.delioRelay.title": "54c89625af9e0e45866f3402a84ab35260c3948975e7ea5f1633436ba1ce0749",
+      "memory.delioRelay.subtitle": "1f811ca67b3d334cd9ba2ff6937373b73a58d3f0d465939523bec59c326780ec",
+      "memory.delioRelay.error": "2055094006c2e064a823e1f0eb1603380bf4ef0b7237776d47a4b9e223598718"
     },
     "it": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -105536,7 +105575,10 @@
       "whatsNew.team.picture": "71fb12d1f7da8a7e58d32c40619e95e14b2ddf136c9e03118545ef2af8fffd2e",
       "whatsNew.cloud.pictureAlt": "9af953b7b726f4580786d7f3dfb0487a4eaaf441f63cf7bda5ef88642cbeda51",
       "whatsNew.team.support": "be91940b79f469101df9a50544b6873aa5509a12f1f93f1cb5e3be3990d344b3",
-      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a"
+      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a",
+      "memory.delioRelay.title": "54c89625af9e0e45866f3402a84ab35260c3948975e7ea5f1633436ba1ce0749",
+      "memory.delioRelay.subtitle": "1f811ca67b3d334cd9ba2ff6937373b73a58d3f0d465939523bec59c326780ec",
+      "memory.delioRelay.error": "2055094006c2e064a823e1f0eb1603380bf4ef0b7237776d47a4b9e223598718"
     },
     "ko": {
       "voice.gemini.keyPlaceholder": "8c87ba2043a4a89d63c90cae8a6dafd5cbd193652e923b97988e381a74773e10",
@@ -113555,7 +113597,10 @@
       "whatsNew.team.picture": "71fb12d1f7da8a7e58d32c40619e95e14b2ddf136c9e03118545ef2af8fffd2e",
       "whatsNew.cloud.pictureAlt": "9af953b7b726f4580786d7f3dfb0487a4eaaf441f63cf7bda5ef88642cbeda51",
       "whatsNew.team.support": "be91940b79f469101df9a50544b6873aa5509a12f1f93f1cb5e3be3990d344b3",
-      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a"
+      "whatsNew.team.sales": "8de4e0ea7370e4e60a521379c9edf3253afcba7660e647f3aa788e49e8993d1a",
+      "memory.delioRelay.title": "54c89625af9e0e45866f3402a84ab35260c3948975e7ea5f1633436ba1ce0749",
+      "memory.delioRelay.subtitle": "1f811ca67b3d334cd9ba2ff6937373b73a58d3f0d465939523bec59c326780ec",
+      "memory.delioRelay.error": "2055094006c2e064a823e1f0eb1603380bf4ef0b7237776d47a4b9e223598718"
     }
   }
 }

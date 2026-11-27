@@ -270,10 +270,19 @@ text a bot's own engine cannot write:
   a whole agent process, so it is kept for background work and a turn never
   waits on it; without a helper they keep a summary made of excerpts.
 
-A bot whose own engine can write a job always writes it itself; the helper
-never takes its place.
+A bot whose own engine can write a job always writes it itself. The helper
+steps in for memory upkeep and the compaction summary only when that call
+fails (a usage limit, a lapsed sign-in), so a bot whose Claude or ChatGPT plan
+ran out keeps its memory in shape. The server log says
+`helper model: <bot>'s memory text failed on <engine>, so <helper> writes it`.
 
-It is off unless you set it. Add it to `config.json`; the server follows the
+**The Delio memory relay.** With a Delio account connected, Delio is the
+helper unless you set another one: it writes on the account's credits with
+`google/gemini-2.5-flash`. **Bot Settings → Memory → Memory upkeep → Delio
+memory relay** switches it off for every bot (`features.delioMemoryRelay:
+false` in `config.json`); the switch only shows while an account is connected.
+
+Without a Delio account, the helper is off unless you set it. Add it to `config.json`; the server follows the
 file, so adding the helper or taking it out again applies without a restart:
 
 ```json

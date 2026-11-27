@@ -1,7 +1,7 @@
 import { t } from "./i18n";
 
 export interface FeatureFlagConfig {
-  features?: { skillAuthoring?: boolean; skillReview?: boolean; skillReviewSteps?: number; showToolCalls?: boolean; browser?: boolean; sharedComputers?: boolean; claudeUserMcp?: boolean; claudeUserSkills?: boolean; skillsLibrary?: boolean; shareLearnedSkills?: "off" | "ask" | "auto"; roomMemoryCapture?: boolean; savedSteps?: boolean; savedStepsHere?: boolean; usbPhoneTakeover?: boolean; skillBurger?: boolean; threadTabs?: boolean; roomFeed?: boolean; roomFeedSince?: number; teamBoard?: boolean; llmThreadTitles?: boolean; parallelRoomJobs?: boolean; acpPlanLines?: boolean; agentsToolBridge?: boolean; suggestedReplies?: boolean };
+  features?: { skillAuthoring?: boolean; skillReview?: boolean; skillReviewSteps?: number; showToolCalls?: boolean; browser?: boolean; sharedComputers?: boolean; claudeUserMcp?: boolean; claudeUserSkills?: boolean; skillsLibrary?: boolean; shareLearnedSkills?: "off" | "ask" | "auto"; roomMemoryCapture?: boolean; delioMemoryRelay?: boolean; savedSteps?: boolean; savedStepsHere?: boolean; usbPhoneTakeover?: boolean; skillBurger?: boolean; threadTabs?: boolean; roomFeed?: boolean; roomFeedSince?: number; teamBoard?: boolean; llmThreadTitles?: boolean; parallelRoomJobs?: boolean; acpPlanLines?: boolean; agentsToolBridge?: boolean; suggestedReplies?: boolean };
   browserEngine?: { kind: "engine" | "unavailable"; reason?: string; installable?: boolean; installing?: boolean; installError?: string };
 }
 
@@ -95,6 +95,10 @@ export function skillsLibraryEnabled(config: FeatureFlagConfig | null | undefine
 export function shareLearnedSkillsMode(config: FeatureFlagConfig | null | undefined): "off" | "ask" | "auto" {
   if (!skillsLibraryEnabled(config)) return "off";
   return config?.features?.shareLearnedSkills ?? "ask";
+}
+
+export function delioMemoryRelayEnabled(config: FeatureFlagConfig | null | undefined): boolean {
+  return config?.features?.delioMemoryRelay !== false;
 }
 
 export function roomMemoryCaptureEnabled(config: FeatureFlagConfig | null | undefined): boolean {
