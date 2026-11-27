@@ -19,7 +19,7 @@ describe("reviewed Windows browser dependency build", () => {
     expect(() => verifyVendorPatch(patch)).not.toThrow();
     expect(() => verifyVendorPatch(Buffer.concat([patch, Buffer.from("\n")]))).toThrow(/SHA-256/);
     const changed = [...patch.toString().matchAll(/^diff --git a\/(\S+) /gm)].map((match) => match[1]);
-    expect(changed).toEqual(["cli/Cargo.lock", "cli/Cargo.toml", "cli/src/connection.rs", "cli/src/main.rs", "cli/src/native/cdp/chrome.rs"]);
+    expect(changed).toEqual(["cli/Cargo.lock", "cli/Cargo.toml", "cli/src/connection.rs", "cli/src/main.rs", "cli/src/native/actions.rs", "cli/src/native/cdp/chrome.rs", "cli/src/native/daemon.rs"]);
     expect(patch.toString()).toContain("SetHandleInformation(handle as isize, HANDLE_FLAG_INHERIT, 0)");
     expect(patch.toString()).not.toContain("run_command_returns_partial_output");
   });
