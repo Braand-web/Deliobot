@@ -41,7 +41,7 @@ import { localVmConfigSchema } from "./local-vm-settings.ts";
 export * from "./local-vm-settings.ts";
 export * from "./vps-config.ts";
 
-const optionalText = z.string().optional();
+const optionalText = z.string().optional(), secretText = z.string().trim().optional(); // secretText: a saved key without a paste's surrounding whitespace (a trailing newline), so it can go in a header.
 const LEGACY_BROWSER_PROFILE_ID = /^[A-Za-z0-9_-]{1,40}$/;
 const BROWSER_PROFILE_ID = /^[a-z0-9_-]{1,40}$/;
 
@@ -306,22 +306,23 @@ const appConfigSchema = z.object({
     publicUrl: z.string().url().optional(),
     phone: z.enum(["ios", "android"]).optional(),
   }).optional(),
-  mistral: z.object({ key: optionalText }).optional(),
-  cerebras: z.object({ key: optionalText }).optional(), treg: z.object({ key: optionalText }).optional(), postiz: z.object({ key: optionalText, url: optionalText }).optional(),
-  groq: z.object({ key: optionalText, url: optionalText }).optional(),
-  greenference: z.object({ key: optionalText }).optional(),   meta: z.object({ key: optionalText, url: optionalText }).optional(),
-  deepseek: z.object({ key: optionalText }).optional(),
-  xai: z.object({ key: optionalText, url: optionalText }).optional(),
+  mistral: z.object({ key: secretText }).optional(),
+  cerebras: z.object({ key: secretText }).optional(), treg: z.object({ key: secretText }).optional(), postiz: z.object({ key: secretText, url: optionalText }).optional(),
+  groq: z.object({ key: secretText, url: optionalText }).optional(),
+  greenference: z.object({ key: secretText }).optional(),
+  meta: z.object({ key: secretText, url: optionalText }).optional(),
+  deepseek: z.object({ key: secretText }).optional(),
+  xai: z.object({ key: secretText, url: optionalText }).optional(),
   /** Anthropic API key for Claude Code billed per token; `url` is for a proxy or test double. Never a login OAuth token. */
-  anthropic: z.object({ key: optionalText, url: optionalText, everyClaudeBot: z.boolean().optional() }).optional(),
+  anthropic: z.object({ key: secretText, url: optionalText, everyClaudeBot: z.boolean().optional() }).optional(),
   /** OpenAI API key for the `openai` instance only; Codex keeps its own login. */
-  openai: z.object({ key: optionalText }).optional(),
+  openai: z.object({ key: secretText }).optional(),
   /** OpenRouter key, for the `openrouter` instance only. */
-  openrouter: z.object({ key: optionalText }).optional(),
+  openrouter: z.object({ key: secretText }).optional(),
   /** fal.ai key, for image and video generation. */
-  fal: z.object({ key: optionalText, url: optionalText }).optional(),
+  fal: z.object({ key: secretText, url: optionalText }).optional(),
   /** A Delio account this app is connected to: its portal, the workspace whose credits it spends, and the device token. */
-  delio: z.object({ portal: optionalText, workspace: optionalText, token: optionalText, email: optionalText }).nullable().optional(),
+  delio: z.object({ portal: optionalText, workspace: optionalText, token: secretText, email: optionalText }).nullable().optional(),
   /** Workspace monthly spend limit; enforced only with the `budgets` entitlement. */
   budgets: z
     .object({
@@ -347,20 +348,20 @@ const appConfigSchema = z.object({
     .optional(),
   /** `model` seeds the default selection; `provider` pins an OpenRouter upstream (e.g. "fireworks"). */
   openaiCompat: z
-    .object({ key: optionalText, url: optionalText, model: optionalText, provider: optionalText })
+    .object({ key: secretText, url: optionalText, model: optionalText, provider: optionalText })
     .optional(),
   /** Composio project key; `userId`/`sessionId` reuse one Composio Session. */
-  composio: z.object({ apiKey: optionalText, userId: optionalText, sessionId: optionalText }).optional(),
-  box: z.object({ token: optionalText }).optional(),
+  composio: z.object({ apiKey: secretText, userId: optionalText, sessionId: optionalText }).optional(),
+  box: z.object({ token: secretText }).optional(),
   vps: vpsConfigSchema.optional(),
   vpsServers: vpsServersSchema.optional(),
   /** OpenCode key, plus `providerKeys` for its other providers by the env name OpenCode reads; both write-only and only for its child. */
-  opencodeGo: z.object({ apiKey: optionalText, providerKeys: z.record(z.string(), z.string()).optional() }).optional(),
+  opencodeGo: z.object({ apiKey: secretText, providerKeys: z.record(z.string(), z.string()).optional() }).optional(),
   /** `provider`: "elevenlabs" (default, `key`), "fish" (`fishKey`, `fishModel`), "system", "xai" (`xai.key`), "gemini" (`geminiKey`, `model`), "openai" (`openai.key`), "deepseek" (`deepseek.key`; it also hears dictation) or "chatterbox" (local; `baseUrl`, `model`). */
   tts: z.object({
-    key: optionalText,
-    fishKey: optionalText,
-    geminiKey: optionalText,
+    key: secretText,
+    fishKey: secretText,
+    geminiKey: secretText,
     voice: optionalText,
     provider: z.enum(["auto", "elevenlabs", "fish", "system", "chatterbox", "xai", "gemini", "openai", "deepseek"]).optional(),
     baseUrl: z
@@ -415,7 +416,7 @@ const storedAppConfigSchema = appConfigSchema.extend(helperStoredShape).extend({
   browserProfiles: storedBrowserProfilesSchema.optional(),
   /** Loose like mcpServers: a bad provider key is dropped later, never the whole file. */
   opencodeGo: z.object({
-    apiKey: optionalText,
+    apiKey: secretText,
     providerKeys: z.record(z.string(), z.unknown()).catch({})
       .transform((keys) => Object.fromEntries(Object.entries(keys).filter((entry): entry is [string, string] => typeof entry[1] === "string")))
       .optional(),

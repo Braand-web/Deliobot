@@ -443,6 +443,12 @@ const __ANALYTICS_KEY__: string;
       /** Receives a chat link (opendeliobot://thread/… or opendeliobot://bot/…)
        * opened from outside the app. */
       onChatLink?(cb: (link: string) => void): () => void;
+      /** A saved app in a window of its own, on the server this window shows; true once it is open. `openChat` brings
+       * the main window to a chat link (opendeliobot://thread/…) from an app's own window. */
+      localApps?: {
+        openWindow(id: string): Promise<boolean>;
+        openChat(link: string): Promise<boolean>;
+      };
       /** The desktop shell's app-menu Preferences… item was activated; open
        * app Settings. Every server's page in the window receives it, and the
        * bridge is absent in the browser. "cloud" is the
@@ -546,6 +552,19 @@ const __ANALYTICS_KEY__: string;
         start(ids: string[], withApp: boolean): Promise<import("../../electron/update-all-run.mjs").UpdateAllView>;
         retry(id: string): Promise<import("../../electron/update-all-run.mjs").UpdateAllView>;
         onState(cb: (view: import("../../electron/update-all-run.mjs").UpdateAllView) => void): () => void;
+      };
+      /** Saved apps as launchers on this computer (electron/app-install/), this computer's own page only: a bundle in
+       * ~/Applications/Delio Apps (macOS), a Start menu shortcut (Windows), a desktop entry (Linux), each opening
+       * opendeliobot://app/<id>?window=1 (the app in its own window). Installing again replaces the launcher; a new name
+       * replaces the old one. Absent in older desktop builds and on any other page. */
+      appInstall?: {
+        install(input: { id: string; name: string; iconPng?: Uint8Array; desktopShortcut?: boolean }): Promise<
+          | { ok: true; app: { id: string; name: string; path: string | null } }
+          | { ok: false; reason: "unavailable" | "invalid-id" | "taken" | "failed" }>;
+        uninstall(id: string): Promise<{ ok: true; removed: boolean; left?: string[] } | { ok: false; reason: "invalid-id" }>;
+        list(): Promise<{ available: boolean; apps: Array<{ id: string; name: string; path: string | null }> }>;
+        /** `ids`: every saved app's id; launchers of any other app are removed. Absent in older desktop builds. */
+        cleanup?(ids: string[]): Promise<string[]>;
       };
       /** On a server's page from the Server menu: asks for this app's own update, from the person's click. The page
        * learns only what was done; the app asks in its own dialog before it restarts. Absent in older desktop builds. */
