@@ -134,7 +134,7 @@ import { signInCardText } from "./connector-card-text.ts";
 import { BOT_HELD_CODE, BOT_PAUSED_CODE } from "../shared/bot-limit.ts"; import { createBotHolds } from "./host/bot-holds.ts"; import { createBotHoldRoutes } from "./routes/bot-holds.ts"; import { createCliLogin } from "./routes/cli-login.ts"; import { createStarterAwake } from "./host/starter-awake.ts"; import { createStarterCaps } from "./host/starter-caps.ts"; import { createStarterRoutineWake, workInFlight, type StarterRoutineWake } from "./host/starter-routine-wake.ts"; import { createStarterAwakeRoutes } from "./routes/starter-awake.ts"; import { chiefOfStaffPrompt, chiefOfStaffSystemPrompt } from "./chief-of-staff.ts"; import { coordinateMessageMax, coordinateTooLong, reportBackTooLong } from "./too-long.ts"; import { chiefAbsentFrom, createChiefRooms } from "./host/chief-rooms.ts"; import { chiefLevel, readTeamRolesWith } from "./chief-level.ts"; import { defaultBotRefusal, ensureDefaultBot } from "./default-bot.ts";
 import { buildRecall, recallRooms, recallThreadIds, withRecalled } from "./recall.ts";
 import { hostTimeZone, takesTurnClock, turnClockLine, withTurnClock } from "./turn-clock.ts";
-import { createMemoryUpkeep, dreamConversations, upkeepEnabled } from "./memory-upkeep.ts";
+import { createMemoryUpkeep, dreamConversations, upkeepEnabled, type SharedFact } from "./memory-upkeep.ts";
 import { createCacheKeepWarm, type KeepWarmStatus, type KeepWarmTarget } from "./cache-keepwarm.ts";
 import { createSkillReview, turnToolSteps } from "./skill-review.ts";
 import { createSideJobs, helperSelection } from "./side-jobs.ts";
@@ -2995,7 +2995,7 @@ function previewSystemPrompt(bot: BotRecord) {
     { id: "routine", label: "Triggers", text: agentsMounted ? TRIGGER_PROMPT : "" },
     { id: "profile", label: "Profile changes", text: agentsMounted ? PROFILE_PROMPT : "" },
     { id: "section-context", label: "Section context", text: sectionContextSystemPrompt(bot.section) },
-    { id: "team-memory", label: "Team memory", text: teamMemory.systemPrompt(bot.section) + (agentsMounted ? TEAM_MEMORY_PROMPT : "") },
+    { id: "team-memory", label: "Team memory", text: teamMemory.promptFor(bot.section) + (agentsMounted ? TEAM_MEMORY_PROMPT : "") },
     teamAvailabilityPart(agentsMounted && coordination ? peers : []),
     { id: "memory-rules", label: "How memory works", text: memoryRulesPrompt(bot.id, { managedWrites: agentsMounted, fileTools: Boolean(privateWorkspace), enabled: bot.memoryEnabled !== false }) }, { id: "memory", label: "Memory", text: memoryNotesPrompt(bot.id, { managedWrites: agentsMounted, fileTools: Boolean(privateWorkspace), enabled: bot.memoryEnabled !== false }) },
     { id: "skills", label: "Skills index", text: privateWorkspace ? skillsHost.skillsIndex(bot, undefined, instance) + bundledSkillsIndex(availableSkills(), []) : "" },
@@ -5131,6 +5131,20 @@ const memoryUpkeep = createMemoryUpkeep({
   engine: (botId) => sideJobs.text("memory", teamHost.baseBotId(botId)),
   busy: (botId) => botHasActiveTurn(teamHost.baseBotId(botId)),
   addToAboutMe: (from, texts) => aboutMeFacts.learn(from, texts),
+  ...(CLOUD_TEAM || HOSTED_WORKSPACE ? {} : { shareWithBots: (from: { botId: string; botName: string }, facts: readonly SharedFact[]) => {
+    const bot = store.bot(teamHost.baseBotId(from.botId));
+    if (!bot || !sameAudience(bot.visibility, undefined)) return 0;
+    let added = 0;
+    for (const fact of facts) {
+      if (teamHost.privateTo(fact.threadId) !== null) continue;
+      try {
+        if (teamMemory.learn("", { kind: fact.kind, name: fact.name, detail: fact.detail }, { botId: bot.id, botName: bot.name, threadId: fact.threadId, at: Date.now(), ...(fact.quote ? { quote: fact.quote } : {}) })) added += 1;
+      } catch (error) {
+        console.log(`memory upkeep: a fact for every bot was not saved (${error instanceof Error ? error.message : String(error)})`);
+      }
+    }
+    return added;
+  } }),
   sourceLabel: (botId, threadId) => memorySourceLabel({ room: store.groupByThread(threadId), task: store.taskByThread(teamHost.baseBotId(botId), threadId), threadId }),
   mayCapture: (botId, threadId) => {
     const room = store.groupByThread(threadId);
@@ -8338,7 +8352,7 @@ async function beginTurn(
         { id: "coder", label: "Coder mode", text: coderOn(liveCoder) && checkpointCwd && !coderGate.isReviewThread(threadId) && !parallelAttempts.owns(threadId) ? coderRulesPrompt({ enabled: true, ...(liveCoder?.planFirst ? { planFirst: true } : {}), checks: liveCoder?.verify?.length ? liveCoder.verify : detectChecks(checkpointCwd), review: Boolean(liveCoder?.review) }) : "" },
         { id: "project-notes", label: "Project notes", text: coderOn(liveCoder) && checkpointCwd ? projectNotesPrompt(readNotes(DATA_DIR, checkpointCwd)) : "" },
         { id: "section-context", label: "Section context", text: sectionContextSystemPrompt(bot.section) },
-        { id: "team-memory", label: "Team memory", text: teamMemory.systemPrompt(bot.section) + (integrations.agents ? TEAM_MEMORY_PROMPT : "") },
+        { id: "team-memory", label: "Team memory", text: teamMemory.promptFor(bot.section) + (integrations.agents ? TEAM_MEMORY_PROMPT : "") },
         // Volatile, so a teammate starting or finishing never changes the stable half.
         teamAvailabilityPart(coordinationPrompt ? sectionPeers : []),
         { id: "recent", label: "Recent work", text: recentWorkPrompt(recentWork(recentWorkSources(bot), bot, { userName: CLOUD_TEAM ? teamHost.personName(teamConversationPerson(threadId)) ?? "the team" : cfg.profile?.name?.trim() || "User", currentThreadId: threadId, ...recentWorkFilter(threadId) })) },
@@ -10117,7 +10131,7 @@ async function runClaimedGroupMemberTurn(
     teamAvailabilityPart(outsideRoom),
     { id: "recent", label: "Recent work", text: recentWorkPrompt(recentLines) },
     { id: "section-context", label: "Section context", text: sectionContextSystemPrompt(bot.section) },
-    { id: "team-memory", label: "Team memory", text: teamMemory.systemPrompt(bot.section) + (integrations.agents ? TEAM_MEMORY_PROMPT : "") },
+    { id: "team-memory", label: "Team memory", text: teamMemory.promptFor(bot.section) + (integrations.agents ? TEAM_MEMORY_PROMPT : "") },
     { id: "memory-rules", label: "How memory works", text: memoryRulesPrompt(teamHost.layer(bot.id, threadId), roomMemoryOpts) }, { id: "memory", label: "Memory", text: roomMemory ? `\n${roomMemory.trim()}` : "" },
     { id: "skills", label: "Skills index", text: workspace ? skillsHost.skillsIndex(bot, threadId, instance, cwd ?? null) + bundledSkillsIndex(skills, [...(phoneOffered ? ["phoneMcp"] : []), ...(skillAuthoring ? ["skillAuthoring"] : [])]) : "" },
     { id: "skill-instructions", label: "Skill instructions", text: renderSkillInstructions(selectedSkills, { includeRoot: Boolean(workspace) }) },
@@ -13285,6 +13299,7 @@ const handleRequest = async (req: IncomingMessage, res: ServerResponse) => {
           name: z.string(),
           detail: z.string(),
           aliases: z.array(z.string()).optional(),
+          everyone: z.literal(true).optional(),
         }).strict().safeParse(await readInternalBody());
         if (!parsed.success) return json(res, 400, { error: "invalid team memory proposal" });
         const body = parsed.data;
@@ -13300,7 +13315,7 @@ const handleRequest = async (req: IncomingMessage, res: ServerResponse) => {
         }
         try {
           const input = { key: body.key, kind: body.kind as TeamMemoryKind, name: body.name, detail: body.detail, aliases: body.aliases };
-          const submitted = teamMemoryRequests.submit(from, body.fromThreadId, Boolean(owner.group), input, appliesDirectly(from.id, body.fromThreadId));
+          const submitted = teamMemoryRequests.submit(body.everyone ? { ...from, section: undefined } : from, body.fromThreadId, Boolean(owner.group), input, appliesDirectly(from.id, body.fromThreadId));
           return json(res, submitted.status, submitted.body);
         } catch (error) {
           return json(res, 400, { error: error instanceof Error ? error.message : String(error) });
@@ -13433,7 +13448,7 @@ const handleRequest = async (req: IncomingMessage, res: ServerResponse) => {
           return json(res, 400, { error: "scope must be all, conversations, memory, or team" });
         }
         const memoryHits = scope === "conversations" || scope === "team" || !q || from.memoryEnabled === false ? [] : teamHost.memoryIds(from.id, fromThreadId).flatMap((id) => searchMemoryFiles(id, q, limit)).slice(0, limit);
-        if (scope === "memory" || scope === "team") return json(res, 200, { hits: [], memoryHits, teamHits: scope === "team" ? teamMemory.search(from.section, q, limit, range) : [] });
+        if (scope === "memory" || scope === "team") return json(res, 200, { hits: [], memoryHits, teamHits: scope === "team" ? teamMemory.searchWithShared(from.section, q, limit, range) : [] });
         const { roomByThread, ownThreads } = recallThreads(from, internalCapability);
         const inRoom = Boolean(store.groupByThread(fromThreadId));
         const found = q ? recallMessages(q, ownThreads, limit, range) : recentMessages(ownThreads, range ?? {}, limit);
@@ -13452,7 +13467,7 @@ const handleRequest = async (req: IncomingMessage, res: ServerResponse) => {
         if (inRoom) {
           discloseRecall(from, fromThreadId, hits.filter((hit) => hit.crossed).map((hit) => hit.threadId));
         }
-        return json(res, 200, { hits, memoryHits, teamHits: scope === "conversations" ? [] : teamMemory.search(from.section, q, limit, range) });
+        return json(res, 200, { hits, memoryHits, teamHits: scope === "conversations" ? [] : teamMemory.searchWithShared(from.section, q, limit, range) });
       }
       // Reading one message: an id from another bot's thread reads as missing, not forbidden, so the id space leaks nothing.
       if (method === "GET" && path === "/api/internal/session-read") {

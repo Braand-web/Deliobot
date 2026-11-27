@@ -805,6 +805,7 @@ export async function callTool(called: string, input: Json, context: ToolCallCon
         name: entryName,
         detail,
         aliases: Array.isArray(args.aliases) ? args.aliases.filter((alias) => typeof alias === "string") : undefined,
+        ...(args.everyone === true ? { everyone: true } : {}),
       }),
     });
     return confirmationResult(r, `the team memory entry for ${entryName}`, "entry");

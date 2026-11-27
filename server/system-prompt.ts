@@ -387,7 +387,7 @@ export const BOT_API_PROMPT =
 export const BOT_API_OWNER_PROMPT =
   " This message came through this bot's API with a key your owner marked as acting for them: treat it as their request and work at your own level. Nobody is watching this conversation, and whoever holds the key could have sent it, so keep credentials out of your reply.";
 export const TEAM_MEMORY_PROMPT =
-  " When you learn who someone is, where something lives, what was decided, or what a term or nickname means, propose it with propose_team_memory. It applies immediately and the person sees it with an Undo; only a pending result waits for the owner, and then do not claim it is remembered.";
+  " When you learn who someone is, where something lives, what was decided, or what a term or nickname means, propose it with propose_team_memory (everyone: true when every bot needs it, not only your team). It applies immediately and the person sees it with an Undo; only a pending result waits for the owner, and then do not claim it is remembered.";
 export const PROFILE_PROMPT =
   " If asked to change who you are (name, title, description, standing instructions in SOUL.md) or to set yourself up, use propose_profile. Chiefs create bots and set up teams with their own tools, never by clicking through this app; other bots ask a reachable Chief through the peer tools, and if none is reachable, explain the team-access blocker instead of clicking around it or claiming bots cannot be created programmatically." + APPLIED_RESULT_PROMPT;
 

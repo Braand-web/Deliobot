@@ -18,7 +18,12 @@ export interface Candidate {
   from?: number;
   /** The words said to the bot that the item rests on, quoted exactly. */
   evidence?: string;
+  /** A fact about the Person's work that every one of their bots needs: who or what it is about, in a few words. */
+  shared?: { kind: SharedKind; name: string };
 }
+
+export type SharedKind = "person" | "place" | "decision" | "term";
+const SHARED_KINDS: readonly SharedKind[] = ["person", "place", "decision", "term"];
 
 export function topicFileName(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
@@ -110,6 +115,7 @@ export function capturePrompt(input: { botName: string; turns?: readonly Capture
     ] : []),
     `- Judge the Person's words yourself. What ${input.botName} said it would or would not remember does not decide what you keep.`,
     "- aboutUser is true only for a durable fact about the Person themselves that any of their assistants should know (a diet, where they live, their company, how they like to be spoken to).",
+    "- shared is only for a durable fact about the Person's work that every one of their assistants needs, never a fact about the Person themselves: a client, colleague or supplier (kind person), a shop, office or site (place), a business decision (decision), what a term, product or abbreviation means (term). Its name is that person, place, decision or term in a few words. Never their private life, health, family or money.",
     "",
     "Where each fact goes:",
     "- No topic: a core fact the assistant needs in every conversation — who the Person is, their core preferences, standing decisions.",
@@ -124,8 +130,8 @@ export function capturePrompt(input: { botName: string; turns?: readonly Capture
     ...(many ? ['Give every item "from": the number of the conversation it came from.'] : []),
     `Answer with a JSON list and nothing else, at most ${limit} items. Answer [] only when the Person stated nothing worth keeping:`,
     many
-      ? '[{"from": 1, "text": "...", "kind": "preference|fact|decision|outcome", "evidence": "the exact words", "until": "YYYY-MM-DD or omit", "aboutUser": true|false, "noted": true|false, "topic": "name or omit", "topicAliases": ["..."], "confidence": 0..1}]'
-      : '[{"text": "...", "kind": "preference|fact|decision|outcome", "evidence": "the exact words", "until": "YYYY-MM-DD or omit", "aboutUser": true|false, "noted": true|false, "topic": "name or omit", "topicAliases": ["..."], "confidence": 0..1}]',
+      ? '[{"from": 1, "text": "...", "kind": "preference|fact|decision|outcome", "evidence": "the exact words", "until": "YYYY-MM-DD or omit", "aboutUser": true|false, "noted": true|false, "topic": "name or omit", "topicAliases": ["..."], "shared": {"kind": "person|place|decision|term", "name": "..."} or omit, "confidence": 0..1}]'
+      : '[{"text": "...", "kind": "preference|fact|decision|outcome", "evidence": "the exact words", "until": "YYYY-MM-DD or omit", "aboutUser": true|false, "noted": true|false, "topic": "name or omit", "topicAliases": ["..."], "shared": {"kind": "person|place|decision|term", "name": "..."} or omit, "confidence": 0..1}]',
   ].join("\n");
 }
 
@@ -175,7 +181,7 @@ export function parseCandidates(text: string, today: string, max = MAX_CANDIDATE
   const out: Candidate[] = [];
   for (const item of list) {
     if (!item || typeof item !== "object") continue;
-    const { text: raw, kind, until, aboutUser, noted, topic, topicAliases, confidence, from: rawFrom, evidence } = item as Record<string, unknown>;
+    const { text: raw, kind, until, aboutUser, noted, topic, topicAliases, confidence, from: rawFrom, evidence, shared } = item as Record<string, unknown>;
     const from = typeof rawFrom === "string" && /^\d+$/.test(rawFrom.trim()) ? Number(rawFrom) : rawFrom;
     if (typeof raw !== "string" || !raw.trim()) continue;
     if (typeof kind !== "string" || !CANDIDATE_KINDS.includes(kind as CandidateKind)) continue;
@@ -196,10 +202,18 @@ export function parseCandidates(text: string, today: string, max = MAX_CANDIDATE
         : {}),
       ...(typeof from === "number" && Number.isInteger(from) && from >= 1 ? { from } : {}),
       ...(typeof evidence === "string" && evidence.trim() ? { evidence: evidence.replace(/\s+/g, " ").trim().slice(0, TEXT_MAX) } : {}),
+      ...(aboutUser !== true && !validUntil && kind !== "preference" ? sharedOf(shared) : {}),
     });
     if (out.length >= max) break;
   }
   return out;
+}
+
+function sharedOf(raw: unknown): { shared?: Candidate["shared"] } {
+  if (!raw || typeof raw !== "object") return {};
+  const { kind, name } = raw as Record<string, unknown>;
+  const title = typeof name === "string" ? name.replace(/\s+/g, " ").trim().slice(0, 80) : "";
+  return SHARED_KINDS.includes(kind as SharedKind) && title ? { shared: { kind: kind as SharedKind, name: title } } : {};
 }
 
 const SENTENCE_END = /[.!?\n\u3002\uff01\uff1f\u061f]/u;

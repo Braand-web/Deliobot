@@ -56,6 +56,8 @@ export interface UpkeepDeps {
   engine: (botId: string) => UpkeepEngine | null;
   busy: (botId: string) => boolean;
   addToAboutMe: (from: { botId: string; botName: string }, texts: readonly string[]) => number;
+  /** Work facts the person stated, for the memory every bot shares; without it they stay in this bot's notes only. */
+  shareWithBots?: (from: { botId: string; botName: string }, facts: readonly SharedFact[]) => number;
   sourceLabel: (botId: string, threadId: string) => string;
   /** Asked again at capture, so a turn queued before a visibility change is dropped. */
   mayCapture?: (botId: string, threadId: string) => boolean;
@@ -84,11 +86,20 @@ export interface TidyReport {
   note?: string;
 }
 
+export interface SharedFact {
+  threadId: string;
+  kind: NonNullable<Candidate["shared"]>["kind"];
+  name: string;
+  detail: string;
+  quote?: string;
+}
+
 export interface CaptureReport {
   at: number;
   added: number;
   topics: number;
   aboutMe: number;
+  shared?: number;
   organized?: number;
   note?: string;
 }
@@ -419,7 +430,8 @@ export function createMemoryUpkeep(deps: UpkeepDeps): MemoryUpkeep {
       const at = sure ? named : guess;
       if (!still[at] || (!sure && !still.every(Boolean))) return [];
       // Only the owner's own words reach About me: another person's facts are not the owner's profile.
-      return [{ candidate, at, aboutMe: candidate.aboutUser && owner[at]! && (sure || owner.every(Boolean)) }];
+      const owners = owner[at]! && (sure || owner.every(Boolean));
+      return [{ candidate, at, aboutMe: candidate.aboutUser && owners, shared: Boolean(candidate.shared) && owners }];
     });
   }
 
@@ -474,7 +486,8 @@ export function createMemoryUpkeep(deps: UpkeepDeps): MemoryUpkeep {
     const filed = attribute(parseCandidates(answer, today, captureItemLimit(conversations.length)), conversations, still).flatMap((item) => {
       const turns = conversations[item.at]!.turns;
       if (isForgotten(item.candidate.text) || !statedInConversation(item.candidate, turns, false)) return [];
-      return [{ ...item, aboutMe: item.aboutMe && statedInConversation(item.candidate, turns, true) }];
+      const ownWords = (item.aboutMe || item.shared) && statedInConversation(item.candidate, turns, true);
+      return [{ ...item, aboutMe: item.aboutMe && ownWords, shared: item.shared && ownWords }];
     });
     const { added, topics } = writing(id, () => {
       let added = 0;
@@ -490,11 +503,16 @@ export function createMemoryUpkeep(deps: UpkeepDeps): MemoryUpkeep {
     });
     const learned = filed.filter((item) => item.aboutMe).map((item) => item.candidate.text);
     const aboutMe = learned.length ? deps.addToAboutMe({ botId: id, botName: bot.name }, learned) : 0;
+    const sharing: SharedFact[] = filed.flatMap(({ candidate, at: from, shared }) => shared && candidate.shared ? [{
+      threadId: conversations[from]!.threadId, kind: candidate.shared.kind, name: candidate.shared.name, detail: candidate.text,
+      ...(candidate.evidence ? { quote: candidate.evidence } : {}),
+    }] : []);
+    const shared = sharing.length && deps.shareWithBots ? deps.shareWithBots({ botId: id, botName: bot.name }, sharing) : 0;
     const organized = await organize(id);
-    const report: CaptureReport = { at, added, topics, aboutMe, organized };
+    const report: CaptureReport = { at, added, topics, aboutMe, ...(shared ? { shared } : {}), organized };
     if (cancelled(started)) return report;
     record(id, { lastCapture: report });
-    if (added || topics || aboutMe) log(`memory upkeep: noticed ${added} fact(s) for MEMORY.md, ${topics} for topic files and ${aboutMe} for About me — ${bot.name} (${id}) from ${conversations.map((conversation) => conversation.threadId).join(", ")}`);
+    if (added || topics || aboutMe || shared) log(`memory upkeep: noticed ${added} fact(s) for MEMORY.md, ${topics} for topic files, ${aboutMe} for About me and ${shared} for every bot — ${bot.name} (${id}) from ${conversations.map((conversation) => conversation.threadId).join(", ")}`);
     return report;
   }
 

@@ -329,6 +329,27 @@ describe("the upkeep loop", () => {
     expect(aboutMeAdded).toEqual(["The person is vegetarian"]);
   });
 
+  it("shares a work fact the person stated with every bot, but never one they did not say themselves", async () => {
+    ensureWorkspace(BOT.id);
+    const shared: unknown[] = [];
+    const withSharing = () => createMemoryUpkeep({
+      bots: () => [BOT], bot: (id) => (id === BOT.id ? BOT : undefined), engine: () => engine, busy: () => busy,
+      addToAboutMe: () => 0, sourceLabel: () => 'chat "Plans"', quietMs: () => 60_000, tidyHour: () => 3, now: () => clock,
+      shareWithBots: (_from, facts) => {
+        shared.push(...facts);
+        return facts.length;
+      },
+    });
+    answers.push(JSON.stringify([
+      { text: "Moussa is the printing supplier", kind: "fact", evidence: "Moussa prints our flyers", shared: { kind: "person", name: "Moussa" }, confidence: 0.9 },
+      { text: "Awa handles the Lomé shop", kind: "fact", evidence: "Awa runs the Lomé shop", shared: { kind: "person", name: "Awa" }, confidence: 0.9 },
+      { text: "The person is vegetarian", kind: "preference", evidence: "Moussa prints our flyers", aboutUser: true, shared: { kind: "person", name: "Me" }, confidence: 0.9 },
+    ]));
+    const report = await withSharing().capture({ botId: BOT.id, threadId: "t1", turns: [{ person: "Moussa prints our flyers", bot: "Noted, Awa runs the Lomé shop." }] });
+    expect(report).toMatchObject({ shared: 1 });
+    expect(shared).toEqual([{ threadId: "t1", kind: "person", name: "Moussa", detail: "Moussa is the printing supplier", quote: "Moussa prints our flyers" }]);
+  });
+
   it("captures onto a full MEMORY.md: every fact lands, the oldest entries move to the archive, both journaled", async () => {
     const old = Array.from({ length: 200 }, (_, i) => `- 2026-08-01 · old fact ${i}`);
     writeMemoryFile(BOT.id, `${old.join("\n")}\n`);

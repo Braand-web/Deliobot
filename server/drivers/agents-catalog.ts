@@ -723,6 +723,7 @@ const TOOL_DEFINITIONS = [
         detail: { type: "string", maxLength: 600, description: "The fact, decision or result, with its context and brief rationale. At most 600 characters." },
         aliases: { type: "array", maxItems: 8, items: { type: "string", maxLength: 120 }, description: "Other names or abbreviations." },
         key: { type: "string", maxLength: 240, description: "Stable project/fact key (tapa/colour). Reuse for corrections, even if the name changes." },
+        everyone: { type: "boolean", description: "true saves it to the memory every bot shares, not only your team's: a client, supplier, place or business decision every bot needs." },
       },
       required: ["kind", "name", "detail"],
     },

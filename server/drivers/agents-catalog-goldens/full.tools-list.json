@@ -2367,6 +2367,10 @@
           "key": {
             "type": "string",
             "description": "Stable project/fact key (tapa/colour). Reuse for corrections, even if the name changes."
+          },
+          "everyone": {
+            "type": "boolean",
+            "description": "true saves it to the memory every bot shares, not only your team's: a client, supplier, place or business decision every bot needs."
           }
         },
         "required": [

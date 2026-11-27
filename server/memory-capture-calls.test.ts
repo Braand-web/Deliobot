@@ -477,3 +477,16 @@ describe("capture calls", () => {
     expect(memory(HELPER.id)).toContain("The person keeps bees");
   });
 });
+
+describe("a fact every bot needs", () => {
+  it("keeps the shared mark only on a lasting work fact with a kind and a name", () => {
+    const parsed = parseCandidates(JSON.stringify([
+      { text: "Moussa is the printing supplier", kind: "fact", evidence: "Moussa prints our flyers", shared: { kind: "person", name: " Moussa " } },
+      { text: "The person likes tea", kind: "preference", evidence: "I like tea", shared: { kind: "term", name: "tea" } },
+      { text: "The person is a baker", kind: "fact", evidence: "I'm a baker", aboutUser: true, shared: { kind: "person", name: "me" } },
+      { text: "The fair is on Friday", kind: "fact", evidence: "the fair is Friday", until: "2099-01-01", shared: { kind: "decision", name: "fair" } },
+      { text: "Kpalimé is the second site", kind: "fact", evidence: "Kpalimé is our second site", shared: { kind: "city", name: "Kpalimé" } },
+    ]), TODAY);
+    expect(parsed.map((candidate) => candidate.shared)).toEqual([{ kind: "person", name: "Moussa" }, undefined, undefined, undefined, undefined]);
+  });
+});

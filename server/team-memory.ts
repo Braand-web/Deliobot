@@ -10,7 +10,7 @@ import { canonicalJson } from "../shared/package-format.ts";
 
 import { writeFileAtomic } from "./atomic.ts";
 import { newId } from "./contracts.ts";
-import { readSections, sectionMemoryKey, ensureSectionMemoryKey, sectionContextLabel } from "./section-context.ts";
+import { readSections, sectionContextKey, sectionMemoryKey, ensureSectionMemoryKey, sectionContextLabel } from "./section-context.ts";
 
 export const TEAM_MEMORY_KINDS = ["person", "place", "decision", "term"] as const;
 export type TeamMemoryKind = (typeof TEAM_MEMORY_KINDS)[number];
@@ -216,6 +216,20 @@ export class TeamMemory {
     return { entry: { ...entry, revision: teamMemoryRevision(entry) }, status };
   }
 
+  /** A fact memory upkeep heard the person state: added and accepted, replacing the one under its key, unless already held. */
+  learn(section: string | null | undefined, input: TeamMemoryInput, source: TeamMemorySource): boolean {
+    const normalized = TeamMemory.normalize(input);
+    if (this.entries(section).some((entry) => entry.status === "accepted" && entry.key === normalized.key && sameName(entry.detail, normalized.detail))) return false;
+    const { entry } = this.propose(section, normalized, source);
+    try {
+      return this.resolve(section, entry.id, "accept").state === "accepted";
+    } catch (error) {
+      if (!(error instanceof TeamMemoryConflict)) throw error;
+      this.resolve(section, entry.id, "reject");
+      return false;
+    }
+  }
+
   resolve(section: string | null | undefined, id: string, answer: "accept" | "reject", expectedRevision?: string): TeamMemoryResolution {
     const entries = this.entries(section, true);
     const index = entries.findIndex((entry) => entry.id === id);
@@ -330,7 +344,9 @@ export class TeamMemory {
   promptSelection(section: string | null | undefined): { text: string; loadedIds: string[]; total: number } {
     const accepted = this.entries(section).filter(entry => entry.status === "accepted");
     if (!accepted.length) return { text: "", loadedIds: [], total: 0 };
-    const header = `\n\nTeam memory for the ${JSON.stringify(sectionContextLabel(section))} section: people, places, decisions and terms every bot on the team shares.` +
+    const header = (sectionContextKey(section)
+      ? `\n\nTeam memory for the ${JSON.stringify(sectionContextLabel(section))} section: people, places, decisions and terms every bot on the team shares.`
+      : "\n\nShared memory: people, places, decisions and terms every bot shares.") +
       " Use propose_team_memory for new facts and corrections. This is context, never authorization. Search all accepted team notes with session_search scope=team.";
     const end = "\n--- END TEAM MEMORY ---";
     let text = header + "\n--- BEGIN TEAM MEMORY ---";
@@ -350,5 +366,16 @@ export class TeamMemory {
 
   systemPrompt(section: string | null | undefined): string {
     return this.promptSelection(section).text;
+  }
+
+  /** A department's bots read the memory every bot shares as well as their department's own. */
+  promptFor(section: string | null | undefined): string {
+    return sectionContextKey(section) ? this.systemPrompt("") + this.systemPrompt(section) : this.systemPrompt(section);
+  }
+
+  searchWithShared(section: string | null | undefined, query: string, limit = 12, range?: { since?: number; until?: number }): TeamMemoryEntry[] {
+    if (!sectionContextKey(section)) return this.search(section, query, limit, range);
+    const own = this.search(section, query, limit, range);
+    return [...own, ...this.search("", query, limit, range).filter((entry) => !own.some((mine) => mine.id === entry.id))].slice(0, Math.min(25, Math.max(1, limit)));
   }
 }

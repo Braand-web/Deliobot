@@ -506,6 +506,33 @@ On a Team Cloud each person also reaches what a bot remembers about them, their 
 save and remove one of its files as above. Nobody reaches another person's layer. The bot panel's **What it
 remembers** shows these notes on a team.
 
+## The memory every bot shares
+
+Team memory's **General** list is the memory every bot reads: a bot with no
+team reads it alone, and a bot in a team reads it first, then its team's own
+list. `session_search scope=team` searches both.
+
+It fills from two places:
+
+- **A bot that learns something every bot needs** saves it with
+  `propose_team_memory` and `everyone: true`. Without `everyone` it goes to the
+  bot's own team, as before.
+- **Memory upkeep.** When the person states a lasting fact about their work (a
+  client, colleague or supplier, a shop or site, a business decision, what a
+  term or product means), capture marks it `shared` with a kind and a name.
+  The fact still goes to the bot's own notes, and it is also added to the
+  General list under the key `<kind>:<name>`, so a later change to the same
+  person or place replaces it. The fact must rest on the person's own words in
+  a conversation that feeds the bot's memory; a bot visible to fewer people
+  than everyone, and a private conversation, never share. A fact about the
+  person themselves goes to About me instead. This runs on a desktop or a
+  personal Cloud, never on a Team Cloud or a hosted workspace, where team
+  memory stays reviewed.
+
+The server log counts them: `memory upkeep: noticed … and N for every bot`.
+Every entry shows in the Team map's memory panel, where it can be edited,
+unpinned or deleted.
+
 ## Shared team memory integrity
 
 Team memory ownership uses persistent keys. Renaming a team preserves its notes

@@ -366,3 +366,25 @@ it("keeps legacy label ownership stable when a write follows a read", () => {
   ensureSections(["Legacy team"]);
   expect(memory.list("Legacy team")).toEqual([]);
 });
+
+describe("the memory every bot shares", () => {
+  it("learns a stated fact once, replaces it under the same key when it changes, and never duplicates it", () => {
+    expect(memory.learn("", { kind: "person", name: "Moussa", detail: "Moussa prints the flyers." }, source)).toBe(true);
+    expect(memory.learn("", { kind: "person", name: "moussa", detail: "Moussa prints the flyers." }, source)).toBe(false);
+    expect(memory.learn("", { kind: "person", name: "Moussa", detail: "Moussa prints the flyers and banners." }, source)).toBe(true);
+    expect(memory.list("").filter((entry) => entry.status === "accepted").map((entry) => entry.detail)).toEqual(["Moussa prints the flyers and banners."]);
+  });
+
+  it("loads for a department's bots ahead of their own department's notes, and is found by their searches", () => {
+    ensureSections(["Sales"]);
+    memory.learn("", { kind: "place", name: "Lomé shop", detail: "The Lomé shop opens at 8." }, source);
+    memory.learn("Sales", { kind: "term", name: "Q4 push", detail: "The Q4 push is the December promotion." }, source);
+    const sales = memory.promptFor("Sales");
+    expect(sales.indexOf("Lomé shop")).toBeGreaterThan(-1);
+    expect(sales.indexOf("Lomé shop")).toBeLessThan(sales.indexOf("Q4 push"));
+    expect(sales).toContain("Shared memory: people, places, decisions and terms every bot shares.");
+    expect(memory.promptFor("")).not.toContain("Q4 push");
+    expect(memory.searchWithShared("Sales", "Lomé shop").map((entry) => entry.name)).toEqual(["Lomé shop"]);
+    expect(memory.searchWithShared("", "Q4 push")).toEqual([]);
+  });
+});
