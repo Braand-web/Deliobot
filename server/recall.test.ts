@@ -228,7 +228,7 @@ describe("recall in other languages than English", () => {
   });
 
   it("does not recall a French note for a message that shares only small words with it", () => {
-    writeMemoryFile(BOT, "MEMORY.md", "");
+    writeMemoryFile(BOT, "");
     writeMemoryTopic(BOT, "voyage.md", "- Le vol pour Dakar est le 12 de la semaine prochaine.\n");
     expect(buildRecall({ botId: BOT, message: "Écris un poème sur la mer et le vent de la nuit", threadIds: [], label: () => "", author: () => "" })).toBeNull();
   });

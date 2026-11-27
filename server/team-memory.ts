@@ -222,7 +222,8 @@ export class TeamMemory {
     if (this.entries(section).some((entry) => entry.status === "accepted" && entry.key === normalized.key && sameName(entry.detail, normalized.detail))) return false;
     const { entry } = this.propose(section, normalized, source);
     try {
-      return this.resolve(section, entry.id, "accept").state === "accepted";
+      const resolution = this.resolve(section, entry.id, "accept");
+      return resolution.claimed && resolution.state === "accepted";
     } catch (error) {
       if (!(error instanceof TeamMemoryConflict)) throw error;
       this.resolve(section, entry.id, "reject");

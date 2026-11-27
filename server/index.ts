@@ -120,7 +120,7 @@ import { createDataRoutes } from "./data/routes.ts";
 import { DataSheetRegistry } from "./data/sheet.ts";
 import { DataFailure } from "./data/types.ts";
 import { TeamComputers, teamComputerOwner, type TeamComputerRecord } from "./team-computers.ts";
-import { isEffortLevel, offeredEffortLevels, type AuthPairResponse, type CardAnswerer, type LoopbackSessionResponse, type SignedInSessionResponse, type PairResponse, type ResolvedSender, type ServerFrame, type SignInRequestCardData, type WireBot, type WireGroup, type WireTask } from "../shared/wire.ts";
+import { DELIO_COLOR_NAMES, isEffortLevel, type DelioColor, offeredEffortLevels, type AuthPairResponse, type CardAnswerer, type LoopbackSessionResponse, type SignedInSessionResponse, type PairResponse, type ResolvedSender, type ServerFrame, type SignInRequestCardData, type WireBot, type WireGroup, type WireTask } from "../shared/wire.ts";
 import { newRoomName, newRoomResponder } from "../shared/new-room.ts";
 import { isPersistentQuestionCard } from "../shared/ask-question.ts";
 import { parseToolScope } from "../shared/tool-scope.ts";
@@ -12138,7 +12138,7 @@ const delioMemoryBackup = HOSTED_WORKSPACE || CLOUD_HOME || CLOUD_TEAM ? undefin
   teamSections: () => readSections(),
   teamEntries: (section) => teamMemory.list(section).filter((entry) => entry.status === "accepted").map(({ revision: _revision, ...entry }) => entry),
   adoptTeam: (section, entries) => teamMemory.adopt(section, entries),
-  createBot: (profile) => { const bot = store.createBot({ name: profile.name, title: profile.title, description: profile.description, soul: profile.soul, color: profile.color, section: profile.section }); broadcast({ kind: "bot", bot: wireBot(bot) }); return bot; },
+  createBot: (profile) => { const bot = store.createBot({ name: profile.name, title: profile.title, description: profile.description, soul: profile.soul, color: (DELIO_COLOR_NAMES as readonly string[]).includes(profile.color ?? "") ? profile.color as DelioColor : undefined, section: profile.section }); broadcast({ kind: "bot", bot: wireBot(bot) }); return bot; },
   log: (line) => console.log(line),
 });
 delioMemoryBackup?.start();
