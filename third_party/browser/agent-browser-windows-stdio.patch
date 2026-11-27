@@ -1,12 +1,14 @@
-Deliobot Windows vendor revision 0.36.0-omb.2.
+Deliobot Windows vendor revision 0.36.0-odb.3.
 Base: vercel-labs/agent-browser eb05921bad874cd2a1b4fa5d1149f1ed26576cae.
 Carries the Windows handle-inheritance fix from upstream PR1781,
 commit 81a98c349d04195396ffae6898bd375ad64280de, and CREATE_NO_WINDOW
-for Chrome children with a native Windows regression test.
+for Chrome children with a native Windows regression test. Keeps a live
+daemon whose .version a concurrent CLI removed, and gives a busy Windows
+machine's daemon 500 ms to accept before judging it gone.
 The MCP output-reader rewrite is not included.
 
 diff --git a/cli/Cargo.lock b/cli/Cargo.lock
-index c33ca2a..69a189d 100644
+index c33ca2a..c9f4c4f 100644
 --- a/cli/Cargo.lock
 +++ b/cli/Cargo.lock
 @@ -45,7 +45,7 @@ dependencies = [
@@ -14,12 +16,12 @@ index c33ca2a..69a189d 100644
  [[package]]
  name = "agent-browser"
 -version = "0.36.0"
-+version = "0.36.0-omb.2"
++version = "0.36.0-odb.3"
  dependencies = [
   "aes-gcm",
   "async-trait",
 diff --git a/cli/Cargo.toml b/cli/Cargo.toml
-index 2e151ed..112cb80 100644
+index 2e151ed..31ba083 100644
 --- a/cli/Cargo.toml
 +++ b/cli/Cargo.toml
 @@ -1,6 +1,7 @@
@@ -27,12 +29,12 @@ index 2e151ed..112cb80 100644
  [package]
  name = "agent-browser"
 -version = "0.36.0"
-+version = "0.36.0-omb.2"
++version = "0.36.0-odb.3"
  edition = "2021"
  description = "Fast browser automation CLI for AI agents"
  license = "Apache-2.0"
 diff --git a/cli/src/connection.rs b/cli/src/connection.rs
-index ca78c7f..d58f972 100644
+index ca78c7f..d23ee35 100644
 --- a/cli/src/connection.rs
 +++ b/cli/src/connection.rs
 @@ -1,3 +1,4 @@
@@ -40,7 +42,34 @@ index ca78c7f..d58f972 100644
  use crate::validation::sanitize_session_component;
  use serde::{Deserialize, Serialize};
  use serde_json::{json, Value};
-@@ -789,6 +790,29 @@ fn stop_existing_daemon_for_restart(session: &str) {
+@@ -410,9 +411,11 @@ pub fn daemon_ready(session: &str) -> bool {
+     #[cfg(windows)]
+     {
+         let port = resolve_port(session);
++        // Modified by Deliobot: 50 ms judged a busy Windows machine's live daemon gone, and the caller then removed its
++        // files and started a second one.
+         TcpStream::connect_timeout(
+             &format!("127.0.0.1:{}", port).parse().unwrap(),
+-            Duration::from_millis(50),
++            Duration::from_millis(500),
+         )
+         .is_ok()
+     }
+@@ -708,6 +711,13 @@ fn daemon_version_matches(session: &str) -> bool {
+     let version_path = get_version_path(session);
+     match fs::read_to_string(&version_path) {
+         Ok(v) => v.trim() == env!("CARGO_PKG_VERSION"),
++        // Modified by Deliobot: a reachable daemon whose `.version` another CLI's stale-file cleanup removed (it judged
++        // the daemon gone while it was slow to accept) is this build's own; restarting it lost the person's pages on
++        // every call on a busy Windows machine. A different version written in the file still restarts it.
++        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
++            let _ = fs::write(&version_path, env!("CARGO_PKG_VERSION"));
++            true
++        }
+         Err(_) => false,
+     }
+ }
+@@ -789,6 +799,29 @@ fn stop_existing_daemon_for_restart(session: &str) {
      }
  }
  
@@ -70,7 +99,7 @@ index ca78c7f..d58f972 100644
  pub fn ensure_daemon(session: &str, opts: &DaemonOptions) -> Result<DaemonResult, String> {
      let mut restarted = false;
  
-@@ -898,6 +922,8 @@ pub fn ensure_daemon(session: &str, opts: &DaemonOptions) -> Result<DaemonResult
+@@ -898,6 +931,8 @@ pub fn ensure_daemon(session: &str, opts: &DaemonOptions) -> Result<DaemonResult
      {
          use std::os::windows::process::CommandExt;
  
@@ -79,8 +108,23 @@ index ca78c7f..d58f972 100644
          let mut cmd = Command::new(&exe_path);
          cmd.env("AGENT_BROWSER_DAEMON", "1");
          apply_daemon_env(&mut cmd, session, opts);
+@@ -1582,10 +1617,11 @@ mod tests {
+         let _guard = EnvGuard::new(&["AGENT_BROWSER_SOCKET_DIR", "XDG_RUNTIME_DIR"]);
+         _guard.set("AGENT_BROWSER_SOCKET_DIR", dir.to_str().unwrap());
+ 
+-        // No version file: treated as mismatch so stale pre-version-tracking
+-        // daemons (including Node.js era) are always restarted.
+-        assert!(!daemon_version_matches("test-session"));
++        // Modified by Deliobot: a missing version file is taken as this build's and written back.
++        assert!(daemon_version_matches("test-session"));
++        assert_eq!(fs::read_to_string(dir.join("test-session.version")).unwrap(), env!("CARGO_PKG_VERSION"));
+ 
++        let _ = fs::remove_file(dir.join("test-session.version"));
+         let _ = fs::remove_dir(&dir);
+     }
+ 
 diff --git a/cli/src/main.rs b/cli/src/main.rs
-index 2a0d82f..80fdce2 100644
+index 2a0d82f..bf3fb34 100644
 --- a/cli/src/main.rs
 +++ b/cli/src/main.rs
 @@ -1,3 +1,4 @@
@@ -97,7 +141,7 @@ index 2a0d82f..80fdce2 100644
      }
  
 diff --git a/cli/src/native/cdp/chrome.rs b/cli/src/native/cdp/chrome.rs
-index 864e8c6..0cd569d 100644
+index 864e8c6..9e0995f 100644
 --- a/cli/src/native/cdp/chrome.rs
 +++ b/cli/src/native/cdp/chrome.rs
 @@ -1,3 +1,4 @@
