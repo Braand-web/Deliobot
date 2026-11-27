@@ -16,7 +16,7 @@ export const IMAGE_TOOL_DEFINITIONS = [
   {
     name: "edit_image",
     description:
-      "Change an existing image from a text instruction, optionally guided by a markup PNG: marks (circles, arrows, scribbles) drawn on a transparent background at the image's exact size, which point at where to change. Both files are paths in your working folder. The result is attached to your reply when the turn ends. Needs a GPT-Image-2.6 model on OpenAI.",
+      "Change an existing image from a text instruction, optionally guided by a markup PNG: marks (circles, arrows, scribbles) drawn on a transparent background at the image's exact size, which point at where to change. Both files are paths in your working folder. The result is attached to your reply when the turn ends. With Deliobot media it edits with Nano Banana Pro unless the person names GPT Image 2, Nano Banana 2 or FLUX.2 [pro] in model.",
     inputSchema: {
       type: "object",
       additionalProperties: false,
@@ -24,6 +24,7 @@ export const IMAGE_TOOL_DEFINITIONS = [
         prompt: { type: "string", minLength: 1, maxLength: IMAGE_PROMPT_MAX_CHARS, description: "What to change, in English. Refer to the marks if there is a markup." },
         image: { type: "string", minLength: 1, maxLength: 1000, description: "Path of the PNG, JPEG or WebP to change." },
         markup: { type: "string", minLength: 1, maxLength: 1000, description: "Path of a transparent PNG with the marks, the same size as the image." },
+        model: { type: "string", maxLength: 200, description: "Only a model the person named, such as GPT Image 2." },
       },
       required: ["prompt", "image"],
     },
@@ -42,7 +43,7 @@ export const IMAGE_TOOL_DEFINITIONS = [
         frames: { type: "integer", minimum: 2, maximum: 16, description: "GIF frame count; 9 when omitted." },
         frameDurationMs: { type: "integer", minimum: 20, maximum: 2000, description: "GIF milliseconds per frame; 200 when omitted." },
         provider: { type: "string", enum: ["openai", "xai", "gemini", "openrouter", "higgsfield", "fal", "custom"], description: "Only when the person named one; it must be their base or backup." },
-        model: { type: "string", maxLength: 200, description: "Only a model the person named." },
+        model: { type: "string", maxLength: 200, description: "Only a model the person named, by its name: Deliobot media include GPT Image 2, Nano Banana Pro and FLUX.2 [pro], no OpenAI key needed." },
       },
       required: ["prompt"],
     },

@@ -18,6 +18,15 @@ export const MUSIC_AUTO_MODELS = { instrumental: "elevenlabs/music/v2.5", song: 
 export const AUDIO_KINDS = ["music", "song", "sound_effect", "voice"] as const;
 export type AudioKind = (typeof AUDIO_KINDS)[number];
 
+/** fal.ai models that change an existing image, each at its own `/edit` endpoint; Auto edits with the first. */
+export const IMAGE_EDIT_MODELS = ["fal-ai/nano-banana-pro", "openai/gpt-image-2", "fal-ai/nano-banana-2", "fal-ai/flux-2-pro"] as const;
+
+/** The edit endpoint for a chosen image model; Auto, and a model with no edit endpoint, edit with Auto's. */
+export function editImageModel(model: string): string {
+  const base = model.replace(/\/edit$/u, "");
+  return `${(IMAGE_EDIT_MODELS as readonly string[]).includes(base) ? base : IMAGE_EDIT_MODELS[0]}/edit`;
+}
+
 export function autoImageModel(prompt: string): string {
   if (TYPOGRAPHY.test(prompt)) return IMAGE_AUTO_MODELS.typography;
   if (PHOTOGRAPHIC.test(prompt)) return IMAGE_AUTO_MODELS.photographic;

@@ -41,6 +41,7 @@ const editSchema = z.object({
   prompt: z.string().trim().min(1).max(IMAGE_PROMPT_MAX_CHARS),
   image: z.string().trim().min(1).max(1000),
   markup: z.string().trim().min(1).max(1000).optional(),
+  model: z.string().trim().max(200).optional(),
 });
 
 const EDIT_IMAGE_TYPES: Record<string, string> = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp" };
@@ -207,7 +208,7 @@ export function createImageToolRoutes(deps: ImageTurnStore & { config: () => Ima
         if (problem) return ctx.json(ctx.res, 400, { error: problem });
         edit = { image: image as ImageInput, ...(markup && { markup: markup as ImageInput }) };
       }
-      const outcome = await generateImageForTurn(editing ? { prompt: (body as { prompt: string }).prompt } : body, { cfg: deps.config(), personTurn: ctx.personTurn, daily, fetchImpl: deps.fetchImpl, turn, inFlight, signal: call.signal,
+      const outcome = await generateImageForTurn(editing ? { prompt: (body as { prompt: string }).prompt, ...((body as { model?: string }).model ? { model: (body as { model?: string }).model } : {}) } : body, { cfg: deps.config(), personTurn: ctx.personTurn, daily, fetchImpl: deps.fetchImpl, turn, inFlight, signal: call.signal,
         botMedia: ctx.botId ? deps.botMedia?.(ctx.botId) : undefined, catalog: deps.catalog, keep: (image) => ctx.botId ? deps.keep?.(ctx.botId, image) : undefined,
         made: (image) => { if (ctx.botId) deps.made?.(image, { botId: ctx.botId, threadId: ctx.threadId }); } }, edit);
       ctx.json(ctx.res, outcome.status, outcome.body);

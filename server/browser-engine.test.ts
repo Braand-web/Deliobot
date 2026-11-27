@@ -673,12 +673,12 @@ describe("finding the browser engine", () => {
   it("pins the native-verified Windows revision in both download and desktop manifests", () => {
     const asset = resolveAgentBrowserReleaseAsset("win32", "x64")!;
     expect(asset).toEqual({
-      target: "win32-x64", version: "0.36.0-omb.2",
-      asset: "agent-browser-win32-x64-0.36.0-odb.2.exe",
-      url: "https://deliobot.fun/vendor/browser-engine-v0.36.0-odb.2/agent-browser-win32-x64-0.36.0-odb.2.exe",
-      bytes: 13806080, sha256: "714d044c726d21b5194d54b777248c9586f6af220ec584fb29e1f5fb29c7edb8",
+      target: "win32-x64", version: "0.36.0-odb.3",
+      asset: "agent-browser-win32-x64-0.36.0-odb.3.exe",
+      url: "https://deliobot.fun/vendor/browser-engine-v0.36.0-odb.3/agent-browser-win32-x64-0.36.0-odb.3.exe",
+      bytes: 13806080, sha256: "6898744aa59e72a64fe0c3086f4e0ffd08d528f53779f69c0e1b47bbb3eb2ddf",
     });
-    expect(agentBrowserReleaseVersion(asset)).toBe("0.36.0-omb.2");
+    expect(agentBrowserReleaseVersion(asset)).toBe("0.36.0-odb.3");
     expect(browserBundleSpec("win32-x64").engine).toEqual({
       version: asset.version, asset: asset.asset, url: asset.url,
       bytes: asset.bytes, sha256: asset.sha256, executable: "agent-browser.exe",
@@ -692,20 +692,20 @@ describe("finding the browser engine", () => {
     const dataDir = join(tmpdir(), "odb-versioned-browser-fixture");
     const old = join(dataDir, "tools", "agent-browser", "0.36.0", "agent-browser.exe");
     const revised = pinnedBinaryPath(dataDir, "win32", "x64");
-    expect(revised).toBe(join(dataDir, "tools", "agent-browser", "0.36.0-omb.2", "agent-browser.exe"));
+    expect(revised).toBe(join(dataDir, "tools", "agent-browser", "0.36.0-odb.3", "agent-browser.exe"));
     const files = new Set([old]);
     const options = { dataDir, platform: "win32" as const, arch: "x64", env: { PATH: "" }, exists: (file: string) => files.has(file) };
     expect(resolveAgentBrowserBinary(options)).toBeNull();
     files.add(revised);
-    expect(browserEngineStatus(options)).toMatchObject({ kind: "ready", binaryPath: revised, version: "0.36.0-omb.2" });
+    expect(browserEngineStatus(options)).toMatchObject({ kind: "ready", binaryPath: revised, version: "0.36.0-odb.3" });
     expect(resolveAgentBrowserBinary({ ...options, env: { PATH: "", ODB_AGENT_BROWSER_PATH: old } })).toBe(old);
   });
 
   it("retains default upstream versions and permits a pinned platform-specific asset URL", () => {
     const official = resolveAgentBrowserReleaseAsset("linux", "x64")!;
     expect(agentBrowserReleaseVersion(official)).toBe(AGENT_BROWSER_VERSION);
-    const revised = { ...official, version: "0.36.0-omb.2", url: "https://example.invalid/releases/download/fixed/fixture.exe" };
-    expect(agentBrowserReleaseVersion(revised)).toBe("0.36.0-omb.2");
+    const revised = { ...official, version: "0.36.0-odb.3", url: "https://example.invalid/releases/download/fixed/fixture.exe" };
+    expect(agentBrowserReleaseVersion(revised)).toBe("0.36.0-odb.3");
     expect(agentBrowserReleaseUrl(revised)).toBe(revised.url);
   });
 

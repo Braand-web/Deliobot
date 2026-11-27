@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { IMAGE_DEFAULT_MODELS, IMAGE_PROVIDERS, looksLikeApiKey, supportsImageComplexity, normalizeImageGenerationUrl, type ImageGenerationConfig, type ImageProvider } from "../shared/image-generation.ts";
 import { decodeGeneratedImage } from "./generated-image.ts";
-import { autoImageModel, MEDIA_AUTO } from "./media-auto.ts";
+import { autoImageModel, editImageModel, MEDIA_AUTO } from "./media-auto.ts";
 import { createFalSchemaCache, FAL_QUEUE_URL, falQueueBase, falDownload, falError, falInput, falRun } from "./fal.ts";
 import { generateHiggsfieldImage, higgsfieldReady } from "./higgsfield-mcp.ts";
 
@@ -254,9 +254,13 @@ const IMAGE_DOWNLOAD_MAX_BYTES = 10 * 1024 * 1024;
 
 /** fal.ai answers with a URL on its media host, not inline data; `falDownload` holds that URL to fal's own hosts. */
 async function generateFalImage(key: string, baseUrl: string | undefined, slotModel: string, request: ImageRequest, fetchImpl: typeof fetch, timeoutMs: number, cancel?: AbortSignal): Promise<GeneratedImage> {
-  const model = slotModel === MEDIA_AUTO ? autoImageModel(request.prompt) : slotModel;
+  const { edit } = request;
+  const model = edit ? editImageModel(slotModel) : slotModel === MEDIA_AUTO ? autoImageModel(request.prompt) : slotModel;
   const fields = await falSchemas(model, { key, fetchImpl });
-  const result = await falRun(model, falInput(fields, { prompt: request.prompt, aspect: request.aspect ?? "1:1" }), { key, baseUrl, fetchImpl, timeoutMs, signal: cancel });
+  const input = falInput(fields, { prompt: edit?.markup ? `${request.prompt}\n\nThe second image marks where to change the first; the result keeps the first image's size and leaves out the marks.` : request.prompt,
+    ...(edit ? request.aspect ? { aspect: request.aspect } : {} : { aspect: request.aspect ?? "1:1" }) });
+  if (edit) input.image_urls = [edit.image, ...(edit.markup ? [edit.markup] : [])].map((image) => `data:${image.mime};base64,${Buffer.from(image.bytes).toString("base64")}`);
+  const result = await falRun(model, input, { key, baseUrl, fetchImpl, timeoutMs, signal: cancel });
   const images = Array.isArray(result.images) ? result.images : [];
   const url = images.map((image) => (image && typeof image === "object" ? (image as { url?: unknown }).url : undefined)).find((value): value is string => typeof value === "string");
   if (!url) throw falError(`fal.ai returned no image (model ${model})`, 502);

@@ -343,3 +343,46 @@ describe("a Custom gateway that accepts only size auto", () => {
     expect(fetchMock).toHaveBeenCalledOnce();
   });
 });
+
+describe("an image edit on fal.ai", () => {
+  const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", "base64");
+  function falFixture() {
+    const submitted: Array<{ url: string; body: Record<string, unknown> }> = [];
+    const fetchImpl = (async (input: string | URL | Request, init?: RequestInit) => {
+      const url = new URL(String(input));
+      if (url.host === "api.fal.ai") {
+        const model = url.searchParams.get("endpoint_id")!;
+        return Response.json({ models: [{ openapi: { paths: { [`/${model}`]: { post: { requestBody: { content: { "application/json": { schema: { $ref: "#/components/schemas/EditInput" } } } } } } },
+          components: { schemas: { EditInput: { properties: { prompt: { type: "string" }, image_urls: { type: "array" }, image_size: { type: "string" }, num_images: { type: "integer" } } } } } } }] });
+      }
+      if (url.host === "queue.fal.run" && init?.method === "POST") {
+        submitted.push({ url: url.pathname, body: JSON.parse(String(init.body)) });
+        return Response.json({ request_id: "r1", status_url: "https://queue.fal.run/req/r1/status", response_url: "https://queue.fal.run/req/r1" });
+      }
+      if (url.pathname.endsWith("/status")) return Response.json({ status: "COMPLETED" });
+      if (url.host === "queue.fal.run") return Response.json({ images: [{ url: "https://v3.fal.media/files/out.png" }] });
+      return new Response(PNG, { headers: { "content-type": "image/png" } });
+    }) as typeof fetch;
+    return { submitted, fetchImpl };
+  }
+  const source = { bytes: PNG, mime: "image/png" };
+
+  it("sends the image to the chosen model's edit endpoint and keeps its size", async () => {
+    const { submitted, fetchImpl } = falFixture();
+    const made = await generateImage({ fal: { key: "fal-key" }, imageGen: { primary: { provider: "fal", model: "openai/gpt-image-2" } } }, { prompt: "make the sky orange", edit: { image: source } }, { fetchImpl });
+    expect(made).toMatchObject({ provider: "fal", model: "openai/gpt-image-2/edit", mime: "image/png" });
+    expect(submitted).toHaveLength(1);
+    expect(submitted[0]!.url).toBe("/openai/gpt-image-2/edit");
+    expect(submitted[0]!.body).toMatchObject({ prompt: "make the sky orange", image_urls: [`data:image/png;base64,${PNG.toString("base64")}`] });
+    expect(submitted[0]!.body).not.toHaveProperty("image_size");
+  });
+
+  it("edits with Nano Banana Pro on Auto or a model that cannot edit, and sends the marks after the image", async () => {
+    const { submitted, fetchImpl } = falFixture();
+    await generateImage({ fal: { key: "fal-key" }, imageGen: { primary: { provider: "fal", model: "auto" } } }, { prompt: "remove the cup", edit: { image: source, markup: source } }, { fetchImpl });
+    await generateImage({ fal: { key: "fal-key" }, imageGen: { primary: { provider: "fal", model: "fal-ai/flux/schnell" } } }, { prompt: "brighter", edit: { image: source } }, { fetchImpl });
+    expect(submitted.map((call) => call.url)).toEqual(["/fal-ai/nano-banana-pro/edit", "/fal-ai/nano-banana-pro/edit"]);
+    expect(submitted[0]!.body.image_urls).toHaveLength(2);
+    expect(String(submitted[0]!.body.prompt)).toContain("The second image marks where to change the first");
+  });
+});
