@@ -33,7 +33,7 @@ export function organizePrompt(candidates: readonly MemoryEntryLine[], topics: s
     `Also move a work log that is finished or stale: a progress or status line about one task, ticket, pull request, release, deploy or errand that is done, merged, shipped or cancelled, or that was noted more than two weeks ago and has not changed since. File it under its project's topic when one fits, otherwise under "work-log".`,
     "Never move a rule or preference the person gave (\"always…\", \"never…\", \"from now on…\"), even when it names a project.",
     "When in doubt, keep the line in the notebook.",
-    "For each line to move, give its number, the topic, and aliases: two to five other words someone might use when asking about that subject.",
+    "For each line to move, give its number, the topic, and aliases: three to eight other words someone might use when asking about that subject, in the language the notes are written in and in English.",
     "Answer with one JSON object and nothing else:",
     '{"moves": [{"i": <number>, "topic": "name", "aliases": ["..."]}]}',
     'When every line is core, answer {"moves": []}.',

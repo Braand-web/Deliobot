@@ -113,7 +113,7 @@ export function capturePrompt(input: { botName: string; turns?: readonly Capture
     "",
     "Where each fact goes:",
     "- No topic: a core fact the assistant needs in every conversation — who the Person is, their core preferences, standing decisions.",
-    "- A topic: everything else, grouped by subject — a person (\"asha\"), a place, a project or client, a domain of preferences (\"food\", \"travel\"), their work. Reuse an existing topic name when one fits; otherwise name a new one in one or two words. Always give topicAliases: two to five other words someone might use when asking about that subject (for food: restaurants, dinner, lunch, cuisine; for a sister: family, sibling, her name).",
+    "- A topic: everything else, grouped by subject — a person (\"asha\"), a place, a project or client, a domain of preferences (\"food\", \"travel\"), their work. Reuse an existing topic name when one fits; otherwise name a new one in one or two words. Always give topicAliases: three to eight other words someone might use when asking about that subject, in the language the person writes in and in English, so a question in either finds it (for food: restaurants, dinner, cuisine, repas; for a sister: family, sibling, her name, sœur).",
     "",
     `Existing topics:\n${input.topics?.trim() || "(none yet)"}`,
     "",

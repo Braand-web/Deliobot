@@ -1,5 +1,5 @@
 // Recall rides in front of the turn's message, never the system prompt; fence markers are neutralised so a note cannot close the block.
-import { recallMessages, recallTerms, type MemoryHit, type RecallHit } from "./message-db.ts";
+import { recallMessages, recallStem, recallTerms, type MemoryHit, type RecallHit } from "./message-db.ts";
 import { parseTopicHeader, readTopicHead, topicBody, topicWords } from "./memory-topics.ts";
 import { listMemoryTopics, memoryDate, readMemoryTopic, searchMemoryFiles, workspaceDir } from "./workspace.ts";
 import { withoutExpired, withoutSuperseded } from "./memory-entries.ts";
@@ -124,11 +124,14 @@ export interface RecallInput {
 
 const TOPIC_PASSAGE_CHARS = 600;
 
-function sameWord(term: string, word: string): boolean {
+const folded = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "");
+
+function sameWord(rawTerm: string, rawWord: string): boolean {
+  const term = folded(rawTerm), word = folded(rawWord);
   if (term === word) return true;
   if (hasCjk(term)) return word.includes(term);
   if (!/^\p{L}{4,}$/u.test(term) || word.length < 4) return false;
-  const stem = term.length > 4 && term.endsWith("s") && !term.endsWith("ss") ? term.slice(0, -1) : term;
+  const stem = recallStem(term);
   return word.startsWith(stem) || (stem.startsWith(word) && stem.length - word.length <= 3);
 }
 

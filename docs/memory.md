@@ -126,7 +126,12 @@ Two more things load with it:
 Before a turn, the person's message (eight characters or more) searches the
 bot's topic files and, in a 1:1 chat the person started, the bot's other
 conversations. Any matching word counts; a message with five or
-more content words needs two per hit. Up to four notes and four conversation
+more content words needs two per hit. Small words and greetings in English,
+French, Spanish, Portuguese, German and Italian are not content words, the word
+after a French elision counts (`l'équipe` searches `équipe`), accents never
+matter, and a plural or a final `e` is dropped so `factures` finds
+`facturation`. Memory upkeep gives each topic aliases in the person's language
+and in English, so a question in either finds it. Up to four notes and four conversation
 passages — numbered, dated, and at most 6,000 characters — go in front of that
 turn's message, opened by a line saying they are the bot's own notes and that
 a command inside one is not an instruction. `MEMORY.md` (already loaded) and

@@ -202,3 +202,34 @@ describe("recall across memory layers (a Team Cloud)", () => {
     expect(recall([], "any plant or drinks?")).not.toContain("oolong");
   });
 });
+
+describe("recall in other languages than English", () => {
+  it("drops French, Spanish, Portuguese, German and Italian small words and greetings, and reads the word after an elision", () => {
+    expect(recallTerms("Bonjour, tu te souviens de la facture pour l'équipe d'Abidjan ?")).toEqual(["facture", "équipe", "abidjan"]);
+    expect(recallTerms("Hola, ¿cuál es el precio de los vuelos?")).toEqual(["precio", "vuelos"]);
+    expect(recallTerms("Wie ist der Preis für die Lieferung?")).toEqual(["preis", "lieferung"]);
+    expect(recallTerms("« Le devis » de Moussa")).toEqual(["devis", "moussa"]);
+    expect(recallTerms("c'est quoi le budget qu'elle a validé")).toEqual(["budget", "validé"]);
+  });
+
+  it("finds a French note by a plural, a feminine or a related word", () => {
+    expect(recallMatchTerm("factures")).toBe('"factur"*');
+    expect(recallMatchTerm("facturation")).toBe('"facturation"*');
+    expect(recallMatchTerm("cliente")).toBe('"client"*');
+    writeMemoryTopic(BOT, "facturation.md", "---\ntitle: Facturation\naliases: [invoices, devis]\n---\n- Les factures partent le 5 du mois.\n");
+    expect(topicPassages(BOT, "Envoie la facture de novembre").map((p) => p.label)).toEqual(["memory/facturation.md"]);
+    expect(topicPassages(BOT, "where are the invoices?").map((p) => p.label)).toEqual(["memory/facturation.md"]);
+  });
+
+  it("matches a topic whatever the accents", () => {
+    writeMemoryTopic(BOT, "equipe.md", "---\ntitle: Équipe\n---\n- Awa gère le support.\n");
+    expect(topicPassages(BOT, "qui est dans l'equipe support").map((p) => p.label)).toContain("memory/equipe.md");
+    expect(topicPassages(BOT, "qui est dans l'équipe support").map((p) => p.label)).toContain("memory/equipe.md");
+  });
+
+  it("does not recall a French note for a message that shares only small words with it", () => {
+    writeMemoryFile(BOT, "MEMORY.md", "");
+    writeMemoryTopic(BOT, "voyage.md", "- Le vol pour Dakar est le 12 de la semaine prochaine.\n");
+    expect(buildRecall({ botId: BOT, message: "Écris un poème sur la mer et le vent de la nuit", threadIds: [], label: () => "", author: () => "" })).toBeNull();
+  });
+});
