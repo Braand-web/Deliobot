@@ -10,9 +10,9 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { executableTarget } from "./prepare-cloudflared.mjs";
 import { bundleInventory, releaseBytes } from "./prepare-browser.mjs";
 
-export const WINDOWS_VENDOR_VERSION = "0.36.0-odb.4";
+export const WINDOWS_VENDOR_VERSION = "0.36.0-odb.5";
 /** What the binary prints for `--version`: the Cargo version the pinned patch sets. */
-export const WINDOWS_VENDOR_REPORTED_VERSION = "0.36.0-odb.4";
+export const WINDOWS_VENDOR_REPORTED_VERSION = "0.36.0-odb.5";
 export const WINDOWS_VENDOR_TARGET = "x86_64-pc-windows-gnu";
 export const WINDOWS_VENDOR_SOURCE = {
   commit: "eb05921bad874cd2a1b4fa5d1149f1ed26576cae",
@@ -21,7 +21,7 @@ export const WINDOWS_VENDOR_SOURCE = {
   bytes: 1904718,
   sha256: "ed24a72a5260d9c1ea454cd849c44159bac570a6939ac645e4c5bdb98a421646",
 };
-export const WINDOWS_VENDOR_PATCH_SHA256 = "7fdfc5a52d2d7e12b34d36d4740d85cfbba9c5c7ffa945a1b0c56b64263e321b";
+export const WINDOWS_VENDOR_PATCH_SHA256 = "dc1c66716e87ed7a0f12a6cb3c052232231cc33ef60f9a73e4c340f3038c79bf";
 export const WINDOWS_VENDOR_RUST = "1.97.1";
 export const WINDOWS_VENDOR_PNPM = "11.1.3";
 const repository = fileURLToPath(new URL("../", import.meta.url));

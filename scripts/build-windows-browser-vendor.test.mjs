@@ -11,7 +11,7 @@ describe("reviewed Windows browser dependency build", () => {
     expect(WINDOWS_VENDOR_SOURCE.commit).toBe("eb05921bad874cd2a1b4fa5d1149f1ed26576cae");
     expect(WINDOWS_VENDOR_SOURCE.url).toContain(WINDOWS_VENDOR_SOURCE.commit);
     expect(WINDOWS_VENDOR_TARGET).toBe("x86_64-pc-windows-gnu");
-    expect(WINDOWS_VENDOR_VERSION).toBe("0.36.0-odb.4");
+    expect(WINDOWS_VENDOR_VERSION).toBe("0.36.0-odb.5");
     expect(WINDOWS_VENDOR_RUST).toBe("1.97.1");
     expect(WINDOWS_VENDOR_PNPM).toBe("11.1.3");
     expect(WINDOWS_VENDOR_PATCH_SHA256).toMatch(/^[0-9a-f]{64}$/);

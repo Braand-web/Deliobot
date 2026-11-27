@@ -1,15 +1,16 @@
-Deliobot Windows vendor revision 0.36.0-odb.4.
+Deliobot Windows vendor revision 0.36.0-odb.5.
 Base: vercel-labs/agent-browser eb05921bad874cd2a1b4fa5d1149f1ed26576cae.
 Carries the Windows handle-inheritance fix from upstream PR1781,
 commit 81a98c349d04195396ffae6898bd375ad64280de, and CREATE_NO_WINDOW
 for Chrome children with a native Windows regression test. Keeps a live
 daemon whose .version a concurrent CLI removed, and gives a busy Windows
 machine's daemon 500 ms to accept before judging it gone and 10 s for a
-daemon another call is starting to write its configuration.
+daemon another call is starting to write its configuration. A kept profile
+whose cookie store predates the daemon is not overwritten by the saved state.
 The MCP output-reader rewrite is not included.
 
 diff --git a/cli/Cargo.lock b/cli/Cargo.lock
-index c33ca2a..f2feeff 100644
+index c33ca2a..9c0704f 100644
 --- a/cli/Cargo.lock
 +++ b/cli/Cargo.lock
 @@ -45,7 +45,7 @@ dependencies = [
@@ -17,12 +18,12 @@ index c33ca2a..f2feeff 100644
  [[package]]
  name = "agent-browser"
 -version = "0.36.0"
-+version = "0.36.0-odb.4"
++version = "0.36.0-odb.5"
  dependencies = [
   "aes-gcm",
   "async-trait",
 diff --git a/cli/Cargo.toml b/cli/Cargo.toml
-index 2e151ed..ff0ea05 100644
+index 2e151ed..460dc01 100644
 --- a/cli/Cargo.toml
 +++ b/cli/Cargo.toml
 @@ -1,6 +1,7 @@
@@ -30,7 +31,7 @@ index 2e151ed..ff0ea05 100644
  [package]
  name = "agent-browser"
 -version = "0.36.0"
-+version = "0.36.0-odb.4"
++version = "0.36.0-odb.5"
  edition = "2021"
  description = "Fast browser automation CLI for AI agents"
  license = "Apache-2.0"
@@ -172,6 +173,77 @@ index 2a0d82f..bf3fb34 100644
          cmd.creation_flags(CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS);
      }
  
+diff --git a/cli/src/native/actions.rs b/cli/src/native/actions.rs
+index 4b33319..a13861d 100644
+--- a/cli/src/native/actions.rs
++++ b/cli/src/native/actions.rs
+@@ -3976,7 +3976,39 @@ fn no_xvfb_from_launch_cmd(cmd: &Value) -> bool {
+         .unwrap_or_else(no_xvfb_from_env)
+ }
+ 
++/// Modified by Deliobot: a kept Chrome profile whose cookie store existed before this daemon started already holds the
++/// session's own, newer cookies. Loading the saved state over it put back Google's previous rotating session cookies,
++/// and Google signed the account out at every restart.
++static DAEMON_STARTED: std::sync::OnceLock<std::time::SystemTime> = std::sync::OnceLock::new();
++
++/// Modified by Deliobot: called first thing when the daemon starts, before any Chrome it launches writes its profile.
++pub fn note_daemon_started() {
++    DAEMON_STARTED.get_or_init(std::time::SystemTime::now);
++}
++
++fn profile_keeps_own_cookies() -> bool {
++    let started = *DAEMON_STARTED.get_or_init(std::time::SystemTime::now);
++    let Some(profile) = env::var("AGENT_BROWSER_PROFILE").ok().filter(|value| !value.trim().is_empty()) else {
++        return false;
++    };
++    let root = PathBuf::from(profile).join("Default");
++    [root.join("Network").join("Cookies"), root.join("Cookies")].iter().any(|path| {
++        fs::metadata(path)
++            .ok()
++            .and_then(|meta| meta.created().or_else(|_| meta.modified()).ok())
++            .is_some_and(|made| made < started)
++    })
++}
++
+ async fn try_auto_restore_state(state: &mut DaemonState) {
++    if profile_keeps_own_cookies() {
++        state.restore_status = "profile".to_string();
++        state.restore_status_detail = None;
++        state.restore_loaded_path = None;
++        state.restore_load_failed = false;
++        state.restore_validation_pending = false;
++        return;
++    }
+     let session_name = match state.session_name.as_deref() {
+         Some(n) if !n.is_empty() => n.to_string(),
+         _ => {
+@@ -12002,6 +12034,26 @@ fn attach_tab_gone_data(resp: &mut Value, state: &DaemonState) {
+ 
+ #[cfg(test)]
+ mod tests {
++    // Modified by Deliobot: a kept profile's own cookie store wins over the saved state.
++    #[test]
++    fn profile_keeps_own_cookies_only_with_a_cookie_store() {
++        let _guard = crate::test_utils::EnvGuard::new(&["AGENT_BROWSER_PROFILE"]);
++        let root = std::env::temp_dir().join(format!("odb-profile-{}", std::process::id()));
++        let _ = std::fs::remove_dir_all(&root);
++        let kept = root.join("kept");
++        std::fs::create_dir_all(kept.join("Default").join("Network")).unwrap();
++        std::fs::write(kept.join("Default").join("Network").join("Cookies"), b"").unwrap();
++        std::thread::sleep(std::time::Duration::from_millis(20));
++        super::note_daemon_started();
++        _guard.set("AGENT_BROWSER_PROFILE", kept.to_str().unwrap());
++        assert!(super::profile_keeps_own_cookies(), "a profile with its own cookies keeps them");
++        let fresh = root.join("fresh");
++        std::fs::create_dir_all(fresh.join("Default")).unwrap();
++        _guard.set("AGENT_BROWSER_PROFILE", fresh.to_str().unwrap());
++        assert!(!super::profile_keeps_own_cookies(), "an empty profile takes the saved state");
++        let _ = std::fs::remove_dir_all(&root);
++    }
++
+     use super::super::cdp::types::{AXNode, AXValue};
+     use super::*;
+     use crate::test_utils::EnvGuard;
 diff --git a/cli/src/native/cdp/chrome.rs b/cli/src/native/cdp/chrome.rs
 index 864e8c6..9e0995f 100644
 --- a/cli/src/native/cdp/chrome.rs
@@ -238,3 +310,16 @@ index 864e8c6..9e0995f 100644
      use super::*;
      use crate::test_utils::EnvGuard;
  
+diff --git a/cli/src/native/daemon.rs b/cli/src/native/daemon.rs
+index 28689d2..81d6d88 100644
+--- a/cli/src/native/daemon.rs
++++ b/cli/src/native/daemon.rs
+@@ -21,6 +21,8 @@ use super::stream::{IdleActivity, StreamServer};
+ use crate::connection::INTERNAL_DAEMON_SHUTDOWN_ACTION;
+ 
+ pub async fn run_daemon(session: &str) {
++    // Modified by Deliobot: see actions::profile_keeps_own_cookies.
++    super::actions::note_daemon_started();
+     let socket_dir = get_daemon_socket_dir();
+     if !socket_dir.exists() {
+         let _ = fs::create_dir_all(&socket_dir);
