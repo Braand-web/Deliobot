@@ -11,7 +11,7 @@ The desktop application ships two separate components:
   is no root-level NOTICE in that tag. All six official macOS/Linux binaries
   were downloaded and their SHA-256 digests checked against GitHub's release
   metadata on 2026-11-25.
-- **Windows exception: agent-browser 0.36.0-odb.4** is a Deliobot vendor
+- **Windows exception: agent-browser 0.36.0-odb.5** is a Deliobot vendor
   build, not an official or unmodified Vercel executable. It starts from exact
   v0.36.0 commit `eb05921bad874cd2a1b4fa5d1149f1ed26576cae` and carries
   the Windows handle-inheritance fix contributed by `holny` in upstream
@@ -20,7 +20,8 @@ The desktop application ships two separate components:
   `CREATE_NO_WINDOW` flag for Chrome children with a native console regression
   test, a 500 ms daemon reachability check on Windows, and a live daemon kept
   when its `.version` file is missing (written back instead of restarting),
-  and 10 s for a daemon another call is starting to write its configuration.
+  and 10 s for a daemon another call is starting to write its configuration,
+  and a kept profile's own cookies are not overwritten by the saved state.
   The separate MCP output-reader
   rewrite is deliberately excluded. `agent-browser-windows-stdio.patch`
   includes the exact changes and modification notices, plus package-version

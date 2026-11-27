@@ -45,10 +45,10 @@ const RELEASES = new Map<string, AgentBrowserReleaseAsset>([
       // Upstream 0.39.0 still lacks vercel-labs/agent-browser#1781's Windows cold-start fix.
       // Retain the native-verified revision until its replacement is tested.
       // The version the binary reports about itself (`agent-browser --version`), set when it was built upstream.
-      target: "win32-x64", version: "0.36.0-odb.4",
-      asset: "agent-browser-win32-x64-0.36.0-odb.4.exe",
-      url: "https://deliobot.fun/vendor/browser-engine-v0.36.0-odb.4/agent-browser-win32-x64-0.36.0-odb.4.exe",
-      sha256: "5a3d40d0570b02ba07fc3ed3238be5ee1b0b6f659d3ac77c8f1ae2c79827afbd", bytes: 13806080,
+      target: "win32-x64", version: "0.36.0-odb.5",
+      asset: "agent-browser-win32-x64-0.36.0-odb.5.exe",
+      url: "https://deliobot.fun/vendor/browser-engine-v0.36.0-odb.5/agent-browser-win32-x64-0.36.0-odb.5.exe",
+      sha256: "5e348c43883d07bbf0a1e0acebecc88cf0370fd507c5a7a2cc46109253e718e1", bytes: 13808640,
     },
   ],
 ]);
