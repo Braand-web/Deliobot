@@ -32,6 +32,7 @@ import {
 import { localizedRelativeTime } from "@/lib/relative-time";
 import { shortPath } from "@/lib/short-path";
 import { activeLocale, t } from "@/lib/i18n";
+import type { LocaleKey } from "@/locales";
 import { delioMemoryRelayEnabled, roomMemoryCaptureEnabled } from "@/lib/feature-flags";
 import { api, ApiError, type Bot, type ConfigStatus } from "@/state/store";
 import { Switch } from "../SettingsPrimitives";
@@ -734,7 +735,7 @@ export function MemoryJournalList({
 }
 
 type FeatureSwitch = "roomMemoryCapture" | "delioMemoryRelay";
-const FEATURE_ERROR: Record<FeatureSwitch, string> = {
+const FEATURE_ERROR: Record<FeatureSwitch, LocaleKey> = {
   roomMemoryCapture: "memory.learnFromRooms.error",
   delioMemoryRelay: "memory.delioRelay.error",
 };
