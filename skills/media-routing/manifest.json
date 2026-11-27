@@ -1,0 +1,27 @@
+{
+  "id": "media-routing",
+  "name": "Media routing",
+  "version": "1.0.0",
+  "description": "Pick how to make each image, video, music or voice: code, a model or both, the model, a cost cap and a fallback.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "fais-moi une vidéo",
+    "fais une vidéo",
+    "crée une vidéo",
+    "génère une vidéo",
+    "quel modèle",
+    "meilleur modèle",
+    "motion design",
+    "vidéo réaliste",
+    "moins cher",
+    "coûte trop",
+    "make me a video",
+    "make a video",
+    "which model",
+    "best model",
+    "cheapest model",
+    "realistic video",
+    "video ad"
+  ],
+  "requiredCapabilities": []
+}

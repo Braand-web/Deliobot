@@ -1,0 +1,29 @@
+{
+  "id": "app-build-deploy",
+  "name": "Build and deploy apps",
+  "version": "1.0.0",
+  "description": "Build a real website, web app or mobile app with the person, run and check it, then put it online and check the live link.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "crée un site",
+    "créer un site",
+    "fais un site",
+    "site web",
+    "application web",
+    "appli web",
+    "application mobile",
+    "appli mobile",
+    "crée une application",
+    "crée une appli",
+    "mets en ligne",
+    "mettre en ligne",
+    "build a website",
+    "make a website",
+    "build an app",
+    "web app",
+    "mobile app",
+    "landing page",
+    "deploy my app"
+  ],
+  "requiredCapabilities": []
+}

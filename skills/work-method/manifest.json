@@ -1,0 +1,24 @@
+{
+  "id": "work-method",
+  "name": "Autonomous work method",
+  "version": "1.0.0",
+  "description": "How to take a request to a verified result alone: ask only what matters, check facts, remember, plan, delegate, check quality.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "en autonomie",
+    "en toute autonomie",
+    "prends en charge",
+    "occupe-toi de tout",
+    "gère tout",
+    "de a à z",
+    "je te confie",
+    "sans me demander",
+    "travaille seul",
+    "autonomously",
+    "take care of everything",
+    "handle it all",
+    "end to end",
+    "on your own"
+  ],
+  "requiredCapabilities": []
+}

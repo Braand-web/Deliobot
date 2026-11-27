@@ -27,6 +27,10 @@ describe("built-in skills a bot finds by itself", () => {
     expect(picked("ouvre une pr sur le dépôt github avec le correctif")).toContain("github-pull-requests");
     expect(picked("fais un tableau de bord des ventes")).toContain("data-dashboards");
     expect(picked("rédige un post linkedin sur notre lancement")).toContain("social-posts");
+    expect(picked("reste connecté à ma chaîne youtube, la session a expiré")).toContain("permanent-logins");
+    expect(picked("fais-moi une vidéo de mon produit avec le prix affiché")).toContain("media-routing");
+    expect(picked("crée un site pour mon restaurant et mets-le en ligne")).toContain("app-build-deploy");
+    expect(picked("je te confie ma page facebook, gère tout en autonomie")).toContain("work-method");
     expect(picked("bonjour, comment vas-tu ?")).toEqual([]);
   });
 });

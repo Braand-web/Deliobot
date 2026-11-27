@@ -1,0 +1,32 @@
+{
+  "id": "permanent-logins",
+  "name": "Permanent logins",
+  "version": "1.0.0",
+  "description": "Keep the person's accounts signed in for good in the bot browser: one sign-in, never sign out, a logins register.",
+  "defaultEnabled": true,
+  "triggerTerms": [
+    "reste connecté",
+    "rester connecté",
+    "garde la session",
+    "session expirée",
+    "déconnecté",
+    "se reconnecter",
+    "reconnecte-toi",
+    "connexion permanente",
+    "connexions permanentes",
+    "plusieurs comptes",
+    "plusieurs chaînes",
+    "registre des connexions",
+    "code de vérification",
+    "stay signed in",
+    "stay logged in",
+    "keep me logged in",
+    "logged out",
+    "signed out",
+    "session expired",
+    "log back in",
+    "sign in again",
+    "multiple accounts"
+  ],
+  "requiredCapabilities": []
+}
