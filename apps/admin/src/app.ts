@@ -19,6 +19,7 @@ import { Hosting, hostingRunner, RESERVED_SLUGS, socketFleet, type Fleet } from 
 import { Billing, DEFAULT_XOF_PER_USD, PAYMENT_WINDOW_DAYS, PLANS, reconcileOrders, TOPUPS, TRIAL_DAYS, type Cycle, type PlanId, type TopupId } from "./plans.ts";
 import { createSasPay, verifySasPayWebhook } from "./saspay.ts";
 import { Reports } from "./reports.ts";
+import { MemoryBackups } from "./memory-backups.ts";
 import { MICRO, Wallet } from "./wallet.ts";
 import { consoleServes, createConsole } from "./console/routes.ts";
 import { Traffic, type VisitInput } from "./traffic.ts";
@@ -264,6 +265,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       message: `Forfait ${PLANS[subscription.plan].name} activé jusqu'au ${until}${credits > 0 ? `, avec ${credits.toLocaleString("fr-FR")} crédits` : ""}.` };
   }
   const reports = new Reports(store.db, now);
+  const memoryBackups = new MemoryBackups(store.db, now);
   const paymentChecks = new Map<string, { at: number; running: Promise<void> | null }>();
   async function refreshPayments(workspace: string): Promise<void> {
     if (!saspay) return;
@@ -311,6 +313,7 @@ export function createAdminApp(options: AdminAppOptions): AdminApp {
       const outcome = redeemPromo(slug, email ?? store.members(slug)[0]?.email ?? "", normalizeCode(code).slice(0, 40));
       return outcome.ok ? outcome : { ok: false, error: outcome.error };
     },
+    memoryBackups,
     allowance: (slug) => plans.allowance(slug), refreshAccount, isAmbassador: (email) => Boolean(email) && ambassadors.byEmail(email)?.status === "active", paymentVersion: slug => plans.paidCount(slug),
     ...(sites ? { hosting: sites } : {}) });
 

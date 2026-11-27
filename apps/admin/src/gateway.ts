@@ -1,6 +1,7 @@
 // The paid door to AI providers for hosted workspaces and connected apps: each request names its workspace and carries
 // that workspace's token, is held against its credits, runs with the operator's provider key, and is charged its real cost.
 // Security: provider keys never leave this process, and a workspace only ever reaches its own fal.ai jobs.
+import { MAX_MEMORY_BACKUP_BYTES, type MemoryBackups } from "./memory-backups.ts";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 import type { AppHosting } from "./app-hosting.ts";
@@ -43,6 +44,8 @@ export interface GatewayOptions {
   elevenlabsUrl?: string;
   /** Included app hosting; absent where no bucket is bound. */
   hosting?: AppHosting;
+  /** The bots' memory the workspace's apps send, for another computer on the same account. */
+  memoryBackups?: MemoryBackups;
   /** Applies a promo code a signed-in app entered for its workspace. */
   redeemPromo?: (workspace: string, email: string | null, code: string) => PromoRedemption;
   /** What the workspace's plan allows: spending Deliobot credits, and cloud computers awake at once. */
@@ -401,13 +404,14 @@ export function createGateway(options: GatewayOptions) {
   return {
     /** Charges cloud computers' awake minutes; run once a minute. */
     sweep: () => { fishVoice.sweep(); return boat.sweep(); },
-    /** Handles /api/gateway/<workspace>/<provider>/… and /api/workspace/<workspace>/{account,report,promo}; false for any other path. */
+    /** Handles /api/gateway/<workspace>/<provider>/… and /api/workspace/<workspace>/{account,report,promo,memory}; false for any other path. */
     async handle(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
       const gateway = /^\/api\/gateway\/([a-z][a-z0-9-]{1,30})\/(openrouter\/v1|fal|boat\/v1|elevenlabs\/v1|fish|hosting\/v1|anthropic|openai\/v1)\/(.+)$/.exec(url.pathname);
       const account = /^\/api\/workspace\/([a-z][a-z0-9-]{1,30})\/account$/.exec(url.pathname);
       const report = /^\/api\/workspace\/([a-z][a-z0-9-]{1,30})\/report$/.exec(url.pathname);
       const promo = /^\/api\/workspace\/([a-z][a-z0-9-]{1,30})\/promo$/.exec(url.pathname);
-      const requested = gateway?.[1] ?? account?.[1] ?? report?.[1] ?? promo?.[1];
+      const memory = /^\/api\/workspace\/([a-z][a-z0-9-]{1,30})\/memory(?:\/(latest|[A-Za-z0-9_-]{6,40}))?$/.exec(url.pathname);
+      const requested = gateway?.[1] ?? account?.[1] ?? report?.[1] ?? promo?.[1] ?? memory?.[1];
       if (!requested) return false;
       const presented = bearer(req);
       const device = options.deviceAccount?.(presented, requested);
@@ -425,6 +429,27 @@ export function createGateway(options: GatewayOptions) {
         const kept = options.report({ workspace, email: device?.email ?? options.deviceEmail?.(presented, requested) ?? null, note: text("note"), transcript: text("transcript"),
           bot: text("bot"), appVersion: text("appVersion"), platform: text("platform") });
         if (kept) send(res, 200, { received: true }); else failure(res, 429, "Too many reports today. Write to support instead.");
+        return true;
+      }
+      if (memory) {
+        const backups = options.memoryBackups;
+        if (!backups) { failure(res, 503, "Memory backups are not available."); return true; }
+        if (req.method === "PUT" && !memory[2]) {
+          const saved = backups.save(workspace, new Uint8Array(await readRaw(req, MAX_MEMORY_BACKUP_BYTES)), {
+            bots: Number(url.searchParams.get("bots") ?? 0), device: url.searchParams.get("device") ?? "" });
+          if (saved.ok) send(res, 200, { backup: saved.backup }); else failure(res, saved.status, saved.error, "memory_backup_refused");
+          return true;
+        }
+        if (req.method !== "GET") { failure(res, 405, "Method not allowed."); return true; }
+        if (!memory[2]) { send(res, 200, { backups: backups.list(workspace) }); return true; }
+        const found = backups.read(workspace, memory[2] === "latest" ? undefined : memory[2]);
+        if (!found) { failure(res, 404, "No memory backup yet."); return true; }
+        res.statusCode = 200;
+        res.setHeader("content-type", "application/gzip");
+        res.setHeader("cache-control", "no-store");
+        res.setHeader("x-backup-id", found.id);
+        res.setHeader("x-backup-at", String(found.at));
+        res.end(found.gzip);
         return true;
       }
       if (promo) {

@@ -346,3 +346,30 @@ describe("a promo code entered in the app", () => {
   });
 });
 
+
+describe("the bots' memory kept in the account", () => {
+  it("keeps the newest five copies a workspace's app sends and gives them back only to that workspace", async () => {
+    const { gzipSync, gunzipSync } = await import("node:zlib");
+    const clock = { now: Date.UTC(2026, 10, 27, 10) };
+    const target = await portal(upstreams(), clock);
+    const token = await target.workspace("acme", 0);
+    const other = await target.workspace("other", 0);
+    const memory = (path: string, slug: string, bearer: string, init: RequestInit = {}) =>
+      fetch(new URL(`/api/workspace/${slug}/memory${path}`, target.origin), { ...init, headers: { authorization: `Bearer ${bearer}`, ...init.headers as Record<string, string> } });
+    expect((await memory("/latest", "acme", token)).status).toBe(404);
+    expect((await memory("?bots=1", "acme", token, { method: "PUT", body: "not gzip" })).status).toBe(400);
+    for (let n = 1; n <= 6; n++) {
+      clock.now += 60_000;
+      const sent = await memory(`?bots=${n}&device=PC%20de%20Awa`, "acme", token, { method: "PUT", body: gzipSync(JSON.stringify({ copy: n })) });
+      expect(sent.status).toBe(200);
+    }
+    const listed = (await (await memory("", "acme", token)).json()) as { backups: Array<{ bots: number; device: string }> };
+    expect(listed.backups.map((backup) => backup.bots)).toEqual([6, 5, 4, 3, 2]);
+    expect(listed.backups[0]!.device).toBe("PC de Awa");
+    const latest = await memory("/latest", "acme", token);
+    expect(latest.headers.get("content-type")).toBe("application/gzip");
+    expect(JSON.parse(gunzipSync(Buffer.from(await latest.arrayBuffer())).toString("utf8"))).toEqual({ copy: 6 });
+    expect((await memory("/latest", "acme", other)).status).toBe(401);
+    expect((await memory("/latest", "other", other)).status).toBe(404);
+  });
+});

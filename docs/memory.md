@@ -506,6 +506,35 @@ On a Team Cloud each person also reaches what a bot remembers about them, their 
 save and remove one of its files as above. Nobody reaches another person's layer. The bot panel's **What it
 remembers** shows these notes on a team.
 
+## Memory in the Delio account
+
+With a Delio account connected, **Settings → Delio account → Memory in my
+account** keeps a copy of the bots' memory in the account: each bot's
+`MEMORY.md`, topic files and the last 30 days of daily logs, its name and
+instructions, About me, and the accepted team memory. The copy is sent five
+minutes after the app starts and then every six hours, only when something
+changed, scrubbed of secrets and gzip-compressed; when it is too large, the
+oldest daily logs are left out first. The account keeps the five newest copies
+(at most 1.35 MB each) and gives them only to a device signed in to the same
+workspace. `features.delioMemoryBackup: false` stops the copies.
+
+**Restore on this computer** merges the newest copy in and never deletes
+anything: a bot is matched by its id, then by its name, and created when this
+computer has none; each note file keeps its own lines and gains the copy's
+missing ones; a daily log is added only when this computer lacks that day;
+About me gains the missing lines; team memory gains the entries it lacks. It
+runs on a desktop or a personal computer only, never on a Cloud home, a Team
+Cloud or a hosted workspace.
+
+| Method | Route | What it does |
+| --- | --- | --- |
+| `GET` | `/api/delio/memory` | Whether copies are on, the last copy or failure, and the copies in the account. |
+| `POST` | `/api/delio/memory/backup` | Sends a copy now, changed or not. |
+| `POST` | `/api/delio/memory/restore` | `{ id? }` — merges the newest copy, or the one named, into this computer. |
+
+On the portal they are `GET`, `PUT /api/workspace/<workspace>/memory` and
+`GET /api/workspace/<workspace>/memory/{latest,<id>}`, with the device token.
+
 ## The memory every bot shares
 
 Team memory's **General** list is the memory every bot reads: a bot with no
